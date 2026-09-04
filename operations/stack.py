@@ -2750,6 +2750,78 @@ def _previous_generation_identity(target, runner, current: dict) -> tuple[dict, 
     return identity, state
 
 
+def _staging_abort_neutralization(target, runner, current: dict) -> dict:
+    """Re-prove that an admitted staging candidate still has no external writers."""
+    if target.value["environment"] != "staging":
+        raise RuntimeError("staging neutralization proof is staging-only")
+    if target.value["cron_policy"].get("mode") != "neutralized":
+        raise RuntimeError("staging cron policy is not neutralized")
+    try:
+        rendered = json.loads(
+            runner.run(compose_command(current["compose"], ["config", "--format", "json"])).stdout,
+        )
+        services = rendered["services"]
+        odoo = services[target.value["services"]["odoo"]]["environment"]
+        paperless = services[target.value["services"]["paperless"]]["environment"]
+        if not isinstance(odoo, dict) or not isinstance(paperless, dict):
+            raise TypeError("service environment is not a mapping")
+    except (KeyError, TypeError, json.JSONDecodeError) as error:
+        raise RuntimeError("staging neutralization Compose evidence is invalid") from error
+    paperless_disabled = {
+        name: paperless.get(name) == "disable"
+        for name in (
+            "PAPERLESS_EMAIL_TASK_CRON",
+            "PAPERLESS_EMPTY_TRASH_TASK_CRON",
+            "PAPERLESS_SHARE_LINK_BUNDLE_CLEANUP_CRON",
+            "PAPERLESS_WORKFLOW_SCHEDULED_TASK_CRON",
+        )
+    }
+    try:
+        database = json.loads(_psql(
+            target,
+            runner,
+            current["compose"],
+            "odoo",
+            """
+            SELECT json_build_object(
+                'database_neutralized', COALESCE((
+                    SELECT lower(value) IN ('1', 'true')
+                    FROM ir_config_parameter
+                    WHERE key = 'database.is_neutralized'
+                ), false),
+                'active_crons', (SELECT count(*) FROM ir_cron WHERE active),
+                'active_fetchmail', (SELECT count(*) FROM fetchmail_server WHERE active),
+                'pending_mail', (
+                    SELECT count(*) FROM mail_mail
+                    WHERE state IN ('outgoing', 'exception')
+                )
+            )::text
+            """,
+        ))
+    except (TypeError, json.JSONDecodeError) as error:
+        raise RuntimeError("staging neutralization database evidence is invalid") from error
+    checks = {
+        "deployment_is_staging": odoo.get("USL_DEPLOYMENT_ENV") == "staging",
+        "einvoice_disabled": odoo.get("USL_EINVOICE_LIVE_ENABLED") == "0",
+        "ereporting_disabled": odoo.get("USL_EREPORTING_LIVE_ENABLED") == "0",
+        "database_neutralized": database.get("database_neutralized") is True,
+        "active_crons_absent": database.get("active_crons") == 0,
+        "active_fetchmail_absent": database.get("active_fetchmail") == 0,
+        "pending_mail_absent": database.get("pending_mail") == 0,
+        "paperless_external_tasks_disabled": all(paperless_disabled.values()),
+    }
+    if not all(checks.values()):
+        raise RuntimeError(
+            "staging admission is no longer neutralized: "
+            + ", ".join(key for key, value in checks.items() if not value),
+        )
+    return {
+        "schema": "usl-staging-neutralization/v1",
+        **checks,
+        "status": "passed",
+    }
+
+
 def _abort_to_previous_generation(
     target,
     runner,
@@ -2759,14 +2831,42 @@ def _abort_to_previous_generation(
 ) -> dict:
     """Restore and prove the untouched pre-reopen runtime generation."""
     marker = f"{Path(target.value['state_directory']).parents[1]}/gateway/{target.name}/maintenance"
-    if runner.run(["test", "-f", marker], check=False).returncode:
+    if attempt is not None:
+        if not isinstance(attempt, str) or not RELEASE_ATTEMPT.fullmatch(attempt):
+            raise RuntimeError("release abort attempt identity is invalid")
+        try:
+            maintenance_marker = json.loads(_read_path(target, runner, Path(marker)))
+        except json.JSONDecodeError as error:
+            raise RuntimeError("release abort maintenance marker is invalid") from error
+        if not isinstance(maintenance_marker, dict):
+            raise RuntimeError("release abort maintenance marker is invalid")
+        required_marker = {"schema", "target", "attempt", "enabled_at", "sha256"}
+        marker_body = {
+            key: value for key, value in maintenance_marker.items() if key != "sha256"
+        }
+        try:
+            marker_time = datetime.fromisoformat(
+                str(maintenance_marker.get("enabled_at", "")).replace("Z", "+00:00"),
+            )
+        except ValueError as error:
+            raise RuntimeError("release abort maintenance marker is invalid") from error
+        if (
+            set(maintenance_marker) != required_marker
+            or maintenance_marker.get("schema") != "usl-maintenance-marker/v1"
+            or maintenance_marker.get("target") != target.name
+            or maintenance_marker.get("attempt") != attempt
+            or marker_time.tzinfo is None
+            or maintenance_marker.get("sha256") != hashlib.sha256(
+                json.dumps(marker_body, sort_keys=True, separators=(",", ":")).encode(),
+            ).hexdigest()
+        ):
+            raise RuntimeError("release abort maintenance marker is invalid")
+    elif runner.run(["test", "-f", marker], check=False).returncode:
         raise RuntimeError("runtime rollback is allowed only while the gateway is in maintenance")
     current = inspect_runtime(target, runner)
     generation = current.get("generation")
     claim = None
     if attempt is not None:
-        if not isinstance(attempt, str) or not RELEASE_ATTEMPT.fullmatch(attempt):
-            raise RuntimeError("release abort attempt identity is invalid")
         claim_path = f"{target.value['state_directory']}/attempts/{attempt}/claim.json"
         try:
             claim_value = json.loads(_read_path(target, runner, Path(claim_path)))
@@ -2799,16 +2899,44 @@ def _abort_to_previous_generation(
             != f"{target.value['state_directory']}/generations/{generation}/usl-release.json"
         ):
             raise RuntimeError("release abort candidate identity differs from its claim")
+    neutralization = None
     if isinstance(generation, str):
         generation_root = f"{target.value['state_directory']}/generations/{generation}"
-        for boundary in ("activation-started.json", "admission.json"):
-            if runner.run(
-                ["test", "-f", f"{generation_root}/{boundary}"],
-                check=False,
-            ).returncode == 0:
+        activation_started = runner.run(
+            ["test", "-f", f"{generation_root}/activation-started.json"],
+            check=False,
+        ).returncode == 0
+        admission_raw = runner.run(
+            ["cat", f"{generation_root}/admission.json"], check=False,
+        )
+        if target.name == "production":
+            if activation_started or admission_raw.returncode == 0:
                 raise RuntimeError(
                     "release crossed the forward-only boundary and cannot be rolled back automatically",
                 )
+        elif activation_started:
+            raise RuntimeError("staging has an unexpected production forward-only boundary")
+        elif admission_raw.returncode == 0:
+            if claim is None or attempt is None:
+                raise RuntimeError("staging admission rollback requires an exact release attempt")
+            try:
+                admission = _validate_release_boundary_receipt(
+                    json.loads(admission_raw.stdout),
+                    schema="usl-release-admission/v1",
+                    status="admitted",
+                    target=target,
+                    attempt=attempt,
+                    release=claim["candidate_release"],
+                )
+            except json.JSONDecodeError as error:
+                raise RuntimeError("staging admission receipt is invalid") from error
+            _require_same_attempt_boundary(
+                claim,
+                admission,
+                generation=generation,
+                snapshot=claim["snapshot"],
+            )
+            neutralization = _staging_abort_neutralization(target, runner, current)
     previous_identity, previous_state = _previous_generation_identity(target, runner, current)
     cohort_services = sorted(set(target.value["services"].values()))
     runner.run(
@@ -2831,7 +2959,7 @@ def _abort_to_previous_generation(
         generation = json.loads(previous_state)["generation"]
     health = _gate(health_command, target, targets)
     smoke = _gate(smoke_command, target, targets)
-    return {
+    result = {
         "schema": "usl-release-abort/v1",
         "target": target.name,
         "attempt": attempt,
@@ -2840,6 +2968,9 @@ def _abort_to_previous_generation(
         "smoke": smoke,
         "status": "rolled-back",
     }
+    if neutralization is not None:
+        result["neutralization"] = neutralization
+    return result
 
 
 def _validate_materialized_release(
@@ -4108,12 +4239,6 @@ def release_command(arguments: argparse.Namespace) -> int:
                 controller_state = abort_release_state(parse_release_state(state.stdout))
             except ReleaseControllerError as error:
                 raise RuntimeError(str(error)) from error
-            _write_remote(
-                target,
-                runner,
-                state_path,
-                json.dumps(controller_state, indent=2, sort_keys=True) + "\n",
-            )
         run_id = f"abort-{datetime.now(UTC):%Y%m%dt%H%M%S}"
         with runtime_lock(target, runner, "release-abort", run_id):
             rollback = _abort_to_previous_generation(
@@ -4121,6 +4246,13 @@ def release_command(arguments: argparse.Namespace) -> int:
                 runner,
                 arguments.targets,
                 attempt=arguments.attempt_id,
+            )
+        if controller_state is not None:
+            _write_remote(
+                target,
+                runner,
+                state_path,
+                json.dumps(controller_state, indent=2, sort_keys=True) + "\n",
             )
         value = {**rollback, "controller_state": controller_state}
         print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))

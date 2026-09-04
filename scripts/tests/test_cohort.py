@@ -51,6 +51,7 @@ from operations.stack import (
     _rollback_after_failure,
     _restore_unlocked,
     _storage_status,
+    _staging_abort_neutralization,
     _write_adopt_generation,
     _validate_materialized_release,
     _validate_forward_only_receipt,
@@ -63,6 +64,7 @@ from operations.stack import (
     cleanup_command,
     generation_volume_names,
     generation_volume_path,
+    release_command,
     runtime_lock,
     with_writers_paused,
 )
@@ -1010,13 +1012,23 @@ class CohortContractTests(unittest.TestCase):
         claim["sha256"] = __import__("hashlib").sha256(
             json.dumps(claim, sort_keys=True, separators=(",", ":")).encode(),
         ).hexdigest()
+        marker = {
+            "schema": "usl-maintenance-marker/v1",
+            "target": "production",
+            "attempt": attempt,
+            "enabled_at": "2026-09-04T11:59:00Z",
+        }
+        marker["sha256"] = __import__("hashlib").sha256(
+            json.dumps(marker, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
 
         class Runner:
             def run(self, command, *, check=True, input_text=None):
                 if command[:2] == ["test", "-f"]:
                     return subprocess.CompletedProcess(command, 0, "", "")
                 if command[0] == "cat":
-                    return subprocess.CompletedProcess(command, 0, json.dumps(claim), "")
+                    value = marker if command[-1].endswith("/maintenance") else claim
+                    return subprocess.CompletedProcess(command, 0, json.dumps(value), "")
                 raise AssertionError(command)
 
         with (
@@ -1037,6 +1049,210 @@ class CohortContractTests(unittest.TestCase):
             )
         self.assertEqual(result["status"], "already-rolled-back")
         self.assertEqual(result["generation"], baseline)
+
+    def test_staging_abort_rolls_back_admitted_neutralized_attempt(self) -> None:
+        target = load_target("staging", TARGETS)
+        attempt = "attempt-20260904-staging1"
+        generation = "gcandidate-staging1"
+        snapshot = "b" * 64
+        release = "a" * 64
+        operation = {
+            "target": "staging",
+            "attempt": attempt,
+            "source": "production",
+            "candidate_release": release,
+            "snapshot": snapshot,
+            "generation": generation,
+            "gitops_commit": None,
+            "upgrade_plan_sha256": "c" * 64,
+            "prepare_receipt_sha256": "d" * 64,
+            "maintenance_receipt_sha256": "e" * 64,
+        }
+        claim = {
+            "schema": "usl-release-attempt/v2",
+            **operation,
+            "baseline_generation": "gprevious-staging1",
+            "operation_bundle_sha256": __import__("hashlib").sha256(
+                json.dumps(operation, sort_keys=True, separators=(",", ":")).encode(),
+            ).hexdigest(),
+            "claimed_at": "2026-09-04T12:00:00Z",
+            "status": "claimed",
+        }
+        claim["sha256"] = __import__("hashlib").sha256(
+            json.dumps(claim, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        marker = {
+            "schema": "usl-maintenance-marker/v1",
+            "target": "staging",
+            "attempt": attempt,
+            "enabled_at": "2026-09-04T11:59:00Z",
+        }
+        marker["sha256"] = __import__("hashlib").sha256(
+            json.dumps(marker, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        admission = _release_boundary_receipt(
+            schema="usl-release-admission/v1",
+            status="admitted",
+            target=target,
+            attempt=attempt,
+            release=release,
+            snapshot=snapshot,
+            generation=generation,
+            health={"status": "passed"},
+            smoke={"status": "passed"},
+            control_validation={"status": "passed"},
+            operation_bundle_sha256=claim["operation_bundle_sha256"],
+        )
+        current = {
+            "generation": generation,
+            "compose": {
+                "project": target.project,
+                "working_directory": "/gitops/staging",
+                "environment_file": "/gitops/staging.env",
+                "profiles": [],
+                "anchor_service": target.value["services"]["odoo"],
+                "compose_files": ["/gitops/compose.yaml"],
+            },
+            "active_state": {
+                "snapshot": snapshot,
+                "release_manifest": (
+                    f"{target.value['state_directory']}/generations/{generation}/usl-release.json"
+                ),
+            },
+        }
+
+        class Runner:
+            def run(self, command, *, check=True, input_text=None):
+                path = command[-1]
+                if command[:2] == ["test", "-f"]:
+                    return subprocess.CompletedProcess(command, 1, "", "")
+                if command[0] == "cat" and path.endswith("/maintenance"):
+                    return subprocess.CompletedProcess(command, 0, json.dumps(marker), "")
+                if command[0] == "cat" and path.endswith("/claim.json"):
+                    return subprocess.CompletedProcess(command, 0, json.dumps(claim), "")
+                if command[0] == "cat" and path.endswith("/admission.json"):
+                    return subprocess.CompletedProcess(command, 0, json.dumps(admission), "")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        neutralization = {"schema": "usl-staging-neutralization/v1", "status": "passed"}
+        with (
+            mock.patch("operations.stack.inspect_runtime", return_value=current),
+            mock.patch(
+                "operations.stack._staging_abort_neutralization",
+                return_value=neutralization,
+            ) as prove_neutralization,
+            mock.patch(
+                "operations.stack._previous_generation_identity",
+                return_value=({
+                    "project": target.project,
+                    "working_directory": "/gitops/staging",
+                    "environment_file": "/gitops/staging.env",
+                    "profiles": [],
+                    "anchor_service": target.value["services"]["odoo"],
+                    "compose_files": ["/gitops/previous.yaml"],
+                }, json.dumps({"generation": "gprevious-staging1"})),
+            ),
+            mock.patch(
+                "operations.stack._gate",
+                side_effect=[{"status": "passed"}, {"status": "passed"}],
+            ),
+        ):
+            result = _abort_to_previous_generation(
+                target, Runner(), TARGETS, attempt=attempt,
+            )
+        self.assertEqual(result["status"], "rolled-back")
+        self.assertEqual(result["neutralization"], neutralization)
+        prove_neutralization.assert_called_once_with(target, mock.ANY, current)
+
+        invalid_marker = dict(marker, target="production")
+        class InvalidMarkerRunner(Runner):
+            def run(self, command, *, check=True, input_text=None):
+                if command[0] == "cat" and command[-1].endswith("/maintenance"):
+                    return subprocess.CompletedProcess(command, 0, json.dumps(invalid_marker), "")
+                return super().run(command, check=check, input_text=input_text)
+        with self.assertRaisesRegex(RuntimeError, "maintenance marker is invalid"):
+            _abort_to_previous_generation(
+                target, InvalidMarkerRunner(), TARGETS, attempt=attempt,
+            )
+
+    def test_staging_abort_neutralization_checks_database_and_compose(self) -> None:
+        target = load_target("staging", TARGETS)
+        current = {"compose": {
+            "project": target.project,
+            "working_directory": "/gitops/staging",
+            "environment_file": "/gitops/staging.env",
+            "profiles": [],
+            "anchor_service": target.value["services"]["odoo"],
+            "compose_files": ["/gitops/staging.yaml"],
+        }}
+        rendered = {"services": {
+            target.value["services"]["odoo"]: {"environment": {
+                "USL_DEPLOYMENT_ENV": "staging",
+                "USL_EINVOICE_LIVE_ENABLED": "0",
+                "USL_EREPORTING_LIVE_ENABLED": "0",
+            }},
+            target.value["services"]["paperless"]: {"environment": {
+                "PAPERLESS_EMAIL_TASK_CRON": "disable",
+                "PAPERLESS_EMPTY_TRASH_TASK_CRON": "disable",
+                "PAPERLESS_SHARE_LINK_BUNDLE_CLEANUP_CRON": "disable",
+                "PAPERLESS_WORKFLOW_SCHEDULED_TASK_CRON": "disable",
+            }},
+        }}
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess(
+            [], 0, json.dumps(rendered), "",
+        )
+        database = json.dumps({
+            "database_neutralized": True,
+            "active_crons": 0,
+            "active_fetchmail": 0,
+            "pending_mail": 0,
+        })
+        with mock.patch("operations.stack._psql", return_value=database):
+            result = _staging_abort_neutralization(target, runner, current)
+        self.assertEqual(result["status"], "passed")
+
+        rendered["services"][target.value["services"]["odoo"]]["environment"][
+            "USL_EINVOICE_LIVE_ENABLED"
+        ] = "1"
+        runner.run.return_value = subprocess.CompletedProcess(
+            [], 0, json.dumps(rendered), "",
+        )
+        with (
+            mock.patch("operations.stack._psql", return_value=database),
+            self.assertRaisesRegex(RuntimeError, "einvoice_disabled"),
+        ):
+            _staging_abort_neutralization(target, runner, current)
+
+    def test_release_abort_marks_controller_terminal_only_after_rollback(self) -> None:
+        target = mock.Mock()
+        target.name = "staging"
+        target.value = {"state_directory": "/var/lib/usl-odoo/runtime/staging"}
+        runner = mock.Mock()
+        target.runner.return_value = runner
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "controller-state", "")
+        arguments = argparse.Namespace(
+            target="staging",
+            targets=TARGETS,
+            action="abort",
+            attempt_id="attempt-20260904-staging2",
+            json=True,
+        )
+        aborted = {"schema": "usl-release-run/v1", "status": "aborted"}
+        with (
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack.parse_release_state", return_value={}),
+            mock.patch("operations.stack.abort_release_state", return_value=aborted),
+            mock.patch("operations.stack.runtime_lock", return_value=mock.MagicMock()),
+            mock.patch(
+                "operations.stack._abort_to_previous_generation",
+                side_effect=RuntimeError("rollback failed"),
+            ),
+            mock.patch("operations.stack._write_remote") as write_remote,
+            self.assertRaisesRegex(RuntimeError, "rollback failed"),
+        ):
+            release_command(arguments)
+        write_remote.assert_not_called()
 
     def test_candidate_cron_policy_is_applied_through_noninteractive_odoo_shell(self) -> None:
         policy_path = "/opt/usl/deploy/production.cron-policy.json"

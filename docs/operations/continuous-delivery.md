@@ -260,8 +260,14 @@ generation. Full live interruption drills remain an activation gate.
 
 Before user access reopens, a failed candidate is stopped and the untouched
 previous generation is restored. `release abort` requires the exact consumed
-attempt and is permitted only while the target gateway already has its
-maintenance marker. It refuses any generation with a final admission receipt,
+attempt and is permitted only while the target gateway retains the valid,
+digested maintenance marker for that same target and attempt. Production
+refuses every generation with an activation or final admission receipt.
+Staging may roll back after internal admission but before public acceptance
+only when the exact admission receipt matches the attempt and fresh read-only
+checks prove the database, crons, inbound/outbound queues, regulatory flags and
+Paperless external tasks remain neutralized. It otherwise fails closed.
+The abort path
 recognizes an already-restored attempt idempotently, and reconstructs the one
 recorded rollback generation from validated state, starts it, and runs both
 health and read-only smoke admission. The fixed production launcher removes
