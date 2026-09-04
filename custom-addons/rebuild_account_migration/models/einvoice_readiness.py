@@ -2,6 +2,7 @@ import hashlib
 import logging
 import os
 import uuid as uuid_lib
+from datetime import timedelta
 
 from lxml import etree
 from markupsafe import Markup
@@ -1589,6 +1590,17 @@ class AccountEdiProxyClientUser(models.Model):
             ("proxy_type", "in", self._get_peppol_proxy_types()),
         ])
         edi_users._peppol_get_participant_status()
+
+        # This override narrows upstream polling to USL-approved providers, but
+        # must retain its one-hour retry while SMP registration is pending.
+        if self.search_count([
+            ("company_id.rebuild_einvoice_activation_approved", "=", True),
+            ("company_id.account_peppol_proxy_state", "=", "smp_registration"),
+            ("proxy_type", "in", self._get_peppol_proxy_types()),
+        ], limit=1):
+            self.env.ref(
+                "account_peppol.ir_cron_peppol_get_participant_status",
+            )._trigger(at=fields.Datetime.now() + timedelta(hours=1))
 
     @api.model
     def _cron_peppol_webhook_keepalive(self):

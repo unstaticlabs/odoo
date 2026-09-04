@@ -1,5 +1,6 @@
 import io
 import os
+from datetime import timedelta
 from unittest.mock import patch
 
 from odoo import Command, fields
@@ -1367,6 +1368,90 @@ class TestFrenchEinvoiceReception(
             ).action_rebuild_suspend_einvoice_exchange()
             self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
             self.assertTrue(all(cron.active for cron in reception_crons))
+
+    def test_participant_status_cron_retries_pending_approved_registration(self):
+        self.company.write({
+            "rebuild_einvoice_activation_approved": True,
+            "account_peppol_proxy_state": "smp_registration",
+        })
+        self._create_production_proxy_user()
+        cron = self.env.ref(
+            "account_peppol.ir_cron_peppol_get_participant_status",
+        )
+        self.env["ir.cron.trigger"].sudo().search([
+            ("cron_id", "=", cron.id),
+        ]).unlink()
+        scheduled_after = fields.Datetime.now()
+
+        proxy_model = self.env.registry["account_edi_proxy_client.user"]
+        with patch.object(
+            proxy_model,
+            "_peppol_get_participant_status",
+        ) as poll_status:
+            self.env["account_edi_proxy_client.user"]._cron_peppol_get_participant_status()
+
+        self.assertTrue(poll_status.called)
+        retries = self.env["ir.cron.trigger"].sudo().search([
+            ("cron_id", "=", cron.id),
+        ])
+        self.assertEqual(len(retries), 1)
+        self.assertGreaterEqual(
+            retries.call_at,
+            scheduled_after + timedelta(minutes=59),
+        )
+        self.assertLessEqual(
+            retries.call_at,
+            fields.Datetime.now() + timedelta(hours=1, minutes=1),
+        )
+
+    def test_participant_status_cron_does_not_retry_resolved_registration(self):
+        self.company.write({
+            "rebuild_einvoice_activation_approved": True,
+            "account_peppol_proxy_state": "receiver",
+        })
+        self._create_production_proxy_user()
+        cron = self.env.ref(
+            "account_peppol.ir_cron_peppol_get_participant_status",
+        )
+        self.env["ir.cron.trigger"].sudo().search([
+            ("cron_id", "=", cron.id),
+        ]).unlink()
+
+        proxy_model = self.env.registry["account_edi_proxy_client.user"]
+        with patch.object(
+            proxy_model,
+            "_peppol_get_participant_status",
+        ):
+            self.env["account_edi_proxy_client.user"]._cron_peppol_get_participant_status()
+
+        self.assertFalse(self.env["ir.cron.trigger"].sudo().search([
+            ("cron_id", "=", cron.id),
+        ]))
+
+    def test_participant_status_cron_does_not_retry_unapproved_registration(self):
+        self.company.write({
+            "rebuild_einvoice_activation_approved": False,
+            "account_peppol_proxy_state": "smp_registration",
+        })
+        self._create_production_proxy_user()
+        cron = self.env.ref(
+            "account_peppol.ir_cron_peppol_get_participant_status",
+        )
+        self.env["ir.cron.trigger"].sudo().search([
+            ("cron_id", "=", cron.id),
+        ]).unlink()
+
+        proxy_model = self.env.registry["account_edi_proxy_client.user"]
+        with patch.object(
+            proxy_model,
+            "_peppol_get_participant_status",
+        ) as poll_status:
+            self.env["account_edi_proxy_client.user"]._cron_peppol_get_participant_status()
+
+        poll_status.assert_not_called()
+        self.assertFalse(self.env["ir.cron.trigger"].sudo().search([
+            ("cron_id", "=", cron.id),
+        ]))
 
     def test_upgrade_initialization_preserves_active_production_reception(self):
         self.company.write({
