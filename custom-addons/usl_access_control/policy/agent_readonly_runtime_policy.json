@@ -280,7 +280,7 @@
     "rpc:usl.tese.profile.message_subscribe",
     "rpc:usl.tese.profile.message_unsubscribe"
   ],
-  "qualified_policy_digest": "ca96cbaac4125f89b32e75fc88206e057fa8b04c0a08d54346f050f40cbf77e6",
+  "qualified_policy_digest": "d768549899a9d540d499e5c1cd79e9dc3553314ea4cef3f84494d899a412b3f1",
   "read_only_actions": [
     "rpc:_unknown.check_field_access",
     "rpc:_unknown.export_data",
@@ -12402,7 +12402,7 @@
     "rpc:wizard.open.tax.balances.search_count",
     "rpc:wizard.open.tax.balances.search_read"
   ],
-  "runtime_policy_sha256": "455e28ea2716c70b41a81fe0a3d386af532a6f34916624f71c289b47aa78aac7",
+  "runtime_policy_sha256": "579e0fdcdd0f50e07f0ccefb9c4906ddff6ac8791a942514afb7724cf2ca0f06",
   "schema": "usl-agent-access-runtime-v2",
   "write_actions": [
     "rpc:_unknown.copy",
