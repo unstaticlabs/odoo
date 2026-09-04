@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import copy
 import hashlib
 import io
 import json
@@ -56,6 +57,7 @@ from operations.plan_evidence import (
 )
 from operations.runtime import (
     RuntimeError,
+    Target,
     compose_command,
     compose_identity,
     inspect_runtime,
@@ -126,6 +128,14 @@ RESOURCE_FIELDS = {
 BACKUP_WRITER_SERVICE_ROLES = ("odoo", "paperless", "mcp", "sign", "sign_ca")
 GENERATION_NAME = re.compile(r"g[a-z0-9][a-z0-9-]{0,30}\Z")
 RELEASE_ATTEMPT = re.compile(r"[a-z0-9][a-z0-9._-]{7,63}\Z")
+RECOVERY_PROOF_ID = re.compile(r"[a-z0-9][a-z0-9-]{7,23}\Z")
+RECOVERY_PROOF_OWNER = "usl-disposable-recovery-proof"
+RECOVERY_PROOF_FAILURE_STAGES = (
+    "backup-qualified",
+    "resources-created",
+    "materialized",
+    "validated",
+)
 
 
 def _report(operation: str, phase: str, status: str, detail: str = "") -> None:
@@ -2015,6 +2025,13 @@ def backup_command(arguments: argparse.Namespace) -> int:
                 capture_succeeded = False
                 try:
                     captured = capture_phase()
+                    _write_remote(
+                        target,
+                        runner,
+                        f"{quiescence_root}/capture.json",
+                        json.dumps(captured, indent=2, sort_keys=True) + "\n",
+                        "0444",
+                    )
                     capture_succeeded = True
                 finally:
                     if not leave_quiesced or not capture_succeeded:
@@ -2035,6 +2052,24 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     "completed",
                     duration_seconds=freeze_seconds,
                 )
+            else:
+                capture_path = (
+                    f"{target.value['state_directory']}/backup-runs/{run_id}/capture.json"
+                )
+                try:
+                    captured = json.loads(_read_path(target, runner, Path(capture_path)))
+                    validate_cohort_manifest(captured)
+                except (json.JSONDecodeError, ValueError, KeyError) as error:
+                    raise RuntimeError(
+                        "resumed backup lacks its exact captured cohort manifest",
+                    ) from error
+                if (
+                    captured.get("run_id") != run_id
+                    or captured.get("target") != target.name
+                    or captured.get("release", {}).get("identity") != release["identity"]
+                    or captured.get("release", {}).get("manifest_sha256") != release_sha
+                ):
+                    raise RuntimeError("resumed backup capture identity differs")
             def resume_failed_quiescence() -> None:
                 if not leave_quiesced or not writer_services:
                     return
@@ -2127,6 +2162,15 @@ def backup_command(arguments: argparse.Namespace) -> int:
             result["sha256"] = hashlib.sha256(json.dumps(
                 result, sort_keys=True, separators=(",", ":"),
             ).encode()).hexdigest()
+            receipt_root = f"{target.value['state_directory']}/backup-runs/{run_id}"
+            runner.run(["install", "-d", "-m", "0700", receipt_root])
+            _write_remote(
+                target,
+                runner,
+                f"{receipt_root}/receipt.json",
+                json.dumps(result, indent=2, sort_keys=True) + "\n",
+                "0444",
+            )
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
     return 0
 
@@ -5331,6 +5375,769 @@ def restore_command(arguments: argparse.Namespace) -> int:
         return status
 
 
+def _digested_document(value: dict) -> dict:
+    document = dict(value)
+    document["sha256"] = hashlib.sha256(
+        json.dumps(document, sort_keys=True, separators=(",", ":")).encode(),
+    ).hexdigest()
+    return document
+
+
+def _validate_digested_document(value: object, *, schema: str, proof_id: str) -> dict:
+    if not isinstance(value, dict) or value.get("schema") != schema:
+        raise RuntimeError("recovery proof evidence schema differs")
+    fields = {
+        "usl-disposable-recovery-proof-state/v1": {
+            "schema", "proof_id", "source", "phase", "release_identity",
+            "release_manifest_sha256", "runtime_sha256", "backup", "updated_at", "sha256",
+        },
+        "usl-disposable-recovery-proof/v1": {
+            "schema", "proof_id", "source", "release", "backup", "materialization",
+            "health", "smoke", "reusable_cache", "ownership", "cleanup", "isolation",
+            "started_at", "completed_at", "status", "sha256",
+        },
+        "usl-disposable-recovery-proof-failure/v1": {
+            "schema", "proof_id", "source", "stage", "error_type", "cleanup",
+            "failed_at", "status", "sha256",
+        },
+    }.get(schema)
+    if fields is None or set(value) != fields:
+        raise RuntimeError("recovery proof evidence fields differ")
+    if value.get("proof_id") != proof_id:
+        raise RuntimeError("recovery proof evidence identity differs")
+    digest = value.get("sha256")
+    body = {key: item for key, item in value.items() if key != "sha256"}
+    if not re.fullmatch(r"[0-9a-f]{64}", str(digest)) or digest != hashlib.sha256(
+        json.dumps(body, sort_keys=True, separators=(",", ":")).encode(),
+    ).hexdigest():
+        raise RuntimeError("recovery proof evidence digest differs")
+    return value
+
+
+def _validate_recovery_proof_receipt(value: object, proof_id: str) -> dict:
+    receipt = _validate_digested_document(
+        value,
+        schema="usl-disposable-recovery-proof/v1",
+        proof_id=proof_id,
+    )
+    release = receipt["release"]
+    backup = receipt["backup"]
+    isolation = receipt["isolation"]
+    if (
+        receipt["source"] != "production"
+        or receipt["status"] != "passed"
+        or not isinstance(release, dict)
+        or set(release) != {"identity", "manifest_sha256"}
+        or not all(re.fullmatch(r"[0-9a-f]{64}", str(value)) for value in release.values())
+        or not isinstance(backup, dict)
+        or set(backup) != {
+            "run_id", "receipt_sha256", "durable_snapshot_id", "cache_snapshot_id",
+        }
+        or backup["run_id"] != f"proof-{proof_id}"
+        or not all(
+            re.fullmatch(r"[0-9a-f]{64}", str(backup[key]))
+            for key in ("receipt_sha256", "durable_snapshot_id", "cache_snapshot_id")
+        )
+        or not isinstance(receipt["cleanup"], dict)
+        or receipt["cleanup"].get("status") != "clean"
+        or not isinstance(isolation, dict)
+        or isolation != {
+            "active_runtime_sha256": isolation.get("active_runtime_sha256"),
+            "active_runtime_unchanged": True,
+            "gateway_attached": False,
+            "application_workers_started": False,
+            "persistent_staging_touched": False,
+            "production_secrets_modified": False,
+            "runtime_ledger_used_for_restore": False,
+        }
+        or not re.fullmatch(r"[0-9a-f]{64}", str(isolation["active_runtime_sha256"]))
+    ):
+        raise RuntimeError("recovery proof completion receipt is invalid")
+    return receipt
+
+
+def _validate_recovery_proof_state(value: object, proof_id: str) -> dict:
+    state = _validate_digested_document(
+        value,
+        schema="usl-disposable-recovery-proof-state/v1",
+        proof_id=proof_id,
+    )
+    if (
+        state["source"] != "production"
+        or state["phase"] not in {
+            "backup-started", "backup-qualified", "resources-created", "materialized", "validated",
+        }
+        or not re.fullmatch(r"[0-9a-f]{64}", str(state["release_identity"]))
+        or not re.fullmatch(r"[0-9a-f]{64}", str(state["release_manifest_sha256"]))
+        or not re.fullmatch(r"[0-9a-f]{64}", str(state["runtime_sha256"]))
+        or state["backup"] is not None and not isinstance(state["backup"], dict)
+    ):
+        raise RuntimeError("recovery proof state is invalid")
+    try:
+        updated = datetime.fromisoformat(str(state["updated_at"]).replace("Z", "+00:00"))
+    except ValueError as error:
+        raise RuntimeError("recovery proof state timestamp is invalid") from error
+    if updated.tzinfo is None:
+        raise RuntimeError("recovery proof state timestamp is invalid")
+    return state
+
+
+def _recovery_proof_capacity(target, runner, tool_image: str, runtime: dict) -> dict:
+    docker_root = runner.run(
+        ["docker", "info", "--format", "{{.DockerRootDir}}"],
+    ).stdout.strip()
+    if not docker_root.startswith("/"):
+        raise RuntimeError("recovery proof Docker storage root is invalid")
+    source, available = _filesystem_capacity(runner, docker_root)
+    candidate = _measure_candidate_bytes(target, runner, tool_image, runtime)
+    candidate_bytes = sum(candidate.values())
+    required = candidate_bytes + MINIMUM_FREE_BYTES
+    if available < required:
+        raise RuntimeError(
+            "recovery proof capacity refused on "
+            f"{source}: {available / 1024**3:.1f} GiB free, "
+            f"{candidate_bytes / 1024**3:.1f} GiB measured cohort, "
+            f"{MINIMUM_FREE_BYTES / 1024**3:.1f} GiB reserve",
+        )
+    return {
+        "schema": "usl-recovery-proof-capacity/v1",
+        "source": source,
+        "available_bytes": available,
+        "candidate_bytes": candidate_bytes,
+        "reserve_bytes": MINIMUM_FREE_BYTES,
+        "required_bytes": required,
+        "status": "passed",
+    }
+
+
+def _recovery_proof_root(target, evidence_directory: Path, proof_id: str) -> str:
+    if not RECOVERY_PROOF_ID.fullmatch(proof_id):
+        raise RuntimeError("recovery proof identity is invalid")
+    evidence = str(evidence_directory)
+    path = Path(evidence)
+    if not path.is_absolute() or ".." in path.parts or path == Path("/"):
+        raise RuntimeError("recovery proof evidence directory must be an absolute scoped path")
+    protected = [
+        Path(target.value["state_directory"]),
+        Path(target.value["secrets"]["env_file"]),
+        Path(target.value["secrets"]["env_file"]).parent,
+        *(Path(item["path"]) for item in target.value["paths"].values()),
+        *(Path(item["path"]) for item in target.value["storage"]["tiers"].values()),
+    ]
+    for protected_path in protected:
+        if path == protected_path or path in protected_path.parents or protected_path in path.parents:
+            raise RuntimeError(
+                "recovery proof evidence directory overlaps environment-owned state",
+            )
+    return str(path / proof_id)
+
+
+def _recovery_proof_names(target, proof_id: str) -> dict:
+    token = hashlib.sha256(proof_id.encode()).hexdigest()[:16]
+    prefix = f"usl-recovery-proof-{token}"
+    return {
+        "containers": {
+            "odoo": f"{prefix}-odoo-db",
+            "paperless": f"{prefix}-paperless-db",
+        },
+        "volumes": {
+            role: f"{prefix}-{role.replace('_', '-')}"
+            for role in target.value["volumes"]
+        },
+        "network": f"{prefix}-network",
+    }
+
+
+def _recovery_proof_labels(proof_id: str, *, role: str) -> dict[str, str]:
+    return {
+        "com.unstaticlabs.recovery-proof.owner": RECOVERY_PROOF_OWNER,
+        "com.unstaticlabs.recovery-proof.id": proof_id,
+        "com.unstaticlabs.recovery-proof.source": "production",
+        "com.unstaticlabs.recovery-proof.role": role,
+    }
+
+
+def _docker_labels(runner, resource_type: str, name: str) -> dict[str, str] | None:
+    command = ["docker"]
+    if resource_type != "container":
+        command.append(resource_type)
+    command.extend(["inspect", name, "--format", "{{json .Config.Labels}}"])
+    if resource_type in {"volume", "network"}:
+        command[-1] = "{{json .Labels}}"
+    result = runner.run(command, check=False)
+    if result.returncode:
+        return None
+    try:
+        labels = json.loads(result.stdout)
+    except json.JSONDecodeError as error:
+        raise RuntimeError(f"recovery proof {resource_type} labels are invalid") from error
+    if not isinstance(labels, dict) or not all(
+        isinstance(key, str) and isinstance(value, str) for key, value in labels.items()
+    ):
+        raise RuntimeError(f"recovery proof {resource_type} labels are invalid")
+    return labels
+
+
+def _require_recovery_proof_owner(
+    runner,
+    resource_type: str,
+    name: str,
+    proof_id: str,
+    role: str,
+) -> bool:
+    labels = _docker_labels(runner, resource_type, name)
+    if labels is None:
+        return False
+    expected = _recovery_proof_labels(proof_id, role=role)
+    if any(labels.get(key) != value for key, value in expected.items()):
+        raise RuntimeError(
+            f"refusing foreign {resource_type} at recovery proof perimeter: {name}",
+        )
+    return True
+
+
+def _cleanup_recovery_proof_resources(target, runner, proof_id: str, proof_root: str) -> dict:
+    names = _recovery_proof_names(target, proof_id)
+    removed = {"containers": [], "volumes": [], "networks": [], "workspaces": []}
+    for role, name in names["containers"].items():
+        if _require_recovery_proof_owner(runner, "container", name, proof_id, f"{role}-db"):
+            result = runner.run(["docker", "rm", "--force", name], check=False)
+            if result.returncode:
+                raise RuntimeError(f"recovery proof container cleanup failed: {name}")
+            removed["containers"].append(name)
+    for role, name in names["volumes"].items():
+        if _require_recovery_proof_owner(runner, "volume", name, proof_id, role):
+            result = runner.run(["docker", "volume", "rm", name], check=False)
+            if result.returncode:
+                raise RuntimeError(f"recovery proof volume cleanup failed: {name}")
+            removed["volumes"].append(name)
+    network = names["network"]
+    if _require_recovery_proof_owner(runner, "network", network, proof_id, "private-network"):
+        result = runner.run(["docker", "network", "rm", network], check=False)
+        if result.returncode:
+            raise RuntimeError(f"recovery proof network cleanup failed: {network}")
+        removed["networks"].append(network)
+    generation = f"gproof-{hashlib.sha256(proof_id.encode()).hexdigest()[:16]}"
+    workspace = f"{proof_root}/generations/{generation}"
+    if not workspace.startswith(proof_root.rstrip("/") + "/generations/gproof-"):
+        raise RuntimeError("recovery proof workspace escaped its evidence root")
+    if runner.run(["test", "-e", workspace], check=False).returncode == 0:
+        runner.run(["rm", "-rf", "--", workspace])
+        removed["workspaces"].append(workspace)
+    return {
+        "schema": "usl-recovery-proof-cleanup/v1",
+        **removed,
+        "status": "clean",
+    }
+
+
+def _create_recovery_proof_resources(target, runner, proof_id: str) -> dict:
+    names = _recovery_proof_names(target, proof_id)
+    created: list[tuple[str, str, str]] = []
+    try:
+        for role, name in names["volumes"].items():
+            if _docker_labels(runner, "volume", name) is not None:
+                raise RuntimeError(f"recovery proof volume already exists: {name}")
+            command = ["docker", "volume", "create"]
+            for key, value in _recovery_proof_labels(proof_id, role=role).items():
+                command.extend(["--label", f"{key}={value}"])
+            command.append(name)
+            runner.run(command)
+            created.append(("volume", role, name))
+        network = names["network"]
+        if _docker_labels(runner, "network", network) is not None:
+            raise RuntimeError(f"recovery proof network already exists: {network}")
+        command = ["docker", "network", "create"]
+        for key, value in _recovery_proof_labels(
+            proof_id, role="private-network",
+        ).items():
+            command.extend(["--label", f"{key}={value}"])
+        command.append(network)
+        runner.run(command)
+        created.append(("network", "private-network", network))
+    except Exception:
+        for resource_type, _role, name in reversed(created):
+            command = ["docker"]
+            command.append(resource_type)
+            command.extend(["rm", name])
+            runner.run(command, check=False)
+        raise
+    return names
+
+
+def _start_recovery_proof_database(
+    target,
+    runner,
+    proof_id: str,
+    names: dict,
+    images: dict[str, str],
+    database_key: str,
+) -> str:
+    role = f"{database_key}-db"
+    database = target.value["databases"][database_key]
+    service_role = "odoo_db" if database_key == "odoo" else "paperless_db"
+    alias = database["service"]
+    command = [
+        "docker", "run", "--detach", "--name", names["containers"][database_key],
+    ]
+    for key, value in _recovery_proof_labels(proof_id, role=role).items():
+        command.extend(["--label", f"{key}={value}"])
+    command.extend([
+        "--network", names["network"], "--network-alias", alias,
+        "--env-file", target.value["secrets"]["env_file"],
+        "--env", f"POSTGRES_USER={database['user']}",
+        "--env", "POSTGRES_DB=postgres",
+        "--volume", f"{names['volumes'][database_key + '_postgres']}:/var/lib/postgresql/data",
+        "--entrypoint", "/bin/bash", images[target.value["services"][service_role]],
+        "-ceu",
+        f'export POSTGRES_PASSWORD="${database["password_key"]}"; '
+        "exec /usr/local/bin/docker-entrypoint.sh postgres",
+    ])
+    runner.run(command)
+    name = names["containers"][database_key]
+    for _attempt in range(60):
+        ready = runner.run(
+            [
+                "docker", "exec", name, "pg_isready", "--username", database["user"],
+                "--dbname", "postgres",
+            ],
+            check=False,
+        )
+        if ready.returncode == 0:
+            return name
+        time.sleep(1)
+    raise RuntimeError(f"recovery proof database did not become ready: {database_key}")
+
+
+def _recovery_proof_query(target, runner, container: str, database_key: str, query: str) -> dict:
+    database = target.value["databases"][database_key]
+    result = runner.run([
+        "docker", "exec", container, "psql", "--username", database["user"],
+        "--dbname", database["name"], "--tuples-only", "--no-align",
+        "--command", query,
+    ])
+    try:
+        value = json.loads(result.stdout.strip())
+    except json.JSONDecodeError as error:
+        raise RuntimeError(f"recovery proof {database_key} control query is invalid") from error
+    if not isinstance(value, dict):
+        raise RuntimeError(f"recovery proof {database_key} control query is invalid")
+    return value
+
+
+def _write_recovery_proof_evidence(target, runner, path: str, value: dict, mode: str = "0600") -> dict:
+    document = _digested_document(value)
+    _write_remote(
+        target,
+        runner,
+        path,
+        json.dumps(document, indent=2, sort_keys=True) + "\n",
+        mode,
+    )
+    return document
+
+
+def _read_recovery_proof_evidence(target, runner, path: str) -> dict | None:
+    result = runner.run(["cat", path], check=False)
+    if result.returncode:
+        return None
+    try:
+        value = json.loads(result.stdout)
+    except json.JSONDecodeError as error:
+        raise RuntimeError("recovery proof evidence is invalid JSON") from error
+    if not isinstance(value, dict):
+        raise RuntimeError("recovery proof evidence is not an object")
+    return value
+
+
+def _run_recovery_proof_backup(arguments, release: dict) -> dict:
+    output = io.StringIO()
+    backup_arguments = argparse.Namespace(
+        target=arguments.target,
+        targets=arguments.targets,
+        action="create",
+        release=arguments.release,
+        run_id=None if arguments.resume_backup else f"proof-{arguments.proof_id}",
+        resume=f"proof-{arguments.proof_id}" if arguments.resume_backup else None,
+        leave_quiesced=False,
+        snapshot=None,
+        json=True,
+    )
+    with redirect_stdout(output):
+        status = backup_command(backup_arguments)
+    if status:
+        raise RuntimeError("recovery proof backup did not complete")
+    try:
+        receipt = json.loads(output.getvalue())
+    except json.JSONDecodeError as error:
+        raise RuntimeError("recovery proof backup receipt is invalid") from error
+    receipt = _backup_run_receipt(
+        receipt,
+        target="production",
+        run_id=f"proof-{arguments.proof_id}",
+    )
+    capture_release = receipt["capture"]["release"]
+    if (
+        capture_release.get("identity") != release["identity"]
+        or capture_release.get("manifest_sha256")
+        != hashlib.sha256(
+            json.dumps(release, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+    ):
+        raise RuntimeError("recovery proof backup differs from the active release")
+    return receipt
+
+
+def _recover_recovery_proof_backup(target, runner, run_id: str, runtime_sha: str) -> None:
+    root = f"{target.value['state_directory']}/backup-runs/{run_id}"
+    try:
+        captured = json.loads(_read_path(target, runner, Path(f"{root}/capture.json")))
+        validate_cohort_manifest(captured)
+        quiescence = json.loads(_read_path(target, runner, Path(f"{root}/quiesced.json")))
+    except (json.JSONDecodeError, ValueError, KeyError) as error:
+        raise RuntimeError(
+            "interrupted recovery proof backup has no resumable captured cohort",
+        ) from error
+    services = [target.value["services"][name] for name in BACKUP_WRITER_SERVICE_ROLES]
+    quiescence = _validate_backup_quiescence_receipt(
+        quiescence,
+        target="production",
+        run_id=run_id,
+        services=services,
+    )
+    if (
+        captured.get("run_id") != run_id
+        or captured.get("target") != "production"
+        or quiescence["status"] != "quiesced"
+        or quiescence["baseline_runtime_sha256"] != runtime_sha
+    ):
+        raise RuntimeError("interrupted recovery proof backup identity differs")
+    _recover_interrupted_backup_lock(
+        target,
+        runner,
+        run_id=run_id,
+        quiescence=quiescence,
+    )
+    identity = compose_identity(target, runner)
+    runner.run(compose_command(
+        identity,
+        ["up", "--detach", "--wait", "--no-recreate", *services],
+    ))
+    if _runtime_cas_sha256(target, runner, inspect_runtime(target, runner)) != runtime_sha:
+        raise RuntimeError("recovery proof writer resumption changed the production baseline")
+
+
+def recovery_proof_command(arguments: argparse.Namespace) -> int:
+    target = load_target(arguments.target, arguments.targets)
+    if target.name != "production" or target.value["environment"] != "production":
+        raise RuntimeError("daily recovery proof is production-source only")
+    proof_id = arguments.proof_id
+    proof_root = _recovery_proof_root(target, arguments.evidence_directory, proof_id)
+    runner = target.runner()
+    runner.run(["install", "-d", "-m", "0700", proof_root])
+    receipt_path = f"{proof_root}/receipt.json"
+    state_path = f"{proof_root}/state.json"
+    existing_receipt = _read_recovery_proof_evidence(target, runner, receipt_path)
+    if existing_receipt is not None:
+        receipt = _validate_recovery_proof_receipt(existing_receipt, proof_id)
+        print(json.dumps(receipt, indent=None if arguments.json else 2, sort_keys=True))
+        return 0
+
+    current = inspect_runtime(target, runner)
+    release, release_sha, _release_raw = _release(target, runner, arguments.release)
+    observed_runtime_sha = _runtime_cas_sha256(target, runner, current)
+    runtime_sha = observed_runtime_sha
+    existing_state = _read_recovery_proof_evidence(target, runner, state_path)
+    backup = None
+    if existing_state is not None:
+        state = _validate_recovery_proof_state(existing_state, proof_id)
+        backup_interrupted = state.get("phase") == "backup-started" and state.get("backup") is None
+        if (
+            state.get("source") != "production"
+            or state.get("release_identity") != release["identity"]
+            or state.get("release_manifest_sha256") != release_sha
+            or not backup_interrupted and state.get("runtime_sha256") != observed_runtime_sha
+        ):
+            raise RuntimeError("recovery proof retry baseline differs")
+        runtime_sha = state["runtime_sha256"]
+        backup = state.get("backup")
+        arguments.resume_backup = backup_interrupted
+    else:
+        arguments.resume_backup = False
+
+    cleanup = _cleanup_recovery_proof_resources(target, runner, proof_id, proof_root)
+    started_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+
+    def write_state(phase: str, backup_receipt: dict | None) -> dict:
+        return _write_recovery_proof_evidence(
+            target,
+            runner,
+            state_path,
+            {
+                "schema": "usl-disposable-recovery-proof-state/v1",
+                "proof_id": proof_id,
+                "source": "production",
+                "phase": phase,
+                "release_identity": release["identity"],
+                "release_manifest_sha256": release_sha,
+                "runtime_sha256": runtime_sha,
+                "backup": backup_receipt,
+                "updated_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            },
+        )
+
+    stage = "initialized"
+    names = None
+    materialized = None
+    control_validation = None
+    try:
+        if backup is None:
+            backup_run_id = f"proof-{proof_id}"
+            persisted_backup = None
+            if arguments.resume_backup:
+                persisted_backup = _read_recovery_proof_evidence(
+                    target,
+                    runner,
+                    f"{target.value['state_directory']}/backup-runs/"
+                    f"{backup_run_id}/receipt.json",
+                )
+            if persisted_backup is not None:
+                backup = _backup_run_receipt(
+                    persisted_backup,
+                    target="production",
+                    run_id=backup_run_id,
+                )
+            else:
+                if arguments.resume_backup:
+                    _recover_recovery_proof_backup(
+                        target, runner, backup_run_id, runtime_sha,
+                    )
+                write_state("backup-started", None)
+                backup = _run_recovery_proof_backup(arguments, release)
+        else:
+            backup = _backup_run_receipt(
+                backup,
+                target="production",
+                run_id=f"proof-{proof_id}",
+            )
+        stage = "backup-qualified"
+        write_state(stage, backup)
+        if arguments.failure_after == stage:
+            raise RuntimeError(f"injected recovery proof failure after {stage}")
+
+        current_after_backup = inspect_runtime(target, runner)
+        if _runtime_cas_sha256(target, runner, current_after_backup) != runtime_sha:
+            raise RuntimeError("production runtime changed while taking recovery proof backup")
+        identity = current_after_backup["compose"]
+        images = _runtime_images(runner, identity)
+        tool_image = release["components"]["backup-tool"]["digest_reference"]
+        capacity = _recovery_proof_capacity(
+            target, runner, tool_image, current_after_backup,
+        )
+        names = _create_recovery_proof_resources(target, runner, proof_id)
+        generation = f"gproof-{hashlib.sha256(proof_id.encode()).hexdigest()[:16]}"
+        generation_root = f"{proof_root}/generations/{generation}"
+        runner.run(["install", "-d", "-m", "0700", f"{generation_root}/work"])
+        proof_value = copy.deepcopy(target.value)
+        proof_value["state_directory"] = proof_root
+        proof_target = Target(target.path, proof_value)
+        _start_recovery_proof_database(
+            target, runner, proof_id, names, images, "odoo",
+        )
+        _start_recovery_proof_database(
+            target, runner, proof_id, names, images, "paperless",
+        )
+        stage = "resources-created"
+        write_state(stage, backup)
+        if arguments.failure_after == stage:
+            raise RuntimeError(f"injected recovery proof failure after {stage}")
+
+        source_backup_env = _write_source_backup_environment(
+            target,
+            runner,
+            proof_target,
+            runner,
+            f"{generation_root}/work/source-backup.env",
+        )
+        materialize_result = runner.run(
+            _materialize_command(
+                target,
+                proof_target,
+                tool_image,
+                backup["upload"]["durable_snapshot_id"],
+                generation,
+                names["network"],
+                names["volumes"],
+                source_backup_env,
+            ),
+        )
+        try:
+            materialized = json.loads(materialize_result.stdout.splitlines()[-1])
+        except (IndexError, json.JSONDecodeError) as error:
+            raise RuntimeError("recovery proof materialization evidence is invalid") from error
+        _validate_materialized_release(
+            materialized,
+            release,
+            release_sha,
+            require_sign_secrets=True,
+        )
+        if (
+            materialized.get("durable_snapshot_id")
+            != backup["upload"]["durable_snapshot_id"]
+            or materialized.get("cache_snapshot_id")
+            != backup["upload"]["cache_snapshot_id"]
+            or materialized.get("run_id") != backup["run_id"]
+            or materialized.get("release", {}).get("identity") != release["identity"]
+            or materialized.get("release", {}).get("manifest_sha256") != release_sha
+            or materialized.get("transformations") != []
+        ):
+            raise RuntimeError("recovery proof is not an exact same-release materialization")
+        stage = "materialized"
+        write_state(stage, backup)
+        if arguments.failure_after == stage:
+            raise RuntimeError(f"injected recovery proof failure after {stage}")
+
+        health = {}
+        for database_key, container in names["containers"].items():
+            database = target.value["databases"][database_key]
+            ready = runner.run([
+                "docker", "exec", container, "pg_isready", "--username", database["user"],
+                "--dbname", database["name"],
+            ], check=False)
+            health[database_key] = ready.returncode == 0
+        if not all(health.values()):
+            raise RuntimeError("recovery proof restored database is not ready")
+        restored_controls = {
+            "odoo": _recovery_proof_query(
+                target, runner, names["containers"]["odoo"], "odoo", ODOO_CONTROL_SQL,
+            ),
+            "paperless": _recovery_proof_query(
+                target,
+                runner,
+                names["containers"]["paperless"],
+                "paperless",
+                PAPERLESS_CONTROL_SQL,
+            ),
+        }
+        try:
+            control_validation = validate_restore(
+                materialized["controls"],
+                restored_controls,
+                require_unchanged_release=True,
+            )
+        except ControlManifestError as error:
+            raise RuntimeError(str(error)) from error
+        cache_role_names = (
+            "paperless_archive",
+            "paperless_thumbnails",
+            "paperless_tantivy",
+            "paperless_vectors",
+        )
+        try:
+            cache_roles = {
+                role: backup["capture"]["resources"][role]["identity"]
+                for role in cache_role_names
+            }
+        except (KeyError, TypeError) as error:
+            raise RuntimeError("recovery proof reusable cache evidence is incomplete") from error
+        if not all(
+            backup["capture"]["resources"][role].get("class") == "cache"
+            for role in cache_role_names
+        ):
+            raise RuntimeError("recovery proof reusable cache classification differs")
+        stage = "validated"
+        write_state(stage, backup)
+        if arguments.failure_after == stage:
+            raise RuntimeError(f"injected recovery proof failure after {stage}")
+    except BaseException as error:
+        try:
+            cleanup = _cleanup_recovery_proof_resources(
+                target, runner, proof_id, proof_root,
+            )
+        except Exception as cleanup_error:
+            raise RuntimeError(
+                f"recovery proof failed at {stage}; owned-resource cleanup also failed",
+            ) from cleanup_error
+        _write_recovery_proof_evidence(
+            target,
+            runner,
+            f"{proof_root}/failure.json",
+            {
+                "schema": "usl-disposable-recovery-proof-failure/v1",
+                "proof_id": proof_id,
+                "source": "production",
+                "stage": stage,
+                "error_type": type(error).__name__,
+                "cleanup": cleanup,
+                "failed_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+                "status": "failed",
+            },
+        )
+        raise
+
+    cleanup = _cleanup_recovery_proof_resources(target, runner, proof_id, proof_root)
+    final_runtime = inspect_runtime(target, runner)
+    if _runtime_cas_sha256(target, runner, final_runtime) != runtime_sha:
+        raise RuntimeError("production runtime changed during disposable recovery proof")
+    receipt = _write_recovery_proof_evidence(
+        target,
+        runner,
+        receipt_path,
+        {
+            "schema": "usl-disposable-recovery-proof/v1",
+            "proof_id": proof_id,
+            "source": "production",
+            "release": {
+                "identity": release["identity"],
+                "manifest_sha256": release_sha,
+            },
+            "backup": {
+                "run_id": backup["run_id"],
+                "receipt_sha256": backup["sha256"],
+                "durable_snapshot_id": backup["upload"]["durable_snapshot_id"],
+                "cache_snapshot_id": backup["upload"]["cache_snapshot_id"],
+            },
+            "materialization": {
+                "cohort_schema": materialized["cohort_schema"],
+                "capacity": capacity,
+                "controls_sha256": hashlib.sha256(json.dumps(
+                    materialized["controls"], sort_keys=True, separators=(",", ":"),
+                ).encode()).hexdigest(),
+                "sign_secrets_restored": materialized["sign_secrets_restored"],
+                "status": materialized["status"],
+            },
+            "health": {
+                "databases": health,
+                "status": "passed",
+            },
+            "smoke": control_validation,
+            "reusable_cache": cache_roles,
+            "ownership": {
+                "label": RECOVERY_PROOF_OWNER,
+                "resource_names_sha256": hashlib.sha256(json.dumps(
+                    names, sort_keys=True, separators=(",", ":"),
+                ).encode()).hexdigest(),
+            },
+            "cleanup": cleanup,
+            "isolation": {
+                "active_runtime_sha256": runtime_sha,
+                "active_runtime_unchanged": True,
+                "gateway_attached": False,
+                "application_workers_started": False,
+                "persistent_staging_touched": False,
+                "production_secrets_modified": False,
+                "runtime_ledger_used_for_restore": False,
+            },
+            "started_at": started_at,
+            "completed_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            "status": "passed",
+        },
+        "0444",
+    )
+    print(json.dumps(receipt, indent=None if arguments.json else 2, sort_keys=True))
+    return 0
+
+
 def _cleanup_workspaces(target, runner, protected_generations: set[str]) -> list[str]:
     state_root = target.value["state_directory"]
     generations_root = f"{state_root}/generations"
@@ -6774,6 +7581,19 @@ def build_parser() -> argparse.ArgumentParser:
     restore.add_argument("--confirm")
     restore.add_argument("--json", action="store_true")
     restore.set_defaults(handler=restore_command)
+    recovery_proof = commands.add_parser("recovery-proof")
+    recovery_proof.add_argument("action", choices=("run",))
+    recovery_proof.add_argument("--target", dest="command_target", required=True)
+    recovery_proof.add_argument("--proof-id", required=True)
+    recovery_proof.add_argument("--evidence-directory", type=Path, required=True)
+    recovery_proof.add_argument("--release", type=Path)
+    recovery_proof.add_argument(
+        "--failure-after",
+        choices=RECOVERY_PROOF_FAILURE_STAGES,
+        help="inject one deterministic failure after the named durable phase",
+    )
+    recovery_proof.add_argument("--json", action="store_true")
+    recovery_proof.set_defaults(handler=recovery_proof_command)
     cleanup = commands.add_parser("cleanup")
     cleanup.add_argument("action", choices=("plan", "apply"))
     cleanup.add_argument("--target", dest="command_target")

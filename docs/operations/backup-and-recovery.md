@@ -39,6 +39,12 @@ marks only the verified durable snapshot as recovery-eligible. The JSON result
 contains the full snapshot IDs and timings. Do not use `latest` or abbreviated
 snapshot IDs.
 
+The host retains `capture.json` and `receipt.json` under the exact
+`<state-directory>/backup-runs/<run-id>/` directory. A retry resumes only that
+run and rejects a missing or different capture manifest. The final receipt is
+content-digested and binds the captured cohort, durable snapshot and reusable
+cache snapshot.
+
 Progress and capacity messages are written to stderr; the final result remains
 valid JSON on stdout. Every phase reports its start, completion, and elapsed
 time. A failure ends with one concise cause. Activation failures also state
@@ -146,6 +152,60 @@ scripts/usl-stack restore run \
 
 Use production replacement only from an approved deployment or incident
 workflow. Ordinary operators should prove the snapshot in staging first.
+
+## Disposable daily recovery proof
+
+The no-change daily path takes a new qualified production backup and restores
+that same-release cohort without changing staging or activating a production
+generation:
+
+```bash
+scripts/usl-stack recovery-proof run \
+  --target production \
+  --proof-id daily-20260904-0400 \
+  --evidence-directory /var/lib/usl-recovery-proofs \
+  --json
+```
+
+The controller provides a unique, stable `--proof-id` for the scheduled
+attempt. Reusing the ID after interruption recovers only resources bearing that
+exact proof ownership label and reuses the retained backup receipt. A completed
+retry returns the immutable receipt without inspecting or changing the runtime.
+
+The evidence directory must be an absolute, dedicated host path. The command
+rejects paths that overlap the production runtime directory, storage tiers,
+operation secrets or Sign state. The directory retains canonical state,
+failure and completion receipts. It never retains repository credentials,
+database passwords, restored files or Sign keys.
+
+The proof creates uniquely named Docker volumes, one private network and two
+database-only containers. Every persistent resource carries
+`com.unstaticlabs.recovery-proof.owner=usl-disposable-recovery-proof`, the exact
+proof ID, production source and logical role. It does not use Compose, attach a
+gateway, start Odoo or Paperless workers, write `active.json`, use a release
+candidate or read staging configuration. The materializer restores the exact
+qualified durable and cache snapshots, including OCR, previews, Tantivy and
+vector indexes. It then queries the restored databases independently and
+compares Accounting, Documents, access, queue, cron and release controls with
+the quiesced capture manifest.
+
+Cleanup runs after success and ordinary failure. A process crash leaves a
+digest-bound state receipt; the retry validates ownership before removing only
+the named proof resources. A missing label or name collision fails closed.
+Operators can exercise each durable boundary without changing the algorithm:
+
+```bash
+scripts/usl-stack recovery-proof run \
+  --target production \
+  --proof-id drill-20260904-material \
+  --evidence-directory /var/lib/usl-recovery-proofs \
+  --failure-after materialized \
+  --json
+```
+
+Allowed boundaries are `backup-qualified`, `resources-created`, `materialized`
+and `validated`. Use failure injection only in an approved drill. Each injected
+failure cleans owned resources and retains a failure receipt.
 
 ## Capacity and cleanup
 

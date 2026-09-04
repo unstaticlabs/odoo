@@ -171,6 +171,25 @@ MCP OAuth data never cross environments; the reset preserves the paused,
 environment-owned staging OAuth vault and records non-secret source and
 destination tree identities. A daily run with no production change performs a
 backup and disposable recovery proof only—it does not reset persistent staging.
+The GitOps launcher invokes the public interface with a stable attempt ID and a
+dedicated evidence root:
+
+```bash
+scripts/usl-stack recovery-proof run \
+  --target production \
+  --proof-id "$DAILY_ATTEMPT_ID" \
+  --evidence-directory /var/lib/usl-recovery-proofs \
+  --json
+```
+
+The command qualifies the production backup before it creates a proof resource.
+It then performs a candidate-independent same-release restore using only
+proof-labelled volumes, a private network and database-only containers. It
+never invokes staging reset, release reconciliation, activation, gateway or
+runtime-ledger restore paths. The retained completion receipt binds the release
+manifest, backup receipt, durable and cache snapshot IDs, restored controls,
+owned-resource inventory digest, cleanup result and unchanged production
+runtime identity.
 
 Backups that deliberately leave writers stopped persist a canonical
 `usl-backup-quiescence/v2` receipt before stopping and advance it immediately
