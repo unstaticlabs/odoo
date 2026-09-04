@@ -8,6 +8,7 @@ import sqlite3
 from pathlib import Path
 
 import sqlite_vec
+from django.conf import settings
 from documents.models import Document, PaperlessTask
 from paperless_personal_ai.models import PersonalAIProfile
 
@@ -91,6 +92,7 @@ vector = {
     "schema_version": index_metadata.get("schema_version", "2"),
     "dimension": 1024,
     "chunk_size": 512,
+    "embedding_batch_size": settings.LLM_EMBEDDING_BATCH_SIZE,
     "overlap": 200,
     "vector_rows": vector_rows,
     "chunk_rows": chunk_rows,

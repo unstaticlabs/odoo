@@ -386,8 +386,12 @@ msgid "Synchronize access to the original in Documents before certification."
 msgstr "Synchronisez l’accès à l’original dans Documents avant la certification."
 
 #. module: usl_documents_accounting
-msgid "Classify the original in Documents as a Banking document before certification."
-msgstr "Classez l’original dans Documents comme document bancaire avant la certification."
+msgid "Documents has no Bank statement classification. Synchronize its Paperless catalogs before certification."
+msgstr "Documents ne dispose d’aucun classement Relevé bancaire. Synchronisez ses catalogues Paperless avant la certification."
+
+#. module: usl_documents_accounting
+msgid "Apply the Banking and Bank statement tags to the original in Documents before certification."
+msgstr "Appliquez les étiquettes Banque et Relevé bancaire à l’original dans Documents avant la certification."
 
 #. module: usl_documents_accounting
 msgid "The exact Documents version is not linked to this bank statement."

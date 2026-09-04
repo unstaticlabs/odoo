@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_users_identitycheck_view_form_pocketid" model="ir.ui.view">
+        <field name="name">res.users.identitycheck.form.pocketid</field>
+        <field name="model">res.users.identitycheck</field>
+        <field name="inherit_id" ref="auth_passkey.res_users_identitycheck_view_form_passkey"/>
+        <field name="priority">30</field>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="js_class">usl_pocketid_identity_check_form</attribute>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <div invisible="auth_method != 'usl_pocketid'">
+                    <h3><strong>Confirm your identity with Pocket ID</strong></h3>
+                    <p class="text-muted mb-0">
+                        A secure Pocket ID window will open for this sensitive action.
+                    </p>
+                </div>
+            </xpath>
+            <xpath expr="//footer/button[@id='password_confirm']" position="before">
+                <button
+                    string="Confirm with Pocket ID"
+                    type="object"
+                    name="run_check"
+                    class="btn btn-primary"
+                    data-hotkey="q"
+                    invisible="auth_method != 'usl_pocketid'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

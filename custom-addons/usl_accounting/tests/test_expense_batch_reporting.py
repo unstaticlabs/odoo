@@ -17,6 +17,15 @@ class TestExpenseBatchReporting(TestExpenseCommon):
             "total_amount_currency": 125,
             "analytic_distribution": {str(self.analytic_account_1.id): 100},
         })
+        receipt = self.env["ir.attachment"].sudo().create({
+            "name": "canada-transport-receipt.pdf",
+            "raw": b"expense reporting test receipt",
+            "mimetype": "application/pdf",
+            "res_model": expense._name,
+            "res_id": expense.id,
+        })
+        expense.sudo().message_main_attachment_id = receipt
+        expense.invalidate_recordset(["message_main_attachment_id"])
         batch = self.env["usl.expense.batch"].create({
             "name": "SBFH — Canada 2026",
             "purpose": "Canada travel",

@@ -20,6 +20,24 @@ class TestSavedFilterDomainParser(TransactionCase):
 
 @tagged("post_install", "-at_install")
 class TestIdentityRestore(TransactionCase):
+    def test_source_company_partner_reuses_native_company_partner(self):
+        run = self.env["usl.identity.restore.run"].create(
+            {
+                "source_database": "test_source",
+                "source_snapshot": "test_snapshot",
+            },
+        )
+        company = self.env["res.company"].create(
+            {"name": "Restored Source Company"},
+        )
+
+        targets = run._company_partner_targets(
+            [{"id": 71, "partner_id": 94}],
+            {71: company},
+        )
+
+        self.assertEqual(targets, {94: company.partner_id})
+
     def test_valentin_home_uses_source_favorites_and_saved_views(self):
         if "usl.home.favorite" not in self.env.registry:
             self.skipTest("usl_home is not installed in this test registry")

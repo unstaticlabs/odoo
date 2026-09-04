@@ -100,6 +100,19 @@ class TestAccountingDocumentContexts(TransactionCase):
         self.env.ref("usl_documents.smart_view_banking").sudo().with_context(
             usl_documents_archive_view_sync=True,
         ).write({"tag_ids": [Command.set(banking_tag.ids)]})
+        (
+            self.env["usl.paperless.tag"]
+            .sudo()
+            .with_context(usl_documents_cache_write=True)
+            .create(
+                {
+                    "name": "Bank statement",
+                    "paperless_id": 97992,
+                    "matching_algorithm": "6",
+                    "active": True,
+                },
+            )
+        )
         bank_account = self.env["res.partner.bank"].create(
             {
                 "account_number": "FR7630001007941234567890185",
@@ -205,12 +218,15 @@ class TestAccountingDocumentContexts(TransactionCase):
         source_file._accept_evidence()
         return statement, source_file, content
 
-    def _archived_document(self, source_file, checksum=None):
+    def _archived_document(self, source_file, checksum=None, paperless_id=98001):
         checksum = checksum or source_file.sha256
+        required_tags = self.env["usl.paperless.tag"].sudo().search(
+            [("name", "in", ("Banking", "Bank statement"))],
+        )
         document = self.env["usl.document"].sudo().create(
             {
                 "name": "Archived bank statement",
-                "paperless_id": 98001,
+                "paperless_id": paperless_id,
                 "company_id": source_file.company_id.id,
                 "confidentiality": "accounting",
                 "accounting_evidence": True,
@@ -220,9 +236,7 @@ class TestAccountingDocumentContexts(TransactionCase):
                 "permission_sync_state": "synchronized",
                 "checksum": checksum,
                 "tag_ids": [
-                    Command.set(
-                        self.env.ref("usl_documents.smart_view_banking").tag_ids.ids,
-                    ),
+                    Command.set(required_tags.ids),
                 ],
             },
         )
@@ -260,6 +274,74 @@ class TestAccountingDocumentContexts(TransactionCase):
         statement.invalidate_recordset()
         self.assertFalse(statement.can_certify)
         self.assertIn("Archive offline", statement.review_blocking_reason)
+
+    def test_retry_keeps_accepted_evidence_in_the_archive_queue(self):
+        statement, source_file, _content = self._bank_evidence_fixture()
+
+        self.assertEqual(source_file.evidence_status, "accepted")
+        self.assertEqual(source_file.paperless_archive_state, "pending")
+
+        source_file._associate_pdf()
+
+        self.assertEqual(statement.accepted_evidence_id, source_file)
+        self.assertEqual(source_file.evidence_status, "accepted")
+        self.assertEqual(source_file.paperless_archive_state, "pending")
+        queued = self.env["account.bank.ingestion.file"].search(
+            [
+                ("classification", "=", "pdf"),
+                ("evidence_status", "=", "accepted"),
+                ("paperless_archive_state", "in", ("pending", "processing")),
+            ],
+        )
+        self.assertIn(source_file, queued)
+
+    def test_accepted_bank_evidence_skips_generic_attachment_archive(self):
+        statement, source_file, _content = self._bank_evidence_fixture()
+
+        policy = statement._document_archive_policy(source_file.attachment_id)
+
+        self.assertEqual(policy["archive_mode"], "never")
+        self.assertEqual(policy["policy_reason"], "managed_bank_statement_evidence")
+        self.assertTrue(policy["accounting_evidence"])
+
+    def test_retry_reuses_exact_link_and_deactivates_conflicting_link(self):
+        statement, source_file, _content = self._bank_evidence_fixture()
+        wrong_document = self._archived_document(source_file, checksum="f" * 64)
+        exact_document = self._archived_document(source_file, paperless_id=98002)
+        Link = self.env["usl.document.link"].sudo()
+        wrong_link = Link.create(
+            {
+                "document_id": wrong_document.id,
+                "res_model": statement._name,
+                "res_id": statement.id,
+                "record_name": statement.display_name,
+                "company_id": statement.company_id.id,
+                "linked_by_id": self.env.user.id,
+                "version_id": "bank-version-1",
+            },
+        )
+        exact_link = Link.create(
+            {
+                "document_id": exact_document.id,
+                "res_model": statement._name,
+                "res_id": statement.id,
+                "record_name": statement.display_name,
+                "company_id": statement.company_id.id,
+                "linked_by_id": self.env.user.id,
+                "version_id": "bank-version-1",
+            },
+        )
+
+        with patch.object(UslDocument, "action_sync_permissions", return_value=True):
+            source_file._process_bank_evidence_archive()
+
+        wrong_link.invalidate_recordset()
+        exact_link.invalidate_recordset()
+        self.assertFalse(wrong_link.active)
+        self.assertTrue(exact_link.active)
+        self.assertEqual(source_file.paperless_archive_state, "archived")
+        self.assertEqual(source_file.paperless_document_id, exact_document)
+        self.assertEqual(source_file.paperless_version, "bank-version-1")
 
     def test_damaged_pdf_explains_replacement_and_is_not_sent_to_documents(self):
         statement, source_file, _content = self._bank_evidence_fixture(
@@ -330,7 +412,7 @@ class TestAccountingDocumentContexts(TransactionCase):
                     "state": "duplicate",
                     "document_id": document.id,
                 },
-            ),
+            ) as upload_from_odoo,
             patch.object(UslDocument, "action_sync_permissions", return_value=True),
         ):
             statement.action_archive_bank_evidence()
@@ -341,6 +423,15 @@ class TestAccountingDocumentContexts(TransactionCase):
         self.assertTrue(
             self.env.ref("usl_documents.smart_view_banking").tag_ids
             <= document.tag_ids,
+        )
+        self.assertIn("Bank statement", document.tag_ids.mapped("name"))
+        self.assertEqual(
+            set(document.tag_ids.ids),
+            set(upload_from_odoo.call_args.kwargs["tag_ids"]),
+        )
+        self.assertEqual(
+            {"Banking", "Bank statement"},
+            set(statement._document_archive_context()["tags"]),
         )
         self.assertEqual(source_file.sha256, hashlib.sha256(content).hexdigest())
         link = self.env["usl.document.link"].sudo().search(

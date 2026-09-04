@@ -20,7 +20,8 @@ from reportlab.pdfgen import canvas
 from odoo import fields
 from odoo.tools.pdf import PdfReader
 
-from odoo.addons.usl_sign.services import field_value
+from odoo.addons.usl_sign.models.constants import INTERNAL_OPERATION
+from odoo.addons.usl_sign.services import field_content, field_value
 
 sys.path.insert(0, "/mnt/sign-restore-migration")
 from source import (  # noqa: E402
@@ -31,6 +32,7 @@ from source import (  # noqa: E402
     match_exports,
     redact_historical_links,
     sha256,
+    source_datetime,
     source_options,
     text,
 )
@@ -221,7 +223,18 @@ def await_upload(result):
     return operation.document_id
 
 
-def archive_file(admin, *, filename, content, company, document_date, tags, document_type):
+def archive_file(
+    admin,
+    *,
+    filename,
+    content,
+    company,
+    document_date,
+    tags,
+    document_type,
+    original_created_at,
+    original_modified_at,
+):
     tag_records = env["usl.paperless.tag"].browse()  # noqa: F821
     for tag_name in tags:
         tag_records |= metadata_record(
@@ -250,6 +263,8 @@ def archive_file(admin, *, filename, content, company, document_date, tags, docu
             document_date=document_date,
             document_type_id=type_record.id,
             tag_ids=tag_records.ids,
+            original_created_at=original_created_at,
+            original_modified_at=original_modified_at,
         )
     )
     reused = result["state"] == "duplicate"
@@ -285,6 +300,44 @@ def archived_message(request_record, name, values):
         if existing.model != request_record._name or existing.res_id != request_record.id:
             fail(f"History binding {name} points to another request")
         return existing
+    expected_date = source_datetime(values["date"])
+    expected_subject = values.get("subject") or False
+    expected_type = values.get("message_type") or "comment"
+    expected_author_id = values.get("author_id") or False
+    expected_email_from = values.get("email_from") or False
+    candidates = request_record.message_ids.sudo().filtered(
+        lambda message: (
+            message.date == expected_date
+            and (message.subject or False) == expected_subject
+            and message.message_type == expected_type
+            and (message.author_id.id or False) == expected_author_id
+            and (message.email_from or False) == expected_email_from
+        ),
+    )
+    exact_candidates = candidates.filtered(
+        lambda message: str(message.body or "") == str(values["body"]),
+    )
+    if len(exact_candidates) > 1:
+        fail(f"Ambiguous finalized history message {name}")
+    if exact_candidates:
+        candidate = exact_candidates[0]
+        bind(name, candidate)
+        return candidate
+    if candidates:
+        bound_candidate_ids = set(
+            env["ir.model.data"]  # noqa: F821
+            .sudo()
+            .search(
+                [
+                    ("module", "=", "usl_sign_restore"),
+                    ("model", "=", "mail.message"),
+                    ("res_id", "in", candidates.ids),
+                ],
+            )
+            .mapped("res_id"),
+        )
+        if set(candidates.ids) - bound_candidate_ids:
+            fail(f"Finalized history message {name} changed body")
     message = env["mail.message"].sudo().create(  # noqa: F821
         {
             "model": request_record._name,
@@ -295,12 +348,12 @@ def archived_message(request_record, name, values):
             "body": values["body"],
             "author_id": values.get("author_id") or False,
             "email_from": values.get("email_from") or False,
-            "date": values["date"],
+            "date": expected_date,
         },
     )
     env.cr.execute(  # noqa: F821
         "UPDATE mail_message SET create_date = %s, write_date = %s WHERE id = %s",
-        [values["date"], values["date"], message.id],
+        [expected_date, expected_date, message.id],
     )
     bind(name, message)
     return message
@@ -378,7 +431,7 @@ for request_row in source["requests"]:
     signer_emails = [row["signer_email"] or row["partner_email"] for row in signers]
     verify_certificate(certificate_content, source_id, signer_emails)
     completion_at = max(
-        fields.Datetime.to_datetime(str(value))
+        source_datetime(value)
         for value in (
             [row["signing_date"] for row in signers if row["signing_date"]]
             + [request_row["completion_date"]]
@@ -394,6 +447,8 @@ for request_row in source["requests"]:
         document_date=fields.Date.to_date(completion_at),
         tags=[*common_tags, "Signed document"],
         document_type="Signed agreement",
+        original_created_at=request_row["create_date"],
+        original_modified_at=request_row["write_date"] or completion_at,
     )
     exported_certificate = archive_file(
         admin,
@@ -403,6 +458,8 @@ for request_row in source["requests"]:
         document_date=fields.Date.to_date(completion_at),
         tags=[*common_tags, "Signing certificate"],
         document_type="Signing certificate",
+        original_created_at=completion_at,
+        original_modified_at=request_row["write_date"] or completion_at,
     )
     original_content = reader.binary(
         {
@@ -428,6 +485,8 @@ for request_row in source["requests"]:
             ),
         ],
         document_type="Signing source document",
+        original_created_at=request_row["original_create_date"],
+        original_modified_at=request_row["original_write_date"],
     )
     source_certificate_row = next(
         row for row in request_attachments[source_id] if row["kind"] == "source_certificate"
@@ -441,6 +500,8 @@ for request_row in source["requests"]:
         document_date=fields.Date.to_date(completion_at),
         tags=[*common_tags, "Source completion certificate"],
         document_type="Signing certificate",
+        original_created_at=source_certificate_row["create_date"],
+        original_modified_at=source_certificate_row["write_date"],
     )
     history_content = canonical_json(history_payload(source, source_id))
     history_document = archive_file(
@@ -451,35 +512,57 @@ for request_row in source["requests"]:
         document_date=fields.Date.to_date(completion_at),
         tags=[*common_tags, "Signing history"],
         document_type="Signing history",
+        original_created_at=request_row["create_date"],
+        original_modified_at=request_row["write_date"],
     )
 
-    request_record = xmlid(f"request_{source_id}", "sign.oca.request")
-    if not request_record:
-        creator = source_identity(
-            "res.users",
-            request_row.get("create_uid", 0),
-            login=request_row["creator_login"],
-            email=request_row["creator_email"],
+    creator = source_identity(
+        "res.users",
+        request_row.get("create_uid", 0),
+        login=request_row["creator_login"],
+        email=request_row["creator_email"],
+    )
+    signer_expectations = []
+    signer_commands = []
+    for index, signer in enumerate(signers, start=1):
+        partner = source_identity(
+            "res.partner",
+            signer["partner_id"],
+            email=signer["signer_email"] or signer["partner_email"],
         )
-        signer_commands = []
-        for index, signer in enumerate(signers, start=1):
-            partner = source_identity(
-                "res.partner",
-                signer["partner_id"],
-                email=signer["signer_email"] or signer["partner_email"],
-            )
-            signer_commands.append(
-                (
-                    0,
-                    0,
-                    {
-                        "partner_id": partner.id,
-                        "role_id": role_for(signer["role_name"]).id,
-                        "sequence": (signer["mail_sent_order"] or index) * 10,
-                        "signed_on": signer["signing_date"],
-                    },
-                ),
-            )
+        role = role_for(signer["role_name"])
+        sequence = (signer["mail_sent_order"] or index) * 10
+        signer_expectations.append((signer, partner, role, sequence))
+        signer_commands.append(
+            (
+                0,
+                0,
+                {
+                    "partner_id": partner.id,
+                    "role_id": role.id,
+                    "sequence": sequence,
+                    "signed_on": source_datetime(signer["signing_date"]),
+                },
+            ),
+        )
+
+    request_record = xmlid(f"request_{source_id}", "sign.oca.request")
+    request_created = False
+    if not request_record:
+        finalized_candidates = env["sign.oca.request"].sudo().search(  # noqa: F821
+            [
+                ("record_kind", "=", "external_archive"),
+                ("state", "=", "external_archived"),
+                ("original_sha256", "=", artifact_match["signed_sha256"]),
+                ("archive_document_id", "=", signed_document.id),
+                ("archive_dossier_document_id", "=", exported_certificate.id),
+                ("company_id", "=", company.id),
+            ],
+        )
+        if len(finalized_candidates) > 1:
+            fail(f"Ambiguous finalized request for source request {source_id}")
+        request_record = finalized_candidates
+    if not request_record:
         request_record = env["sign.oca.request"].with_env(admin.env)._create_external_archive(  # noqa: F821
             {
                 "name": request_row["reference"] or artifact_match["signed"].stem,
@@ -494,16 +577,55 @@ for request_row in source["requests"]:
                 "archive_document_id": signed_document.id,
                 "archive_dossier_document_id": exported_certificate.id,
                 "signer_ids": signer_commands,
-                "create_date": request_row["create_date"],
+                "create_date": source_datetime(request_row["create_date"]),
             },
         )
-        bind(f"request_{source_id}", request_record)
-        for source_signer, target_signer in zip(signers, request_record.signer_ids):
-            bind(f"signer_{source_signer['id']}", target_signer)
+        request_created = True
+    expected_archives = {
+        "archive_document_id": signed_document,
+        "archive_dossier_document_id": exported_certificate,
+    }
+    archive_changes = {}
+    for field_name, expected_document in expected_archives.items():
+        current_document = request_record[field_name]
+        if current_document and current_document != expected_document:
+            fail(f"Finalized request {source_id} changed {field_name}")
+        if not current_document:
+            archive_changes[field_name] = expected_document.id
+    if archive_changes:
+        request_record.with_context(
+            usl_sign_transition=INTERNAL_OPERATION,
+            usl_sign_freeze=INTERNAL_OPERATION,
+        ).write(archive_changes)
+    if request_record.user_id != creator:
+        fail(f"Finalized request {source_id} changed creator")
+    if sha256(field_content(request_record.data)) != artifact_match["signed_sha256"]:
+        fail(f"Finalized request {source_id} changed signed content")
+    bind(f"request_{source_id}", request_record)
+    target_signers = request_record.signer_ids.sorted(lambda signer: (signer.sequence, signer.id))
+    if len(target_signers) != len(signer_expectations):
+        fail(f"Finalized request {source_id} changed signer count")
+    for (source_signer, partner, role, sequence), target_signer in zip(
+        signer_expectations,
+        target_signers,
+    ):
+        expected_signed_on = source_datetime(source_signer["signing_date"])
+        if (
+            target_signer.partner_id != partner
+            or target_signer.role_id != role
+            or target_signer.sequence != sequence
+            or target_signer.signed_on != expected_signed_on
+            or target_signer.state != "external_recorded"
+            or target_signer.authentication_method != "external_record"
+        ):
+            fail(f"Finalized signer {source_signer['id']} changed business identity")
+        bind(f"signer_{source_signer['id']}", target_signer)
+        if request_created:
             env.cr.execute(  # noqa: F821
                 "UPDATE sign_oca_request_signer SET create_date=%s, write_date=%s WHERE id=%s",
                 [source_signer["create_date"], source_signer["write_date"], target_signer.id],
             )
+    if request_created:
         env.cr.execute(  # noqa: F821
             "UPDATE sign_oca_request SET create_date=%s, write_date=%s WHERE id=%s",
             [request_row["create_date"], request_row["write_date"], request_record.id],
@@ -620,6 +742,8 @@ for attachment in inactive_template_attachments:
         document_date=fields.Date.context_today(env["usl.document"]),  # noqa: F821
         tags=["Odoo Online (External)", "Inactive Odoo Online template"],
         document_type="Signing source document",
+        original_created_at=attachment["create_date"],
+        original_modified_at=attachment["write_date"],
     )
     document.with_env(admin.env).link_to_record("res.company", company.id)
     document.with_env(admin.env).action_sync_permissions()

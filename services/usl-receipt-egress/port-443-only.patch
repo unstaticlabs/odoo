@@ -1,0 +1,11 @@
+diff --git a/pkg/smokescreen/smokescreen.go b/pkg/smokescreen/smokescreen.go
+index 1426466..07f2e26 100644
+--- a/pkg/smokescreen/smokescreen.go
++++ b/pkg/smokescreen/smokescreen.go
+@@ -302,0 +303,6 @@ func classifyAddr(config *Config, addr *net.TCPAddr) ipType {
++	// This distribution's receipt fetcher never needs arbitrary destination
++	// ports. Enforce that invariant at the independent network boundary as
++	// well as in the application, including for browser-created requests.
++	if addr.Port != 443 {
++		return ipDenyUserConfigured
++	}

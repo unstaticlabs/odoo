@@ -3,6 +3,7 @@ from . import (
     business_record,
     document,
     document_mcp,
+    download_grant,
     metadata,
     paperless_client,
     pocketid,

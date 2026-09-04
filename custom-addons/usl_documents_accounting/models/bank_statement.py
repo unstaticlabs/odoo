@@ -5,6 +5,8 @@ from odoo.exceptions import AccessError, UserError
 
 from odoo.addons.usl_documents.models.paperless_client import PaperlessError
 
+BANK_STATEMENT_TAG_NAME = "Bank statement"
+
 
 class AccountBankStatement(models.Model):
     _name = "account.bank.statement"
@@ -38,6 +40,36 @@ class AccountBankStatement(models.Model):
         string="Documents issue",
         compute="_compute_bank_evidence_archive",
     )
+
+    def _document_archive_policy(self, attachment):
+        policy = super()._document_archive_policy(attachment)
+        self.ensure_one()
+        evidence = self.accepted_evidence_id
+        if evidence and attachment == evidence.attachment_id:
+            policy.update(
+                {
+                    "archive_mode": "never",
+                    "document_role": "evidence",
+                    "policy_reason": "managed_bank_statement_evidence",
+                    "confidentiality": "accounting",
+                    "accounting_evidence": True,
+                },
+            )
+        return policy
+
+    def _document_archive_context(self, attachment=None):
+        self.ensure_one()
+        values = super()._document_archive_context(attachment)
+        values["tags"] = list(
+            dict.fromkeys(
+                [
+                    *(values.get("tags") or []),
+                    "Banking",
+                    BANK_STATEMENT_TAG_NAME,
+                ],
+            ),
+        )
+        return values
 
     @api.depends(
         "accepted_evidence_id.paperless_archive_state",
@@ -260,6 +292,28 @@ class AccountBankIngestionFile(models.Model):
         statement = self.statement_id
         if not statement or statement.accepted_evidence_id != self:
             return None
+        exact_link = self._exact_linked_evidence()
+        if exact_link:
+            competing_links = self.env["usl.document.link"].sudo().search(
+                [
+                    ("res_model", "=", statement._name),
+                    ("res_id", "=", statement.id),
+                    ("active", "=", True),
+                    ("id", "!=", exact_link.id),
+                ],
+            )
+            if competing_links:
+                competing_links.sudo().write({"active": False})
+                statement.message_post(
+                    body=_(
+                        "Documents evidence repaired: the exact official statement "
+                        "version was retained and %(count)s conflicting link(s) were "
+                        "deactivated without deleting their documents.",
+                        count=len(competing_links),
+                    ),
+                )
+            self._pin_paperless_version(exact_link.document_id)
+            return None
         content_base64 = base64.b64encode(self._content()).decode()
         existing_link = (
             self.env["usl.document.link"]
@@ -286,6 +340,18 @@ class AccountBankIngestionFile(models.Model):
                     ),
                 )
             else:
+                banking_tags = self._paperless_banking_tags()
+                if not banking_tags:
+                    raise UserError(
+                        _(
+                            "Documents has no Banking classification. Synchronize "
+                            "its Paperless catalogs before retrying the archive.",
+                        ),
+                    )
+                required_tags = (
+                    banking_tags
+                    | self._paperless_bank_statement_tag(ensure=True)
+                )
                 result = (
                     self.env["usl.document"]
                     .sudo()
@@ -296,6 +362,7 @@ class AccountBankIngestionFile(models.Model):
                         company_id=self.company_id.id,
                         confidentiality="accounting",
                         source="odoo_attachment",
+                        tag_ids=required_tags.ids,
                     )
                 )
         except (PaperlessError, AccessError, UserError) as error:
@@ -333,6 +400,33 @@ class AccountBankIngestionFile(models.Model):
         if document:
             self._pin_paperless_version(document)
         return None
+
+    def _exact_linked_evidence(self):
+        """Return the sole linked document version matching the retained PDF."""
+        self.ensure_one()
+        links = self.env["usl.document.link"].sudo().search(
+            [
+                ("res_model", "=", self.statement_id._name),
+                ("res_id", "=", self.statement_id.id),
+                ("active", "=", True),
+            ],
+        )
+        exact_links = links.filtered(
+            lambda link: any(
+                version.paperless_version_id == link.version_id
+                and version.checksum == self.sha256
+                for version in link.document_id.version_ids
+            ),
+        )
+        if len(exact_links) > 1:
+            raise UserError(
+                _(
+                    "Several Documents records are linked to this statement with "
+                    "the exact official PDF. A Documents administrator must choose "
+                    "one before retrying.",
+                ),
+            )
+        return exact_links
 
     def _reconcile_bank_evidence_operation(self):
         self.ensure_one()
@@ -427,10 +521,16 @@ class AccountBankIngestionFile(models.Model):
             return _(
                 "Configure the Documents Banking classification before certification.",
             )
-        if banking_tags - document.tag_ids:
+        statement_tag = self._paperless_bank_statement_tag()
+        if not statement_tag:
             return _(
-                "Classify the original in Documents as a Banking document before "
-                "certification.",
+                "Documents has no Bank statement classification. Synchronize its "
+                "Paperless catalogs before certification.",
+            )
+        if (banking_tags | statement_tag) - document.tag_ids:
+            return _(
+                "Apply the Banking and Bank statement tags to the original in "
+                "Documents before certification.",
             )
         link = self.env["usl.document.link"].sudo().search(
             [
@@ -462,6 +562,26 @@ class AccountBankIngestionFile(models.Model):
             )
         )
         return banking_view.tag_ids.filtered("active")
+
+    def _paperless_bank_statement_tag(self, *, ensure=False):
+        """Return the specific statement tag, creating it in Paperless when needed."""
+        self.ensure_one()
+        tag = (
+            self.env["usl.paperless.tag"]
+            .sudo()
+            .search(
+                [
+                    ("name", "=ilike", BANK_STATEMENT_TAG_NAME),
+                    ("active", "=", True),
+                ],
+                limit=1,
+            )
+        )
+        if not tag and ensure:
+            tag = self.env["usl.document"]._ensure_context_tag(
+                BANK_STATEMENT_TAG_NAME,
+            )
+        return tag
 
     def _pin_paperless_version(self, document):
         self.ensure_one()
@@ -501,9 +621,10 @@ class AccountBankIngestionFile(models.Model):
                     "Paperless catalogs before retrying the archive.",
                 ),
             )
-        if banking_tags - document.tag_ids:
+        required_tags = banking_tags | self._paperless_bank_statement_tag(ensure=True)
+        if required_tags - document.tag_ids:
             document.with_user(self.env.ref("base.user_root")).update_archive_metadata(
-                {"tag_ids": (document.tag_ids | banking_tags).ids},
+                {"tag_ids": (document.tag_ids | required_tags).ids},
             )
             document.invalidate_recordset(["tag_ids"])
         Link = self.env["usl.document.link"].sudo()

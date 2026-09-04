@@ -3,7 +3,7 @@
 import json
 
 
-LOCKED_SOURCE_SHA256 = "0b9916db4807206f63b654bd2933ac89b0aab30ba7e0a1004edc4c060490238f"
+LOCKED_SOURCE_SHA256 = "ad313e28586fafa27a4f6a266df57080456613dff1c8c2c6d7e012732bf633b1"
 
 
 def accepted_collaboration_expense_context(run):
@@ -14,7 +14,7 @@ def accepted_collaboration_expense_context(run):
         run.name == "Collaboration late expense reconciliation"
         and run.status == "partial"
         and run.source_dump_sha256 == LOCKED_SOURCE_SHA256
-        and statistics.get("source_expense_count") == 441
+        and statistics.get("source_expense_count") == 443
         and statistics.get("created_expense_count") == 9
         and statistics.get("mismatch_expense_count") == 18
         and statistics.get("blocked_case_count") == 0

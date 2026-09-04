@@ -8,6 +8,8 @@ DEEMPHASIZED_ROOT_MENU_XMLIDS = (
     "project_todo.menu_todo_todos",
     "spreadsheet_dashboard.spreadsheet_dashboard_menu_root",
     "base.menu_management",
+    "utm.menu_link_tracker_root",
+    "usl_document_templates.menu_official_documents_root",
 )
 
 PRIMARY_ROOT_MENU_XMLIDS = (
@@ -24,6 +26,7 @@ PRIMARY_ROOT_MENU_XMLIDS = (
 )
 
 TRAILING_ROOT_MENU_XMLIDS = (
+    "contacts.menu_contacts",
     "hr.menu_hr_root",
     "base.menu_administration",
 )

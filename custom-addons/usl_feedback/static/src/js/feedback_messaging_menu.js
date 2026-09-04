@@ -143,6 +143,9 @@ export class FeedbackPanel extends Component {
         });
         this.pollTimer = false;
         this.progressTimer = false;
+        // A late draft response must not reopen the composer after the user
+        // has navigated to their saved feedback.
+        this.draftRequestId = 0;
         onMounted(() => this.startDraft());
         onWillUnmount(() => {
             browser.clearTimeout(this.pollTimer);
@@ -158,6 +161,7 @@ export class FeedbackPanel extends Component {
     }
 
     async startDraft() {
+        const requestId = ++this.draftRequestId;
         this.state.error = false;
         try {
             const result = await this.orm.call(
@@ -165,6 +169,9 @@ export class FeedbackPanel extends Component {
                 "feedback_start",
                 [this.props.pageContext]
             );
+            if (requestId !== this.draftRequestId) {
+                return;
+            }
             Object.assign(this.state, {
                 phase: "draft",
                 draftId: result.draft_id,
@@ -174,6 +181,9 @@ export class FeedbackPanel extends Component {
                 recent: result.recent,
             });
         } catch (error) {
+            if (requestId !== this.draftRequestId) {
+                return;
+            }
             this.state.phase = "start_error";
             this.showError(error);
         }
@@ -338,6 +348,9 @@ export class FeedbackPanel extends Component {
     }
 
     async showRecent() {
+        // Invalidate an in-flight startDraft() before fetching the saved list.
+        // Otherwise its delayed response can replace the recent phase.
+        this.draftRequestId++;
         browser.clearTimeout(this.pollTimer);
         this.stopAgentProgress();
         this.state.error = false;

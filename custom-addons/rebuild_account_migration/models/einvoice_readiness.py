@@ -303,6 +303,17 @@ class ResCompany(models.Model):
         default="development",
         tracking=True,
     )
+    rebuild_einvoice_production_prepared_by_id = fields.Many2one(
+        "res.users",
+        string="Production Prepared By",
+        readonly=True,
+        copy=False,
+    )
+    rebuild_einvoice_production_prepared_at = fields.Datetime(
+        string="Production Prepared At",
+        readonly=True,
+        copy=False,
+    )
     rebuild_einvoice_activation_approved = fields.Boolean(
         string="Production Activation Approved",
         readonly=True,
@@ -366,7 +377,8 @@ class ResCompany(models.Model):
             ("configuration_incomplete", "Needs setup"),
             ("not_verified", "Ready to test"),
             ("ready_inactive", "Ready for production"),
-            ("activation_required", "Activation in progress"),
+            ("activation_required", "Activation required"),
+            ("registration_in_progress", "Registration in progress"),
             ("active", "Receiving"),
             ("needs_attention", "Needs attention"),
         ],
@@ -377,7 +389,7 @@ class ResCompany(models.Model):
         [
             ("inactive", "Inactive"),
             ("test", "Safe test ready"),
-            ("registration_pending", "Registration pending"),
+            ("registration_pending", "Registration in progress"),
             ("connected_suspended", "Connected; retrieval suspended"),
             ("active", "Connected and receiving"),
             ("rejected", "Registration needs attention"),
@@ -471,7 +483,12 @@ class ResCompany(models.Model):
 
     @api.model
     def _rebuild_apply_default_einvoice_provider(self):
-        """Seed missing reception defaults without rewriting governed settings."""
+        """Seed reception defaults without rewriting governed onboarding state.
+
+        Runtime guards prevent external traffic during upgrades and restores. They
+        must not turn that temporary process constraint into a persistent company
+        deactivation; explicit product actions govern that state.
+        """
         companies = self.sudo().search([
             ("account_fiscal_country_id.code", "=", "FR"),
         ])
@@ -504,11 +521,6 @@ class ResCompany(models.Model):
                 })
             if not company._rebuild_einvoice_runtime_guard_enabled():
                 values.update({
-                    "rebuild_einvoice_environment": "development",
-                    "rebuild_einvoice_activation_approved": False,
-                    "rebuild_einvoice_approved_by_id": False,
-                    "rebuild_einvoice_approved_at": False,
-                    "rebuild_einvoice_exchange_enabled": False,
                     "l10n_fr_pdp_send_to_ppf": False,
                     "l10n_fr_pdp_pilot_phase": False,
                 })
@@ -666,6 +678,19 @@ class ResCompany(models.Model):
             == self._rebuild_einvoice_configuration_fingerprint(),
         )
 
+    def _rebuild_einvoice_production_mode_is_configured(self):
+        """Return whether native PDP onboarding is configured for production.
+
+        Odoo treats a missing value as production. A stored demo/test value is
+        deployment configuration and must never be changed by a company-level
+        onboarding action.
+        """
+        self.ensure_one()
+        configured_mode = self.env["ir.config_parameter"].sudo().get_str(
+            "account_peppol.edi.mode",
+        )
+        return not configured_mode or configured_mode == "prod"
+
     def _rebuild_einvoice_production_blockers(self, *, include_onboarding=True):
         self.ensure_one()
         blockers = self._rebuild_einvoice_configuration_blockers()
@@ -689,6 +714,13 @@ class ResCompany(models.Model):
             blockers.append(
                 _(
                     "The production deployment has not authorized live reception.",
+                ),
+            )
+        if not self._rebuild_einvoice_production_mode_is_configured():
+            blockers.append(
+                _(
+                    "The deployment is configured for safe demo onboarding. "
+                    "Configure the native PDP mode for production before activation.",
                 ),
             )
         return blockers
@@ -726,11 +758,13 @@ class ResCompany(models.Model):
 
         if self.rebuild_einvoice_environment != "production":
             return (
-                _("Ready for production"),
+                _("Prepare production activation"),
                 [
                     _(
-                        "Reception is validated and remains safely disconnected "
-                        "until production activation.",
+                        "Mark this company as eligible for production onboarding. "
+                        "This does not contact or register with the platform, start "
+                        "invoice reception, enable e-reporting, or send regulatory "
+                        "data.",
                     ),
                 ],
             )
@@ -776,8 +810,14 @@ class ResCompany(models.Model):
             )
         if connection_status == "registration_pending":
             return (
-                _("Complete platform registration"),
-                [_("Finish registration and verify the French directory effective date.")],
+                _("Registration in progress"),
+                [
+                    _(
+                        "Odoo's Approved Platform is registering this company in "
+                        "the French directory. Reception can be enabled after the "
+                        "native status becomes Receiver.",
+                    ),
+                ],
             )
         if connection_status == "inactive":
             return (
@@ -892,6 +932,10 @@ class ResCompany(models.Model):
                 or not test_current
             ):
                 company.rebuild_einvoice_readiness_status = "not_verified"
+            elif raw_state == "smp_registration":
+                company.rebuild_einvoice_readiness_status = (
+                    "registration_in_progress"
+                )
             elif company.rebuild_einvoice_environment == "production":
                 company.rebuild_einvoice_readiness_status = "activation_required"
             else:
@@ -916,10 +960,85 @@ class ResCompany(models.Model):
             )
 
     def _check_rebuild_einvoice_manager_access(self):
+        self.ensure_one()
         if not self.env.user.has_group("account.group_account_manager"):
             raise AccessError(
                 _("Only an Accounting Manager can govern electronic-invoice activation."),
             )
+        if self.id not in self.env.user.company_ids.ids:
+            raise AccessError(
+                _(
+                    "You cannot govern electronic-invoice activation for a company "
+                    "outside your allowed companies.",
+                ),
+            )
+        self.check_access("read")
+
+    def _rebuild_einvoice_preparation_blockers(self):
+        self.ensure_one()
+        blockers = self._rebuild_einvoice_configuration_blockers(
+            include_provider=True,
+        )
+        if not self._rebuild_einvoice_modules_ready():
+            blockers.append(_("Install the required electronic-invoicing modules."))
+        if not self._rebuild_einvoice_self_check_is_current():
+            blockers.append(_("Run the offline reception test and resolve any failure."))
+        if not self._rebuild_einvoice_runtime_guard_enabled():
+            blockers.append(
+                _("The production deployment has not authorized live reception."),
+            )
+        if not self._rebuild_einvoice_production_mode_is_configured():
+            blockers.append(
+                _(
+                    "The deployment is configured for safe demo onboarding. "
+                    "Configure the native PDP mode for production before activation.",
+                ),
+            )
+        return blockers
+
+    def action_rebuild_prepare_einvoice_activation(self):
+        self.ensure_one()
+        self._check_rebuild_einvoice_manager_access()
+        if self.rebuild_einvoice_environment == "production":
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": _("Production activation already prepared"),
+                    "message": _(
+                        "No setting changed. Continue with the separate reception "
+                        "activation step when ready.",
+                    ),
+                    "type": "info",
+                    "next": {"type": "ir.actions.client", "tag": "soft_reload"},
+                },
+            }
+
+        blockers = self._rebuild_einvoice_preparation_blockers()
+        if blockers:
+            raise UserError(
+                _("Production activation cannot be prepared:\n%s")
+                % "\n".join(f"• {blocker}" for blocker in dict.fromkeys(blockers)),
+            )
+
+        self.sudo().write({
+            "rebuild_einvoice_environment": "production",
+            "rebuild_einvoice_production_prepared_by_id": self.env.user.id,
+            "rebuild_einvoice_production_prepared_at": fields.Datetime.now(),
+        })
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Production activation prepared"),
+                "message": _(
+                    "The company is eligible for production onboarding. No platform "
+                    "was contacted and invoice reception remains inactive.",
+                ),
+                "type": "success",
+                "next": {"type": "ir.actions.client", "tag": "soft_reload"},
+            },
+        }
 
     def _check_rebuild_einvoice_activation_ready(self):
         self.ensure_one()
@@ -1122,10 +1241,6 @@ class ResCompany(models.Model):
                 "pdp_kyc_status": False,
                 "pdp_authentication_uuid": False,
             })
-        self.env["ir.config_parameter"].sudo().set_str(
-            "account_peppol.edi.mode",
-            "prod",
-        )
         self.sudo().write({
             "rebuild_einvoice_activation_approved": True,
             "rebuild_einvoice_approved_by_id": self.env.user.id,
@@ -1135,16 +1250,44 @@ class ResCompany(models.Model):
     def action_rebuild_revoke_einvoice_activation(self):
         self._check_rebuild_einvoice_manager_access()
         self.sudo().write({
+            "rebuild_einvoice_environment": "development",
+            "rebuild_einvoice_production_prepared_by_id": False,
+            "rebuild_einvoice_production_prepared_at": False,
             "rebuild_einvoice_activation_approved": False,
             "rebuild_einvoice_approved_by_id": False,
             "rebuild_einvoice_approved_at": False,
             "rebuild_einvoice_exchange_enabled": False,
         })
 
-    def _rebuild_ensure_einvoice_reception_crons(self):
+    def _rebuild_check_einvoice_reception_crons(self):
+        missing = []
+        inactive = []
         for xmlid in EINVOICE_RECEPTION_CRON_XMLIDS:
-            if cron := self.env.ref(xmlid, raise_if_not_found=False):
-                cron.sudo().write({"active": True})
+            cron = self.env.ref(xmlid, raise_if_not_found=False)
+            if not cron:
+                missing.append(xmlid)
+                continue
+            cron = cron.sudo()
+            if not cron.active:
+                inactive.append(cron.display_name)
+        if missing or inactive:
+            details = [
+                *(
+                    self.env._("Missing scheduled action: %s", xmlid)
+                    for xmlid in missing
+                ),
+                *(
+                    self.env._("Inactive scheduled action: %s", name)
+                    for name in inactive
+                ),
+            ]
+            raise UserError(
+                _(
+                    "Production reception scheduling is not ready. Ask a system "
+                    "administrator to apply the production cron policy:\n%s",
+                )
+                % "\n".join(f"• {detail}" for detail in details),
+            )
 
     def action_rebuild_enable_einvoice_exchange(self):
         self.ensure_one()
@@ -1168,8 +1311,8 @@ class ResCompany(models.Model):
             raise UserError(
                 _("Complete the production approved-platform connection first."),
             )
+        self._rebuild_check_einvoice_reception_crons()
         self.sudo().rebuild_einvoice_exchange_enabled = True
-        self._rebuild_ensure_einvoice_reception_crons()
 
     def action_rebuild_suspend_einvoice_exchange(self):
         self._check_rebuild_einvoice_manager_access()
@@ -1339,11 +1482,6 @@ class PdpRegistration(models.TransientModel):
             PdpRegistration,
             self.sudo(),
         ).button_register_pdp_participant()
-        if self.company_id.account_peppol_proxy_state == "receiver":
-            self.company_id.sudo().write({
-                "rebuild_einvoice_exchange_enabled": True,
-            })
-            self.company_id._rebuild_ensure_einvoice_reception_crons()
         return result
 
     def button_deregister_pdp_participant(self):

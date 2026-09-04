@@ -312,6 +312,13 @@ time. Successful asynchronous completion applies that exact policy before
 permission synchronization; it must not silently fall back to `Internal` while
 Paperless is processing.
 
+The minute-level ingestion poll is also the queue watchdog. It isolates each
+operation, settles a successful archive even if its source record was deleted,
+and leaves that orphan document in `Needs attention`. A Paperless task that
+still has no final result after six hours becomes an explicit failed operation
+instead of remaining `processing` indefinitely. The timeout is configurable
+through `usl_documents.processing_timeout_minutes`.
+
 Automatic archives use `linked_record` access. Odoo evaluates real read access
 to any active linked record, stores the resulting permitted internal users for
 search rules, and applies the same identities as Paperless object permissions.

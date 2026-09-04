@@ -1,32 +1,34 @@
-# Operations specifications
+# Operations
 
-These runbooks define the required operational outcomes for a dependable self-hosted Odoo service. Exact commands and infrastructure details may evolve; the safety, recovery and evidence requirements remain invariant.
+Start with the production entry point:
 
-- [Environment and release policy](environment-and-release-policy.md)
-- [Production image CI boundary](production-image-ci.md)
-- [Pre-production release](preproduction-release.md)
-- [Portable production migration candidate](portable-production-migration.md)
-- [Production cut-over readiness register](production-cutover-readiness.md)
-- [Deployment runbook](deployment-runbook.md)
-- [Product performance audit and operating budgets](product-performance.md)
-- [Backup and recovery runbook](backup-and-recovery-runbook.md)
-- [Run imported accounting data in development](run-imported-accounting-dev.md)
-- [Accounting development workflow](accounting-development-workflow.md)
-- [Shine scheduled bank-export runbook](shine-bank-export-runbook.md)
-- [Source-truth migration](source-truth-migration.md)
-- [Collaboration restoration](collaboration-restoration.md)
-- [Identity restoration](identity-restoration.md)
-- [Product master restoration](product-master-restoration.md)
-- [B2C migration and reconciliation](b2c-migration.md)
-- [B2C operator and accounting-session workflow](b2c-operations.md)
-- [B2C QA guide](b2c-qa.md)
-- [Expense Batch transition](expense-batch-transition.md)
-- [Restore Paie TESE from Odoo Online](tese-restoration.md)
-- [Activate French electronic-invoice reception](activate-french-electronic-invoicing.md)
-- [Restore historical platform billing](platform-billing-migration.md)
-- [Pocket ID SSO runbook](pocket-id-sso-runbook.md)
-- [Documents production-candidate delivery](documents-production-candidate.md)
-- [Distribution access control runbook](distribution-access-control-runbook.md)
-- [Agent-native development](agent-development.md)
-- [Historical agent prompt migration](historical-agent-prompt-mapping.md)
-- [USL Sign operations runbook](sign-runbook.md)
+- [Production operations](production.md) for immutable releases, coordinated
+  backup, deployment, admission, upgrades and recovery.
+- [Continuous delivery](continuous-delivery.md) for release branches, v3
+  manifests, exact module plans, unattended reconciliation and rollback.
+
+The [historical reconstruction interface](migration.md) is retained for audit,
+exceptional recovery and transfer of the evolved data cohort. It is not a
+routine product-development or production-operations guide.
+
+Specialized product procedures remain separate when they require a deliberate
+activation or domain-specific response:
+
+- [Production image CI contract](production-image-ci.md)
+- [Backup and recovery](backup-and-recovery.md)
+- [First deployment incident review](first-deployment-incident.md)
+- [Product and migration boundary](product-migration-boundary.md)
+- [Pocket ID SSO](pocket-id-sso-runbook.md)
+- [Electronic-invoice activation](activate-french-electronic-invoicing.md)
+- [Document renderer](document-renderer-runbook.md)
+- [Paperless and Documents](paperless-documents-runbook.md)
+- [Linked expense receipts](linked-receipt-runbook.md)
+- [Sign](sign-runbook.md)
+- [Odoo MCP](odoo-mcp.md)
+- [Personal Gemini](personal-gemini-runbook.md)
+- [Shine bank export](shine-bank-export-runbook.md)
+- [Access controls](distribution-access-control-runbook.md)
+- [Product performance](product-performance.md)
+- [Action-risk inventory](action-risk-inventory.md)
+- [Secure agent document materialization](document-materialization.md)
+- [Document materialization differential review](document-materialization-security-review.md)

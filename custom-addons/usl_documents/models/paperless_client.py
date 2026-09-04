@@ -36,6 +36,45 @@ class PaperlessNotFound(PaperlessError):
     pass
 
 
+class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, request, file_pointer, code, message, headers, url):
+        return None
+
+
+class PaperlessBinaryStream:
+    """One open Paperless response whose body is consumed incrementally."""
+
+    def __init__(self, response):
+        self._response = response
+        status = getattr(response, "status", None)
+        self.status = int(status if status is not None else response.getcode())
+        self.headers = dict(response.headers.items())
+        try:
+            self.expected_length = int(self.headers.get("Content-Length", ""))
+        except (TypeError, ValueError):
+            self.expected_length = None
+        if self.expected_length is not None and self.expected_length < 0:
+            self.expected_length = None
+
+    def iter_chunks(self, chunk_size=64 * 1024):
+        received = 0
+        try:
+            while chunk := self._response.read(chunk_size):
+                received += len(chunk)
+                yield chunk
+            if self.expected_length is not None and received != self.expected_length:
+                raise PaperlessUnavailable(
+                    "Paperless ended the document stream before completion.",
+                )
+        finally:
+            self.close()
+
+    def close(self):
+        if self._response is not None:
+            self._response.close()
+            self._response = None
+
+
 class PaperlessClient:
     API_VERSION = "10"
     SUPPORTED_SERVER_MAJOR = 3
@@ -58,9 +97,13 @@ class PaperlessClient:
             "usl_documents.paperless_public_url", self.base_url,
         ).rstrip("/")
         self.timeout = params.get_int("usl_documents.paperless_timeout", 20)
+        self.stream_timeout = params.get_int(
+            "usl_documents.paperless_stream_timeout", 60,
+        )
         self.owner_user_id = params.get_int(
             "usl_documents.paperless_service_user_id", 0,
         )
+        self._opener = urllib.request.build_opener(_NoRedirectHandler())
 
     @property
     def configured(self):
@@ -584,6 +627,11 @@ class PaperlessClient:
             "GET", f"/api/documents/{int(document_id)}/", query=query,
         )[0]
 
+    def get_document_suggestions(self, document_id):
+        return self._request(
+            "GET", f"/api/documents/{int(document_id)}/suggestions/",
+        )[0]
+
     def get_versions(self, document_id):
         payload = self.get_document(document_id)
         return payload.get("versions") or []
@@ -723,6 +771,116 @@ class PaperlessClient:
             raw=True,
         )
 
+    @staticmethod
+    def _binary_headers(*, range_header=None, if_range=None):
+        headers = {}
+        if range_header is not None:
+            value = str(range_header).strip()
+            if len(value) > 200 or not re.fullmatch(
+                r"bytes=(?:\d*-\d*)(?:,\d*-\d*)*", value,
+            ):
+                raise ValueError("Invalid HTTP byte range.")
+            headers["Range"] = value
+        if if_range is not None:
+            value = str(if_range).strip()
+            if not value or len(value) > 200 or "\r" in value or "\n" in value:
+                raise ValueError("Invalid If-Range validator.")
+            headers["If-Range"] = value
+        return headers
+
+    def _open_download(
+        self,
+        method,
+        document_id,
+        *,
+        version_id,
+        original,
+        range_header=None,
+        if_range=None,
+    ):
+        if not self.configured:
+            raise PaperlessUnavailable(
+                _("Paperless is not configured. Ask a Documents administrator."),
+            )
+        query = {}
+        if version_id:
+            query["version"] = version_id
+        if original:
+            query["original"] = "true"
+        url = f"{self.base_url}/api/documents/{int(document_id)}/download/"
+        if query:
+            url = f"{url}?{urllib.parse.urlencode(query)}"
+        headers = self._headers()
+        headers.update(
+            self._binary_headers(
+                range_header=range_header,
+                if_range=if_range,
+            ),
+        )
+        binary_request = urllib.request.Request(url, headers=headers, method=method)
+        try:
+            response = self._opener.open(
+                binary_request,
+                timeout=max(1, min(int(self.stream_timeout), 600)),
+            )
+            return PaperlessBinaryStream(response)
+        except urllib.error.HTTPError as error:
+            if error.code == 416:
+                return PaperlessBinaryStream(error)
+            error.close()
+            if error.code in (301, 302, 303, 307, 308):
+                raise PaperlessCompatibilityError(
+                    _("Paperless attempted an unsafe binary redirect."),
+                ) from error
+            if error.code in (401, 403):
+                raise PaperlessAuthenticationError(
+                    _("Paperless rejected the integration identity."),
+                ) from error
+            if error.code == 404:
+                raise PaperlessNotFound(
+                    _("The requested Paperless document or version no longer exists."),
+                ) from error
+            raise PaperlessError(
+                _("Paperless binary request failed (%s).") % error.code,
+            ) from error
+        except (TimeoutError, urllib.error.URLError, OSError) as error:
+            raise PaperlessUnavailable(
+                _("Paperless is unavailable. Odoo remains usable; retry later."),
+            ) from error
+
+    def probe_download(self, document_id, *, version_id, original):
+        stream = self._open_download(
+            "HEAD",
+            document_id,
+            version_id=version_id,
+            original=original,
+        )
+        try:
+            return {"status": stream.status, "headers": stream.headers}
+        finally:
+            stream.close()
+
+    def open_download(
+        self,
+        document_id,
+        *,
+        version_id,
+        original,
+        range_header=None,
+        if_range=None,
+        method="GET",
+    ):
+        if method not in ("GET", "HEAD"):
+            raise ValueError("Unsupported binary request method.")
+        return self._open_download(
+            method,
+            document_id,
+            version_id=version_id,
+            original=original,
+            range_header=range_header,
+            if_range=if_range,
+        )
+
     def preview(self, document_id, *, version_id=None):
         query = {"version": version_id} if version_id else None
         return self._request(
@@ -806,12 +964,14 @@ class PaperlessClient:
                     )
                 return str(task_id)
         except urllib.error.HTTPError as error:
+            payload = error.read().decode(errors="replace")[:1000]
             if error.code in (401, 403):
                 raise PaperlessAuthenticationError(
                     _("Paperless rejected the integration identity."),
                 ) from error
             raise PaperlessError(
-                _("Paperless rejected the upload (%s).") % error.code,
+                _("Paperless rejected the upload (%(status)s): %(detail)s")
+                % {"status": error.code, "detail": payload},
             ) from error
         except (TimeoutError, urllib.error.URLError, OSError) as error:
             raise PaperlessUnavailable(

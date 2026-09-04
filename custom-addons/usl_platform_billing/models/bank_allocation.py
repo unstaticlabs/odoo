@@ -256,7 +256,15 @@ class UslPlatformBillingBankAllocation(models.Model):
             [("bank_statement_line_id", "=", bank_line.id)],
         )
         payouts = allocations.payout_id
-        invoices = payouts.customer_invoice_id
+        # A platform-level compensation entry may settle commission across
+        # several invoices in an order that does not preserve each payout's
+        # individual residual. Reconcile receipts against the complete,
+        # economically equivalent compensation pool instead of treating an
+        # arbitrary residual distribution as a payout mismatch.
+        pool_payouts = payouts
+        for compensation in payouts.compensation_move_id:
+            pool_payouts |= compensation.platform_billing_payout_ids
+        invoices = pool_payouts.customer_invoice_id
         if not invoices or invoices.filtered(lambda invoice: invoice.state != "posted"):
             raise UserError(_("Every linked customer invoice must be posted first."))
         if bank_line.is_reconciled:
@@ -303,13 +311,12 @@ class UslPlatformBillingBankAllocation(models.Model):
             ),
         )
         if not receivable:
-            if all(
-                invoice.currency_id.is_zero(invoice.amount_residual)
-                for invoice in invoices
-            ):
-                allocations._action_write({"blocked_reason": False})
-                return
-            raise UserError(_("No open receivable remains on the linked invoices."))
+            raise UserError(
+                _(
+                    "No open receivable remains in the linked compensation pool. "
+                    "Review whether this bank receipt was already settled elsewhere.",
+                ),
+            )
 
         values = {"partner_id": partners.id}
         transaction_currency = bank_line.currency_id
@@ -341,7 +348,7 @@ class UslPlatformBillingBankAllocation(models.Model):
                     "Keep the links and reconcile it manually in Accounting.",
                 ),
             )
-        bank_line.write(values)
+        bank_line._write_reconciliation_metadata(values)
         bank_line.reconcile_data_info = bank_line._default_reconcile_data()
         for line in receivable.sorted(key=lambda item: (item.date, item.id)):
             bank_line._add_account_move_line(line)

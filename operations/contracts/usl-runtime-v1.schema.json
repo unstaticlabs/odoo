@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://unstaticlabs.com/schemas/operations/usl-runtime-v1.schema.json",
+  "title": "USL runtime target v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "name", "environment", "protected", "transport", "compose",
+    "services", "databases", "storage", "volumes", "paths", "external_networks", "endpoints", "ingress",
+    "ollama", "backup", "release_manifest", "plan_signing", "cron_policy", "secrets", "state_directory"
+  ],
+  "properties": {
+    "schema": {"const": "usl-runtime/v1"},
+    "name": {"type": "string", "pattern": "^[a-z][a-z0-9-]{1,31}$"},
+    "environment": {"enum": ["production", "staging", "local"]},
+    "protected": {"type": "boolean"},
+    "transport": {"type": "object"},
+    "compose": {"type": "object"},
+    "services": {"type": "object"},
+    "databases": {"type": "object"},
+    "storage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tiers"],
+      "properties": {
+        "tiers": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["bulk", "database", "local"],
+          "properties": {
+            "bulk": {"$ref": "#/$defs/storageTier"},
+            "database": {"$ref": "#/$defs/storageTier"},
+            "local": {"$ref": "#/$defs/storageTier"}
+          }
+        }
+      }
+    },
+    "volumes": {"type": "object"},
+    "paths": {"type": "object"},
+    "external_networks": {"type": "object"},
+    "endpoints": {"type": "object"},
+    "ingress": {"type": "object"},
+    "ollama": {"type": "object"},
+    "backup": {"type": "object"},
+    "release_manifest": {"type": "string"},
+    "plan_signing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["private_key", "public_key"],
+      "properties": {
+        "private_key": {"type": ["string", "null"]},
+        "public_key": {"type": ["string", "null"]}
+      }
+    },
+    "cron_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "path", "gates"],
+      "properties": {
+        "mode": {"enum": ["managed", "neutralized", "unmanaged"]},
+        "path": {"type": ["string", "null"]},
+        "gates": {
+          "type": "object",
+          "additionalProperties": {"type": "boolean"}
+        }
+      }
+    },
+    "secrets": {"type": "object"},
+    "state_directory": {"type": "string"}
+  },
+  "$defs": {
+    "storageTier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "reserve_bytes"],
+      "properties": {
+        "path": {"type": "string", "pattern": "^/"},
+        "reserve_bytes": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

@@ -1,0 +1,133 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export COMPOSE_IGNORE_ORPHANS=1
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT"
+source "$ROOT/scripts/lib/compose-scope.sh"
+source "$ROOT/scripts/lib/migration-addons.sh"
+migration_addons_path="$USL_MIGRATION_ADDONS_PATH"
+
+command_name="${1:-all}"
+compose_project="${COMPOSE_PROJECT_NAME:?migration/manage did not resolve COMPOSE_PROJECT_NAME}"
+target_database="${ODOO_DEV_DB:?migration/manage did not resolve ODOO_DEV_DB}"
+source_database="${COLLABORATION_SOURCE_DATABASE:-odoo_online_source_saas_19_3}"
+source_dump_dir="${USL_ONLINE_DUMP_DIR:-$ROOT/usl-online-dump}"
+usl_verify_compose_scope "$compose_project" "$ROOT" "Collaboration restoration"
+
+case "$target_database" in
+  ""|odoo_online_source_saas_19_3|odoo_saas_19_3_validation_exact|odoo_saas_19_3_validation_native|*[!A-Za-z0-9_]*)
+    printf 'Refusing unsafe Collaboration target %s.\n' "$target_database" >&2
+    exit 2
+    ;;
+esac
+if [[ ! -f "$source_dump_dir/dump.sql" ]]; then
+  printf 'Source dump is missing under %s.\n' "$source_dump_dir" >&2
+  exit 2
+fi
+source_sha256="$(shasum -a 256 "$source_dump_dir/dump.sql" | awk '{print $1}')"
+expected_sha256="${USL_MIGRATION_SOURCE_SHA256:?migration/manage did not resolve the source checksum}"
+if [[ "$source_sha256" != "$expected_sha256" ]]; then
+  printf 'Collaboration source SHA-256 changed: %s\n' "$source_sha256" >&2
+  exit 2
+fi
+source_snapshot="source-${source_sha256:0:12}"
+documents_evidence="$ROOT/accounting_compat/private/snapshots/$source_snapshot/evidence/documents-restore-full-all.json"
+evidence_rel="$source_snapshot/collaboration/$compose_project"
+evidence_host="$ROOT/artifacts/migration/private/$evidence_rel"
+mkdir -p "$evidence_host"
+chmod 700 "$evidence_host"
+
+export USL_ONLINE_DUMP_DIR="$source_dump_dir"
+export USL_EINVOICE_LIVE_ENABLED=0
+export USL_EREPORTING_LIVE_ENABLED=0
+export COLLABORATION_TARGET_MAIL_DOMAIN="${COLLABORATION_TARGET_MAIL_DOMAIN:-unstatic-labs.test}"
+
+module_operation() {
+  local operation=--init
+  if docker compose -p "$compose_project" exec -T db \
+    psql -U "${ODOO_DB_USER:-odoo}" -d "$target_database" -Atc \
+    "SELECT 1 FROM ir_module_module WHERE name='usl_collaboration_restore' AND state='installed'" \
+    | grep -qx 1; then
+    operation=--update
+  fi
+  docker compose -p "$compose_project" --profile project-migration run --rm -T \
+    -e ODOO_INIT_DB="$target_database" project-migration \
+    odoo --config=/etc/odoo/odoo.conf --addons-path="$migration_addons_path" \
+    --database="$target_database" "$operation=usl_collaboration_restore" \
+    --without-demo=true --stop-after-init
+}
+
+run_shell() {
+  local script="$1"
+  docker compose -p "$compose_project" --profile accounting-compat up -d --wait accounting-source-db db
+  docker compose -p "$compose_project" --profile project-migration run --rm -T \
+    -e COLLABORATION_SOURCE_DB_HOST="${COLLABORATION_SOURCE_DB_HOST:-accounting-source-db}" \
+    -e COLLABORATION_SOURCE_DB_PORT="${COLLABORATION_SOURCE_DB_PORT:-5432}" \
+    -e COLLABORATION_SOURCE_DB_USER="${COLLABORATION_SOURCE_DB_USER:-odoo}" \
+    -e COLLABORATION_SOURCE_DB_PASSWORD="${COLLABORATION_SOURCE_DB_PASSWORD:-odoo}" \
+    -e COLLABORATION_SOURCE_DATABASE="$source_database" \
+    -e COLLABORATION_SOURCE_SNAPSHOT="$source_snapshot" \
+    -e COLLABORATION_DOCUMENTS_EVIDENCE="/mnt/accounting-private/snapshots/$source_snapshot/evidence/documents-restore-full-all.json" \
+    -e COLLABORATION_EVIDENCE_DIR="/mnt/migration-evidence/$evidence_rel" \
+    -e COLLABORATION_TARGET_MAIL_DOMAIN="$COLLABORATION_TARGET_MAIL_DOMAIN" \
+    project-migration odoo shell --config=/etc/odoo/odoo.conf \
+    --addons-path="$migration_addons_path" --database="$target_database" \
+    --shell-interface=python < "$script"
+}
+
+import_restore() {
+  [[ -f "$documents_evidence" ]] || { printf 'Full Documents evidence is missing: %s\n' "$documents_evidence" >&2; exit 2; }
+  run_shell migration/collaboration_restore/scripts/cleanup_generated_document_nodes.py
+  run_shell migration/collaboration_restore/addons/usl_collaboration_restore/scripts/run_restore.py
+}
+
+validate_restore() {
+  run_shell migration/collaboration_restore/addons/usl_collaboration_restore/scripts/validate_restore.py
+}
+
+idempotence() {
+  local before after
+  before="$(shasum -a 256 "$evidence_host/collaboration-disposition.json" | awk '{print $1}')"
+  import_restore
+  after="$(shasum -a 256 "$evidence_host/collaboration-disposition.json" | awk '{print $1}')"
+  [[ "$before" == "$after" ]] || { printf 'Collaboration evidence changed on replay.\n' >&2; exit 1; }
+}
+
+product_validate() {
+  local container container_root container_evidence status=0
+  container="$(docker compose -p "$compose_project" ps --status running -q odoo)"
+  if [[ -z "$container" ]]; then
+    printf 'Collaboration product validation requires the exact running Odoo runtime.\n' >&2
+    return 2
+  fi
+  container_root="/tmp/usl-collaboration-product-validation"
+  container_evidence="$container_root/$evidence_rel"
+  docker exec "$container" rm -rf -- "$container_root"
+  docker exec "$container" mkdir -p "$container_evidence"
+  docker cp \
+    "$ROOT/artifacts/migration/private/$source_snapshot/attachment-disposition-ledger.json" \
+    "$container:$container_root/$source_snapshot/attachment-disposition-ledger.json"
+  docker cp "$evidence_host/." "$container:$container_evidence"
+  docker exec -u 0 "$container" chown -R odoo:odoo "$container_root"
+  docker exec -i -e COLLABORATION_EVIDENCE_DIR="$container_evidence" \
+    "$container" odoo shell --config=/etc/odoo/odoo.conf \
+    --database="$target_database" --shell-interface=python \
+    < migration/collaboration_restore/scripts/validate_product_boundary.py \
+    || status=$?
+  docker exec "$container" rm -rf -- "$container_root"
+  return "$status"
+}
+
+case "$command_name" in
+  install) module_operation ;;
+  import) import_restore ;;
+  cleanup-generated-documents) run_shell migration/collaboration_restore/scripts/cleanup_generated_document_nodes.py ;;
+  validate) validate_restore ;;
+  idempotence) idempotence ;;
+  finalize) run_shell migration/collaboration_restore/addons/usl_collaboration_restore/scripts/finalize_restore.py ;;
+  product-validate) product_validate ;;
+  tests) python3 -m unittest migration/collaboration_restore/tests/test_routing.py ;;
+  all) module_operation; import_restore; validate_restore; idempotence ;;
+  *) printf 'Usage: migration/internal/collaboration-restore [install|import|cleanup-generated-documents|validate|idempotence|finalize|product-validate|tests|all]\n' >&2; exit 2 ;;
+esac

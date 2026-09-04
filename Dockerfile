@@ -148,17 +148,17 @@ ENV ODOO_ADDONS_PATH=/opt/odoo/addons,/opt/odoo/odoo/addons,/opt/odoo/custom-add
 # the image and cannot drift with a host checkout after qualification.
 FROM product AS distribution
 
-ARG USL_RELEASE_COMMIT=unverified
+ARG USL_COMPONENT_INPUT_SHA256=unverified
 ARG USL_OCA_BUNDLE_SHA256=unverified
 ARG USL_ACTION_RISK_POLICY_SHA256=unverified
 
 LABEL org.opencontainers.image.title="USL Odoo Distribution" \
-      org.opencontainers.image.revision="${USL_RELEASE_COMMIT}" \
+      com.unstaticlabs.odoo.component-input-sha256="${USL_COMPONENT_INPUT_SHA256}" \
       com.unstaticlabs.odoo.oca-bundle-sha256="${USL_OCA_BUNDLE_SHA256}" \
       com.unstaticlabs.odoo.action-risk-policy-sha256="${USL_ACTION_RISK_POLICY_SHA256}" \
       com.unstaticlabs.odoo.runtime="distribution"
 
-ENV USL_RELEASE_COMMIT="${USL_RELEASE_COMMIT}" \
+ENV USL_COMPONENT_INPUT_SHA256="${USL_COMPONENT_INPUT_SHA256}" \
     USL_OCA_BUNDLE_SHA256="${USL_OCA_BUNDLE_SHA256}" \
     USL_ACTION_RISK_POLICY_SHA256="${USL_ACTION_RISK_POLICY_SHA256}"
 
@@ -174,7 +174,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update \
     && apt-get install -y --no-install-recommends chromium \
     && PIP_NO_CACHE_DIR=0 python -m pip install \
-        responses==0.26.2 \
         websocket-client==1.9.0
 
 USER odoo
@@ -200,7 +199,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         debugpy==1.8.16 \
         inotify==0.2.10 \
         pytest==8.4.1 \
-        responses==0.26.2 \
         ruff==0.16.1 \
     && printf 'odoo ALL=(root) NOPASSWD:ALL\n' > /etc/sudoers.d/odoo \
     && chmod 0440 /etc/sudoers.d/odoo \

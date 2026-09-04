@@ -16,7 +16,11 @@ class ResUsers(models.Model):
                 continue
             definitions[profile] = {
                 **definitions[profile],
-                "groups": tuple(definitions[profile]["groups"] or ()) + groups,
+                "groups": tuple(
+                    dict.fromkeys(
+                        tuple(definitions[profile].get("groups") or ()) + groups,
+                    ),
+                ),
             }
         return definitions
 

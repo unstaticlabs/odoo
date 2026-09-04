@@ -11,10 +11,10 @@ from argparse import Namespace
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(ROOT / "scripts"))
+sys.path.insert(0, str(ROOT))
 SPEC = importlib.util.spec_from_file_location(
     "migration_candidate",
-    ROOT / "scripts/migration_candidate.py",
+    ROOT / "migration/candidate.py",
 )
 migration_candidate = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(migration_candidate)
@@ -29,7 +29,7 @@ class MigrationCandidateManifestTest(unittest.TestCase):
         self.candidate = temporary / "candidate"
         for directory in (self.root, self.source, self.candidate):
             directory.mkdir(mode=0o700)
-        for relative in migration_candidate.qa_seed.MIGRATION_INPUTS:
+        for relative in migration_candidate.digests.MIGRATION_INPUTS:
             path = self.root / relative
             path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
             if Path(relative).suffix:
@@ -68,9 +68,9 @@ class MigrationCandidateManifestTest(unittest.TestCase):
         )
         inventory.chmod(0o600)
 
-        source_dump_sha = migration_candidate.qa_seed.sha256_file(self.dump)
-        source_filestore_sha = migration_candidate.qa_seed.tree_digest(filestore)[0]
-        migration_sha = migration_candidate.qa_seed.migration_digest(self.root)
+        source_dump_sha = migration_candidate.digests.sha256_file(self.dump)
+        source_filestore_sha = migration_candidate.digests.tree_digest(filestore)[0]
+        migration_sha = migration_candidate.digests.migration_digest(self.root)
         self.release = {
             "schema": "usl-release-identity-v1",
             "release_commit": "a" * 40,
@@ -132,7 +132,7 @@ class MigrationCandidateManifestTest(unittest.TestCase):
             "odoo_filestore": {
                 "status": "passed",
                 "distinct_store_file_count": 1,
-                "archive_sha256": migration_candidate.qa_seed.sha256_file(
+                "archive_sha256": migration_candidate.digests.sha256_file(
                     self.candidate / "odoo-filestore.tgz",
                 ),
             },

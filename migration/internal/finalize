@@ -1,0 +1,206 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT"
+source "$ROOT/scripts/lib/compose-scope.sh"
+# Base-Compose product validators restart Odoo outside pocket-id-dev's
+# subprocess. Import only the four non-secret ports from the selected
+# project-bound identity environment so every stage recreates the same runtime.
+usl_cli_load_local_port_defaults "$ROOT" "${POCKET_ID_ENV_FILE:-}"
+
+usl_require_explicit_compose_project "Target finalization"
+usl_verify_compose_scope \
+  "$COMPOSE_PROJECT_NAME" "$ROOT" "Target finalization"
+
+target_database="${ODOO_DEV_DB:?migration/manage did not resolve ODOO_DEV_DB}"
+if [[ "$target_database" != "odoo_dev" ]]; then
+  printf 'Target finalization is reserved for canonical odoo_dev.\n' >&2
+  exit 2
+fi
+if [[ "${USL_EINVOICE_LIVE_ENABLED:-0}" != "0" \
+    || "${USL_EREPORTING_LIVE_ENABLED:-0}" != "0" ]]; then
+  printf 'Target finalization requires both regulatory live guards to be 0.\n' >&2
+  exit 2
+fi
+
+qa_profile="${USL_QA_DATA_PROFILE:-full}"
+case "$qa_profile" in
+  full|no-documents|documents-smoke|clean-install|home) ;;
+  *)
+    printf 'Unsupported USL_QA_DATA_PROFILE: %s\n' "$qa_profile" >&2
+    exit 2
+    ;;
+esac
+
+# Update the complete delivered product allow-list. A broad ``-u all`` would
+# also mutate unrelated native and OCA modules during target finalization.
+product_modules=(
+  rebuild_account_migration
+  usl_access_control
+  usl_accounting
+  usl_b2c
+  usl_documents
+  usl_documents_accounting
+  usl_documents_b2c
+  usl_expense_batch
+  usl_feedback
+  usl_home
+  usl_locale
+  usl_platform_billing
+  usl_platform_billing_pocketid
+  usl_pocketid
+  usl_project
+  usl_sign
+  usl_tese_accounting
+  usl_tese_payroll
+)
+product_modules_csv="$(IFS=,; printf '%s' "${product_modules[*]}")"
+
+configure_home_modules() {
+  local module_name module_state
+  local -a init_modules=() update_modules=() module_args=()
+  docker compose -p "$COMPOSE_PROJECT_NAME" stop odoo >/dev/null 2>&1 || true
+  for module_name in "${product_modules[@]}"; do
+    module_state="$(
+      docker compose -p "$COMPOSE_PROJECT_NAME" exec -T db \
+        psql -X -qAt -U odoo -d "$target_database" \
+        -c "SELECT state FROM ir_module_module WHERE name = '$module_name'"
+    )"
+    case "$module_state" in
+      installed) update_modules+=("$module_name") ;;
+      ""|uninstalled) init_modules+=("$module_name") ;;
+      *)
+        printf 'Module %s has unresolved state %s.\n' "$module_name" "$module_state" >&2
+        return 2
+        ;;
+    esac
+  done
+  if ((${#init_modules[@]})); then
+    module_args+=("--init=$(IFS=,; printf '%s' "${init_modules[*]}")")
+  fi
+  if ((${#update_modules[@]})); then
+    module_args+=("--update=$(IFS=,; printf '%s' "${update_modules[*]}")")
+  fi
+  docker compose -p "$COMPOSE_PROJECT_NAME" --profile init run --rm -T \
+    -e ODOO_INIT_DB="$target_database" \
+    init-db odoo --config=/etc/odoo/odoo.conf \
+    --database="$target_database" "${module_args[@]}" \
+    --without-demo=true --stop-after-init --log-level=warn
+  docker compose -p "$COMPOSE_PROJECT_NAME" --profile init run --rm -T \
+    -e ODOO_INIT_DB="$target_database" -e USL_QA_DATA_PROFILE=home \
+    init-db odoo shell --config=/etc/odoo/odoo.conf \
+    --database="$target_database" \
+    < scripts/odoo/qa_data_profile.py
+  docker compose -p "$COMPOSE_PROJECT_NAME" up -d --wait odoo
+}
+
+python3 scripts/action_risk_inventory.py check-source
+scripts/check-product-migration-boundary
+# Keep reconstructed targets aligned with the intentionally lean delivered
+# product. The helper is exact and refuses removal when an unexpected installed
+# module depends on one of the reviewed optional auto-installs.
+docker compose -p "$COMPOSE_PROJECT_NAME" --profile init run --rm -T \
+  -e ODOO_INIT_DB="$target_database" \
+  init-db odoo shell --config=/etc/odoo/odoo.conf \
+  --database="$target_database" \
+  < scripts/odoo/enforce_product_module_scope.py
+if [[ "$qa_profile" == home ]]; then
+  configure_home_modules
+elif [[ "$qa_profile" == no-documents ]]; then
+  USL_QA_DATA_PROFILE="$qa_profile" \
+    scripts/pocket-id-dev configure-odoo-no-paperless "$product_modules_csv"
+else
+  USL_QA_DATA_PROFILE="$qa_profile" \
+    scripts/pocket-id-dev configure-odoo "$product_modules_csv"
+fi
+# Installing the final product set can trigger optional ``auto_install``
+# modules (notably the Outlook mail plugins pulled in by Contacts). Re-apply
+# the exact delivered-module allow-list after installation so those modules
+# cannot re-enter the final registry after the earlier scope gate passed.
+docker compose -p "$COMPOSE_PROJECT_NAME" --profile init run --rm -T \
+  -e ODOO_INIT_DB="$target_database" \
+  init-db odoo shell --config=/etc/odoo/odoo.conf \
+  --database="$target_database" \
+  < scripts/odoo/enforce_product_module_scope.py
+scripts/odoo-dev disable-tours
+# The dump contains historical ECB rows for the main company. Mirror only
+# provider-owned rows into opted-in same-currency companies; manual and
+# transaction-specific rates remain company-specific and no network is used.
+docker compose -p "$COMPOSE_PROJECT_NAME" exec -T \
+  -e USL_EINVOICE_LIVE_ENABLED=0 \
+  -e USL_EREPORTING_LIVE_ENABLED=0 \
+  odoo odoo shell --config=/etc/odoo/odoo.conf \
+  --database="$target_database" \
+  < scripts/odoo/synchronize_shared_currency_rates.py
+# Identity restoration can create the governed expense manager after the
+# product module's migration hook has run.  Reconcile the native per-company
+# employee profiles against the final allowed-company set before acceptance.
+docker compose -p "$COMPOSE_PROJECT_NAME" exec -T \
+  -e USL_EINVOICE_LIVE_ENABLED=0 \
+  -e USL_EREPORTING_LIVE_ENABLED=0 \
+  odoo odoo shell --config=/etc/odoo/odoo.conf \
+  --database="$target_database" \
+  < scripts/odoo/synchronize_multi_company_expense_profiles.py
+# Odoo hides company columns and other native multi-company affordances unless
+# the user also has its standard UI group.  Online scopes can contain several
+# allowed companies without preserving that implied group, so reconcile it
+# from the final active internal-user scopes after identity restoration.
+docker compose -p "$COMPOSE_PROJECT_NAME" exec -T \
+  -e USL_EINVOICE_LIVE_ENABLED=0 \
+  -e USL_EREPORTING_LIVE_ENABLED=0 \
+  odoo odoo shell --config=/etc/odoo/odoo.conf \
+  --database="$target_database" \
+  < scripts/odoo/synchronize_multi_company_groups.py
+# Validate the upgraded current-branch registry, not the schema captured in a
+# seed or left by the preceding migration stage.
+migration/internal/accounting-restore product-validate
+migration/internal/b2c-restore product-validate
+migration/internal/project-restore product-validate
+migration/internal/tese-restore product-validate
+migration/internal/platform-billing-restore product-validate
+if [[ "$qa_profile" == full ]]; then
+  migration/internal/collaboration-restore product-validate
+fi
+scripts/check-product-migration-boundary
+scripts/check-product-database-boundary
+docker compose -p "$COMPOSE_PROJECT_NAME" exec -T \
+  -e ACTION_RISK_MODE=check \
+  odoo odoo shell --config=/etc/odoo/odoo.conf \
+  --database="$target_database" \
+  < scripts/odoo/action_risk_inventory.py
+docker compose -p "$COMPOSE_PROJECT_NAME" exec -T \
+  -e USL_EINVOICE_LIVE_ENABLED=0 \
+  -e USL_EREPORTING_LIVE_ENABLED=0 \
+  odoo odoo shell --config=/etc/odoo/odoo.conf \
+  --database="$target_database" \
+  < scripts/odoo/compile_product_assets.py
+
+# Stored-field recomputation during the product upgrade may replace exceptional
+# Online invoice rates with the ordinary currency table. Restore the private,
+# source-bound rate manifest after every upgrade and prove that no journal item
+# changed and Invoice/Bills Analysis still matches Online.
+migration/internal/accounting-restore restore-rates
+
+# The product validators intentionally use the base Compose service and may
+# recreate Odoo without the Pocket ID environment overlay.  Always finish by
+# restoring the governed SSO runtime that operators will actually use.
+if [[ "$qa_profile" == home ]]; then
+  docker compose -p "$COMPOSE_PROJECT_NAME" up -d --wait odoo
+elif [[ "$qa_profile" == no-documents ]]; then
+  scripts/pocket-id-dev start-odoo-runtime
+else
+  scripts/pocket-id-dev start-runtime
+fi
+
+# A process restart must not drift the restored stored values. This read-only
+# pass compares every source document and the signed analysis aggregates again.
+migration/internal/accounting-restore verify-rates
+
+printf '\nCanonical target finalized: odoo_dev\n'
+if [[ "$qa_profile" != full ]]; then
+  printf 'QA profile: %s (partial; not valid release evidence)\n' "$qa_profile"
+fi
+printf 'Product URL: %s/web/login?db=odoo_dev\n' \
+  "${ODOO_PUBLIC_BASE_URL:?migration/manage did not resolve ODOO_PUBLIC_BASE_URL}"
+printf 'Local QA login link: make login-link USER=valentin\n'

@@ -877,6 +877,7 @@ class TestProductFeedback(TransactionCase):
             "L’assistant n’a pas pu répondre. Votre retour est enregistré.",
         )
         task.with_user(self.reporter).feedback_retry_agent()
+        task.invalidate_recordset(["usl_feedback_agent_state"])
         self.assertEqual(task.usl_feedback_agent_state, "queued")
 
     def test_native_chatter_reply_queues_after_controller_sudo(self):
@@ -1457,6 +1458,7 @@ class TestProductFeedback(TransactionCase):
             message_type="comment",
             subtype_xmlid="mail.mt_comment",
         )
+        task.with_user(self.reporter).feedback_queue_chat_reply()
         task.invalidate_recordset(["usl_feedback_pending_message_id"])
         self.assertEqual(task.usl_feedback_pending_message_id.id, second_message.id)
         result = {

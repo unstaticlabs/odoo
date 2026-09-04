@@ -1,16 +1,22 @@
 """Source chatter disposition policy shared by extraction and tests."""
 
 EXPECTED_COUNTS = {
-    "activities": 895,
+    "activities": 918,
     "aliases": 29,
-    "attachment_relations": 556,
+    "attachment_relations": 558,
     "cross_accounting_parent_links": 1643,
-    "followers": 5862,
+    "followers": 6010,
     "mail_queue": 31,
-    "messages": 50005,
-    "notifications": 77,
-    "parent_links": 23093,
-    "tracking": 36946,
+    "messages": 51491,
+    "notifications": 78,
+    "parent_links": 24069,
+    "tracking": 37579,
+}
+
+EXPECTED_MESSAGE_DISPOSITIONS = {
+    "visible": 50588,
+    "external": 0,
+    "deliberately_not_copied": 903,
 }
 
 DIRECT_MODELS = frozenset({
@@ -100,3 +106,11 @@ def route_technical_table(table):
     if table.startswith(discard_prefixes):
         return "discard_transient_state"
     return "private_archive"
+
+
+def legacy_declaration_workflow_values(*, submitted_on):
+    """Translate retired Online declarations into the current workflow axes."""
+    return {
+        "preparation_status": "not_required",
+        "filing_status": "filed" if submitted_on else "not_open",
+    }

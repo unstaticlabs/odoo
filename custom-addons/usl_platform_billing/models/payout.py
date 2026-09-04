@@ -1,6 +1,6 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tools import float_compare
+from odoo.tools import float_compare, format_amount, format_date
 
 PAYOUT_WORKFLOW_DEFAULTS = {
     "state": "draft",
@@ -130,6 +130,10 @@ class UslPlatformBillingPayout(models.Model):
         "account.bank.statement.line",
         compute="_compute_bank_summary",
         string="Single Bank Transaction",
+    )
+    bank_transaction_preview = fields.Json(
+        compute="_compute_bank_transaction_preview",
+        string="Bank Transaction Preview",
     )
     bank_received_amount = fields.Monetary(
         string="Allocated Bank Amount",
@@ -421,6 +425,50 @@ class UslPlatformBillingPayout(models.Model):
             payout.bank_detection_reason = "\n".join(filter(None, reasons)) or False
 
     @api.depends(
+        "bank_allocation_ids.bank_statement_line_id",
+        "bank_allocation_ids.bank_statement_line_id.date",
+        "bank_allocation_ids.bank_statement_line_id.journal_id",
+        "bank_allocation_ids.bank_statement_line_id.payment_ref",
+        "bank_allocation_ids.bank_statement_line_id.name",
+        "bank_allocation_ids.bank_statement_line_id.partner_id",
+        "bank_allocation_ids.bank_statement_line_id.partner_name",
+        "bank_allocation_ids.bank_statement_line_id.amount",
+        "bank_allocation_ids.bank_statement_line_id.currency_id",
+        "bank_allocation_ids.bank_statement_line_id.is_reconciled",
+    )
+    def _compute_bank_transaction_preview(self):
+        for payout in self:
+            bank_lines = payout.bank_allocation_ids.bank_statement_line_id.sorted(
+                key=lambda line: (line.date, line.id),
+                reverse=True,
+            )
+            payout.bank_transaction_preview = [
+                {
+                    "id": bank_line.id,
+                    "display_name": bank_line.display_name,
+                    "date": (
+                        format_date(self.env, bank_line.date)
+                        if bank_line.date
+                        else False
+                    ),
+                    "journal": bank_line.journal_id.display_name,
+                    "label": bank_line.payment_ref or bank_line.name,
+                    "partner": (
+                        bank_line.partner_id.display_name
+                        or bank_line.partner_name
+                        or False
+                    ),
+                    "amount": format_amount(
+                        self.env,
+                        bank_line.amount,
+                        bank_line.currency_id,
+                    ),
+                    "reconciled": bank_line.is_reconciled,
+                }
+                for bank_line in bank_lines
+            ]
+
+    @api.depends(
         "net_platform_amount",
         "platform_currency_id",
         "bank_allocation_ids",
@@ -661,9 +709,45 @@ class UslPlatformBillingPayout(models.Model):
     def _workflow_write(self, values):
         return super().write(values)
 
+    def _accounting_is_settled(self):
+        """Return whether this payout's required native Accounting is settled."""
+        self.ensure_one()
+
+        def document_is_settled(move):
+            if not move or move.state != "posted":
+                return False
+            currency = move.currency_id or move.company_id.currency_id
+            settlement_lines = move.line_ids.filtered(
+                lambda line: line.account_id.account_type
+                in {"asset_receivable", "liability_payable"},
+            )
+            return (
+                move.payment_state in {"paid", "reversed"}
+                or currency.is_zero(move.amount_residual)
+                or (
+                    bool(settlement_lines)
+                    and all(settlement_lines.mapped("reconciled"))
+                )
+            )
+
+        if not document_is_settled(
+            self.customer_invoice_id,
+        ) or not document_is_settled(self.vendor_bill_id):
+            return False
+        compensation = self.compensation_move_id
+        if not compensation:
+            return True
+        if compensation.state != "posted":
+            return False
+        settlement_lines = compensation.line_ids.filtered(
+            lambda line: line.account_id.account_type
+            in {"asset_receivable", "liability_payable"},
+        )
+        return bool(settlement_lines) and all(settlement_lines.mapped("reconciled"))
+
     def unlink(self):
-        if self.filtered(lambda payout: payout.state != "draft"):
-            raise UserError(_("Only draft payouts can be deleted."))
+        if self.filtered(lambda payout: payout.state not in {"draft", "cancelled"}):
+            raise UserError(_("Only draft or cancelled payouts can be deleted."))
         if (
             not self.env.su
             and not self.env.user.has_group(

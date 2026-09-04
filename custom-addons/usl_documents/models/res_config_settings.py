@@ -25,6 +25,12 @@ class ResConfigSettings(models.TransientModel):
         config_parameter="usl_documents.paperless_timeout",
         default=20,
     )
+    paperless_stream_timeout = fields.Integer(
+        string="Paperless streaming timeout",
+        config_parameter="usl_documents.paperless_stream_timeout",
+        default=60,
+        help="Maximum server-to-server read time for one streamed binary request.",
+    )
     paperless_service_user_id = fields.Integer(
         string="Paperless service user ID",
         config_parameter="usl_documents.paperless_service_user_id",

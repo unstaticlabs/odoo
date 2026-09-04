@@ -56,6 +56,15 @@ ENTERPRISE_ONLY_PAYMENT_METHOD_CODES = frozenset({
     "sepa_ct",
 })
 
+INVOICE_MOVE_TYPES = frozenset({
+    "out_invoice",
+    "out_refund",
+    "in_invoice",
+    "in_refund",
+    "out_receipt",
+    "in_receipt",
+})
+
 
 # These profiles translate verified legal documents and tax-return settings
 # from the Online snapshot.  The SIREN is the durable company identity; source
@@ -66,12 +75,19 @@ FRENCH_DECLARATION_PROFILES_BY_SIREN = {
         "rebuild_corporate_tax_regime": "is",
         "rebuild_corporate_tax_projection_profile": "fr_sme_15_25",
         "rebuild_profit_tax_regime": "bic_simplified",
+        "rebuild_vat_regime": "simplified",
+        "rebuild_vat_transition_date": "2027-10-01",
+        "rebuild_oss_registered": False,
+        "rebuild_cfe_monthly_payment": False,
         "rebuild_first_fiscalyear_start": "2024-01-10",
         "rebuild_first_fiscalyear_end": "2025-09-30",
         "evidence": (
             "Confirmed Milestone 13 facts and the supplied 2025 BIC/RS/IS "
             "tax package: Unstatic Labs is a French SASU subject to IS, "
-            "using the simplified BIC/IS package."
+            "using the simplified BIC/IS package. VAT remains under RSI "
+            "through the fiscal year ending 30 September 2027, then changes "
+            "to quarterly CA3 from 1 October 2027. No OSS registration is "
+            "evidenced by the frozen source."
         ),
     },
     "106928831": {
@@ -79,6 +95,10 @@ FRENCH_DECLARATION_PROFILES_BY_SIREN = {
         "rebuild_corporate_tax_regime": "is",
         "rebuild_corporate_tax_projection_profile": "fr_sme_15_25",
         "rebuild_profit_tax_regime": "bic_simplified",
+        "rebuild_vat_regime": "simplified",
+        "rebuild_vat_transition_date": "2027-10-01",
+        "rebuild_oss_registered": False,
+        "rebuild_cfe_monthly_payment": False,
         "rebuild_first_fiscalyear_start": "2026-06-01",
         "rebuild_first_fiscalyear_end": "2027-09-30",
         "evidence": (
@@ -86,7 +106,9 @@ FRENCH_DECLARATION_PROFILES_BY_SIREN = {
             "SAS, activity from 1 June 2026 and a first fiscal close on "
             "30 September 2027. The company is subject to IS; the simplified "
             "BIC/IS package and French SME projection remain reviewable at the "
-            "annual 2065 preparation."
+            "annual 2065 preparation. VAT remains under RSI through the long "
+            "first fiscal year and changes to quarterly CA3 from 1 October "
+            "2027. No OSS registration is evidenced by the frozen source."
         ),
     },
 }
@@ -113,6 +135,17 @@ FRENCH_DOCUMENT_IDENTITIES_BY_SIREN = {
         "usl_document_share_capital": 1_000.0,
         "usl_document_rcs_city": "Paris",
         "ape": "74.20Z",
+    },
+}
+
+# USL MEDIA has no electronic-invoice contact in the frozen Online source.
+# Its accounting is handled through the same central contact already recorded
+# for Unstatic Labs. Keep this reviewed fallback offline and keyed by SIREN;
+# it prepares the company form without claiming registration or connectivity.
+FRENCH_EINVOICE_FALLBACK_CONTACTS_BY_SIREN = {
+    "106928831": {
+        "account_peppol_contact_email": "compta@unstaticlabs.com",
+        "account_peppol_phone_number": "+33651099030",
     },
 }
 
@@ -512,6 +545,158 @@ class RebuildAccountImportRun(models.Model):
             "source_sequence_number": expected_number,
             "target_sequence_number": move.sequence_number or 0,
             "identity_normalized": normalized,
+        }
+
+    def _invoice_currency_rate_parity(self, source_rows, target_moves):
+        """Prove historical document rates survived ORM creation and posting."""
+        compared = []
+        mismatches = []
+        for source_move in source_rows:
+            if source_move["move_type"] not in INVOICE_MOVE_TYPES:
+                continue
+            source_rate = self._amount(source_move["invoice_currency_rate"])
+            target_move = target_moves.get(source_move["id"])
+            target_rate = (
+                target_move.invoice_currency_rate if target_move else None
+            )
+            detail = {
+                "source_move_id": source_move["id"],
+                "source_move_name": source_move["name"],
+                "source_rate": source_rate,
+                "target_move_id": target_move.id if target_move else None,
+                "target_rate": target_rate,
+            }
+            compared.append(detail)
+            if not target_move or source_rate != target_rate:
+                mismatches.append(detail)
+        return {
+            "source_document_count": len(compared),
+            "matching_document_count": len(compared) - len(mismatches),
+            "mismatch_count": len(mismatches),
+            "mismatch_examples": mismatches[:20],
+        }
+
+    def _restore_invoice_currency_rates(self, source_rows, target_moves):
+        """Restore source document rates without recomputing posted entries.
+
+        ``invoice_currency_rate`` is a stored computed field.  Odoo may queue
+        it for recomputation after invoice creation, posting, or a module
+        upgrade.  The source value is nevertheless a business fact used by
+        Invoice/Bills Analysis.  Restore it with a narrow SQL update so no
+        journal item, tax, residual, or reconciliation is touched.
+        """
+        source_documents = [
+            row for row in source_rows
+            if row["move_type"] in INVOICE_MOVE_TYPES
+        ]
+        missing = [
+            {
+                "source_move_id": row["id"],
+                "source_move_name": row["name"],
+            }
+            for row in source_documents
+            if row["id"] not in target_moves
+        ]
+        if missing:
+            raise ValueError(
+                "Cannot restore invoice_currency_rate without an exact target "
+                "document: %s"
+                % json.dumps(missing[:20], ensure_ascii=False, sort_keys=True),
+            )
+
+        invalid = []
+        updates = []
+        changed = []
+        target_documents = self.env["account.move"]
+        for source_move in source_documents:
+            move = target_moves[source_move["id"]]
+            source_rate = self._amount(source_move["invoice_currency_rate"])
+            if move.currency_id != move.company_currency_id and source_rate <= 0:
+                invalid.append({
+                    "source_move_id": source_move["id"],
+                    "source_move_name": source_move["name"],
+                    "source_rate": source_rate,
+                })
+                continue
+            target_documents |= move
+            updates.append((source_rate, move.id))
+            if move.invoice_currency_rate != source_rate:
+                changed.append({
+                    "source_move_id": source_move["id"],
+                    "source_move_name": source_move["name"],
+                    "target_move_id": move.id,
+                    "previous_rate": move.invoice_currency_rate,
+                    "restored_rate": source_rate,
+                })
+        if invalid:
+            raise ValueError(
+                "Source foreign-currency documents contain invalid historical "
+                "rates: %s"
+                % json.dumps(invalid[:20], ensure_ascii=False, sort_keys=True),
+            )
+
+        ledger_before = self._posted_ledger_signature()
+        self.env.remove_to_compute(
+            target_documents._fields["invoice_currency_rate"],
+            target_documents,
+        )
+        self.env.cr.executemany(
+            """
+            UPDATE account_move
+               SET invoice_currency_rate = %s
+             WHERE id = %s
+               AND invoice_currency_rate IS DISTINCT FROM %s
+            """,
+            [(rate, move_id, rate) for rate, move_id in updates],
+        )
+        target_documents.invalidate_recordset(["invoice_currency_rate"])
+        parity = self._invoice_currency_rate_parity(
+            source_documents,
+            target_moves,
+        )
+        ledger_after = self._posted_ledger_signature()
+        if parity["mismatch_count"]:
+            raise ValueError(
+                "Historical document rates still differ after restoration: %s"
+                % json.dumps(
+                    parity["mismatch_examples"],
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    default=str,
+                ),
+            )
+        if ledger_after != ledger_before:
+            raise ValueError(
+                "Journal-item totals changed while restoring historical "
+                "invoice currency rates.",
+            )
+        return {
+            "source_document_count": len(source_documents),
+            "changed_document_count": len(changed),
+            "unchanged_document_count": len(source_documents) - len(changed),
+            "changed_examples": changed[:20],
+            "ledger_unchanged": True,
+            "parity": parity,
+        }
+
+    def _posted_ledger_signature(self):
+        self.env.cr.execute(
+            """
+            SELECT COUNT(line.id),
+                   COALESCE(SUM(line.debit), 0),
+                   COALESCE(SUM(line.credit), 0),
+                   COALESCE(SUM(line.balance), 0)
+              FROM account_move_line line
+              JOIN account_move move ON move.id = line.move_id
+             WHERE move.state = 'posted'
+            """,
+        )
+        count, debit, credit, balance = self.env.cr.fetchone()
+        return {
+            "line_count": count,
+            "debit": str(debit),
+            "credit": str(credit),
+            "balance": str(balance),
         }
 
     @staticmethod
@@ -1643,10 +1828,11 @@ class RebuildAccountImportRun(models.Model):
             return {}
 
         periodicity = row.get("account_return_periodicity") or ""
-        vat_regime = VAT_REGIME_BY_SOURCE_RETURN_PERIODICITY.get(
+        source_vat_regime = VAT_REGIME_BY_SOURCE_RETURN_PERIODICITY.get(
             periodicity,
             "unknown",
         )
+        vat_regime = profile.get("rebuild_vat_regime", source_vat_regime)
         return {
             "rebuild_declaration_profile_active": True,
             "rebuild_legal_form": profile["rebuild_legal_form"],
@@ -1660,6 +1846,17 @@ class RebuildAccountImportRun(models.Model):
                 "rebuild_profit_tax_regime"
             ],
             "rebuild_vat_regime": vat_regime,
+            "rebuild_vat_transition_date": profile[
+                "rebuild_vat_transition_date"
+            ],
+            "rebuild_oss_registered": profile["rebuild_oss_registered"],
+            "rebuild_cfe_monthly_payment": profile[
+                "rebuild_cfe_monthly_payment"
+            ],
+            "rebuild_oss_registration_evidence": (
+                "No OSS registration was evidenced in the frozen Online "
+                "source; foreign platform revenue is not OSS registration."
+            ),
             "rebuild_first_fiscalyear_start": profile[
                 "rebuild_first_fiscalyear_start"
             ],
@@ -1669,7 +1866,8 @@ class RebuildAccountImportRun(models.Model):
             "rebuild_declaration_profile_evidence": (
                 f"{profile['evidence']} The Online source configures tax returns "
                 f"with {periodicity or 'an unclassified'} periodicity, translated "
-                f"to the {vat_regime} VAT profile."
+                f"to {source_vat_regime}. The reviewed legal transition profile "
+                f"governs the migrated {vat_regime} schedule."
             ),
         }
 
@@ -3503,6 +3701,10 @@ class RebuildAccountImportRun(models.Model):
                 for character in (company.company_registry or "")
                 if character.isdigit()
             )
+            siren = registry_digits[:9] if len(registry_digits) >= 9 else ""
+            fallback_contact = (
+                FRENCH_EINVOICE_FALLBACK_CONTACTS_BY_SIREN.get(siren, {})
+            )
             values = {
                 "rebuild_einvoice_provider": "odoo_pdp",
                 "rebuild_einvoice_environment": "development",
@@ -3514,25 +3716,46 @@ class RebuildAccountImportRun(models.Model):
                 "l10n_fr_pdp_send_to_ppf": False,
                 "l10n_fr_pdp_pilot_phase": False,
             }
-            if row["account_peppol_contact_email"]:
-                values["account_peppol_contact_email"] = row[
-                    "account_peppol_contact_email"
-                ]
-            if row["account_peppol_phone_number"]:
-                values["account_peppol_phone_number"] = row[
-                    "account_peppol_phone_number"
-                ]
+            contact_email = (
+                row["account_peppol_contact_email"]
+                or fallback_contact.get("account_peppol_contact_email")
+            )
+            phone_number = (
+                row["account_peppol_phone_number"]
+                or fallback_contact.get("account_peppol_phone_number")
+            )
+            if contact_email:
+                values["account_peppol_contact_email"] = contact_email
+            if phone_number:
+                values["account_peppol_phone_number"] = phone_number
             if row["peppol_purchase_journal_id"] in journals:
                 values["peppol_purchase_journal_id"] = journals[
                     row["peppol_purchase_journal_id"]
                 ].id
+            elif fallback_contact:
+                purchase_journals = [
+                    journal
+                    for journal in journals.values()
+                    if journal.company_id == company
+                    and journal.type == "purchase"
+                ]
+                if purchase_journals:
+                    purchase_journal = min(
+                        purchase_journals,
+                        key=lambda journal: (
+                            journal.code != "ACH",
+                            journal.sequence,
+                            journal.id,
+                        ),
+                    )
+                    values["peppol_purchase_journal_id"] = purchase_journal.id
             if (
                 company.account_fiscal_country_id.code == "FR"
-                and len(registry_digits) >= 9
+                and siren
             ):
                 values.update({
                     "peppol_eas": "0225",
-                    "peppol_endpoint": registry_digits[:9],
+                    "peppol_endpoint": siren,
                 })
             company.sudo().write(values)
 
@@ -4289,6 +4512,7 @@ class RebuildAccountImportRun(models.Model):
             SELECT id, name, ref, state, move_type, journal_id, company_id, partner_id,
                    currency_id, date, invoice_date, invoice_date_due, payment_reference,
                    fiscal_position_id, invoice_payment_term_id,
+                   invoice_currency_rate,
                    sequence_prefix, sequence_number, secure_sequence_number
             FROM account_move
             WHERE company_id = ANY(%(source_company_ids)s)
@@ -4398,6 +4622,8 @@ class RebuildAccountImportRun(models.Model):
                        ia.mimetype,
                        ia.description,
                        ia.public,
+                       ia.create_date,
+                       ia.write_date,
                        (
                            ia.res_model = 'account.move'
                            AND ia.id = move.message_main_attachment_id
@@ -4462,6 +4688,8 @@ class RebuildAccountImportRun(models.Model):
                        ia.mimetype,
                        ia.description,
                        ia.public,
+                       ia.create_date,
+                       ia.write_date,
                        FALSE AS is_main,
                        message.id AS source_message_id,
                        message.date AS source_message_date,
@@ -4668,6 +4896,7 @@ class RebuildAccountImportRun(models.Model):
             image_no_postprocess=True,
             tracking_disable=True,
             mail_create_nolog=True,
+            usl_documents_skip_attachment_queue=True,
         )
         existing_attachments = self._source_trace_record_map(
             "ir.attachment",
@@ -4791,6 +5020,22 @@ class RebuildAccountImportRun(models.Model):
                 attachment.write(vals)
             else:
                 attachment = Attachment.create(vals)
+            if row.get("create_date"):
+                self.env.cr.execute(
+                    """
+                    UPDATE ir_attachment
+                       SET create_date = %s,
+                           write_date = COALESCE(%s, %s)
+                     WHERE id = %s
+                    """,
+                    [
+                        row["create_date"],
+                        row.get("write_date"),
+                        row["create_date"],
+                        attachment.id,
+                    ],
+                )
+                attachment.invalidate_recordset(["create_date", "write_date"])
             if (
                 row["type"] == "binary"
                 and (
@@ -9996,6 +10241,12 @@ class RebuildAccountImportRun(models.Model):
                 )
                 due_date_matches = move.invoice_date_due == source_move["invoice_date_due"]
                 account_totals_match = source_account_totals == target_account_totals
+                source_currency_rate = self._amount(
+                    source_move["invoice_currency_rate"],
+                )
+                currency_rate_matches = (
+                    move.invoice_currency_rate == source_currency_rate
+                )
                 result = {
                     "source_move_id": source_move["id"],
                     "source_name": source_move["name"],
@@ -10010,8 +10261,17 @@ class RebuildAccountImportRun(models.Model):
                     "amount_checks": amount_checks,
                     "due_date_matches": due_date_matches,
                     "account_totals_match": account_totals_match,
+                    "source_invoice_currency_rate": source_currency_rate,
+                    "target_invoice_currency_rate": move.invoice_currency_rate,
+                    "invoice_currency_rate_matches": currency_rate_matches,
                 }
-                if move.state == "posted" and amounts_match and due_date_matches and account_totals_match:
+                if (
+                    move.state == "posted"
+                    and amounts_match
+                    and due_date_matches
+                    and account_totals_match
+                    and currency_rate_matches
+                ):
                     passed_cases.append(result)
                 else:
                     mismatch_cases.append({
@@ -10460,6 +10720,9 @@ class RebuildAccountImportRun(models.Model):
                     move_vals.update({
                         "invoice_date": move_row["invoice_date"],
                         "invoice_date_due": move_row["invoice_date_due"],
+                        "invoice_currency_rate": self._amount(
+                            move_row["invoice_currency_rate"],
+                        ),
                         "fiscal_position_id": (
                             fiscal_positions[move_row["fiscal_position_id"]].id
                             if move_row["fiscal_position_id"] in fiscal_positions
@@ -10519,6 +10782,44 @@ class RebuildAccountImportRun(models.Model):
                 [move_row["id"] for move_row in move_rows],
                 options,
             )
+            initial_invoice_currency_rate_restoration = (
+                self._restore_invoice_currency_rates(
+                    move_rows,
+                    imported_move_map,
+                )
+                if options.get("preserve_business_documents")
+                else {
+                    "source_document_count": 0,
+                    "changed_document_count": 0,
+                    "unchanged_document_count": 0,
+                    "changed_examples": [],
+                    "ledger_unchanged": True,
+                }
+            )
+            invoice_currency_rate_parity = (
+                self._invoice_currency_rate_parity(
+                    move_rows,
+                    imported_move_map,
+                )
+                if options.get("preserve_business_documents")
+                else {
+                    "source_document_count": 0,
+                    "matching_document_count": 0,
+                    "mismatch_count": 0,
+                    "mismatch_examples": [],
+                }
+            )
+            if invoice_currency_rate_parity["mismatch_count"]:
+                raise ValueError(
+                    "Imported invoice_currency_rate differs from the Online "
+                    "document history: %s"
+                    % json.dumps(
+                        invoice_currency_rate_parity["mismatch_examples"],
+                        ensure_ascii=False,
+                        sort_keys=True,
+                        default=str,
+                    ),
+                )
             sequence_chronology_stats = self._sequence_chronology_stats(
                 [row for row in move_rows if row["state"] == "posted"],
                 imported_move_map,
@@ -10884,6 +11185,39 @@ class RebuildAccountImportRun(models.Model):
             cca_configuration_stats = (
                 self.env["res.company"]._rebuild_apply_cca_projection_defaults()
             )
+            final_invoice_currency_rate_restoration = (
+                self._restore_invoice_currency_rates(
+                    move_rows,
+                    imported_move_map,
+                )
+                if options.get("preserve_business_documents")
+                else {
+                    "source_document_count": 0,
+                    "changed_document_count": 0,
+                    "unchanged_document_count": 0,
+                    "changed_examples": [],
+                    "ledger_unchanged": True,
+                }
+            )
+            invoice_currency_rate_parity = (
+                self._invoice_currency_rate_parity(
+                    move_rows,
+                    imported_move_map,
+                )
+                if options.get("preserve_business_documents")
+                else invoice_currency_rate_parity
+            )
+            if invoice_currency_rate_parity["mismatch_count"]:
+                raise ValueError(
+                    "Final invoice_currency_rate differs from the Online "
+                    "document history: %s"
+                    % json.dumps(
+                        invoice_currency_rate_parity["mismatch_examples"],
+                        ensure_ascii=False,
+                        sort_keys=True,
+                        default=str,
+                    ),
+                )
             record_stage(
                 "final accounting validation",
                 stage_started,
@@ -10910,6 +11244,15 @@ class RebuildAccountImportRun(models.Model):
                     reused_native_move_representations
                 ),
                 "sequence_chronology": sequence_chronology_stats,
+                "invoice_currency_rate_parity": (
+                    invoice_currency_rate_parity
+                ),
+                "invoice_currency_rate_restoration": {
+                    "after_posting": initial_invoice_currency_rate_restoration,
+                    "after_final_accounting_stages": (
+                        final_invoice_currency_rate_restoration
+                    ),
+                },
                 "skipped_non_account_line_count": skipped_non_account_line_count,
                 "skipped_non_account_line_examples": skipped_non_account_line_examples,
                 "account_count": len(accounts),

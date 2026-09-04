@@ -31,6 +31,15 @@ the application submits all linked open receivable lines together. A payout
 may also be paid in instalments; each received transaction stores the part it
 settles, and the session remains Posted until the full debt is reconciled.
 
+Native Accounting settlement is authoritative for the payout and session Paid
+states. A posted or reversed invoice and bill with no currency-rounded residual
+settle their payout, including when users registered or reconciled the payment
+outside Platform Billing. Platform Billing bank allocations remain optional
+matching evidence and operational guidance; they do not override the native
+Accounting result. Any linked compensation entry must be posted and its
+receivable and payable lines fully reconciled. Reopening native Accounting
+settlement returns the affected payout and session to Posted automatically.
+
 ## Currency
 
 Platform amounts use the configured platform currency. Bank receipts use the
@@ -92,5 +101,7 @@ retains signed `amount_currency` when the platform currency differs.
   shared by several payouts.
 - A generated document links its session, platform and all contributing
   payouts.
-- A session is paid only when all required invoices/bills are settled and
-  every payout has a reconciled bank transaction. Otherwise it remains posted.
+- A payout is paid when its required invoice and bill are settled and any
+  linked compensation entry is posted and reconciled. A session is paid when
+  every non-cancelled payout is paid. Bank allocations are supporting evidence,
+  not a prerequisite for either state.

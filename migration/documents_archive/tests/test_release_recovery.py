@@ -6,7 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 SPEC = importlib.util.spec_from_file_location(
     "documents_release_recovery",
-    ROOT / "scripts/documents_release_recovery.py",
+    ROOT / "migration/documents_archive/release_recovery.py",
 )
 recovery = importlib.util.module_from_spec(SPEC)
 assert SPEC and SPEC.loader

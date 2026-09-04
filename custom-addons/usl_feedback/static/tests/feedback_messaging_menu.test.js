@@ -11,6 +11,7 @@ import {
 } from "@web/../tests/web_test_helpers";
 
 import { browser } from "@web/core/browser/browser";
+import { Deferred } from "@web/core/utils/concurrency";
 import {
     FeedbackPanel,
     feedbackPageContext,
@@ -517,6 +518,41 @@ test("My feedback shows a readable status and next step", async () => {
         /Feedback #71 · Inbox.*Needs your reply.*full feedback title.*Reply in the chat/s
     );
     expect(".o-usl-FeedbackPanel button:contains('Open board')").toHaveCount(1);
+});
+
+test("My feedback is not replaced by a late new-conversation draft", async () => {
+    const draft = new Deferred();
+    const task = feedbackTask({ name: "Saved feedback remains visible" });
+    let starts = 0;
+    onRpc("usl.feedback.submission", "feedback_start", () => {
+        starts++;
+        if (starts === 1) {
+            return {
+                draft_id: 41,
+                context_available: true,
+                include_page_context: true,
+                assistant_mode: "local",
+                recent: [task],
+            };
+        }
+        return draft;
+    });
+    onRpc("project.task", "feedback_recent", () => [task]);
+    await mountFeedbackPanel();
+
+    await contains(".o-usl-FeedbackPanel-nav button:contains('New')").click();
+    await contains(".o-usl-FeedbackPanel-nav button:contains('My feedback')").click();
+    expect(".o-usl-FeedbackPanel-feedbackItem").toHaveCount(1);
+
+    draft.resolve({
+        draft_id: 42,
+        context_available: true,
+        include_page_context: true,
+        assistant_mode: "local",
+        recent: [task],
+    });
+    await animationFrame();
+    expect(".o-usl-FeedbackPanel-feedbackItem").toHaveCount(1);
 });
 
 test("conversation renders processing, clarification, error, ready, and success states", async () => {

@@ -212,6 +212,51 @@ test("empty archive state is explicit and supports zero-filing upload", async ()
     expect("input[type=file]").toHaveCount(1);
 });
 
+test("record workspace forwards its company context when linking", async () => {
+    const document = {
+        id: 62,
+        name: "TESE statement",
+        availability_state: "available",
+        access_error: false,
+        tags: [],
+        link_count: 0,
+    };
+    const expectedContext = { allowed_company_ids: [1, 2] };
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        expect(kwargs.context.allowed_company_ids).toEqual(expectedContext.allowed_company_ids);
+        return { ...emptyWorkspace, documents: [document], count: 1 };
+    });
+    onRpc("usl.document", "document_detail", ({ kwargs }) => {
+        expect(kwargs.context.allowed_company_ids).toEqual(expectedContext.allowed_company_ids);
+        return {
+            ...document,
+            can_edit: true,
+            can_change_links: true,
+            can_manage: true,
+            archive_available: true,
+            links: [],
+            versions: [],
+        };
+    });
+    onRpc("usl.document", "link_to_record", ({ args, kwargs }) => {
+        expect(args).toEqual([[document.id], "usl.tese.payslip", 31]);
+        expect(kwargs.context.allowed_company_ids).toEqual(expectedContext.allowed_company_ids);
+        return true;
+    });
+    const recordAction = action({
+        res_model: "usl.tese.payslip",
+        res_id: 31,
+        linked_filter: true,
+    });
+    recordAction.context = expectedContext;
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: recordAction },
+    });
+    await contains(".o_usl_document_card").click();
+    await contains("button", { text: "Link to this record" }).click();
+});
+
 test("degraded state keeps Odoo available and offers retry", async () => {
     onRpc("usl.document", "workspace_data", () => ({
         ...emptyWorkspace,
@@ -305,6 +350,92 @@ test("document details stay useful and actionable during an archive outage", asy
     expect(".o_usl_documents_detail .alert-warning.mb-0 button").toHaveText(
         /Try again/
     );
+});
+
+test("pending access synchronization is shown as normal progress", async () => {
+    const document = {
+        id: 63,
+        name: "New payroll document",
+        availability_state: "available",
+        permission_sync_state: "pending",
+        access_pending:
+            "Documents is securing access to this file. Preview and download will become available automatically when the check finishes.",
+        access_error: false,
+        tags: [],
+        link_count: 0,
+    };
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        documents: [document],
+        count: 1,
+    }));
+    onRpc("usl.document", "document_detail", () => ({
+        ...document,
+        archive_available: true,
+        can_edit: true,
+        can_change_links: true,
+        can_manage: true,
+        versions: [],
+        links: [],
+    }));
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await contains(".o_usl_document_card").click();
+    await animationFrame();
+
+    expect(
+        ".o_usl_documents_detail .alert-info:not(.o_usl_review_banner)"
+    ).toHaveText(
+        /Securing document access/
+    );
+    expect(".o_usl_documents_detail .alert-danger").toHaveCount(0);
+    expect(".o_usl_document_preview").toHaveCount(0);
+});
+
+test("failed access synchronization asks for administrator action", async () => {
+    const document = {
+        id: 64,
+        name: "Restricted payroll document",
+        availability_state: "permission_error",
+        permission_sync_state: "failed",
+        access_pending: false,
+        access_error:
+            "Archive access could not be verified. A Documents administrator can retry synchronization.",
+        tags: [],
+        link_count: 0,
+    };
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        documents: [document],
+        count: 1,
+    }));
+    onRpc("usl.document", "document_detail", () => ({
+        ...document,
+        archive_available: true,
+        can_edit: true,
+        can_change_links: true,
+        can_manage: true,
+        versions: [],
+        links: [],
+    }));
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await contains(".o_usl_document_card").click();
+    await animationFrame();
+
+    expect(".o_usl_documents_detail .alert-danger").toHaveText(
+        /Document access needs attention/
+    );
+    expect(".o_usl_documents_detail .alert-danger").toHaveText(
+        /administrator can retry synchronization/
+    );
+    expect(
+        ".o_usl_documents_detail .alert-info:not(.o_usl_review_banner)"
+    ).toHaveCount(0);
 });
 
 test("read-only evidence users do not see upload controls", async () => {
@@ -931,25 +1062,29 @@ test("a business action opens its exact governed document version", async () => 
     ).toBe("certified-3");
 });
 
-test("top tag shortcuts compose with native search facets", async () => {
+test("top tag shortcuts search the complete accessible archive", async () => {
     const tags = [
         { id: 21, name: "Tax & reporting", color: "#31a354" },
         { id: 22, name: "Contracts & legal", color: "#8c6bb1" },
     ];
     let lastDomain = [];
+    let lastWorkspace = null;
     onRpc("usl.document", "workspace_data", ({ kwargs }) => {
         expect(kwargs.shortcut_tag_ids).toEqual([]);
         lastDomain = kwargs.search_domain;
-        return { ...emptyWorkspace, tags };
+        lastWorkspace = kwargs.workspace;
+        return { ...emptyWorkspace, selected_workspace: kwargs.workspace, tags };
     });
     await mountWithCleanup(DocumentsWorkspace, {
-        props: { action: action() },
+        props: { action: action({ initial_workspace: "home" }) },
     });
 
+    expect(lastWorkspace).toBe("home");
     expect(".o_cp_searchview").toHaveCount(1);
     await contains(".o_usl_filter_shortcuts .o_usl_tag_chip", {
         text: "Tax & reporting",
     }).click();
+    expect(lastWorkspace).toBe("archive_search");
     expect(lastDomain).toEqual([["tag_ids", "in", [21]]]);
     expect(".o_searchview_facet").toHaveText(/Tag: Tax & reporting/);
     expect(".o_usl_filter_shortcuts .is-selected").toHaveText(/Tax & reporting/);
@@ -1034,6 +1169,8 @@ test("large tag catalogs stay readable in a bounded searchable picker", async ()
         )
     ).toBeGreaterThan(2);
     await contains(".o_usl_more_tags summary").click();
+    await animationFrame();
+    expect(".o_usl_more_tags input").toBeFocused();
     await contains(".o_usl_more_tags input").fill("deliberately long");
     expect(".o_usl_more_tags_results .dropdown-item").toHaveCount(1);
     expect(".o_usl_more_tags_results .dropdown-item").toHaveAttribute(
@@ -1041,6 +1178,9 @@ test("large tag catalogs stay readable in a bounded searchable picker", async ()
         "Filter by tag: A deliberately long archive classification tag"
     );
     await contains(".o_usl_more_tags_results .dropdown-item").click();
+    expect(".o_usl_more_tags").not.toHaveAttribute("open");
+    expect(".o_usl_more_tags summary").toBeFocused();
+    expect(".o_usl_more_tags input").toHaveValue("");
     expect(lastDomain).toEqual([["tag_ids", "in", [20]]]);
     expect(".o_searchview_facet").toHaveText(
         /Tag: A deliberately long archive classification tag/
@@ -1161,11 +1301,12 @@ test("native search defaults to broad archive search and keeps specialist fields
     ]);
     expect(".o_searchview_facet").toHaveText(/Everywhere/);
     expect(".o_searchview_facet").toHaveText(/heliotrope/);
-    const encodedDomain = browser.location.href
-        .split("domain=")[1]
-        .split("&")[0];
-    expect(encodedDomain.includes("+")).toBe(false);
-    expect(decodeURIComponent(encodedDomain)).toBe(
+    const navigationUrl = new URL(browser.location.href);
+    expect(navigationUrl.searchParams.has("domain")).toBe(false);
+    expect(
+        JSON.parse(navigationUrl.searchParams.get("usl_filters")).nativeSearch
+            .domain
+    ).toBe(
         '[("all_text", "ilike", "heliotrope")]'
     );
 });
@@ -1395,6 +1536,115 @@ test("tags are searchable, removable, and creatable from document details", asyn
     expect(".o-autocomplete--dropdown-menu").toHaveCount(0);
     await contains("button[aria-label='Remove tag Accounting']").click();
     expect("button[aria-label='Remove tag Accounting']").toHaveCount(0);
+});
+
+test.tags("desktop");
+test("Paperless suggestions stay reviewable and apply one at a time", async () => {
+    const suggestedTag = {
+        id: 42,
+        name: "Payroll",
+        color: "#2d7d68",
+        text_color: "#ffffff",
+    };
+    const document = {
+        id: 41,
+        name: "August payslip",
+        paperless_id: 141,
+        date: "2026-08-31",
+        company: "USL",
+        review_state: "classified",
+        availability_state: "available",
+        access_error: false,
+        correspondent: "",
+        document_type: "",
+        tags: [],
+        link_count: 0,
+        primary_link: false,
+    };
+    const suggestions = [
+        {
+            kind: "tag",
+            field: "tag_ids",
+            record_id: suggestedTag.id,
+            label: suggestedTag.name,
+        },
+        {
+            kind: "date",
+            field: "document_date",
+            value: "2026-08-30",
+            label: "2026-08-30",
+        },
+    ];
+    let detail = {
+        ...document,
+        can_edit: true,
+        can_change_links: true,
+        can_manage: false,
+        versions: [],
+        links: [],
+        paperless_suggestions: suggestions,
+    };
+    const updates = [];
+    onRpc("usl.document", "workspace_data", () => ({
+        ...emptyWorkspace,
+        tags: [suggestedTag],
+        documents: [{ ...document, tags: detail.tags }],
+        count: 1,
+    }));
+    onRpc("usl.document", "document_detail", () => detail);
+    onRpc("usl.document", "update_archive_metadata", ({ args }) => {
+        updates.push(args[1]);
+        detail = {
+            ...detail,
+            tags: args[1].tag_ids ? [suggestedTag] : detail.tags,
+        };
+        return { ...detail, paperless_suggestions: [] };
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await contains(".o_usl_document_card").click();
+    await animationFrame();
+
+    expect(".o_usl_paperless_suggestion").toHaveCount(2);
+    await contains(".o_usl_paperless_suggestion", { text: "Tag: Payroll" }).click();
+    await animationFrame();
+
+    expect(updates).toEqual([{ tag_ids: [suggestedTag.id] }]);
+    expect(".o_usl_detail_tags").toHaveText(/Payroll/);
+    expect(".o_usl_paperless_suggestion").toHaveCount(1);
+    expect(".o_usl_paperless_suggestion").toHaveText(/Date: 2026-08-30/);
+});
+
+test.tags("desktop");
+test("Documents search domains stay namespaced away from tag dialogs", async () => {
+    const documentDomain = '[("review_state", "=", "classified")]';
+    const baseUrl = browser.location.href.split("?")[0];
+    browser.history.replaceState(
+        {},
+        "",
+        `${baseUrl}?domain=${encodeURIComponent(documentDomain)}`
+    );
+
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        expect(kwargs.search_domain).toEqual([
+            ["review_state", "=", "classified"],
+        ]);
+        return emptyWorkspace;
+    });
+
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await animationFrame();
+
+    const canonicalUrl = new URL(browser.location.href);
+    expect(canonicalUrl.searchParams.has("domain")).toBe(false);
+    expect(
+        JSON.parse(canonicalUrl.searchParams.get("usl_filters")).nativeSearch
+            .domain
+    ).toBe(documentDomain);
 });
 
 test.tags("desktop");
@@ -1690,10 +1940,10 @@ test("Odoo-style list headers persist validated ordering in the URL", async () =
     await contains(".o_list_table th", { text: "Document" }).click();
 
     expect(orders.at(-1)).toEqual([{ name: "name", asc: true }]);
+    const navigationUrl = new URL(browser.location.href);
+    expect(navigationUrl.searchParams.has("orderBy")).toBe(false);
     expect(
-        JSON.parse(
-            new URL(browser.location.href).searchParams.get("orderBy")
-        )
+        JSON.parse(navigationUrl.searchParams.get("usl_filters")).orderBy
     ).toEqual([{ name: "name", asc: true }]);
 
     await contains(".o_list_table th", { text: "Document" }).click();

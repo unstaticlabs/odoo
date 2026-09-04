@@ -39,6 +39,7 @@ with transaction.atomic():
     for label in (
         "authtoken.Token",
         "sessions.Session",
+        "account.EmailAddress",
         "socialaccount.SocialToken",
         "socialaccount.SocialAccount",
         "socialaccount.SocialApp",

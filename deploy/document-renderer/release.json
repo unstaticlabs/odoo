@@ -1,0 +1,6 @@
+{
+  "schema": "usl-external-oci-image/v2",
+  "repository": "https://github.com/unstaticlabs/unstatic_latex_templates",
+  "commit": "a01385982eb406947bd1e312a1cefd7fe4636943",
+  "image_digest": "ghcr.io/unstaticlabs/usl-document-renderer@sha256:41762bcdcbd6254aab995689660d7636f67b8e77c6f8199bfdd1ed15882dcf5b"
+}

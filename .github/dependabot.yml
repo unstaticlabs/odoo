@@ -1,6 +1,5 @@
-# Dependabot runs against the repository default branch (19-usl). Do not add a
-# target-branch here: GitHub only applies these settings to security updates
-# when the update entry targets the default branch.
+# Routine dependency candidates integrate through staging. GitHub security
+# updates for the default branch remain governed separately by its ruleset.
 version: 2
 
 updates:
@@ -9,6 +8,7 @@ updates:
   # arrive through an upstream Odoo update or an explicit qualification task.
   - package-ecosystem: "pip"
     directory: "/"
+    target-branch: "19-usl-staging"
     exclude-paths:
       - "addons/**"
       - "oca-addons/**"
@@ -47,6 +47,7 @@ updates:
   # rebuilt and diagnosed without an unrelated manifest rewrite.
   - package-ecosystem: "pip"
     directory: "/docker"
+    target-branch: "19-usl-staging"
     schedule:
       interval: "monthly"
       time: "06:30"
@@ -79,11 +80,11 @@ updates:
     commit-message:
       prefix: "chore(deps)"
 
-  # Repository-owned frontend/design tooling. Major updates stay separate so
-  # generated Impeccable provider assets can be refreshed and reviewed with
-  # the package update instead of being hidden in a compatibility group.
+  # Repository-owned frontend dependencies. Major updates stay separate so
+  # generated assets can be reviewed with the package update.
   - package-ecosystem: "npm"
     directory: "/"
+    target-branch: "19-usl-staging"
     schedule:
       interval: "monthly"
       time: "07:00"
@@ -103,6 +104,7 @@ updates:
   # updates stay separate so Python/runtime-generation changes are explicit.
   - package-ecosystem: "docker"
     directory: "/"
+    target-branch: "19-usl-staging"
     schedule:
       interval: "weekly"
       day: "tuesday"
@@ -116,6 +118,13 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    # Paperless's tika-client 0.11 multipart API is not compatible with Tika
+    # Server 4, which removed /tika/form/text. A major upgrade requires an
+    # explicit Paperless parser qualification instead of a routine image bump.
+    ignore:
+      - dependency-name: "apache/tika"
+        update-types:
+          - "version-update:semver-major"
     commit-message:
       prefix: "chore(deps)"
 
@@ -123,6 +132,7 @@ updates:
   # discovered by the root Docker update entry.
   - package-ecosystem: "docker"
     directory: "/docker"
+    target-branch: "19-usl-staging"
     schedule:
       interval: "weekly"
       day: "tuesday"
@@ -143,6 +153,7 @@ updates:
   # images. Keep its candidates separate from the Odoo Distribution image.
   - package-ecosystem: "docker"
     directory: "/deploy/documents/paperless-ngx"
+    target-branch: "19-usl-staging"
     schedule:
       interval: "weekly"
       day: "tuesday"
@@ -165,6 +176,7 @@ updates:
   # qualification before merge.
   - package-ecosystem: "docker-compose"
     directory: "/"
+    target-branch: "19-usl-staging"
     schedule:
       interval: "weekly"
       day: "wednesday"
@@ -186,35 +198,11 @@ updates:
     commit-message:
       prefix: "chore(deps)"
 
-  # Production backup/recovery qualification uses a separate Compose boundary
-  # and therefore needs an explicit directory entry.
-  - package-ecosystem: "docker-compose"
-    directory: "/deploy/odoo-backup"
-    schedule:
-      interval: "weekly"
-      day: "wednesday"
-      time: "06:15"
-      timezone: "Europe/Paris"
-    open-pull-requests-limit: 3
-    # Qualification intentionally uses the Distribution release image. Its
-    # immutable digest is supplied by release admission, not discovered as a
-    # public dependency by Dependabot.
-    ignore:
-      - dependency-name: "unstaticlabs/usl-odoo"
-    groups:
-      compatible-backup-service-updates:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-    commit-message:
-      prefix: "chore(deps)"
-
   # Keep pinned third-party workflow actions current without allowing a bot PR
   # to publish images or bypass the normal pull-request qualification job.
   - package-ecosystem: "github-actions"
     directory: "/"
+    target-branch: "19-usl-staging"
     schedule:
       interval: "weekly"
       day: "monday"

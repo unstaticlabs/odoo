@@ -5316,6 +5316,16 @@ msgstr "Facette de recherche sémantique non prise en charge."
 
 #. module: usl_documents
 #. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid ""
+"Unexpected archive error (%(error_type)s). Review the server log before "
+"retrying."
+msgstr ""
+"Erreur d’archivage inattendue (%(error_type)s). Consultez le journal du "
+"serveur avant de réessayer."
+
+#. module: usl_documents
+#. odoo-python
 #: code:addons/usl_documents/models/document_mcp.py:0
 msgid "Exact archive search reached its bounded result window."
 msgstr "La recherche exacte dans l’archive a atteint la limite de sa fenêtre de résultats."
@@ -5559,13 +5569,11 @@ msgstr "Historique de communication du site web"
 #. module: usl_documents
 #: model:ir.model.fields,help:usl_documents.field_usl_document__archive_added_at
 msgid ""
-"When the enterprise first received the document. Odoo submissions use their "
-"attributed submission time; Paperless-native documents use the archive "
-"ingestion time."
+"Original creation time supplied with imported documents. New uploads use "
+"their submission time."
 msgstr ""
-"Date de première réception du document par l’entreprise. Les dépôts Odoo "
-"utilisent leur date d’envoi attribuée ; les documents créés dans Paperless "
-"utilisent leur date d’entrée dans l’archive."
+"Date de création d’origine fournie avec les documents importés. Les nouveaux "
+"dépôts utilisent leur date d’envoi."
 
 #. module: usl_documents
 #. odoo-javascript
@@ -5942,3 +5950,212 @@ msgstr "Historique des fichiers"
 #. module: usl_documents
 msgid "Earlier files are kept only when this archived document was deliberately replaced or restored. The row marked Current is the file opened from the Document tab."
 msgstr "Les fichiers antérieurs ne sont conservés que lorsque ce document archivé a été remplacé ou restauré volontairement. La ligne marquée Actuel correspond au fichier ouvert depuis l’onglet Document."
+
+#. module: usl_documents
+msgid "Original creation"
+msgstr "Création d’origine"
+
+#. module: usl_documents
+msgid "Original modification"
+msgstr "Dernière modification d’origine"
+
+#. module: usl_documents
+msgid "Archive synchronization"
+msgstr "Synchronisation de l’archive"
+
+#. module: usl_documents
+#. odoo-javascript
+msgid "Original metadata"
+msgstr "Métadonnées d’origine"
+
+#. module: usl_documents
+#. odoo-javascript
+msgid "Created"
+msgstr "Créé"
+
+#. module: usl_documents
+#. odoo-javascript
+msgid "Last modified"
+msgstr "Dernière modification"
+
+#. module: usl_documents
+msgid "Creation timestamp recorded by the system that supplied the document."
+msgstr "Date de création enregistrée par le système d’origine du document."
+
+#. module: usl_documents
+msgid "Last modification timestamp recorded by the system that supplied the document."
+msgstr "Date de dernière modification enregistrée par le système d’origine du document."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Documents is still securing access to this file. Try again in a moment."
+msgstr "Documents sécurise encore l’accès à ce fichier. Réessayez dans un instant."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Documents is securing access to this file. Preview and download will become available automatically when the check finishes."
+msgstr "Documents sécurise l’accès à ce fichier. L’aperçu et le téléchargement seront automatiquement disponibles à la fin de la vérification."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Archive access could not be verified. A Documents administrator can retry synchronization."
+msgstr "L’accès à l’archive n’a pas pu être vérifié. Un administrateur Documents peut relancer la synchronisation."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "%(model)s #%(record_id)s"
+msgstr "%(model)s nº %(record_id)s"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Securing document access…"
+msgstr "Sécurisation de l’accès au document…"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "The source %(model)s #%(record_id)s was deleted before Documents finished linking the file. The archived file was kept for review; later uploads continue normally."
+msgstr "L’enregistrement source %(model)s nº %(record_id)s a été supprimé avant que Documents ait terminé de lier le fichier. Le fichier archivé a été conservé pour vérification ; les importations suivantes continuent normalement."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Documents could not finish this file safely. Retry the operation or ask a Documents administrator to review it."
+msgstr "Documents n’a pas pu terminer le traitement de ce fichier en toute sécurité. Relancez l’opération ou demandez à un administrateur Documents de la vérifier."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "Source business record was deleted"
+msgstr "L’enregistrement métier source a été supprimé"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document.py:0
+msgid "Paperless did not return a final result before the processing deadline. This operation was stopped instead of remaining queued indefinitely. Check Paperless for the archived file before retrying."
+msgstr "Paperless n’a pas renvoyé de résultat final avant l’échéance de traitement. Cette opération a été arrêtée plutôt que de rester indéfiniment dans la file. Vérifiez si le fichier est archivé dans Paperless avant de relancer l’opération."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "Choose a supported document removal action."
+msgstr "Choisissez une action de retrait de document prise en charge."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "This file is not safely archived yet. Keep it in Documents and wait for archiving to finish before removing it."
+msgstr "Ce fichier n’est pas encore archivé de manière sûre. Conservez-le dans Documents et attendez la fin de l’archivage avant de le retirer."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "This attachment is not linked to a supported business record."
+msgstr "Cette pièce jointe n’est pas liée à un enregistrement métier pris en charge."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "This document still supports another Odoo record. Unlink it from this record without moving the shared archive to Trash."
+msgstr "Ce document sert encore de justificatif à un autre enregistrement Odoo. Dissociez-le uniquement de cet enregistrement sans déplacer l’archive partagée dans la corbeille."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "“%(attachment)s” was unlinked and moved to Documents Trash."
+msgstr "« %(attachment)s » a été dissocié et déplacé dans la corbeille de Documents."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/attachment_bridge.py:0
+msgid "“%(attachment)s” was unlinked. The archived document remains in Documents."
+msgstr "« %(attachment)s » a été dissocié. Le document archivé reste disponible dans Documents."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/attachment_list_patch.js:0
+msgid "Remove document from this record?"
+msgstr "Retirer le document de cet enregistrement ?"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/attachment_list_patch.js:0
+msgid "Choose what happens to %s."
+msgstr "Choisissez ce qui doit arriver à %s."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/attachment_list_patch.js:0
+msgid "Unlinking removes it from this record while keeping the archived document available in Documents. Moving it to Trash also removes the archived document from normal Documents views."
+msgstr "La dissociation le retire de cet enregistrement tout en conservant le document archivé dans Documents. Le déplacement dans la corbeille retire également le document archivé des vues Documents habituelles."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/attachment_list_patch.js:0
+msgid "This archived document is shared with another record or cannot be moved to Trash from here. You can still unlink it from this record."
+msgstr "Ce document archivé est partagé avec un autre enregistrement ou ne peut pas être déplacé dans la corbeille depuis cet écran. Vous pouvez toujours le dissocier de cet enregistrement."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/attachment_list_patch.js:0
+msgid "Unlink Document from Record"
+msgstr "Dissocier le document de l’enregistrement"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/attachment_list_patch.js:0
+msgid "Unlink and Move to Trash"
+msgstr "Dissocier et déplacer dans la corbeille"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/attachment_list_patch.js:0
+msgid "You do not have permission to unlink this archived document."
+msgstr "Vous n’avez pas l’autorisation de dissocier ce document archivé."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/attachment_list_patch.js:0
+msgid "Wait for Documents archiving to finish before unlinking this file."
+msgstr "Attendez la fin de l’archivage dans Documents avant de dissocier ce fichier."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/attachment_list_patch.js:0
+msgid "Resolve the Documents archiving issue before unlinking this file."
+msgstr "Résolvez le problème d’archivage dans Documents avant de dissocier ce fichier."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/attachment_list_patch.js:0
+msgid "Keep this file in Documents before unlinking it from the record."
+msgstr "Conservez ce fichier dans Documents avant de le dissocier de l’enregistrement."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Suggested by Paperless"
+msgstr "Suggestions de Paperless"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Review before applying."
+msgstr "Vérifiez avant d’appliquer."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
+msgid "From"
+msgstr "De"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
+msgid "Suggestion"
+msgstr "Suggestion"

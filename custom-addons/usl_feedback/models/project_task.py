@@ -385,6 +385,16 @@ class ProjectTask(models.Model):
         )
         if not last_message:
             raise UserError(_("Add a message before retrying."))
+        self.env["usl.feedback.agent.run"].sudo().search(
+            [
+                ("task_id", "=", self.id),
+                ("request_message_id", "=", last_message.id),
+                ("state", "=", "error"),
+            ],
+        ).write({
+            "state": "stale",
+            "next_poll_at": False,
+        })
         self.env["usl.feedback.agent.run"].sudo()._queue_message(self.sudo(), last_message.sudo())
         return self._usl_feedback_state_payload()
 

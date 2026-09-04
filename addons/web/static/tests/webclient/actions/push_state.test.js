@@ -247,6 +247,30 @@ test(`actions can push state`, async () => {
     expect(router.current.arbitrary).toBe("actionPushed");
 });
 
+test("dynamic action titles are persisted for page reloads", async () => {
+    class DynamicTitleAction extends Component {
+        static template = xml`
+            <button class="dynamic_title_action" t-on-click="this.updateTitle">
+                Update title
+            </button>
+        `;
+        static props = ["*"];
+
+        updateTitle() {
+            this.env.config.setDisplayName("Updated navigation title");
+        }
+    }
+    actionRegistry.add("dynamic_title_action", DynamicTitleAction);
+
+    await mountWithCleanup(WebClient);
+    await getService("action").doAction("dynamic_title_action");
+    await contains(".dynamic_title_action").click();
+
+    const storedState = JSON.parse(browser.sessionStorage.getItem("current_state"));
+    expect(storedState.actionStack.at(-1).displayName).toBe("Updated navigation title");
+    expect(router.current.actionStack.at(-1).displayName).toBe("Updated navigation title");
+});
+
 test(`actions override previous state`, async () => {
     class ClientActionPushes extends Component {
         static template = xml`

@@ -318,6 +318,23 @@ for row in source["banks"]:
     )
 
 parity = {
+    "company_partners": (
+        digest(
+            [
+                (row["id"], row["partner_id"])
+                for row in source["companies"]
+            ],
+        ),
+        digest(
+            [
+                (
+                    row["id"],
+                    companies[row["id"]].partner_id.rebuild_source_id,
+                )
+                for row in source["companies"]
+            ],
+        ),
+    ),
     "partners": (digest(source_partner_rows), digest(target_partner_rows)),
     "users": (digest(source_user_rows), digest(target_user_rows)),
     "banks": (digest(source_bank_rows), digest(target_bank_rows)),
@@ -355,6 +372,8 @@ parity = {
 
 for row in source["images"]:
     assert bytes(partners[row["res_id"]].image_1920) == source_binary(row)
+for row in source["companies"]:
+    assert companies[row["id"]].partner_id == partners[row["partner_id"]]
 parity_examples = {}
 for area, (source_rows, target_rows) in {
     "partners": (source_partner_rows, target_partner_rows),

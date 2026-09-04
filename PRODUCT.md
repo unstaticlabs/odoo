@@ -1,7 +1,5 @@
 # Product
 
-<!-- impeccable:product-schema 1 -->
-
 ## Platform
 
 web
@@ -56,7 +54,7 @@ evidence.
   reconciliation state and immutable accounting history.
 - Failed or incomplete automation must remain visible and actionable; it must
   never silently fabricate or duplicate business consequences.
-- French terminology follows `docs/agents/french-localization.md`.
+- French terminology follows `docs/product/french-localization.md`.
 - Electronic-invoice and e-reporting live operations remain disabled outside
   their approved production activation runbooks.
 

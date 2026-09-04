@@ -23,13 +23,16 @@ new record. Immutable Pocket ID subjects remain attached to the same users.
 | --- | --- | --- |
 | `admin` | sealed local `break_glass` / Full Product Administrator | all approved companies |
 | `valentin` | Full Product Administrator | all approved companies |
-| `roger@unstaticlabs.com` | Technical Administrator | all approved companies |
+| `roger@unstaticlabs.com` | Product Administrator | all approved companies |
 | `prosper` | Accounting Reviewer | Unstatic Labs and USL MEDIA |
 
 The historical `roger@xaic.cat` record remains inactive/historical and is not
 reused as the active Roger identity. It is marked optional: migrated databases
 classify the existing record, while clean installations do not manufacture a
 historical user.
+
+The policy explicitly keeps **Unstatic Labs** as Valentin's and Roger's default
+company even though both users may switch to every approved company.
 
 Apply the normal target-finalization workflow documented in the Pocket ID SSO
 runbook. Run it twice during rehearsal. The second run must report the same
@@ -39,28 +42,57 @@ must not create another user or identity link.
 After reconciliation, verify on each user form under **Access Rights**:
 
 - the Distribution access summary names the intended role;
-- only Valentin and the sealed administrator show Irreversible Actions;
+- only explicitly approved human administrators and the sealed administrator show Irreversible Actions;
 - no AI Agent shows Irreversible Actions;
-- Roger shows Accounting read-only and can reach B2C, Projects and Documents;
+- Roger reaches all product applications and Accounting management;
 - Prosper reaches Accounting and its evidence, but not unrelated applications;
 - allowed companies match the table above.
 
-## Grant and change procedure
+## Agent ownership and delegation
 
-1. Decide the application access and allowed companies separately.
-2. Mark autonomous identities with **AI Agent**.
+Do not create an ordinary internal user and mark it as autonomous. An Agent is
+created by its accountable human owner from **My Agents**, or by an authorized
+administrator from **Settings > Users & Companies > Agents**. Odoo creates and
+governs the non-interactive backing user; it has no password, Pocket ID link,
+invitation flow or Home session.
+
+An Agent's effective authority is always the intersection of:
+
+- its owner's current authority and record rules;
+- the applications and access levels delegated on the Agent;
+- the Agent's selected companies;
+- the qualified action policy.
+
+New Agents receive owner-scoped read-only application access. The owner may
+grant a native write-capable level per application and may mix read-only and
+read/write access. Installing an application or later expanding the owner's
+rights never expands an existing Agent silently. An Agent can never receive
+Irreversible Actions, directly or through an implied or composite group.
+
+Create and rotate API credentials from the Agent record. Credentials identify
+the Agent, while permissions remain on the Agent itself. Suspending the Agent,
+reducing the owner's authority or transferring ownership is effective for all
+of its credentials. See [Autonomous Agents](../product/agents.md) and
+[Odoo MCP operations](odoo-mcp.md) for the complete operating contract.
+
+## Human and Agent access changes
+
+1. For a human, decide application access and allowed companies separately.
+2. For an Agent, select the owner, purpose, companies and each application
+   access level on the Agent record. Do not edit its backing user directly.
 3. Grant Irreversible Actions only to a named human with an approved need.
 4. Never grant Irreversible Actions to an Agent. The backend rejects both a
    direct grant and a group that implies both capabilities.
 5. Re-run the named-user policy after an approved profile change and capture
-   the before/after user IDs, companies and effective groups.
+   the before/after user IDs, companies and effective groups for human users.
+   For an Agent change, record its owner, companies, application summary and
+   credential status in Distribution Audit.
 
-Roger's Technical Administrator role deliberately uses Odoo's technical
-inspection surfaces while backend guards refuse security mutation, module
-maintenance and unreviewed automation. Fixed reviewed operational server
-actions remain usable when their native application access permits them. Do not
-work around a refusal with a temporary native manager group. Escalate the
-individual protected action to Valentin or the sealed administrator instead.
+Roger uses the Product Administrator role for full application, Accounting and
+technical configuration. During initial company setup he may also receive the
+separate Irreversible Actions capability. After setup, change his governed
+Pocket ID profile to `product_administrator`; this removes only protected
+destructive and security-changing actions.
 
 Prosper may create or adjust annual-review accounting records, post, reset and
 reconcile in unlocked periods for both Unstatic Labs and USL MEDIA. A lock
@@ -70,7 +102,7 @@ separate review. Any further company grant still requires explicit approval.
 ## Action-surface change procedure
 
 The machine-checked inventory in
-[Distribution action-risk inventory](../agents/distribution-access-risk-inventory.md)
+[Action-risk inventory](action-risk-inventory.md)
 is authoritative. Any Odoo, OCA, product-module, view, controller, job or
 provider change that alters the exposed action surface must be classified before
 the branch can qualify:
@@ -113,9 +145,10 @@ next finalization or release.
 
 ## Audit review
 
-Open **Settings > Distribution Audit**. Review by actor, time, action key,
-model, operation, origin and correlation ID. Agent events include submitted values and selected
-before-values; secrets and binary payloads are redacted. Protected human
+Open **Settings > Distribution Audit**. Review by actor, Agent, owner, company,
+time, action key, model, operation, origin and correlation ID. Agent events
+include submitted values and selected before-values; secrets and binary
+payloads are redacted. Protected human
 actions are recorded before their business operation in the same transaction,
 so only successful committed work remains in the database.
 

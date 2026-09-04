@@ -35,6 +35,12 @@ class TestRebuildAccountMigration(TransactionCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.company = cls.env.company
+        cls.company.write({
+            "street": "1 Migration Test Street",
+            "zip": "75001",
+            "city": "Paris",
+            "company_registry": "983982950",
+        })
         cls.reviewer_group = cls.env.ref("rebuild_account_migration.group_rebuild_accountant_reviewer")
         cls.readonly_group = cls.env.ref("account.group_account_readonly")
 
@@ -1752,7 +1758,7 @@ class TestRebuildAccountMigration(TransactionCase):
 
         self.assertEqual(
             set(formats),
-            {"CAMT.053", "CAMT.054", "CSV or XLSX", "QIF"},
+            {"CAMT.053", "CAMT.054", "CSV or XLSX", "QIF", "ofx"},
         )
         action = bank_journal.import_account_statement()
         self.assertEqual(action["res_model"], "account.statement.import")
@@ -1767,10 +1773,10 @@ class TestRebuildAccountMigration(TransactionCase):
             "account_statement_import_sheet_file."
             "menu_statement_import_sheet_mapping",
         )
-        self.assertEqual(mapping_menu.name, "Bank Statement File Mappings")
+        self.assertEqual(mapping_menu.name, "Statement Sheet Mappings")
         self.assertEqual(
             mapping_menu.action.name,
-            "Bank Statement File Mappings",
+            "CSV/XLSX Bank File Layouts",
         )
 
         import_arch = self.env.ref(
@@ -3348,7 +3354,7 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertEqual(
             action["domain"],
-            [("company_id", "=", self.company.id)],
+            [("company_id", "in", [self.company.id])],
         )
         self.assertEqual(action["context"]["search_default_open"], 1)
 
@@ -5637,6 +5643,12 @@ class TestRebuildAccountMigration(TransactionCase):
                     "mimetype": "application/pdf",
                     "description": "Source invoice evidence",
                     "public": False,
+                    "create_date": fields.Datetime.from_string(
+                        "2025-11-03 08:15:00",
+                    ),
+                    "write_date": fields.Datetime.from_string(
+                        "2026-02-04 17:30:00",
+                    ),
                     "is_main": True,
                     "source_attachment_res_model": "account.move",
                     "source_attachment_res_id": source_move_id,
@@ -5663,6 +5675,14 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(bytes(attachment.raw), raw)
         self.assertEqual(attachment.res_model, "account.move")
         self.assertEqual(attachment.res_id, move.id)
+        self.assertEqual(
+            attachment.create_date,
+            fields.Datetime.from_string("2025-11-03 08:15:00"),
+        )
+        self.assertEqual(
+            attachment.write_date,
+            fields.Datetime.from_string("2026-02-04 17:30:00"),
+        )
         self.assertEqual(move.message_main_attachment_id, attachment)
         restored_message = self.env["mail.message"].search([
             ("model", "=", "account.move"),
@@ -5956,7 +5976,13 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(company.rebuild_legal_form, "sasu")
         self.assertEqual(company.rebuild_corporate_tax_regime, "is")
         self.assertEqual(company.rebuild_profit_tax_regime, "bic_simplified")
-        self.assertEqual(company.rebuild_vat_regime, "normal")
+        self.assertEqual(company.rebuild_vat_regime, "simplified")
+        self.assertEqual(
+            fields.Date.to_string(company.rebuild_vat_transition_date),
+            "2027-10-01",
+        )
+        self.assertFalse(company.rebuild_oss_registered)
+        self.assertFalse(company.rebuild_cfe_monthly_payment)
         self.assertEqual(
             fields.Date.to_string(company.rebuild_first_fiscalyear_start),
             "2026-06-01",
@@ -5966,6 +5992,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "2027-09-30",
         )
         self.assertIn("monthly periodicity", company.rebuild_declaration_profile_evidence)
+        self.assertIn("reviewed legal transition profile", company.rebuild_declaration_profile_evidence)
         self.assertEqual(company.usl_document_legal_form, "SASU")
         self.assertEqual(company.usl_document_share_capital, 1_000.0)
         self.assertEqual(company.usl_document_rcs_city, "Paris")
@@ -6007,6 +6034,9 @@ class TestRebuildAccountMigration(TransactionCase):
 
         self.assertTrue(values["rebuild_declaration_profile_active"])
         self.assertEqual(values["rebuild_vat_regime"], "simplified")
+        self.assertEqual(values["rebuild_vat_transition_date"], "2027-10-01")
+        self.assertFalse(values["rebuild_oss_registered"])
+        self.assertFalse(values["rebuild_cfe_monthly_payment"])
         self.assertEqual(values["rebuild_first_fiscalyear_start"], "2024-01-10")
 
     def test_account_import_syncs_source_company_accounting_defaults(self):
@@ -6122,6 +6152,105 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
         self.assertFalse(self.company.l10n_fr_pdp_send_to_ppf)
         self.assertFalse(self.company.l10n_fr_pdp_pilot_phase)
+        self.assertEqual(
+            self.env["account_edi_proxy_client.user"].search_count([]),
+            proxy_count,
+        )
+
+    def test_einvoice_import_preconfigures_usl_media_offline(self):
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "USL MEDIA electronic invoice setup replay",
+            "source_snapshot_id": "unit-usl-media-einvoice-setup",
+        })
+        france = self.env.ref("base.fr")
+        Company = self.env["res.company"]
+        company = Company.search([("name", "=", "USL MEDIA")], limit=1)
+        company_values = {
+            "country_id": france.id,
+            "account_fiscal_country_id": france.id,
+            "company_registry": "10692883100010",
+            "vat": "FR36106928831",
+            "peppol_eas": "9957",
+            "peppol_endpoint": "FR36106928831",
+            "account_peppol_proxy_state": "receiver",
+            "rebuild_einvoice_activation_approved": True,
+            "rebuild_einvoice_exchange_enabled": True,
+            "l10n_fr_pdp_send_to_ppf": True,
+            "l10n_fr_pdp_pilot_phase": True,
+            "account_peppol_contact_email": False,
+            "account_peppol_phone_number": False,
+            "peppol_purchase_journal_id": False,
+        }
+        if company:
+            company.write(company_values)
+        else:
+            company = Company.create({
+                "name": "USL MEDIA",
+                **company_values,
+            })
+        purchase_journal = self.env["account.journal"].sudo().search([
+            ("company_id", "=", company.id),
+            ("type", "=", "purchase"),
+        ], order="sequence, id", limit=1)
+        if not purchase_journal:
+            purchase_journal = self.env["account.journal"].sudo().create({
+                "name": "USL MEDIA purchases",
+                "code": "ACH",
+                "type": "purchase",
+                "company_id": company.id,
+            })
+        source_row = {
+            "id": 990008,
+            "account_peppol_contact_email": False,
+            "account_peppol_phone_number": False,
+            "peppol_purchase_journal_id": False,
+            "account_peppol_proxy_state": "not_registered",
+            "peppol_eas": "9957",
+            "peppol_endpoint": "FR36106928831",
+        }
+        options = {"source_company_ids": [990008]}
+        proxy_count = self.env[
+            "account_edi_proxy_client.user"
+        ].search_count([])
+
+        for _repeat in range(2):
+            with (
+                patch.object(
+                    type(import_run),
+                    "_source_column_exists",
+                    return_value=True,
+                ),
+                patch.object(
+                    type(import_run),
+                    "_fetchall",
+                    return_value=[source_row],
+                ),
+            ):
+                import_run._sync_company_einvoice_configuration(
+                    object(),
+                    options,
+                    {990008: company},
+                    {990809: purchase_journal},
+                )
+
+        self.assertEqual(
+            company.account_peppol_contact_email,
+            "compta@unstaticlabs.com",
+        )
+        self.assertEqual(
+            company.account_peppol_phone_number,
+            "+33651099030",
+        )
+        self.assertEqual(company.peppol_purchase_journal_id, purchase_journal)
+        self.assertEqual(company.peppol_eas, "0225")
+        self.assertEqual(company.peppol_endpoint, "106928831")
+        self.assertEqual(company.rebuild_einvoice_provider, "odoo_pdp")
+        self.assertEqual(company.rebuild_einvoice_environment, "development")
+        self.assertEqual(company.account_peppol_proxy_state, "not_registered")
+        self.assertFalse(company.rebuild_einvoice_activation_approved)
+        self.assertFalse(company.rebuild_einvoice_exchange_enabled)
+        self.assertFalse(company.l10n_fr_pdp_send_to_ppf)
+        self.assertFalse(company.l10n_fr_pdp_pilot_phase)
         self.assertEqual(
             self.env["account_edi_proxy_client.user"].search_count([]),
             proxy_count,
@@ -7588,6 +7717,151 @@ class TestRebuildAccountMigration(TransactionCase):
         ]), 1)
         self.assertAlmostEqual(existing_rate.rate, 1.30)
 
+    def test_historical_invoice_currency_rate_drives_bill_analysis(self):
+        expense_account = self._account(
+            "T606881",
+            "Historical currency-rate expense",
+            "expense",
+        )
+        payable_account = self._account(
+            "T401881",
+            "Historical currency-rate payable",
+            "liability_payable",
+        )
+        partner = self.env["res.partner"].create({
+            "name": "Historical currency-rate supplier",
+        })
+        partner.with_company(self.company).property_account_payable_id = (
+            payable_account
+        )
+        foreign_currency = self.env.ref("base.USD")
+        if foreign_currency == self.company.currency_id:
+            foreign_currency = self.env.ref("base.EUR")
+        foreign_currency.active = True
+        historical_rate = 1.234567891
+        bill = self.env["account.move"].create({
+            "move_type": "in_invoice",
+            "journal_id": self._journal("purchase").id,
+            "company_id": self.company.id,
+            "partner_id": partner.id,
+            "currency_id": foreign_currency.id,
+            "invoice_date": fields.Date.from_string("2026-02-10"),
+            "invoice_currency_rate": historical_rate,
+            "invoice_line_ids": [Command.create({
+                "name": "Historically converted service",
+                "account_id": expense_account.id,
+                "quantity": 1.0,
+                "price_unit": 123.45,
+            })],
+        })
+        bill.action_post()
+
+        import_run = self.env["rebuild.account.import.run"].create({
+            "name": "Historical document currency-rate parity",
+        })
+        source_row = {
+            "id": 881001,
+            "name": "BILL/2026/881001",
+            "move_type": "in_invoice",
+            "invoice_currency_rate": historical_rate,
+        }
+        parity = import_run._invoice_currency_rate_parity(
+            [source_row],
+            {source_row["id"]: bill},
+        )
+        self.assertEqual(parity["source_document_count"], 1)
+        self.assertEqual(parity["matching_document_count"], 1)
+        self.assertEqual(parity["mismatch_count"], 0)
+        self.assertEqual(bill.invoice_currency_rate, historical_rate)
+
+        analysis_rows = self.env["account.invoice.report"].search([
+            ("move_id", "=", bill.id),
+        ])
+        self.assertEqual(len(analysis_rows), 1)
+        self.assertAlmostEqual(
+            sum(analysis_rows.mapped("price_total")),
+            -bill.invoice_line_ids.price_total / historical_rate,
+            places=9,
+        )
+        expected_analysis_total = sum(analysis_rows.mapped("price_total"))
+
+        # Simulate the stored-field recomputation performed by a later module
+        # upgrade.  The final migration stage must restore the Online rate
+        # without changing the posted entry or its lines.
+        bill._compute_invoice_currency_rate()
+        bill.flush_recordset(["invoice_currency_rate"])
+        self.assertNotEqual(bill.invoice_currency_rate, historical_rate)
+        recomputed_ledger_signature = import_run._posted_ledger_signature()
+        self.env["account.invoice.report"].invalidate_model(["price_total"])
+        diverged_analysis_total = sum(
+            self.env["account.invoice.report"].search([
+                ("move_id", "=", bill.id),
+            ]).mapped("price_total"),
+        )
+        self.assertNotAlmostEqual(
+            diverged_analysis_total,
+            expected_analysis_total,
+            places=6,
+        )
+
+        self.env.add_to_compute(
+            bill._fields["invoice_currency_rate"],
+            bill,
+        )
+        restored = import_run._restore_invoice_currency_rates(
+            [source_row],
+            {source_row["id"]: bill},
+        )
+        self.env.flush_all()
+        self.assertEqual(restored["changed_document_count"], 1)
+        self.assertTrue(restored["ledger_unchanged"])
+        self.assertEqual(
+            import_run._posted_ledger_signature(),
+            recomputed_ledger_signature,
+        )
+        self.assertEqual(bill.invoice_currency_rate, historical_rate)
+        self.env["account.invoice.report"].invalidate_model(["price_total"])
+        self.assertAlmostEqual(
+            sum(
+                self.env["account.invoice.report"].search([
+                    ("move_id", "=", bill.id),
+                ]).mapped("price_total"),
+            ),
+            expected_analysis_total,
+            places=9,
+        )
+
+        # A repeated upgrade/restoration is deterministic and cannot reset
+        # the manual historical rate or drift the analysis aggregate.
+        bill._compute_invoice_currency_rate()
+        bill.flush_recordset(["invoice_currency_rate"])
+        repeated_ledger_signature = import_run._posted_ledger_signature()
+        repeated = import_run._restore_invoice_currency_rates(
+            [source_row],
+            {source_row["id"]: bill},
+        )
+        self.assertEqual(repeated["changed_document_count"], 1)
+        idempotent = import_run._restore_invoice_currency_rates(
+            [source_row],
+            {source_row["id"]: bill},
+        )
+        self.assertEqual(idempotent["changed_document_count"], 0)
+        self.assertEqual(bill.invoice_currency_rate, historical_rate)
+        self.assertEqual(
+            import_run._posted_ledger_signature(),
+            repeated_ledger_signature,
+        )
+
+        mismatched_source = {
+            **source_row,
+            "invoice_currency_rate": historical_rate + 0.01,
+        }
+        mismatch = import_run._invoice_currency_rate_parity(
+            [mismatched_source],
+            {source_row["id"]: bill},
+        )
+        self.assertEqual(mismatch["mismatch_count"], 1)
+
     def test_ecb_reference_rate_provider_is_idempotent_and_traced(self):
         eur = self.env.ref("base.EUR")
         usd = self.env.ref("base.USD")
@@ -8748,29 +9022,35 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertFalse(discrepancy.approver)
         self.assertEqual(decision.state, "draft")
 
-        restricted_view_buttons = (
-            (
-                "rebuild.account.assurance.decision",
-                "rebuild_account_migration.view_rebuild_account_assurance_decision_form",
-                ("action_record", "action_supersede"),
-            ),
+        decision_view = self.env[
+            "rebuild.account.assurance.decision"
+        ].with_user(reviewer).get_view(
+            self.env.ref(
+                "rebuild_account_migration."
+                "view_rebuild_account_assurance_decision_form",
+            ).id,
+            "form",
+        )
+        decision_arch = etree.fromstring(decision_view["arch"])
+        self.assertTrue(decision_arch.xpath("//button[@name='action_record']"))
+        self.assertFalse(decision_arch.xpath("//button[@name='action_supersede']"))
+
+        for model_name, view_xmlid, button_name in (
             (
                 "rebuild.account.external.report.value",
                 "rebuild_account_migration.view_rebuild_account_external_report_value_form",
-                ("action_record_review_decision",),
+                "action_record_review_decision",
             ),
-        )
-        for model_name, view_xmlid, button_names in restricted_view_buttons:
+        ):
             view = self.env[model_name].with_user(reviewer).get_view(
                 self.env.ref(view_xmlid).id,
                 "form",
             )
             arch = etree.fromstring(view["arch"])
-            for button_name in button_names:
-                self.assertFalse(
-                    arch.xpath(f"//button[@name='{button_name}']"),
-                    f"{button_name} must not be visible to the read-only reviewer",
-                )
+            self.assertFalse(
+                arch.xpath(f"//button[@name='{button_name}']"),
+                f"{button_name} must not be visible to the read-only reviewer",
+            )
         self.assertFalse(self.env.ref(
             "rebuild_account_migration.view_rebuild_account_discrepancy_form",
             raise_if_not_found=False,
@@ -8804,7 +9084,10 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(action["name"], "Export — Balance générale")
         payload = bytes(wizard.export_file).decode("utf-8")
         self.assertIn("metadata", payload)
-        self.assertIn("empty_report", payload)
+        self.assertIn("Total débit", payload)
+        self.assertIn("Total crédit", payload)
+        self.assertIn("Contrôle débit", payload)
+        self.assertNotIn("empty_report", payload)
 
     def test_report_preview_metadata_and_empty_line(self):
         wizard = self.env["rebuild.account.report.export.wizard"].create({
@@ -8823,21 +9106,20 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(action["res_id"], wizard.id)
         self.assertEqual(action["name"], "Balance générale")
         self.assertEqual(action["target"], "current")
-        self.assertEqual(wizard.preview_row_count, 0)
+        self.assertEqual(wizard.preview_row_count, 3)
         self.assertFalse(wizard.preview_truncated)
-        self.assertEqual(len(wizard.preview_line_ids), 1)
         self.assertEqual(
-            wizard.preview_line_ids.label,
-            "Aucune ligne pour les filtres sélectionnés",
+            wizard.preview_line_ids.mapped("label"),
+            ["Total débit", "Total crédit", "Contrôle débit − crédit"],
         )
         metadata = json.loads(wizard.preview_metadata)
         self.assertEqual(metadata["report_type"], "trial_balance")
         self.assertEqual(metadata["report_name"], "Balance générale")
-        self.assertEqual(metadata["row_count"], 0)
+        self.assertEqual(metadata["row_count"], 3)
         self.assertEqual(metadata["preview_limit"], 10)
         self.assertFalse(metadata["preview_truncated"])
 
-        source_action = wizard.preview_line_ids.action_open_sources()
+        source_action = wizard.preview_line_ids[:1].action_open_sources()
         self.assertEqual(source_action["type"], "ir.actions.act_window")
         self.assertEqual(source_action["res_model"], "account.move.line")
         self.assertIn(("company_id", "in", [self.company.id]), source_action["domain"])
@@ -8920,7 +9202,7 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         wizard = self.env["rebuild.account.report.export.wizard"].create({
             "company_id": self.company.id,
-            "report_type": "balance_sheet",
+            "report_type": "trial_balance",
             "date_from": "2026-01-01",
             "date_to": "2026-12-31",
             "target_move": "posted",
@@ -9181,11 +9463,11 @@ class TestRebuildAccountMigration(TransactionCase):
             ).pages
         )
         self.assertIn(
-            "Exercice du 10/01/2024 au 28/07/2025",
+            "10/01/2024 – 28/07/2025",
             pdf_text,
         )
         self.assertNotIn(
-            "Exercice du 01/10/2024 au 28/07/2025",
+            "01/10/2024 – 28/07/2025",
             pdf_text,
         )
 
@@ -9556,8 +9838,8 @@ class TestRebuildAccountMigration(TransactionCase):
         wizard.action_generate_export()
 
         self.assertEqual(
-            wizard.preview_line_ids.label,
-            "Aucune ligne pour les filtres sélectionnés",
+            wizard.preview_line_ids.mapped("label"),
+            ["Total débit", "Total crédit", "Contrôle débit − crédit"],
         )
         self.assertTrue(bytes(wizard.export_file).startswith(b"PK"))
         analytic_wizard = Wizard.create({
@@ -9982,7 +10264,7 @@ class TestRebuildAccountMigration(TransactionCase):
             "default_amount_rounding": "cents",
         })
         Definition._ensure_standard_definitions()
-        self.assertEqual(definition.definition_version, "saas~19.3.4")
+        self.assertEqual(definition.definition_version, "saas~19.3.5")
         self.assertEqual(definition.default_group_by, "section")
         self.assertEqual(definition.default_amount_rounding, "whole")
 
@@ -10072,11 +10354,14 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(trial["amount_rounding"]["decimal_places"], 2)
         self.assertEqual(trial["variant"]["key"], "standard")
         self.assertEqual(
-            trial["lines"][0]["label"],
-            "Aucune ligne pour les filtres sélectionnés",
+            [line["label"] for line in trial["lines"]],
+            ["Total débit", "Total crédit", "Contrôle débit − crédit"],
         )
-        self.assertFalse(trial["lines"][0]["can_drilldown"])
-        self.assertEqual(trial["lines"][0]["presentation_role"], "empty")
+        self.assertTrue(all(line["can_drilldown"] for line in trial["lines"]))
+        self.assertEqual(
+            [line["presentation_role"] for line in trial["lines"]],
+            ["total", "total", "control"],
+        )
         self.assertEqual(
             [card["label"] for card in trial["summary"]["cards"]],
             ["Total débit", "Total crédit", "Contrôle d'équilibre"],
@@ -10191,9 +10476,9 @@ class TestRebuildAccountMigration(TransactionCase):
                     page.extract_text() or ""
                     for page in PdfReader(BytesIO(exported_file)).pages
                 )
+                self.assertIn("Milliers de dollars", exported_text)
                 self.assertIn(
-                    "Milliers "
-                    f"(k{self.env.company.currency_id.symbol})",
+                    f"Débit (k{self.env.company.currency_id.symbol})",
                     exported_text,
                 )
                 self.assertIn("Au millier d’euros", exported_text)
@@ -10201,7 +10486,7 @@ class TestRebuildAccountMigration(TransactionCase):
                 self.assertIn("31/12/2099", exported_text)
                 self.assertRegex(
                     exported_text,
-                    r"Généré le \d{2}/\d{2}/\d{4} \d{2}:\d{2}",
+                    r"Generated \d{2} [A-Z][a-z]{2} \d{4} at \d{2}:\d{2} UTC",
                 )
             else:
                 with ZipFile(BytesIO(exported_file)) as workbook:
@@ -10309,10 +10594,13 @@ class TestRebuildAccountMigration(TransactionCase):
             page.extract_text() or ""
             for page in PdfReader(BytesIO(profit_loss_pdf)).pages
         )
-        self.assertIn("DOCUMENT COMPTABLE OFFICIEL", profit_loss_pdf_text)
+        self.assertIn("Document comptable", profit_loss_pdf_text)
         self.assertIn("Charges d’exploitation", profit_loss_pdf_text)
         self.assertIn(
-            f"Monnaie {self.env.company.currency_id.name}",
+            (
+                "Unité : "
+                f"{self.env.company.currency_id.with_context(lang='fr_FR').currency_unit_label}"
+            ),
             profit_loss_pdf_text,
         )
         self.assertNotIn(
@@ -10349,11 +10637,11 @@ class TestRebuildAccountMigration(TransactionCase):
             for page in PdfReader(BytesIO(french_annual_pdf)).pages
         )
         self.assertIn(
-            "COMPTES PRÉPARÉS PAR LA SOCIÉTÉ — NON ATTESTÉS",
+            "Document préparatoire — non attesté",
             french_annual_text,
         )
         self.assertIn("Sommaire", french_annual_text)
-        self.assertIn("Ratios de gestion", french_annual_text)
+        self.assertIn("Ratios et contrôles de cohérence", french_annual_text)
         self.assertNotIn(
             "DOCUMENT COMPTABLE OFFICIEL",
             french_annual_text,
@@ -10400,11 +10688,11 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertFalse(aged["capabilities"]["group_by"])
         self.assertEqual(
             Report._tax_tag_display_name("08_base_rc"),
-            "08 - taxable base (reverse charge)",
+            "08 — base taxable (autoliquidation)",
         )
         self.assertEqual(
             Report._tax_tag_display_name("I1_taxe"),
-            "I1 - tax amount",
+            "I1 — montant de taxe",
         )
 
         french_balance = Report.report_client_load(
@@ -10566,12 +10854,14 @@ class TestRebuildAccountMigration(TransactionCase):
         )
         self.assertTrue(wizard.hide_zero_accounts)
         self.assertEqual(
-            wizard.preview_line_ids.mapped("account_code"),
+            wizard.preview_line_ids.filtered("account_code").mapped(
+                "account_code",
+            ),
             ["T100000", "T200000"],
         )
         metadata = json.loads(wizard.export_metadata)
         self.assertTrue(metadata["hide_zero_accounts"])
-        self.assertEqual(metadata["row_count"], 2)
+        self.assertEqual(metadata["row_count"], 5)
         pdf_text = "\n".join(
             page.extract_text() or ""
             for page in PdfReader(
@@ -11006,22 +11296,29 @@ class TestRebuildAccountMigration(TransactionCase):
                 "date_to": "2025-10-31",
             },
         )
-        self.assertEqual(len(register["lines"]), 1)
-        self.assertEqual(
-            register["lines"][0]["label"],
-            "Unit native report asset",
+        asset_line = next(
+            line
+            for line in register["lines"]
+            if line["label"] == "Unit native report asset"
         )
+        self.assertTrue(any(
+            line["label"] == "Total des immobilisations"
+            for line in register["lines"]
+        ))
         self.assertEqual(
-            register["lines"][0]["values"]["accumulated_depreciation"],
+            asset_line["values"]["accumulated_depreciation"],
             "100.00",
         )
         self.assertEqual(
-            register["lines"][0]["values"]["imported_period_net_value"],
+            asset_line["values"]["imported_period_net_value"],
             "1100.00",
         )
         register_wizard = Report.browse(register["wizard_id"])
+        register_line = register_wizard.preview_line_ids.filtered(
+            lambda line: line.label == "Unit native report asset",
+        )
         register_action = register_wizard._preview_source_action(
-            register_wizard.preview_line_ids,
+            register_line,
         )
         self.assertEqual(register_action["res_model"], "account.asset")
         self.assertEqual(register_action["res_id"], asset.id)
@@ -11033,14 +11330,23 @@ class TestRebuildAccountMigration(TransactionCase):
                 "date_to": "2025-10-31",
             },
         )
-        self.assertEqual(len(schedule["lines"]), 1)
+        schedule_line = next(
+            line
+            for line in schedule["lines"]
+            if line["values"]["representation_status"] == "Planifiée"
+        )
         self.assertEqual(
-            schedule["lines"][0]["values"]["representation_status"],
-            "Planned",
+            schedule_line["values"]["representation_status"],
+            "Planifiée",
         )
         schedule_wizard = Report.browse(schedule["wizard_id"])
+        schedule_preview_line = schedule_wizard.preview_line_ids.filtered(
+            lambda line: json.loads(line.row_json).get(
+                "representation_status",
+            ) == "Planifiée",
+        )
         schedule_action = schedule_wizard._preview_source_action(
-            schedule_wizard.preview_line_ids,
+            schedule_preview_line,
         )
         self.assertEqual(schedule_action["res_model"], "account.asset")
         self.assertEqual(schedule_action["res_id"], asset.id)
@@ -11431,7 +11737,7 @@ class TestRebuildAccountMigration(TransactionCase):
 
         decision_action = summary.action_open_review_decisions()
         self.assertEqual(decision_action["res_model"], "rebuild.account.assurance.decision")
-        self.assertIn(("company_id", "=", summary_company.id), decision_action["domain"])
+        self.assertIn(("company_id", "in", [summary_company.id]), decision_action["domain"])
         self.assertEqual(decision_action["context"]["default_company_id"], summary_company.id)
         self.assertEqual(decision_action["context"]["delete"], False)
 
@@ -11749,6 +12055,10 @@ class TestRebuildAccountMigration(TransactionCase):
         self.assertEqual(columns["value_text"], "Valeur / note")
 
     def test_accountant_reviewer_can_prepare_test_fec_through_standard_and_custom_paths(self):
+        self.company.write({
+            "country_id": self.env.ref("base.fr").id,
+            "vat": "FR48983982950",
+        })
         reviewer = self.env["res.users"].with_context(no_reset_password=True).create({
             "name": "FEC Reviewer",
             "login": "fec.reviewer@example.invalid",
@@ -11801,7 +12111,10 @@ class TestRebuildAccountMigration(TransactionCase):
             self.assertTrue(fec_wizard.fec_test_mode)
             self.assertFalse(fec_wizard.can_generate_official_fec)
             self.assertTrue(fec_wizard.export_file)
-            self.assertTrue(fec_wizard.export_filename.endswith(".txt"))
+            self.assertRegex(
+                fec_wizard.export_filename,
+                r"^983982950FEC20991231$",
+            )
             metadata = json.loads(fec_wizard.export_metadata)
             self.assertEqual(metadata["report_type"], "fec")
             self.assertEqual(metadata["format"], "txt")

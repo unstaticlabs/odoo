@@ -1,293 +1,432 @@
-# Publish the production Distribution image exactly once after a commit lands
-# on 19-usl. Pull requests are qualified locally by their Coding and Lead
-# workflows; GitHub does not rebuild the product for candidate branches.
-name: Distribution image
+# Build only changed release components. Production deployment consumes the
+# resulting immutable release manifest; this workflow never changes a runtime.
+name: Distribution release
 
 on:
   push:
     branches:
       - 19-usl
+      - 19-usl-staging
+  workflow_dispatch:
+    inputs:
+      recovery_ref:
+        description: Recovery release reference (must start with recovery-)
+        required: false
+        type: string
 
 permissions:
   contents: read
 
 concurrency:
-  group: distribution-image-${{ github.ref }}
+  group: distribution-release-${{ github.ref }}
   cancel-in-progress: false
 
 env:
-  DISTRIBUTION_IMAGE: ghcr.io/unstaticlabs/usl-odoo
-  BACKUP_TOOL_IMAGE: ghcr.io/unstaticlabs/usl-odoo-backup
+  OLLAMA_IMAGE: ollama/ollama@sha256:4dea9fb511947e24a84237bb636b0203abcb2ff0d3fbc7b4ff865deb91362131
+  OLLAMA_MODEL: bge-m3:latest
+  OLLAMA_MANIFEST_SHA256: 7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab
+  OLLAMA_DIMENSION: "1024"
 
 jobs:
-  publish:
-    name: Publish immutable Distribution image
+  admission:
+    name: Admit qualified release source
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 45
+    permissions:
+      checks: read
+      contents: read
+    outputs:
+      evidence_sha256: ${{ steps.admit.outputs.evidence_sha256 }}
+    steps:
+      - name: Admit a protected branch commit or explicit recovery tag
+        id: admit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RECOVERY_REF: ${{ inputs.recovery_ref }}
+        run: |
+          case "$GITHUB_EVENT_NAME:$GITHUB_REF" in
+            push:refs/heads/19-usl|push:refs/heads/19-usl-staging)
+              qualified=false
+              for attempt in $(seq 1 240); do
+                gh api \
+                  -H 'Accept: application/vnd.github+json' \
+                  "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?per_page=100" \
+                  --jq '[.check_runs[] | select(.name == "USL qualification" and .head_sha == env.GITHUB_SHA and .status == "completed") | {id, name, head_sha, conclusion, details_url}] | sort_by(.id) | last' \
+                  > qualification-evidence.json
+                conclusion="$(jq -r '.conclusion // empty' qualification-evidence.json)"
+                if [ "$conclusion" = success ]; then
+                  qualified=true
+                  break
+                fi
+                if [ -n "$conclusion" ]; then
+                  printf 'USL qualification concluded %s for %s\n' "$conclusion" "$GITHUB_SHA" >&2
+                  exit 1
+                fi
+                sleep 10
+              done
+              test "$qualified" = true
+              test "$(jq -r '.head_sha // empty' qualification-evidence.json)" = "$GITHUB_SHA"
+              ;;
+            workflow_dispatch:refs/tags/recovery-*)
+              test "$RECOVERY_REF" = "${GITHUB_REF#refs/tags/}"
+              jq -n --arg event "$GITHUB_EVENT_NAME" --arg ref "$GITHUB_REF" --arg sha "$GITHUB_SHA" \
+                '{event: $event, ref: $ref, commit: $sha, explicitly_dispatched: true}' \
+                > qualification-evidence.json
+              ;;
+            *)
+              printf 'Release source is not authorized: %s %s\n' "$GITHUB_EVENT_NAME" "$GITHUB_REF" >&2
+              exit 2
+              ;;
+          esac
+          evidence_sha256="$(sha256sum qualification-evidence.json | cut -d' ' -f1)"
+          echo "evidence_sha256=$evidence_sha256" >> "$GITHUB_OUTPUT"
+
+  resolve:
+    name: Resolve component inputs
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.inputs.outputs.matrix }}
+      mcp_commit: ${{ steps.inputs.outputs.mcp_commit }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: false
+      - name: Resolve deterministic component identities
+        id: inputs
+        run: |
+          scripts/component-build --json > component-inputs.json
+          jq -c '{include: [.components | to_entries[] | .value + {name: .key}]}' \
+            component-inputs.json | sed 's/^/matrix=/' >> "$GITHUB_OUTPUT"
+          echo "mcp_commit=$(jq -r .commit deploy/odoo-mcp/release.json)" >> "$GITHUB_OUTPUT"
+          cat component-inputs.json
+
+  test:
+    name: Release contract tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: false
+      - name: Run deterministic release tests
+        run: |
+          python3 -m unittest \
+            scripts.tests.test_component_build \
+            scripts.tests.test_distribution_release \
+            scripts.tests.test_release_manifest \
+            scripts.tests.test_odoo_mcp_release
+
+  external:
+    name: Verify MCP and renderer
+    needs: [admission, resolve]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout Distribution
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: false
+      - name: Checkout pinned Odoo MCP
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: unstaticlabs/odoo-mcp
+          ref: ${{ needs.resolve.outputs.mcp_commit }}
+          path: .release/odoo-mcp
+          persist-credentials: false
+      - name: Log in to GHCR
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify external contracts and private package access
+        run: |
+          scripts/odoo-mcp verify --repository "$GITHUB_WORKSPACE/.release/odoo-mcp"
+          mcp_image="$(jq -r .image_digest deploy/odoo-mcp/release.json)"
+          renderer_image="$(jq -r .image_digest deploy/document-renderer/release.json)"
+          docker pull "$mcp_image"
+          docker pull "$renderer_image"
+          scripts/odoo-mcp verify-image --repository "$GITHUB_WORKSPACE/.release/odoo-mcp"
+          test "$(docker image inspect "$renderer_image" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = \
+            "$(jq -r .commit deploy/document-renderer/release.json)"
+
+  component:
+    name: ${{ matrix.name }} image
+    needs: [admission, resolve]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.resolve.outputs.matrix) }}
     permissions:
       contents: read
       packages: write
       id-token: write
       attestations: write
       artifact-metadata: write
-    outputs:
-      image: ${{ steps.release.outputs.image }}
-      tag: ${{ steps.release.outputs.tag }}
-      digest: ${{ steps.release.outputs.digest }}
-      digest_reference: ${{ steps.release.outputs.digest_reference }}
-      metadata_artifact: ${{ steps.metadata.outputs.artifact_name }}
-      backup_tool_image: ${{ steps.backup-release.outputs.image }}
-      backup_tool_tag: ${{ steps.backup-release.outputs.tag }}
-      backup_tool_digest: ${{ steps.backup-release.outputs.digest }}
-      backup_tool_digest_reference: ${{ steps.backup-release.outputs.digest_reference }}
-    env:
-      IMAGE_TAG: sha-${{ github.sha }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Sync pinned OCA add-ons
+        with:
+          submodules: false
+      - name: Resolve OCA inputs only for Odoo
+        if: matrix.name == 'distribution'
         run: scripts/sync-oca-addons
-
-      - name: Resolve release build identity
-        id: identity
+      - name: Resolve Odoo policy identities
+        id: policy
+        if: matrix.name == 'distribution'
         run: |
-          oca_digest="$(PYTHONPATH=. python3 -c 'from scripts.release_identity import oca_bundle_sha256; print(oca_bundle_sha256())')"
-          action_risk_digest="$(PYTHONPATH=. python3 -c 'from scripts.release_identity import action_risk_policy_sha256; print(action_risk_policy_sha256())')"
-          echo "oca_digest=$oca_digest" >> "$GITHUB_OUTPUT"
-          echo "action_risk_digest=$action_risk_digest" >> "$GITHUB_OUTPUT"
-
+          echo "oca=$(PYTHONPATH=. python3 -c 'from operations.release_identity import oca_bundle_sha256; print(oca_bundle_sha256())')" >> "$GITHUB_OUTPUT"
+          echo "action_risk=$(PYTHONPATH=. python3 -c 'from operations.release_identity import action_risk_policy_sha256; print(action_risk_policy_sha256())')" >> "$GITHUB_OUTPUT"
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
-
-      - name: Log in to GHCR with the workflow token
+      - name: Log in to GHCR
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Reuse only an identical existing commit image
+      - name: Check immutable content image
         id: existing
         env:
-          EXPECTED_COMMIT: ${{ github.sha }}
-          EXPECTED_OCA: ${{ steps.identity.outputs.oca_digest }}
-          EXPECTED_ACTION_RISK: ${{ steps.identity.outputs.action_risk_digest }}
+          IMAGE: ${{ matrix.image }}
+          TAG: ${{ matrix.tag }}
         run: |
-          reference="$DISTRIBUTION_IMAGE:$IMAGE_TAG"
+          started="$(date +%s)"
+          reference="$IMAGE:$TAG"
           set +e
           inspection="$(docker buildx imagetools inspect "$reference" 2>&1)"
           status=$?
           set -e
-          if [ "$status" -ne 0 ]; then
-            if printf '%s' "$inspection" | grep -Eqi 'manifest unknown|name unknown|not found|404'; then
-              echo "exists=false" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-            printf 'Unable to inspect %s:\n%s\n' "$reference" "$inspection" >&2
+          if [ "$status" -eq 0 ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          elif printf '%s' "$inspection" | grep -Eqi 'manifest unknown|name unknown|not found|404'; then
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          else
+            printf 'Cannot inspect %s:\n%s\n' "$reference" "$inspection" >&2
             exit "$status"
           fi
-          docker pull "$reference"
-          test "$(docker image inspect "$reference" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$EXPECTED_COMMIT"
-          test "$(docker image inspect "$reference" --format '{{index .Config.Labels "com.unstaticlabs.odoo.oca-bundle-sha256"}}')" = "$EXPECTED_OCA"
-          test "$(docker image inspect "$reference" --format '{{index .Config.Labels "com.unstaticlabs.odoo.action-risk-policy-sha256"}}')" = "$EXPECTED_ACTION_RISK"
-          test "$(docker image inspect "$reference" --format '{{index .Config.Labels "com.unstaticlabs.odoo.runtime"}}')" = distribution
-          digest_reference="$(docker image inspect "$reference" --format '{{index .RepoDigests 0}}')"
-          digest="${digest_reference#*@}"
-          if ! printf '%s\n' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'; then
-            echo "Existing image has no valid digest" >&2
-            exit 1
-          fi
-          echo "exists=true" >> "$GITHUB_OUTPUT"
-          echo "digest=$digest" >> "$GITHUB_OUTPUT"
-
-      - name: Build and push Distribution image once
+          echo "started=$started" >> "$GITHUB_OUTPUT"
+      - name: Build and publish missing content image
         id: build
         if: steps.existing.outputs.exists != 'true'
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
         with:
           context: .
-          target: distribution
+          file: ${{ matrix.dockerfile }}
+          target: ${{ matrix.target }}
           push: true
-          tags: ${{ env.DISTRIBUTION_IMAGE }}:${{ env.IMAGE_TAG }}
+          tags: ${{ matrix.image }}:${{ matrix.tag }}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
+            com.unstaticlabs.component.name=${{ matrix.name }}
+            com.unstaticlabs.component.input-sha256=${{ matrix.input_sha256 }}
           build-args: |
-            USL_RELEASE_COMMIT=${{ github.sha }}
-            USL_OCA_BUNDLE_SHA256=${{ steps.identity.outputs.oca_digest }}
-            USL_ACTION_RISK_POLICY_SHA256=${{ steps.identity.outputs.action_risk_digest }}
+            USL_COMPONENT_INPUT_SHA256=${{ matrix.input_sha256 }}
+            USL_OCA_BUNDLE_SHA256=${{ steps.policy.outputs.oca }}
+            USL_ACTION_RISK_POLICY_SHA256=${{ steps.policy.outputs.action_risk }}
           provenance: mode=max
           sbom: true
-          cache-from: type=gha,scope=distribution
-          cache-to: type=gha,mode=max,scope=distribution
-
-      - name: Resolve immutable image digest
+          cache-from: |
+            type=registry,ref=${{ matrix.image }}:buildcache
+            type=gha,scope=${{ matrix.name }}
+          cache-to: type=registry,ref=${{ matrix.image }}:buildcache,mode=max,image-manifest=true,oci-mediatypes=true
+      - name: Resolve immutable component digest
         id: release
         env:
-          EXISTING_DIGEST: ${{ steps.existing.outputs.digest }}
+          IMAGE: ${{ matrix.image }}
+          TAG: ${{ matrix.tag }}
           BUILT_DIGEST: ${{ steps.build.outputs.digest }}
+          REUSED: ${{ steps.existing.outputs.exists }}
         run: |
-          digest="${EXISTING_DIGEST:-$BUILT_DIGEST}"
-          if ! printf '%s\n' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'; then
-            echo "Build produced no valid sha256 digest" >&2
-            exit 1
+          digest="$BUILT_DIGEST"
+          if [ -z "$digest" ]; then
+            digest="sha256:$(docker buildx imagetools inspect --raw "$IMAGE:$TAG" | sha256sum | cut -d' ' -f1)"
           fi
-          echo "image=$DISTRIBUTION_IMAGE" >> "$GITHUB_OUTPUT"
-          echo "tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+          printf '%s\n' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'
+          elapsed="$(( $(date +%s) - ${{ steps.existing.outputs.started }} ))"
+          result=built
+          [ "$REUSED" = true ] && result=reused
+          {
+            printf '### %s\n\n' '${{ matrix.name }}'
+            printf -- '- Result: `%s`\n' "$result"
+            printf -- '- Inputs: `%s`\n' '${{ matrix.input_sha256 }}'
+            printf -- '- Image: `%s@%s`\n' "$IMAGE" "$digest"
+            printf -- '- Job time: `%ss`\n' "$elapsed"
+          } >> "$GITHUB_STEP_SUMMARY"
           echo "digest=$digest" >> "$GITHUB_OUTPUT"
-          echo "digest_reference=$DISTRIBUTION_IMAGE@$digest" >> "$GITHUB_OUTPUT"
-
-      - name: Verify immutable Distribution labels and digest
+      - name: Qualify isolated receipt component
+        if: matrix.name == 'receipt-fetcher' || matrix.name == 'receipt-egress'
         env:
-          DIGEST_REFERENCE: ${{ steps.release.outputs.digest_reference }}
-          EXPECTED_COMMIT: ${{ github.sha }}
-          EXPECTED_OCA: ${{ steps.identity.outputs.oca_digest }}
-          EXPECTED_ACTION_RISK: ${{ steps.identity.outputs.action_risk_digest }}
+          IMAGE: ${{ matrix.image }}
+          TAG: ${{ matrix.tag }}
+          COMPONENT: ${{ matrix.name }}
         run: |
-          docker pull "$DIGEST_REFERENCE"
-          test "$(docker image inspect "$DIGEST_REFERENCE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$EXPECTED_COMMIT"
-          test "$(docker image inspect "$DIGEST_REFERENCE" --format '{{index .Config.Labels "com.unstaticlabs.odoo.oca-bundle-sha256"}}')" = "$EXPECTED_OCA"
-          test "$(docker image inspect "$DIGEST_REFERENCE" --format '{{index .Config.Labels "com.unstaticlabs.odoo.action-risk-policy-sha256"}}')" = "$EXPECTED_ACTION_RISK"
-          test "$(docker image inspect "$DIGEST_REFERENCE" --format '{{index .Config.Labels "com.unstaticlabs.odoo.runtime"}}')" = distribution
-
-      - name: Reuse only an identical existing backup-tool image
-        id: existing-backup
-        env:
-          EXPECTED_COMMIT: ${{ github.sha }}
-        run: |
-          reference="$BACKUP_TOOL_IMAGE:$IMAGE_TAG"
-          set +e
-          inspection="$(docker buildx imagetools inspect "$reference" 2>&1)"
-          status=$?
-          set -e
-          if [ "$status" -ne 0 ]; then
-            if printf '%s' "$inspection" | grep -Eqi 'manifest unknown|name unknown|not found|404'; then
-              echo "exists=false" >> "$GITHUB_OUTPUT"
-              exit 0
-            fi
-            printf 'Unable to inspect %s:\n%s\n' "$reference" "$inspection" >&2
-            exit "$status"
+          docker pull "$IMAGE:$TAG"
+          if [ "$COMPONENT" = receipt-egress ]; then
+            docker run --rm "$IMAGE:$TAG" --version
+            exit 0
           fi
-          docker pull "$reference"
-          test "$(docker image inspect "$reference" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$EXPECTED_COMMIT"
-          test "$(docker image inspect "$reference" --format '{{index .Config.Labels "com.unstaticlabs.odoo.runtime"}}')" = backup
-          digest_reference="$(docker image inspect "$reference" --format '{{index .RepoDigests 0}}')"
-          digest="${digest_reference#*@}"
-          if ! printf '%s\n' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'; then
-            echo "Existing backup-tool image has no valid digest" >&2
-            exit 1
-          fi
-          echo "exists=true" >> "$GITHUB_OUTPUT"
-          echo "digest=$digest" >> "$GITHUB_OUTPUT"
-
-      - name: Build and push backup tool once
-        id: backup-build
-        if: steps.existing-backup.outputs.exists != 'true'
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
-        with:
-          context: .
-          file: docker/backup.Dockerfile
-          push: true
-          tags: ${{ env.BACKUP_TOOL_IMAGE }}:${{ env.IMAGE_TAG }}
-          labels: |
-            org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
-          build-args: |
-            USL_RELEASE_COMMIT=${{ github.sha }}
-          provenance: mode=max
-          sbom: true
-          cache-from: type=gha,scope=backup-tool
-          cache-to: type=gha,mode=max,scope=backup-tool
-
-      - name: Resolve immutable backup-tool digest
-        id: backup-release
-        env:
-          EXISTING_DIGEST: ${{ steps.existing-backup.outputs.digest }}
-          BUILT_DIGEST: ${{ steps.backup-build.outputs.digest }}
-        run: |
-          digest="${EXISTING_DIGEST:-$BUILT_DIGEST}"
-          if ! printf '%s\n' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'; then
-            echo "Backup-tool build produced no valid sha256 digest" >&2
-            exit 1
-          fi
-          echo "image=$BACKUP_TOOL_IMAGE" >> "$GITHUB_OUTPUT"
-          echo "tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
-          echo "digest=$digest" >> "$GITHUB_OUTPUT"
-          echo "digest_reference=$BACKUP_TOOL_IMAGE@$digest" >> "$GITHUB_OUTPUT"
-
-      - name: Verify immutable backup-tool labels and runtime
-        env:
-          DIGEST_REFERENCE: ${{ steps.backup-release.outputs.digest_reference }}
-          EXPECTED_COMMIT: ${{ github.sha }}
-        run: |
-          docker pull "$DIGEST_REFERENCE"
-          test "$(docker image inspect "$DIGEST_REFERENCE" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$EXPECTED_COMMIT"
-          test "$(docker image inspect "$DIGEST_REFERENCE" --format '{{index .Config.Labels "com.unstaticlabs.odoo.runtime"}}')" = backup
-          docker run --rm --entrypoint pg_dump "$DIGEST_REFERENCE" --version | grep -Eq ' 16([.]|$)'
-          docker run --rm --entrypoint restic "$DIGEST_REFERENCE" version | grep -Eq '^restic 0[.]19[.]1'
-
-      - name: Generate backup-tool build provenance
+          docker run --rm \
+            --entrypoint python \
+            --volume "$GITHUB_WORKSPACE/services/usl-receipt-fetcher/test_app.py:/app/test_app.py:ro" \
+            "$IMAGE:$TAG" -m unittest -v /app/test_app.py
+          docker run --rm \
+            --read-only \
+            --cap-drop ALL \
+            --cap-add SYS_CHROOT \
+            --security-opt no-new-privileges:true \
+            --security-opt "seccomp=$GITHUB_WORKSPACE/services/usl-receipt-fetcher/seccomp_profile.json" \
+            --pids-limit 256 \
+            --memory 768m \
+            --shm-size 256m \
+            --tmpfs /tmp/receipt-fetcher:rw,noexec,nosuid,nodev,size=128m,mode=1777 \
+            --entrypoint python \
+            "$IMAGE:$TAG" -c \
+            'import asyncio
+          from playwright.async_api import async_playwright
+          async def main():
+              async with async_playwright() as p:
+                  browser = await p.chromium.launch(chromium_sandbox=True)
+                  page = await browser.new_page()
+                  await page.set_content("""<title>sandbox-ready</title>
+                      <button id="download">Download PDF</button>
+                      <script>
+                        document.querySelector("#download").onclick = () => {
+                          const a = document.createElement("a");
+                          a.href = "data:application/pdf,%25PDF-1.4%20fixture";
+                          a.download = "receipt.pdf";
+                          a.click();
+                        };
+                      </script>""")
+                  assert await page.title() == "sandbox-ready"
+                  async with page.expect_download() as pending:
+                      await page.locator("#download").click()
+                  download = await pending.value
+                  assert download.suggested_filename == "receipt.pdf"
+                  await browser.close()
+          asyncio.run(main())'
+      - name: Attest component image
+        if: steps.existing.outputs.exists != 'true'
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
-          subject-name: ${{ steps.backup-release.outputs.image }}
-          subject-digest: ${{ steps.backup-release.outputs.digest }}
-          push-to-registry: true
-
-      - name: Generate GitHub build provenance
-        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
-        with:
-          subject-name: ${{ steps.release.outputs.image }}
+          subject-name: ${{ matrix.image }}
           subject-digest: ${{ steps.release.outputs.digest }}
           push-to-registry: true
 
-      - name: Write release metadata contract
-        id: metadata
-        env:
-          IMAGE_DIGEST: ${{ steps.release.outputs.digest }}
-          BACKUP_TOOL_DIGEST: ${{ steps.backup-release.outputs.digest }}
+  release:
+    name: Assemble coordinated release
+    needs: [admission, resolve, test, external, component]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: false
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
+      - name: Log in to GHCR
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install ORAS
+        uses: oras-project/setup-oras@22ce207df3b08e061f537244349aac6ae1d214f6 # v1.2.4
+      - name: Create release manifest from published components
         run: |
-          artifact_name="distribution-release-$GITHUB_SHA"
-          python3 scripts/distribution_release.py create \
+          scripts/component-build --json > component-inputs.json
+          odoo_core_commit="$(git log -1 --format=%H -- odoo addons setup setup.py MANIFEST.in)"
+          odoo_core_sha="$(PYTHONPATH=. python3 -c 'from operations.release_identity import odoo_core_sha256; print(odoo_core_sha256())')"
+          scripts/sync-oca-addons
+          oca_sha="$(PYTHONPATH=. python3 -c 'from operations.release_identity import oca_bundle_sha256; print(oca_bundle_sha256())')"
+          constraints_sha="$(sha256sum docker/constraints.txt requirements.txt | sha256sum | cut -d' ' -f1)"
+          policy_sha="$(PYTHONPATH=. python3 -c 'from operations.release_identity import action_risk_policy_sha256; print(action_risk_policy_sha256())')"
+          contract_evidence="$(git ls-files operations scripts/tests .github/workflows | xargs sha256sum | sha256sum | cut -d' ' -f1)"
+          arguments=()
+          while IFS=$'\t' read -r name inputs image tag; do
+            digest="sha256:$(docker buildx imagetools inspect --raw "$image:$tag" | sha256sum | cut -d' ' -f1)"
+            arguments+=(--component "$name,$inputs,$image,$tag,$digest")
+          done < <(jq -r '.components | to_entries[] | [.key,.value.input_sha256,.value.image,.value.tag] | @tsv' component-inputs.json)
+          scripts/release-manifest create \
             --repository "$GITHUB_REPOSITORY" \
+            --source-ref "$GITHUB_REF" \
             --commit "$GITHUB_SHA" \
-            --image "$DISTRIBUTION_IMAGE" \
-            --tag "$IMAGE_TAG" \
-            --digest "$IMAGE_DIGEST" \
-            --backup-tool-image "$BACKUP_TOOL_IMAGE" \
-            --backup-tool-digest "$BACKUP_TOOL_DIGEST" \
+            "${arguments[@]}" \
+            --renderer-release deploy/document-renderer/release.json \
+            --release-notes operations/release-notes.json \
+            --odoo-series 19.3 \
+            --odoo-core-commit "$odoo_core_commit" \
+            --odoo-core-sha256 "$odoo_core_sha" \
+            --oca-sha256 "$oca_sha" \
+            --python-constraints-sha256 "$constraints_sha" \
+            --security-policy-sha256 "$policy_sha" \
+            --ollama-model "$OLLAMA_MODEL" \
+            --ollama-manifest "$OLLAMA_MANIFEST_SHA256" \
+            --ollama-dimension "$OLLAMA_DIMENSION" \
+            --evidence "usl-qualification=${{ needs.admission.outputs.evidence_sha256 }}" \
+            --evidence "release-contract=$contract_evidence" \
             --workflow-run-id "$GITHUB_RUN_ID" \
             --workflow-run-attempt "$GITHUB_RUN_ATTEMPT" \
             --workflow-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
-            --output distribution-release.json
-          python3 scripts/distribution_release.py validate \
-            distribution-release.json \
-            --commit "$GITHUB_SHA" \
-            --image "$DISTRIBUTION_IMAGE" \
-            --backup-tool-image "$BACKUP_TOOL_IMAGE"
-          echo "artifact_name=$artifact_name" >> "$GITHUB_OUTPUT"
-
-      - name: Upload release metadata
+            --output usl-release.json
+          scripts/release-manifest validate usl-release.json --commit "$GITHUB_SHA"
+      - name: Publish coordinated release as immutable OCI artifact
+        id: release_oci
+        run: |
+          reference="ghcr.io/unstaticlabs/usl-odoo-release:sha-$GITHUB_SHA"
+          oras push --artifact-type application/vnd.usl.odoo.release.v3+json \
+            "$reference" usl-release.json:application/json
+          digest="$(oras resolve "$reference")"
+          printf '%s\n' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+          echo "reference=ghcr.io/unstaticlabs/usl-odoo-release@$digest" >> "$GITHUB_OUTPUT"
+      - name: Attest coordinated release
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-name: ghcr.io/unstaticlabs/usl-odoo-release
+          subject-digest: ${{ steps.release_oci.outputs.digest }}
+          push-to-registry: true
+      - name: Retain human-readable release evidence
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: ${{ steps.metadata.outputs.artifact_name }}
-          path: distribution-release.json
+          name: usl-release-${{ github.sha }}
+          path: usl-release.json
           if-no-files-found: error
           retention-days: 90
-
-      - name: Expose immutable release identity
+      - name: Trigger protected GitOps ingestion
+        if: vars.USL_RELEASE_AUTOMATION_ENABLED == 'true'
         env:
-          DIGEST_REFERENCE: ${{ steps.release.outputs.digest_reference }}
-          BACKUP_TOOL_DIGEST_REFERENCE: ${{ steps.backup-release.outputs.digest_reference }}
-          METADATA_ARTIFACT: ${{ steps.metadata.outputs.artifact_name }}
+          GITOPS_PIPELINE_TRIGGER_URL: ${{ secrets.GITOPS_PIPELINE_TRIGGER_URL }}
+          GITOPS_PIPELINE_TRIGGER_TOKEN: ${{ secrets.GITOPS_PIPELINE_TRIGGER_TOKEN }}
+          RELEASE_MANIFEST_DIGEST: ${{ steps.release_oci.outputs.reference }}
+        run: |
+          test -n "$GITOPS_PIPELINE_TRIGGER_URL"
+          test -n "$GITOPS_PIPELINE_TRIGGER_TOKEN"
+          curl --fail-with-body --silent --show-error --max-time 30 \
+            --request POST "$GITOPS_PIPELINE_TRIGGER_URL" \
+            --form "token=$GITOPS_PIPELINE_TRIGGER_TOKEN" \
+            --form "ref=main" \
+            --form "variables[USL_RELEASE_MANIFEST]=$RELEASE_MANIFEST_DIGEST" \
+            --form "variables[USL_SOURCE_REPOSITORY]=$GITHUB_REPOSITORY" \
+            --form "variables[USL_SOURCE_REF]=$GITHUB_REF" \
+            --form "variables[USL_SOURCE_COMMIT]=$GITHUB_SHA" \
+            --form "variables[USL_GITHUB_RUN_ID]=$GITHUB_RUN_ID"
+      - name: Summarize release
         run: |
           {
-            printf '## Distribution release\n\n'
+            printf '## Coordinated release\n\n'
             printf -- '- Commit: `%s`\n' "$GITHUB_SHA"
-            printf -- '- Commit tag: `%s:%s`\n' "$DISTRIBUTION_IMAGE" "$IMAGE_TAG"
-            printf -- '- Production identity: `%s`\n' "$DIGEST_REFERENCE"
-            printf -- '- Backup-tool identity: `%s`\n' "$BACKUP_TOOL_DIGEST_REFERENCE"
-            printf -- '- Metadata artifact: `%s`\n' "$METADATA_ARTIFACT"
-            printf -- '- OCI SBOM: attached by BuildKit\n'
-            printf -- '- Build provenance: BuildKit plus GitHub artifact attestation\n'
+            jq -r '.components | to_entries[] | "- \(.key): `\(.value.digest_reference)`"' usl-release.json
+            printf -- '- MCP: `%s`\n' "$(jq -r .mcp.image usl-release.json)"
+            printf -- '- Renderer: `%s`\n' "$(jq -r .renderer.image usl-release.json)"
           } >> "$GITHUB_STEP_SUMMARY"

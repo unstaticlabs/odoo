@@ -12,6 +12,9 @@ export class Breadcrumbs extends Component {
     };
 
     getBreadcrumbTooltip({ isFormView, name }) {
+        if (!name) {
+            return _t("Back");
+        }
         if (isFormView) {
             return _t("Back to “%s” form", name);
         }

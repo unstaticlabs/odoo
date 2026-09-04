@@ -11,7 +11,12 @@ class ResUsers(models.Model):
         if not home_action:
             return users
         for user, vals in zip(users, vals_list):
-            if "action_id" not in vals and user._is_internal():
+            is_agent = (
+                vals.get("usl_identity_classification") == "agent"
+                if "usl_identity_classification" in user._fields
+                else False
+            )
+            if "action_id" not in vals and user._is_internal() and not is_agent:
                 # ``action_id`` targets the polymorphic ir.actions.actions table.
                 # Writing the identifier avoids assigning an ir.actions.client
                 # recordset to the base-model Many2one descriptor.

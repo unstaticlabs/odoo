@@ -5,7 +5,6 @@ from dateutil.relativedelta import relativedelta
 
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tools import float_is_zero
 
 SESSION_WORKFLOW_DEFAULTS = {
     "state": "draft",
@@ -414,6 +413,11 @@ class UslPlatformBillingSession(models.Model):
             raise AccessError(
                 _("Only Platform Billing administrators can delete sessions."),
             )
+        # Delete children through their ORM lifecycle while their parent still
+        # exists.  Relying on the database cascade leaves cached payout records
+        # behind while stored dependencies are recomputed, which can surface as
+        # a misleading MissingError during cancelled-session deletion.
+        self.payout_ids.unlink()
         return super().unlink()
 
     def _check_operator(self):
@@ -748,36 +752,8 @@ class UslPlatformBillingSession(models.Model):
         return True
 
     def _create_compensation_move(self, platform, payouts):
-        existing = self.compensation_move_ids.filtered(
-            lambda move: move.platform_billing_platform_id == platform,
-        )
-        if existing:
-            return existing[:1]
-        amount_currency = sum(payouts.mapped("commission_platform_amount"))
-        if platform.currency_id.is_zero(amount_currency):
-            return self.env["account.move"]
+        moves = self.env["account.move"]
         company_currency = self.company_id.currency_id
-        bank_payouts = payouts.filtered(
-            lambda payout: payout.currency_valuation_method == "bank",
-        )
-        reference_payouts = payouts - bank_payouts
-        balance = sum(
-            company_currency.round(
-                payout.commission_platform_amount * payout.effective_bank_rate,
-            )
-            for payout in bank_payouts
-        )
-        reference_amount = sum(
-            reference_payouts.mapped("commission_platform_amount"),
-        )
-        if reference_amount:
-            balance += platform.currency_id._convert(
-                reference_amount,
-                company_currency,
-                self.company_id,
-                self.invoice_date,
-            )
-        balance = company_currency.round(balance)
         supplier = platform.supplier_partner.with_company(self.company_id)
         customer = platform.customer_partner.with_company(self.company_id)
         payable = supplier.property_account_payable_id
@@ -787,53 +763,77 @@ class UslPlatformBillingSession(models.Model):
                 _("Configure receivable and payable accounts on %(platform)s partners.", platform=platform.display_name),
             )
         currency_id = platform.currency_id.id
-        move = self.env["account.move"].create(
-            {
-                "move_type": "entry",
-                "company_id": self.company_id.id,
-                "currency_id": platform.currency_id.id,
-                "journal_id": platform.compensation_journal_id.id,
-                "date": self.invoice_date,
-                "ref": _("Platform commission compensation — %s", platform.name),
-                "platform_billing_session_id": self.id,
-                "platform_billing_platform_id": platform.id,
-                "platform_billing_payout_ids": [Command.set(payouts.ids)],
-                "line_ids": [
-                    Command.create(
-                        {
-                            "name": _("Commission payable compensation"),
-                            "partner_id": supplier.id,
-                            "account_id": payable.id,
-                            "debit": balance,
-                            "credit": 0.0,
-                            "currency_id": currency_id,
-                            "amount_currency": (
-                                amount_currency
-                                if platform.currency_id != company_currency
-                                else balance
-                            ),
-                        },
+        for payout in payouts.sorted(key=lambda item: item.id):
+            if payout.compensation_move_id:
+                moves |= payout.compensation_move_id
+                continue
+            amount_currency = payout.commission_platform_amount
+            if platform.currency_id.is_zero(amount_currency):
+                continue
+            if payout.currency_valuation_method == "bank":
+                balance = company_currency.round(
+                    amount_currency * payout.effective_bank_rate,
+                )
+            else:
+                balance = platform.currency_id._convert(
+                    amount_currency,
+                    company_currency,
+                    self.company_id,
+                    self.invoice_date,
+                )
+            balance = company_currency.round(balance)
+            move = self.env["account.move"].create(
+                {
+                    "move_type": "entry",
+                    "company_id": self.company_id.id,
+                    "currency_id": platform.currency_id.id,
+                    "journal_id": platform.compensation_journal_id.id,
+                    "date": self.invoice_date,
+                    "ref": _(
+                        "Platform commission compensation — %(platform)s — %(reference)s",
+                        platform=platform.name,
+                        reference=payout.platform_reference,
                     ),
-                    Command.create(
-                        {
-                            "name": _("Commission receivable compensation"),
-                            "partner_id": customer.id,
-                            "account_id": receivable.id,
-                            "debit": 0.0,
-                            "credit": balance,
-                            "currency_id": currency_id,
-                            "amount_currency": (
-                                -amount_currency
-                                if platform.currency_id != company_currency
-                                else -balance
-                            ),
-                        },
-                    ),
-                ],
-            },
-        )
-        payouts._workflow_write({"compensation_move_id": move.id})
-        return move
+                    "platform_billing_session_id": self.id,
+                    "platform_billing_platform_id": platform.id,
+                    "platform_billing_payout_ids": [Command.set(payout.ids)],
+                    "line_ids": [
+                        Command.create(
+                            {
+                                "name": _("Commission payable compensation"),
+                                "partner_id": supplier.id,
+                                "account_id": payable.id,
+                                "debit": balance,
+                                "credit": 0.0,
+                                "currency_id": currency_id,
+                                "amount_currency": (
+                                    amount_currency
+                                    if platform.currency_id != company_currency
+                                    else balance
+                                ),
+                            },
+                        ),
+                        Command.create(
+                            {
+                                "name": _("Commission receivable compensation"),
+                                "partner_id": customer.id,
+                                "account_id": receivable.id,
+                                "debit": 0.0,
+                                "credit": balance,
+                                "currency_id": currency_id,
+                                "amount_currency": (
+                                    -amount_currency
+                                    if platform.currency_id != company_currency
+                                    else -balance
+                                ),
+                            },
+                        ),
+                    ],
+                },
+            )
+            payout._workflow_write({"compensation_move_id": move.id})
+            moves |= move
+        return moves
 
     def _reconcile_compensation(self, platform, payouts, compensation):
         bills = payouts.vendor_bill_id.filtered(lambda move: move.state == "posted")
@@ -858,6 +858,92 @@ class UslPlatformBillingSession(models.Model):
         )
         if receivable_lines:
             receivable_lines.reconcile()
+
+    def _repair_legacy_grouped_compensations(self):
+        """Replace pre-fix pooled compensation with exact payout entries.
+
+        This private maintenance operation is deliberately not run on upgrade.
+        It is safe only before any linked bank receipt has been reconciled and
+        leaves Odoo's reversal trail for exchange differences created by the
+        former pooled reconciliation.
+        """
+        self._check_operator()
+        repaired = self.env["account.move"]
+        for session in self:
+            legacy_moves = session.compensation_move_ids.filtered(
+                lambda move: (
+                    len(move.platform_billing_payout_ids) > 1
+                    and any(
+                        payout.compensation_move_id == move
+                        and payout.currency_valuation_method == "bank"
+                        for payout in move.platform_billing_payout_ids
+                    )
+                ),
+            )
+            if not legacy_moves:
+                continue
+            if session.state != "posted":
+                raise UserError(
+                    _("Only a posted, unpaid session can repair pooled compensation."),
+                )
+            payouts = legacy_moves.platform_billing_payout_ids
+            if payouts.bank_allocation_ids.bank_statement_line_id.filtered(
+                "is_reconciled",
+            ):
+                raise UserError(
+                    _(
+                        "Unmatch the session's bank receipts before repairing pooled "
+                        "compensation.",
+                    ),
+                )
+            if legacy_moves.filtered("inalterable_hash") or any(
+                move._get_violated_lock_dates(move.date, False)
+                for move in legacy_moves
+            ):
+                raise UserError(
+                    _(
+                        "The pooled compensation is protected by an accounting lock or "
+                        "secure hash and cannot be rebuilt.",
+                    ),
+                )
+            reversal_values = [
+                {
+                    "date": move.date,
+                    "ref": _(
+                        "Correction of legacy pooled compensation — %s",
+                        move.name,
+                    ),
+                }
+                for move in legacy_moves
+            ]
+            legacy_moves._reverse_moves(reversal_values, cancel=True)
+            payouts._workflow_write({"compensation_move_id": False})
+            for platform in payouts.platform_id:
+                platform_payouts = payouts.filtered(
+                    lambda payout, platform=platform: payout.platform_id == platform,
+                )
+                compensations = session._create_compensation_move(
+                    platform,
+                    platform_payouts,
+                )
+                compensations.action_post()
+                repaired |= compensations
+                for payout in platform_payouts:
+                    session._reconcile_compensation(
+                        platform,
+                        payout,
+                        payout.compensation_move_id,
+                    )
+            session._refresh_state()
+            session.message_post(
+                body=_(
+                    "Legacy pooled commission compensation was rebuilt per payout. "
+                    "The former exchange-difference entries were reversed through "
+                    "Odoo's accounting trail.",
+                ),
+                subtype_xmlid="mail.mt_note",
+            )
+        return repaired
 
     def action_post_documents(self):
         self._check_operator()
@@ -900,10 +986,16 @@ class UslPlatformBillingSession(models.Model):
                     lambda payout, platform=platform: payout.platform_id == platform,
                 )
                 if platform.auto_create_compensation:
-                    compensation = session._create_compensation_move(platform, payouts)
-                    if compensation.state == "draft":
-                        compensation.action_post()
-                    session._reconcile_compensation(platform, payouts, compensation)
+                    compensations = session._create_compensation_move(platform, payouts)
+                    compensations.filtered(
+                        lambda move: move.state == "draft",
+                    ).action_post()
+                    for payout in payouts:
+                        session._reconcile_compensation(
+                            platform,
+                            payout,
+                            payout.compensation_move_id,
+                        )
             session.payout_ids._workflow_write({"state": "posted"})
             session._workflow_write({"state": "posted"})
             session._refresh_state()
@@ -1010,27 +1102,29 @@ class UslPlatformBillingSession(models.Model):
                 )
                 continue
             if moves.filtered(lambda move: move.state == "draft"):
-                session._workflow_write({"state": "generated"})
+                if session.state != "generated":
+                    session._workflow_write({"state": "generated"})
                 continue
-            invoices_paid = all(
-                move.payment_state in {"paid", "reversed"}
-                or float_is_zero(
-                    move.amount_residual,
-                    precision_rounding=move.currency_id.rounding,
-                )
-                for move in session.customer_invoice_ids | session.vendor_bill_ids
+            active_payouts = session.payout_ids.filtered(
+                lambda payout: payout.state != "cancelled",
             )
-            bank_paid = bool(session.payout_ids) and all(
-                payout.bank_match_status == "reconciled"
-                for payout in session.payout_ids
+            settled_payouts = active_payouts.filtered(
+                lambda payout: payout._accounting_is_settled(),
             )
-            state = "paid" if invoices_paid and bank_paid else "posted"
-            session._workflow_write({"state": state})
-            session.payout_ids._workflow_write(
-                {
-                    "state": "paid" if state == "paid" else "posted",
-                },
+            open_payouts = active_payouts - settled_payouts
+            settled_payouts.filtered(
+                lambda payout: payout.state != "paid",
+            )._workflow_write({"state": "paid"})
+            open_payouts.filtered(
+                lambda payout: payout.state != "posted",
+            )._workflow_write({"state": "posted"})
+            state = (
+                "paid"
+                if active_payouts and not open_payouts
+                else "posted"
             )
+            if session.state != state:
+                session._workflow_write({"state": state})
 
     def action_reconcile_bank(self):
         self._check_operator()
@@ -1059,13 +1153,31 @@ class UslPlatformBillingSession(models.Model):
             body = _("Bank reconciliation finished.")
             delayed_count = len(
                 session.payout_ids.filtered(
-                    lambda payout: payout.bank_match_status != "reconciled",
+                    lambda payout: (
+                        payout.state != "cancelled"
+                        and not payout._accounting_is_settled()
+                    ),
                 ),
             )
             if delayed_count:
                 body += "<br/>" + _(
                     "%(count)s payout(s) remain open while payment is delayed.",
                     count=delayed_count,
+                )
+            evidence_count = len(
+                session.payout_ids.filtered(
+                    lambda payout: (
+                        payout.state != "cancelled"
+                        and payout._accounting_is_settled()
+                        and payout.bank_match_status != "reconciled"
+                    ),
+                ),
+            )
+            if evidence_count:
+                body += "<br/>" + _(
+                    "%(count)s paid payout(s) do not have complete Platform Billing "
+                    "bank evidence; native Accounting settlement remains authoritative.",
+                    count=evidence_count,
                 )
             if blocked:
                 body += "<br/>" + "<br/>".join(blocked)

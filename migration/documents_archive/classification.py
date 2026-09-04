@@ -375,5 +375,8 @@ def classify_group(group: list[dict]) -> dict:
         ),
         "document_date": representative[1]["document_date"],
         "added_at": min(item["create_date"] for item in group),
+        "modified_at": max(
+            item.get("write_date") or item["create_date"] for item in group
+        ),
         "needs_attention": all(item["needs_attention"] for item in classified),
     }

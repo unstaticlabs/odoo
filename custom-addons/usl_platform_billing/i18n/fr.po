@@ -30,6 +30,16 @@ msgstr "%(count)s versement(s) restent ouverts dans l’attente du paiement."
 
 #. module: usl_platform_billing
 #. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid ""
+"%(count)s paid payout(s) do not have complete Platform Billing bank evidence; "
+"native Accounting settlement remains authoritative."
+msgstr ""
+"%(count)s versement(s) payé(s) n’ont pas de justificatif bancaire complet dans "
+"Facturation Plateformes ; le règlement natif dans Comptabilité reste la référence."
+
+#. module: usl_platform_billing
+#. odoo-python
 #: code:addons/usl_platform_billing/models/platform.py:0
 msgid "%(label)s (%(account)s) has an incompatible account type."
 msgstr "%(label)s (%(account)s) a un type de compte incompatible."
@@ -1629,8 +1639,8 @@ msgstr "Aucune règle de reconnaissance configurée ne correspond"
 #. module: usl_platform_billing
 #. odoo-python
 #: code:addons/usl_platform_billing/models/bank_allocation.py:0
-msgid "No open receivable remains on the linked invoices."
-msgstr "Aucune créance ouverte ne subsiste sur les factures liées."
+msgid "No open receivable remains in the linked compensation pool. Review whether this bank receipt was already settled elsewhere."
+msgstr "Aucune créance ouverte ne subsiste dans le groupe de compensation lié. Vérifiez si cet encaissement bancaire a déjà été réglé ailleurs."
 
 #. module: usl_platform_billing
 #. odoo-python
@@ -2058,8 +2068,38 @@ msgstr "Le contrôle de facturation des plateformes a échoué :<br/>%s"
 #. module: usl_platform_billing
 #. odoo-python
 #: code:addons/usl_platform_billing/models/session.py:0
-msgid "Platform commission compensation — %s"
-msgstr "Compensation de la commission de plateforme — %s"
+msgid "Platform commission compensation — %(platform)s — %(reference)s"
+msgstr "Compensation de la commission de plateforme — %(platform)s — %(reference)s"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Only a posted, unpaid session can repair pooled compensation."
+msgstr "Seule une session comptabilisée et non payée peut corriger une compensation groupée."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Unmatch the session's bank receipts before repairing pooled compensation."
+msgstr "Annulez le rapprochement des encaissements bancaires de la session avant de corriger la compensation groupée."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "The pooled compensation is protected by an accounting lock or secure hash and cannot be rebuilt."
+msgstr "La compensation groupée est protégée par un verrou comptable ou une empreinte sécurisée et ne peut pas être reconstruite."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Correction of legacy pooled compensation — %s"
+msgstr "Correction de l’ancienne compensation groupée — %s"
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "Legacy pooled commission compensation was rebuilt per payout. The former exchange-difference entries were reversed through Odoo's accounting trail."
+msgstr "L’ancienne compensation groupée des commissions a été reconstruite par versement. Les anciennes écritures d’écart de change ont été extournées dans la piste d’audit comptable d’Odoo."
 
 #. module: usl_platform_billing
 #. odoo-python

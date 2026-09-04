@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_locale.NamedColorBadge"
+       t-inherit="web.BadgeTag"
+       t-inherit-mode="extension">
+        <xpath expr="//span[contains(@class, 'o_tag')]" position="attributes">
+            <attribute name="t-att-style">uslNamedColorStyle</attribute>
+        </xpath>
+    </t>
+</templates>

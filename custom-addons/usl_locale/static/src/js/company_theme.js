@@ -4,9 +4,11 @@ import { user } from "@web/core/user";
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { patch } from "@web/core/utils/patch";
+import { SwitchCompanyItem } from "@web/webclient/switch_company_menu/switch_company_item";
 import { SwitchCompanyMenu } from "@web/webclient/switch_company_menu/switch_company_menu";
 
-const FALLBACK_COLOR = "#714B67";
+const FALLBACK_COLOR = "#4E5AA8";
+const MULTI_COMPANY_COLOR = "#714B67";
 const HEX_COLOR_RE = /^#[0-9A-Fa-f]{6}$/;
 
 export function normalizeCompanyColor(color) {
@@ -32,6 +34,10 @@ export function companyThemeForeground(color) {
     return whiteContrast >= darkContrast ? "#FFFFFF" : "#111827";
 }
 
+export function companyColorIndicatorStyle(company) {
+    return `--usl-company-indicator:${normalizeCompanyColor(company?.usl_ui_theme_color)}`;
+}
+
 export function clearCompanyTheme(root) {
     delete root.dataset.uslCompanyTheme;
     root.style.removeProperty("--usl-company-color");
@@ -40,8 +46,11 @@ export function clearCompanyTheme(root) {
 
 export function applyCompanyTheme(root, company, activeCompanyCount = 1) {
     if (activeCompanyCount > 1) {
-        clearCompanyTheme(root);
-        return null;
+        const foreground = companyThemeForeground(MULTI_COMPANY_COLOR);
+        root.dataset.uslCompanyTheme = "neutral";
+        root.style.setProperty("--usl-company-color", MULTI_COMPANY_COLOR);
+        root.style.setProperty("--usl-company-foreground", foreground);
+        return { color: MULTI_COMPANY_COLOR, foreground };
     }
     const color = normalizeCompanyColor(company?.usl_ui_theme_color);
     const foreground = companyThemeForeground(color);
@@ -80,5 +89,15 @@ patch(SwitchCompanyMenu.prototype, {
 
     get uslCompanyScopeTitle() {
         return companyScopeTitle(user.activeCompany, user.activeCompanies.length);
+    },
+
+    get uslActiveCompanyColorStyle() {
+        return companyColorIndicatorStyle(user.activeCompany);
+    },
+});
+
+patch(SwitchCompanyItem.prototype, {
+    get uslCompanyColorStyle() {
+        return companyColorIndicatorStyle(this.props.company);
     },
 });

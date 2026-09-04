@@ -61,13 +61,11 @@
                         <list editable="bottom" create="false" delete="false"
                               default_order="recommended desc, score desc, bank_date desc"
                               decoration-warning="confidence == 'ambiguous'">
-                            <button name="action_select" string="Select"
-                                    type="object" icon="fa-plus"
-                                    invisible="selected"/>
-                            <button name="action_unselect" string="Remove"
-                                    type="object" icon="fa-minus"
-                                    invisible="not selected"/>
-                            <field name="selected" column_invisible="True"/>
+                            <field name="selected" string="Select"
+                                   widget="boolean_icon"
+                                   options="{'icon': 'fa-check'}"/>
+                            <field name="bank_statement_line_id"
+                                   column_invisible="True"/>
                             <field name="recommended" column_invisible="True"/>
                             <field name="confidence" column_invisible="True"/>
                             <field name="recommendation_marker" decoration-success="recommended"

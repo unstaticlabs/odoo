@@ -37,11 +37,16 @@ the application. Mixed platform currencies are summarized separately, while
 the session bank total remains in one declared bank currency.
 
 Bank-created foreign payouts use the actual company-currency receipt to value
-their draft invoice, commission bill and compensation. For example, USD 1,000
-received as EUR 700 applies `1 USD = 0.70 EUR` to the generated documents and
-reconciles without an immediate exchange difference. Payouts recorded before a
-receipt exists keep Odoo's reference rate; a later payment can therefore create
-the normal delayed-settlement exchange gain or loss.
+their draft invoice, commission bill and payout-specific compensation. For
+example, USD 1,000 received as EUR 700 applies `1 USD = 0.70 EUR` to the
+generated documents and reconciles without an immediate exchange difference.
+Payout-specific entries keep different effective rates independent. Payouts
+recorded before a receipt exists keep Odoo's reference rate; a later payment can
+therefore create the normal delayed-settlement exchange gain or loss.
+
+Bank Matching remains available on certified statements. Matching and
+unmatching may rebuild counterpart metadata, but the certified source amount,
+date, liquidity account and company-currency balance must remain unchanged.
 
 Access is explicit. A user needs the Platform Billing Reader, Operator or
 Administrator role. The standard Odoo Accountant role alone does not expose
@@ -54,7 +59,6 @@ See:
 - `docs/product/platform-billing.md`
 - `docs/accounting/platform-billing.md`
 - `docs/users/how-to/process-platform-payouts.md`
-- `docs/operations/platform-billing-migration.md`
 
 This application accounts for content-platform payouts. It does not connect to
 French electronic-invoice platforms and does not make provider calls.

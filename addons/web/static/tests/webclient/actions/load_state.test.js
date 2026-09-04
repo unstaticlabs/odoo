@@ -1421,6 +1421,7 @@ describe(`new urls`, () => {
             'set current_state-{"actionStack":[{"displayName":"First record","model":"partner","view_type":"form","resId":1}],"resId":1,"model":"partner"}',
             'set current_action-{"type":"ir.actions.act_window","res_model":"partner","res_id":1,"views":[[false,"form"]]}',
             "set current_lang-en",
+            'set current_state-{"actionStack":[{"displayName":"First record","model":"partner","view_type":"form","resId":1}],"resId":1,"model":"partner"}',
             'set current_state-{"actionStack":[{"displayName":"First record","model":"partner","view_type":"form","resId":1},{"displayName":"","model":"partner","view_type":"kanban","active_id":1}],"active_id":1,"model":"partner"}',
             'set current_action-{"type":"ir.actions.act_window","res_model":"partner","views":[[1,"kanban"]],"context":{"lang":"en","tz":"taht","uid":7,"allowed_company_ids":[1],"active_model":"partner","active_id":1,"active_ids":[1]}}',
             "set current_lang-en",
