@@ -232,7 +232,12 @@ generation volumes, Sign mounts, and production quarantine settings. The MCP
 image remains the immutable digest from the environment's independently
 admitted GitOps MCP ledger; an Odoo prepare, restore, activation, rollback, or
 recovery proof must not replace it with the historical tested MCP identity in
-the Odoo manifest. It returns a
+the Odoo manifest. The runtime validates that ledger against the stored MCP
+release document and Odoo support contract, then appends a content-addressed
+MCP override after every generation file. This final override also supersedes
+historical overlays during start, abort and rollback. Runtime and preparation
+evidence bind its digest, so changing MCP authority invalidates a stale retry.
+It returns a
 content-addressed render receipt and does not stop, recreate, or reconfigure a
 running service. `release reconcile` repeats this gate so a caller cannot skip
 it accidentally. Host releases must supply an immutable GitOps archive root
