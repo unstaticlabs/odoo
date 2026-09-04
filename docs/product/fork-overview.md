@@ -19,7 +19,7 @@ production-admission work.
 | Expense Batches with shared business and analytic context | `usl_expense_batch`, `usl_accounting` | **Expenses > Expense Batches** | Operational |
 | Content-platform payout billing and settlement | `usl_platform_billing`, `usl_platform_billing_pocketid` | **Platform Billing** | Operational |
 | TESE payroll evidence, entries and settlement controls | `usl_tese_payroll`, `usl_tese_accounting` | **Paie TESE** | Operational; TESE remains the legal payroll calculator |
-| Projects and tasks with dependencies, chatter, attachments and stage history | native Projects, `usl_project` | **Projects** | Operational |
+| Projects and tasks with dependencies, chatter, attachments, stage history and favorite-project navigation | native Projects, `usl_project` | **Projects** | Operational |
 | Paperless-backed Documents, OCR, previews, metadata, versions, Trash, search and business links | `usl_documents`, `usl_documents_accounting`, `usl_documents_b2c` | **Documents** and record smart buttons | Operational |
 | Governed official PDFs and correspondence | `usl_document_templates`, document renderer | Native print actions, **Official Documents** | Operational |
 | Electronic signatures and completion evidence | `usl_sign` | **Sign** | Operational in production with server-managed certificate material |
@@ -53,7 +53,7 @@ Only `custom-addons/` is part of the normal USL add-ons path.
 | `usl_platform_billing` | Platform sessions, payouts, generated native Accounting documents and settlement. |
 | `usl_platform_billing_pocketid` | Pocket ID role mapping for Platform Billing administrators. |
 | `usl_pocketid` | Pocket ID authentication and identity governance. |
-| `usl_project` | Focused Project compatibility and task presentation. |
+| `usl_project` | Focused Project compatibility, task presentation and favorite-project navigation. |
 | `usl_sign` | Signature requests, operations, evidence and completion records. |
 | `usl_tese_payroll` | External-provider payroll records, evidence, Accounting and settlement. |
 | `usl_tese_accounting` | TESE state and evidence in Accounting closing controls. |
@@ -76,13 +76,17 @@ The Distribution currently carries focused patches in:
 
 - `addons/account/models/account_move.py`;
 - `addons/account/wizard/account_resequence.py`;
+- `addons/web/static/src/search/`;
+- `addons/web/static/src/views/list/`;
 - `addons/web/static/src/webclient/actions/action_service.js`.
 
 The Accounting patches keep journal sequences and resequencing aligned with
-the company fiscal year. The webclient patch restores a valid dynamic action
-name when browser history recreates a controller. Each patch has focused
-regression coverage and should be removed when upstream provides an equivalent
-extension point or behavior.
+the company fiscal year. The webclient patches restore a valid dynamic action
+name when browser history recreates a controller and keep portable search,
+sort and pagination choices in the URL. Each patch has focused regression
+coverage and should be removed when upstream provides an equivalent extension
+point or behavior. The exact navigation contract is documented in
+[`docs/product/navigation.md`](navigation.md).
 
 No other product-specific core divergence is allowed without an explicit
 architecture decision, upgrade analysis and regression evidence.
