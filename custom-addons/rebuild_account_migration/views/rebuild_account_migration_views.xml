@@ -385,6 +385,15 @@
             <xpath expr="//t[@t-name='JournalBodySalePurchase']//widget[@name='bill_upload_guide']" position="attributes">
                 <attribute name="groups">account.group_account_invoice</attribute>
             </xpath>
+            <xpath expr="//t[@t-name='JournalBodyGraph']/field[@name='kanban_dashboard_graph']" position="before">
+                <div
+                    t-if="journal_type == 'sale' || journal_type == 'purchase'"
+                    class="o_usl_journal_trend_caption"
+                    t-att-title="dashboard.monthly_activity_help">
+                    <i class="fa fa-bar-chart" aria-hidden="true"/>
+                    <span t-out="dashboard.monthly_activity_caption"/>
+                </div>
+            </xpath>
         </field>
     </record>
     <record id="view_rebuild_account_journal_dashboard_reconcile_permissions" model="ir.ui.view">
@@ -1769,17 +1778,18 @@
                             class="btn btn-link alert-link o_usl_overview_alert_action"
                             invisible="overdue_declaration_count == 0"/>
                     </div>
-                    <div class="oe_button_box" name="button_box">
+                    <div class="oe_button_box o_usl_overview_shortcuts" name="button_box">
                         <button
                             name="action_open_bank_review"
                             type="object"
                             class="oe_stat_button"
                             icon="fa-flag"
+                            title="Open bank transactions marked for review."
                             invisible="bank_review_count == 0">
-                            <field name="bank_review_count" widget="statinfo" string="Pending Review"/>
+                            <field name="bank_review_count" widget="statinfo" string="Review"/>
                         </button>
-                        <button name="action_open_bank_transactions" type="object" class="oe_stat_button" icon="fa-bank">
-                            <field name="bank_transaction_count" widget="statinfo" string="Transactions"/>
+                        <button name="action_open_bank_transactions" type="object" class="oe_stat_button" icon="fa-bank" title="Open all bank transactions for this company.">
+                            <field name="bank_transaction_count" widget="statinfo" string="Bank"/>
                         </button>
                         <button
                             name="action_open_bank_matching"
@@ -1787,19 +1797,19 @@
                             class="oe_stat_button"
                             icon="fa-random"
                             title="Open Bank Matching for transactions that still need a counterpart or accounting category.">
-                            <field name="unmatched_bank_transaction_count" widget="statinfo" string="To Match"/>
+                            <field name="unmatched_bank_transaction_count" widget="statinfo" string="Match"/>
                         </button>
-                        <button name="action_open_customer_documents" type="object" class="oe_stat_button" icon="fa-file-text-o">
-                            <field name="draft_customer_document_count" widget="statinfo" string="Draft Invoices"/>
+                        <button name="action_open_customer_documents" type="object" class="oe_stat_button" icon="fa-file-text-o" title="Open draft customer invoices for this company.">
+                            <field name="draft_customer_document_count" widget="statinfo" string="Invoices"/>
                         </button>
-                        <button name="action_open_vendor_documents" type="object" class="oe_stat_button" icon="fa-file-text">
-                            <field name="draft_vendor_document_count" widget="statinfo" string="Draft Bills"/>
+                        <button name="action_open_vendor_documents" type="object" class="oe_stat_button" icon="fa-file-text" title="Open draft vendor bills for this company.">
+                            <field name="draft_vendor_document_count" widget="statinfo" string="Bills"/>
                         </button>
-                        <button name="action_open_expenses" type="object" class="oe_stat_button" icon="fa-credit-card">
+                        <button name="action_open_expenses" type="object" class="oe_stat_button" icon="fa-credit-card" title="Open expenses that still need processing.">
                             <field name="draft_expense_count" widget="statinfo" string="Expenses"/>
                         </button>
-                        <button name="action_open_hygiene_issues" type="object" class="oe_stat_button" icon="fa-exclamation-triangle">
-                            <field name="hygiene_issue_count" widget="statinfo" string="Issues"/>
+                        <button name="action_open_hygiene_issues" type="object" class="oe_stat_button" icon="fa-exclamation-triangle" title="Open Accounting Hygiene alerts for this company.">
+                            <field name="hygiene_issue_count" widget="statinfo" string="Alerts"/>
                         </button>
                     </div>
                     <div class="o_usl_accounting_overview">
@@ -2177,7 +2187,7 @@
                         <section class="o_usl_overview_section">
                             <h3 class="o_usl_overview_section_title">Closing and declarations</h3>
                             <div class="row g-3">
-                                <div class="col-12 col-md-6">
+                                <div class="col-12 col-md-4 align-self-start">
                                     <div class="o_usl_overview_card">
                                         <div class="o_usl_overview_status">
                                             <h4 class="o_usl_overview_card_title">Current closing workspace</h4>
@@ -2205,15 +2215,15 @@
                                         <button name="action_open_closing_workspaces" type="object" string="All closing workspaces" class="btn-link"/>
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-6">
+                                <div class="col-12 col-md-8">
                                     <div class="o_usl_overview_card">
                                         <div class="o_usl_overview_status">
-                                            <h4 class="o_usl_overview_card_title">Declaration follow-up</h4>
+                                            <h4 class="o_usl_overview_card_title">Tax returns</h4>
                                             <field
                                                 name="next_declaration_status"
                                                 nolabel="1"
                                                 widget="badge"
-                                                invisible="overdue_declaration_count == 0 and upcoming_declaration_count == 0"
+                                                invisible="not next_declaration_id"
                                                 decoration-success="next_declaration_status in ('ready_to_file', 'filed', 'paid')"
                                                 decoration-info="next_declaration_status in ('internal_review', 'accountant_review', 'accountant_reviewed')"
                                                 decoration-warning="next_declaration_status in ('to_prepare', 'data_missing')"
@@ -2221,12 +2231,72 @@
                                                 decoration-muted="next_declaration_status in ('archived', 'not_applicable')"/>
                                             <span
                                                 class="badge rounded-pill o_usl_ready_status_chip"
-                                                invisible="overdue_declaration_count != 0 or upcoming_declaration_count != 0">
+                                                invisible="next_declaration_id">
                                                 <i class="fa fa-check" aria-hidden="true"/>
                                                 Ready
                                             </span>
                                         </div>
-                                        <span class="o_usl_overview_value"><field name="next_declaration_deadline" nolabel="1"/></span>
+                                        <span class="o_usl_overview_value" invisible="not next_declaration_id">
+                                            <label
+                                                for="next_declaration_deadline"
+                                                string="Next deadline"
+                                                class="o_usl_next_deadline_label"/>
+                                            <field name="next_declaration_deadline" nolabel="1"/>
+                                        </span>
+                                        <div class="o_usl_pending_declarations" invisible="not pending_declaration_ids">
+                                            <h5>Next pending declarations</h5>
+                                            <field
+                                                name="pending_declaration_ids"
+                                                nolabel="1"
+                                                readonly="1"
+                                                class="d-none d-md-block o_usl_pending_declarations_table">
+                                                <list create="0" edit="0" delete="0" open_form_view="1">
+                                                    <field name="form_code" string="Return"/>
+                                                    <field name="name" string="Declaration"/>
+                                                    <field name="deadline_date" string="Due"/>
+                                                    <field
+                                                        name="status"
+                                                        widget="badge"
+                                                        decoration-info="status in ('internal_review', 'accountant_review', 'accountant_reviewed')"
+                                                        decoration-warning="status in ('to_prepare', 'data_missing')"
+                                                        decoration-danger="status == 'blocked'"
+                                                        decoration-success="status == 'ready_to_file'"/>
+                                                </list>
+                                            </field>
+                                            <field
+                                                name="pending_declaration_ids"
+                                                nolabel="1"
+                                                readonly="1"
+                                                mode="kanban"
+                                                class="d-md-none o_usl_pending_declarations_mobile">
+                                                <kanban create="0" edit="0" delete="0" quick_create="0" records_draggable="0">
+                                                    <templates>
+                                                        <t t-name="card">
+                                                            <div class="o_usl_pending_declaration_mobile_header">
+                                                                <strong><field name="form_code"/></strong>
+                                                                <field
+                                                                    name="status"
+                                                                    widget="badge"
+                                                                    decoration-info="status in ('internal_review', 'accountant_review', 'accountant_reviewed')"
+                                                                    decoration-warning="status in ('to_prepare', 'data_missing')"
+                                                                    decoration-danger="status == 'blocked'"
+                                                                    decoration-success="status == 'ready_to_file'"/>
+                                                            </div>
+                                                            <div class="o_usl_pending_declaration_mobile_name">
+                                                                <field name="name"/>
+                                                            </div>
+                                                            <div class="o_usl_pending_declaration_mobile_due">
+                                                                <label for="deadline_date" string="Due" aria-label="Due"/>
+                                                                <field name="deadline_date"/>
+                                                            </div>
+                                                        </t>
+                                                    </templates>
+                                                </kanban>
+                                            </field>
+                                        </div>
+                                        <p class="o_usl_overview_detail" invisible="next_declaration_id">
+                                            No pending tax returns.
+                                        </p>
                                         <div class="o_usl_overview_detail">
                                             <field name="overdue_declaration_count" nolabel="1"/> overdue;
                                             <field name="upcoming_declaration_count" nolabel="1"/> due within 45 days.

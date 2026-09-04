@@ -126,6 +126,11 @@ class RebuildAccountOverview(models.Model):
         ],
         readonly=True,
     )
+    pending_declaration_ids = fields.Many2many(
+        "rebuild.account.declaration",
+        string="Next Pending Declarations",
+        compute="_compute_pending_declaration_ids",
+    )
     overdue_declaration_count = fields.Integer(readonly=True)
     upcoming_declaration_count = fields.Integer(
         string="Declarations Due in 45 Days",
@@ -190,6 +195,25 @@ class RebuildAccountOverview(models.Model):
                 "attention"
                 if summary.missing_vendor_attachment_count
                 else "ready"
+            )
+
+    @api.depends("company_id")
+    def _compute_pending_declaration_ids(self):
+        """Keep the dashboard list short, ordered and subject to record rules."""
+        Declaration = self.env["rebuild.account.declaration"]
+        for summary in self:
+            summary.pending_declaration_ids = Declaration.search(
+                [
+                    ("company_id", "=", summary.company_id.id),
+                    ("applicability", "!=", "not_applicable"),
+                    (
+                        "status",
+                        "not in",
+                        ["filed", "paid", "archived", "not_applicable"],
+                    ),
+                ],
+                order="deadline_date, id",
+                limit=3,
             )
 
     @api.model
@@ -380,7 +404,7 @@ class RebuildAccountOverview(models.Model):
     def action_open_expenses(self):
         action = self._standard_company_action(
             "hr_expense.hr_expense_actions_all",
-            [],
+            [("state", "in", ["draft", "submitted", "approved"])],
         )
         action.update({
             "view_mode": "list,form,graph,pivot",
@@ -1088,15 +1112,8 @@ class RebuildAccountOverview(models.Model):
                              'not_applicable'
                          )
                        ORDER BY
-                             (declaration.deadline_date < CURRENT_DATE),
-                             CASE
-                                 WHEN declaration.deadline_date >= CURRENT_DATE
-                                 THEN declaration.deadline_date
-                             END ASC NULLS LAST,
-                             CASE
-                                 WHEN declaration.deadline_date < CURRENT_DATE
-                                 THEN declaration.deadline_date
-                             END DESC NULLS LAST,
+                             (declaration.deadline_date < CURRENT_DATE) DESC,
+                             declaration.deadline_date,
                              declaration.id
                        LIMIT 1
                   ) next_declaration ON TRUE
