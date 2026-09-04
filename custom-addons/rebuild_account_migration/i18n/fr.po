@@ -3758,6 +3758,7 @@ msgstr "synthèse de la décision"
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_assurance_decision__declaration_id
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_field__declaration_id
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
 msgid "Declaration"
 msgstr "Déclaration"
 
@@ -6541,6 +6542,7 @@ msgstr "Masquer les lignes à zéro"
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_bank_transaction_form
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_bank_transaction_list
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
 msgid "Match"
 msgstr "Rapprocher"
 
@@ -10004,6 +10006,7 @@ msgstr "Produits et charges"
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_closing_control_list
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_closing_form
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_external_report_value_list
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
 msgid "Review"
 msgstr "Vérifier"
 
@@ -13166,3 +13169,112 @@ msgstr "Action planifiée inactive : %s"
 #: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
 msgid "Production reception scheduling is not ready. Ask a system administrator to apply the production cron policy:\n%s"
 msgstr "La planification de la réception en production n’est pas prête. Demandez à un administrateur système d’appliquer la politique de tâches planifiées de production :\n%s"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
+msgid "Alerts"
+msgstr "Alertes"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
+msgid "Bank"
+msgstr "Banque"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
+msgid "Bills"
+msgstr "Fournisseurs"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
+msgid "Due"
+msgstr "Échéance"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
+msgid "Invoices"
+msgstr "Clients"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_overview__pending_declaration_ids
+msgid "Next Pending Declarations"
+msgstr "Prochaines déclarations à traiter"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
+msgid "Next deadline"
+msgstr "Prochaine échéance"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
+msgid "Next pending declarations"
+msgstr "Prochaines déclarations à traiter"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
+msgid "No pending tax returns."
+msgstr "Aucune déclaration fiscale à traiter."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
+msgid "Open Accounting Hygiene alerts for this company."
+msgstr "Ouvrir les alertes d’hygiène comptable de cette société."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
+msgid "Open all bank transactions for this company."
+msgstr "Ouvrir toutes les opérations bancaires de cette société."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
+msgid "Open bank transactions marked for review."
+msgstr "Ouvrir les opérations bancaires marquées à vérifier."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
+msgid "Open draft customer invoices for this company."
+msgstr "Ouvrir les factures clients au brouillon de cette société."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
+msgid "Open draft vendor bills for this company."
+msgstr "Ouvrir les factures fournisseurs au brouillon de cette société."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
+msgid "Open expenses that still need processing."
+msgstr "Ouvrir les notes de frais qui restent à traiter."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/accounting_dashboard.py:0
+msgid "Net posted amount — refunds deducted"
+msgstr "Montant net comptabilisé — avoirs déduits"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/accounting_dashboard.py:0
+msgid "Posted documents · %(period)s · %(currency)s · %(current_month)s MTD"
+msgstr "Pièces comptabilisées · %(period)s · %(currency)s · %(current_month)s à ce jour"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
+msgid "Return"
+msgstr "Formulaire"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
+msgid "Tax returns"
+msgstr "Déclarations fiscales"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/accounting_dashboard.py:0
+msgid "%(date_from)s–%(date_to)s"
+msgstr "%(date_from)s–%(date_to)s"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/accounting_dashboard.py:0
+msgid "Monthly totals use posted invoice or bill dates and company currency. Refunds reduce the month. The last bar is the current month to date."
+msgstr "Les totaux mensuels utilisent la date des factures comptabilisées et la devise de la société. Les avoirs réduisent le mois. La dernière barre correspond au mois en cours à ce jour."

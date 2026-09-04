@@ -310,7 +310,7 @@ class TestAccountingArchitectureCompatibility(TransactionCase):
             "rebuild_account_migration.view_rebuild_accounting_home_form",
         ).with_context(lang="fr_FR")
         for expected in (
-            "Factures fournisseurs en brouillon",
+            "Ouvrir les factures fournisseurs au brouillon",
             "à rapprocher",
             "Montant estimé dû par USL à",
             "Montant estimé dû par",

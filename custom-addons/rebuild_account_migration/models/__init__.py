@@ -14,6 +14,7 @@ from . import report_definition
 from . import report_export_wizard
 from . import french_tax_report
 from . import accounting_overview
+from . import accounting_dashboard
 from . import analytic_pivot_export
 from . import bank_statement_hygiene
 from . import cash_position
