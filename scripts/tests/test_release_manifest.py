@@ -5,7 +5,12 @@ import hashlib
 import json
 import unittest
 
-from operations.release_manifest import ReleaseManifestError, validate
+from operations.release_manifest import (
+    MCP_PUBLIC_METHODS,
+    ReleaseManifestError,
+    _mcp_public_methods,
+    validate,
+)
 
 
 COMMIT = "a" * 40
@@ -59,7 +64,7 @@ def manifest() -> dict[str, object]:
         "odoo_series": "19.3",
         "supported_mcp_major": 1,
         "required_modules": ["usl_access_control"],
-        "public_methods": ["usl.agent.current_identity"],
+        "public_methods": sorted(MCP_PUBLIC_METHODS),
         "actions": ["usl.agent.current_identity"],
         "agent_identity": {
             "method": "usl.agent.current_identity",
@@ -128,6 +133,10 @@ def manifest() -> dict[str, object]:
 
 
 class ReleaseManifestTests(unittest.TestCase):
+    def test_publishes_every_qualified_mcp_public_method(self) -> None:
+        identity = manifest()["mcp_contract"]["agent_identity"]
+        self.assertEqual(_mcp_public_methods(identity), sorted(MCP_PUBLIC_METHODS))
+
     def test_accepts_complete_content_addressed_release(self) -> None:
         self.assertEqual(validate(manifest(), commit=COMMIT)["schema"], "usl-release/v3")
 
