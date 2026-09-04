@@ -4095,6 +4095,8 @@ class CohortContractTests(unittest.TestCase):
                 if command[:3] == ["docker", "network", "connect"]:
                     self.detached = False
                     return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:2] == ["docker", "start"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
                 if "up" in command and command[-1] == "gateway":
                     raise RuntimeError("gateway start failed")
                 raise AssertionError(command)
@@ -4146,6 +4148,8 @@ class CohortContractTests(unittest.TestCase):
                 if "up" in command and command[-1] == "gateway":
                     self.gateway = True
                     return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:2] == ["docker", "restart"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
                 raise AssertionError(command)
 
         runner = Runner()
@@ -4179,6 +4183,78 @@ class CohortContractTests(unittest.TestCase):
         )
         self.assertEqual(first["adoption"], "already-adopted")
         self.assertEqual(second["adoption"], "already-adopted")
+        self.assertEqual(
+            sum(command[:2] == ["docker", "restart"] for command in runner.commands),
+            2,
+        )
+
+    def test_first_v3_gateway_adoption_restarts_only_detached_legacy_origin(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        ingress = target.value["external_networks"]["ingress"]
+        default = target.value["compose"]["default_network"]
+        legacy = {
+            "container_id": "legacy-id", "project": target.project,
+            "working_directory": "/runtime/legacy",
+            "environment_file": "/runtime/staging.env",
+            "profiles": target.value["compose"]["profiles"],
+            "anchor_service": "odoo", "compose_files": ["/runtime/legacy.yaml"],
+        }
+        candidate = {**legacy, "anchor_service": "odoo-staging"}
+
+        class Runner:
+            detached = False
+            gateway = False
+            commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:2] == ["test", "-f"] or command[:3] == ["docker", "exec", "gateway-id"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:3] == ["docker", "network", "disconnect"]:
+                    self.detached = True
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if "up" in command and command[-1] == "gateway":
+                    self.gateway = True
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:2] == ["docker", "restart"]:
+                    self.assert_detached_at_restart = self.detached
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                raise AssertionError(command)
+
+        runner = Runner()
+
+        def networks(_runner, container):
+            if container == "legacy-id":
+                return {
+                    default: {"Aliases": ["odoo-staging-app"]},
+                    **({ingress: {"Aliases": [
+                        f"{target.project}-odoo-1", "odoo", "odoo-staging",
+                    ]}} if not runner.detached else {}),
+                }
+            return {ingress: {"Aliases": ["odoo-staging"]}, default: {"Aliases": ["gateway"]}}
+
+        with mock.patch("operations.stack.inspect_runtime", return_value={"compose": legacy, "generation": "glegacy"}), mock.patch(
+            "operations.stack._candidate_compose_identity", return_value=candidate,
+        ), mock.patch(
+            "operations.stack._validated_legacy_compose_identity",
+        ), mock.patch(
+            "operations.stack._container_identifier", return_value="legacy-id",
+        ), mock.patch("operations.stack._container_networks", side_effect=networks), mock.patch(
+            "operations.stack._network_alias_owners", side_effect=lambda *_: ["gateway-id"] if runner.gateway else ["legacy-id"],
+        ), mock.patch(
+            "operations.stack._gateway_container", side_effect=lambda *_: "gateway-id" if runner.gateway else None,
+        ), mock.patch(
+            "operations.stack._validate_gateway_container",
+        ), mock.patch(
+            "operations.stack._probe_staging_gateway_maintenance",
+            return_value={"schema": "usl-staging-gateway-maintenance/v1", "status": "passed", "http_status": 503, "websocket_status": 503},
+        ):
+            result = _adopt_staging_gateway(target, runner)
+
+        self.assertEqual(result["adoption"], "adopted")
+        self.assertTrue(runner.assert_detached_at_restart)
+        restart = next(command for command in runner.commands if command[:2] == ["docker", "restart"])
+        self.assertEqual(restart, ["docker", "restart", "--time", "30", "legacy-id"])
 
     def test_first_v3_gateway_adoption_stops_on_alias_transfer_failure(self) -> None:
         target = load_target("staging", HOST_TARGETS)

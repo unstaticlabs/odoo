@@ -317,6 +317,10 @@ def _restore_legacy_ingress(target, runner, candidate_identity: dict, legacy: st
         runner.run(
             compose_command(candidate_identity, ["rm", "--stop", "--force", "gateway"]),
         )
+    # A failed handoff may have interrupted the legacy origin while forcing
+    # Cloudflared to drop its pooled connection.  Starting an already-running
+    # container is idempotent and guarantees rollback restores a live origin.
+    runner.run(["docker", "start", legacy])
     ingress = target.value["external_networks"]["ingress"]
     networks = _container_networks(runner, legacy)
     if ingress not in networks:
@@ -326,6 +330,17 @@ def _restore_legacy_ingress(target, runner, candidate_identity: dict, legacy: st
         runner.run([*command, ingress, legacy])
     if _network_alias_owners(runner, ingress, "odoo-staging") != [legacy]:
         raise RuntimeError("legacy staging ingress could not be restored")
+
+
+def _refresh_legacy_staging_origin(target, runner, legacy: str) -> None:
+    """Terminate Cloudflared's legacy origin connection after alias transfer."""
+    ingress = target.value["external_networks"]["ingress"]
+    default_network = target.value["compose"]["default_network"]
+    runner.run(["docker", "restart", "--time", "30", legacy])
+    networks = _container_networks(runner, legacy)
+    backend_aliases = (networks.get(default_network) or {}).get("Aliases") or []
+    if ingress in networks or "odoo-staging-app" not in backend_aliases:
+        raise RuntimeError("legacy staging origin changed networks during gateway handoff")
 
 
 def _adopt_staging_gateway(target, runner) -> dict:
@@ -391,6 +406,11 @@ def _adopt_staging_gateway(target, runner) -> dict:
             raise RuntimeError("stable staging gateway does not uniquely own public ingress")
         if ingress in _container_networks(runner, legacy):
             raise RuntimeError("legacy staging retained public ingress")
+        # Docker alias transfer does not terminate an already pooled HTTP
+        # connection.  Restart only the legacy staging Odoo origin after it is
+        # detached, so Cloudflared reconnects through the stable gateway while
+        # the remaining staging services and every production service stay up.
+        _refresh_legacy_staging_origin(target, runner, legacy)
         maintenance = _probe_staging_gateway_maintenance(target, runner)
     except Exception:
         if detached or already_adopted:
