@@ -67,7 +67,10 @@ scripts/usl-stack restore run \
 
 The restore performs these steps unattended:
 
-1. validate the target, secrets, source release, and free-space floor; during
+1. validate the target, secrets, source release, and rendered authentication
+   contract before materialization; staging must identify itself explicitly,
+   require Pocket ID for Odoo and Paperless, use separate clients, disable the
+   Paperless password login, and expose HTTPS callback URLs; during
    first-v3 staging adoption the fixed launcher also transfers public ingress
    to the stable gateway and proves HTTP and websocket maintenance responses;
 2. pre-pull every immutable release image;
@@ -79,7 +82,10 @@ The restore performs these steps unattended:
 6. neutralize staging and isolate MCP OAuth state;
 7. explicitly reconcile Pocket ID from the approved staging environment, then
    admit the enabled provider, issuer, public URL, client identity, scopes and
-   empty database secret without logging credentials;
+   empty database secret without logging credentials; synthetic authorization
+   requests prove both Odoo and Paperless client/redirect registrations, while
+   deliberately invalid authorization-code exchanges prove their client
+   secrets are accepted without creating a login session or token;
 8. reclaim download scratch before activation;
 9. atomically switch staging and retain the previous generation;
 10. apply the target's versioned CPU, memory, PID and OOM-priority policy;
