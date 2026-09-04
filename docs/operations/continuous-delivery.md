@@ -423,8 +423,23 @@ The desired GitHub branch protection is versioned in two payloads. The common
 `USL Distribution` ruleset protects both permanent branches and requires the
 aggregate qualification. The additional `USL Production Admission` ruleset
 targets only `19-usl`; it separately requires the source-policy and Odoo–MCP
-compatibility jobs plus a successful `staging-release` deployment for the
-exact candidate commit. A repository administrator applies them after both
+compatibility jobs, the signed `USL production promotion` check, and a
+successful `staging-release` deployment for the exact candidate commit. The
+source policy accepts a production pull request only when it comes from
+`unstaticlabs/odoo:19-usl-staging` or an `unstaticlabs/odoo:urgent/**` branch;
+a fork cannot pass by reusing one of those branch names.
+
+For a production pull request, the promotion check records and attests the
+pull-request number, source repository and branch, source tree, and exact tree
+that passed qualification. GitHub's merge-group event does not carry the
+original pull-request source fields, so the merge-queue run resolves the pull
+request through the GitHub commit API and rejects an absent or ambiguous
+result. It also proves that the source tree is an ancestor of the tested merge
+tree, then attests and independently verifies evidence binding the same source
+identity to the exact production merge-group tree. Queue production pull
+requests separately: a grouped or ambiguous production promotion fails closed.
+
+A repository administrator applies the rulesets after both
 permanent branches and the `staging-release` environment exist:
 
 ```bash
