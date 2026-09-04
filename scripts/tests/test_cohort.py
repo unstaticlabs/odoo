@@ -4239,6 +4239,25 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(evidence["http_status"], 503)
         self.assertEqual(evidence["websocket_status"], 503)
 
+    def test_gateway_maintenance_probe_waits_for_public_alias_propagation(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+
+        class Runner:
+            responses = [
+                subprocess.CompletedProcess([], 0, "HTTP/1.1 200 OK\n\n", ""),
+                subprocess.CompletedProcess([], 0, "HTTP/1.1 400 Bad Request\n\n", ""),
+                subprocess.CompletedProcess([], 0, "HTTP/1.1 503 Service Unavailable\nRetry-After: 60\n", ""),
+                subprocess.CompletedProcess([], 0, 'HTTP/1.1 503 Service Unavailable\n\n{"error":"maintenance"}\n', ""),
+            ]
+
+            def run(self, command, *, check=True, input_text=None):
+                return self.responses.pop(0)
+
+        with mock.patch("operations.stack.time.sleep") as sleep:
+            evidence = _probe_staging_gateway_maintenance(target, Runner())
+        self.assertEqual(evidence["status"], "passed")
+        sleep.assert_called_once_with(2)
+
     def test_legacy_rollback_starts_behind_the_stable_gateway(self) -> None:
         target = load_target("staging", HOST_TARGETS)
         legacy = {

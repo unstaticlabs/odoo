@@ -260,45 +260,55 @@ def _probe_staging_gateway_maintenance(target, runner) -> dict:
     endpoint = target.value["endpoints"]["odoo"].rstrip("/")
     if endpoint != "https://odoo-staging.unstaticlabs.com":
         raise RuntimeError("staging public ingress endpoint differs")
-    nonce = str(time.time_ns())
-    common = [
-        "curl", "--silent", "--show-error", "--include", "--http1.1",
-        "--max-time", "15", "--header", "Cache-Control: no-cache",
-    ]
-    http = runner.run(
-        [*common, f"{endpoint}/web/health?maintenance_probe={nonce}"],
-        check=False,
+    # Cloudflared and its origin connection pool may briefly retain the legacy
+    # container after Docker transfers the public network alias.  Admission is
+    # still fail-closed, but allow that bounded propagation window instead of
+    # treating the first stale origin response as a release failure.
+    for attempt in range(30):
+        nonce = str(time.time_ns())
+        common = [
+            "curl", "--silent", "--show-error", "--include", "--http1.1",
+            "--max-time", "15", "--header", "Cache-Control: no-cache",
+        ]
+        http = runner.run(
+            [*common, f"{endpoint}/web/health?maintenance_probe={nonce}"],
+            check=False,
+        )
+        websocket = runner.run(
+            [
+                *common,
+                "--header", "Connection: Upgrade",
+                "--header", "Upgrade: websocket",
+                "--header", "Sec-WebSocket-Version: 13",
+                "--header", "Sec-WebSocket-Key: dXNsLW1haW50ZW5hbmNlIQ==",
+                f"{endpoint}/websocket?maintenance_probe={nonce}",
+            ],
+            check=False,
+        )
+        http_lines = http.stdout.splitlines()
+        websocket_lines = websocket.stdout.splitlines()
+        if (
+            not http.returncode
+            and not websocket.returncode
+            and http_lines
+            and websocket_lines
+            and " 503 " in http_lines[0]
+            and "Retry-After: 60" in http.stdout
+            and " 503 " in websocket_lines[0]
+            and '"error":"maintenance"' in websocket.stdout
+        ):
+            return {
+                "schema": "usl-staging-gateway-maintenance/v1",
+                "http_status": 503,
+                "websocket_status": 503,
+                "status": "passed",
+            }
+        if attempt < 29:
+            time.sleep(2)
+    raise RuntimeError(
+        "staging gateway maintenance was not admitted over HTTP and WebSocket "
+        "within the bounded propagation window",
     )
-    websocket = runner.run(
-        [
-            *common,
-            "--header", "Connection: Upgrade",
-            "--header", "Upgrade: websocket",
-            "--header", "Sec-WebSocket-Version: 13",
-            "--header", "Sec-WebSocket-Key: dXNsLW1haW50ZW5hbmNlIQ==",
-            f"{endpoint}/websocket?maintenance_probe={nonce}",
-        ],
-        check=False,
-    )
-    http_lines = http.stdout.splitlines()
-    websocket_lines = websocket.stdout.splitlines()
-    if (
-        http.returncode
-        or websocket.returncode
-        or not http_lines
-        or not websocket_lines
-        or " 503 " not in http_lines[0]
-        or "Retry-After: 60" not in http.stdout
-        or " 503 " not in websocket_lines[0]
-        or '"error":"maintenance"' not in websocket.stdout
-    ):
-        raise RuntimeError("staging gateway maintenance was not admitted over HTTP and WebSocket")
-    return {
-        "schema": "usl-staging-gateway-maintenance/v1",
-        "http_status": 503,
-        "websocket_status": 503,
-        "status": "passed",
-    }
 
 
 def _restore_legacy_ingress(target, runner, candidate_identity: dict, legacy: str, aliases: list[str]) -> None:
