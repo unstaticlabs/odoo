@@ -3061,6 +3061,35 @@ class CohortContractTests(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, "manifest and ledger differ"):
                     _mcp_runtime_authority(target)
 
+    def test_mcp_runtime_authority_rejects_uncommissioned_ledger(self) -> None:
+        target = load_target("production", TARGETS)
+        selected = {
+            "schema": "usl-odoo-mcp-environment-release/v1",
+            "environment": "production",
+            "commit": "a" * 40,
+            "compatibility_sha256": None,
+            "image": "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "b" * 64,
+            "oauth_vault_schema": 1,
+            "release_manifest": None,
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            (root / ".usl-gitops-commit").write_text("e" * 40 + "\n", encoding="ascii")
+            releases = root / "komodo/releases"
+            releases.mkdir(parents=True)
+            (releases / "usl-odoo-production-mcp.json").write_text(
+                json.dumps(selected), encoding="utf-8",
+            )
+            environment = {
+                "USL_RELEASE_GITOPS_ROOT": str(root),
+                "USL_RELEASE_GITOPS_COMMIT": "e" * 40,
+            }
+            with mock.patch.dict("operations.stack.os.environ", environment, clear=False):
+                with self.assertRaisesRegex(
+                    RuntimeError, "uncommissioned GitOps MCP cannot be runtime authority",
+                ):
+                    _mcp_runtime_authority(target)
+
     def test_mcp_authority_override_is_last_after_historical_generation(self) -> None:
         target = load_target("staging", TARGETS)
         image = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "b" * 64

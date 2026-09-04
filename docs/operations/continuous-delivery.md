@@ -233,7 +233,8 @@ image remains the immutable digest from the environment's independently
 admitted GitOps MCP ledger; an Odoo prepare, restore, activation, rollback, or
 recovery proof must not replace it with the historical tested MCP identity in
 the Odoo manifest. The runtime validates that ledger against the stored MCP
-release document and Odoo support contract, then appends a content-addressed
+release document and Odoo support contract; an uncommissioned legacy ledger
+without signed release evidence is not runtime authority. It then appends a content-addressed
 MCP override after every generation file. This final override also supersedes
 historical overlays during start, abort and rollback. Runtime and preparation
 evidence bind its digest, so changing MCP authority invalidates a stale retry.

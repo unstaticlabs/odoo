@@ -1076,10 +1076,7 @@ def _mcp_runtime_authority(target, release: dict | None = None) -> dict | None:
     compatibility_sha256 = selected.get("compatibility_sha256")
     manifest_relative = f"komodo/releases/usl-odoo-{environment}-mcp-manifest.json"
     if release_manifest is None:
-        if compatibility_sha256 is not None:
-            raise RuntimeError("uncommissioned GitOps MCP ledger is inconsistent")
-        if (root / manifest_relative).exists():
-            raise RuntimeError("uncommissioned GitOps MCP has a release document")
+        raise RuntimeError("uncommissioned GitOps MCP cannot be runtime authority")
     else:
         if (
             not re.fullmatch(
