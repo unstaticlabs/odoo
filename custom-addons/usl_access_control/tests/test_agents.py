@@ -1,4 +1,5 @@
 import datetime
+import inspect
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -6,6 +7,7 @@ from lxml import etree
 
 from odoo import SUPERUSER_ID, Command, api, fields
 from odoo.exceptions import AccessError, ValidationError
+from odoo.models import get_public_method
 from odoo.tests import TransactionCase, tagged
 
 from ..controllers.json2 import UslAgentJson2Controller
@@ -361,6 +363,102 @@ class TestAutonomousAgents(TransactionCase):
         ).mapped("operation")
         self.assertIn("create", audit_operations)
         self.assertIn("write", audit_operations)
+
+    def test_json2_write_accepts_the_canonical_vals_keyword(self):
+        agent = self._create_agent()
+        project_manager = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write(
+            {
+                "delegated_group_ids": [Command.set(project_manager.ids)],
+                "read_only_group_ids": [Command.clear()],
+            },
+        )
+        project = self.env["project.project"].create({"name": "JSON-2 write project"})
+        task = self.env["project.task"].create(
+            {"name": "Before JSON-2 write", "project_id": project.id},
+        )
+        access = UslAgentJson2Controller._check_agent_call(
+            agent=agent,
+            model_name="project.task",
+            method_name="write",
+            kwargs={"vals": {"name": "After JSON-2 write"}},
+        )
+        context = UslAgentJson2Controller._agent_call_context(
+            context={},
+            agent=agent,
+            model_name="project.task",
+            method_name="write",
+            access=access,
+        )
+
+        kwargs = UslAgentJson2Controller._normalize_orm_payload_kwargs(
+            env=self.env,
+            model_name="project.task",
+            method_name="write",
+            kwargs={"vals": {"name": "After JSON-2 write"}},
+        )
+        updated = task.with_user(agent.user_id).with_context(context).write(
+            **kwargs,
+        )
+
+        self.assertTrue(updated)
+        self.assertEqual(task.name, "After JSON-2 write")
+
+    def test_json2_preserves_canonical_orm_payload_names(self):
+        write_values = {"name": "Renamed"}
+        self.assertEqual(
+            UslAgentJson2Controller._normalize_orm_payload_kwargs(
+                env=self.env,
+                model_name="project.project",
+                method_name="write",
+                kwargs={"vals": write_values},
+            ),
+            {"vals": write_values},
+        )
+
+        create_values = [{"name": "Created"}]
+        self.assertEqual(
+            UslAgentJson2Controller._normalize_orm_payload_kwargs(
+                env=self.env,
+                model_name="project.project",
+                method_name="create",
+                kwargs={"vals_list": create_values},
+            ),
+            {"vals_list": create_values},
+        )
+
+    def test_json2_never_overwrites_an_explicit_legacy_payload(self):
+        kwargs = {
+            "vals": {"name": "Canonical"},
+            "values": {"name": "Legacy"},
+        }
+        self.assertIs(
+            UslAgentJson2Controller._normalize_orm_payload_kwargs(
+                env=self.env,
+                model_name="project.task",
+                method_name="write",
+                kwargs=kwargs,
+            ),
+            kwargs,
+        )
+
+    def test_json2_canonical_orm_payloads_bind_across_the_registry(self):
+        payloads = {
+            "create": {"vals_list": []},
+            "write": {"vals": {}},
+        }
+        for model_name in self.env.registry:
+            model = self.env[model_name]
+            for method_name, kwargs in payloads.items():
+                with self.subTest(model=model_name, method=method_name):
+                    method = get_public_method(model, method_name)
+                    normalized = UslAgentJson2Controller._normalize_orm_payload_kwargs(
+                        env=self.env,
+                        model_name=model_name,
+                        method_name=method_name,
+                        kwargs=kwargs,
+                    )
+                    inspect.signature(method).bind(model, **normalized)
 
     def test_highest_access_still_excludes_irreversible_actions(self):
         agent = self._create_agent()
