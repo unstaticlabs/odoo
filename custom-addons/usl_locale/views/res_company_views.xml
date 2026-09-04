@@ -5,18 +5,27 @@
         <field name="model">res.company</field>
         <field name="inherit_id" ref="base.view_company_form"/>
         <field name="arch" type="xml">
+            <field name="color" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
             <field name="color" position="after">
                 <label for="usl_ui_theme_color"/>
-                <div class="o_row">
-                    <field name="usl_ui_theme_color" widget="color" nolabel="1"/>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <field name="usl_ui_theme_color"
+                           widget="usl_company_color"
+                           class="flex-grow-0"
+                           nolabel="1"/>
                     <button name="action_use_automatic_usl_ui_theme_color"
                             type="object"
                             string="Use automatic color"
-                            title="Remove the custom color and use the stable automatic company color."
+                            title="Remove the custom color and inherit from the parent company or use the approved automatic palette."
                             class="btn-link"
                             invisible="not usl_ui_theme_color"/>
-                    <span class="text-muted" invisible="usl_ui_theme_color">
-                        Assigned automatically
+                    <span class="small text-muted" invisible="usl_ui_theme_color or not parent_id">
+                        Inherited from parent
+                    </span>
+                    <span class="small text-muted" invisible="usl_ui_theme_color or parent_id">
+                        Automatic from approved palette
                     </span>
                 </div>
             </field>

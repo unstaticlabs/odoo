@@ -21,9 +21,9 @@
     "paperless_tika": "paperless-tika",
     "mcp": "odoo-mcp",
     "renderer": "usl-document-renderer",
-    "sign": "usl-sign-dss",
     "receipt_fetcher": "usl-receipt-fetcher",
     "receipt_egress": "usl-receipt-egress",
+    "sign": "usl-sign-dss",
     "sign_ca": "usl-sign-step-ca"
   },
   "databases": {
@@ -40,22 +40,27 @@
       "password_key": "PAPERLESS_DB_PASSWORD"
     }
   },
+  "storage": {"tiers": {
+    "bulk": {"path": "/srv/storage", "reserve_bytes": 16106127360},
+    "database": {"path": "/srv/db", "reserve_bytes": 2147483648},
+    "local": {"path": "/var/lib/usl-odoo", "reserve_bytes": 2147483648}
+  }},
   "volumes": {
-    "odoo_postgres": {"name": "usl-odoo-staging-main_postgres-data", "class": "transient"},
-    "odoo_filestore": {"name": "usl-odoo-staging-main_odoo-data", "class": "durable"},
-    "paperless_postgres": {"name": "usl-odoo-staging-main_paperless-postgres-data", "class": "transient"},
-    "paperless_broker": {"name": "usl-odoo-staging-main_paperless-broker-data", "class": "transient"},
-    "paperless_media": {"name": "usl-odoo-staging-main_paperless-media", "class": "durable"},
-    "paperless_data": {"name": "usl-odoo-staging-main_paperless-data", "class": "cache"},
-    "paperless_trash": {"name": "usl-odoo-staging-main_paperless-trash", "class": "durable"},
-    "paperless_consume": {"name": "usl-odoo-staging-main_paperless-consume", "class": "durable"},
-    "paperless_export": {"name": "usl-odoo-staging-main_paperless-export", "class": "transient"},
-    "mcp_oauth": {"name": "usl-odoo-staging-main_odoo-mcp-oauth-data", "class": "durable"},
-    "receipt_control": {"name": "usl-odoo-staging-main_receipt-control", "class": "transient"}
+    "odoo_postgres": {"name": "usl-odoo-staging-main_postgres-data", "class": "transient", "tier": "database"},
+    "odoo_filestore": {"name": "usl-odoo-staging-main_odoo-data", "class": "durable", "tier": "bulk"},
+    "paperless_postgres": {"name": "usl-odoo-staging-main_paperless-postgres-data", "class": "transient", "tier": "database"},
+    "paperless_broker": {"name": "usl-odoo-staging-main_paperless-broker-data", "class": "transient", "tier": "database"},
+    "paperless_media": {"name": "usl-odoo-staging-main_paperless-media", "class": "durable", "tier": "bulk"},
+    "paperless_data": {"name": "usl-odoo-staging-main_paperless-data", "class": "cache", "tier": "bulk"},
+    "paperless_trash": {"name": "usl-odoo-staging-main_paperless-trash", "class": "durable", "tier": "bulk"},
+    "paperless_consume": {"name": "usl-odoo-staging-main_paperless-consume", "class": "durable", "tier": "bulk"},
+    "paperless_export": {"name": "usl-odoo-staging-main_paperless-export", "class": "transient", "tier": "bulk"},
+    "mcp_oauth": {"name": "usl-odoo-staging-main_odoo-mcp-oauth-data", "class": "durable", "tier": "database"},
+    "receipt_control": {"name": "usl-odoo-staging-main_receipt-control", "class": "transient", "tier": "local"}
   },
   "paths": {
-    "sign_secrets": {"path": "/opt/usl-odoo/staging/secrets/sign", "class": "durable", "required": true},
-    "sign_evidence": {"path": "/srv/usl/sign/staging-evidence", "class": "durable", "required": false}
+    "sign_secrets": {"path": "/opt/usl-odoo/staging/secrets/sign", "class": "durable", "required": true, "tier": "local"},
+    "sign_evidence": {"path": "/srv/usl/sign/staging-evidence", "class": "durable", "required": false, "tier": "local"}
   },
   "external_networks": {
     "identity": "usl-identity",
@@ -87,6 +92,12 @@
     "cache_repository": "s3:https://dac5c03754f31ec46fbf248dccc54831.eu.r2.cloudflarestorage.com/usl-backups/odoo-staging/continuous-cache"
   },
   "release_manifest": "/opt/usl-odoo/staging/current/usl-release.json",
+  "plan_signing": {"private_key": "/opt/usl-odoo/staging/secrets/upgrade-plan-signing.key", "public_key": "/opt/usl-odoo/staging/secrets/upgrade-plan-signing.pub"},
+  "cron_policy": {
+    "mode": "neutralized",
+    "path": "/opt/usl/deploy/production.cron-policy.json",
+    "gates": {"always": true, "digest": false, "inbound_mail": true, "ots": false, "pdp_ereporting": false, "pdp_reception": true, "project_ratings": false, "purchase_reminders": false, "sales_automation": false, "smtp": true, "stock": false, "vies": false}
+  },
   "secrets": {
     "env_file": "/opt/usl-odoo/staging/secrets/operations.env",
     "allowed_keys": [

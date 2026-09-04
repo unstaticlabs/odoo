@@ -213,24 +213,25 @@ class TestPocketIDHttpLogin(HttpCase):
                     404,
                 )
 
-    def test_android_store_app_is_directed_to_the_sso_capable_pwa(self):
+    def test_android_store_app_keeps_sso_with_a_browser_advisory(self):
         with self._sso_only():
             response = self.url_open(
                 f"/web/login?{urlencode({'db': self.env.cr.dbname})}",
                 headers={"X-Requested-With": "com.odoo.mobile"},
             )
         document = html.fromstring(response.content)
-        self.assertFalse(
-            document.xpath(
+        self.assertEqual(
+            len(document.xpath(
                 "//a[contains(normalize-space(.), 'Continue with Pocket ID')]",
-            ),
+            )),
+            1,
         )
         pwa_links = document.xpath(
-            "//a[contains(normalize-space(.), 'Open Odoo in Chrome')]/@href",
+            "//a[contains(normalize-space(.), 'Open Odoo in your browser')]/@href",
         )
         self.assertEqual(pwa_links, [self.base_url() + "/web/login"])
         self.assertIn(
-            "cannot complete Pocket ID sign-in",
+            "does not currently return to the Odoo Android app",
             document.text_content(),
         )
 
@@ -252,7 +253,34 @@ class TestPocketIDHttpLogin(HttpCase):
         self.assertEqual(len(buttons), 1)
         self.assertFalse(
             document.xpath(
-                "//a[contains(normalize-space(.), 'Open Odoo in Chrome')]",
+                "//a[contains(normalize-space(.), 'Open Odoo in your browser')]",
+            ),
+        )
+
+    def test_ios_store_app_keeps_pocket_id_without_android_advisory(self):
+        with self._sso_only():
+            response = self.url_open(
+                f"/web/login?{urlencode({'db': self.env.cr.dbname})}",
+                headers={
+                    "User-Agent": (
+                        "OdooMobile/5.1 (iPhone; CPU iPhone OS 18_6 like Mac OS X)"
+                    ),
+                },
+            )
+        document = html.fromstring(response.content)
+        self.assertEqual(
+            len(document.xpath(
+                "//a[contains(normalize-space(.), 'Continue with Pocket ID')]",
+            )),
+            1,
+        )
+        self.assertNotIn(
+            "does not currently return to the Odoo Android app",
+            document.text_content(),
+        )
+        self.assertFalse(
+            document.xpath(
+                "//a[contains(normalize-space(.), 'Open Odoo in your browser')]",
             ),
         )
 

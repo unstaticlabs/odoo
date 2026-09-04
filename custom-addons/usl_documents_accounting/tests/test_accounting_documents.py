@@ -100,6 +100,19 @@ class TestAccountingDocumentContexts(TransactionCase):
         self.env.ref("usl_documents.smart_view_banking").sudo().with_context(
             usl_documents_archive_view_sync=True,
         ).write({"tag_ids": [Command.set(banking_tag.ids)]})
+        (
+            self.env["usl.paperless.tag"]
+            .sudo()
+            .with_context(usl_documents_cache_write=True)
+            .create(
+                {
+                    "name": "Bank statement",
+                    "paperless_id": 97992,
+                    "matching_algorithm": "6",
+                    "active": True,
+                },
+            )
+        )
         bank_account = self.env["res.partner.bank"].create(
             {
                 "account_number": "FR7630001007941234567890185",
@@ -207,6 +220,9 @@ class TestAccountingDocumentContexts(TransactionCase):
 
     def _archived_document(self, source_file, checksum=None, paperless_id=98001):
         checksum = checksum or source_file.sha256
+        required_tags = self.env["usl.paperless.tag"].sudo().search(
+            [("name", "in", ("Banking", "Bank statement"))],
+        )
         document = self.env["usl.document"].sudo().create(
             {
                 "name": "Archived bank statement",
@@ -220,9 +236,7 @@ class TestAccountingDocumentContexts(TransactionCase):
                 "permission_sync_state": "synchronized",
                 "checksum": checksum,
                 "tag_ids": [
-                    Command.set(
-                        self.env.ref("usl_documents.smart_view_banking").tag_ids.ids,
-                    ),
+                    Command.set(required_tags.ids),
                 ],
             },
         )
@@ -398,7 +412,7 @@ class TestAccountingDocumentContexts(TransactionCase):
                     "state": "duplicate",
                     "document_id": document.id,
                 },
-            ),
+            ) as upload_from_odoo,
             patch.object(UslDocument, "action_sync_permissions", return_value=True),
         ):
             statement.action_archive_bank_evidence()
@@ -409,6 +423,15 @@ class TestAccountingDocumentContexts(TransactionCase):
         self.assertTrue(
             self.env.ref("usl_documents.smart_view_banking").tag_ids
             <= document.tag_ids,
+        )
+        self.assertIn("Bank statement", document.tag_ids.mapped("name"))
+        self.assertEqual(
+            set(document.tag_ids.ids),
+            set(upload_from_odoo.call_args.kwargs["tag_ids"]),
+        )
+        self.assertEqual(
+            {"Banking", "Bank statement"},
+            set(statement._document_archive_context()["tags"]),
         )
         self.assertEqual(source_file.sha256, hashlib.sha256(content).hexdigest())
         link = self.env["usl.document.link"].sudo().search(

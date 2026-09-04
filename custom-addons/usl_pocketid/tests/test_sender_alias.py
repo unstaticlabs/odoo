@@ -6,7 +6,7 @@ from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import TransactionCase, new_test_user, tagged
 
 
-@tagged("usl_pocketid", "post_install", "-at_install")
+@tagged("usl_pocketid", "usl_sender_alias", "post_install", "-at_install")
 class TestPersonalSenderAliases(TransactionCase):
     @classmethod
     def setUpClass(cls):
@@ -84,6 +84,68 @@ class TestPersonalSenderAliases(TransactionCase):
         self.assertTrue(self.user.usl_sender_alias_ids.verification_sent_at)
         self.assertTrue(self.user.usl_sender_alias_ids.verification_token_digest)
         self.assertTrue(self.user.usl_sender_alias_ids.verification_expires_at)
+
+    def test_adding_address_does_not_resend_existing_addresses(self):
+        verified = self._verify(
+            self._new_alias("verified.personal@example.invalid"),
+        )
+        pending = self._new_alias("pending.personal@example.invalid")
+        verified_sent_at = verified.sudo().verification_sent_at
+
+        with patch.object(
+            type(self.env["mail.mail"]),
+            "send",
+            autospec=True,
+            return_value=True,
+        ) as send:
+            self.user.with_user(self.user).write(
+                {
+                    "usl_sender_alias_ids": [
+                        Command.create({"email": "new.personal@example.invalid"}),
+                    ],
+                },
+            )
+
+        created = self.user.usl_sender_alias_ids.filtered(
+            lambda alias: alias.email == "new.personal@example.invalid",
+        )
+        self.assertEqual(send.call_count, 1)
+        self.assertEqual(send.call_args.args[0].email_to, created.email)
+        self.assertEqual(verified.state, "verified")
+        self.assertEqual(verified.sudo().verification_sent_at, verified_sent_at)
+        self.assertEqual(pending.state, "pending")
+        self.assertFalse(pending.sudo().verification_sent_at)
+
+    def test_unchanged_verified_address_is_not_reset_or_resent(self):
+        alias = self._verify(self._new_alias())
+        verified_at = alias.verified_at
+        verification_sent_at = alias.sudo().verification_sent_at
+
+        with patch.object(
+            type(self.env["mail.mail"]),
+            "send",
+            autospec=True,
+            return_value=True,
+        ) as send:
+            alias.with_context(
+                usl_sender_alias_skip_automatic_verification=False,
+            ).write({"email": alias.email})
+
+        self.assertEqual(send.call_count, 0)
+        self.assertEqual(alias.state, "verified")
+        self.assertEqual(alias.verified_at, verified_at)
+        self.assertEqual(
+            alias.sudo().verification_sent_at,
+            verification_sent_at,
+        )
+
+    def test_verified_address_rejects_manual_resend(self):
+        alias = self._verify(self._new_alias())
+
+        with self.assertRaisesRegex(ValidationError, "already verified"):
+            alias.action_send_verification()
+
+        self.assertEqual(alias.state, "verified")
 
     def test_verified_address_resolves_contact_user_and_employee(self):
         alias = self._verify(self._new_alias())

@@ -599,7 +599,12 @@
                     <field name="payslip_id"/>
                     <field name="company_id" invisible="1"/>
                     <field name="document_id"
+                           context="{'usl_tese_payroll_default_suggestions': True}"
                            options="{'no_create': True, 'no_create_edit': True}"/>
+                    <div class="text-muted">
+                        The initial list shows only unlinked Payroll matches from
+                        Paperless. Search by name to find another eligible PDF.
+                    </div>
                 </group>
                 <div class="alert alert-info" role="status">
                     The verified archived original will be reused. Documents will

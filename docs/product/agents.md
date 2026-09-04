@@ -37,6 +37,12 @@ does not silently restore the Agent's delegation. Deactivating an owner
 suspends all of their Agents; an owner or administrator must reactivate them
 explicitly.
 
+When owner authority contracts, Odoo removes the lost groups and companies
+immediately and records an authority-reduction warning. The warning is
+informational: the Agent may continue within its reduced authority while the
+owner reviews and acknowledges the change. An acknowledgement clears the
+warning but never restores access.
+
 Read-only enforcement applies per application at both the ORM and JSON-2
 boundaries, including code that retains the Agent actor through `sudo()`.
 Create, write, delete, archive, workflow, import, module, server-action and
@@ -97,3 +103,9 @@ contract for clients that must confirm this identity before doing work.
 The granular application-access response is schema version 3. A coordinated
 release must keep that version aligned in Odoo, the MCP parser, and
 `deploy/odoo-mcp/compatibility.json`.
+
+Authenticated API documentation reports effective CRUD access and the public
+methods Odoo permits for each model. Read-only applications therefore omit
+ordinary mutations while retaining approved collaboration methods. This is a
+catalogue aid for clients; Odoo still authenticates and authorizes every call,
+including record- and argument-specific checks.

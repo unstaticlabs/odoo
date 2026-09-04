@@ -15,13 +15,23 @@ msgstr ""
 
 #. module: usl_locale
 #: model:ir.model.fields,field_description:usl_locale.field_res_company__usl_ui_theme_color
-msgid "Interface color"
-msgstr "Couleur de l’interface"
+msgid "Color"
+msgstr "Couleur"
 
 #. module: usl_locale
 #: model:ir.model.fields,help:usl_locale.field_res_company__usl_ui_theme_color
-msgid "Colors the Odoo navigation bar while this company is primary. Leave empty to use an automatically assigned company color."
-msgstr "Colore la barre de navigation Odoo lorsque cette société est principale. Laissez ce champ vide pour utiliser une couleur attribuée automatiquement."
+msgid "Identifies this company in the Odoo interface. Leave empty to inherit the parent company's color or use the approved automatic palette."
+msgstr "Identifie cette société dans l’interface Odoo. Laissez ce champ vide pour hériter de la couleur de la société parente ou utiliser la palette automatique approuvée."
+
+#. module: usl_locale
+#: model:ir.model.fields,field_description:usl_locale.field_res_company__usl_resolved_ui_theme_color
+msgid "Resolved color"
+msgstr "Couleur effective"
+
+#. module: usl_locale
+#: model:ir.model.fields,field_description:usl_locale.field_res_company__color
+msgid "Technical color index"
+msgstr "Indice de couleur technique"
 
 #. module: usl_locale
 #: model_terms:ir.ui.view,arch_db:usl_locale.view_company_form_interface_theme
@@ -30,13 +40,18 @@ msgstr "Utiliser la couleur automatique"
 
 #. module: usl_locale
 #: model_terms:ir.ui.view,arch_db:usl_locale.view_company_form_interface_theme
-msgid "Remove the custom color and use the stable automatic company color."
-msgstr "Supprime la couleur personnalisée et rétablit la couleur automatique stable de la société."
+msgid "Remove the custom color and inherit from the parent company or use the approved automatic palette."
+msgstr "Supprime la couleur personnalisée pour hériter de la société parente ou utiliser la palette automatique approuvée."
 
 #. module: usl_locale
 #: model_terms:ir.ui.view,arch_db:usl_locale.view_company_form_interface_theme
-msgid "Assigned automatically"
-msgstr "Attribuée automatiquement"
+msgid "Inherited from parent"
+msgstr "Héritée de la société parente"
+
+#. module: usl_locale
+#: model_terms:ir.ui.view,arch_db:usl_locale.view_company_form_interface_theme
+msgid "Automatic from approved palette"
+msgstr "Automatique depuis la palette approuvée"
 
 #. module: usl_locale
 #. odoo-javascript
@@ -55,5 +70,5 @@ msgstr "%(company)s est la société active."
 #. module: usl_locale
 #: code:addons/usl_locale/models/res_company.py:0
 #, python-format
-msgid "Interface color must use the #RRGGBB format."
-msgstr "La couleur de l’interface doit utiliser le format #RRGGBB."
+msgid "Color must use the #RRGGBB format."
+msgstr "La couleur doit utiliser le format #RRGGBB."

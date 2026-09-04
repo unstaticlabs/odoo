@@ -5,7 +5,7 @@ from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import TransactionCase, new_test_user, tagged
 
-from ..hooks import post_init_hook
+from ..hooks import ensure_distribution_update_channel, post_init_hook
 
 
 @tagged("post_install", "-at_install", "usl_home")
@@ -58,6 +58,27 @@ class TestUslHome(TransactionCase):
             action_id=explicit_action.id,
         )
         self.assertEqual(explicitly_configured.action_id.id, explicit_action.id)
+
+    def test_distribution_update_channel_is_internal_and_group_subscribed(self):
+        channel = self.env.ref("usl_home.channel_distribution_updates")
+        self.assertEqual(channel.name, "USL Distribution Updates")
+        self.assertIn(self.env.ref("base.group_user"), channel.group_ids)
+        self.assertNotIn(self.env.ref("base.group_portal"), channel.group_ids)
+
+    def test_distribution_update_channel_upgrade_is_idempotent(self):
+        channel = self.env.ref("usl_home.channel_distribution_updates")
+        internal_group = self.env.ref("base.group_user")
+        portal_group = self.env.ref("base.group_portal")
+        channel.group_ids = [
+            Command.unlink(internal_group.id),
+            Command.link(portal_group.id),
+        ]
+
+        ensure_distribution_update_channel(self.env)
+        ensure_distribution_update_channel(self.env)
+
+        self.assertIn(internal_group, channel.group_ids)
+        self.assertNotIn(portal_group, channel.group_ids)
 
     def test_agent_identity_never_receives_interactive_home_action(self):
         if "usl.agent" not in self.env.registry:

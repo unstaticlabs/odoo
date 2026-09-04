@@ -2,6 +2,11 @@ import hashlib
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
+from odoo.fields import Domain
+
+
+PAYROLL_DOCUMENT_TYPE = "Payroll record"
+PAYROLL_TAG = "Payroll"
 
 
 class UslTesePayslip(models.Model):
@@ -59,8 +64,8 @@ class UslTesePayslip(models.Model):
             {
                 "confidentiality": "hr",
                 "accounting_evidence": True,
-                "tags": ["HR", "Payroll"],
-                "document_type": "Payroll record",
+                "tags": ["HR", PAYROLL_TAG],
+                "document_type": PAYROLL_DOCUMENT_TYPE,
                 "replace_document_type": True,
                 "correspondent_partner_id": self.employee_partner_id.id or False,
                 "document_date": fields.Date.to_string(
@@ -246,6 +251,40 @@ class UslDocumentLink(models.Model):
 
     def _allowed_models(self):
         return super()._allowed_models() | {"usl.tese.payslip"}
+
+
+class UslDocument(models.Model):
+    _inherit = "usl.document"
+
+    @api.model
+    def _tese_payroll_default_suggestion_domain(self):
+        payroll_classification = Domain(
+            "document_type_id.name",
+            "=ilike",
+            PAYROLL_DOCUMENT_TYPE,
+        ) | Domain("tag_ids.name", "=ilike", PAYROLL_TAG)
+        has_no_active_link = Domain(
+            "link_ids",
+            "not any!",
+            Domain("active", "=", True),
+        )
+        return payroll_classification & has_no_active_link
+
+    @api.model
+    def name_search(self, name="", domain=None, operator="ilike", limit=100):
+        if (
+            self.env.context.get("usl_tese_payroll_default_suggestions")
+            and not str(name or "").strip()
+        ):
+            domain = Domain(domain or Domain.TRUE) & (
+                self._tese_payroll_default_suggestion_domain()
+            )
+        return super().name_search(
+            name=name,
+            domain=domain,
+            operator=operator,
+            limit=limit,
+        )
 
 
 class UslDocumentOperation(models.Model):

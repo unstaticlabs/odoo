@@ -14,6 +14,16 @@ REVIEW_STATES = [
     ("reopened", "Reopened"),
 ]
 
+_CERTIFIED_RECONCILIATION_CONTEXT_KEY = "usl_certified_reconciliation_token"
+_CERTIFIED_RECONCILIATION_TOKEN = object()
+
+
+def _has_certified_reconciliation_token(env):
+    return (
+        env.context.get(_CERTIFIED_RECONCILIATION_CONTEXT_KEY)
+        is _CERTIFIED_RECONCILIATION_TOKEN
+    )
+
 
 def is_accounting_operator(user):
     """Return whether ``user`` can perform day-to-day accounting actions.
@@ -601,6 +611,138 @@ class AccountBankStatementLine(models.Model):
         "WHERE provider_code IS NOT NULL AND provider_transaction_id IS NOT NULL",
     )
 
+    def _certified_reconciliation_fingerprint(self):
+        """Snapshot bank-origin facts that reconciliation may never change."""
+        self.ensure_one()
+        liquidity_lines, _suspense_lines, _other_lines = self._seek_for_lines()
+        return (
+            self.statement_id.id,
+            self.move_id.id,
+            self.move_id.state,
+            self.journal_id.id,
+            self.company_id.id,
+            self.date,
+            self.amount,
+            self.payment_ref,
+            self.transaction_type,
+            json.dumps(self.transaction_details or {}, sort_keys=True, default=str),
+            self.unique_import_id,
+            self.provider_code,
+            self.provider_account_id,
+            self.provider_transaction_id,
+            self.provider_identity_kind,
+            tuple(sorted(self.ingestion_file_ids.ids)),
+            tuple(
+                (
+                    line.account_id.id,
+                    line.date,
+                    line.balance,
+                )
+                for line in liquidity_lines.sorted(
+                    key=lambda item: (item.account_id.id, item.date, item.balance),
+                )
+            ),
+        )
+
+    def _write_reconciliation_metadata(self, vals):
+        """Enrich reconciliation metadata without reopening bank evidence.
+
+        Foreign-amount and partner metadata are not facts supplied by the bank
+        statement.  Odoo nevertheless rewrites the existing liquidity line
+        while synchronizing them.  This private service corridor permits that
+        internal rewrite only when the certified bank-origin fingerprint stays
+        economically equivalent.
+        """
+        allowed = self._certified_reconciliation_metadata_fields()
+        unsupported = set(vals) - allowed
+        if unsupported:
+            raise ValidationError(
+                _(
+                    "Certified reconciliation metadata cannot update: %(fields)s",
+                    fields=", ".join(sorted(unsupported)),
+                ),
+            )
+        certified = self.filtered(
+            lambda line: line.statement_id.certification_state == "certified",
+        )
+        before = {
+            line.id: line._certified_reconciliation_fingerprint()
+            for line in certified
+        }
+        result = self.with_context(
+            **{
+                _CERTIFIED_RECONCILIATION_CONTEXT_KEY:
+                    _CERTIFIED_RECONCILIATION_TOKEN,
+            },
+        ).write(vals)
+        certified.invalidate_recordset()
+        changed = certified.filtered(
+            lambda line: (
+                line._certified_reconciliation_fingerprint() != before[line.id]
+            ),
+        )
+        if changed:
+            raise UserError(
+                _(
+                    "Reconciliation attempted to change certified bank-statement facts. "
+                    "No changes were saved.",
+                ),
+            )
+        return result
+
+    def _certified_reconciliation_metadata_fields(self):
+        return {"partner_id", "foreign_currency_id", "amount_currency"}
+
+    def _certified_reconciliation_fingerprints(self):
+        return {
+            line.id: line._certified_reconciliation_fingerprint()
+            for line in self.filtered(
+                lambda item: item.statement_id.certification_state == "certified",
+            )
+        }
+
+    def _assert_certified_reconciliation_fingerprints(self, before):
+        certified = self.filtered(lambda line: line.id in before)
+        certified.invalidate_recordset()
+        if any(
+            line._certified_reconciliation_fingerprint() != before[line.id]
+            for line in certified
+        ):
+            raise UserError(
+                _(
+                    "Bank matching attempted to change certified bank-statement facts. "
+                    "No changes were saved.",
+                ),
+            )
+
+    def reconcile_bank_line(self):
+        before = self._certified_reconciliation_fingerprints()
+        result = super(
+            AccountBankStatementLine,
+            self.with_context(
+                **{
+                    _CERTIFIED_RECONCILIATION_CONTEXT_KEY:
+                        _CERTIFIED_RECONCILIATION_TOKEN,
+                },
+            ),
+        ).reconcile_bank_line()
+        self._assert_certified_reconciliation_fingerprints(before)
+        return result
+
+    def unreconcile_bank_line(self):
+        before = self._certified_reconciliation_fingerprints()
+        result = super(
+            AccountBankStatementLine,
+            self.with_context(
+                **{
+                    _CERTIFIED_RECONCILIATION_CONTEXT_KEY:
+                        _CERTIFIED_RECONCILIATION_TOKEN,
+                },
+            ),
+        ).unreconcile_bank_line()
+        self._assert_certified_reconciliation_fingerprints(before)
+        return result
+
     def _check_certified_mutation(self, vals=None):
         protected = {
             "statement_id",
@@ -730,6 +872,7 @@ class AccountMoveLine(models.Model):
                 statement_line.statement_id.certification_state == "certified"
                 and values.get("account_id")
                 == statement_line.journal_id.default_account_id.id
+                and not _has_certified_reconciliation_token(self.env)
             ):
                 raise UserError(
                     _(
@@ -749,7 +892,11 @@ class AccountMoveLine(models.Model):
             "amount_currency",
             "currency_id",
         }
-        if protected.intersection(vals) and self._certified_bank_liquidity_lines():
+        if (
+            protected.intersection(vals)
+            and self._certified_bank_liquidity_lines()
+            and not _has_certified_reconciliation_token(self.env)
+        ):
             raise UserError(
                 _(
                     "Reopen the certified bank statement before changing its liquidity entry.",
@@ -758,7 +905,10 @@ class AccountMoveLine(models.Model):
         return super().write(vals)
 
     def unlink(self):
-        if self._certified_bank_liquidity_lines():
+        if (
+            self._certified_bank_liquidity_lines()
+            and not _has_certified_reconciliation_token(self.env)
+        ):
             raise UserError(
                 _(
                     "Reopen the certified bank statement before changing its liquidity entry.",

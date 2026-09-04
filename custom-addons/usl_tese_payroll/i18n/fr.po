@@ -3680,3 +3680,8 @@ msgstr "Le PDF archivé est maintenant le document TESE officiel. L’original P
 #: code:addons/usl_tese_payroll/models/documents.py:0
 msgid "The archived PDF no longer matches its verified Documents checksum. Nothing was linked."
 msgstr "Le PDF archivé ne correspond plus à son empreinte Documents vérifiée. Aucun document n’a été lié."
+
+#. module: usl_tese_payroll
+#: model_terms:ir.ui.view,arch_db:usl_tese_payroll.view_tese_document_link_wizard_form
+msgid "The initial list shows only unlinked Payroll matches from Paperless. Search by name to find another eligible PDF."
+msgstr "La liste initiale affiche uniquement les documents de paie non liés reconnus par Paperless. Recherchez par nom pour trouver un autre PDF éligible."

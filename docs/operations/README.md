@@ -4,6 +4,8 @@ Start with the production entry point:
 
 - [Production operations](production.md) for immutable releases, coordinated
   backup, deployment, admission, upgrades and recovery.
+- [Continuous delivery](continuous-delivery.md) for release branches, v3
+  manifests, exact module plans, unattended reconciliation and rollback.
 
 The [historical reconstruction interface](migration.md) is retained for audit,
 exceptional recovery and transfer of the evolved data cohort. It is not a

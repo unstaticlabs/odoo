@@ -47,7 +47,12 @@ Every release manifest binds:
   and receipt-egress images;
 - the MCP compatibility contract;
 - OCA and action-risk-policy identities;
-- the Ollama image, BGE model digest, and embedding dimension.
+- the required BGE model digest and embedding dimension;
+- reviewed, plain-language release notes and any required user action.
+
+The shared MsgVault-owned Ollama image is observed in admission evidence but
+is not owned or selected by the Odoo release. Compatibility is determined by
+the model contract and representative 1024-dimension inference.
 
 CI publishes content-addressed images. Unchanged components are reused from
 GHCR; digest references—not branch names or `latest`—are deployable identities.

@@ -1250,18 +1250,13 @@ export class DocumentsWorkspaceView extends Component {
             for (const key of ["domain", "groupBy", "orderBy"]) {
                 url.searchParams.delete(key);
             }
-            // SearchModel intentionally serializes its shareable state with
-            // encodeURIComponent, matching Odoo's router. Do not pass this
-            // encoded query through URLSearchParams: it rewrites spaces as
-            // "+", while Odoo's router only decodes percent escapes. Repeated
-            // reloads would otherwise turn a valid domain into one containing
-            // accumulating unary "+" tokens.
-            const nativeSearch = this.searchModel.generateQueryString();
-            const navigationUrl = new URL(
-                nativeSearch
-                    ? `${url.href}${url.search ? "&" : "?"}${nativeSearch}`
-                    : url.href
-            );
+            // Keep Documents search state under its own URL key. Generic
+            // Odoo domain/groupBy/orderBy parameters are global to the route:
+            // leaving a document domain there makes nested selection dialogs
+            // apply it to unrelated models (for example review_state on tags).
+            // Old shared URLs remain supported because the host SearchModel
+            // reads them before this method canonicalizes the route.
+            const navigationUrl = url;
             const routeFromUrl = router.urlToState(navigationUrl);
             const hostRoute =
                 browser.history.state?.nextState || router.current || {};
@@ -2165,6 +2160,27 @@ export class DocumentsWorkspaceView extends Component {
         this.replaceTagSearchFilters([...selected]);
     }
 
+    onMoreTagsToggle(event) {
+        const details = event.currentTarget;
+        if (!details.open) {
+            this.state.tagShortcutQuery = "";
+            return;
+        }
+        browser.requestAnimationFrame(() => {
+            details.querySelector("input[type='search']")?.focus();
+        });
+    }
+
+    selectTagShortcut(tag, event) {
+        const details = event.currentTarget.closest("details");
+        this.toggleTagFilter(tag);
+        this.state.tagShortcutQuery = "";
+        if (details) {
+            details.open = false;
+            details.querySelector("summary")?.focus();
+        }
+    }
+
     onTagShortcutSearch(event) {
         this.state.tagShortcutQuery = event.target.value;
     }
@@ -2599,6 +2615,8 @@ export class DocumentsWorkspaceView extends Component {
         this.state.savingFields[field] = true;
         const save = async () => {
             try {
+                const paperlessSuggestions =
+                    this.state.selected?.paperless_suggestions || [];
                 const value = await resolveValue();
                 const detail = await this.orm.call(
                     "usl.document",
@@ -2608,10 +2626,12 @@ export class DocumentsWorkspaceView extends Component {
                 if (this.state.selected?.id === selectedId) {
                     this.state.selected = {
                         ...detail,
+                        paperless_suggestions: paperlessSuggestions,
                         preview_url: this.documentPreviewUrl(detail),
                     };
                     await this.load();
                 }
+                return true;
             } catch (error) {
                 this.notification.add(
                     error.data?.message ||
@@ -2619,12 +2639,45 @@ export class DocumentsWorkspaceView extends Component {
                         "The change could not be saved. The previous value was kept.",
                     { type: "danger", sticky: true }
                 );
+                return false;
             } finally {
                 this.state.savingFields[field] = false;
             }
         };
         this.metadataSaveQueue = this.metadataSaveQueue.then(save, save);
         return this.metadataSaveQueue;
+    }
+
+    async applyPaperlessSuggestion(suggestion) {
+        if (!suggestion || !this.state.selected?.can_edit) {
+            return;
+        }
+        let applied;
+        if (suggestion.kind === "tag") {
+            applied = await this.addSelectedTag({
+                id: suggestion.record_id,
+                display_name: suggestion.label,
+            });
+        } else {
+            applied = await this.saveMetadataField(
+                suggestion.field,
+                suggestion.record_id || suggestion.value
+            );
+        }
+        if (applied !== false && this.state.selected) {
+            this.state.selected.paperless_suggestions = (
+                this.state.selected.paperless_suggestions || []
+            ).filter((item) => item !== suggestion);
+        }
+    }
+
+    paperlessSuggestionKindLabel(kind) {
+        return {
+            document_type: _t("Type"),
+            correspondent: _t("From"),
+            tag: _t("Tag"),
+            date: _t("Date"),
+        }[kind] || _t("Suggestion");
     }
 
     selectCorrespondent(value) {

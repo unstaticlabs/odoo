@@ -42,16 +42,21 @@ _SSO_LOGOUT_BRIDGE_PATH = "/usl/pocketid/sso-logout"
 _ODOO_ANDROID_PACKAGE = "com.odoo.mobile"
 
 
-def _is_odoo_store_app_request():
-    """Identify the unsupported Odoo store app without blocking mobile browsers."""
+def _is_odoo_android_app_request():
+    """Identify the Android store app without misclassifying iOS clients."""
     requested_with = request.httprequest.headers.get("X-Requested-With", "")
     user_agent = request.httprequest.user_agent.string or ""
     normalized_user_agent = " ".join(user_agent.lower().split())
     compact_user_agent = normalized_user_agent.replace(" ", "")
     return (
         requested_with.strip().lower() == _ODOO_ANDROID_PACKAGE
-        or "odoo mobile" in normalized_user_agent
-        or "odoomobile" in compact_user_agent
+        or (
+            "android" in normalized_user_agent
+            and (
+                "odoo mobile" in normalized_user_agent
+                or "odoomobile" in compact_user_agent
+            )
+        )
     )
 
 
@@ -280,8 +285,8 @@ class PocketIDLogin(OpenIDLogin):
                 response.qcontext["usl_pocketid_provider"] = (
                     providers[0] if len(providers) == 1 else False
                 )
-                response.qcontext["usl_odoo_store_app"] = (
-                    _is_odoo_store_app_request()
+                response.qcontext["usl_odoo_android_app"] = (
+                    _is_odoo_android_app_request()
                 )
                 response.qcontext["usl_pwa_login_url"] = (
                     providers[0]["usl_public_base_url"].rstrip("/") + "/web/login"
