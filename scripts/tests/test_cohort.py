@@ -841,7 +841,7 @@ class CohortContractTests(unittest.TestCase):
     def test_restore_prepulls_every_release_image_once(self) -> None:
         references = [
             f"ghcr.io/unstaticlabs/image-{index}@sha256:{str(index) * 64}"
-            for index in range(1, 7)
+            for index in range(1, 9)
         ]
         release = {
             "components": {
@@ -849,9 +849,11 @@ class CohortContractTests(unittest.TestCase):
                 "distribution": {"digest_reference": references[1]},
                 "paperless": {"digest_reference": references[2]},
                 "sign-dss": {"digest_reference": references[3]},
+                "receipt-fetcher": {"digest_reference": references[4]},
+                "receipt-egress": {"digest_reference": references[5]},
             },
-            "mcp": {"image": references[4]},
-            "renderer": {"image": references[5]},
+            "mcp": {"image": references[6]},
+            "renderer": {"image": references[7]},
         }
         self.assertEqual(_release_images(release), sorted(references))
 
@@ -863,6 +865,8 @@ class CohortContractTests(unittest.TestCase):
                 "distribution": {"digest_reference": reference},
                 "paperless": {"digest_reference": reference},
                 "sign-dss": {"digest_reference": reference},
+                "receipt-fetcher": {"digest_reference": reference},
+                "receipt-egress": {"digest_reference": reference},
             },
             "mcp": {"image": reference},
             "renderer": {"image": reference},
@@ -870,7 +874,9 @@ class CohortContractTests(unittest.TestCase):
         runtime = {
             "containers": [
                 {"Service": target.value["services"][key], "ID": key, "State": "running"}
-                for key in ("odoo", "paperless", "sign", "mcp", "renderer")
+                for key in (
+                    "odoo", "paperless", "sign", "receipt_fetcher", "receipt_egress", "mcp", "renderer"
+                )
             ],
         }
 
@@ -894,6 +900,8 @@ class CohortContractTests(unittest.TestCase):
                 "distribution": {"digest_reference": reference},
                 "paperless": {"digest_reference": reference},
                 "sign-dss": {"digest_reference": reference},
+                "receipt-fetcher": {"digest_reference": reference},
+                "receipt-egress": {"digest_reference": reference},
             },
             "mcp": {"image": reference},
             "renderer": {"image": reference},
@@ -901,7 +909,9 @@ class CohortContractTests(unittest.TestCase):
         runtime = {
             "containers": [
                 {"Service": target.value["services"][key], "ID": key, "State": "running"}
-                for key in ("odoo", "paperless", "sign", "mcp", "renderer")
+                for key in (
+                    "odoo", "paperless", "sign", "receipt_fetcher", "receipt_egress", "mcp", "renderer"
+                )
             ],
         }
 
@@ -1190,6 +1200,8 @@ class CohortContractTests(unittest.TestCase):
                 "distribution": {"digest_reference": reference},
                 "paperless": {"digest_reference": reference},
                 "sign-dss": {"digest_reference": reference},
+                "receipt-fetcher": {"digest_reference": reference},
+                "receipt-egress": {"digest_reference": reference},
             },
             "mcp": {"image": reference},
             "renderer": {"image": reference},
@@ -1200,6 +1212,8 @@ class CohortContractTests(unittest.TestCase):
             "odoo",
             "paperless-webserver",
             "usl-sign-dss",
+            "usl-receipt-fetcher",
+            "usl-receipt-egress",
             "odoo-mcp",
             "usl-document-renderer",
         }

@@ -9,6 +9,8 @@
     "paperless-tika": {"cpus": 1.0, "cpu_shares": 512, "mem_limit": "768m", "mem_reservation": "128m", "memswap_limit": "1g", "mem_swappiness": 20, "oom_score_adj": 0, "pids_limit": 256},
     "paperless-webserver": {"cpus": 2.0, "cpu_shares": 1024, "mem_limit": "1536m", "mem_reservation": "512m", "memswap_limit": "2g", "mem_swappiness": 20, "oom_score_adj": -300, "pids_limit": 512},
     "usl-document-renderer": {"cpus": 1.5, "cpu_shares": 768, "mem_limit": "768m", "mem_reservation": "128m", "memswap_limit": "1g", "mem_swappiness": 20, "oom_score_adj": -100, "pids_limit": 128},
+    "usl-receipt-egress": {"cpus": 0.5, "cpu_shares": 512, "mem_limit": "256m", "mem_reservation": "32m", "memswap_limit": "320m", "mem_swappiness": 10, "oom_score_adj": -100, "pids_limit": 128},
+    "usl-receipt-fetcher": {"cpus": 1.5, "cpu_shares": 768, "mem_limit": "768m", "mem_reservation": "128m", "memswap_limit": "1g", "mem_swappiness": 20, "oom_score_adj": -100, "pids_limit": 192},
     "usl-sign-dss": {"cpus": 1.0, "cpu_shares": 512, "mem_limit": "768m", "mem_reservation": "128m", "memswap_limit": "1g", "mem_swappiness": 20, "oom_score_adj": -100, "pids_limit": 256},
     "usl-sign-step-ca": {"cpus": 0.5, "cpu_shares": 512, "mem_limit": "256m", "mem_reservation": "32m", "memswap_limit": "320m", "mem_swappiness": 10, "oom_score_adj": -200, "pids_limit": 128}
   }

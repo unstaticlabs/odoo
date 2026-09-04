@@ -25,10 +25,24 @@ services:
       - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}/odoo.crt:/run/secrets/document-renderer/odoo.crt:ro
       - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}/odoo.key:/run/secrets/document-renderer/odoo.key:ro
       - ${USL_SIGN_ODOO_SECRET_DIR:-./.secrets/sign/odoo}:/run/usl-sign:ro
+      - ${USL_RECEIPT_ODOO_SECRET_DIR:-./.secrets/receipts/odoo}/ca.crt:/run/secrets/receipt-fetcher/ca.crt:ro
+      - ${USL_RECEIPT_ODOO_SECRET_DIR:-./.secrets/receipts/odoo}/odoo.crt:/run/secrets/receipt-fetcher/odoo.crt:ro
+      - ${USL_RECEIPT_ODOO_SECRET_DIR:-./.secrets/receipts/odoo}/odoo.key:/run/secrets/receipt-fetcher/odoo.key:ro
+      - receipt-control:/run/receipt-control:ro
     networks:
       - default
       - document-renderer
       - external-ollama
+
+  usl-receipt-fetcher:
+    build: !reset null
+    image: ${USL_RECEIPT_FETCHER_IMAGE:?Qualified receipt fetcher image is required}
+    logging: *production-logging
+
+  usl-receipt-egress:
+    build: !reset null
+    image: ${USL_RECEIPT_EGRESS_IMAGE:?Qualified receipt egress image is required}
+    logging: *production-logging
 
   init-db:
     logging: *production-logging

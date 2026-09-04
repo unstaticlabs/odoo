@@ -52,6 +52,16 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         )
         self.assertIn("docker buildx imagetools inspect", self.workflow)
 
+    def test_receipt_images_are_qualified_before_attestation(self) -> None:
+        self.assertIn("Qualify isolated receipt component", self.workflow)
+        self.assertIn("-m unittest -v /app/test_app.py", self.workflow)
+        self.assertIn("chromium_sandbox=True", self.workflow)
+        self.assertIn("page.expect_download()", self.workflow)
+        self.assertIn(
+            "seccomp=$GITHUB_WORKSPACE/services/usl-receipt-fetcher/seccomp_profile.json",
+            self.workflow,
+        )
+
     def test_release_binds_external_services_and_ollama(self) -> None:
         self.assertIn("scripts/odoo-mcp verify", self.workflow)
         self.assertIn("deploy/document-renderer/release.json", self.workflow)
@@ -63,6 +73,30 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         )
         self.assertEqual(notes["schema"], "usl-release-notes/v1")
         self.assertTrue(notes["changes"])
+
+    def test_release_attests_the_exact_verified_renderer_digest(self) -> None:
+        self.assertIn(
+            "name: Attest verified renderer as distribution integrator",
+            self.workflow,
+        )
+        self.assertIn(
+            "ghcr.io/unstaticlabs/usl-document-renderer@sha256:*",
+            self.workflow,
+        )
+        self.assertIn(
+            "subject-name: ${{ steps.renderer.outputs.subject_name }}",
+            self.workflow,
+        )
+        self.assertIn(
+            "subject-digest: ${{ steps.renderer.outputs.subject_digest }}",
+            self.workflow,
+        )
+        renderer_attestation = self.workflow.split(
+            "- name: Attest verified renderer as distribution integrator",
+            1,
+        )[1].split("- name: Install ORAS", 1)[0]
+        self.assertIn("create-storage-record: true", renderer_attestation)
+        self.assertNotIn("push-to-registry", renderer_attestation)
 
     def test_release_is_only_published_from_permanent_release_branches(self) -> None:
         self.assertIn("- 19-usl-staging", self.workflow)
