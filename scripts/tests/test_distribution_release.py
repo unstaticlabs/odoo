@@ -95,6 +95,27 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         database_job = qualification.split("  database:\n", 1)[1].split("\n  accounting:\n", 1)[0]
         self.assertIn("fetch-depth: 0", database_job)
 
+    def test_production_promotion_is_a_signed_event_bound_check(self) -> None:
+        qualification = (ROOT / ".github/workflows/qualification.yml").read_text(
+            encoding="utf-8",
+        )
+        self.assertIn(
+            "HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}",
+            qualification,
+        )
+        self.assertIn("EXPECTED_REPOSITORY: ${{ github.repository }}", qualification)
+        self.assertIn("name: USL production promotion", qualification)
+        self.assertIn("subject-path: production-promotion.json", qualification)
+        self.assertIn("gh attestation verify production-promotion.json", qualification)
+        self.assertIn('--source-ref "$GITHUB_REF"', qualification)
+        self.assertIn('--source-digest "$GITHUB_SHA"', qualification)
+        self.assertIn("commits/$GITHUB_SHA/pulls?per_page=100", qualification)
+        self.assertIn("--production-merge-group-tree \"$GITHUB_SHA\"", qualification)
+        self.assertGreaterEqual(
+            qualification.count('git merge-base --is-ancestor "$source_tree" "$GITHUB_SHA"'),
+            2,
+        )
+
     def test_affected_frontend_suites_run_on_desktop_and_mobile(self) -> None:
         database_gate = (ROOT / "scripts/ci-product-database").read_text(
             encoding="utf-8",
