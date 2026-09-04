@@ -89,6 +89,7 @@
                     openRecord.bind="this.openRecord"
                     noContentHelp="this.props.info.noContentHelp"
                     onAdd.bind="this.createRecord"
+                    onOrderByChange.bind="this.onOrderByChange"
                     optionalActiveFields="this.optionalActiveFields"
                     readonly="this.props.readonly"
                 />

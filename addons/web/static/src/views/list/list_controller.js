@@ -7,6 +7,7 @@ import {
     useSubEnv,
 } from "@web/owl2/utils";
 import { _t } from "@web/core/l10n/translation";
+import { router } from "@web/core/browser/router";
 import { evaluateExpr, evaluateBooleanExpr } from "@web/core/py_js/py";
 import { user } from "@web/core/user";
 import { useService } from "@web/core/utils/hooks";
@@ -33,9 +34,11 @@ import { OfflineActionHelper } from "@web/views/offline_action_helper";
 import { SelectionBox } from "@web/views/view_components/selection_box";
 import { useExportRecords, useDeleteRecords } from "@web/views/view_hook";
 
-import { Component, onWillPatch, onWillStart } from "@odoo/owl";
+import { Component, onMounted, onWillPatch, onWillStart } from "@odoo/owl";
 
 // -----------------------------------------------------------------------------
+
+const MAX_ROUTE_OFFSET = 10_000;
 
 export class ListController extends Component {
     static template = `web.ListView`;
@@ -169,6 +172,7 @@ export class ListController extends Component {
                         }
                     }
                     await this.model.root.load({ limit, offset });
+                    this.updateListURLState();
                     if (hasNavigated) {
                         this.onPageChangeScroll();
                     }
@@ -184,6 +188,7 @@ export class ListController extends Component {
             },
             () => [this.model.root.selection.length, this.model.root.isDomainSelected]
         );
+        onMounted(() => this.updateListURLState());
         this.searchBarToggler = useSearchBarToggler();
         this.firstLoad = true;
         onWillPatch(() => {
@@ -208,18 +213,30 @@ export class ListController extends Component {
             groupByInfo[fieldName] = extractFieldsFromArchInfo({ fieldNodes }, fields);
         }
 
-        const modelConfig = this.props.state?.modelState?.config || {
+        let modelConfig = this.props.state?.modelState?.config || {
             resModel: this.props.resModel,
             fields,
             activeFields,
             openGroupsByDefault: rawExpand ? evaluateExpr(rawExpand, this.props.context) : false,
         };
+        const routeOffset = Number(router.current.offset);
+        if (
+            Number.isSafeInteger(routeOffset) &&
+            routeOffset >= 0 &&
+            routeOffset <= MAX_ROUTE_OFFSET
+        ) {
+            modelConfig = { ...modelConfig, offset: routeOffset };
+        }
+        const limit = this.archInfo.limit || this.props.limit;
+        if (limit !== undefined) {
+            modelConfig = { ...modelConfig, limit };
+        }
 
         return {
             config: modelConfig,
             state: this.props.state?.modelState,
             groupByInfo,
-            limit: this.archInfo.limit || this.props.limit,
+            limit,
             countLimit: this.archInfo.countLimit,
             defaultOrderBy: this.archInfo.defaultOrder,
             groupsLimit: this.archInfo.groupsLimit,
@@ -336,6 +353,19 @@ export class ListController extends Component {
             const resIds = await this.model.root.getResIds(true);
             this.props.onSelectionChanged(resIds);
         }
+    }
+
+    onOrderByChange() {
+        this.updateListURLState();
+    }
+
+    updateListURLState() {
+        const { offset } = this.model.root;
+        this.props.updateActionState?.({
+            ...this.env.searchModel.getURLState(),
+            limit: undefined,
+            offset: offset > 0 && offset <= MAX_ROUTE_OFFSET ? offset : undefined,
+        });
     }
 
     /**

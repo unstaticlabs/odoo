@@ -91,6 +91,16 @@ function parseActiveIds(ids) {
     return activeIds;
 }
 
+function applyStatePatch(state, patch) {
+    for (const [key, value] of Object.entries(patch)) {
+        if (value === undefined) {
+            delete state[key];
+        } else {
+            state[key] = value;
+        }
+    }
+}
+
 const DIALOG_SIZES = {
     "extra-large": "xl",
     large: "lg",
@@ -629,7 +639,7 @@ export function makeActionManager(env, router = _router) {
         };
         actionProps.updateActionState = (controller, patchState) => {
             const oldState = { ...currentState };
-            Object.assign(currentState, patchState);
+            applyStatePatch(currentState, patchState);
             const changed = !shallowEqual(currentState, oldState);
             if (changed && action.target !== "new" && controller.isMounted) {
                 pushState();
@@ -767,7 +777,7 @@ export function makeActionManager(env, router = _router) {
         };
         viewProps.updateActionState = (controller, patchState) => {
             const oldState = { ...currentState };
-            Object.assign(currentState, patchState);
+            applyStatePatch(currentState, patchState);
             const changed = !shallowEqual(currentState, oldState);
             if (changed && target !== "new" && controller.isMounted) {
                 pushState();

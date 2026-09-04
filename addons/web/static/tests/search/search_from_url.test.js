@@ -62,6 +62,17 @@ test("URL with single filter creates filter with domain", async () => {
     expect(searchBar.env.searchModel.domain).toEqual([]);
 });
 
+test("URL filter values containing percent signs are decoded once", async () => {
+    const domain = '[["state", "=", "50% complete"]]';
+    redirect("?domain=" + encodeURIComponent(domain));
+    const searchBar = await mountWithSearch(SearchBar, { resModel: "mock.purchase.order" });
+
+    expect(searchBar.env.searchModel.domain).toEqual([["state", "=", "50% complete"]]);
+    expect(searchBar.env.searchModel.generateQueryString()).toBe(
+        "domain=" + encodeURIComponent(domain)
+    );
+});
+
 test("URL with multiple filters creates shared filter", async () => {
     const domain = '["&", ["state", "=", "sent"], ["partner_id", "ilike", "me"]]';
     redirect("?domain=" + encodeURIComponent(domain));

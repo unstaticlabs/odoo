@@ -24,6 +24,7 @@ import {
 } from "./utils/dates";
 import { FACET_COLORS, FACET_ICONS } from "./utils/misc";
 import { hashCode } from "@web/core/utils/strings";
+import { objectToUrlEncodedString } from "@web/core/utils/urls";
 
 const { DateTime } = luxon;
 
@@ -1311,7 +1312,7 @@ export class SearchModel extends EventBus {
     }
 
     /**
-     * Creates 1 "Shared" filter from encoded domain, and 1 grouped filter from groupby +orderBy.
+     * Creates one "Shared" filter from the URL domain and one grouped filter from groupBy/orderBy.
      * Raises notification warning in case of partial or total filter activation error(s).
      * @return {boolean} Success - False if 0 filter activated successfully from url
      */
@@ -1337,8 +1338,8 @@ export class SearchModel extends EventBus {
     }
 
     /**
-     * Creates 1 "Shared" filter from URl encoded domain.
-     * @param {string} urlDomain - Uri encoded domain
+     * Creates one "Shared" filter from a domain in the current route.
+     * @param {string} urlDomain - Domain decoded by the router
      * @param {{ anyErrors: boolean, anySuccess: boolean }} urlApplyStatus
      */
     _createUrlFilter(urlDomain, urlApplyStatus) {
@@ -1346,11 +1347,10 @@ export class SearchModel extends EventBus {
             return;
         }
         try {
-            const decodedDomain = decodeURIComponent(urlDomain);
             this.createNewFilters([
                 {
                     description: "Shared",
-                    domain: new Domain(decodedDomain).toString(),
+                    domain: new Domain(urlDomain).toString(),
                     name: "sharedDomainFromUrl",
                 },
             ]);
@@ -1361,13 +1361,13 @@ export class SearchModel extends EventBus {
     }
 
     /**
-     * Recreates GroupBys (including sub items and order) filter from encoded parameters
-     * @param {string} urlGroupBy - encoded list of fields to group by
+     * Recreates GroupBys (including sub-items and order) from the current route.
+     * @param {string} urlGroupBy - list of fields decoded by the router
      * @param {{ anyErrors: boolean, anySuccess: boolean }} urlApplyStatus
      */
     _createUrlGroupBy(urlGroupBy, urlApplyStatus) {
         try {
-            const decodedGroupBys = urlGroupBy ? JSON.parse(decodeURIComponent(urlGroupBy)) : [];
+            const decodedGroupBys = urlGroupBy ? JSON.parse(urlGroupBy) : [];
             if (decodedGroupBys.length === 0) {
                 return;
             }
@@ -1379,8 +1379,8 @@ export class SearchModel extends EventBus {
     }
 
     /**
-     * Recreates ordering logic (either from fields or groupBy)
-     * @param {Object} urlOrderBy - encoded orderBy (can be multiple)
+     * Recreates ordering logic (either from fields or groupBy).
+     * @param {string} urlOrderBy - orderBy decoded by the router (can contain multiple terms)
      * @param {{ anyErrors: boolean, anySuccess: boolean }} urlApplyStatus
      */
     _createUrlOrderBy(urlOrderBy, urlApplyStatus) {
@@ -1388,7 +1388,7 @@ export class SearchModel extends EventBus {
             return;
         }
         try {
-            this.globalOrderBy = JSON.parse(decodeURIComponent(urlOrderBy));
+            this.globalOrderBy = JSON.parse(urlOrderBy);
             const orderByCount = this.globalOrderBy.find((o) => o.name == "__count");
             if (orderByCount) {
                 this.orderByCount = orderByCount.asc ? "Asc" : "Desc";
@@ -1400,24 +1400,31 @@ export class SearchModel extends EventBus {
     }
 
     /**
-     * Encodes search model parameters (domain, groupBys & orderBy) into query string
-     * @return {string} eg. "domain=...,&orderBy=...". Can be empty and never start with "?".
+     * Returns the portable search state represented in the current route.
+     * Action domains and context are deliberately excluded: only filters, grouping, and
+     * ordering selected by the user belong in a shareable URL.
+     * @returns {{ domain?: string, groupBy?: string, orderBy?: string }}
      */
-    generateQueryString() {
+    getURLState() {
         const { preFavorite } = this._getIrFilterDescription();
         const { domain, groupBys, orderBy } = preFavorite; // No need for context, as its only used for groupBys
+        return {
+            domain: domain === "[]" ? undefined : domain,
+            groupBy: groupBys.length ? JSON.stringify(groupBys) : undefined,
+            orderBy: orderBy.length ? JSON.stringify(orderBy) : undefined,
+        };
+    }
 
-        const queryParts = [];
-        if (domain !== "[]") {
-            queryParts.push(`domain=${encodeURIComponent(domain)}`);
-        }
-        if (groupBys.length > 0) {
-            queryParts.push(`groupBy=${encodeURIComponent(JSON.stringify(groupBys))}`);
-        }
-        if (orderBy.length > 0) {
-            queryParts.push(`orderBy=${encodeURIComponent(JSON.stringify(orderBy))}`);
-        }
-        return queryParts.join("&");
+    /**
+     * Encodes portable search state into a query string.
+     * @returns {string} For example, "domain=...&orderBy=...". It can be empty and never starts
+     * with "?".
+     */
+    generateQueryString() {
+        const state = Object.fromEntries(
+            Object.entries(this.getURLState()).filter(([, value]) => value !== undefined)
+        );
+        return objectToUrlEncodedString(state);
     }
 
     /**
