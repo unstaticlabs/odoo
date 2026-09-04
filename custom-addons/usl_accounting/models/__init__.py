@@ -18,5 +18,6 @@ from . import (
     payment_suggestion,
     immediate_settlement,
     invoice_document,
+    linked_receipt,
     readonly_evidence,
 )

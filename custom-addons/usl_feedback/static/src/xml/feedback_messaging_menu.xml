@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_feedback.FeedbackPanel">
+        <!--
+        THESIS: A native Odoo conversation turns an observation into clear, actionable feedback.
+        OWN-WORLD: MessagingMenu, native Chatter, Project tasks, restrained feedback states, and familiar Odoo controls.
+        STORY: Preserve evidence; describe; clarify; review; send to the product team.
+        FIRST VIEWPORT: One question, the local page-preview choice, a clear disclosure, and one send action.
+        FORM: Established Operate extension of Odoo ChatHub; the confirmed product brief governs this implementation.
+        FINISH: browser-qualified desktop/mobile states, detector results, French copy, and evidence screenshots.
+        -->
+        <section t-ref="root" class="o-usl-FeedbackPanel d-flex flex-column flex-grow-1 overflow-hidden" aria-label="Feedback conversation">
+            <header class="o-usl-FeedbackPanel-header d-flex align-items-center flex-shrink-0 border-bottom">
+                <t t-set="currentStatus" t-value="state.task and this.feedbackStatus(state.task)"/>
+                <span class="o-usl-FeedbackPanel-brand d-flex align-items-center justify-content-center rounded-circle bg-primary text-white flex-shrink-0" aria-hidden="true">
+                    <i class="fa fa-commenting-o"/>
+                </span>
+                <div class="o-usl-FeedbackPanel-identity min-w-0">
+                    <h2 class="o-usl-FeedbackPanel-title mb-0 text-truncate">Feedback</h2>
+                    <button t-if="state.task" class="o-usl-FeedbackPanel-current o-usl-FeedbackPanel-currentTab btn btn-link d-flex align-items-center gap-2 p-0 text-start" type="button" t-on-click="showConversation" t-att-aria-label="this.feedbackChatLabel(state.task)">
+                        <span class="text-nowrap">Feedback #<t t-out="state.task.id"/></span>
+                        <span aria-hidden="true">·</span>
+                        <span class="badge rounded-pill fw-normal text-truncate" t-att-class="currentStatus[2]" t-out="currentStatus[0]"/>
+                    </button>
+                    <span t-else="" class="o-usl-FeedbackPanel-current text-muted">New feedback</span>
+                </div>
+                <nav class="o-usl-FeedbackPanel-headerNav o-usl-FeedbackPanel-nav d-flex align-items-center ms-auto" aria-label="Feedback navigation">
+                    <button class="btn btn-light border d-inline-flex align-items-center gap-2 text-nowrap" t-att-class="{ active: state.phase === 'recent' }" type="button" t-on-click="showRecent" t-att-aria-current="state.phase === 'recent' ? 'page' : undefined">
+                        <i class="fa fa-list-ul"/><span>My feedback</span>
+                    </button>
+                    <button class="btn btn-light border d-inline-flex align-items-center gap-2 text-nowrap" t-att-class="{ active: state.phase === 'draft' or (state.phase === 'loading' and !state.task) }" type="button" t-on-click="newConversation" t-att-disabled="state.phase === 'draft' or (state.phase === 'loading' and !state.task)" t-att-aria-current="state.phase === 'draft' ? 'page' : undefined">
+                        <i class="fa fa-plus"/><span>New</span>
+                    </button>
+                    <Dropdown t-if="state.task" menuClass="o-usl-FeedbackPanel-taskMenu">
+                        <button class="btn btn-link text-body" type="button" title="Feedback actions" aria-label="Feedback actions"><i class="fa fa-ellipsis-v"/></button>
+                        <t t-set-slot="content">
+                            <DropdownItem onSelected="() => this.openTask(state.task)">Open feedback</DropdownItem>
+                            <DropdownItem t-if="state.task.can_withdraw" class="'text-danger'" onSelected.bind="confirmWithdraw">Withdraw feedback</DropdownItem>
+                        </t>
+                    </Dropdown>
+                    <button t-if="!props.isSmall" class="o-usl-FeedbackPanel-fold btn btn-link text-body" type="button" t-on-click="props.fold" title="Fold feedback" aria-label="Fold feedback"><i class="fa fa-minus"/></button>
+                    <button class="o-usl-FeedbackPanel-close btn btn-link text-body" type="button" t-on-click="props.close" title="Close feedback" aria-label="Close feedback"><i class="oi oi-close"/></button>
+                </nav>
+            </header>
+
+            <ol t-if="['draft', 'conversation'].includes(state.phase)" class="o-usl-FeedbackPanel-journey list-unstyled d-flex align-items-center flex-shrink-0 mb-0 px-3" aria-label="Feedback progress">
+                <li class="o-usl-FeedbackPanel-journeyStep d-flex align-items-center" t-att-class="this.workflowStepClass(1)" t-att-aria-current="this.workflowStep === 1 ? 'step' : undefined">
+                    <span class="o-usl-FeedbackPanel-journeyMarker d-inline-flex align-items-center justify-content-center rounded-circle" aria-hidden="true"><i t-if="this.workflowStep &gt; 1" class="fa fa-check"/><t t-else="">1</t></span>
+                    <span class="ms-2">Describe</span>
+                </li>
+                <li class="o-usl-FeedbackPanel-journeyLine" aria-hidden="true"/>
+                <li class="o-usl-FeedbackPanel-journeyStep d-flex align-items-center" t-att-class="this.workflowStepClass(2)" t-att-aria-current="this.workflowStep === 2 ? 'step' : undefined">
+                    <span class="o-usl-FeedbackPanel-journeyMarker d-inline-flex align-items-center justify-content-center rounded-circle" aria-hidden="true"><i t-if="this.workflowStep &gt; 2" class="fa fa-check"/><t t-else="">2</t></span>
+                    <span class="ms-2">Review</span>
+                </li>
+                <li class="o-usl-FeedbackPanel-journeyLine" aria-hidden="true"/>
+                <li class="o-usl-FeedbackPanel-journeyStep d-flex align-items-center" t-att-class="this.workflowStepClass(3)" t-att-aria-current="this.workflowStep === 3 ? 'step' : undefined">
+                    <span class="o-usl-FeedbackPanel-journeyMarker d-inline-flex align-items-center justify-content-center rounded-circle" aria-hidden="true"><i t-if="this.workflowStep &gt; 3" class="fa fa-check"/><t t-else="">3</t></span>
+                    <span class="ms-2">Send</span>
+                </li>
+            </ol>
+
+            <div t-if="state.phase === 'loading'" class="flex-grow-1 d-flex align-items-center justify-content-center text-muted" aria-live="polite">
+                <span><i class="fa fa-circle-o-notch fa-spin me-2"/>Opening feedback…</span>
+            </div>
+
+            <div t-elif="state.phase === 'start_error'" class="flex-grow-1 d-flex flex-column align-items-center justify-content-center p-4 text-center" role="alert" aria-live="assertive">
+                <i class="fa fa-exclamation-circle text-warning fs-3 mb-3"/>
+                <strong>Feedback is unavailable</strong>
+                <p class="text-muted mt-2 mb-3" t-out="state.error"/>
+                <button class="btn btn-primary" type="button" t-on-click="retryStartDraft">Try again</button>
+            </div>
+
+            <div t-elif="state.phase === 'recent'" class="o-usl-FeedbackPanel-recent flex-grow-1 overflow-auto o-scrollbar-thin">
+                <header class="d-flex align-items-center gap-3 px-3 py-3 border-bottom">
+                    <div class="min-w-0 flex-grow-1">
+                        <strong class="d-block">My feedback</strong>
+                        <span class="small text-muted">Status and next step</span>
+                    </div>
+                    <button class="btn btn-sm btn-link text-nowrap" type="button" t-on-click="openBoard">
+                        Open board <i class="fa fa-external-link ms-1"/>
+                    </button>
+                </header>
+                <div class="list-group list-group-flush" t-if="state.recent.length">
+                    <t t-foreach="state.recent" t-as="task" t-key="task.id">
+                        <t t-set="status" t-value="this.feedbackStatus(task)"/>
+                        <button type="button" class="o-usl-FeedbackPanel-feedbackItem list-group-item list-group-item-action text-start px-3 py-3" t-on-click="() => this.resumeTask(task)">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="small text-muted">Feedback #<t t-out="task.id"/> · <t t-out="task.stage"/></span>
+                                <span class="badge ms-auto" t-att-class="status[2]" t-out="status[0]"/>
+                            </div>
+                            <div class="fw-semibold text-break" t-out="task.name"/>
+                            <div class="small text-muted mt-1 d-flex align-items-center gap-1">
+                                <span t-out="status[1]"/><i class="oi oi-chevron-right ms-auto"/>
+                            </div>
+                        </button>
+                    </t>
+                </div>
+                <div t-else="" class="text-center text-muted py-5 px-3">
+                    <i class="fa fa-comment-o fs-3 d-block mb-2"/>
+                    <div class="fw-semibold text-body">No feedback yet</div>
+                    <div class="small mb-3">Start a chat when something could work better.</div>
+                    <button class="btn btn-primary btn-sm" type="button" t-on-click="newConversation">Start feedback</button>
+                </div>
+            </div>
+
+            <div t-elif="state.phase === 'draft'" class="o-usl-FeedbackPanel-draft flex-grow-1 d-flex flex-column overflow-hidden">
+                <div class="o-usl-FeedbackPanel-draftBody flex-grow-1 overflow-auto o-scrollbar-thin p-3">
+                <div class="o-usl-FeedbackPanel-agentRow d-flex align-items-start gap-2 mb-3">
+                    <span class="o-usl-FeedbackPanel-agentAvatar d-flex align-items-center justify-content-center rounded-circle bg-primary text-white flex-shrink-0" aria-hidden="true"><i class="fa fa-commenting-o"/></span>
+                    <div class="o-usl-FeedbackPanel-agentBubble bg-100 border rounded-3 px-3 py-2">
+                        <strong class="small d-block mb-1">Feedback agent</strong>
+                        What would you like to improve?
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="visually-hidden" for="usl_feedback_message">Describe your feedback</label>
+                    <textarea id="usl_feedback_message" class="form-control" rows="4" maxlength="8000" autofocus="autofocus" placeholder="Describe what happened and what you expected." t-att-value="state.message" t-on-input="(ev) => state.message = ev.target.value" t-on-keydown="onInitialKeydown"/>
+                </div>
+
+                <div t-if="props.captureState === 'preparing'" class="o-usl-FeedbackPanel-previewStatus alert alert-light border mb-3" role="status" aria-live="polite">
+                    <i class="fa fa-circle-o-notch fa-spin me-2"/>Preparing page preview…
+                </div>
+                <div t-elif="props.screenshot" class="o-usl-FeedbackPanel-screenshot mb-3 border rounded-3 overflow-hidden bg-100">
+                    <img t-att-src="props.screenshot.previewUrl" alt="Preview of the Odoo page you were viewing" class="w-100"/>
+                    <label class="d-flex align-items-center gap-2 px-2 py-2 mb-0">
+                        <input type="checkbox" class="form-check-input mt-0" t-att-checked="state.screenshotSelected" t-on-change="toggleScreenshot"/>
+                        <span>Include page preview</span>
+                        <span class="small text-muted ms-auto">Odoo only</span>
+                    </label>
+                </div>
+                <div t-elif="props.captureState === 'error'" class="alert alert-light border mb-3" role="status">
+                    Page preview unavailable. Add an image if needed.
+                </div>
+
+                <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
+                    <label class="btn btn-sm btn-link px-0 mb-0" for="usl_feedback_files"><i class="fa fa-paperclip me-1"/>Add files</label>
+                    <input id="usl_feedback_files" class="visually-hidden" type="file" multiple="multiple" t-on-change="onFilesSelected" t-att-disabled="state.busy or state.attachments.length + (props.screenshot and state.screenshotSelected ? 1 : 0) &gt;= 10"/>
+                    <div class="form-check form-switch ms-auto mb-0" t-if="state.contextAvailable">
+                        <input id="usl_feedback_context" type="checkbox" class="form-check-input" t-att-checked="state.includeContext" t-on-change="() => state.includeContext = !state.includeContext"/>
+                        <label class="form-check-label small" for="usl_feedback_context">Page details</label>
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <div class="d-flex flex-wrap gap-1 mt-2" t-if="state.attachments.length">
+                        <span class="badge rounded-pill text-bg-light border d-inline-flex align-items-center gap-1" t-foreach="state.attachments" t-as="attachment" t-key="attachment.id">
+                            <i class="fa fa-paperclip"/><t t-out="attachment.name"/>
+                            <button class="btn btn-link text-muted p-0 lh-1" type="button" t-on-click="() => this.removeAttachment(attachment)" title="Remove file" aria-label="Remove file"><i class="oi oi-close"/></button>
+                        </span>
+                    </div>
+                </div>
+                <p class="small text-muted mb-0" role="note">
+                    <t t-if="state.assistantMode === 'gemini'">Gemini sees your message and preview.</t>
+                    <t t-elif="state.assistantMode === 'local'">Odoo uses fixed local replies. Nothing is sent to Gemini.</t>
+                    <t t-else="">The assistant is off. Odoo will still save your feedback.</t>
+                    Files stay in Odoo. Your workspace can view the feedback.
+                </p>
+                </div>
+                <footer class="o-usl-FeedbackPanel-submit flex-shrink-0 border-top p-3 bg-view">
+                    <div t-if="state.error" class="alert alert-danger py-2 px-3 mb-2" role="alert" aria-live="assertive" t-out="state.error"/>
+                    <button class="btn btn-primary w-100" type="button" t-att-disabled="!state.message.trim() or state.busy" t-on-click="submitInitial">
+                        <i t-if="state.busy" class="fa fa-circle-o-notch fa-spin me-1"/>
+                        Send feedback
+                    </button>
+                </footer>
+            </div>
+
+            <div t-else="" class="o-usl-FeedbackPanel-conversation flex-grow-1 d-flex flex-column overflow-hidden">
+                <div class="flex-grow-1 min-h-0">
+                    <FeedbackChatter
+                        agentActivity="this.agentActivity"
+                        agentState="state.task.agent_state"
+                        busy="state.busy"
+                        composer="this.canPostMessage"
+                        onConfirm.bind="confirmTriage"
+                        onMessagePosted.bind="onMessagePosted"
+                        onOpenTask.bind="openTask"
+                        onRetry.bind="retry"
+                        placeholder="this.composerPlaceholder"
+                        task="state.task"
+                        threadModel="'project.task'"
+                        threadId="state.task.id"
+                        t-key="state.task.id"
+                    />
+                </div>
+            </div>
+        </section>
+    </t>
+
+    <t t-name="usl_feedback.FeedbackChatter">
+        <div t-if="this.state.thread" class="o-mail-Chatter o-usl-FeedbackChatter w-100 h-100 flex-grow-1 d-flex flex-column bg-inherit" t-custom-ref="root">
+            <Thread thread="this.state.thread" t-key="this.state.thread.localId" jumpPresent="this.state.jumpThreadPresent"/>
+            <div t-if="['queued', 'processing'].includes(this.props.agentState)" class="o-usl-FeedbackPanel-agentRow d-flex align-items-end gap-2 px-3 py-2" role="status" aria-live="polite">
+                <span class="o-usl-FeedbackPanel-agentAvatar d-flex align-items-center justify-content-center rounded-circle bg-primary text-white flex-shrink-0" aria-hidden="true"><i class="fa fa-commenting-o"/></span>
+                <div class="o-usl-FeedbackPanel-agentBubble bg-100 border rounded-3 px-3 py-2">
+                    <strong class="small d-block">Feedback agent</strong>
+                    <span class="small text-muted" t-out="this.props.agentActivity"/>
+                    <span class="o-usl-FeedbackPanel-typing ms-1" aria-hidden="true"><i/><i/><i/></span>
+                </div>
+            </div>
+            <div t-if="this.props.agentState === 'error'" class="o-usl-FeedbackPanel-agentRow d-flex align-items-end gap-2 px-3 py-2" role="alert">
+                <span class="o-usl-FeedbackPanel-agentAvatar d-flex align-items-center justify-content-center rounded-circle bg-primary text-white flex-shrink-0" aria-hidden="true"><i class="fa fa-commenting-o"/></span>
+                <div class="o-usl-FeedbackPanel-agentBubble bg-100 border rounded-3 px-3 py-2">
+                    <strong class="small d-block mb-1">Feedback agent</strong>
+                    <div>I couldn’t finish this reply. Your feedback is saved.</div>
+                    <button class="btn btn-link btn-sm px-0 pt-2 pb-0" type="button" t-on-click="this.props.onRetry" t-att-disabled="this.props.busy">Try again</button>
+                </div>
+            </div>
+            <div t-if="!this.props.task.withdrawn and this.props.agentState === 'ready'" class="o-usl-FeedbackPanel-readyBar border-top px-3 py-2" role="status" aria-live="polite">
+                <article class="o-usl-FeedbackPanel-draftCard rounded-3 p-3">
+                    <header class="d-flex align-items-center flex-wrap gap-2 mb-3">
+                        <span class="o-usl-FeedbackPanel-readyLabel small fw-semibold"><i class="fa fa-check-circle text-success me-1"/>Draft ready</span>
+                        <span t-if="this.props.task.category" class="badge text-bg-light border fw-normal" t-out="this.props.task.category"/>
+                        <button class="btn btn-sm btn-link ms-auto px-0" type="button" t-on-click="() => this.props.onOpenTask()">Review full draft <i class="oi oi-chevron-right ms-1"/></button>
+                    </header>
+                    <div class="o-usl-FeedbackPanel-draftContent">
+                        <h3 class="h5 mb-2 text-break" t-out="this.props.task.name"/>
+                        <p t-if="this.props.task.description_text" class="text-pre-wrap mb-0" t-out="this.props.task.description_text"/>
+                        <p t-else="" class="text-muted mb-0">The agent prepared your draft.</p>
+                    </div>
+                    <footer class="d-flex align-items-center justify-content-between gap-2 mt-3 pt-3 border-top">
+                        <button class="btn btn-outline-primary" type="button" t-on-click="() => this.props.onOpenTask()"><i class="fa fa-pencil me-1"/>Edit draft</button>
+                        <button class="btn btn-primary" type="button" t-on-click="this.props.onConfirm" t-att-disabled="this.props.busy"><i class="fa fa-paper-plane-o me-1"/>Send feedback</button>
+                    </footer>
+                </article>
+                <p class="o-usl-FeedbackPanel-refineHint small text-muted text-center mt-2 mb-0"><i class="fa fa-commenting-o me-1"/>Keep chatting to refine the draft.</p>
+            </div>
+            <div t-if="!this.props.task.withdrawn and this.props.agentState === 'triaged'" class="o-usl-FeedbackPanel-sentBar border-top px-3 py-2 d-flex align-items-center gap-2" role="status">
+                <i class="fa fa-check-circle text-success"/><span class="small fw-semibold flex-grow-1">With the product team</span>
+                <button class="btn btn-sm btn-link" type="button" t-on-click="() => this.props.onOpenTask()">Open feedback</button>
+            </div>
+            <div t-if="this.props.task.withdrawn" class="o-usl-FeedbackPanel-withdrawnBar border-top px-3 py-2 d-flex align-items-center gap-2" role="status">
+                <i class="fa fa-ban text-muted"/><span class="small fw-semibold flex-grow-1">Feedback withdrawn</span>
+                <button class="btn btn-sm btn-link" type="button" t-on-click="() => this.props.onOpenTask()">Open feedback</button>
+            </div>
+            <Composer composer="this.state.thread.composer" autofocus="this.props.composer ? 1 : 0" mode="'compact'" onPostCallback.bind="this.onPostCallback" dropzoneRef="this.rootRef" type="'message'" placeholder="this.props.placeholder" disabled="!this.props.composer"/>
+        </div>
+    </t>
+
+    <t t-name="usl_feedback.FeedbackChatWindow">
+        <div class="o-mail-ChatWindow o-usl-FeedbackChatWindow fixed-bottom overflow-hidden d-flex flex-column shadow bg-100"
+            t-ref="root"
+            t-att-style="this.style"
+            t-att-class="this.attClass"
+            t-on-keydown="this.onKeydown"
+            tabindex="-1"
+            role="dialog"
+            aria-label="Feedback agent conversation"
+        >
+            <div class="d-flex flex-column h-100 min-h-0 overflow-hidden position-relative bg-inherit">
+                <FeedbackPanel
+                    captureState="this.feedbackChatWindow.captureState"
+                    clearScreenshot="() => this.feedbackChatWindow.clearScreenshot()"
+                    close.bind="this.close"
+                    fold="() => this.feedbackChatWindow.fold()"
+                    isSmall="this.ui.isSmall"
+                    pageContext="this.feedbackChatWindow.pageContext"
+                    screenshot="this.feedbackChatWindow.screenshot"
+                />
+            </div>
+        </div>
+    </t>
+
+    <t t-name="usl_feedback.FeedbackChatBubble">
+        <div class="o-mail-ChatBubble o-usl-FeedbackChatBubble position-relative" name="Product feedback">
+            <button class="o-mail-ChatBubble-close position-absolute shadow rounded-circle fw-bold bg-view" type="button" title="Close feedback" aria-label="Close feedback" t-on-click.stop="() => this.feedbackChatWindow.close()">
+                <i class="oi oi-close"/>
+            </button>
+            <button class="o-mail-ChatHub-bubbleBtn o-usl-FeedbackChatBubble-button btn shadow d-flex align-items-center justify-content-center bg-primary text-white" type="button" title="Open feedback" aria-label="Open feedback" t-on-click="() => this.feedbackChatWindow.open()">
+                <i class="fa fa-commenting-o fs-4"/>
+            </button>
+        </div>
+    </t>
+
+    <t t-inherit="mail.ChatHub" t-inherit-mode="extension">
+        <xpath expr="//ChatWindow" position="attributes">
+            <attribute name="right">this.chatHub.BUBBLE_START + this.chatHub.BUBBLE + (this.chatHub.BUBBLE_OUTER*2) + (visibleChatWindows.length - cw_index - 1 + (this.feedbackChatWindow.mode === 'open' ? 1 : 0)) * (this.chatHub.WINDOW + this.chatHub.WINDOW_INBETWEEN * 2)</attribute>
+        </xpath>
+        <xpath expr="//div[hasclass('o-mail-ChatHub-bubbles')]" position="before">
+            <FeedbackChatWindow t-if="this.feedbackChatWindow.mode !== 'closed'" hidden="this.feedbackChatWindow.mode === 'folded'" right="this.chatHub.BUBBLE_START + this.chatHub.BUBBLE + (this.chatHub.BUBBLE_OUTER * 2)"/>
+        </xpath>
+        <xpath expr="//div[hasclass('o-gap-1_5')]" position="inside">
+            <FeedbackChatBubble t-if="this.feedbackChatWindow.mode === 'folded'"/>
+        </xpath>
+    </t>
+
+    <t t-inherit="mail.MessagingMenu.content" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o-mail-MessagingMenu-header')]" position="inside">
+            <button class="o-usl-FeedbackButton btn btn-sm btn-link ms-auto px-2 py-1" type="button" t-on-click.stop="this.onClickFeedback" title="Preview this Odoo page and send feedback">
+                <i class="fa fa-commenting-o me-1"/>Feedback
+            </button>
+        </xpath>
+    </t>
+</templates>

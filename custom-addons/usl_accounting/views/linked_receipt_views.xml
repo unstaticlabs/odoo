@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_expense_form_linked_receipt" model="ir.ui.view">
+        <field name="name">hr.expense.form.linked.receipt</field>
+        <field name="model">hr.expense</field>
+        <field name="inherit_id" ref="hr_expense.hr_expense_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='nb_attachment'][@invisible='1']" position="after">
+                <field name="linked_receipt_state" invisible="1"/>
+                <field name="linked_receipt_message" invisible="1"/>
+                <field name="linked_receipt_can_manage" invisible="1"/>
+                <field name="linked_receipt_can_open_website" invisible="1"/>
+                <field name="linked_receipt_authentication_required" invisible="1"/>
+            </xpath>
+            <xpath expr="//div[@name='warning_duplicate_receipt_expense']" position="after">
+                <div class="alert alert-info d-flex flex-wrap gap-2 align-items-center"
+                     role="status"
+                     invisible="linked_receipt_state not in ('selection_required', 'queued', 'running', 'retrying')">
+                    <span><field name="linked_receipt_message" nolabel="1" readonly="1"/></span>
+                    <button name="action_review_linked_receipt"
+                            type="object"
+                            string="Choose receipt link"
+                            class="btn btn-primary btn-sm"
+                            invisible="linked_receipt_state != 'selection_required' or not linked_receipt_can_manage"/>
+                </div>
+                <div class="alert alert-warning d-flex flex-wrap gap-2 align-items-center"
+                    role="alert"
+                    invisible="linked_receipt_state != 'needs_attention'">
+                    <span><field name="linked_receipt_message" nolabel="1" readonly="1"/></span>
+                    <button name="action_open_linked_receipt_website"
+                            type="object"
+                            string="Open receipt website"
+                            class="btn btn-primary btn-sm"
+                            icon="fa-external-link"
+                            invisible="not linked_receipt_can_open_website or not linked_receipt_authentication_required"/>
+                    <widget name="attach_document"
+                            string="Attach downloaded receipt"
+                            action="attach_document"
+                            options="{'accepted_file_extensions': 'application/pdf,.pdf'}"
+                            invisible="not linked_receipt_can_open_website or not linked_receipt_authentication_required or nb_attachment &gt;= 1"/>
+                    <button name="action_retry_linked_receipt"
+                            type="object"
+                            string="Retry"
+                            class="btn btn-secondary btn-sm"
+                            invisible="not linked_receipt_can_manage"/>
+                    <button name="action_review_linked_receipt"
+                            type="object"
+                            string="Teach another link"
+                            class="btn btn-secondary btn-sm"
+                            invisible="not linked_receipt_can_manage"/>
+                    <button name="action_dismiss_linked_receipt"
+                            type="object"
+                            string="Ignore"
+                            help="Stop automatic retrieval for this email. The expense and source email remain available."
+                            class="btn btn-link btn-sm"
+                            invisible="not linked_receipt_can_manage"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_usl_mail_pdf_retrieval_list" model="ir.ui.view">
+        <field name="name">usl.mail.pdf.retrieval.list</field>
+        <field name="model">usl.mail.pdf.retrieval</field>
+        <field name="arch" type="xml">
+            <list create="false" delete="false">
+                <field name="create_date"/>
+                <field name="expense_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="starting_host"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'succeeded'"
+                       decoration-warning="state in ('selection_required', 'retrying', 'needs_attention')"
+                       decoration-info="state in ('queued', 'running')"/>
+                <field name="attempt_count"/>
+                <field name="fetch_mode"/>
+                <field name="failure_code" optional="show"/>
+                <field name="failure_message" optional="show"/>
+                <field name="handoff_open_count" optional="hide"/>
+                <field name="last_handoff_at" optional="hide"/>
+                <field name="last_handoff_user_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_usl_mail_pdf_retrieval" model="ir.actions.act_window">
+        <field name="name">Linked Receipt Retrievals</field>
+        <field name="res_model">usl.mail.pdf.retrieval</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <record id="view_usl_mail_pdf_host_list" model="ir.ui.view">
+        <field name="name">usl.mail.pdf.host.list</field>
+        <field name="model">usl.mail.pdf.host</field>
+        <field name="arch" type="xml">
+            <list create="false" delete="false">
+                <field name="hostname"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'active'"
+                       decoration-warning="state == 'provisional'"
+                       decoration-danger="state == 'blocked'"/>
+                <field name="confirmed_by_id"/>
+                <field name="confirmed_at"/>
+                <field name="validated_pattern_id" optional="hide"/>
+                <field name="success_count"/>
+                <field name="failure_count"/>
+                <field name="last_success_at"/>
+                <button name="action_block" type="object" string="Block" invisible="state == 'blocked'"/>
+                <button name="action_activate" type="object" string="Restore" invisible="state != 'blocked'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_usl_mail_pdf_host" model="ir.actions.act_window">
+        <field name="name">Linked Receipt Hosts</field>
+        <field name="res_model">usl.mail.pdf.host</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <record id="view_usl_mail_pdf_pattern_list" model="ir.ui.view">
+        <field name="name">usl.mail.pdf.pattern.list</field>
+        <field name="model">usl.mail.pdf.pattern</field>
+        <field name="arch" type="xml">
+            <list create="false" delete="false">
+                <field name="sender_domain"/>
+                <field name="hostname"/>
+                <field name="path_template"/>
+                <field name="observed_final_host" optional="hide"/>
+                <field name="observed_final_path_template" optional="hide"/>
+                <field name="label_tokens" optional="hide"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'active'"
+                       decoration-warning="state in ('learning', 'paused')"
+                       decoration-danger="state == 'blocked'"/>
+                <field name="confidence" widget="percentage"/>
+                <field name="success_count"/>
+                <field name="failure_count"/>
+                <field name="preferred_fetch_mode"/>
+                <field name="last_used_at"/>
+                <button name="action_pause" type="object" string="Pause" invisible="state in ('paused', 'blocked')"/>
+                <button name="action_activate" type="object" string="Resume" invisible="state not in ('paused', 'blocked')"/>
+                <button name="action_block" type="object" string="Block" invisible="state == 'blocked'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_usl_mail_pdf_pattern" model="ir.actions.act_window">
+        <field name="name">Learned Receipt Patterns</field>
+        <field name="res_model">usl.mail.pdf.pattern</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <menuitem id="menu_usl_linked_receipts"
+              name="Linked Receipts"
+              parent="account.menu_finance_configuration"
+              sequence="95"
+              groups="account.group_account_manager"/>
+    <menuitem id="menu_usl_linked_receipt_retrievals"
+              name="Retrievals"
+              parent="menu_usl_linked_receipts"
+              action="action_usl_mail_pdf_retrieval"
+              sequence="10"/>
+    <menuitem id="menu_usl_linked_receipt_patterns"
+              name="Learned Patterns"
+              parent="menu_usl_linked_receipts"
+              action="action_usl_mail_pdf_pattern"
+              sequence="20"/>
+    <menuitem id="menu_usl_linked_receipt_hosts"
+              name="Hosts"
+              parent="menu_usl_linked_receipts"
+              action="action_usl_mail_pdf_host"
+              sequence="30"/>
+</odoo>

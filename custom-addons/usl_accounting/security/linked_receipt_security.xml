@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rule_linked_receipt_allowed_companies" model="ir.rule">
+        <field name="name">Linked receipts: allowed companies</field>
+        <field name="model_id" ref="model_usl_mail_pdf_retrieval"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_linked_receipt_employee_own" model="ir.rule">
+        <field name="name">Linked receipts: own expenses</field>
+        <field name="model_id" ref="model_usl_mail_pdf_retrieval"/>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        <field name="domain_force">[('expense_id.employee_id.user_id', '=', user.id)]</field>
+    </record>
+
+    <record id="rule_linked_receipt_account_manager" model="ir.rule">
+        <field name="name">Linked receipts: Accounting Managers</field>
+        <field name="model_id" ref="model_usl_mail_pdf_retrieval"/>
+        <field name="groups" eval="[(4, ref('account.group_account_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_linked_receipt_account_readonly" model="ir.rule">
+        <field name="name">Linked receipts: accounting read-only</field>
+        <field name="model_id" ref="model_usl_mail_pdf_retrieval"/>
+        <field name="groups" eval="[(4, ref('account.group_account_readonly'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+</odoo>
