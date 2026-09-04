@@ -83,8 +83,34 @@ class ComponentBuildTests(unittest.TestCase):
             if line.startswith("!")
         }
         self.assertIn("operations/**", inclusions)
+        self.assertIn("deploy/production.cron-policy.json", inclusions)
         self.assertIn("scripts/cohort-runtime", inclusions)
         self.assertNotIn("custom-addons/**", inclusions)
+
+    def test_cron_policy_changes_only_the_backup_tool_identity(self) -> None:
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        root = Path(temporary.name)
+        subprocess.run(("git", "init", "-q"), cwd=root, check=True)
+        inputs = {
+            component.dockerfile for component in COMPONENTS.values()
+        } | {"deploy/production.cron-policy.json"}
+        for relative in inputs:
+            path = root / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(f"fixture for {relative}\n", encoding="utf-8")
+        subprocess.run(("git", "add", "."), cwd=root, check=True)
+        before = resolve(root)["components"]
+        (root / "deploy/production.cron-policy.json").write_text(
+            '{"schema":"changed"}\n', encoding="utf-8",
+        )
+        after = resolve(root)["components"]
+        changed = {
+            name
+            for name in COMPONENTS
+            if before[name]["input_sha256"] != after[name]["input_sha256"]
+        }
+        self.assertEqual(changed, {"backup-tool"})
 
     def test_backup_tool_installs_the_runtime_health_probe_client(self) -> None:
         root = Path(__file__).resolve().parents[2]

@@ -775,9 +775,20 @@ def _measure_candidate_bytes(target, runner, tool_image: str, runtime: dict) -> 
 
 def _remove_materialization_workspace(target, runner, generation: str) -> None:
     root = target.value["state_directory"]
-    if not generation.startswith("g") or len(generation) > 32:
+    if not GENERATION_NAME.fullmatch(str(generation)):
         raise RuntimeError("refusing to remove an invalid generation workspace")
-    runner.run(["rm", "-rf", f"{root}/generations/{generation}/work"])
+    runner.run(["rm", "-rf", "--", f"{root}/generations/{generation}/work"])
+
+
+@contextmanager
+def _materialization_cleanup(target, runner, generation: str):
+    database_containers: list[str] = []
+    try:
+        yield database_containers
+    finally:
+        for container in database_containers:
+            runner.run(["docker", "rm", "--force", container], check=False)
+        _remove_materialization_workspace(target, runner, generation)
 
 
 def _prepare_generation_volume_ownership(runner, release: dict, volumes: dict[str, str]) -> None:
@@ -2340,8 +2351,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     generation_root = f"{target.value['state_directory']}/generations/{generation}"
     target_runner.run(["install", "-d", "-m", "0700", generation_root])
     volumes, network = _create_generation_resources(target, target_runner, generation)
-    database_containers = []
-    try:
+    with _materialization_cleanup(target, target_runner, generation) as database_containers:
         database_containers.append(
             _start_generation_database(
                 target,
@@ -2402,10 +2412,6 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             volumes,
         )
         _prepare_generation_volume_ownership(target_runner, release, volumes)
-    finally:
-        for container in database_containers:
-            target_runner.run(["docker", "rm", "--force", container], check=False)
-    _remove_materialization_workspace(target, target_runner, generation)
     capacity_before_activation = _require_restore_capacity(target, target_runner, "activation")
     _record_event(
         target,
@@ -2603,36 +2609,79 @@ def restore_command(arguments: argparse.Namespace) -> int:
         return status
 
 
-def cleanup_command(arguments: argparse.Namespace) -> int:
-    target = load_target(arguments.target, arguments.targets)
-    runner = target.runner()
-    current = inspect_runtime(target, runner)
-    retention_plan = None
-    retention_image = None
-    if target.value["environment"] == "production" and not getattr(arguments, "runtime_only", False):
-        release, _release_sha, _release_raw = _release(target, runner, None)
-        _secret_file(target, runner)
-        retention_image = release["components"]["backup-tool"]["digest_reference"]
-        retention_plan = _run_cohort(
-            target,
-            runner,
-            retention_image,
-            "retention-plan",
-            [],
-            volumes=current["volumes"],
-        )
+def _cleanup_workspaces(target, runner, protected_generations: set[str]) -> list[str]:
+    state_root = target.value["state_directory"]
+    generations_root = f"{state_root}/generations"
+    if runner.run(["test", "-L", state_root], check=False).returncode == 0:
+        raise RuntimeError("cleanup state root must not be a symlink")
+    root_probe = runner.run(
+        ["find", generations_root, "-mindepth", "0", "-maxdepth", "0", "-printf", "%y\\n"],
+        check=False,
+    )
+    if root_probe.returncode:
+        absent = runner.run(["test", "!", "-e", generations_root], check=False)
+        not_symlink = runner.run(["test", "!", "-L", generations_root], check=False)
+        if absent.returncode == 0 and not_symlink.returncode == 0:
+            return []
+        raise RuntimeError("cleanup generations root cannot be inspected")
+    if root_probe.stdout.strip() != "d":
+        raise RuntimeError("cleanup generations root is not a directory")
+    generations = runner.run(
+        [
+            "find", generations_root, "-mindepth", "1", "-maxdepth", "1",
+            "-printf", "%f\\t%y\\n",
+        ],
+    )
+    known_generations: set[str] = set()
+    for line in generations.stdout.splitlines():
+        try:
+            generation, kind = line.split("\t", 1)
+        except ValueError as error:
+            raise RuntimeError("cleanup generation inventory is invalid") from error
+        if not GENERATION_NAME.fullmatch(generation) or kind != "d":
+            raise RuntimeError(f"cleanup generation directory is invalid: {generation}")
+        known_generations.add(generation)
+    workspaces = runner.run(
+        [
+            "find", generations_root, "-mindepth", "2", "-maxdepth", "2",
+            "-name", "work", "-printf", "%P\\t%y\\n",
+        ],
+    )
+    candidates = []
+    for line in workspaces.stdout.splitlines():
+        try:
+            relative, kind = line.split("\t", 1)
+            generation, leaf = relative.split("/", 1)
+        except ValueError as error:
+            raise RuntimeError("cleanup workspace inventory is invalid") from error
+        if leaf != "work" or generation not in known_generations or kind != "d":
+            raise RuntimeError(f"cleanup workspace is invalid: {relative}")
+        if generation not in protected_generations:
+            candidates.append(f"{generations_root}/{generation}/work")
+    return sorted(candidates)
+
+
+def _cleanup_inventory(target, runner, current: dict) -> dict:
     active = {item["name"] for item in current["volumes"].values()}
     state_path = f"{target.value['state_directory']}/active.json"
     state_result = runner.run(["cat", state_path], check=False)
     previous: set[str] = set()
     protected_networks: set[str] = set()
+    protected_generations = {current["generation"]} if current.get("generation") else set()
     if state_result.returncode == 0:
-        state = json.loads(state_result.stdout)
+        try:
+            state = json.loads(state_result.stdout)
+        except json.JSONDecodeError as error:
+            raise RuntimeError("cleanup active state is invalid") from error
         previous = set((state.get("previous") or {}).get("volumes", {}).values())
-        protected_networks.add(state["network"])
+        if state.get("network"):
+            protected_networks.add(state["network"])
         previous_network = (state.get("previous") or {}).get("network")
         if previous_network:
             protected_networks.add(previous_network)
+        previous_generation = (state.get("previous") or {}).get("generation")
+        if previous_generation:
+            protected_generations.add(previous_generation)
     inventory = runner.run(
         [
             "docker",
@@ -2663,67 +2712,188 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
         for name in network_inventory.stdout.splitlines()
         if name and name not in protected_networks
     )
-    plan = {
-        "schema": "usl-cleanup-plan/v1",
-        "target": target.name,
+    return {
         "protected_volumes": sorted(active | previous),
         "protected_networks": sorted(protected_networks),
+        "protected_generations": sorted(protected_generations),
         "delete_volumes": candidates,
         "delete_networks": network_candidates,
+        "delete_workspaces": _cleanup_workspaces(target, runner, protected_generations),
+    }
+
+
+def _validated_cleanup_volume(target, runner, name: str, docker_root: str) -> dict:
+    volume = _volume_inspect(runner, name)
+    labels = volume.get("Labels")
+    if not isinstance(labels, dict):
+        raise RuntimeError(f"cleanup candidate labels are invalid: {name}")
+    generation = labels.get("com.unstaticlabs.runtime.generation")
+    role = labels.get("com.unstaticlabs.runtime.role")
+    if (
+        volume.get("Name") != name
+        or volume.get("Driver") != "local"
+        or labels.get("com.unstaticlabs.runtime.project") != target.project
+        or labels.get("com.unstaticlabs.runtime.target") != target.name
+        or not isinstance(generation, str)
+        or not GENERATION_NAME.fullmatch(generation)
+        or role not in target.value["volumes"]
+    ):
+        raise RuntimeError(f"cleanup candidate identity differs: {name}")
+    expected_name = generation_volume_names(target, generation)[role]
+    if name != expected_name:
+        raise RuntimeError(f"cleanup candidate name differs: {name}")
+    tier = target.value["volumes"][role]["tier"]
+    storage_label = labels.get("com.unstaticlabs.runtime.storage-tier")
+    options = volume.get("Options")
+    mountpoint = volume.get("Mountpoint")
+    managed_mountpoint = f"{docker_root}/volumes/{name}/_data"
+    if tier == "database":
+        database_path = generation_volume_path(target, generation, role)
+        bind_options = {"device": database_path, "o": "bind", "type": "none"}
+        if options == bind_options:
+            if storage_label != tier:
+                raise RuntimeError(f"cleanup database volume labels differ: {name}")
+            path_probe = runner.run(
+                ["find", database_path, "-mindepth", "0", "-maxdepth", "0", "-printf", "%y\\n"],
+                check=False,
+            )
+            if path_probe.returncode or path_probe.stdout.strip() != "d":
+                raise RuntimeError(f"cleanup database volume path is invalid: {name}")
+            return {"name": name, "database_path": database_path}
+        if options not in (None, {}) or mountpoint != managed_mountpoint or storage_label is not None:
+            raise RuntimeError(f"cleanup legacy database volume differs: {name}")
+        return {"name": name, "database_path": None}
+    if storage_label not in (None, tier):
+        raise RuntimeError(f"cleanup volume labels differ: {name}")
+    if options not in (None, {}) or mountpoint != managed_mountpoint:
+        raise RuntimeError(f"cleanup managed volume differs: {name}")
+    return {"name": name, "database_path": None}
+
+
+def _validated_cleanup_network(target, runner, name: str) -> str:
+    raw = runner.run(
+        ["docker", "network", "inspect", name, "--format", "{{json .}}"],
+    ).stdout
+    try:
+        network = json.loads(raw)
+    except json.JSONDecodeError as error:
+        raise RuntimeError(f"network inspection is invalid: {name}") from error
+    if not isinstance(network, dict) or not isinstance(network.get("Labels"), dict):
+        raise RuntimeError(f"network inspection is invalid: {name}")
+    labels = network["Labels"]
+    generation = labels.get("com.unstaticlabs.runtime.generation")
+    expected_name = (
+        f"{target.project}-{generation}-recovery"
+        if isinstance(generation, str) and GENERATION_NAME.fullmatch(generation)
+        else None
+    )
+    if (
+        network.get("Name") != name
+        or network.get("Driver") != "bridge"
+        or labels.get("com.unstaticlabs.runtime.project") != target.project
+        or labels.get("com.unstaticlabs.runtime.target") != target.name
+        or name != expected_name
+    ):
+        raise RuntimeError(f"cleanup network identity differs: {name}")
+    return name
+
+
+def _validated_cleanup_resources(target, runner, inventory: dict) -> tuple[list[dict], list[str]]:
+    docker_root = runner.run(
+        ["docker", "info", "--format", "{{.DockerRootDir}}"],
+    ).stdout.strip().rstrip("/")
+    if not docker_root.startswith("/") or docker_root == "/" or str(Path(docker_root)) != docker_root:
+        raise RuntimeError("Docker root directory is invalid")
+    volumes = [
+        _validated_cleanup_volume(target, runner, name, docker_root)
+        for name in inventory["delete_volumes"]
+    ]
+    networks = [
+        _validated_cleanup_network(target, runner, name)
+        for name in inventory["delete_networks"]
+    ]
+    generations_root = f"{target.value['state_directory']}/generations"
+    for workspace in inventory["delete_workspaces"]:
+        relative = workspace.removeprefix(generations_root + "/")
+        parts = relative.split("/")
+        if (
+            workspace == relative
+            or len(parts) != 2
+            or not GENERATION_NAME.fullmatch(parts[0])
+            or parts[1] != "work"
+        ):
+            raise RuntimeError(f"cleanup workspace path is invalid: {workspace}")
+        probe = runner.run(
+            ["find", workspace, "-mindepth", "0", "-maxdepth", "0", "-printf", "%y\\n"],
+            check=False,
+        )
+        if probe.returncode or probe.stdout.strip() != "d":
+            raise RuntimeError(f"cleanup workspace became invalid: {workspace}")
+    return volumes, networks
+
+
+def _delete_cleanup_resources(
+    runner, volumes: list[dict], networks: list[str], workspaces: list[str],
+) -> None:
+    for item in volumes:
+        runner.run(["docker", "volume", "rm", item["name"]])
+        if item["database_path"] is not None:
+            runner.run(
+                ["find", item["database_path"], "-xdev", "-mindepth", "1", "-delete"],
+            )
+            runner.run(["rmdir", "--", item["database_path"]])
+    for name in networks:
+        runner.run(["docker", "network", "rm", name])
+    for workspace in workspaces:
+        runner.run(["rm", "-rf", "--", workspace])
+
+
+def _cleanup_plan(target, inventory: dict, retention_plan: dict | None) -> dict:
+    return {
+        "schema": "usl-cleanup-plan/v1",
+        "target": target.name,
+        **inventory,
         "backup_retention": retention_plan,
     }
+
+
+def cleanup_command(arguments: argparse.Namespace) -> int:
+    target = load_target(arguments.target, arguments.targets)
+    runner = target.runner()
+    retention_image = None
     if arguments.action == "apply":
         if arguments.confirm != target.name:
             raise RuntimeError("cleanup apply requires exact --confirm")
         run_id = f"cleanup-{datetime.now(UTC):%Y%m%dt%H%M%S}"
         with runtime_lock(target, runner, "cleanup", run_id):
-            for name in candidates:
-                volume = json.loads(
-                    runner.run(
-                        ["docker", "volume", "inspect", name, "--format", "{{json .}}"],
-                    ).stdout,
+            current = inspect_runtime(target, runner)
+            inventory = _cleanup_inventory(target, runner, current)
+            retention_plan = None
+            if target.value["environment"] == "production" and not getattr(
+                arguments, "runtime_only", False,
+            ):
+                release, _release_sha, _release_raw = _release(target, runner, None)
+                _secret_file(target, runner)
+                retention_image = release["components"]["backup-tool"]["digest_reference"]
+                retention_plan = _run_cohort(
+                    target, runner, retention_image, "retention-plan", [],
+                    volumes=current["volumes"],
                 )
-                labels = volume.get("Labels") or {}
-                if labels.get("com.unstaticlabs.runtime.target") != target.name:
-                    raise RuntimeError(f"cleanup candidate became foreign: {name}")
-                role = labels.get("com.unstaticlabs.runtime.role")
-                generation = labels.get("com.unstaticlabs.runtime.generation")
-                if role not in target.value["volumes"]:
-                    raise RuntimeError(f"cleanup candidate has an invalid role: {name}")
-                tier = target.value["volumes"][role]["tier"]
-                database_path = None
-                if tier == "database":
-                    database_path = generation_volume_path(target, generation, role)
-                    options = volume.get("Options") or {}
-                    if options != {"device": database_path, "o": "bind", "type": "none"}:
-                        raise RuntimeError(f"cleanup database volume path differs: {name}")
-                    database_source, _available = _filesystem_capacity(
-                        runner,
-                        target.value["storage"]["tiers"]["database"]["path"],
-                    )
-                    bulk_source, _available = _filesystem_capacity(
-                        runner,
-                        target.value["storage"]["tiers"]["bulk"]["path"],
-                    )
-                    if database_source == bulk_source:
-                        raise RuntimeError("cleanup database tier is not local NVMe")
-                runner.run(["docker", "volume", "rm", name])
-                if database_path is not None:
-                    runner.run(
-                        ["find", database_path, "-xdev", "-mindepth", "1", "-delete"],
-                    )
-                    runner.run(["rmdir", "--", database_path])
-            for name in network_candidates:
-                labels = json.loads(
-                    runner.run(
-                        ["docker", "network", "inspect", name, "--format", "{{json .Labels}}"],
-                    ).stdout,
+            volumes, networks = _validated_cleanup_resources(target, runner, inventory)
+            if any(item["database_path"] is not None for item in volumes):
+                database_source, _available = _filesystem_capacity(
+                    runner, target.value["storage"]["tiers"]["database"]["path"],
                 )
-                if labels.get("com.unstaticlabs.runtime.target") != target.name:
-                    raise RuntimeError(f"cleanup candidate became foreign: {name}")
-                runner.run(["docker", "network", "rm", name])
+                bulk_source, _available = _filesystem_capacity(
+                    runner, target.value["storage"]["tiers"]["bulk"]["path"],
+                )
+                if database_source == bulk_source:
+                    raise RuntimeError("cleanup database tier is not local NVMe")
+            _delete_cleanup_resources(
+                runner, volumes, networks, inventory["delete_workspaces"],
+            )
             if retention_image is not None:
-                plan["backup_retention"] = _run_cohort(
+                retention_plan = _run_cohort(
                     target,
                     runner,
                     retention_image,
@@ -2731,8 +2901,23 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
                     [],
                     volumes=current["volumes"],
                 )
+            plan = _cleanup_plan(target, inventory, retention_plan)
         plan["status"] = "applied"
     else:
+        current = inspect_runtime(target, runner)
+        inventory = _cleanup_inventory(target, runner, current)
+        retention_plan = None
+        if target.value["environment"] == "production" and not getattr(
+            arguments, "runtime_only", False,
+        ):
+            release, _release_sha, _release_raw = _release(target, runner, None)
+            _secret_file(target, runner)
+            retention_image = release["components"]["backup-tool"]["digest_reference"]
+            retention_plan = _run_cohort(
+                target, runner, retention_image, "retention-plan", [],
+                volumes=current["volumes"],
+            )
+        plan = _cleanup_plan(target, inventory, retention_plan)
         plan["status"] = "planned"
     print(json.dumps(plan, indent=None if arguments.json else 2, sort_keys=True))
     return 0
