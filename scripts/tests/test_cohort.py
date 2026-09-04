@@ -4512,6 +4512,7 @@ class CohortContractTests(unittest.TestCase):
             runtime_config_digest = "c" * 64
             runtime_health_test = ["CMD", "nginx", "-t"]
             runtime_memory = 100_663_296
+            cgroup_version = "2"
 
             def run(self, command, *, check=True, input_text=None):
                 if command[:3] == ["docker", "exec", "gateway-id"]:
@@ -4540,7 +4541,9 @@ class CohortContractTests(unittest.TestCase):
                             "Memory": self.runtime_memory,
                             "MemoryReservation": 16_777_216,
                             "MemorySwap": 134_217_728,
-                            "MemorySwappiness": 10,
+                            # Docker accepts this Compose option on cgroup v2,
+                            # then discards it and reports null at runtime.
+                            "MemorySwappiness": None,
                             "OomScoreAdj": -100,
                             "PidsLimit": 64,
                         },
@@ -4558,6 +4561,10 @@ class CohortContractTests(unittest.TestCase):
                     return subprocess.CompletedProcess(command, 0, json.dumps(value), "")
                 if command[:2] == ["test", "-f"]:
                     return subprocess.CompletedProcess(command, 0, "", "")
+                if command == ["docker", "info", "--format", "{{.CgroupVersion}}"]:
+                    return subprocess.CompletedProcess(
+                        command, 0, self.cgroup_version + "\n", "",
+                    )
                 if command[:3] == ["readlink", "-f", "--"]:
                     return subprocess.CompletedProcess(command, 0, command[-1] + "\n", "")
                 if "--hash" in command:
@@ -4648,6 +4655,10 @@ class CohortContractTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "running gateway semantic configuration differs"):
                 _validate_gateway_container(target, runner, "gateway-id", canonical, generation)
             runner.runtime_memory -= 1
+            runner.cgroup_version = "1"
+            with self.assertRaisesRegex(RuntimeError, "running gateway semantic configuration differs"):
+                _validate_gateway_container(target, runner, "gateway-id", canonical, generation)
+            runner.cgroup_version = "2"
             drift = {
                 **generation,
                 "compose_files": [

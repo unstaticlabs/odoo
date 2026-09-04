@@ -293,6 +293,27 @@ def _compose_duration_nanoseconds(value: object) -> int:
     return int(float(match.group(1)) * scale[match.group(2)])
 
 
+def _memory_swappiness_matches(runner, actual: object, expected: object) -> bool:
+    """Compare swappiness while respecting the Docker host's cgroup model.
+
+    Docker accepts ``--memory-swappiness`` on a cgroup-v2 host but explicitly
+    discards it and reports ``MemorySwappiness: null``.  Treat that exact
+    engine-normalized state as equivalent; retain an exact comparison on
+    cgroup v1, where the setting is enforceable.
+    """
+    expected_value = int(expected or 0)
+    if actual == expected_value:
+        return True
+    if actual is not None:
+        return False
+    cgroup_version = runner.run(
+        ["docker", "info", "--format", "{{.CgroupVersion}}"],
+    ).stdout.strip()
+    if cgroup_version not in {"1", "2"}:
+        raise RuntimeError("Docker cgroup capability evidence is invalid")
+    return cgroup_version == "2"
+
+
 def _with_stable_gateway_config(target, runner, identity: dict) -> dict:
     """Pin staging gateway configuration to a persistent content identity."""
     if target.value["environment"] != "staging":
@@ -492,7 +513,11 @@ def _validate_gateway_container(
         or host.get("Memory") != int(canonical_gateway.get("mem_limit", 0))
         or host.get("MemoryReservation") != int(canonical_gateway.get("mem_reservation", 0))
         or host.get("MemorySwap") != int(canonical_gateway.get("memswap_limit", 0))
-        or host.get("MemorySwappiness") != int(canonical_gateway.get("mem_swappiness", 0))
+        or not _memory_swappiness_matches(
+            runner,
+            host.get("MemorySwappiness"),
+            canonical_gateway.get("mem_swappiness", 0),
+        )
         or host.get("OomScoreAdj") != canonical_gateway.get("oom_score_adj", 0)
         or host.get("PidsLimit") != canonical_gateway.get("pids_limit")
         or sorted(host.get("SecurityOpt") or [])
