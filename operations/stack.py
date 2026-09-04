@@ -1821,6 +1821,23 @@ def _active_generation_state(
     return json.dumps(value, indent=2, sort_keys=True) + "\n"
 
 
+def _previous_generation_record(target, current: dict) -> dict:
+    """Record rollback resources plus exact validated legacy Compose provenance."""
+    active = current["active_state"] or {}
+    previous = {
+        "generation": current["generation"],
+        "volumes": {role: item["name"] for role, item in current["volumes"].items()},
+        "network": active.get("network"),
+        "release_manifest": active.get("release_manifest"),
+        "snapshot": active.get("snapshot"),
+    }
+    identity = current["compose"]
+    adoption = target.value["compose"].get("adoption")
+    if adoption is not None and identity.get("anchor_service") == adoption["legacy_anchor_service"]:
+        previous["compose"] = _recorded_compose_identity(identity)
+    return previous
+
+
 def _base_compose_identity(target, identity: dict) -> dict:
     generated_prefix = target.value["state_directory"] + "/generations/"
     compose_files = [
@@ -1834,6 +1851,77 @@ def _base_compose_identity(target, identity: dict) -> dict:
     if not compose_files:
         raise RuntimeError("base Compose identity is unavailable")
     return {**identity, "compose_files": compose_files}
+
+
+def _recorded_compose_identity(identity: dict) -> dict:
+    """Persist only the stable Compose provenance needed for rollback."""
+    return {
+        field: identity[field]
+        for field in (
+            "project",
+            "working_directory",
+            "environment_file",
+            "compose_files",
+            "profiles",
+            "anchor_service",
+        )
+    }
+
+
+def _validated_legacy_compose_identity(target, runner, value: dict, generation: str) -> dict:
+    """Admit the one staging v2 layout without accepting arbitrary host paths."""
+    adoption = target.value["compose"].get("adoption")
+    expected_fields = {
+        "project",
+        "working_directory",
+        "environment_file",
+        "compose_files",
+        "profiles",
+        "anchor_service",
+    }
+    if adoption is None or not isinstance(value, dict) or set(value) != expected_fields:
+        raise RuntimeError("legacy rollback Compose identity is invalid")
+    if (
+        value["project"] != target.project
+        or value["anchor_service"] != adoption["legacy_anchor_service"]
+        or value["profiles"] != target.value["compose"]["profiles"]
+        or value["environment_file"] != adoption["candidate"]["environment_file"]
+    ):
+        raise RuntimeError("legacy rollback Compose identity differs from its contract")
+    state_root = target.value["state_directory"]
+    working_directory = value["working_directory"]
+    if not re.fullmatch(re.escape(state_root) + r"/validation-[0-9a-f]{8,16}", working_directory):
+        raise RuntimeError("legacy rollback working directory is outside the validation perimeter")
+    allowed = {
+        f"{working_directory}/compose.yaml",
+        f"{working_directory}/compose.resources.json",
+        f"{working_directory}/usl-staging-proxy-generation.json",
+        f"{state_root}/generations/{generation}/compose.resources.json",
+        f"{state_root}/generations/{generation}/compose.generation.json",
+    }
+    compose_files = value["compose_files"]
+    if (
+        not isinstance(compose_files, list)
+        or not compose_files
+        or len(compose_files) != len(set(compose_files))
+        or set(compose_files) != allowed
+    ):
+        raise RuntimeError("legacy rollback Compose files are outside the validation perimeter")
+    paths = [working_directory, value["environment_file"], *compose_files]
+    for path in paths:
+        test = ["test", "-d" if path == working_directory else "-f", path]
+        if runner.run(test, check=False).returncode:
+            raise RuntimeError(f"legacy rollback Compose path is missing: {path}")
+        resolved = runner.run(["readlink", "-f", "--", path]).stdout.strip()
+        if resolved != path:
+            raise RuntimeError(f"legacy rollback Compose path is not direct: {path}")
+    services = set(runner.run(compose_command(value, ["config", "--services"])).stdout.splitlines())
+    expected_services = set(target.value["services"].values())
+    expected_services.remove(target.value["compose"]["anchor_service"])
+    expected_services.add(adoption["legacy_anchor_service"])
+    if not expected_services.issubset(services) or target.value["compose"]["anchor_service"] in services:
+        raise RuntimeError("legacy rollback Compose service perimeter differs")
+    return value
 
 
 def _compose_services(target, identity: dict) -> list[str]:
@@ -1894,11 +1982,22 @@ def _cleanup_adoption_candidate_anchor(target, runner, current_identity: dict) -
     anchor = target.value["compose"]["anchor_service"]
     if current_identity.get("anchor_service", anchor) == anchor:
         return
+    _remove_owned_compose_service(target, runner, anchor)
+
+
+def _remove_owned_compose_service(target, runner, service: str) -> None:
+    """Remove exactly one allowlisted Compose service after proving ownership."""
+    permitted = set(target.value["services"].values())
+    adoption = target.value["compose"].get("adoption")
+    if adoption is not None:
+        permitted.add(adoption["legacy_anchor_service"])
+    if service not in permitted:
+        raise RuntimeError("refusing to remove a service outside the target perimeter")
     candidates = runner.run(
         [
             "docker", "ps", "-a",
             "--filter", f"label=com.docker.compose.project={target.project}",
-            "--filter", f"label=com.docker.compose.service={anchor}",
+            "--filter", f"label=com.docker.compose.service={service}",
             "--format", "{{.ID}}",
         ],
     ).stdout.splitlines()
@@ -1913,9 +2012,9 @@ def _cleanup_adoption_candidate_anchor(target, runner, current_identity: dict) -
         )
         if (
             labels.get("com.docker.compose.project") != target.project
-            or labels.get("com.docker.compose.service") != anchor
+            or labels.get("com.docker.compose.service") != service
         ):
-            raise RuntimeError("failed candidate anchor ownership differs")
+            raise RuntimeError("Compose service ownership differs")
         runner.run(["docker", "rm", "--force", container])
 
 
@@ -1982,9 +2081,15 @@ def _previous_generation_identity(target, runner, current: dict) -> tuple[dict, 
     if active is None:
         return identity, None
     previous = active.get("previous")
-    if not isinstance(previous, dict) or set(previous) != {
+    required_previous = {
         "generation", "volumes", "network", "release_manifest", "snapshot",
-    }:
+    }
+    allowed_previous = required_previous | {"compose"}
+    if (
+        not isinstance(previous, dict)
+        or not required_previous.issubset(previous)
+        or not set(previous).issubset(allowed_previous)
+    ):
         raise RuntimeError("rollback generation state is incomplete")
     if previous["release_manifest"] is None:
         if previous["network"] is not None or previous["snapshot"] is not None:
@@ -2024,8 +2129,17 @@ def _previous_generation_identity(target, runner, current: dict) -> tuple[dict, 
             previous_release = json.loads(runner.run(["cat", release_manifest]).stdout)
         except json.JSONDecodeError as error:
             raise RuntimeError("rollback release manifest is invalid") from error
-        if previous_release.get("schema") != "usl-release/v3":
-            raise RuntimeError("automatic rollback to the preserved legacy v2 topology is disabled")
+        if previous_release.get("schema") == adoption["legacy_release_schema"]:
+            if "compose" not in previous:
+                raise RuntimeError("legacy v2 rollback lacks its exact Compose identity")
+            identity = _validated_legacy_compose_identity(
+                target,
+                runner,
+                previous["compose"],
+                generation,
+            )
+        elif previous_release.get("schema") != "usl-release/v3":
+            raise RuntimeError("rollback release schema is unsupported")
         try:
             validate_release(previous_release)
         except ReleaseManifestError as error:
@@ -2054,6 +2168,16 @@ def _abort_to_previous_generation(target, runner, targets: Path) -> dict:
         compose_command(current["compose"], ["stop", "--timeout", "60", *cohort_services]),
         check=False,
     )
+    adoption = target.value["compose"].get("adoption")
+    if (
+        adoption is not None
+        and previous_identity.get("anchor_service") == adoption["legacy_anchor_service"]
+    ):
+        _remove_owned_compose_service(
+            target,
+            runner,
+            target.value["compose"]["anchor_service"],
+        )
     rollback = runner.run(
         compose_command(previous_identity, ["up", "--detach", "--wait"]),
         check=False,
@@ -2098,15 +2222,40 @@ def _validate_materialized_release(
         raise RuntimeError("production recovery lacks complete Sign secret material")
 
 
-def _run_candidate_upgrade(target, runner, release, network, volumes, plan) -> None:
+def _run_candidate_upgrade(
+    target,
+    runner,
+    release,
+    network,
+    volumes,
+    plan,
+    candidate_identity=None,
+) -> None:
     modules = validate_upgrade_plan(plan)["upgrade_modules"]
     if not modules:
         return
     if plan["candidate_release"] != release.get("identity"):
         raise RuntimeError("upgrade plan is not bound to the candidate release")
     database = target.value["databases"]["odoo"]
-    runner.run(
-        [
+    arguments = [
+        "odoo", "--config=/etc/odoo/odoo.conf",
+        f"--database={database['name']}",
+        f"--update={','.join(modules)}",
+        "--stop-after-init", "--no-http", "--max-cron-threads=0",
+    ]
+    if target.value["environment"] == "staging":
+        if candidate_identity is None:
+            raise RuntimeError("staging upgrade requires the approved runtime identity")
+        command = _staging_pocketid_command(
+            target,
+            release,
+            network,
+            volumes,
+            candidate_identity,
+            arguments,
+        )
+    else:
+        command = [
             "docker", "run", "--rm", "--network", network,
             "--env-file", target.value["secrets"]["env_file"],
             "--env", f"ODOO_DB_HOST={database['service']}",
@@ -2118,12 +2267,135 @@ def _run_candidate_upgrade(target, runner, release, network, volumes, plan) -> N
             "--env", "USL_EREPORTING_LIVE_ENABLED=0",
             "--volume", f"{volumes['odoo_filestore']}:/var/lib/odoo",
             release["components"]["distribution"]["digest_reference"],
-            "odoo", "--config=/etc/odoo/odoo.conf",
-            f"--database={database['name']}",
-            f"--update={','.join(modules)}",
-            "--stop-after-init", "--no-http", "--max-cron-threads=0",
-        ],
+            *arguments,
+        ]
+    runner.run(command)
+
+
+def _staging_pocketid_runtime_environment(target, candidate_identity: dict) -> str:
+    adoption = target.value["compose"].get("adoption")
+    if target.value["environment"] != "staging" or adoption is None:
+        raise RuntimeError("Pocket ID staging reconciliation requires the staging adoption contract")
+    environment_file = candidate_identity.get("environment_file")
+    if environment_file != adoption["candidate"]["environment_file"]:
+        raise RuntimeError("Pocket ID staging environment differs from the approved runtime file")
+    return environment_file
+
+
+def _staging_pocketid_command(target, release, network, volumes, candidate_identity, arguments):
+    database = target.value["databases"]["odoo"]
+    runtime_environment = _staging_pocketid_runtime_environment(target, candidate_identity)
+    shell = (
+        'set -eu; '
+        'export USL_POCKET_ID_CLIENT_ID="${POCKET_ID_CLIENT_ID:?}"; '
+        'export USL_POCKET_ID_CLIENT_SECRET="${POCKET_ID_CLIENT_SECRET:?}"; '
+        'exec "$@"'
     )
+    return [
+        "docker", "run", "--rm", "--interactive", "--network", network,
+        "--env-file", target.value["secrets"]["env_file"],
+        "--env-file", runtime_environment,
+        "--env", f"ODOO_DB_HOST={database['service']}",
+        "--env", "ODOO_DB_PORT=5432",
+        "--env", f"ODOO_DB_USER={database['user']}",
+        "--env", f"ODOO_DB_NAME={database['name']}",
+        "--env", "ODOO_MAX_CRON_THREADS=0",
+        "--env", "USL_DEPLOYMENT_ENV=staging",
+        "--env", "USL_EINVOICE_LIVE_ENABLED=0",
+        "--env", "USL_EREPORTING_LIVE_ENABLED=0",
+        "--env", "USL_POCKET_ID_ENABLED=1",
+        "--env", "USL_POCKET_ID_ISSUER=https://auth.unstaticlabs.com",
+        "--env", f"USL_POCKET_ID_ODOO_BASE_URL={target.value['endpoints']['odoo']}",
+        "--env", "USL_POCKET_ID_REQUIRED_GROUP=c_suite",
+        "--env", "USL_POCKET_ID_SCOPES=openid profile email groups",
+        "--volume", f"{volumes['odoo_filestore']}:/var/lib/odoo",
+        "--entrypoint", "/bin/sh",
+        release["components"]["distribution"]["digest_reference"],
+        "-c", shell, "usl-pocketid-reconcile", *arguments,
+    ]
+
+
+def _reconcile_staging_pocketid(target, runner, release, network, volumes, candidate_identity) -> dict:
+    """Re-enable and prove the staging OIDC provider after neutralization."""
+    if target.value["environment"] != "staging":
+        return {"schema": "usl-pocket-id-runtime-admission/v1", "status": "not-applicable"}
+    database = target.value["databases"]["odoo"]
+    program = r'''import json
+import os
+from urllib.parse import urlsplit
+
+provider = env.ref("usl_pocketid.provider_pocketid").sudo()
+applied = env["auth.oauth.provider"]._usl_pocketid_apply_environment()
+provider.invalidate_recordset()
+issuer = os.environ["USL_POCKET_ID_ISSUER"].rstrip("/")
+base_url = os.environ["USL_POCKET_ID_ODOO_BASE_URL"].rstrip("/")
+expected_scopes = set(os.environ["USL_POCKET_ID_SCOPES"].split())
+issuer_url = urlsplit(issuer)
+endpoint_fields = ("auth_endpoint", "token_endpoint", "jwks_uri", "usl_end_session_endpoint")
+endpoints = [urlsplit(provider[field]) for field in endpoint_fields]
+checks = {
+    "application_completed": applied is True,
+    "provider_enabled": provider.enabled is True,
+    "governed_provider": provider.usl_pocketid is True,
+    "client_id_matches": provider.client_id == os.environ["USL_POCKET_ID_CLIENT_ID"],
+    "database_secret_absent": not provider.client_secret,
+    "issuer_matches": provider.usl_oidc_issuer.rstrip("/") == issuer,
+    "base_url_matches": provider.usl_public_base_url.rstrip("/") == base_url,
+    "required_group_matches": provider.usl_required_group == os.environ["USL_POCKET_ID_REQUIRED_GROUP"],
+    "scopes_match": set(provider.scope.split()) == expected_scopes,
+    "endpoints_match_issuer": all(
+        endpoint.scheme == "https"
+        and endpoint.hostname == issuer_url.hostname
+        and endpoint.port == issuer_url.port
+        and not endpoint.username
+        and not endpoint.password
+        for endpoint in endpoints
+    ),
+}
+evidence = {"schema": "usl-pocket-id-runtime-admission/v1", "status": "passed", **checks}
+if not all(checks.values()):
+    raise RuntimeError("Pocket ID runtime admission failed: " + ", ".join(
+        key for key, value in checks.items() if not value
+    ))
+print("USL_POCKET_ID_RUNTIME_ADMISSION=" + json.dumps(evidence, sort_keys=True))
+'''
+    result = runner.run(
+        _staging_pocketid_command(
+            target,
+            release,
+            network,
+            volumes,
+            candidate_identity,
+            [
+                "odoo", "shell", "--config=/etc/odoo/odoo.conf",
+                f"--database={database['name']}", "--no-http", "--max-cron-threads=0",
+            ],
+        ),
+        input_text=program,
+    )
+    prefix = "USL_POCKET_ID_RUNTIME_ADMISSION="
+    for line in reversed(result.stdout.splitlines()):
+        if not line.startswith(prefix):
+            continue
+        try:
+            evidence = json.loads(line.removeprefix(prefix))
+        except json.JSONDecodeError as error:
+            raise RuntimeError("Pocket ID runtime admission returned invalid evidence") from error
+        expected_keys = {
+            "schema", "status", "application_completed", "provider_enabled",
+            "governed_provider", "client_id_matches", "database_secret_absent",
+            "issuer_matches", "base_url_matches", "required_group_matches",
+            "scopes_match", "endpoints_match_issuer",
+        }
+        if (
+            set(evidence) != expected_keys
+            or evidence.get("schema") != "usl-pocket-id-runtime-admission/v1"
+            or evidence.get("status") != "passed"
+            or any(evidence[key] is not True for key in expected_keys - {"schema", "status"})
+        ):
+            raise RuntimeError("Pocket ID runtime admission evidence differs")
+        return evidence
+    raise RuntimeError("Pocket ID runtime admission returned no evidence")
 
 
 def _apply_generation_cron_policy(target, runner, release, network, volumes) -> dict:
@@ -2301,6 +2573,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     upgrade_plan = None
     signed_plan_evidence = None
     cron_policy_application = None
+    pocketid_admission = None
     if getattr(arguments, "upgrade_plan", None):
         try:
             plan_value = json.loads(_read_path(target, target_runner, arguments.upgrade_plan))
@@ -2406,8 +2679,24 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             snapshot_identity = snapshot_release.get("identity", snapshot_release["manifest_sha256"])
             if upgrade_plan["active_release"] != snapshot_identity:
                 raise RuntimeError("upgrade plan is not bound to the snapshot release")
-            _run_candidate_upgrade(target, target_runner, release, network, volumes, upgrade_plan)
+            _run_candidate_upgrade(
+                target,
+                target_runner,
+                release,
+                network,
+                volumes,
+                upgrade_plan,
+                candidate_identity,
+            )
         _neutralize_generation(target, target_runner, release, generation, network, volumes)
+        pocketid_admission = _reconcile_staging_pocketid(
+            target,
+            target_runner,
+            release,
+            network,
+            volumes,
+            candidate_identity,
+        )
         cron_policy_application = _apply_generation_cron_policy(
             target,
             target_runner,
@@ -2461,13 +2750,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         "anchor_service": target.value["compose"]["anchor_service"],
         "compose_files": compose_files,
     }
-    previous = {
-        "generation": current["generation"],
-        "volumes": {role: item["name"] for role, item in current["volumes"].items()},
-        "network": (current["active_state"] or {}).get("network"),
-        "release_manifest": (current["active_state"] or {}).get("release_manifest"),
-        "snapshot": (current["active_state"] or {}).get("snapshot"),
-    }
+    previous = _previous_generation_record(target, current)
     phase_started = time.monotonic()
     _record_event(target, target_runner, generation, "restore", "activation", "started")
     # A stable ingress gateway is intentionally outside this service
@@ -2559,6 +2842,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         "health": health,
         "smoke": smoke,
         "cron_policy_application": cron_policy_application,
+        "pocket_id_admission": pocketid_admission,
         "control_validation": control_validation,
         "capacity": {
             "before_pull": capacity_before_pull,

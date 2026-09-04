@@ -180,6 +180,13 @@ HTTP 503 in place. After access has reopened, automation must never discard
 current data by restoring an older database; recovery requires a forward fix
 or explicit incident approval.
 
+During the one-time staging v2-to-v3 transition, `active.previous` also carries
+the stable fields of the captured legacy Compose identity. Admission accepts
+only the staging validation directory, exact generation overlays, approved
+staging environment file and expected service perimeter. This lets failures
+after activation restore the real legacy `odoo` service without turning the
+state file into an arbitrary host-path execution surface.
+
 Persistent resources declare one of three storage tiers. On production hosts,
 `bulk` is the Hetzner EXT4 Volume mounted at `/srv/storage`, `database` is the
 local-NVMe `/srv/db`, and `local` covers small host security state. PostgreSQL,

@@ -72,12 +72,23 @@ The restore performs these steps unattended:
 3. create generation-labeled volumes and a private network;
 4. restore both databases and all durable/cache resources while retaining the
    target's isolated Sign identity outside production;
-5. neutralize staging and isolate MCP OAuth state;
-6. reclaim download scratch before activation;
-7. atomically switch staging and retain the previous generation;
-8. apply the target's versioned CPU, memory, PID and OOM-priority policy;
-9. verify HTTP health, Ollama identity, exact business controls, queues,
+5. run required module upgrades with the approved staging runtime identity and
+   both regulatory live flags forced off;
+6. neutralize staging and isolate MCP OAuth state;
+7. explicitly reconcile Pocket ID from the approved staging environment, then
+   admit the enabled provider, issuer, public URL, client identity, scopes and
+   empty database secret without logging credentials;
+8. reclaim download scratch before activation;
+9. atomically switch staging and retain the previous generation;
+10. apply the target's versioned CPU, memory, PID and OOM-priority policy;
+11. verify HTTP health, Ollama identity, exact business controls, queues,
    filestore coverage, Paperless originals, OCR, previews, Tantivy, and vectors.
+
+The first v3 activation also records the exact validated v2 Compose identity.
+If a post-activation gate fails, rollback accepts only the staging validation
+directory, generation overlays and environment file allowed by the transition
+contract. It removes the stopped canonical anchor before restarting the legacy
+service, so later runtime inspection cannot see two competing Odoo anchors.
 
 Admission also records the MCP server version and OAuth-vault schema reported
 by its versioned readiness endpoint. Production and staging require the vault

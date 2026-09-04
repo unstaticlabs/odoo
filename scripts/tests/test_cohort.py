@@ -29,7 +29,9 @@ from operations.stack import (
     _materialize_command,
     _materialization_cleanup,
     _prepare_generation_volume_ownership,
+    _previous_generation_record,
     _previous_generation_identity,
+    _reconcile_staging_pocketid,
     _release_images,
     _remove_materialization_workspace,
     _resource_overlay,
@@ -37,6 +39,7 @@ from operations.stack import (
     _measure_candidate_bytes,
     _notify_release,
     _rollback_after_failure,
+    _run_candidate_upgrade,
     _restore_unlocked,
     _storage_status,
     _write_adopt_generation,
@@ -370,7 +373,7 @@ class CohortContractTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "manifest path"):
             _previous_generation_identity(target, mock.Mock(), current)
 
-    def test_staging_abort_preserves_but_refuses_the_legacy_v2_generation(self) -> None:
+    def test_staging_abort_refuses_legacy_v2_without_exact_compose_identity(self) -> None:
         target = load_target("staging", HOST_TARGETS)
         generation = "g20260903-storage-a"
         root = f"{target.value['state_directory']}/generations/{generation}"
@@ -410,13 +413,166 @@ class CohortContractTests(unittest.TestCase):
                     )
                 raise AssertionError(command)
 
-        with self.assertRaisesRegex(RuntimeError, "legacy v2 topology is disabled"):
+        with self.assertRaisesRegex(RuntimeError, "lacks its exact Compose identity"):
             _previous_generation_identity(target, LegacyReleaseRunner(), current)
 
         malformed = LegacyReleaseRunner()
         malformed.release = {"schema": "usl-release/v3"}
         with self.assertRaisesRegex(RuntimeError, "rollback release manifest is invalid"):
             _previous_generation_identity(target, malformed, current)
+
+    def test_staging_abort_admits_only_the_recorded_legacy_v2_compose_identity(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        generation = "g20260903-storage-a"
+        state_root = target.value["state_directory"]
+        working = f"{state_root}/validation-8973f9ee903"
+        release_path = f"{state_root}/generations/{generation}/usl-release.json"
+        legacy = {
+            "project": target.project,
+            "working_directory": working,
+            "environment_file": target.value["compose"]["adoption"]["candidate"]["environment_file"],
+            "profiles": target.value["compose"]["profiles"],
+            "anchor_service": "odoo",
+            "compose_files": [
+                f"{working}/compose.yaml",
+                f"{working}/compose.resources.json",
+                f"{working}/usl-staging-proxy-generation.json",
+                f"{state_root}/generations/{generation}/compose.resources.json",
+                f"{state_root}/generations/{generation}/compose.generation.json",
+            ],
+        }
+        current = {
+            "compose": {
+                "project": target.project,
+                "working_directory": "/gitops/staging",
+                "environment_file": "/runtime/staging.env",
+                "profiles": target.value["compose"]["profiles"],
+                "anchor_service": "odoo-staging",
+                "compose_files": ["/gitops/staging/compose.yaml"],
+            },
+            "active_state": {
+                "generation": "gcandidate",
+                "previous": {
+                    "generation": generation,
+                    "volumes": {role: f"legacy-{role}" for role in target.value["volumes"]},
+                    "network": "legacy-network",
+                    "release_manifest": release_path,
+                    "snapshot": "b" * 64,
+                    "compose": legacy,
+                },
+            },
+        }
+
+        class LegacyRunner:
+            def run(self, command, *, check=True):
+                if command[:2] in (["test", "-f"], ["test", "-d"]):
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:2] == ["readlink", "-f"]:
+                    return subprocess.CompletedProcess(command, 0, command[-1] + "\n", "")
+                if command[:1] == ["cat"]:
+                    return subprocess.CompletedProcess(command, 0, '{"schema":"usl-release/v2"}', "")
+                if command[-2:] == ["config", "--services"]:
+                    services = set(target.value["services"].values())
+                    services.remove("odoo-staging")
+                    services.add("odoo")
+                    return subprocess.CompletedProcess(command, 0, "\n".join(sorted(services)) + "\n", "")
+                raise AssertionError(command)
+
+        with mock.patch("operations.stack.validate_release", return_value={"schema": "usl-release/v2"}):
+            identity, state = _previous_generation_identity(target, LegacyRunner(), current)
+        self.assertEqual(identity, legacy)
+        self.assertEqual(json.loads(state)["generation"], generation)
+
+        poisoned = json.loads(json.dumps(current))
+        poisoned["active_state"]["previous"]["compose"]["compose_files"][0] = "/tmp/compose.yaml"
+        with self.assertRaisesRegex(RuntimeError, "outside the validation perimeter"):
+            _previous_generation_identity(target, LegacyRunner(), poisoned)
+
+    def test_first_v3_state_records_exact_legacy_compose_identity_for_late_rollback(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        legacy = {
+            "container_id": "runtime-only",
+            "project": target.project,
+            "working_directory": target.value["state_directory"] + "/validation-8973f9ee903",
+            "environment_file": target.value["compose"]["adoption"]["candidate"]["environment_file"],
+            "profiles": target.value["compose"]["profiles"],
+            "anchor_service": "odoo",
+            "compose_files": [target.value["state_directory"] + "/validation-8973f9ee903/compose.yaml"],
+        }
+        current = {
+            "generation": "g20260903-storage-a",
+            "compose": legacy,
+            "active_state": {
+                "network": "legacy-network",
+                "release_manifest": target.value["state_directory"] + "/generations/g20260903-storage-a/usl-release.json",
+                "snapshot": "a" * 64,
+            },
+            "volumes": {
+                role: {"name": f"legacy-{role}"}
+                for role in target.value["volumes"]
+            },
+        }
+        previous = _previous_generation_record(target, current)
+        self.assertEqual(previous["compose"]["anchor_service"], "odoo")
+        self.assertNotIn("container_id", previous["compose"])
+        self.assertEqual(previous["compose"]["compose_files"], legacy["compose_files"])
+
+    def test_post_activation_abort_removes_canonical_anchor_before_legacy_v2_restart(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        current_identity = {
+            "project": target.project,
+            "working_directory": "/gitops/staging",
+            "environment_file": "/runtime/staging.env",
+            "profiles": [],
+            "anchor_service": "odoo-staging",
+            "compose_files": ["/gitops/staging/compose.yaml"],
+        }
+        legacy_identity = {
+            **current_identity,
+            "anchor_service": "odoo",
+            "compose_files": ["/runtime/legacy-v2.json"],
+        }
+        current = {
+            "compose": current_identity,
+            "active_state": {"generation": "gv3"},
+        }
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:2] == ["test", "-f"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:2] == ["docker", "ps"]:
+                    return subprocess.CompletedProcess(command, 0, "canonical-id\n", "")
+                if command[:3] == ["docker", "inspect", "canonical-id"]:
+                    return subprocess.CompletedProcess(
+                        command,
+                        0,
+                        json.dumps({
+                            "com.docker.compose.project": target.project,
+                            "com.docker.compose.service": "odoo-staging",
+                        }),
+                        "",
+                    )
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = Runner()
+        with mock.patch("operations.stack.inspect_runtime", return_value=current), mock.patch(
+            "operations.stack._previous_generation_identity",
+            return_value=(legacy_identity, '{"generation":"legacy"}'),
+        ), mock.patch(
+            "operations.stack._gate",
+            side_effect=[{"status": "passed"}, {"status": "passed"}],
+        ):
+            result = _abort_to_previous_generation(target, runner, TARGETS)
+        remove = ["docker", "rm", "--force", "canonical-id"]
+        up = next(command for command in runner.commands if command[-3:] == ["up", "--detach", "--wait"])
+        self.assertLess(runner.commands.index(remove), runner.commands.index(up))
+        self.assertIn("/runtime/legacy-v2.json", up)
+        self.assertEqual(result["status"], "rolled-back")
 
     def test_release_abort_restores_adopted_runtime_and_proves_it(self) -> None:
         target = mock.Mock()
@@ -532,6 +688,147 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("--interactive", runner.command)
         self.assertIn("odoo", runner.command)
         self.assertIn("base.autovacuum_job", runner.input_text)
+
+    def test_staging_upgrade_uses_approved_pocket_id_runtime_without_regulatory_access(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        candidate = {
+            "environment_file": target.value["compose"]["adoption"]["candidate"]["environment_file"],
+        }
+        release = {
+            "identity": "a" * 64,
+            "components": {
+                "distribution": {
+                    "digest_reference": "ghcr.io/unstaticlabs/usl-odoo@sha256:" + "b" * 64,
+                },
+            },
+        }
+        plan = {
+            "schema": "usl-module-upgrade-plan/v1",
+            "active_release": "c" * 64,
+            "candidate_release": release["identity"],
+            "upgrade_modules": ["usl_pocketid"],
+            "changed_modules": ["usl_pocketid"],
+            "reasons": {"usl_pocketid": ["source_sha256"]},
+        }
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        with mock.patch("operations.stack.validate_upgrade_plan", return_value=plan):
+            _run_candidate_upgrade(
+                target,
+                runner,
+                release,
+                "candidate-network",
+                {"odoo_filestore": "candidate-filestore"},
+                plan,
+                candidate,
+            )
+        command = runner.run.call_args.args[0]
+        self.assertIn(candidate["environment_file"], command)
+        self.assertIn("USL_EINVOICE_LIVE_ENABLED=0", command)
+        self.assertIn("USL_EREPORTING_LIVE_ENABLED=0", command)
+        self.assertIn("USL_POCKET_ID_ENABLED=1", command)
+        shell = command[command.index("-c") + 1]
+        self.assertIn("${POCKET_ID_CLIENT_SECRET:?}", shell)
+        self.assertNotIn("client-secret-value", " ".join(command))
+
+    def test_staging_pocket_id_reconcile_returns_redacted_runtime_evidence(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        candidate = {
+            "environment_file": target.value["compose"]["adoption"]["candidate"]["environment_file"],
+        }
+        release = {
+            "components": {
+                "distribution": {
+                    "digest_reference": "ghcr.io/unstaticlabs/usl-odoo@sha256:" + "b" * 64,
+                },
+            },
+        }
+        checks = {
+            "application_completed": True,
+            "provider_enabled": True,
+            "governed_provider": True,
+            "client_id_matches": True,
+            "database_secret_absent": True,
+            "issuer_matches": True,
+            "base_url_matches": True,
+            "required_group_matches": True,
+            "scopes_match": True,
+            "endpoints_match_issuer": True,
+        }
+        evidence = {
+            "schema": "usl-pocket-id-runtime-admission/v1",
+            "status": "passed",
+            **checks,
+        }
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess(
+            [],
+            0,
+            "USL_POCKET_ID_RUNTIME_ADMISSION=" + json.dumps(evidence) + "\n",
+            "",
+        )
+        result = _reconcile_staging_pocketid(
+            target,
+            runner,
+            release,
+            "candidate-network",
+            {"odoo_filestore": "candidate-filestore"},
+            candidate,
+        )
+        self.assertEqual(result, evidence)
+        self.assertNotIn("client_id", result)
+        self.assertNotIn("client_secret", result)
+        command = runner.run.call_args.args[0]
+        self.assertLess(command.index("USL_POCKET_ID_ENABLED=1"), command.index("--entrypoint"))
+
+    def test_staging_pocket_id_reconcile_rejects_unapproved_environment_and_failed_check(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        release = {
+            "components": {
+                "distribution": {
+                    "digest_reference": "ghcr.io/unstaticlabs/usl-odoo@sha256:" + "b" * 64,
+                },
+            },
+        }
+        runner = mock.Mock()
+        with self.assertRaisesRegex(RuntimeError, "approved runtime file"):
+            _reconcile_staging_pocketid(
+                target,
+                runner,
+                release,
+                "candidate-network",
+                {"odoo_filestore": "candidate-filestore"},
+                {"environment_file": "/tmp/untrusted.env"},
+            )
+
+        evidence = {
+            "schema": "usl-pocket-id-runtime-admission/v1",
+            "status": "passed",
+            "application_completed": True,
+            "provider_enabled": False,
+            "governed_provider": True,
+            "client_id_matches": True,
+            "database_secret_absent": True,
+            "issuer_matches": True,
+            "base_url_matches": True,
+            "required_group_matches": True,
+            "scopes_match": True,
+            "endpoints_match_issuer": True,
+        }
+        runner.run.return_value = subprocess.CompletedProcess(
+            [], 0, "USL_POCKET_ID_RUNTIME_ADMISSION=" + json.dumps(evidence) + "\n", "",
+        )
+        with self.assertRaisesRegex(RuntimeError, "evidence differs"):
+            _reconcile_staging_pocketid(
+                target,
+                runner,
+                release,
+                "candidate-network",
+                {"odoo_filestore": "candidate-filestore"},
+                {
+                    "environment_file": target.value["compose"]["adoption"]["candidate"]["environment_file"],
+                },
+            )
 
     def _sign_secrets(self, root: Path) -> Path:
         for relative in cohort.SIGN_SECRET_FILES:
