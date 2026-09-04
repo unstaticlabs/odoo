@@ -28,7 +28,13 @@ from operations.stack import (
     _ensure_image,
     _materialize_command,
     _materialization_cleanup,
+    _maintenance_receipt,
     _prepare_generation_volume_ownership,
+    _prepare_secret_contract,
+    _prepare_release_candidate,
+    _prepare_receipt,
+    _release_attempt,
+    _require_same_preparation,
     _previous_generation_identity,
     _release_images,
     _remove_materialization_workspace,
@@ -97,6 +103,186 @@ def manifest(durable: dict, cache: dict) -> dict:
 
 
 class CohortContractTests(unittest.TestCase):
+    def test_release_prepare_requires_complete_owner_protected_secrets(self) -> None:
+        target = load_target("production", TARGETS)
+        path = target.value["secrets"]["env_file"]
+        secret_text = "\n".join(
+            f"{key}=qualified-{index}"
+            for index, key in enumerate(target.value["secrets"]["allowed_keys"], 1)
+        ) + "\n"
+
+        class SecretRunner:
+            def __init__(self, mode="600", text=secret_text):
+                self.mode = mode
+                self.text = text
+
+            def run(self, command, *, check=True):
+                if command[0] == "readlink":
+                    return subprocess.CompletedProcess(command, 0, path + "\n", "")
+                if command[0] == "stat":
+                    return subprocess.CompletedProcess(command, 0, f"regular file|{self.mode}\n", "")
+                if command[0] == "cat":
+                    return subprocess.CompletedProcess(command, 0, self.text, "")
+                raise AssertionError(command)
+
+        self.assertEqual(_prepare_secret_contract(target, SecretRunner()), path)
+        with self.assertRaisesRegex(RuntimeError, "permissions"):
+            _prepare_secret_contract(target, SecretRunner(mode="640"))
+        with self.assertRaisesRegex(RuntimeError, "incomplete"):
+            _prepare_secret_contract(
+                target,
+                SecretRunner(text=secret_text.splitlines()[0] + "\n"),
+            )
+
+    def test_release_attempt_is_distinct_from_release_identity(self) -> None:
+        self.assertEqual(_release_attempt("attempt-20260904-0001", "a" * 64), "attempt-20260904-0001")
+        with self.assertRaisesRegex(RuntimeError, "distinct"):
+            _release_attempt("a" * 64, "a" * 64)
+        with self.assertRaisesRegex(RuntimeError, "missing or invalid"):
+            _release_attempt("bad", "a" * 64)
+
+    def test_maintenance_receipt_binds_attempt_and_public_503(self) -> None:
+        body = {
+            "schema": "usl-maintenance-admission/v1",
+            "target": "production",
+            "attempt": "attempt-20260904-0001",
+            "observed_at": "2026-09-04T12:00:00Z",
+            "endpoints": {
+                "https://odoo.unstaticlabs.com": {
+                    "status_code": 503,
+                    "body_sha256": "b" * 64,
+                },
+            },
+            "status": "closed",
+        }
+        body["sha256"] = __import__("hashlib").sha256(
+            json.dumps(body, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        self.assertEqual(
+            _maintenance_receipt(
+                body, target="production", attempt="attempt-20260904-0001",
+            ),
+            body,
+        )
+        changed = dict(body)
+        changed["attempt"] = "attempt-other"
+        with self.assertRaisesRegex(RuntimeError, "identity"):
+            _maintenance_receipt(
+                changed, target="production", attempt="attempt-20260904-0001",
+            )
+
+    def test_prepare_receipt_is_bound_to_attempt_release_and_render(self) -> None:
+        body = {
+            "schema": "usl-release-prepare/v1",
+            "target": "production",
+            "release": "a" * 64,
+            "attempt": "attempt-20260904-0001",
+            "prepared_at": "2026-09-04T11:59:00Z",
+            "compose_sha256": "c" * 64,
+            "services": ["odoo"],
+            "images": ["ghcr.io/unstaticlabs/odoo@sha256:" + "d" * 64],
+            "capacity": {},
+            "runtime_changed": False,
+            "status": "prepared",
+        }
+        body["sha256"] = __import__("hashlib").sha256(
+            json.dumps(body, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        self.assertEqual(_prepare_receipt(
+            body,
+            target="production",
+            attempt="attempt-20260904-0001",
+            release="a" * 64,
+        ), body)
+        changed = dict(body)
+        changed["compose_sha256"] = "e" * 64
+        with self.assertRaisesRegex(RuntimeError, "digest"):
+            _prepare_receipt(
+                changed,
+                target="production",
+                attempt="attempt-20260904-0001",
+                release="a" * 64,
+            )
+
+    def test_reconcile_rejects_compose_drift_after_preparation(self) -> None:
+        prepared = {
+            "target": "production",
+            "release": "a" * 64,
+            "compose_sha256": "b" * 64,
+            "services": ["odoo"],
+            "images": ["image@sha256:" + "c" * 64],
+            "runtime_changed": False,
+            "status": "prepared",
+        }
+        _require_same_preparation(prepared, dict(prepared))
+        changed = dict(prepared)
+        changed["compose_sha256"] = "d" * 64
+        with self.assertRaisesRegex(RuntimeError, "compose_sha256"):
+            _require_same_preparation(changed, prepared)
+
+    def test_release_prepare_renders_candidate_without_touching_runtime(self) -> None:
+        target = load_target("production", TARGETS)
+        release = {
+            "identity": "f" * 64,
+            "components": {
+                name: {"digest_reference": f"ghcr.io/unstaticlabs/{name}@sha256:" + "a" * 64}
+                for name in ("distribution", "backup-tool", "paperless", "sign-dss")
+            },
+            "mcp": {"image": "ghcr.io/unstaticlabs/mcp@sha256:" + "b" * 64},
+            "renderer": {"image": "ghcr.io/unstaticlabs/renderer@sha256:" + "c" * 64},
+        }
+        current = {
+            "compose": {
+                "project": target.project,
+                "working_directory": "/release",
+                "environment_file": "/release/production.env",
+                "compose_files": ["/release/compose.yaml"],
+                "profiles": [],
+                "anchor_service": "odoo",
+            },
+            "volumes": {
+                role: {"name": f"volume-{role}", "tier": definition["tier"]}
+                for role, definition in target.value["volumes"].items()
+            },
+        }
+
+        class PrepareRunner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:2] == ["mktemp", "-d"]:
+                    return subprocess.CompletedProcess(command, 0, "/tmp/usl-release-prepare.abc123\n", "")
+                if command[-2:] == ["config", "--services"]:
+                    return subprocess.CompletedProcess(command, 0, "odoo\nodoo-upgrade\npaperless-webserver\n", "")
+                if command[-3:] == ["config", "--format", "json"]:
+                    services = {
+                        "odoo": {"image": release["components"]["distribution"]["digest_reference"]},
+                        "odoo-upgrade": {"image": release["components"]["distribution"]["digest_reference"]},
+                        "paperless-webserver": {"image": release["components"]["paperless"]["digest_reference"]},
+                    }
+                    return subprocess.CompletedProcess(command, 0, json.dumps({"services": services}), "")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = PrepareRunner()
+        capacity = {"schema": "usl-storage-capacity/v2", "filesystems": {}, "warning": False}
+        with (
+            mock.patch("operations.stack._prepare_secret_contract"),
+            mock.patch("operations.stack._require_restore_capacity", return_value=capacity),
+            mock.patch("operations.stack._ensure_image"),
+            mock.patch("operations.stack._measure_candidate_bytes", return_value={}),
+            mock.patch("operations.stack._write_remote"),
+            mock.patch("operations.stack._resource_overlay", return_value=None),
+            mock.patch("operations.stack._generation_overlay", return_value="{}"),
+        ):
+            result = _prepare_release_candidate(target, runner, release, current)
+        self.assertEqual(result["status"], "prepared")
+        self.assertFalse(result["runtime_changed"])
+        flattened = [item for command in runner.commands for item in command]
+        self.assertNotIn("stop", flattened)
+        self.assertNotIn("up", flattened)
+
     def test_storage_status_rejects_running_service_on_legacy_volume(self) -> None:
         target = mock.Mock(
             name="production",
@@ -1645,6 +1831,49 @@ class CohortContractTests(unittest.TestCase):
                 "ODOO_DB_FILTER": "^odoo_staging$",
             },
         )
+
+    def test_production_candidate_overlay_quarantines_external_workers(self) -> None:
+        target = load_target("production", TARGETS)
+        digest = "ghcr.io/unstaticlabs/usl-odoo@sha256:" + "a" * 64
+        release = {
+            "components": {
+                "distribution": {"digest_reference": digest},
+                "paperless": {"digest_reference": digest},
+                "sign-dss": {"digest_reference": digest},
+            },
+            "mcp": {"image": digest},
+            "renderer": {"image": digest},
+        }
+        services = {"odoo", "odoo-upgrade", "paperless-webserver"}
+        overlay = json.loads(_generation_overlay(
+            generation_volume_names(target, "gquarantine"),
+            release,
+            services,
+            target.value["ingress"],
+            service_names=target.value["services"],
+            quarantine=True,
+        ))
+        odoo = overlay["services"]["odoo"]
+        self.assertEqual(odoo["environment"]["ODOO_MAX_CRON_THREADS"], "0")
+        self.assertEqual(odoo["environment"]["ODOO_SMTP_PORT"], "1")
+        self.assertEqual(odoo["environment"]["USL_EINVOICE_LIVE_ENABLED"], "0")
+        self.assertEqual(odoo["labels"]["com.unstaticlabs.runtime.side-effects"], "quarantined")
+        paperless = overlay["services"]["paperless-webserver"]
+        self.assertTrue(all(
+            value == "disable"
+            for name, value in paperless["environment"].items()
+            if name.endswith("_CRON")
+        ))
+
+    def test_production_sign_mounts_follow_the_release_upgrade_service(self) -> None:
+        target = load_target("production", TARGETS)
+        overlay = json.loads(_generation_overlay(
+            generation_volume_names(target, "gsign"),
+            sign_secret_root="/run/generation/sign-secrets",
+            service_names=target.value["services"],
+        ))
+        self.assertIn("odoo-upgrade", overlay["services"])
+        self.assertNotIn("init-db", overlay["services"])
 
     def test_host_staging_overlays_use_the_canonical_odoo_service(self) -> None:
         target = load_target("staging", HOST_TARGETS)

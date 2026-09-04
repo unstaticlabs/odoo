@@ -39,7 +39,14 @@ from operations.module_release import (
     derive_upgrade_plan,
     validate_upgrade_plan,
 )
-from operations.plan_evidence import PlanEvidenceError, sign as sign_upgrade_plan, verify as verify_upgrade_plan
+from operations.plan_evidence import (
+    PROMOTION_SCHEMA,
+    PlanEvidenceError,
+    promote as promote_upgrade_plan,
+    sign as sign_upgrade_plan,
+    verify as verify_upgrade_plan,
+    verify_promotion as verify_upgrade_plan_promotion,
+)
 from operations.runtime import (
     RuntimeError,
     compose_command,
@@ -78,7 +85,7 @@ VOLUME_RUNTIME_SERVICE_KEYS = {
     "mcp_oauth": "mcp",
 }
 RELEASE_IMAGE_SERVICES = {
-    "distribution": ("odoo", "init-db"),
+    "distribution": ("odoo", "odoo-upgrade"),
     "paperless": (
         "paperless-model-preflight",
         "paperless-webserver",
@@ -111,6 +118,7 @@ RESOURCE_FIELDS = {
 }
 BACKUP_WRITER_SERVICE_ROLES = ("odoo", "paperless", "mcp", "sign", "sign_ca")
 GENERATION_NAME = re.compile(r"g[a-z0-9][a-z0-9-]{0,30}\Z")
+RELEASE_ATTEMPT = re.compile(r"[a-z0-9][a-z0-9._-]{7,63}\Z")
 
 
 def _report(operation: str, phase: str, status: str, detail: str = "") -> None:
@@ -488,6 +496,31 @@ def _secret_file(target, runner) -> str:
     return path
 
 
+def _prepare_secret_contract(target, runner) -> str:
+    """Require a complete, direct and owner-protected release secret file."""
+    path = _secret_file(target, runner)
+    resolved = runner.run(["readlink", "-f", "--", path]).stdout.strip()
+    if resolved != path:
+        raise RuntimeError("release secret file path is not direct")
+    metadata = runner.run(["stat", "-c", "%F|%a", "--", path]).stdout.strip()
+    try:
+        kind, raw_mode = metadata.split("|", 1)
+        mode = int(raw_mode, 8)
+    except (ValueError, TypeError) as error:
+        raise RuntimeError("release secret file metadata is invalid") from error
+    if kind != "regular file" or mode & 0o077:
+        raise RuntimeError("release secret file permissions are unsafe")
+    text = runner.run(["cat", path]).stdout
+    found = validate_secret_text(text, target.value["secrets"]["allowed_keys"])
+    if found != sorted(target.value["secrets"]["allowed_keys"]):
+        raise RuntimeError("release secret file is incomplete")
+    for raw in text.splitlines():
+        line = raw.strip()
+        if line and not line.startswith("#") and not line.split("=", 1)[1]:
+            raise RuntimeError("release secret file contains an empty value")
+    return path
+
+
 def _cohort_command(
     target,
     image: str,
@@ -773,6 +806,190 @@ def _measure_candidate_bytes(target, runner, tool_image: str, runtime: dict) -> 
     return totals
 
 
+def _prepare_release_candidate(target, runner, release: dict, current: dict) -> dict:
+    """Validate and cache a candidate without changing application runtime state."""
+    _prepare_secret_contract(target, runner)
+    candidate_identity = _candidate_compose_identity(target, runner, current["compose"])
+    for definition in target.value["storage"]["tiers"].values():
+        path = definition["path"]
+        if runner.run(["test", "-d", path], check=False).returncode:
+            raise RuntimeError(f"release storage path is unavailable: {path}")
+    for name in target.value["external_networks"].values():
+        if runner.run(["docker", "network", "inspect", name], check=False).returncode:
+            raise RuntimeError(f"release external network is unavailable: {name}")
+    capacity_before_pull = _require_restore_capacity(target, runner, "prepare")
+    for image in _release_images(release):
+        _ensure_image(runner, image)
+    tool_image = release["components"]["backup-tool"]["digest_reference"]
+    candidate_bytes = _measure_candidate_bytes(target, runner, tool_image, current)
+    capacity_after_pull = _require_restore_capacity(
+        target, runner, "prepare image pull", candidate_bytes=candidate_bytes,
+    )
+
+    release_identity = {
+        **candidate_identity,
+        "profiles": sorted(set(candidate_identity.get("profiles", [])) | {"release"}),
+    }
+    services = set(
+        runner.run(compose_command(release_identity, ["config", "--services"])).stdout.splitlines(),
+    )
+    temporary = runner.run(["mktemp", "-d", "/tmp/usl-release-prepare.XXXXXX"]).stdout.strip()
+    if not re.fullmatch(r"/tmp/usl-release-prepare\.[A-Za-z0-9]{6}", temporary):
+        raise RuntimeError("release Compose render workspace is invalid")
+    try:
+        resource_path = f"{temporary}/compose.resources.json"
+        generation_path = f"{temporary}/compose.generation.json"
+        resource = _resource_overlay(target)
+        compose_files = list(candidate_identity["compose_files"])
+        if resource is not None:
+            _write_remote(target, runner, resource_path, resource, "0600")
+            compose_files.append(resource_path)
+        current_volumes = {role: item["name"] for role, item in current["volumes"].items()}
+        _write_remote(
+            target,
+            runner,
+            generation_path,
+            _generation_overlay(
+                current_volumes,
+                release,
+                services,
+                target.value["ingress"],
+                sign_secret_root=(
+                    target.value["paths"]["sign_secrets"]["path"]
+                    if target.value["environment"] == "production"
+                    else None
+                ),
+                service_names=target.value["services"],
+                quarantine=target.value["environment"] == "production",
+            ),
+            "0600",
+        )
+        compose_files.append(generation_path)
+        render_identity = {**release_identity, "compose_files": compose_files}
+        rendered = json.loads(
+            runner.run(compose_command(render_identity, ["config", "--format", "json"])).stdout,
+        )
+        rendered_services = rendered.get("services")
+        if not isinstance(rendered_services, dict):
+            raise RuntimeError("release Compose render has no services")
+        expected_images = {
+            service: _release_image(release, component)
+            for component, component_services in RELEASE_IMAGE_SERVICES.items()
+            for service in component_services
+            if service in rendered_services
+        }
+        mismatched = {
+            name: rendered_services[name].get("image")
+            for name, image in expected_images.items()
+            if rendered_services[name].get("image") != image
+        }
+        if mismatched:
+            raise RuntimeError("release Compose image render differs: " + json.dumps(mismatched, sort_keys=True))
+        canonical = json.dumps(rendered, sort_keys=True, separators=(",", ":"))
+    finally:
+        runner.run(["rm", "-rf", "--", temporary], check=False)
+    return {
+        "schema": "usl-release-prepare/v1",
+        "target": target.name,
+        "release": release["identity"],
+        "compose_sha256": hashlib.sha256(canonical.encode()).hexdigest(),
+        "services": sorted(rendered_services),
+        "images": sorted(_release_images(release)),
+        "capacity": {
+            "before_pull": capacity_before_pull,
+            "after_pull": capacity_after_pull,
+        },
+        "runtime_changed": False,
+        "status": "prepared",
+    }
+
+
+def _release_attempt(value: str | None, release_identity: str) -> str:
+    if not isinstance(value, str) or not RELEASE_ATTEMPT.fullmatch(value):
+        raise RuntimeError("release attempt identity is missing or invalid")
+    if value == release_identity:
+        raise RuntimeError("release attempt must be distinct from the desired release")
+    return value
+
+
+def _maintenance_receipt(value: object, *, target: str, attempt: str) -> dict:
+    expected = {"schema", "target", "attempt", "observed_at", "endpoints", "status", "sha256"}
+    if not isinstance(value, dict) or set(value) != expected:
+        raise RuntimeError("maintenance receipt fields differ")
+    if (
+        value["schema"] != "usl-maintenance-admission/v1"
+        or value["target"] != target
+        or value["attempt"] != attempt
+        or value["status"] != "closed"
+    ):
+        raise RuntimeError("maintenance receipt identity differs")
+    try:
+        observed = datetime.fromisoformat(str(value["observed_at"]).replace("Z", "+00:00"))
+    except ValueError as error:
+        raise RuntimeError("maintenance receipt timestamp is invalid") from error
+    if observed.tzinfo is None:
+        raise RuntimeError("maintenance receipt timestamp has no timezone")
+    endpoints = value["endpoints"]
+    if not isinstance(endpoints, dict) or not endpoints:
+        raise RuntimeError("maintenance receipt has no endpoints")
+    for url, evidence in endpoints.items():
+        if (
+            not isinstance(url, str)
+            or not url.startswith("https://")
+            or not isinstance(evidence, dict)
+            or set(evidence) != {"status_code", "body_sha256"}
+            or evidence["status_code"] != 503
+            or not re.fullmatch(r"[0-9a-f]{64}", str(evidence["body_sha256"]))
+        ):
+            raise RuntimeError("maintenance endpoint evidence is invalid")
+    body = {key: item for key, item in value.items() if key != "sha256"}
+    if value["sha256"] != hashlib.sha256(
+        json.dumps(body, sort_keys=True, separators=(",", ":")).encode(),
+    ).hexdigest():
+        raise RuntimeError("maintenance receipt digest differs")
+    return value
+
+
+def _prepare_receipt(value: object, *, target: str, attempt: str, release: str) -> dict:
+    expected = {
+        "schema", "target", "release", "attempt", "prepared_at", "compose_sha256",
+        "services", "images", "capacity", "runtime_changed", "status", "sha256",
+    }
+    if not isinstance(value, dict) or set(value) != expected:
+        raise RuntimeError("release prepare receipt fields differ")
+    if (
+        value["schema"] != "usl-release-prepare/v1"
+        or value["target"] != target
+        or value["release"] != release
+        or value["attempt"] != attempt
+        or value["runtime_changed"] is not False
+        or value["status"] != "prepared"
+        or not re.fullmatch(r"[0-9a-f]{64}", str(value["compose_sha256"]))
+    ):
+        raise RuntimeError("release prepare receipt identity differs")
+    try:
+        prepared_at = datetime.fromisoformat(str(value["prepared_at"]).replace("Z", "+00:00"))
+    except ValueError as error:
+        raise RuntimeError("release prepare receipt timestamp is invalid") from error
+    if prepared_at.tzinfo is None:
+        raise RuntimeError("release prepare receipt timestamp has no timezone")
+    body = {key: item for key, item in value.items() if key != "sha256"}
+    if value["sha256"] != hashlib.sha256(
+        json.dumps(body, sort_keys=True, separators=(",", ":")).encode(),
+    ).hexdigest():
+        raise RuntimeError("release prepare receipt digest differs")
+    return value
+
+
+def _require_same_preparation(current: dict, receipt: dict) -> None:
+    for field in (
+        "target", "release", "compose_sha256", "services", "images",
+        "runtime_changed", "status",
+    ):
+        if current.get(field) != receipt.get(field):
+            raise RuntimeError(f"release preparation changed after maintenance: {field}")
+
+
 def _remove_materialization_workspace(target, runner, generation: str) -> None:
     root = target.value["state_directory"]
     if not GENERATION_NAME.fullmatch(str(generation)):
@@ -1017,15 +1234,23 @@ def backup_command(arguments: argparse.Namespace) -> int:
                 "upload": uploaded,
                 "qualification": qualified,
                 "performance": {
-                    "writer_freeze_seconds": freeze_seconds,
+                    "capture_pause_seconds": freeze_seconds,
+                    "writer_freeze_seconds": (
+                        freeze_seconds if not leave_quiesced and not arguments.resume else None
+                    ),
                     "writer_freeze_sla_seconds": 120,
-                    "writer_freeze_sla_passed": arguments.resume or freeze_seconds <= 120,
+                    "writer_freeze_sla_passed": (
+                        freeze_seconds <= 120
+                        if not leave_quiesced and not arguments.resume
+                        else None
+                    ),
                     "upload_seconds": upload_seconds,
                     "verification_seconds": verify_seconds,
                     "total_seconds": total_seconds,
                 },
                 "runtime_images": runtime_images,
                 "writers_quiesced": leave_quiesced,
+                "writer_interval_complete": not leave_quiesced and not arguments.resume,
                 "status": "qualified",
             }
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
@@ -1678,6 +1903,7 @@ def _generation_overlay(
     ingress: dict | None = None,
     sign_secret_root: str | None = None,
     service_names: dict[str, str] | None = None,
+    quarantine: bool = False,
 ) -> str:
     value = {
         "volumes": {
@@ -1713,6 +1939,34 @@ def _generation_overlay(
                 "ODOO_LIST_DB": "True" if ingress["list_db"] else "False",
                 "ODOO_DB_FILTER": ingress["dbfilter"],
             }
+        if quarantine:
+            if ingress is None:
+                raise RuntimeError("production quarantine requires ingress configuration")
+            odoo_environment = value["services"][odoo_service].setdefault("environment", {})
+            odoo_environment.update({
+                "ODOO_MAX_CRON_THREADS": "0",
+                "ODOO_SMTP_SERVER": "127.0.0.1",
+                "ODOO_SMTP_PORT": "1",
+                "USL_EINVOICE_LIVE_ENABLED": "0",
+                "USL_EREPORTING_LIVE_ENABLED": "0",
+                "USL_PRODUCTION_CANDIDATE_QUARANTINED": "1",
+            })
+            value["services"][odoo_service].setdefault("labels", {})[
+                "com.unstaticlabs.runtime.side-effects"
+            ] = "quarantined"
+            if "paperless-webserver" in value["services"]:
+                value["services"]["paperless-webserver"].setdefault("environment", {}).update({
+                    "PAPERLESS_EMAIL_TASK_CRON": "disable",
+                    "PAPERLESS_EMPTY_TRASH_TASK_CRON": "disable",
+                    "PAPERLESS_LLM_INDEX_TASK_CRON": "disable",
+                    "PAPERLESS_SANITY_TASK_CRON": "disable",
+                    "PAPERLESS_SHARE_LINK_BUNDLE_CLEANUP_CRON": "disable",
+                    "PAPERLESS_TRAIN_TASK_CRON": "disable",
+                    "PAPERLESS_WORKFLOW_SCHEDULED_TASK_CRON": "disable",
+                })
+                value["services"]["paperless-webserver"].setdefault("labels", {})[
+                    "com.unstaticlabs.runtime.side-effects"
+                ] = "quarantined"
     if sign_secret_root is not None:
         if not service_names:
             raise RuntimeError("Sign secret activation requires service names")
@@ -1729,7 +1983,7 @@ def _generation_overlay(
                 "env_file": [{"path": f"{sign_secret_root}/odoo.env", "required": True}],
                 "volumes": [f"{sign_secret_root}/odoo:/run/usl-sign:ro"],
             },
-            "init-db": {
+            "odoo-upgrade": {
                 "env_file": [{"path": f"{sign_secret_root}/odoo.env", "required": True}],
                 "volumes": [f"{sign_secret_root}/odoo:/run/usl-sign:ro"],
             },
@@ -1785,6 +2039,75 @@ def _neutralize_generation(target, runner, release: dict, generation: str, netwo
             f"--database={database['name']}",
         ],
     )
+
+
+def _run_production_boundary_script(
+    target, runner, release: dict, network: str, volumes: dict[str, str],
+    script: str, fingerprint: str, prefix: str,
+) -> dict:
+    if target.value["environment"] != "production":
+        raise RuntimeError("production boundary scripts are production-only")
+    database = target.value["databases"]["odoo"]
+    result = runner.run(
+        [
+            "docker", "run", "--rm", "--interactive", "--network", network,
+            "--env-file", target.value["secrets"]["env_file"],
+            "--env", f"ODOO_DB_HOST={database['service']}",
+            "--env", "ODOO_DB_PORT=5432",
+            "--env", f"ODOO_DB_USER={database['user']}",
+            "--env", f"ODOO_DB_NAME={database['name']}",
+            "--env", "ODOO_MAX_CRON_THREADS=0",
+            "--env", "USL_EINVOICE_LIVE_ENABLED=0",
+            "--env", "USL_EREPORTING_LIVE_ENABLED=0",
+            "--env", f"USL_PRODUCTION_ACTIVATION_CONFIRM={fingerprint}",
+            "--env", "USL_PRODUCTION_INBOUND_MAIL_ENABLED=" + (
+                "1" if target.value["cron_policy"]["gates"].get("inbound_mail") else "0"
+            ),
+            "--volume", f"{volumes['odoo_filestore']}:/var/lib/odoo",
+            release["components"]["distribution"]["digest_reference"],
+            "odoo", "shell", "--config=/etc/odoo/odoo.conf",
+            f"--database={database['name']}", "--no-http", "--max-cron-threads=0",
+        ],
+        input_text=(ROOT / "scripts" / "odoo" / script).read_text(encoding="utf-8"),
+    )
+    for line in reversed(result.stdout.splitlines()):
+        if line.startswith(prefix):
+            value = json.loads(line.removeprefix(prefix))
+            if value.get("status") != "passed" or value.get("candidate_fingerprint") != fingerprint:
+                raise RuntimeError(f"{script} returned invalid evidence")
+            return value
+    raise RuntimeError(f"{script} returned no evidence")
+
+
+def _admit_production_side_effects(target, runner, release, network, volumes) -> dict:
+    database = target.value["databases"]["odoo"]
+    result = runner.run(
+        [
+            "docker", "run", "--rm", "--interactive", "--network", network,
+            "--env-file", target.value["secrets"]["env_file"],
+            "--env", f"ODOO_DB_HOST={database['service']}",
+            "--env", "ODOO_DB_PORT=5432",
+            "--env", f"ODOO_DB_USER={database['user']}",
+            "--env", f"ODOO_DB_NAME={database['name']}",
+            "--env", "ODOO_MAX_CRON_THREADS=0",
+            "--env", "USL_PRODUCTION_SIDE_EFFECT_MODE=admitted",
+            "--env", "USL_PRODUCTION_CRON_GATES_JSON=" + json.dumps(
+                target.value["cron_policy"]["gates"], sort_keys=True,
+            ),
+            "--volume", f"{volumes['odoo_filestore']}:/var/lib/odoo",
+            release["components"]["distribution"]["digest_reference"],
+            "odoo", "shell", "--config=/etc/odoo/odoo.conf",
+            f"--database={database['name']}", "--no-http", "--max-cron-threads=0",
+        ],
+        input_text=(ROOT / "scripts" / "odoo" / "production_side_effect_boundary.py").read_text(encoding="utf-8"),
+    )
+    try:
+        value = json.loads(result.stdout.splitlines()[-1])
+    except (IndexError, json.JSONDecodeError) as error:
+        raise RuntimeError("production side-effect admission returned invalid evidence") from error
+    if value.get("status") != "passed" or value.get("mode") != "admitted":
+        raise RuntimeError("production side-effect admission did not pass")
+    return value
 
 
 def _gate(handler, target, targets: Path) -> dict:
@@ -2285,6 +2608,7 @@ print("USL_RELEASE_NOTIFICATION_RESULT=" + json.dumps({
 
 
 def _restore_unlocked(arguments: argparse.Namespace) -> int:
+    restore_started = time.monotonic()
     source = load_target(arguments.source, arguments.targets)
     target = load_target(arguments.target, arguments.targets)
     if target.protected and (not arguments.replace or arguments.confirm != target.name):
@@ -2298,6 +2622,31 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     _secret_file(target, target_runner)
     release_override = getattr(arguments, "target_release", None) or arguments.release
     release, release_sha, release_raw = _release(source, target_runner, release_override)
+    attempt = getattr(arguments, "attempt_id", None)
+    if attempt is not None:
+        attempt = _release_attempt(attempt, release.get("identity", ""))
+    maintenance = getattr(arguments, "maintenance_receipt", None)
+    prepared_before_downtime = getattr(arguments, "prepare_receipt", None)
+    if (
+        target.value["environment"] == "production"
+        and getattr(arguments, "upgrade_plan", None)
+        and (attempt is None or maintenance is None or prepared_before_downtime is None)
+    ):
+        raise RuntimeError(
+            "production candidate restore requires attempt, preparation, and maintenance evidence",
+        )
+    if attempt is not None:
+        prepared_before_downtime = _prepare_receipt(
+            prepared_before_downtime,
+            target=target.name,
+            attempt=attempt,
+            release=release["identity"],
+        )
+        maintenance = _maintenance_receipt(
+            maintenance,
+            target=target.name,
+            attempt=attempt,
+        )
     upgrade_plan = None
     signed_plan_evidence = None
     cron_policy_application = None
@@ -2307,9 +2656,14 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             if not isinstance(plan_value, dict):
                 raise PlanEvidenceError("upgrade plan must be a JSON object")
             if target.value["environment"] == "production":
-                upgrade_plan = verify_upgrade_plan(
+                if plan_value.get("schema") != PROMOTION_SCHEMA:
+                    raise PlanEvidenceError(
+                        "production requires a staging-signed production promotion",
+                    )
+                upgrade_plan = verify_upgrade_plan_promotion(
                     plan_value,
                     Path(target.value["plan_signing"]["public_key"]),
+                    release,
                 )
                 signed_plan_evidence = plan_value
             elif plan_value.get("schema") == "usl-staging-upgrade-plan-evidence/v1":
@@ -2330,16 +2684,12 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     images = _runtime_images(target_runner, candidate_identity)
     phase_started = time.monotonic()
     _record_event(target, target_runner, generation, "restore", "image-preparation", "started")
-    capacity_before_pull = _require_restore_capacity(target, target_runner, "preflight")
-    for image in _release_images(release):
-        _ensure_image(target_runner, image)
-    candidate_bytes = _measure_candidate_bytes(target, target_runner, tool_image, current)
-    capacity_after_pull = _require_restore_capacity(
-        target,
-        target_runner,
-        "image pre-pull",
-        candidate_bytes=candidate_bytes,
-    )
+    preparation = _prepare_release_candidate(target, target_runner, release, current)
+    if prepared_before_downtime is not None:
+        _require_same_preparation(preparation, prepared_before_downtime)
+    capacity_before_pull = preparation["capacity"]["before_pull"]
+    capacity_after_pull = preparation["capacity"]["after_pull"]
+    preparation_seconds = round(time.monotonic() - phase_started, 3)
     _record_event(
         target,
         target_runner,
@@ -2347,7 +2697,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         "restore",
         "image-preparation",
         "completed",
-        duration_seconds=round(time.monotonic() - phase_started, 3),
+        duration_seconds=preparation_seconds,
         **capacity_after_pull,
     )
     phase_started = time.monotonic()
@@ -2407,7 +2757,19 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             if upgrade_plan["active_release"] != snapshot_identity:
                 raise RuntimeError("upgrade plan is not bound to the snapshot release")
             _run_candidate_upgrade(target, target_runner, release, network, volumes, upgrade_plan)
-        _neutralize_generation(target, target_runner, release, generation, network, volumes)
+        if target.value["environment"] == "production":
+            _run_production_boundary_script(
+                target,
+                target_runner,
+                release,
+                network,
+                volumes,
+                "production_quarantine.py",
+                release["identity"],
+                "USL_PRODUCTION_QUARANTINE=",
+            )
+        else:
+            _neutralize_generation(target, target_runner, release, generation, network, volumes)
         cron_policy_application = _apply_generation_cron_policy(
             target,
             target_runner,
@@ -2417,6 +2779,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         )
         _prepare_generation_volume_ownership(target_runner, release, volumes)
     capacity_before_activation = _require_restore_capacity(target, target_runner, "activation")
+    materialization_seconds = round(time.monotonic() - phase_started, 3)
     _record_event(
         target,
         target_runner,
@@ -2424,7 +2787,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         "restore",
         "materialization",
         "completed",
-        duration_seconds=round(time.monotonic() - phase_started, 3),
+        duration_seconds=materialization_seconds,
         **capacity_before_activation,
     )
     release_path = f"{generation_root}/usl-release.json"
@@ -2442,7 +2805,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         _generation_overlay(
             volumes,
             release,
-            set(images),
+            set(images) | {"odoo-upgrade"},
             target.value["ingress"],
             sign_secret_root=(
                 f"{generation_root}/sign-secrets"
@@ -2450,6 +2813,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
                 else None
             ),
             service_names=target.value["services"],
+            quarantine=target.value["environment"] == "production",
         ),
     )
     compose_files = list(candidate_identity["compose_files"])
@@ -2469,11 +2833,13 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         "snapshot": (current["active_state"] or {}).get("snapshot"),
     }
     phase_started = time.monotonic()
+    cutover_started = phase_started
     _record_event(target, target_runner, generation, "restore", "activation", "started")
     # A stable ingress gateway is intentionally outside this service
     # perimeter. It must keep serving the maintenance response while the
     # stateful cohort is replaced.
     _activate_generation(target, target_runner, identity, generation_identity)
+    activation_seconds = round(time.monotonic() - phase_started, 3)
     _record_event(
         target,
         target_runner,
@@ -2481,7 +2847,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         "restore",
         "activation",
         "completed",
-        duration_seconds=round(time.monotonic() - phase_started, 3),
+        duration_seconds=activation_seconds,
     )
     active_path = f"{target.value['state_directory']}/active.json"
     _write_remote(
@@ -2505,7 +2871,10 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         smoke = _gate(smoke_command, target, arguments.targets)
         expected_release_sha256 = None
         if signed_plan_evidence is not None:
-            expected_release_sha256 = signed_plan_evidence["staging"][
+            staging_evidence = signed_plan_evidence.get(
+                "staging_evidence", signed_plan_evidence,
+            )
+            expected_release_sha256 = staging_evidence["staging"][
                 "release_controls_sha256"
             ]
         try:
@@ -2517,6 +2886,50 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             )
         except ControlManifestError as error:
             raise RuntimeError(str(error)) from error
+        production_activation = None
+        if target.value["environment"] == "production":
+            production_activation = _run_production_boundary_script(
+                target,
+                target_runner,
+                release,
+                network,
+                volumes,
+                "production_activate.py",
+                release["identity"],
+                "USL_PRODUCTION_ACTIVATION=",
+            )
+            # Prove that the host configuration, database state, inbound-mail
+            # selection and regulatory gates agree while every candidate
+            # worker is still running under the quarantine overlay.  Only a
+            # passing result permits the unquarantined Odoo/Paperless restart.
+            production_activation["side_effect_admission"] = _admit_production_side_effects(
+                target, target_runner, release, network, volumes,
+            )
+            _write_remote(
+                target,
+                target_runner,
+                overlay,
+                _generation_overlay(
+                    volumes,
+                    release,
+                    set(images) | {"odoo-upgrade"},
+                    target.value["ingress"],
+                    sign_secret_root=f"{generation_root}/sign-secrets",
+                    service_names=target.value["services"],
+                ),
+            )
+            target_runner.run(
+                compose_command(
+                    generation_identity,
+                    [
+                        "up", "--detach", "--wait", "--force-recreate",
+                        target.value["services"]["odoo"],
+                        target.value["services"]["paperless"],
+                    ],
+                ),
+            )
+            health = _gate(health_command, target, arguments.targets)
+            smoke = _gate(smoke_command, target, arguments.targets)
     except Exception as error:
         target_runner.run(compose_command(generation_identity, ["stop", "--timeout", "60"]), check=False)
         cleanup_error = None
@@ -2540,6 +2953,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
                 f"({cleanup_error})",
             ) from error
         raise
+    validation_seconds = round(time.monotonic() - phase_started, 3)
     _record_event(
         target,
         target_runner,
@@ -2547,8 +2961,42 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         "restore",
         "validation",
         "completed",
-        duration_seconds=round(time.monotonic() - phase_started, 3),
+        duration_seconds=validation_seconds,
     )
+    admission_receipt = None
+    if attempt is not None:
+        admitted_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+        receipt_body = {
+            "schema": "usl-release-admission/v1",
+            "target": target.name,
+            "attempt": attempt,
+            "release": release["identity"],
+            "snapshot": arguments.snapshot,
+            "generation": generation,
+            "health_sha256": hashlib.sha256(
+                json.dumps(health, sort_keys=True, separators=(",", ":")).encode(),
+            ).hexdigest(),
+            "smoke_sha256": hashlib.sha256(
+                json.dumps(smoke, sort_keys=True, separators=(",", ":")).encode(),
+            ).hexdigest(),
+            "control_validation_sha256": hashlib.sha256(
+                json.dumps(control_validation, sort_keys=True, separators=(",", ":")).encode(),
+            ).hexdigest(),
+            "admitted_at": admitted_at,
+            "status": "admitted",
+        }
+        receipt_body["sha256"] = hashlib.sha256(
+            json.dumps(receipt_body, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        receipt_path = f"{generation_root}/admission.json"
+        _write_remote(
+            target,
+            target_runner,
+            receipt_path,
+            json.dumps(receipt_body, indent=2, sort_keys=True) + "\n",
+            "0444",
+        )
+        admission_receipt = {"path": receipt_path, **receipt_body}
     result = {
         "schema": "usl-restore-run/v1",
         "source": source.name,
@@ -2560,11 +3008,35 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         "smoke": smoke,
         "cron_policy_application": cron_policy_application,
         "control_validation": control_validation,
+        "production_activation": production_activation,
         "capacity": {
             "before_pull": capacity_before_pull,
             "after_pull": capacity_after_pull,
             "before_activation": capacity_before_activation,
         },
+        "preparation": preparation,
+        "attempt": attempt,
+        "admission": admission_receipt,
+        "performance": {
+            "preparation_seconds": preparation_seconds,
+            "materialization_seconds": materialization_seconds,
+            "activation_seconds": activation_seconds,
+            "validation_seconds": validation_seconds,
+            "candidate_cutover_seconds": round(time.monotonic() - cutover_started, 3),
+            "total_seconds": round(time.monotonic() - restore_started, 3),
+            "maintenance_seconds": None,
+            "maintenance_elapsed_at_admission_seconds": (
+                round((
+                    datetime.now(UTC)
+                    - datetime.fromisoformat(maintenance["observed_at"].replace("Z", "+00:00"))
+                ).total_seconds(), 3)
+                if maintenance is not None else None
+            ),
+            "maintenance_interval_complete": False,
+            "maintenance_interval_owned_by": "release-controller",
+        },
+        "maintenance": maintenance,
+        "prepared_before_downtime": prepared_before_downtime,
         "status": "activated",
     }
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
@@ -2931,6 +3403,48 @@ def release_command(arguments: argparse.Namespace) -> int:
     target = load_target(arguments.target, arguments.targets)
     runner = target.runner()
     state_path = f"{target.value['state_directory']}/release-state.json"
+    if arguments.action == "prepare":
+        if not arguments.candidate_release:
+            raise RuntimeError("release prepare requires a candidate release")
+        try:
+            release = validate_release(json.loads(
+                _read_path(target, runner, arguments.candidate_release),
+            ))
+        except (json.JSONDecodeError, ReleaseManifestError) as error:
+            raise RuntimeError("candidate release manifest is invalid") from error
+        if release.get("schema") != "usl-release/v3":
+            raise RuntimeError("release prepare requires a v3 candidate")
+        attempt = _release_attempt(arguments.attempt_id, release["identity"])
+        if not arguments.upgrade_plan:
+            raise RuntimeError("release prepare requires an exact upgrade plan")
+        try:
+            plan_value = json.loads(_read_path(target, runner, arguments.upgrade_plan))
+            if target.value["environment"] == "production":
+                prepared_plan = verify_upgrade_plan_promotion(
+                    plan_value,
+                    Path(target.value["plan_signing"]["public_key"]),
+                    release,
+                )
+            elif plan_value.get("schema") == "usl-staging-upgrade-plan-evidence/v1":
+                prepared_plan = verify_upgrade_plan(
+                    plan_value,
+                    Path(target.value["plan_signing"]["public_key"]),
+                )
+            else:
+                prepared_plan = validate_upgrade_plan(plan_value)
+            if prepared_plan["candidate_release"] != release["identity"]:
+                raise ModuleReleaseError("release prepare plan targets another candidate")
+        except (json.JSONDecodeError, ModuleReleaseError, PlanEvidenceError) as error:
+            raise RuntimeError("release prepare upgrade plan is invalid") from error
+        current = inspect_runtime(target, runner)
+        value = _prepare_release_candidate(target, runner, release, current)
+        value["attempt"] = attempt
+        value["prepared_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+        value["sha256"] = hashlib.sha256(
+            json.dumps(value, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
+        return 0
     if arguments.action == "status":
         state = runner.run(["cat", state_path], check=False)
         if state.returncode == 0:
@@ -2971,6 +3485,46 @@ def release_command(arguments: argparse.Namespace) -> int:
         print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
         return 0
     if arguments.action == "plan":
+        if arguments.promote:
+            if target.value["environment"] != "staging":
+                raise RuntimeError("only staging may sign a production plan promotion")
+            if not arguments.upgrade_plan or not arguments.staging_release or not arguments.candidate_release:
+                raise RuntimeError(
+                    "plan promotion requires staging evidence and both release manifests",
+                )
+            try:
+                evidence = json.loads(_read_path(target, runner, arguments.upgrade_plan))
+                staging_release = validate_release(json.loads(
+                    _read_path(target, runner, arguments.staging_release),
+                ))
+                production_release = validate_release(json.loads(
+                    _read_path(target, runner, arguments.candidate_release),
+                ))
+                promoted = promote_upgrade_plan(
+                    evidence,
+                    staging_release,
+                    production_release,
+                    Path(target.value["plan_signing"]["private_key"]),
+                    Path(target.value["plan_signing"]["public_key"]),
+                )
+            except (json.JSONDecodeError, ReleaseManifestError, PlanEvidenceError) as error:
+                raise RuntimeError("production plan promotion is invalid") from error
+            output = arguments.output or arguments.upgrade_plan
+            _write_remote(
+                target,
+                runner,
+                str(output),
+                json.dumps(promoted, indent=2, sort_keys=True) + "\n",
+                "0644",
+            )
+            print(json.dumps({
+                "schema": promoted["schema"],
+                "path": str(output),
+                "staging_release": staging_release["identity"],
+                "production_release": production_release["identity"],
+                "status": "signed",
+            }, indent=None if arguments.json else 2, sort_keys=True))
+            return 0
         if arguments.attest:
             if target.value["environment"] != "staging":
                 raise RuntimeError("only staging may attest an upgrade plan")
@@ -3044,6 +3598,65 @@ def release_command(arguments: argparse.Namespace) -> int:
     if arguments.action == "reconcile":
         if not arguments.snapshot or not arguments.candidate_release or not arguments.upgrade_plan:
             raise RuntimeError("release reconcile requires snapshot, candidate release, and upgrade plan")
+        try:
+            release_value = validate_release(json.loads(
+                _read_path(target, runner, arguments.candidate_release),
+            ))
+        except (json.JSONDecodeError, ReleaseManifestError) as error:
+            raise RuntimeError("release reconcile candidate is invalid") from error
+        attempt = _release_attempt(arguments.attempt_id, release_value["identity"])
+        if not arguments.prepare_receipt:
+            raise RuntimeError("release reconcile requires pre-downtime preparation evidence")
+        try:
+            prepare_receipt = _prepare_receipt(
+                json.loads(_read_path(target, runner, arguments.prepare_receipt)),
+                target=target.name,
+                attempt=attempt,
+                release=release_value["identity"],
+            )
+        except json.JSONDecodeError as error:
+            raise RuntimeError("release prepare receipt is invalid") from error
+        if not arguments.maintenance_receipt:
+            raise RuntimeError("release reconcile requires observed maintenance evidence")
+        try:
+            maintenance_receipt = _maintenance_receipt(
+                json.loads(_read_path(target, runner, arguments.maintenance_receipt)),
+                target=target.name,
+                attempt=attempt,
+            )
+        except json.JSONDecodeError as error:
+            raise RuntimeError("maintenance receipt is invalid") from error
+        prepared_at = datetime.fromisoformat(prepare_receipt["prepared_at"].replace("Z", "+00:00"))
+        maintenance_at = datetime.fromisoformat(maintenance_receipt["observed_at"].replace("Z", "+00:00"))
+        if maintenance_at < prepared_at:
+            raise RuntimeError("maintenance was observed before release preparation")
+        attempt_root = f"{target.value['state_directory']}/attempts/{attempt}"
+        if runner.run(["mkdir", attempt_root], check=False).returncode != 0:
+            raise RuntimeError(
+                "release attempt was already consumed; recover and use a fresh attempt",
+            )
+        attempt_path = f"{attempt_root}/claim.json"
+        baseline = inspect_runtime(target, runner)
+        claim = {
+            "schema": "usl-release-attempt/v1",
+            "attempt": attempt,
+            "target": target.name,
+            "candidate_release": release_value["identity"],
+            "baseline_generation": baseline.get("generation"),
+            "claimed_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            "status": "claimed",
+        }
+        claim["sha256"] = hashlib.sha256(
+            json.dumps(claim, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        _write_remote(
+            target, runner, attempt_path,
+            json.dumps(claim, indent=2, sort_keys=True) + "\n", "0444",
+        )
+        generation = arguments.generation or (
+            "g" + datetime.now(UTC).strftime("%Y%m%dt%H%M-")
+            + hashlib.sha256(attempt.encode()).hexdigest()[:8]
+        )
         restore_arguments = argparse.Namespace(
             targets=arguments.targets,
             source=arguments.source,
@@ -3052,7 +3665,10 @@ def release_command(arguments: argparse.Namespace) -> int:
             release=None,
             target_release=arguments.candidate_release,
             upgrade_plan=arguments.upgrade_plan,
-            generation=arguments.generation,
+            generation=generation,
+            attempt_id=attempt,
+            maintenance_receipt=maintenance_receipt,
+            prepare_receipt=prepare_receipt,
             replace=arguments.replace,
             confirm=arguments.confirm,
             json=arguments.json,
@@ -3127,19 +3743,24 @@ def build_parser() -> argparse.ArgumentParser:
     cleanup.add_argument("--json", action="store_true")
     cleanup.set_defaults(handler=cleanup_command)
     release = commands.add_parser("release")
-    release.add_argument("action", choices=("plan", "reconcile", "status", "abort", "notify"))
+    release.add_argument("action", choices=("prepare", "plan", "reconcile", "status", "abort", "notify"))
     release.add_argument("--target", dest="command_target")
     release.add_argument("--source", default="production")
     release.add_argument("--active-release", type=Path)
     release.add_argument("--candidate-release", type=Path)
     release.add_argument("--upgrade-plan", type=Path)
     release.add_argument("--attest", action="store_true")
+    release.add_argument("--promote", action="store_true")
+    release.add_argument("--staging-release", type=Path)
     release.add_argument("--snapshot")
     release.add_argument("--generation")
     release.add_argument("--output", type=Path)
     release.add_argument("--replace", action="store_true")
     release.add_argument("--confirm")
     release.add_argument("--release-id")
+    release.add_argument("--attempt-id")
+    release.add_argument("--maintenance-receipt", type=Path)
+    release.add_argument("--prepare-receipt", type=Path)
     release.add_argument("--json", action="store_true")
     release.set_defaults(handler=release_command)
     return parser

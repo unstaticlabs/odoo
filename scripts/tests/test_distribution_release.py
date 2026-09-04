@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import unittest
@@ -177,6 +178,42 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         overlay = (ROOT / "compose.production.yaml").read_text(encoding="utf-8")
         self.assertIn("build: !reset null", overlay)
         self.assertNotIn("./custom-addons", overlay)
+
+    def test_real_production_compose_exposes_only_the_release_upgrade_runner(self) -> None:
+        environment = {
+            **os.environ,
+            "ODOO_UPGRADE_MODULES": "usl_home",
+            "ODOO_HTTP_PORT": "18069",
+            "ODOO_GEVENT_PORT": "18072",
+            "PAPERLESS_HTTP_PORT": "18010",
+            "ODOO_MCP_HTTP_PORT": "18000",
+            "PAPERLESS_IMAGE": "ghcr.io/unstaticlabs/paperless@sha256:" + "a" * 64,
+            "PAPERLESS_AI_LLM_EMBEDDING_ENDPOINT": "http://ollama:11434",
+            "PAPERLESS_AI_LLM_EMBEDDING_MODEL": "bge-m3:latest",
+            "PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE": "32",
+            "USL_OLLAMA_MANIFEST_SHA256": "7" * 64,
+            "USL_OLLAMA_EMBEDDING_DIMENSION": "1024",
+            "USL_EXTERNAL_OLLAMA_NETWORK": "ollama",
+        }
+        rendered = json.loads(subprocess.run(
+            [
+                "docker", "compose", "--env-file", ".env.example",
+                "-f", "compose.yaml", "-f", "compose.production.yaml",
+                "--profile", "init", "--profile", "release",
+                "config", "--format", "json",
+            ],
+            cwd=ROOT,
+            env=environment,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout)
+        self.assertNotIn("init-db", rendered["services"])
+        upgrade = rendered["services"]["odoo-upgrade"]
+        self.assertEqual(upgrade["environment"]["ODOO_MAX_CRON_THREADS"], "0")
+        self.assertEqual(upgrade["environment"]["USL_EINVOICE_LIVE_ENABLED"], "0")
+        self.assertIn('--update="$${ODOO_UPGRADE_MODULES}"', upgrade["command"][0])
+        self.assertFalse(any("custom-addons" in item["source"] for item in upgrade["volumes"]))
 
     def test_release_image_can_load_installed_oca_tests(self) -> None:
         requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8")

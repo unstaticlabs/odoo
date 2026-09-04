@@ -778,6 +778,52 @@ services:
       - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}:/run/secrets/document-renderer:ro
       - ${USL_SIGN_ODOO_SECRET_DIR:-./.secrets/sign/odoo}:/run/usl-sign:ro
 
+  # Release-only one-shot runner. Unlike init-db, this service never installs a
+  # bootstrap module and never inherits an open-ended initialization default.
+  # The controller supplies the exact, signed module closure for each run.
+  odoo-upgrade:
+    profiles: ["release"]
+    image: ${ODOO_IMAGE:-usl-odoo-saas-19-3-odoo:latest}
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - path: .env
+        required: false
+      - path: ${USL_SIGN_ODOO_ENV_FILE:-.secrets/sign/odoo.env}
+        required: false
+    environment:
+      ODOO_DB_HOST: ${ODOO_DB_HOST:-db}
+      ODOO_DB_PORT: ${ODOO_DB_PORT:-5432}
+      ODOO_DB_USER: ${ODOO_DB_USER:-odoo}
+      ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
+      ODOO_DB_FILTER: ${ODOO_DB_FILTER:-^odoo_dev$}
+      ODOO_ADDONS_PATH: ${ODOO_ADDONS_PATH:-/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons}
+      ODOO_UPGRADE_DATABASE: ${ODOO_UPGRADE_DATABASE:-odoo_dev}
+      ODOO_UPGRADE_MODULES: ${ODOO_UPGRADE_MODULES:-}
+      ODOO_MAX_CRON_THREADS: 0
+      USL_EINVOICE_LIVE_ENABLED: 0
+      USL_EREPORTING_LIVE_ENABLED: 0
+      USL_DEPLOYMENT_ENV: release-upgrade
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - >-
+        test -n "$${ODOO_UPGRADE_MODULES}" || {
+        echo 'The signed upgrade module closure is required' >&2; exit 2; };
+        exec odoo --config=/etc/odoo/odoo.conf
+        --database="$${ODOO_UPGRADE_DATABASE}"
+        --update="$${ODOO_UPGRADE_MODULES}"
+        --stop-after-init --no-http --max-cron-threads=0
+    restart: "no"
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ./custom-addons:/mnt/custom-addons
+      - ./oca-src:/mnt/oca-src:ro
+      - ./oca-addons:/mnt/oca-addons:ro
+      - ./docs/users:/mnt/user-docs:ro
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}:/run/secrets/document-renderer:ro
+      - ${USL_SIGN_ODOO_SECRET_DIR:-./.secrets/sign/odoo}:/run/usl-sign:ro
+
   accounting-migration:
     profiles: ["accounting-migration"]
     image: ${ODOO_IMAGE:-usl-odoo-saas-19-3-odoo:latest}

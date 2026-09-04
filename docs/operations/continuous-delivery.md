@@ -35,9 +35,17 @@ The plan is applied by a one-shot Odoo command. The normal Compose definition
 does not contain a permanent `--update` list.
 
 After the candidate passes staging health and read-only control checks,
-staging signs that exact plan with a dedicated Ed25519 key. Production holds
-only the public key and rejects unsigned, modified, cross-release or
-non-staging-qualified plans.
+staging signs that exact plan with a dedicated Ed25519 key. A production merge
+creates a different release identity because its source ref and commit differ.
+Staging therefore signs a second promotion envelope that preserves the original
+staging signature and binds both release identities to the same distribution
+input, immutable component images, module inventory, foundation, MCP contract,
+renderer, and Ollama contract. User-facing release notes may describe the
+branch-specific promotion and do not affect the qualified runtime tree.
+Production holds only the public
+key and rejects unsigned, modified, cross-release, wrong-branch, or unequal
+promotion inputs. The bridge changes only the plan's candidate identity; it
+cannot change its active release, installed modules, upgrade closure, or reasons.
 
 Qualification derives its test plan from the same owned-module dependency
 graph. A changed module runs its suite and the suites of owned modules that
@@ -65,7 +73,21 @@ scripts/usl-stack --target staging release reconcile \
   --source production \
   --snapshot <qualified-production-snapshot> \
   --candidate-release /path/to/candidate.json \
-  --upgrade-plan /path/to/upgrade-plan.json
+  --upgrade-plan /path/to/upgrade-plan.json \
+  --attempt-id <unique-attempt-id> \
+  --prepare-receipt /path/to/prepare.json \
+  --maintenance-receipt /path/to/maintenance.json
+
+scripts/usl-stack --target staging release plan --promote \
+  --upgrade-plan /path/to/signed-staging-plan.json \
+  --staging-release /path/to/staging-release.json \
+  --candidate-release /path/to/production-release.json \
+  --output /path/to/production-promotion.json
+
+scripts/usl-stack --target production release prepare \
+  --attempt-id <unique-attempt-id> \
+  --candidate-release /path/to/production-release.json \
+  --upgrade-plan /path/to/production-promotion.json
 
 scripts/usl-stack --target production release status
 scripts/usl-stack --target production release abort
@@ -115,6 +137,41 @@ Production Sign secrets are restored only to a production generation. Staging
 keeps its own Pocket ID, Sign and runtime secrets and never mounts production
 Sign PKI or MCP OAuth grants.
 
+`release prepare` is the mandatory pre-downtime gate. It validates the target
+secret contract, storage paths and external networks, pulls every immutable
+image, measures candidate capacity, verifies the signed plan, and renders the
+exact target Compose topology with release images, resource limits, generation
+volumes, Sign mounts, and production quarantine settings. It returns a
+content-addressed render receipt and does not stop, recreate, or reconfigure a
+running service. `release reconcile` repeats this gate so a caller cannot skip
+it accidentally.
+
+Every rollout attempt has an identity distinct from the desired release. The
+controller binds preparation, observed public HTTP 503 evidence, generation,
+backup and final admission to that attempt. `release reconcile` requires a
+digested `usl-maintenance-admission/v1` receipt for the same target and attempt,
+then consumes the attempt exactly once. A failed or interrupted attempt is
+terminal: after verified recovery, automation must create a fresh attempt and
+fresh backup/generation identities. It may never reuse an old pre-release
+snapshot merely because the desired release is unchanged. Only the immutable
+`usl-release-admission/v1` receipt written after final health, smoke,
+preservation, and side-effect checks proves admission; an active image plus a
+healthy endpoint is not sufficient.
+
+Production candidates remain quarantined behind maintenance during admission.
+Odoo starts with zero cron threads, a closed SMTP endpoint, disabled regulatory
+flags, and a neutralization marker. The candidate database records and disables
+the exact active incoming-mail server, while the versioned cron policy may be
+checked without any scheduler thread executing it. Paperless starts with every
+scheduled external or destructive task disabled. After health, smoke, business
+preservation, and release-owned controls pass, the controller explicitly clears
+the matching quarantine identity, restores only the recorded approved incoming
+server, replaces the quarantine overlay with the admitted environment, recreates
+the affected services, and repeats health and smoke. The side-effect admission
+check runs while the quarantine overlay is still active, so an invalid SMTP,
+inbound-mail, cron, or regulatory contract cannot race a newly started worker.
+Any failure before completion rolls back while public ingress remains closed.
+
 Admission compares captured before/after controls rather than merely checking
 that tables are non-empty. Controls are deliberately separated into three
 classes:
@@ -156,17 +213,20 @@ serializes Odoo, MCP, and recovery procedures. Backup stages persist evidence
 and support bounded resume. Interrupted partial capture workspaces are safely
 recreated, while completed uploads are reused instead of taking a second
 snapshot. The fixed launcher persists every canonical release stage as an
-atomic, checksummed JSON record and resumes only the first incomplete stage.
-It rejects tampered evidence and will not resume a post-reopen failure as a
-rollback. Candidate generation names and pre/post-release backup run IDs are
-release-derived, so retrying cannot silently create parallel candidates.
+atomic, checksummed JSON record and resumes only where the same attempt has
+remained continuously closed and its active baseline is unchanged. It rejects
+tampered evidence and will not resume a post-reopen failure as a rollback.
+Candidate generation names and pre/post-release backup run IDs are
+attempt-derived, so a rollback followed by reopen terminally invalidates them
+instead of reusing an older database snapshot for the same desired release.
 
 Public status and abort operations reject malformed state instead of rewriting
 it. A release backup can leave all cohort writers stopped after successful
 capture; capture failure always restarts them. If an interruption leaves an
-unadmitted candidate active, the controller restores the previous generation,
-truncates only the candidate-stage evidence, and can safely rematerialize it on
-the next invocation. Full live interruption drills remain an activation gate.
+unadmitted candidate active, the controller restores and validates the previous
+generation. If it reopens access, the attempt becomes terminal and the next run
+must prepare a fresh attempt, capture fresh backup identities, and create a new
+generation. Full live interruption drills remain an activation gate.
 
 ## Failure boundary
 
