@@ -15,7 +15,11 @@ from operations.runtime import (
     validate_target,
     validate_secret_text,
 )
-from operations.stack import _validate_mcp_readiness, _validate_sign_readiness
+from operations.stack import (
+    _cleanup_adoption_candidate_anchor,
+    _validate_mcp_readiness,
+    _validate_sign_readiness,
+)
 from scripts.tests.test_release_manifest import manifest as v3_release_manifest
 
 
@@ -176,6 +180,12 @@ class ComposeAnchorRunner(FakeRunner):
             }
             labels.update(self.label_overrides.get(identifier, {}))
             return self.completed(command, json.dumps(labels))
+        if command[:3] == ["docker", "rm", "--force"]:
+            identifier = command[3]
+            for identifiers in self.services.values():
+                if identifier in identifiers:
+                    identifiers.remove(identifier)
+            return self.completed(command, identifier + "\n")
         if command[:2] in (["test", "-f"], ["test", "-d"]):
             return self.completed(command, "")
         if command[:2] == ["readlink", "-f"]:
@@ -409,6 +419,21 @@ class RuntimeContractTests(unittest.TestCase):
 
         self.assertEqual(identity["container_id"], "canonical-id")
         self.assertEqual(identity["anchor_service"], "odoo-staging")
+
+    def test_validation_failure_cleanup_makes_legacy_v2_adoption_retryable(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        runner = ComposeAnchorRunner(
+            target,
+            {"odoo-staging": ["failed-id"], "odoo": ["legacy-id"]},
+            active_state=active_generation(target),
+        )
+        legacy_identity = {"anchor_service": "odoo"}
+
+        _cleanup_adoption_candidate_anchor(target, runner, legacy_identity)
+        identity = compose_identity(target, runner)
+
+        self.assertEqual(identity["container_id"], "legacy-id")
+        self.assertEqual(runner.services["odoo-staging"], [])
 
     def test_staging_rejects_foreign_or_wrong_legacy_labels(self) -> None:
         target = load_target("staging", HOST_TARGETS)

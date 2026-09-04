@@ -1874,6 +1874,36 @@ def _candidate_compose_identity(target, runner, current_identity: dict) -> dict:
     return identity
 
 
+def _cleanup_adoption_candidate_anchor(target, runner, current_identity: dict) -> None:
+    """Remove only a failed first-adoption anchor so the v2 runtime stays retryable."""
+    anchor = target.value["compose"]["anchor_service"]
+    if current_identity.get("anchor_service", anchor) == anchor:
+        return
+    candidates = runner.run(
+        [
+            "docker", "ps", "-a",
+            "--filter", f"label=com.docker.compose.project={target.project}",
+            "--filter", f"label=com.docker.compose.service={anchor}",
+            "--format", "{{.ID}}",
+        ],
+    ).stdout.splitlines()
+    for container in candidates:
+        labels = json.loads(
+            runner.run(
+                [
+                    "docker", "inspect", container,
+                    "--format", "{{json .Config.Labels}}",
+                ],
+            ).stdout,
+        )
+        if (
+            labels.get("com.docker.compose.project") != target.project
+            or labels.get("com.docker.compose.service") != anchor
+        ):
+            raise RuntimeError("failed candidate anchor ownership differs")
+        runner.run(["docker", "rm", "--force", container])
+
+
 def _activate_generation(
     target,
     runner,
@@ -1892,33 +1922,9 @@ def _activate_generation(
             compose_command(generation_identity, ["up", "--detach", "--wait"]),
         )
     except Exception as error:
-        anchor = target.value["compose"]["anchor_service"]
         cleanup_error = None
         try:
-            if current_identity.get("anchor_service", anchor) != anchor:
-                candidates = runner.run(
-                    [
-                        "docker", "ps", "-a",
-                        "--filter", f"label=com.docker.compose.project={target.project}",
-                        "--filter", f"label=com.docker.compose.service={anchor}",
-                        "--format", "{{.ID}}",
-                    ],
-                ).stdout.splitlines()
-                for container in candidates:
-                    labels = json.loads(
-                        runner.run(
-                            [
-                                "docker", "inspect", container,
-                                "--format", "{{json .Config.Labels}}",
-                            ],
-                        ).stdout,
-                    )
-                    if (
-                        labels.get("com.docker.compose.project") != target.project
-                        or labels.get("com.docker.compose.service") != anchor
-                    ):
-                        raise RuntimeError("failed candidate anchor ownership differs")
-                    runner.run(["docker", "rm", "--force", container])
+            _cleanup_adoption_candidate_anchor(target, runner, current_identity)
         except Exception as cleanup:
             cleanup_error = cleanup
         _rollback_after_failure(runner, current_identity, error)
@@ -2503,6 +2509,11 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             raise RuntimeError(str(error)) from error
     except Exception as error:
         target_runner.run(compose_command(generation_identity, ["stop", "--timeout", "60"]), check=False)
+        cleanup_error = None
+        try:
+            _cleanup_adoption_candidate_anchor(target, target_runner, identity)
+        except Exception as cleanup:
+            cleanup_error = cleanup
         if current["active_state"] is None:
             target_runner.run(["rm", "-f", active_path], check=False)
         else:
@@ -2513,6 +2524,11 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
                 json.dumps(current["active_state"], indent=2, sort_keys=True) + "\n",
             )
         _rollback_after_failure(target_runner, identity, error)
+        if cleanup_error is not None:
+            raise RuntimeError(
+                f"validation failed ({error}); legacy rollback completed but candidate cleanup failed "
+                f"({cleanup_error})",
+            ) from error
         raise
     _record_event(
         target,
