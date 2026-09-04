@@ -64,6 +64,25 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         self.assertEqual(notes["schema"], "usl-release-notes/v1")
         self.assertTrue(notes["changes"])
 
+    def test_release_attests_the_exact_verified_renderer_digest(self) -> None:
+        self.assertIn(
+            "name: Attest verified renderer as distribution integrator",
+            self.workflow,
+        )
+        self.assertIn(
+            "ghcr.io/unstaticlabs/usl-document-renderer@sha256:*",
+            self.workflow,
+        )
+        self.assertIn(
+            "subject-name: ${{ steps.renderer.outputs.subject_name }}",
+            self.workflow,
+        )
+        self.assertIn(
+            "subject-digest: ${{ steps.renderer.outputs.subject_digest }}",
+            self.workflow,
+        )
+        self.assertIn("push-to-registry: true", self.workflow)
+
     def test_release_is_only_published_from_permanent_release_branches(self) -> None:
         self.assertIn("- 19-usl-staging", self.workflow)
         self.assertIn("- 19-usl", self.workflow)
