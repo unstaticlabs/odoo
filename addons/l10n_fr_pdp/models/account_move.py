@@ -9,7 +9,7 @@ from odoo.exceptions import UserError, ValidationError
 from odoo.tools import frozendict, html2plaintext
 
 from odoo.addons.l10n_fr_pdp.models.account_edi_proxy_user import STATUS_TO_PROCESS_CONDITION_CODE_PDP
-from odoo.addons.l10n_fr_pdp.models.account_edi_xml_ubl_21_fr import PDP_CUSTOMIZATION_ID
+from odoo.addons.l10n_fr_pdp.models.account_edi_xml_ubl_21_fr import PDP_CUSTOMIZATION_ID, CPRO_CUSTOMIZATION_ID
 from odoo.addons.l10n_fr_pdp.models.account_peppol_response import NEW_STATUSES
 from odoo.addons.l10n_fr_pdp.models.pdp_flow import FLOW_OPEN_STATES_SELECTION, FLOW_SENT_STATES, FLOW_SENT_STATES_SELECTION
 from odoo.addons.l10n_fr_pdp.utils import drom_com_territories
@@ -120,6 +120,12 @@ class AccountMove(models.Model):
         copy=False,
     )
 
+    # TODO: remove in master
+    @api.model
+    def fields_get(self, allfields=None, attributes=None):
+        self.env['res.config.settings']._pdp_ensure_selection_value('account.move', 'peppol_move_state', 'completed')
+        return super().fields_get(allfields, attributes)
+
     @api.depends(
         'line_ids.matched_debit_ids.debit_move_id',
         'line_ids.matched_credit_ids.credit_move_id',
@@ -165,6 +171,16 @@ class AccountMove(models.Model):
                 and move.peppol_is_sent
                 and move.company_id._get_peppol_proxy_type() == 'pdp'
                 and move.partner_id._get_pdp_receiver_identification_info()[0] == 'pdp'
+            )
+
+    @api.depends('pdp_can_send_response')
+    def _compute_peppol_can_send_response(self):
+        # EXTENDS account_peppol_response to avoid sending the same response through 2 channels
+        super()._compute_peppol_can_send_response()
+        for move in self:
+            move.peppol_can_send_response = (
+                move.peppol_can_send_response
+                and not move.pdp_can_send_response
             )
 
     @api.depends('company_id')
@@ -254,10 +270,12 @@ class AccountMove(models.Model):
     @api.model
     def _get_ubl_cii_builder_from_xml_tree(self, tree):
         # Extends account_edi_ubl_cii
-        customization_id = tree.find('{*}CustomizationID')
+        customization_id = tree.findtext('{*}CustomizationID')
         # Note: The CustomizationID alone is not enough because e.g. SuperPDP just sends `urn:cen.eu:en16931:2017`
         #       but still expects the full French validation.
-        if customization_id is not None and customization_id.text == PDP_CUSTOMIZATION_ID:
+        if customization_id == CPRO_CUSTOMIZATION_ID:
+            return self.env['account.edi.xml.ubl_21_fr']
+        if customization_id == PDP_CUSTOMIZATION_ID:
             receiver_endpoint_node = tree.find('./{*}AccountingCustomerParty/{*}Party/{*}EndpointID')
             if receiver_endpoint_node is not None and receiver_endpoint_node.get('schemeID') == '0225':
                 return self.env['account.edi.xml.ubl_21_fr']
