@@ -769,6 +769,7 @@ class CohortContractTests(unittest.TestCase):
         evidence = {
             "schema": "usl-pocket-id-runtime-admission/v1",
             "status": "passed",
+            "paperless_mode": "oidc",
             **checks,
         }
         runner = mock.Mock()
@@ -796,6 +797,31 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("synthetic_client_probe", program)
         compile(program, "<staging-oidc-admission>", "exec")
 
+        internal_checks = {
+            key: value for key, value in checks.items()
+            if not key.startswith("paperless_")
+        }
+        internal_evidence = {
+            "schema": "usl-pocket-id-runtime-admission/v1",
+            "status": "passed",
+            "paperless_mode": "internal-only",
+            **internal_checks,
+        }
+        runner.run.return_value = subprocess.CompletedProcess(
+            [], 0,
+            "USL_POCKET_ID_RUNTIME_ADMISSION=" + json.dumps(internal_evidence) + "\n",
+            "",
+        )
+        result = _reconcile_staging_pocketid(
+            target,
+            runner,
+            release,
+            "candidate-network",
+            {"odoo_filestore": "candidate-filestore"},
+            candidate,
+        )
+        self.assertEqual(result, internal_evidence)
+
     def test_staging_pocket_id_reconcile_rejects_unapproved_environment_and_failed_check(self) -> None:
         target = load_target("staging", HOST_TARGETS)
         release = {
@@ -819,6 +845,7 @@ class CohortContractTests(unittest.TestCase):
         evidence = {
             "schema": "usl-pocket-id-runtime-admission/v1",
             "status": "passed",
+            "paperless_mode": "oidc",
             "application_completed": True,
             "provider_enabled": False,
             "governed_provider": True,
@@ -849,7 +876,7 @@ class CohortContractTests(unittest.TestCase):
                 },
             )
 
-    def test_staging_auth_compose_requires_both_isolated_sso_clients(self) -> None:
+    def test_staging_auth_compose_requires_isolated_clients_when_paperless_is_public(self) -> None:
         target = load_target("staging", HOST_TARGETS)
         candidate = {
             "working_directory": "/gitops/staging",
@@ -872,7 +899,10 @@ class CohortContractTests(unittest.TestCase):
         }
         paperless_url = "https://documents-staging.unstaticlabs.com"
         paperless_environment = {
-            "PAPERLESS_APPS": "allauth.socialaccount.providers.openid_connect",
+            "USL_DEPLOYMENT_ENV": "staging",
+            "PAPERLESS_APPS": (
+                "allauth.socialaccount.providers.openid_connect,paperless_personal_ai"
+            ),
             "PAPERLESS_DISABLE_REGULAR_LOGIN": "true",
             "PAPERLESS_REDIRECT_LOGIN_TO_SSO": "true",
             "PAPERLESS_URL": paperless_url,
@@ -919,6 +949,147 @@ class CohortContractTests(unittest.TestCase):
             [], 0, json.dumps(rendered), "",
         )
         with self.assertRaisesRegex(RuntimeError, "paperless_sso_enabled"):
+            _validate_staging_auth_compose(target, runner, candidate)
+
+    def test_staging_auth_compose_accepts_only_private_paperless_without_oidc(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        candidate = {
+            "working_directory": "/gitops/staging",
+            "compose_files": ["/gitops/staging/compose.yaml"],
+            "environment_file": target.value["compose"]["adoption"]["candidate"][
+                "environment_file"
+            ],
+            "profiles": [],
+            "project": target.project,
+            "anchor_service": target.value["services"]["odoo"],
+        }
+        issuer = "https://auth.unstaticlabs.com"
+        odoo_environment = {
+            "USL_DEPLOYMENT_ENV": "staging",
+            "USL_POCKET_ID_ENABLED": "1",
+            "USL_POCKET_ID_ISSUER": issuer,
+            "USL_POCKET_ID_ODOO_BASE_URL": target.value["endpoints"]["odoo"],
+            "USL_POCKET_ID_CLIENT_ID": "odoo-client",
+            "USL_POCKET_ID_CLIENT_SECRET": "odoo-secret",
+        }
+        paperless_url = target.value["endpoints"]["paperless"]
+        rendered = {
+            "networks": {"private": {"name": "usl-staging-private"}},
+            "services": {
+                target.value["services"]["odoo"]: {"environment": odoo_environment},
+                "odoo-upgrade": {"environment": odoo_environment},
+                target.value["services"]["paperless"]: {
+                    "environment": {
+                        "USL_DEPLOYMENT_ENV": "staging",
+                        "PAPERLESS_URL": paperless_url,
+                        "PAPERLESS_APPS": "paperless_personal_ai",
+                    },
+                    "networks": ["private"],
+                    "ports": [{
+                        "host_ip": "127.0.0.1",
+                        "published": "19010",
+                        "target": 8000,
+                    }],
+                },
+                "paperless-preflight": {"environment": {
+                    "USL_DEPLOYMENT_ENV": "staging",
+                    "PAPERLESS_OIDC_ENABLED": "0",
+                    "PAPERLESS_DISABLE_REGULAR_LOGIN": "false",
+                    "PAPERLESS_PUBLIC_URL": paperless_url,
+                    "PAPERLESS_PUBLIC_BASE_URL": "",
+                }},
+            },
+        }
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess(
+            [], 0, json.dumps(rendered), "",
+        )
+        result = _validate_staging_auth_compose(target, runner, candidate)
+        self.assertEqual(result["paperless_mode"], "internal-only")
+        self.assertEqual(result["status"], "passed")
+
+        rendered["services"][target.value["services"]["paperless"]]["ports"][0][
+            "host_ip"
+        ] = "0.0.0.0"
+        runner.run.return_value = subprocess.CompletedProcess(
+            [], 0, json.dumps(rendered), "",
+        )
+        with self.assertRaisesRegex(RuntimeError, "paperless_loopback_only"):
+            _validate_staging_auth_compose(target, runner, candidate)
+
+        rendered["services"][target.value["services"]["paperless"]]["ports"][0][
+            "host_ip"
+        ] = "127.0.0.1"
+        rendered["services"][target.value["services"]["paperless"]]["networks"] = [
+            "cloudflare"
+        ]
+        rendered["networks"]["cloudflare"] = {"name": "cloudflare"}
+        runner.run.return_value = subprocess.CompletedProcess(
+            [], 0, json.dumps(rendered), "",
+        )
+        with self.assertRaisesRegex(RuntimeError, "paperless_loopback_only"):
+            _validate_staging_auth_compose(target, runner, candidate)
+
+    def test_staging_auth_compose_rejects_public_gateway_paperless_route(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        candidate = {
+            "working_directory": "/gitops/staging",
+            "compose_files": ["/gitops/staging/compose.yaml"],
+            "environment_file": target.value["compose"]["adoption"]["candidate"]["environment_file"],
+            "profiles": [],
+            "project": target.project,
+            "anchor_service": target.value["services"]["odoo"],
+        }
+        odoo_environment = {
+            "USL_DEPLOYMENT_ENV": "staging",
+            "USL_POCKET_ID_ENABLED": "1",
+            "USL_POCKET_ID_ISSUER": "https://auth.unstaticlabs.com",
+            "USL_POCKET_ID_ODOO_BASE_URL": target.value["endpoints"]["odoo"],
+            "USL_POCKET_ID_CLIENT_ID": "odoo-client",
+            "USL_POCKET_ID_CLIENT_SECRET": "odoo-secret",
+        }
+        paperless_url = target.value["endpoints"]["paperless"]
+        rendered = {
+            "networks": {
+                "private": {"name": "usl-staging-private"},
+                "external-ingress": {"name": "cloudflare"},
+            },
+            "services": {
+                target.value["services"]["odoo"]: {"environment": odoo_environment},
+                "odoo-upgrade": {"environment": odoo_environment},
+                target.value["services"]["paperless"]: {
+                    "environment": {
+                        "USL_DEPLOYMENT_ENV": "staging",
+                        "PAPERLESS_URL": paperless_url,
+                        "PAPERLESS_APPS": "paperless_personal_ai",
+                    },
+                    "networks": ["private"],
+                    "ports": [{"host_ip": "127.0.0.1", "published": "19010", "target": 8000}],
+                },
+                "paperless-preflight": {"environment": {
+                    "USL_DEPLOYMENT_ENV": "staging",
+                    "PAPERLESS_OIDC_ENABLED": "0",
+                    "PAPERLESS_PUBLIC_URL": paperless_url,
+                    "PAPERLESS_PUBLIC_BASE_URL": "",
+                }},
+                "gateway": {
+                    "image": "nginx@sha256:" + "a" * 64,
+                    "networks": {"external-ingress": {"aliases": ["odoo-staging"]}},
+                    "volumes": [{
+                        "type": "bind", "source": "./gateway.conf",
+                        "target": "/etc/nginx/gateway.conf",
+                    }],
+                },
+            },
+        }
+        runner = mock.Mock()
+        runner.run.side_effect = [
+            subprocess.CompletedProcess([], 0, json.dumps(rendered), ""),
+            subprocess.CompletedProcess(
+                [], 0, "location /papers { proxy_pass http://paperless-webserver:8000; }", "",
+            ),
+        ]
+        with self.assertRaisesRegex(RuntimeError, "paperless_external_route_absent"):
             _validate_staging_auth_compose(target, runner, candidate)
 
     def _sign_secrets(self, root: Path) -> Path:

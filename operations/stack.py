@@ -13,6 +13,7 @@ import time
 from contextlib import contextmanager, redirect_stdout
 from datetime import UTC, datetime
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from operations.control_manifest import (
     ODOO_CONTROL_SQL,
@@ -2590,7 +2591,7 @@ def _staging_pocketid_runtime_environment(target, candidate_identity: dict) -> s
 
 
 def _validate_staging_auth_compose(target, runner, candidate_identity: dict) -> dict:
-    """Fail before materialization unless rendered staging uses both SSO clients."""
+    """Fail before materialization unless staging authentication is explicit."""
     if target.value["environment"] != "staging":
         return {"schema": "usl-staging-auth-compose/v1", "status": "not-applicable"}
     _staging_pocketid_runtime_environment(target, candidate_identity)
@@ -2598,26 +2599,35 @@ def _validate_staging_auth_compose(target, runner, candidate_identity: dict) -> 
         compose_command(candidate_identity, ["config", "--format", "json"]),
     )
     try:
-        services = json.loads(rendered.stdout)["services"]
+        compose = json.loads(rendered.stdout)
+        services = compose["services"]
         odoo = services[target.value["services"]["odoo"]]["environment"]
         upgrade = services["odoo-upgrade"]["environment"]
-        paperless = services[target.value["services"]["paperless"]]["environment"]
+        paperless_service = services[target.value["services"]["paperless"]]
+        paperless = paperless_service["environment"]
         paperless_preflight = services["paperless-preflight"]["environment"]
-        providers = json.loads(paperless["PAPERLESS_SOCIALACCOUNT_PROVIDERS"])
-        provider = providers["openid_connect"]["APPS"]
-        if not isinstance(provider, list) or len(provider) != 1:
-            raise KeyError("Paperless provider count")
-        provider = provider[0]
     except (KeyError, TypeError, json.JSONDecodeError) as error:
         raise RuntimeError("rendered staging authentication contract is invalid") from error
     issuer = "https://auth.unstaticlabs.com"
     base_url = target.value["endpoints"]["odoo"].rstrip("/")
     paperless_url = str(paperless.get("PAPERLESS_URL", "")).rstrip("/")
-    provider_server = str((provider.get("settings") or {}).get("server_url", "")).rstrip("/")
+    paperless_public_url = str(
+        paperless_preflight.get("PAPERLESS_PUBLIC_URL", "")
+    ).rstrip("/")
+    paperless_public_base = str(
+        paperless_preflight.get("PAPERLESS_PUBLIC_BASE_URL", "")
+    ).rstrip("/")
+    configured_paperless_urls = [
+        value for value in (paperless_url, paperless_public_url, paperless_public_base) if value
+    ]
+    public_paperless = any(
+        urlsplit(value).hostname not in {"127.0.0.1", "localhost", "::1"}
+        for value in configured_paperless_urls
+    )
     checks = {
         "canonical_environment": all(
             environment.get("USL_DEPLOYMENT_ENV") == "staging"
-            for environment in (odoo, upgrade, paperless_preflight)
+            for environment in (odoo, upgrade, paperless, paperless_preflight)
         ),
         "odoo_sso_enabled": all(
             environment.get("USL_POCKET_ID_ENABLED") == "1"
@@ -2627,39 +2637,135 @@ def _validate_staging_auth_compose(target, runner, candidate_identity: dict) -> 
             and bool(environment.get("USL_POCKET_ID_CLIENT_SECRET"))
             for environment in (odoo, upgrade)
         ),
-        "paperless_sso_enabled": (
-            paperless_preflight.get("PAPERLESS_OIDC_ENABLED") == "1"
-            and paperless_preflight.get("PAPERLESS_DISABLE_REGULAR_LOGIN") == "true"
-            and paperless.get("PAPERLESS_DISABLE_REGULAR_LOGIN") == "true"
-            and paperless.get("PAPERLESS_REDIRECT_LOGIN_TO_SSO") == "true"
-            and paperless.get("PAPERLESS_APPS")
-            == "allauth.socialaccount.providers.openid_connect"
-        ),
-        "paperless_public_url": (
-            paperless_url.startswith("https://")
-            and "localhost" not in paperless_url
-            and "127.0.0.1" not in paperless_url
-            and str(paperless_preflight.get("PAPERLESS_PUBLIC_URL", "")).rstrip("/")
-            == paperless_url
-            and str(paperless_preflight.get("PAPERLESS_PUBLIC_BASE_URL", "")).rstrip("/")
-            == paperless_url
-        ),
-        "paperless_client_isolated": (
-            provider.get("provider_id") == "pocket-id"
-            and bool(provider.get("client_id"))
-            and bool(provider.get("secret"))
-            and provider.get("client_id") != odoo.get("USL_POCKET_ID_CLIENT_ID")
-            and provider_server == issuer
-            and (provider.get("settings") or {}).get("token_auth_method")
-            == "client_secret_basic"
-        ),
     }
+    paperless_apps = {
+        value.strip() for value in str(paperless.get("PAPERLESS_APPS", "")).split(",")
+        if value.strip()
+    }
+    if public_paperless:
+        try:
+            providers = json.loads(paperless["PAPERLESS_SOCIALACCOUNT_PROVIDERS"])
+            provider_list = providers["openid_connect"]["APPS"]
+            if not isinstance(provider_list, list) or len(provider_list) != 1:
+                raise KeyError("Paperless provider count")
+            provider = provider_list[0]
+        except (KeyError, TypeError, json.JSONDecodeError) as error:
+            raise RuntimeError("rendered public Paperless OIDC contract is invalid") from error
+        provider_server = str(
+            (provider.get("settings") or {}).get("server_url", "")
+        ).rstrip("/")
+        checks.update({
+            "paperless_https_url": (
+                urlsplit(paperless_url).scheme == "https"
+                and paperless_url == paperless_public_url == paperless_public_base
+            ),
+            "paperless_sso_enabled": (
+                paperless_preflight.get("PAPERLESS_OIDC_ENABLED") == "1"
+                and paperless_preflight.get("PAPERLESS_DISABLE_REGULAR_LOGIN") == "true"
+                and paperless.get("PAPERLESS_DISABLE_REGULAR_LOGIN") == "true"
+                and paperless.get("PAPERLESS_REDIRECT_LOGIN_TO_SSO") == "true"
+                and "allauth.socialaccount.providers.openid_connect" in paperless_apps
+            ),
+            "paperless_client_isolated": (
+                provider.get("provider_id") == "pocket-id"
+                and bool(provider.get("client_id"))
+                and bool(provider.get("secret"))
+                and provider.get("client_id") != odoo.get("USL_POCKET_ID_CLIENT_ID")
+                and provider_server == issuer
+                and (provider.get("settings") or {}).get("token_auth_method")
+                == "client_secret_basic"
+            ),
+        })
+        paperless_mode = "oidc"
+    else:
+        internal_url = target.value["endpoints"]["paperless"].rstrip("/")
+        internal_endpoint = urlsplit(internal_url)
+        ports = paperless_service.get("ports") or []
+        networks = paperless_service.get("networks") or []
+        network_names = set(networks if isinstance(networks, list) else networks)
+        rendered_networks = compose.get("networks") or {}
+        ingress_name = target.value["external_networks"]["ingress"]
+        attached_networks = {
+            str((rendered_networks.get(name) or {}).get("name", name))
+            for name in network_names
+        }
+        ingress_route_clear = True
+        for service_name, service in services.items():
+            service_networks = service.get("networks") or []
+            service_network_names = set(
+                service_networks if isinstance(service_networks, list) else service_networks
+            )
+            resolved_service_networks = {
+                str((rendered_networks.get(name) or {}).get("name", name))
+                for name in service_network_names
+            }
+            if ingress_name not in service_network_names | resolved_service_networks:
+                continue
+            for network_name in service_network_names:
+                network_options = (
+                    service_networks.get(network_name) or {}
+                    if isinstance(service_networks, dict)
+                    else {}
+                )
+                aliases = network_options.get("aliases") or []
+                if any("paperless" in str(alias).lower() for alias in aliases):
+                    ingress_route_clear = False
+            image = str(service.get("image", "")).lower()
+            if not any(proxy in image for proxy in ("nginx", "caddy", "traefik")):
+                continue
+            inspected_proxy_config = False
+            for volume in service.get("volumes") or []:
+                if not isinstance(volume, dict) or volume.get("type") != "bind":
+                    continue
+                source = Path(str(volume.get("source", "")))
+                if source.suffix not in {".conf", ".cfg"}:
+                    continue
+                if not source.is_absolute():
+                    source = Path(candidate_identity["working_directory"]) / source
+                inspected_proxy_config = True
+                if "paperless" in _read_path(target, runner, source).lower():
+                    ingress_route_clear = False
+            if not inspected_proxy_config:
+                ingress_route_clear = False
+        exact_loopback_port = len(ports) == 1 and all(
+            str(port.get("host_ip", "")) == "127.0.0.1"
+            and str(port.get("published", "")) == str(internal_endpoint.port)
+            and str(port.get("target", "")) == "8000"
+            for port in ports
+            if isinstance(port, dict)
+        ) and all(isinstance(port, dict) for port in ports)
+        checks.update({
+            "paperless_internal_url": (
+                internal_endpoint.scheme == "http"
+                and internal_endpoint.hostname == "127.0.0.1"
+                and paperless_url == paperless_public_url == internal_url
+                and not paperless_public_base
+            ),
+            "paperless_loopback_only": (
+                exact_loopback_port
+                and ingress_name not in network_names
+                and ingress_name not in attached_networks
+            ),
+            "paperless_external_route_absent": ingress_route_clear,
+            "paperless_oidc_disabled": (
+                paperless_preflight.get("PAPERLESS_OIDC_ENABLED") == "0"
+                and not paperless.get("PAPERLESS_SOCIALACCOUNT_PROVIDERS")
+                and not paperless.get("PAPERLESS_REDIRECT_LOGIN_TO_SSO")
+                and "allauth.socialaccount.providers.openid_connect" not in paperless_apps
+            ),
+        })
+        paperless_mode = "internal-only"
     if not all(checks.values()):
         raise RuntimeError(
             "staging authentication Compose admission failed: "
             + ", ".join(key for key, value in checks.items() if not value),
         )
-    return {"schema": "usl-staging-auth-compose/v1", **checks, "status": "passed"}
+    return {
+        "schema": "usl-staging-auth-compose/v1",
+        "paperless_mode": paperless_mode,
+        **checks,
+        "status": "passed",
+    }
 
 
 def _staging_pocketid_command(target, release, network, volumes, candidate_identity, arguments):
@@ -2669,9 +2775,10 @@ def _staging_pocketid_command(target, release, network, volumes, candidate_ident
         'set -eu; '
         'export USL_POCKET_ID_CLIENT_ID="${POCKET_ID_CLIENT_ID:?}"; '
         'export USL_POCKET_ID_CLIENT_SECRET="${POCKET_ID_CLIENT_SECRET:?}"; '
+        'if [ "${PAPERLESS_OIDC_ENABLED:-0}" = 1 ]; then '
         ': "${POCKET_ID_PAPERLESS_CLIENT_ID:?}"; '
         ': "${POCKET_ID_PAPERLESS_CLIENT_SECRET:?}"; '
-        ': "${PAPERLESS_PUBLIC_URL:?}"; '
+        ': "${PAPERLESS_PUBLIC_URL:?}"; fi; '
         'exec "$@"'
     )
     return [
@@ -2784,13 +2891,7 @@ odoo_authorization, odoo_secret = synthetic_client_probe(
     base_url + "/auth_oauth/signin",
     provider.usl_token_auth_method,
 )
-paperless_url = os.environ["PAPERLESS_PUBLIC_URL"].rstrip("/")
-paperless_authorization, paperless_secret = synthetic_client_probe(
-    os.environ["POCKET_ID_PAPERLESS_CLIENT_ID"],
-    os.environ["POCKET_ID_PAPERLESS_CLIENT_SECRET"],
-    paperless_url + "/accounts/oidc/pocket-id/login/callback/",
-    "client_secret_basic",
-)
+paperless_mode = "oidc" if os.environ.get("PAPERLESS_OIDC_ENABLED") == "1" else "internal-only"
 checks = {
     "application_completed": applied is True,
     "provider_enabled": provider.enabled is True,
@@ -2811,10 +2912,25 @@ checks = {
     ) and all(provider[field] for field in endpoint_fields[:3]),
     "odoo_authorization_accepted": odoo_authorization,
     "odoo_client_secret_accepted": odoo_secret,
-    "paperless_authorization_accepted": paperless_authorization,
-    "paperless_client_secret_accepted": paperless_secret,
 }
-evidence = {"schema": "usl-pocket-id-runtime-admission/v1", "status": "passed", **checks}
+if paperless_mode == "oidc":
+    paperless_url = os.environ["PAPERLESS_PUBLIC_URL"].rstrip("/")
+    paperless_authorization, paperless_secret = synthetic_client_probe(
+        os.environ["POCKET_ID_PAPERLESS_CLIENT_ID"],
+        os.environ["POCKET_ID_PAPERLESS_CLIENT_SECRET"],
+        paperless_url + "/accounts/oidc/pocket-id/login/callback/",
+        "client_secret_basic",
+    )
+    checks.update({
+        "paperless_authorization_accepted": paperless_authorization,
+        "paperless_client_secret_accepted": paperless_secret,
+    })
+evidence = {
+    "schema": "usl-pocket-id-runtime-admission/v1",
+    "status": "passed",
+    "paperless_mode": paperless_mode,
+    **checks,
+}
 if not all(checks.values()):
     raise RuntimeError("Pocket ID runtime admission failed: " + ", ".join(
         key for key, value in checks.items() if not value
@@ -2843,19 +2959,30 @@ print("USL_POCKET_ID_RUNTIME_ADMISSION=" + json.dumps(evidence, sort_keys=True))
             evidence = json.loads(line.removeprefix(prefix))
         except json.JSONDecodeError as error:
             raise RuntimeError("Pocket ID runtime admission returned invalid evidence") from error
-        expected_keys = {
+        common_keys = {
             "schema", "status", "application_completed", "provider_enabled",
             "governed_provider", "client_id_matches", "database_secret_absent",
             "issuer_matches", "base_url_matches", "required_group_matches",
             "scopes_match", "endpoints_match_issuer", "odoo_authorization_accepted",
-            "odoo_client_secret_accepted", "paperless_authorization_accepted",
-            "paperless_client_secret_accepted",
+            "odoo_client_secret_accepted", "paperless_mode",
         }
+        paperless_mode = evidence.get("paperless_mode")
+        expected_keys = set(common_keys)
+        if paperless_mode == "oidc":
+            expected_keys.update({
+                "paperless_authorization_accepted",
+                "paperless_client_secret_accepted",
+            })
+        elif paperless_mode != "internal-only":
+            raise RuntimeError("Pocket ID runtime admission evidence differs")
         if (
             set(evidence) != expected_keys
             or evidence.get("schema") != "usl-pocket-id-runtime-admission/v1"
             or evidence.get("status") != "passed"
-            or any(evidence[key] is not True for key in expected_keys - {"schema", "status"})
+            or any(
+                evidence[key] is not True
+                for key in expected_keys - {"schema", "status", "paperless_mode"}
+            )
         ):
             raise RuntimeError("Pocket ID runtime admission evidence differs")
         return evidence
