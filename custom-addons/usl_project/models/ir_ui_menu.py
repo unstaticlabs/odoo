@@ -34,6 +34,7 @@ class IrUiMenu(models.Model):
             limit=FAVORITE_PROJECT_MENU_LIMIT,
         )
         favorite_menu_ids = []
+        task_action = self.env.ref('project.act_project_project_2_project_task_all')
         for project in favorite_projects:
             menu_id = f"usl-project-favorite-{project.id}"
             favorite_menu_ids.append(menu_id)
@@ -45,11 +46,11 @@ class IrUiMenu(models.Model):
                 "xmlid": "",
                 "actionID": {
                     "type": "ir.actions.client",
-                    "tag": "project_top_menu_overview",
+                    "tag": "usl_project_favorite_tasks",
                     "name": project.name,
                     "res_id": project.id,
                 },
-                "actionPath": f"project.project/{project.id}",
+                "actionPath": f"project/{project.id}/action-{task_action.id}",
                 "actionModel": "ir.actions.client",
                 "webIcon": False,
                 "webIconData": False,

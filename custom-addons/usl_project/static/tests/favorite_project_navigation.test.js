@@ -1,8 +1,8 @@
 import { beforeEach, expect, test } from "@odoo/hoot";
 import { click } from "@odoo/hoot-dom";
 import { animationFrame } from "@odoo/hoot-mock";
-
 import { registry } from "@web/core/registry";
+
 import { Deferred } from "@web/core/utils/concurrency";
 import {
     clickSave,
@@ -200,31 +200,23 @@ test("converting a project to a template refreshes a favorite that must leave th
     expect.verifySteps(["action_create_template_from_project", "menu_reload"]);
 });
 
-test("the favorite client action opens the exact project", async () => {
-    const openedActions = [];
-    const next = { type: "ir.actions.act_window_close" };
-    const result = await registry.category("actions").get("project_top_menu_overview")(
-        {
-            services: {
-                action: {
-                    async doAction(action) {
-                        openedActions.push(action);
-                    },
-                },
-            },
-        },
-        { res_id: 73, next }
+test("a favorite returns the exact native project-card task action", async () => {
+    const nativeAction = {
+        type: "ir.actions.act_window",
+        res_model: "project.task",
+        views: [[false, "kanban"], [false, "list"]],
+        context: { active_id: 73, default_project_id: 73 },
+    };
+    const result = await registry.category("actions").get("usl_project_favorite_tasks")(
+        { services: { orm: { async call(model, method, args) {
+            expect(model).toBe("project.project");
+            expect(method).toBe("action_view_tasks");
+            expect(args).toEqual([[73]]);
+            return nativeAction;
+        } } } },
+        { res_id: 73 }
     );
-
-    expect(openedActions).toEqual([
-        {
-            type: "ir.actions.act_window",
-            res_model: "project.project",
-            views: [[false, "form"]],
-            res_id: 73,
-        },
-    ]);
-    expect(result).toBe(next);
+    expect(result).toBe(nativeAction);
 });
 
 test("rapid archive and unarchive cannot restore an older favorite menu", async () => {

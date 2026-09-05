@@ -1,5 +1,6 @@
 from odoo import Command
 from odoo.tests import TransactionCase, new_test_user, tagged
+from unittest.mock import patch
 
 
 @tagged("usl_project", "post_install", "-at_install")
@@ -64,13 +65,19 @@ class TestFavoriteProjectMenu(TransactionCase):
             secondary_menu = self.env.ref(xmlid)
             if secondary_menu.id in children:
                 self.assertLess(children.index(favorite_menu_id), children.index(secondary_menu.id))
-        self.assertEqual(menus[favorite_menu_id]["actionPath"], f"project.project/{favorite.id}")
-        self.assertEqual(menus[favorite_menu_id]["actionID"], {
-            "type": "ir.actions.client",
-            "tag": "project_top_menu_overview",
-            "name": favorite.name,
-            "res_id": favorite.id,
-        })
+        shortcut = menus[favorite_menu_id]["actionID"]
+        self.assertEqual(shortcut['tag'], 'usl_project_favorite_tasks')
+        self.assertEqual(shortcut['res_id'], favorite.id)
+        action = favorite.with_user(self.project_user).action_view_tasks()
+        self.assertEqual(action['res_model'], 'project.task')
+        self.assertEqual(action['views'][0][1], 'kanban')
+        self.assertEqual(action['context']['active_id'], favorite.id)
+        self.assertEqual(action['context']['default_project_id'], favorite.id)
+        self.assertEqual(menus[favorite_menu_id]['actionModel'], 'ir.actions.client')
+        self.assertEqual(
+            menus[favorite_menu_id]['actionPath'],
+            f"project/{favorite.id}/action-{action['id']}",
+        )
 
     def test_menu_follows_selected_companies_and_favorite_changes(self):
         other_company = self.env["res.company"].create({"name": "Other company"})
@@ -108,6 +115,22 @@ class TestFavoriteProjectMenu(TransactionCase):
         )
         self.assertNotIn(f"usl-project-favorite-{current_project.id}", reloaded_children)
 
+    def test_favorite_task_actions_keep_each_project_context_separate(self):
+        projects = self.env['project.project'].create([
+            {'name': 'Kanban Alpha', 'privacy_visibility': 'employees'},
+            {'name': 'Kanban Beta', 'privacy_visibility': 'employees'},
+        ])
+        self.project_user.favorite_project_ids = projects
+        menus, _ = self._project_children(self.project_user, [self.env.company.id])
+        for project in projects:
+            shortcut = menus[f'usl-project-favorite-{project.id}']['actionID']
+            self.assertEqual(shortcut['res_id'], project.id)
+            action = project.with_user(self.project_user).action_view_tasks()
+            self.assertEqual(action['context']['active_id'], project.id)
+            self.assertEqual(action['context']['default_project_id'], project.id)
+            self.assertEqual(action['context']['search_default_open_tasks'], 1)
+            self.assertEqual(action['views'][0][1], 'kanban')
+
     def test_menu_caps_a_large_favorite_set_with_a_bounded_query(self):
         projects = self.env["project.project"].create([
             {
@@ -121,10 +144,15 @@ class TestFavoriteProjectMenu(TransactionCase):
         self.env.cr.flush()
         query_count_before = self.env.cr.sql_log_count
 
-        menus, children = self._project_children(
-            self.project_user,
-            [self.env.company.id],
-        )
+        with patch.object(
+            type(self.env['project.project']),
+            'action_view_tasks',
+            side_effect=AssertionError('Task actions must be loaded only after a click'),
+        ):
+            menus, children = self._project_children(
+                self.project_user,
+                [self.env.company.id],
+            )
 
         query_count = self.env.cr.sql_log_count - query_count_before
         favorite_menu_ids = [
@@ -133,9 +161,9 @@ class TestFavoriteProjectMenu(TransactionCase):
             if isinstance(menu_id, str) and menu_id.startswith("usl-project-favorite-")
         ]
         # Loading the native menu tree has a stable base cost.  The favorite
-        # lookup stays one capped search and must not grow with the number of
-        # favorites attached to the user.
-        self.assertLessEqual(query_count, 50)
+        # lookup stays one capped search plus one fixed native-action lookup.
+        # It must not prepare a separate task action for every favorite.
+        self.assertLessEqual(query_count, 55)
         self.assertEqual(len(favorite_menu_ids), 12)
         self.assertEqual(
             [menus[menu_id]["name"] for menu_id in favorite_menu_ids],

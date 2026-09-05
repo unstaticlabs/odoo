@@ -4,7 +4,6 @@ import { _t } from "@web/core/l10n/translation";
 import { useService } from "@web/core/utils/hooks";
 
 import { projectIsFavoriteField } from "@project/components/project_is_favorite/project_is_favorite_field";
-import { showProjectForm } from "@project/actions/client_actions";
 import { ProjectProjectFormController } from "@project/views/project_form/project_project_form_controller";
 
 import { patch } from "@web/core/utils/patch";
@@ -95,14 +94,9 @@ patch(ProjectProjectFormController.prototype, {
     },
 });
 
-registry.category("actions").add(
-    "project_top_menu_overview",
-    async (env, action) => {
-        await showProjectForm(env, {
-            model: "project.project",
-            recordId: action.res_id,
-        });
-        return action.next;
-    },
-    { force: true }
-);
+async function openFavoriteProjectTasks(env, action) {
+    // Use the project card's native action, evaluated with current access and context.
+    return env.services.orm.call("project.project", "action_view_tasks", [[action.res_id]]);
+}
+
+registry.category("actions").add("usl_project_favorite_tasks", openFavoriteProjectTasks);

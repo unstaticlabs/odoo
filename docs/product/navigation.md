@@ -38,7 +38,10 @@ The **Projects** app name already opens the project overview, so the redundant
 first **Projects** section is removed. The signed-in user's favorite active
 projects sit after the primary task links and before the less-frequent
 **Reporting** and **Configuration** sections.
-Selecting a favorite opens that project directly. Favoriting or unfavoriting a
+Selecting a favorite opens that project's tasks as Kanban cards, using the same
+native action as clicking the project card on the Projects home. It does not
+open the project settings form. The native project filter, open-task filter and
+task-creation defaults are preserved. Favoriting or unfavoriting a
 project refreshes the menu after the change is saved. Saving a project name,
 archive status, sequence, template status, company or visibility change also
 refreshes the menu, so an existing favorite cannot keep a stale label or remain
