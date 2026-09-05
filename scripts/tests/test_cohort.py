@@ -1372,6 +1372,20 @@ class CohortContractTests(unittest.TestCase):
         self.assertNotIn("ODOO_API_KEY", values)
         self.assertEqual(evidence["status"], "passed")
 
+    def test_recovery_accepts_native_odoo_filestore_names_but_rejects_traversal(self):
+        from operations.stack import _recovery_proof_durable_state, _recovery_proof_names
+        target = load_target("production", TARGETS)
+        names = _recovery_proof_names(target, "daily-fixture")
+        for sample, expected in (("ab/" + "a" * 40, "durable sample is missing"),
+                ("../outside", "sample path is unsafe"), ("ab/" + "a" * 38, "sample path is unsafe")):
+            runner = mock.Mock()
+            runner.run.return_value = subprocess.CompletedProcess([], 1, "", "")
+            with self.subTest(sample=sample), mock.patch("operations.stack._recovery_proof_query",
+                    side_effect=[{"sample": sample}, {}]):
+                with self.assertRaisesRegex(RuntimeError, expected):
+                    _recovery_proof_durable_state(target, runner, names,
+                        {"components": {"paperless": {"digest_reference": "fixture"}}}, {}, "/proof", {})
+
     def test_recovery_exited_service_fails_without_readiness_retries(self):
         from operations.stack import (_recovery_proof_runtime_health_once,
             _recovery_proof_runtime_health, _recovery_proof_names, RecoveryProofServiceExited)

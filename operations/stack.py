@@ -7785,7 +7785,7 @@ def _recovery_proof_durable_state(
         "SELECT json_build_object('documents', (SELECT count(*) FROM documents_document))::text",
     )
     sample = str(odoo.get("sample", ""))
-    if sample and not re.fullmatch(r"[0-9a-f]{2}/[0-9a-f]{38}", sample):
+    if sample and not re.fullmatch(r"[0-9a-f]{2}/[0-9a-f]{40}", sample):
         raise RuntimeError("recovery proof Odoo filestore sample path is unsafe")
     file_checks = {
         "odoo_filestore": (
