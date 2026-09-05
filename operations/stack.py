@@ -3534,6 +3534,21 @@ def health_command(arguments: argparse.Namespace) -> int:
     return 0 if not failures else 2
 
 
+def _active_cron_policy(target, runner):
+    """Validate a generation against the policy shipped with that generation."""
+    declared = target.value["cron_policy"]
+    if declared["mode"] == "unmanaged":
+        return None
+    release, _, _ = _release(target, runner, None)
+    image = release["components"]["backup-tool"]["digest_reference"]
+    _ensure_image(runner, image)
+    raw = runner.run([
+        "docker", "run", "--rm", "--network", "none", "--read-only",
+        "--entrypoint", "cat", image, declared["path"],
+    ]).stdout
+    return parse_cron_policy(raw)
+
+
 def smoke_command(arguments: argparse.Namespace) -> int:
     target = load_target(arguments.target, arguments.targets)
     runner = target.runner()
@@ -3578,11 +3593,7 @@ def smoke_command(arguments: argparse.Namespace) -> int:
     failures = []
     cron_target = target.value["cron_policy"]
     try:
-        cron_policy = (
-            None
-            if cron_target["mode"] == "unmanaged"
-            else parse_cron_policy(_read_path(target, runner, Path(cron_target["path"])))
-        )
+        cron_policy = _active_cron_policy(target, runner)
         cron_status = validate_cron_runtime(
             cron_policy,
             mode=cron_target["mode"],
