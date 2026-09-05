@@ -28,6 +28,7 @@ COPY --from=restic /usr/bin/restic /usr/local/bin/restic
 COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker
 COPY --from=docker-cli /usr/local/libexec/docker/cli-plugins/docker-compose /usr/local/libexec/docker/cli-plugins/docker-compose
 COPY operations /opt/usl/operations
+COPY compose.resources.production.json compose.resources.staging.json /opt/usl/
 COPY deploy/production.cron-policy.json /opt/usl/deploy/production.cron-policy.json
 COPY --chmod=755 scripts/cohort-runtime /usr/local/bin/usl-cohort-runtime
 COPY --chmod=755 scripts/usl-stack /usr/local/bin/usl-stack
