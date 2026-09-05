@@ -1,5 +1,20 @@
 import { registry } from "@web/core/registry";
 
+registry.category("web_tour.tours").add("usl_linked_receipt_historical_scan", {
+    steps: () => [
+        {
+            content: "Scan the historical email as the expense owner",
+            trigger: "button[name='action_scan_existing_receipt_emails']",
+            run: "click",
+            expectUnloadPage: true,
+        },
+        {
+            content: "The discovered receipt is ready for link selection",
+            trigger: ".o_form_view button[name='action_review_linked_receipt']",
+        },
+    ],
+});
+
 registry.category("web_tour.tours").add("usl_linked_receipt_teach_and_recover", {
     steps: () => [
         {
