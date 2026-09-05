@@ -222,14 +222,25 @@ def _validate_common(root: dict[str, Any], *, commit: str | None, legacy: bool) 
         raise ReleaseManifestError("Ollama model manifest is invalid")
     if ollama["dimension"] != 1024:
         raise ReleaseManifestError("Ollama embedding dimension must be 1024")
-    build = _object(root["build"], {"workflow_run_id", "workflow_run_attempt", "workflow_url"}, "build")
-    if not isinstance(build["workflow_run_id"], int) or build["workflow_run_id"] < 1:
-        raise ReleaseManifestError("workflow run ID must be positive")
-    if not isinstance(build["workflow_run_attempt"], int) or build["workflow_run_attempt"] < 1:
-        raise ReleaseManifestError("workflow run attempt must be positive")
-    expected_url = f"https://github.com/{source['repository']}/actions/runs/{build['workflow_run_id']}"
-    if build["workflow_url"] != expected_url:
-        raise ReleaseManifestError("workflow URL does not match the release source")
+    if isinstance(root["build"], dict) and "operator_run_id" in root["build"]:
+        build = _object(root["build"], {"operator_run_id", "evidence_sha256"}, "build")
+        if legacy or not source["ref"].startswith("refs/tags/recovery-"):
+            raise ReleaseManifestError("operator builds require a v3 recovery tag")
+        if not isinstance(build["operator_run_id"], str) or not re.fullmatch(
+            r"[A-Za-z0-9._-]{1,128}", build["operator_run_id"],
+        ):
+            raise ReleaseManifestError("operator run ID is invalid")
+        if not SHA256.fullmatch(str(build["evidence_sha256"])):
+            raise ReleaseManifestError("operator build evidence digest is invalid")
+    else:
+        build = _object(root["build"], {"workflow_run_id", "workflow_run_attempt", "workflow_url"}, "build")
+        if not isinstance(build["workflow_run_id"], int) or build["workflow_run_id"] < 1:
+            raise ReleaseManifestError("workflow run ID must be positive")
+        if not isinstance(build["workflow_run_attempt"], int) or build["workflow_run_attempt"] < 1:
+            raise ReleaseManifestError("workflow run attempt must be positive")
+        expected_url = f"https://github.com/{source['repository']}/actions/runs/{build['workflow_run_id']}"
+        if build["workflow_url"] != expected_url:
+            raise ReleaseManifestError("workflow URL does not match the release source")
 
 
 def validate(payload: object, *, commit: str | None = None) -> dict[str, Any]:
@@ -341,6 +352,17 @@ def _mcp_public_methods(identity_contract: dict[str, Any]) -> list[str]:
 
 
 def create(arguments: argparse.Namespace) -> int:
+    operator_run = getattr(arguments, "operator_run_id", None)
+    if operator_run is not None:
+        if any(getattr(arguments, key, None) is not None for key in (
+            "workflow_run_id", "workflow_run_attempt", "workflow_url",
+        )):
+            raise ReleaseManifestError("operator and GitHub build provenance cannot be mixed")
+        build = {"operator_run_id": operator_run, "evidence_sha256": arguments.operator_evidence_sha256}
+    else:
+        if getattr(arguments, "operator_evidence_sha256", None) is not None:
+            raise ReleaseManifestError("operator evidence requires an operator run ID")
+        build = {"workflow_run_id": arguments.workflow_run_id, "workflow_run_attempt": arguments.workflow_run_attempt, "workflow_url": arguments.workflow_url}
     components = dict(_parse_component(raw) for raw in arguments.component)
     if set(components) != COMPONENTS:
         raise ReleaseManifestError(f"components must be exactly {sorted(COMPONENTS)}")
@@ -403,7 +425,7 @@ def create(arguments: argparse.Namespace) -> int:
         "ollama": {"model": arguments.ollama_model, "manifest_sha256": arguments.ollama_manifest, "dimension": arguments.ollama_dimension},
         "release_notes": release_notes,
         "qualification": {"evidence": _parse_evidence(arguments.evidence)},
-        "build": {"workflow_run_id": arguments.workflow_run_id, "workflow_run_attempt": arguments.workflow_run_attempt, "workflow_url": arguments.workflow_url},
+        "build": build,
     }
     payload["identity"] = _sha256(payload)
     validate(payload, commit=arguments.commit)
@@ -445,9 +467,11 @@ def parser() -> argparse.ArgumentParser:
     create_command.add_argument("--ollama-manifest", required=True)
     create_command.add_argument("--ollama-dimension", type=int, default=1024)
     create_command.add_argument("--evidence", action="append", default=[], required=True)
-    create_command.add_argument("--workflow-run-id", type=int, required=True)
-    create_command.add_argument("--workflow-run-attempt", type=int, required=True)
-    create_command.add_argument("--workflow-url", required=True)
+    create_command.add_argument("--workflow-run-id", type=int)
+    create_command.add_argument("--workflow-run-attempt", type=int)
+    create_command.add_argument("--workflow-url")
+    create_command.add_argument("--operator-run-id")
+    create_command.add_argument("--operator-evidence-sha256")
     create_command.add_argument("--output", required=True)
     create_command.set_defaults(handler=create)
     validate_command = subcommands.add_parser("validate")
