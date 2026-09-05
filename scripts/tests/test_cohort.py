@@ -2122,7 +2122,8 @@ class CohortContractTests(unittest.TestCase):
             "schema": "usl-module-upgrade-plan/v1",
             "active_release": "c" * 64,
             "candidate_release": release["identity"],
-            "upgrade_modules": ["usl_pocketid"],
+            "upgrade_modules": ["usl_feedback", "usl_pocketid"],
+            "installed_modules": ["usl_pocketid"],
             "changed_modules": ["usl_pocketid"],
             "reasons": {"usl_pocketid": ["source_sha256"]},
         }
@@ -2140,6 +2141,8 @@ class CohortContractTests(unittest.TestCase):
             )
         command = runner.run.call_args.args[0]
         self.assertIn(candidate["environment_file"], command)
+        self.assertIn("--init=usl_feedback", command)
+        self.assertIn("--update=usl_feedback,usl_pocketid", command)
         self.assertIn("USL_EINVOICE_LIVE_ENABLED=0", command)
         self.assertIn("USL_EREPORTING_LIVE_ENABLED=0", command)
         self.assertIn("USL_POCKET_ID_ENABLED=1", command)

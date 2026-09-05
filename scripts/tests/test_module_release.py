@@ -57,6 +57,18 @@ class ModuleReleaseTests(unittest.TestCase):
         self.assertEqual(plan["upgrade_modules"], ["base_product", "dependent"])
         self.assertEqual(validate_upgrade_plan(plan), plan)
 
+    def test_new_product_module_installs_without_enabling_existing_optional_module(self):
+        active = inventory([("base", "1.0", [], "a", "b"), ("optional", "1.0", [], "c", "d")])
+        candidate = inventory([("base", "1.0", [], "a", "b"), ("optional", "1.0", [], "c", "d"), ("new_feature", "1.0", ["base"], "e", "f")])
+        result = derive_upgrade_plan(release("active", active), release("candidate", candidate), {"base"})
+        self.assertEqual(result["installed_modules"], ["base"])
+        self.assertEqual(result["upgrade_modules"], ["new_feature"])
+        self.assertEqual(result["reasons"], {"new_feature": ["new-product-module"]})
+        self.assertEqual(validate_upgrade_plan(result), result)
+        result["reasons"]["new_feature"] = ["source-changed"]
+        with self.assertRaisesRegex(ModuleReleaseError, "unapproved new"):
+            validate_upgrade_plan(result)
+
     def test_changed_source_without_version_bump_fails_closed(self):
         candidate = copy.deepcopy(self.active_inventory)
         candidate["modules"]["base_product"]["source_sha256"] = "e" * 64

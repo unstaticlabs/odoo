@@ -5421,6 +5421,9 @@ def _run_candidate_upgrade(
         f"--update={','.join(modules)}",
         "--stop-after-init", "--no-http", "--max-cron-threads=0",
     ]
+    new_modules = sorted(set(modules) - set(plan["installed_modules"]))
+    if new_modules:
+        arguments.append(f"--init={','.join(new_modules)}")
     if target.value["environment"] == "staging":
         if candidate_identity is None:
             raise RuntimeError("staging upgrade requires the approved runtime identity")
