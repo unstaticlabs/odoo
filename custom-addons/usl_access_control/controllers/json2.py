@@ -1,5 +1,6 @@
 import inspect
 import json
+import logging
 import uuid
 
 from odoo import SUPERUSER_ID, _, api, http
@@ -18,6 +19,8 @@ from ..models.agent_secrets import (
     sanitize_agent_payload,
 )
 from odoo.addons.rpc.controllers.json2 import WebJson2Controller
+
+_logger = logging.getLogger(__name__)
 
 
 class UslAgentJson2Controller(WebJson2Controller):
@@ -225,10 +228,37 @@ class UslAgentJson2Controller(WebJson2Controller):
             "remote_address": (request.httprequest.remote_addr or "")[:128],
             "user_agent": (request.httprequest.user_agent.string or "")[:512],
         }
-        with request.registry.cursor() as cursor:
-            env = api.Environment(cursor, SUPERUSER_ID, {"usl_skip_distribution_audit": True})
-            env["usl.audit.event"]._record_event(values)
-            cursor.commit()
+        # Never write from a second connection while the request transaction
+        # is still open. The insert checks foreign keys against rows that this
+        # transaction may have locked (the credential usage touch, the Agent
+        # authority), so the second connection waits on the first one, which
+        # itself waits for this request: a deadlock that PostgreSQL cannot
+        # detect and that holds an HTTP worker until its time limit. Record
+        # the evidence once the transaction has committed or rolled back.
+        registry = request.registry
+        cr = request.env.cr
+
+        def record(outcome_override=None):
+            recorded = dict(values, outcome=outcome_override or values["outcome"])
+            try:
+                with registry.cursor() as cursor:
+                    env = api.Environment(
+                        cursor, SUPERUSER_ID, {"usl_skip_distribution_audit": True},
+                    )
+                    env["usl.audit.event"]._record_event(recorded)
+                    cursor.commit()
+            except Exception:
+                _logger.exception(
+                    "Agent API audit event was not recorded: %s %s",
+                    recorded.get("action_name"), recorded.get("request_id"),
+                )
+
+        cr.postcommit.add(record)
+        # A request that succeeded in the controller can still roll back at
+        # commit time. Keep the evidence, but do not call it a success.
+        cr.postrollback.add(
+            lambda: record("failed" if values["outcome"] == "succeeded" else None),
+        )
 
     @staticmethod
     def _operation_for_method(method_name):
