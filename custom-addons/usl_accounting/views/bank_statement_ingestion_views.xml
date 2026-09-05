@@ -125,6 +125,7 @@
                     <button name="action_process_now" type="object" string="Process now" class="btn-primary" groups="account.group_account_user,account.group_account_manager" invisible="state != 'received'" title="Import the OFX transactions, link the monthly statement, and send its official PDF to Documents."/>
                     <button name="action_retry" type="object" string="Retry" class="btn-primary" groups="account.group_account_user,account.group_account_manager" invisible="state not in ('attention', 'failed')" title="Try processing the retained email and files again. Existing transactions will not be duplicated."/>
                     <button name="action_open_add_source_file" type="object" string="Add missing file" groups="account.group_account_user,account.group_account_manager" invisible="state == 'processing'" title="Add a bank file that was missing from the email or could not be downloaded. The file remains linked to this received email."/>
+                    <button name="action_correct_period" type="object" string="Correct period" groups="account.group_account_user,account.group_account_manager" invisible="state not in ('attention', 'failed')"/>
                     <field name="state" widget="statusbar" statusbar_visible="received,processing,attention,done,failed"/>
                 </header>
                 <sheet>

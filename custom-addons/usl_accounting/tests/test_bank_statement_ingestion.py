@@ -78,6 +78,115 @@ class TestBankStatementIngestion(TransactionCase):
         ) as fixture:
             cls.pdf = fixture.read()
 
+    def test_month_subject_and_attachment_period(self):
+        parser = self.env["account.bank.ingestion"]
+        self.assertEqual(parser._period_from_text("Export comptable USL - août 2026"),
+                         (dt.date(2026, 8, 1), dt.date(2026, 8, 31)))
+        ingestion = self._ingestion("<attachment-period@test.invalid>", ofx=self.ofx,
+                                    pdf=self.pdf, subject="Scheduled bank export")
+        ingestion.action_process_now()
+        self.assertEqual(ingestion.state, "done")
+        self.assertEqual(ingestion.period_start, dt.date(2026, 7, 1))
+
+    def test_duplicate_pdf_without_subject_period(self):
+        original, statement = self._process_complete_month()
+        duplicate = self._ingestion("<duplicate-period@test.invalid>", pdf=self.pdf,
+                                   subject="Scheduled bank export")
+        duplicate.action_process_now()
+        self.assertEqual(duplicate.state, "done")
+        self.assertEqual(duplicate.file_ids.filtered(lambda f: f.classification == "pdf").evidence_status, "duplicate")
+        self.assertEqual(statement.accepted_evidence_id.ingestion_id, original)
+
+    def test_period_correction_resolves_only_retained_pdf(self):
+        ingestion = self._ingestion("<manual-period@test.invalid>", pdf=self.pdf,
+                                    subject="Scheduled bank export")
+        ingestion.action_process_now()
+        self.assertEqual(ingestion.state, "attention")
+        action = ingestion.action_correct_period()
+        self.assertEqual(action["target"], "new")
+        wizard = self.env["account.bank.ingestion.period"].create({
+            "ingestion_id": ingestion.id, "period_start": "2026-07-01",
+            "period_end": "2026-07-31", "reason": "Checked official statement",
+        })
+        with patch.object(type(ingestion), "_process", side_effect=AssertionError("No reimport")):
+            wizard.action_apply()
+        self.assertEqual(ingestion.period_start, dt.date(2026, 7, 1))
+
+    def test_period_correction_denies_non_accountant(self):
+        ingestion = self._ingestion("<denied-period@test.invalid>", pdf=self.pdf,
+                                    subject="Scheduled bank export")
+        ingestion.action_process_now()
+        user = new_test_user(self.env, login="bank_period_denied", groups="base.group_user")
+        with self.assertRaises(AccessError):
+            ingestion.with_user(user).action_correct_period()
+
+    def test_retry_clears_legacy_period_exception_without_new_lines(self):
+        original, statement = self._process_complete_month()
+        duplicate = self._ingestion("<legacy-period@test.invalid>", ofx=self.ofx,
+                                   pdf=self.pdf, subject="Scheduled bank export")
+        duplicate.action_process_now()
+        pdf = duplicate.file_ids.filtered(lambda source: source.classification == "pdf")
+        pdf.sudo()._ensure_exception("evidence", "Confirm the PDF statement period", "Legacy subject failure")
+        duplicate.sudo().write({"period_start": False, "period_end": False, "state": "attention"})
+        line_ids = statement.line_ids.ids
+        duplicate.action_retry()
+        self.assertEqual(duplicate.state, "done")
+        self.assertFalse(pdf.exception_ids.filtered(lambda item: item.state == "open"))
+        self.assertEqual(statement.line_ids.ids, line_ids)
+        self.assertEqual(statement.accepted_evidence_id.ingestion_id, original)
+
+    def test_ofx_header_conflict_is_not_inferred_away(self):
+        ofx = self.ofx.replace(b"<DTSTART>20260701000000", b"<DTSTART>20260601000000")
+        ingestion = self._ingestion("<bad-coverage@test.invalid>", ofx=ofx, subject="Scheduled export")
+        ingestion.action_process_now()
+        self.assertEqual(ingestion.state, "attention")
+        self.assertFalse(ingestion.statement_ids)
+
+    def test_correction_denies_cross_company_and_conflicting_evidence(self):
+        ingestion, statement = self._process_complete_month()
+        ingestion.sudo().state = "attention"
+        accountant = new_test_user(self.env, login="bank_period_accountant",
+                                  groups="account.group_account_user", company_id=self.company.id,
+                                  company_ids=[Command.set(self.company.ids)])
+        wizard = self.env["account.bank.ingestion.period"].with_user(accountant).create({
+            "ingestion_id": ingestion.id, "period_start": "2026-08-01",
+            "period_end": "2026-08-31", "reason": "Conflicting dates",
+        })
+        with self.assertRaises(UserError):
+            wizard.action_apply()
+        other_company = self.env["res.company"].create({"name": "Period isolation"})
+        outsider = new_test_user(self.env, login="bank_period_outsider",
+                                groups="account.group_account_user", company_id=other_company.id,
+                                company_ids=[Command.set(other_company.ids)])
+        with self.assertRaises(AccessError):
+            ingestion.with_user(outsider).action_correct_period()
+
+    def test_identical_pdf_cannot_be_reused_for_another_ofx_month(self):
+        self._process_complete_month()
+        ingestion = self._ingestion("<wrong-month-pdf@test.invalid>",
+                                    ofx=self.ofx.replace(b"202607", b"202608").replace(b"shine-synthetic-", b"shine-next-"),
+                                    pdf=self.pdf, subject="Export - août 2026")
+        ingestion.action_process_now()
+        self.assertEqual(ingestion.state, "attention")
+        self.assertFalse(ingestion.statement_ids.accepted_evidence_id)
+
+    def test_period_correction_rejects_invalid_month_reason_and_stale_state(self):
+        ingestion = self._ingestion("<invalid-manual-period@test.invalid>", subject="Scheduled export")
+        ingestion.sudo().state = "attention"
+        wizard = self.env["account.bank.ingestion.period"].create({
+            "ingestion_id": ingestion.id, "period_start": "2026-07-08",
+            "period_end": "2026-07-31", "reason": "Checked statement",
+        })
+        with self.assertRaises(UserError):
+            wizard.action_apply()
+        wizard.write({"period_start": "2026-07-01", "reason": " "})
+        with self.assertRaises(UserError):
+            wizard.action_apply()
+        wizard.reason = "Checked statement"
+        ingestion.sudo().state = "done"
+        with self.assertRaises(UserError):
+            wizard.action_apply()
+
     def _ingestion(self, message_id, *, ofx=None, pdf=None, sender=None, subject=None):
         ingestion = self.env["account.bank.ingestion"].message_new(
             {
@@ -1344,7 +1453,7 @@ class TestBankStatementIngestion(TransactionCase):
         august = self._ingestion(
             "<synthetic-august@example.invalid>",
             ofx=august_ofx,
-            pdf=self.pdf,
+            pdf=self.pdf + b"\n% August statement fixture\n",
             subject="Export comptable Synthetic - du 01/08/2026 au 31/08/2026",
         )
         august.action_process_now()

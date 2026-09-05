@@ -3,6 +3,8 @@
     {
       "action_keys": [
         "rpc:account.bank.ingestion.config.unlink",
+        "rpc:account.bank.ingestion.period.action_apply",
+        "rpc:account.bank.ingestion.period.unlink",
         "rpc:account.bank.ingestion.upload.unlink",
         "rpc:account.bank.statement.confirm.unlink",
         "rpc:account.bank.statement.reopen.unlink",
@@ -44,8 +46,20 @@
         "server_action:usl_accounting.ir_cron_bank_export_expected_activities_ir_actions_server",
         "server_action:usl_accounting.ir_cron_process_bank_exports_ir_actions_server",
         "server_action:usl_documents_accounting.ir_cron_archive_bank_statement_evidence_ir_actions_server",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:6",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:7",
         "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_configuration.py:account.move.configure_draft_vendor_bill:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_configuration.py:account.move.configure_draft_vendor_bill:orm_write:2"
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_configuration.py:account.move.configure_draft_vendor_bill:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_ingestion_period.py:account.bank.ingestion.period.action_apply:message_send:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_ingestion_period.py:account.bank.ingestion.period.action_apply:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_ingestion_period.py:account.bank.ingestion.period.action_apply:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_ingestion_period.py:account.bank.ingestion.period.action_apply:sudo:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_ingestion_period.py:account.bank.ingestion.period.action_apply:sudo:3",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_ingestion_period.py:account.bank.ingestion.period.action_apply:sudo:4",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_ingestion_period.py:account.bank.ingestion.period.action_apply:sudo:5",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_ingestion_period.py:account.bank.ingestion.period.action_apply:sudo:6",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_ingestion_period.py:account.bank.ingestion.period.action_apply:sudo:7",
+        "ui:usl_accounting.bank_ingestion_period_form:button:object:action_apply:1"
       ],
       "classification": "operational",
       "consequence": "Performs attributable day-to-day product work or cleans derived, temporary, or user-owned state without crossing the protected authority and destructive control-plane boundary.",
@@ -56,6 +70,8 @@
       "rationale": "The fixed reviewed implementation remains subject to native Odoo ACLs and record rules. It cannot author unreviewed code, change security authority or locks, or permanently remove governed roots or immutable evidence, so requiring the separate Irreversible Actions capability would block normal accountable work.",
       "reviewed_digests": {
         "rpc:account.bank.ingestion.config.unlink": "7aeb202b2ace913ad910d0ea2dd1e85346032fcc2049a3e2332adce60e8ab665",
+        "rpc:account.bank.ingestion.period.action_apply": "aa60bafa33c33fc679a2688757fdee3e07c8f2d092d50d950daba715d96852c8",
+        "rpc:account.bank.ingestion.period.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:account.bank.ingestion.upload.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:account.bank.statement.confirm.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:account.bank.statement.reopen.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
@@ -97,8 +113,20 @@
         "server_action:usl_accounting.ir_cron_bank_export_expected_activities_ir_actions_server": "5c7b54fd69cc4c2b90b85bb81787753521a7b351337d20b239648751401c19e4",
         "server_action:usl_accounting.ir_cron_process_bank_exports_ir_actions_server": "79190be92b6360c6d72790ad2442632886bdcff54368c375c12ed1db3b051e98",
         "server_action:usl_documents_accounting.ir_cron_archive_bank_statement_evidence_ir_actions_server": "efbfffc3414be448bbd5cd7664c7428cf05f95a4fc3536ce76a5e2e7a8bd7ae6",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:6": "1d3475be7f6f0c6950862d90419abec8f08227eb3e43ac520d4bfcbd7ab77d0b",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:7": "5c6f5e3268b4d702750955867e6560f42de38a7c20ada289b52b06c1f88c54f6",
         "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_configuration.py:account.move.configure_draft_vendor_bill:orm_write:1": "354d3e0a5dc713a00916b4a0d9b3c35178bdf543a394caa0c4f066478ba5a1c4",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_configuration.py:account.move.configure_draft_vendor_bill:orm_write:2": "89674b9c78f636802deb32834e66fdbc4decb150a124d9f4e73f0084e717047c"
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_configuration.py:account.move.configure_draft_vendor_bill:orm_write:2": "89674b9c78f636802deb32834e66fdbc4decb150a124d9f4e73f0084e717047c",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_ingestion_period.py:account.bank.ingestion.period.action_apply:message_send:1": "2f98c2fb7919dc67667b30bdfba453989da10be7adf34c7ae5e68b40f29d6269",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_ingestion_period.py:account.bank.ingestion.period.action_apply:orm_write:1": "db9577060b6a9dd39c787159d9697eba96248abb68f97f016887f8571489a971",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_ingestion_period.py:account.bank.ingestion.period.action_apply:sudo:1": "06e120efd55786baba2d85b935ae406def8e7ef81c970ad63dde927714369376",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_ingestion_period.py:account.bank.ingestion.period.action_apply:sudo:2": "ca1a2243c4eeae3f1a1c5d7fe0043a070dabe490a8a1607b9e682baff7f79034",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_ingestion_period.py:account.bank.ingestion.period.action_apply:sudo:3": "f296f5075f607db10cb688f88315f78aa8dfa8d9be5bc1c966c64d51d333da73",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_ingestion_period.py:account.bank.ingestion.period.action_apply:sudo:4": "74d014a40a11ea53cce3c2456cd570ce37992ccfbd54515a8db8ed577d203e47",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_ingestion_period.py:account.bank.ingestion.period.action_apply:sudo:5": "006107d7430a4fb98845869a489a9a377547cdcdcd47b18b5bead3e52aefaef8",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_ingestion_period.py:account.bank.ingestion.period.action_apply:sudo:6": "bfa185a44bd8154028a42c5fe0d97724ad678e2b39a9906333b910b91dc74b45",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_ingestion_period.py:account.bank.ingestion.period.action_apply:sudo:7": "1f6da6a5f5b5733c4582caf579bf3a9483a0dfc06527293cb9f4afacb5368da2",
+        "ui:usl_accounting.bank_ingestion_period_form:button:object:action_apply:1": "137bebd8d95b3687205ebb9187641538355778828d20a8de80d6b8d6e02c8189"
       }
     },
     {
@@ -3576,6 +3604,7 @@
         "rpc:account.autopost.bills.wizard.view_header_get",
         "rpc:account.autopost.bills.wizard.web_name_search",
         "rpc:account.autopost.bills.wizard.web_read",
+        "rpc:account.bank.ingestion.action_correct_period",
         "rpc:account.bank.ingestion.action_open_add_source_file",
         "rpc:account.bank.ingestion.action_reschedule_my_next_nextweek",
         "rpc:account.bank.ingestion.action_reschedule_my_next_today",
@@ -3681,6 +3710,38 @@
         "rpc:account.bank.ingestion.mail_get_partner_fields",
         "rpc:account.bank.ingestion.message_get_followers",
         "rpc:account.bank.ingestion.name_search",
+        "rpc:account.bank.ingestion.period.check_field_access",
+        "rpc:account.bank.ingestion.period.copy_translations",
+        "rpc:account.bank.ingestion.period.default_get",
+        "rpc:account.bank.ingestion.period.export_data",
+        "rpc:account.bank.ingestion.period.fields_get",
+        "rpc:account.bank.ingestion.period.formatted_read_group",
+        "rpc:account.bank.ingestion.period.get_base_url",
+        "rpc:account.bank.ingestion.period.get_empty_list_help",
+        "rpc:account.bank.ingestion.period.get_external_id",
+        "rpc:account.bank.ingestion.period.get_field_translations",
+        "rpc:account.bank.ingestion.period.get_formview_action",
+        "rpc:account.bank.ingestion.period.get_formview_id",
+        "rpc:account.bank.ingestion.period.get_import_templates",
+        "rpc:account.bank.ingestion.period.get_metadata",
+        "rpc:account.bank.ingestion.period.get_property_definition",
+        "rpc:account.bank.ingestion.period.has_access",
+        "rpc:account.bank.ingestion.period.has_field_access",
+        "rpc:account.bank.ingestion.period.hierarchy_read",
+        "rpc:account.bank.ingestion.period.load",
+        "rpc:account.bank.ingestion.period.mail_allowed_qweb_expressions",
+        "rpc:account.bank.ingestion.period.mail_get_partner_fields",
+        "rpc:account.bank.ingestion.period.name_search",
+        "rpc:account.bank.ingestion.period.read",
+        "rpc:account.bank.ingestion.period.read_progress_bar",
+        "rpc:account.bank.ingestion.period.search",
+        "rpc:account.bank.ingestion.period.search_count",
+        "rpc:account.bank.ingestion.period.search_panel_select_multi_range",
+        "rpc:account.bank.ingestion.period.search_panel_select_range",
+        "rpc:account.bank.ingestion.period.search_read",
+        "rpc:account.bank.ingestion.period.view_header_get",
+        "rpc:account.bank.ingestion.period.web_name_search",
+        "rpc:account.bank.ingestion.period.web_read",
         "rpc:account.bank.ingestion.rating_send_request",
         "rpc:account.bank.ingestion.read",
         "rpc:account.bank.ingestion.read_progress_bar",
@@ -9163,6 +9224,7 @@
         "ui:usl_accounting.action_account_immediate_settlement",
         "ui:usl_accounting.action_bank_ingestion",
         "ui:usl_accounting.action_bank_ingestion_config",
+        "ui:usl_accounting.view_bank_ingestion_form:button:object:action_correct_period:1",
         "ui:usl_b2c.action_b2c_accounting_link",
         "ui:usl_b2c.action_b2c_accounting_session",
         "ui:usl_tese_payroll.action_tese_payroll_accounts"
@@ -9963,6 +10025,7 @@
         "rpc:account.autopost.bills.wizard.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
         "rpc:account.autopost.bills.wizard.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:account.autopost.bills.wizard.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+        "rpc:account.bank.ingestion.action_correct_period": "cce2a4e75c0be6b611aa42390fa01a4df927a2bb14a0236b128426bd3b6ed6a1",
         "rpc:account.bank.ingestion.action_open_add_source_file": "243ddb035d075ae5d1e6528d10cd35fc9b264f344a94200ed94f9b5c126c9391",
         "rpc:account.bank.ingestion.action_reschedule_my_next_nextweek": "1f8b565136e347fa9e15542d23e050e09462ec69985f610715ed95b84dcef46f",
         "rpc:account.bank.ingestion.action_reschedule_my_next_today": "62336990f6e0800dc3d5955fc8a573fc20ef2c3a47c7bbe0e75645730322f206",
@@ -10068,6 +10131,38 @@
         "rpc:account.bank.ingestion.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
         "rpc:account.bank.ingestion.message_get_followers": "485d5a0893a9f9abb3d517b4b09eefc2d37c4a934af9e774768f79fb6b6736a5",
         "rpc:account.bank.ingestion.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+        "rpc:account.bank.ingestion.period.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+        "rpc:account.bank.ingestion.period.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+        "rpc:account.bank.ingestion.period.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+        "rpc:account.bank.ingestion.period.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+        "rpc:account.bank.ingestion.period.fields_get": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
+        "rpc:account.bank.ingestion.period.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+        "rpc:account.bank.ingestion.period.get_base_url": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+        "rpc:account.bank.ingestion.period.get_empty_list_help": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+        "rpc:account.bank.ingestion.period.get_external_id": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+        "rpc:account.bank.ingestion.period.get_field_translations": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+        "rpc:account.bank.ingestion.period.get_formview_action": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+        "rpc:account.bank.ingestion.period.get_formview_id": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+        "rpc:account.bank.ingestion.period.get_import_templates": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+        "rpc:account.bank.ingestion.period.get_metadata": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+        "rpc:account.bank.ingestion.period.get_property_definition": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+        "rpc:account.bank.ingestion.period.has_access": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+        "rpc:account.bank.ingestion.period.has_field_access": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+        "rpc:account.bank.ingestion.period.hierarchy_read": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+        "rpc:account.bank.ingestion.period.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+        "rpc:account.bank.ingestion.period.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+        "rpc:account.bank.ingestion.period.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+        "rpc:account.bank.ingestion.period.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+        "rpc:account.bank.ingestion.period.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+        "rpc:account.bank.ingestion.period.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+        "rpc:account.bank.ingestion.period.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+        "rpc:account.bank.ingestion.period.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+        "rpc:account.bank.ingestion.period.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+        "rpc:account.bank.ingestion.period.search_panel_select_range": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+        "rpc:account.bank.ingestion.period.search_read": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+        "rpc:account.bank.ingestion.period.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+        "rpc:account.bank.ingestion.period.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+        "rpc:account.bank.ingestion.period.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
         "rpc:account.bank.ingestion.rating_send_request": "fff4486fcff746e1174ad48c341e87325cbfad003de78d24b8ea0101b7ce2486",
         "rpc:account.bank.ingestion.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
         "rpc:account.bank.ingestion.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
@@ -15550,6 +15645,7 @@
         "ui:usl_accounting.action_account_immediate_settlement": "1adc8d4b61e95d7c5176165c3eed488f26425c821210352f8b36ec445531922e",
         "ui:usl_accounting.action_bank_ingestion": "ba55336cbe225c43d20b6e0aa4f8c8974a7581964f3ce696a4ff3e21fc6fb36a",
         "ui:usl_accounting.action_bank_ingestion_config": "5491ad6280dbf6715cbf095a67860d9b8600ab2e0362a31e4a521d711ab97def",
+        "ui:usl_accounting.view_bank_ingestion_form:button:object:action_correct_period:1": "8bfdcb178940eebeb1804c2c121e724b8f5a27afb433e877e23e87c78c30d5b0",
         "ui:usl_b2c.action_b2c_accounting_link": "8c9c7e04bcf6b2b2061fcaf09c1189cbaa8b30c822e7b62b942314aae63d7f03",
         "ui:usl_b2c.action_b2c_accounting_session": "7b88ac6ac202995ab0a55417095f3064aae4be3ff02b4a50d228ff1018c5588d",
         "ui:usl_tese_payroll.action_tese_payroll_accounts": "89d5e8fe8fcbe6b284dfb4930e75f57aa13f5a8ff48b7b4b0c14732fbf1b4823"
@@ -61230,6 +61326,24 @@
         "rpc:account.bank.ingestion.name_create",
         "rpc:account.bank.ingestion.notify_cancel_by_type",
         "rpc:account.bank.ingestion.onchange",
+        "rpc:account.bank.ingestion.period.action_archive",
+        "rpc:account.bank.ingestion.period.action_unarchive",
+        "rpc:account.bank.ingestion.period.copy",
+        "rpc:account.bank.ingestion.period.copy_data",
+        "rpc:account.bank.ingestion.period.create",
+        "rpc:account.bank.ingestion.period.formatted_read_grouping_sets",
+        "rpc:account.bank.ingestion.period.get_view",
+        "rpc:account.bank.ingestion.period.get_views",
+        "rpc:account.bank.ingestion.period.name_create",
+        "rpc:account.bank.ingestion.period.onchange",
+        "rpc:account.bank.ingestion.period.update_field_translations",
+        "rpc:account.bank.ingestion.period.web_override_translations",
+        "rpc:account.bank.ingestion.period.web_read_group",
+        "rpc:account.bank.ingestion.period.web_resequence",
+        "rpc:account.bank.ingestion.period.web_save",
+        "rpc:account.bank.ingestion.period.web_save_multi",
+        "rpc:account.bank.ingestion.period.web_search_read",
+        "rpc:account.bank.ingestion.period.write",
         "rpc:account.bank.ingestion.rating_apply",
         "rpc:account.bank.ingestion.set_message_pin",
         "rpc:account.bank.ingestion.update_field_translations",
@@ -65523,6 +65637,60 @@
         },
         "rpc:account.bank.ingestion.onchange": {
           "reversal_action": "rpc:account.bank.ingestion.write"
+        },
+        "rpc:account.bank.ingestion.period.action_archive": {
+          "reversal_action": "rpc:account.bank.ingestion.period.action_unarchive"
+        },
+        "rpc:account.bank.ingestion.period.action_unarchive": {
+          "reversal_action": "rpc:account.bank.ingestion.period.action_archive"
+        },
+        "rpc:account.bank.ingestion.period.copy": {
+          "reversal_action": "rpc:account.bank.ingestion.period.unlink"
+        },
+        "rpc:account.bank.ingestion.period.copy_data": {
+          "reversal_action": "rpc:account.bank.ingestion.period.unlink"
+        },
+        "rpc:account.bank.ingestion.period.create": {
+          "reversal_action": "rpc:account.bank.ingestion.period.unlink"
+        },
+        "rpc:account.bank.ingestion.period.formatted_read_grouping_sets": {
+          "reversal_action": "rpc:account.bank.ingestion.period.write"
+        },
+        "rpc:account.bank.ingestion.period.get_view": {
+          "reversal_action": "rpc:account.bank.ingestion.period.write"
+        },
+        "rpc:account.bank.ingestion.period.get_views": {
+          "reversal_action": "rpc:account.bank.ingestion.period.write"
+        },
+        "rpc:account.bank.ingestion.period.name_create": {
+          "reversal_action": "rpc:account.bank.ingestion.period.write"
+        },
+        "rpc:account.bank.ingestion.period.onchange": {
+          "reversal_action": "rpc:account.bank.ingestion.period.write"
+        },
+        "rpc:account.bank.ingestion.period.update_field_translations": {
+          "reversal_action": "rpc:account.bank.ingestion.period.write"
+        },
+        "rpc:account.bank.ingestion.period.web_override_translations": {
+          "reversal_action": "rpc:account.bank.ingestion.period.write"
+        },
+        "rpc:account.bank.ingestion.period.web_read_group": {
+          "reversal_action": "rpc:account.bank.ingestion.period.write"
+        },
+        "rpc:account.bank.ingestion.period.web_resequence": {
+          "reversal_action": "rpc:account.bank.ingestion.period.write"
+        },
+        "rpc:account.bank.ingestion.period.web_save": {
+          "reversal_action": "rpc:account.bank.ingestion.period.write"
+        },
+        "rpc:account.bank.ingestion.period.web_save_multi": {
+          "reversal_action": "rpc:account.bank.ingestion.period.write"
+        },
+        "rpc:account.bank.ingestion.period.web_search_read": {
+          "reversal_action": "rpc:account.bank.ingestion.period.write"
+        },
+        "rpc:account.bank.ingestion.period.write": {
+          "reversal_action": "rpc:account.bank.ingestion.period.write"
         },
         "rpc:account.bank.ingestion.rating_apply": {
           "reversal_action": "rpc:account.bank.ingestion.write"
@@ -74380,6 +74548,24 @@
         "rpc:account.bank.ingestion.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
         "rpc:account.bank.ingestion.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:account.bank.ingestion.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+        "rpc:account.bank.ingestion.period.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+        "rpc:account.bank.ingestion.period.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+        "rpc:account.bank.ingestion.period.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+        "rpc:account.bank.ingestion.period.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+        "rpc:account.bank.ingestion.period.create": "e01529fb01e0889fd6f4679a25ce6d1fcd327ded248fcd5e59cbcd4b0f6453e0",
+        "rpc:account.bank.ingestion.period.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
+        "rpc:account.bank.ingestion.period.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+        "rpc:account.bank.ingestion.period.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+        "rpc:account.bank.ingestion.period.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+        "rpc:account.bank.ingestion.period.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+        "rpc:account.bank.ingestion.period.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+        "rpc:account.bank.ingestion.period.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+        "rpc:account.bank.ingestion.period.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+        "rpc:account.bank.ingestion.period.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+        "rpc:account.bank.ingestion.period.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+        "rpc:account.bank.ingestion.period.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+        "rpc:account.bank.ingestion.period.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+        "rpc:account.bank.ingestion.period.write": "010ab28dd1877e9843e54acd846e0ab610a1d9b9dd59117f5f93494efba41b4f",
         "rpc:account.bank.ingestion.rating_apply": "67733772bfcfdda678ce0f33c63ce533bfce800bccc0212f07eeae88413c7cb4",
         "rpc:account.bank.ingestion.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
         "rpc:account.bank.ingestion.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
@@ -134576,20 +134762,20 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion._finalize_retained_files:orm_write:2": "ffe6a0e3f800ae647cbe82e1aa7af9d77f687c3749c9b74e70044d4ad7917ee8",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion._finalize_retained_files:sudo:1": "de7ea32af1766556fe310f53c87cf567af8dd59351e8df8a62db78ac911b77d6",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion._finalize_retained_files:sudo:2": "1cd10340918a6b22c3c514765e8242ea8ef42cb3eb68b83f5e7174df407e28fd",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:5": "1decc42f6872f520bd3b405418c540dd864f23df3eddf82fdf594d956258b25a",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:sudo:1": "58ba56d40311c845a22ab3adc4d7454ffec5b51fa8cd82139d592092155fe4ad",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:5": "18547aa62cfd4e4ce5aacba319a7381b7123dfd10dfdac19a9c60c67f107f7bb",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:sudo:1": "16610fb53ca034a72568e7a11747eb303db1c1a8d78248d3e748b3f7e699dba0",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._finalize_supplemental_file:orm_write:1": "d88f08bd383b201f4847dffd420e9d52f893b03497af5a12beaf160e436696d3",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._finalize_supplemental_file:orm_write:2": "c1ae085db972f04a0618ae09411f70b481546ca9ef09313b634d9b274e6cfb6c",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._finalize_supplemental_file:sudo:1": "a8df312af08efa7bead2a6df9ced42ce0fdceb75c6c96200f3a09b404622f6f8",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._finalize_supplemental_file:sudo:2": "755dfa7eca1504315da3c8b942e04f228747a2595d42a2b09553809ce05c05ff",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:10": "0b1d44cbef509336a60e2c46379baa1091f1e9f2e45bcd0fdb68352c2e5ad137",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:7": "696a91d86c91c3efc56ca231640379226d6608a7814b18d43ee641a3d533973c",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:8": "2e92defa2a7f5e65b5b398817b372b3c76f2be555a417cbd9fb757041d3cd285",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:9": "e647d53377faccc62f174f605018d1faf0efec6d364ed7fd7bf189f343568606",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:3": "c5a65de13897324ed001362de78e7e04bdafdbdfbed72fd0f250f22ca5848860",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:4": "3a20e2b3baefe4906f37d6f9010c9c104c7df11b30de1565e99345e21f83a67d",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:5": "1f67c7bffd6092ee82e42b50203fd3aa83d3b03f68bfd1e2a7fb5854f1658202",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:6": "c08db4b215eb92b899ac3dedda33fbaeb146e9654c98e7b8b2cd61165c2f979d"
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:10": "208420fb8b9f3ac034a501bf6339eaf7891f02bd1cf31ae19f1a5ebcbb9f384f",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:7": "36ad1ccb75151619743ffb81317354c8ba47da740ff9ab987b0791051c0be30d",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:8": "7ba4788bd31d7a427f3066dedd89e6e9767047d8f6634ff68f3c408829931947",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:9": "d8d08c41b4374d68435bdd1933e331e83b0fea5c8ad52b9b8fd8520403ced8df",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:3": "4fc7aaae1d2a30306a0f46c61edf759603f3df22bb3bd0a813b694f372142faf",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:4": "08444e9118cb706b27ee26be9523dc2124be2257b45c4d3d3d56df0d2b86f8fb",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:5": "ee52f575e6180c1b4e423a463f82245b1430c714d0c6cec164abf5bb4eb7d2e0",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:6": "3d69839ea5ef3735362b64c9fb0ddb92a2863f11571233ecc8d6aee150cc1ccc"
       }
     },
     {
@@ -144873,10 +145059,10 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:sudo:2": "5b182302162a3cddf8699baf540d447de2e738c9d4b76eea0960edb3f7b6ca74",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:sudo:3": "c54ab6975e9b1dd45a80e4e6353dbf4f6332c2e7d524f922d3ff0efd6330288b",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:sudo:4": "02b7e0d667fa5ad152b37c313aea7efe6e83f50a2b12986a82f09cf2d6db83f6",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:1": "5f81c9f5d260a67987c30b3bb92c8654fd846614811813d4beae0d540d5805cd",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:2": "e009726482ad0bb74065dd46624009dc88bb332406ad77a4eead55817d173355",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:3": "d20babc19ad9ed37eca98325005c7589cc837831e22cb9fd5d8e907b14c59f9a",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:4": "d434a7e083bde6bad25b488a0af1f03de386711ae3c2d2b053b79aaae70e9773",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:1": "6a6b8ebcad1c8fdfaf94c68121a406d31a3e30726fbf2e54bb0ad553b6e2213d",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:2": "44bf1c271eff66a1fad48ab119e59ce0f0e40476b200886bb746ff6ce3d9c053",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:3": "bb4fd4b3bd2cdcbce753f3629534f05aa4bdc15628d5c2a796d6c54e42f5f21e",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:4": "07d2c194ed0ae266bc5b7f21539f9c3b93a451790da269eeffc45250827241f2",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_period_pdfs:orm_write:1": "5e37d15d1a85becc41f6bf30f3fb69f9c8d85f10918d79e074be204ffbb895d4",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._content:sudo:1": "4d9b0354c527995f42e9be0674ff4f46f85061d323d3e557efb49da0976a4708",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._extract_zip:orm_create:1": "777bc27a109b899456f75f006dc368f398683f735e011cff2f97d5f20900ba2e",
@@ -144895,15 +145081,15 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:orm_write:5": "a294b653f25420aa6bb5e1c04973405daa6dae35354700a706f2d3dd4d59f44d",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:sudo:1": "a48d3361416bfc480ded59029423139c24f9ad6c8c161288d17a67c691e2a211",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_isolated:orm_write:1": "5328d3ffa898a25473f081112a1a69d82209945a0ee7338fd594ed72806c2fd2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_create:1": "4b18870ea4c296cd3b260af261a32f209af17515ec9c2da003153eb2e78e29d5",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:1": "92753d2184191e85dae4cff1cdffedcdf9cac58183a63f5c0ebad4154379dc86",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:2": "65694ef21a0adba0fa85206cd18a65d92a262a3645de530c5037817c103243fa",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:3": "2a46f4cd885f4ef7e466a7c7cb9e1938c57a16c4ffe6e0668050beaa989e892e",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:4": "f2b0c323a85480ddb59c747294ca39e13cf53b9d4deff2caa4ba50562e00900d",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:5": "a86b733ca837c32411f8570b2bdfd95d43d42986b6ded3971ec41eb587c3b4fb",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:6": "1de615c5c1c02c1516531304e1ea1dac21e8ebe521f11c9c77a75f5b5b663392",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:1": "1c64b4cccbc9081da9783959f84b1e6bff35c6e3898ffe85a06830f36fb4a33a",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:2": "2fa7a780e0ac9783bbc0f47b5f440196cca368def3517f07db76020f8afc875b",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_create:1": "ee3c7e9d6b01787730b26f84a6f126d95b85268154ae6f5c6f132a9c9f8f04f6",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:1": "1f69c489b7879ccfd7f385ecded7744ff7a78a833a1ca57424c3bc1d4e4113a5",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:2": "695d364ed99630f9064a9ac271699534a99896d2914a5e2c21eb455f0129aa84",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:3": "684a99abcace2bbc520450d653ec785b44b164e67136813baebde344873a9e6a",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:4": "76e5dbe096991f13c0fcfa176344bd43ec855d8362362a9af8893460b407b452",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:5": "8349bf63d3ec3887b73399ea0b228f5d8d03b1ae40d47c084b6b3068618506ca",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:6": "030a3b4cc45c567280296f94f818e2f3e78193851a8f90ec13c072afe10f0be9",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:1": "17b7b706da8259592c0f253e940664a81ece9d5ef9e053b237d116bdeb35150a",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:2": "5c87e32199c832e4d29dde42320f07df8284ec4801890666900920ffdd14ac21",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file.write:orm_write:1": "4bcc7719f1f31b42ec695057a2ba58a3b8276f827b8af03200446fd92c2ad0a0",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.message_new:orm_create:1": "edeb93f8aab25f28f41cbd784e65c54a541b3fea44fdc22a2b7eb3e09226aca1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.message_new:orm_write:1": "d40e24999f906fc2259edfbb714e91927e046d6f728468f3cc4ae1a1050a3e48",
@@ -193577,6 +193763,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "007530a0fce9fb6e6637d7fdccf4fbfc8f0ad589759ac91410e165cdd7dad06a",
+  "qualified_policy_digest": "e51d715294732125acc3ec3d713bf7eaa30cd5f1326d1aa1a37df6b44a7bcb5c",
   "schema": "usl-action-risk-policy-v1"
 }
