@@ -1,24 +1,96 @@
 from __future__ import annotations
 
+import copy
+import hashlib
 import json
 import subprocess
+import time
+import tempfile
+import shutil
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from operations.runtime import (
+    CommandRunner,
     RuntimeError,
     compose_command,
     compose_identity,
     inspect_runtime,
     load_target,
+    effective_volumes,
     validate_target,
     validate_secret_text,
 )
-from operations.stack import _validate_mcp_readiness, _validate_sign_readiness
+from operations.stack import (
+    _cleanup_adoption_candidate_anchor,
+    _validate_mcp_readiness,
+    _validate_sign_readiness,
+    runtime_command,
+)
+from scripts.tests.test_release_manifest import manifest as v3_release_manifest
 
 
 ROOT = Path(__file__).resolve().parents[2]
 TARGETS = ROOT / "operations/targets"
+HOST_TARGETS = ROOT / "operations/targets-host"
+
+
+class CommandRunnerSecretTests(unittest.TestCase):
+    def test_stdin_content_is_absent_from_local_and_ssh_failure_errors(self) -> None:
+        secret = "stdin-only-secret-sentinel"
+        failed = subprocess.CompletedProcess([], 9, "", f"writer echoed {secret}")
+        for prefix in ((), ("ssh", "production", "--")):
+            with self.subTest(prefix=prefix), patch(
+                "operations.runtime.subprocess.run", return_value=failed,
+            ) as run:
+                with self.assertRaises(RuntimeError) as caught:
+                    CommandRunner(prefix).run(
+                        ["python3", "-c", "raise SystemExit(9)", "/proof/secret", "0600"],
+                        input_text=secret,
+                    )
+                self.assertNotIn(secret, str(caught.exception))
+                self.assertNotIn(secret, " ".join(run.call_args.args[0]))
+                self.assertEqual(run.call_args.kwargs["input"], secret)
+
+    def test_deadline_interrupts_a_blocking_command_without_echoing_stdin(self) -> None:
+        secret = "deadline-secret-sentinel"
+        runner = CommandRunner(deadline_monotonic=time.monotonic() + 1)
+        with patch(
+            "operations.runtime.subprocess.run",
+            side_effect=subprocess.TimeoutExpired(["writer"], 1),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "operation deadline") as caught:
+                runner.run(["writer", "/proof/secret"], input_text=secret)
+        self.assertNotIn(secret, str(caught.exception))
+
+    def test_runtime_status_does_not_install_recovery_deadline(self) -> None:
+        target = load_target("local", TARGETS)
+        runner = target.runner()
+        target = type("TargetWithRunner", (), {
+            "runner": lambda _self: runner, "name": target.name, "value": target.value,
+        })()
+        arguments = type("Arguments", (), {
+            "target": "local", "targets": TARGETS, "action": "status", "json": True,
+        })()
+        with (
+            patch("operations.stack.load_target", return_value=target),
+            patch("operations.stack.inspect_runtime", return_value={}),
+            patch("builtins.print"),
+        ):
+            self.assertEqual(runtime_command(arguments), 0)
+        self.assertIsNone(runner.deadline_monotonic)
+
+    @unittest.skipUnless(shutil.which("flock"), "host does not provide flock")
+    def test_advisory_lock_is_released_when_owner_exits(self) -> None:
+        path = str(Path(tempfile.mkdtemp()) / "proof.lock")
+        runner = CommandRunner()
+        with runner.advisory_lock(path):
+            with self.assertRaisesRegex(RuntimeError, "another operation"):
+                with CommandRunner().advisory_lock(path):
+                    pass
+        with CommandRunner().advisory_lock(path):
+            pass
 
 
 class FakeRunner:
@@ -31,6 +103,8 @@ class FakeRunner:
 
     def run(self, command: list[str], *, check: bool = True) -> subprocess.CompletedProcess[str]:
         self.commands.append(command)
+        if command == ["cat", self.target.value["release_manifest"]]:
+            return self.completed(command, json.dumps(v3_release_manifest()))
         if command[:1] == ["cat"]:
             return subprocess.CompletedProcess(command, 1, "", "missing")
         if command[:2] == ["docker", "ps"]:
@@ -38,6 +112,7 @@ class FakeRunner:
         if command[:3] == ["docker", "inspect", "anchor-id"]:
             labels = {
                 "com.docker.compose.project": self.target.project,
+                "com.docker.compose.service": self.target.value["compose"]["anchor_service"],
                 "com.docker.compose.project.config_files": "/release/compose.yaml,/release/production.yaml",
                 "com.docker.compose.project.working_dir": "/release",
                 "com.docker.compose.project.environment_file": (
@@ -67,7 +142,181 @@ class FakeRunner:
         raise AssertionError(command)
 
 
+def active_generation(target) -> dict:
+    generation = "g20260901-a1b2c3d4"
+    return {
+        "schema": "usl-active-generation/v1",
+        "target": target.name,
+        "generation": generation,
+        "volumes": {
+            role: f"generation-{role}"
+            for role in target.value["volumes"]
+        },
+        "network": "generation-network",
+        "snapshot": "a" * 64,
+        "release_manifest": (
+            target.value["state_directory"]
+            + f"/generations/{generation}/usl-release.json"
+        ),
+        "previous": {},
+    }
+
+
+def release_manifest(schema: str) -> dict:
+    value = copy.deepcopy(v3_release_manifest())
+    if schema == "usl-release/v3":
+        return value
+    for component in value["components"].values():
+        component.pop("attestations")
+    return {
+        "schema": "usl-release/v2",
+        "source": {
+            "repository": value["source"]["repository"],
+            "commit": value["source"]["commit"],
+        },
+        "components": value["components"],
+        "mcp": {
+            key: value["mcp"][key]
+            for key in ("repository", "ref", "commit", "image", "compatibility_sha256")
+        },
+        "renderer": value["renderer"],
+        "ollama": {"image": "ollama/ollama@sha256:" + "e" * 64, **value["ollama"]},
+        "build": value["build"],
+    }
+
+
+class ComposeAnchorRunner(FakeRunner):
+    def __init__(
+        self,
+        target,
+        services: dict[str, list[str]],
+        *,
+        active_state: dict | None = None,
+        release_schema: str = "usl-release/v2",
+        release_payload: dict | None = None,
+        healthy: bool = True,
+        label_overrides: dict[str, dict[str, str]] | None = None,
+    ) -> None:
+        super().__init__(target)
+        self.services = services
+        self.active_state = active_state
+        self.release_schema = release_schema
+        self.release_payload = release_payload
+        self.healthy = healthy
+        self.label_overrides = label_overrides or {}
+
+    def run(self, command: list[str], *, check: bool = True):
+        self.commands.append(command)
+        if command[:1] == ["cat"]:
+            if self.active_state is not None and command[1] == self.active_state["release_manifest"]:
+                return self.completed(
+                    command,
+                    json.dumps(self.release_payload or release_manifest(self.release_schema)),
+                )
+            if self.active_state is None:
+                return subprocess.CompletedProcess(command, 1, "", "missing")
+            return self.completed(command, json.dumps(self.active_state))
+        if command[:2] == ["docker", "ps"]:
+            service_filter = next(
+                item for item in command
+                if item.startswith("label=com.docker.compose.service=")
+            )
+            service = service_filter.rsplit("=", 1)[1]
+            output = "".join(f"{identifier}\n" for identifier in self.services.get(service, []))
+            return self.completed(command, output)
+        if command[:2] == ["docker", "inspect"]:
+            if command[-1] == "{{json .State}}":
+                return self.completed(
+                    command,
+                    json.dumps({
+                        "Running": self.healthy,
+                        "Health": {"Status": "healthy" if self.healthy else "unhealthy"},
+                    }),
+                )
+            identifier = command[2]
+            service = next(
+                name for name, identifiers in self.services.items()
+                if identifier in identifiers
+            )
+            labels = {
+                "com.docker.compose.project": self.target.project,
+                "com.docker.compose.service": service,
+                "com.docker.compose.project.config_files": "/release/compose.yaml,/release/production.yaml",
+                "com.docker.compose.project.working_dir": "/release",
+                "com.docker.compose.project.environment_file": "/runtime/site.env,/release/.env",
+            }
+            labels.update(self.label_overrides.get(identifier, {}))
+            return self.completed(command, json.dumps(labels))
+        if command[:3] == ["docker", "rm", "--force"]:
+            identifier = command[3]
+            for identifiers in self.services.values():
+                if identifier in identifiers:
+                    identifiers.remove(identifier)
+            return self.completed(command, identifier + "\n")
+        if command[:2] in (["test", "-f"], ["test", "-d"]):
+            return self.completed(command, "")
+        if command[:2] == ["readlink", "-f"]:
+            return self.completed(command, command[-1] + "\n")
+        if "compose" in command and command[-2:] == ["config", "--services"]:
+            services = set(self.target.value["services"].values())
+            services.discard(self.target.value["compose"]["anchor_service"])
+            services.add("odoo")
+            return self.completed(command, "".join(f"{service}\n" for service in sorted(services)))
+        return super().run(command, check=check)
+
+
 class RuntimeContractTests(unittest.TestCase):
+    def test_historical_active_state_may_omit_only_receipt_control(self) -> None:
+        target = load_target("staging", TARGETS)
+        state = active_generation(target)
+        state["volumes"].pop("receipt_control")
+        release = release_manifest("usl-release/v3")
+        for component in ("receipt-fetcher", "receipt-egress"):
+            release["components"].pop(component)
+        release["identity"] = hashlib.sha256(json.dumps({key: value for key, value in release.items() if key != "identity"}, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        runner = ComposeAnchorRunner(target, {}, active_state=state, release_payload=release)
+        volumes, generation = effective_volumes(target, runner)
+        self.assertNotIn("receipt_control", volumes)
+        self.assertEqual(generation, state["generation"])
+        runner.release_payload = release_manifest("usl-release/v3")
+        with self.assertRaisesRegex(RuntimeError, "requires its control volume"):
+            effective_volumes(target, runner)
+        runner.release_payload = release
+        state["volumes"].pop("odoo_filestore")
+        with self.assertRaisesRegex(RuntimeError, "perimeter differs"):
+            effective_volumes(target, runner)
+
+    def test_historical_adopted_release_does_not_inspect_absent_receipt_volume(self) -> None:
+        target = load_target("staging", TARGETS)
+        release = release_manifest("usl-release/v3")
+        for component in ("receipt-fetcher", "receipt-egress"):
+            release["components"].pop(component)
+        release["identity"] = hashlib.sha256(json.dumps({key: value for key, value in release.items() if key != "identity"}, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        class HistoricalRunner(FakeRunner):
+            def run(self, command, *, check=True):
+                if command == ["cat", target.value["release_manifest"]]:
+                    return self.completed(command, json.dumps(release))
+                return super().run(command, check=check)
+        runner = HistoricalRunner(target)
+        result = inspect_runtime(target, runner)
+        self.assertNotIn("receipt_control", result["volumes"])
+        self.assertFalse(any(target.value["volumes"]["receipt_control"]["name"] in command for command in runner.commands))
+
+    def test_historical_target_without_receipt_services_validates(self) -> None:
+        target = copy.deepcopy(load_target("staging", TARGETS).value)
+        for role in ("receipt_fetcher", "receipt_egress"):
+            target["services"].pop(role)
+        target["volumes"].pop("receipt_control")
+        validate_target(target)
+
+    def test_receipt_target_requires_complete_service_and_volume_contract(self) -> None:
+        for section, role in (("services", "receipt_fetcher"), ("services", "receipt_egress"), ("volumes", "receipt_control")):
+            with self.subTest(role=role):
+                target = copy.deepcopy(load_target("staging", TARGETS).value)
+                target[section].pop(role)
+                with self.assertRaises(RuntimeError):
+                    validate_target(target)
+
     def test_receipt_fetcher_keeps_chromium_sandbox_and_non_root_tmpfs(self) -> None:
         compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
         fetcher = compose.split("  usl-receipt-fetcher:", 1)[1].split("\n  odoo:", 1)[0]
@@ -86,6 +335,22 @@ class RuntimeContractTests(unittest.TestCase):
         self.assertIn("--force-webrtc-ip-handling-policy=disable_non_proxied_udp", app)
         self.assertIn("FETCH_SLOTS = asyncio.Semaphore(2)", app)
         self.assertLess(app.index("page = await context.new_page()"), app.index('context.on("page", capture_popup)'))
+
+    def test_local_staging_repositories_are_scoped_and_production_stays_remote(self):
+        for targets in (TARGETS, HOST_TARGETS):
+            staging = load_target("staging", targets)
+            for key, repository in staging.value["backup"].items():
+                self.assertEqual(repository, f"/var/lib/usl-odoo/restic/staging/{key.removesuffix('_repository')}")
+            production = load_target("production", targets)
+            self.assertTrue(all(value.startswith("s3:") for value in production.value["backup"].values()))
+            for invalid in ("/tmp/restic", "/var/lib/usl-odoo/restic/staging/../production", "relative/repo"):
+                value = copy.deepcopy(staging.value)
+                value["backup"]["durable_repository"] = invalid
+                with self.assertRaisesRegex(RuntimeError, "supported Restic repository"):
+                    validate_target(value)
+            production.value["backup"] = staging.value["backup"]
+            with self.assertRaisesRegex(RuntimeError, "supported Restic repository"):
+                validate_target(production.value)
 
     def test_mcp_readiness_binds_runtime_and_oauth_schema(self) -> None:
         value = {
@@ -189,6 +454,34 @@ class RuntimeContractTests(unittest.TestCase):
             self.assertEqual(target.value["volumes"]["mcp_oauth"]["tier"], "database")
             self.assertEqual(target.value["volumes"]["odoo_filestore"]["tier"], "bulk")
 
+    def test_remote_targets_use_host_loopback_for_admission(self) -> None:
+        expected = {
+            "production": {
+                "odoo": "http://127.0.0.1:18069",
+                "odoo_websocket": "http://127.0.0.1:18072",
+                "paperless": "http://127.0.0.1:18010",
+                "mcp": "http://127.0.0.1:18000",
+            },
+            "staging": {
+                "odoo": "http://127.0.0.1:19069",
+                "odoo_websocket": "http://127.0.0.1:19072",
+                "paperless": "http://127.0.0.1:19010",
+                "mcp": "http://127.0.0.1:19000",
+            },
+        }
+        for directory in (TARGETS, HOST_TARGETS):
+            for name, endpoints in expected.items():
+                with self.subTest(directory=directory.name, target=name):
+                    target = load_target(name, directory)
+                    self.assertEqual(target.value["admission_endpoints"], endpoints)
+
+    def test_remote_target_rejects_public_admission_endpoint(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        value = json.loads(target.path.read_text(encoding="utf-8"))
+        value["admission_endpoints"]["odoo"] = value["endpoints"]["odoo"]
+        with self.assertRaisesRegex(RuntimeError, "target-host loopback"):
+            validate_target(value)
+
     def test_secret_file_rejects_unapproved_secret(self) -> None:
         with self.assertRaisesRegex(RuntimeError, "not allowlisted"):
             validate_secret_text("UNKNOWN_TOKEN=secret\n", ["RESTIC_PASSWORD"])
@@ -205,6 +498,154 @@ class RuntimeContractTests(unittest.TestCase):
         self.assertIn("/release/.env", command)
         for profile in target.value["compose"]["profiles"]:
             self.assertIn(profile, command)
+
+    def test_staging_first_adoption_accepts_only_one_legacy_anchor(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        runner = ComposeAnchorRunner(
+            target,
+            {"odoo": ["legacy-id"]},
+            active_state=active_generation(target),
+        )
+
+        identity = compose_identity(target, runner)
+
+        self.assertEqual(identity["container_id"], "legacy-id")
+        self.assertEqual(identity["anchor_service"], "odoo")
+
+    def test_staging_accepts_only_one_canonical_anchor(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        runner = ComposeAnchorRunner(target, {"odoo-staging": ["canonical-id"]})
+
+        identity = compose_identity(target, runner)
+
+        self.assertEqual(identity["container_id"], "canonical-id")
+        self.assertEqual(identity["anchor_service"], "odoo-staging")
+
+    def test_staging_rejects_canonical_and_legacy_anchors_together(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        runner = ComposeAnchorRunner(
+            target,
+            {"odoo-staging": ["canonical-id"], "odoo": ["legacy-id"]},
+            active_state=active_generation(target),
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "both canonical and legacy anchors"):
+            compose_identity(target, runner)
+
+    def test_staging_rejects_legacy_anchor_without_active_v2_release(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        runner = ComposeAnchorRunner(
+            target,
+            {"odoo": ["legacy-id"]},
+            active_state=active_generation(target),
+            release_schema="usl-release/v3",
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "not an active v2 release"):
+            compose_identity(target, runner)
+
+    def test_staging_rejects_legacy_anchor_without_active_state(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        runner = ComposeAnchorRunner(target, {"odoo": ["legacy-id"]})
+
+        with self.assertRaisesRegex(RuntimeError, "not an active v2 release"):
+            compose_identity(target, runner)
+
+    def test_staging_rejects_legacy_anchor_with_incomplete_release_manifest(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        runner = ComposeAnchorRunner(
+            target,
+            {"odoo": ["legacy-id"]},
+            active_state=active_generation(target),
+            release_payload={"schema": "usl-release/v2"},
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "active release manifest is invalid"):
+            compose_identity(target, runner)
+
+    def test_staging_rejects_legacy_anchor_bound_to_another_generation_manifest(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        state = active_generation(target)
+        state["release_manifest"] = (
+            target.value["state_directory"]
+            + "/generations/g20260901-stale/usl-release.json"
+        )
+        runner = ComposeAnchorRunner(target, {"odoo": ["legacy-id"]}, active_state=state)
+
+        with self.assertRaisesRegex(RuntimeError, "does not match its generation"):
+            compose_identity(target, runner)
+
+    def test_staging_rejects_unhealthy_legacy_anchor(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        runner = ComposeAnchorRunner(
+            target,
+            {"odoo": ["legacy-id"]},
+            active_state=active_generation(target),
+            healthy=False,
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "not running and healthy"):
+            compose_identity(target, runner)
+
+    def test_staging_prefers_canonical_anchor_after_v3_activation(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        runner = ComposeAnchorRunner(
+            target,
+            {"odoo-staging": ["canonical-id"], "odoo": ["legacy-id"]},
+            active_state=active_generation(target),
+            release_schema="usl-release/v3",
+        )
+
+        identity = compose_identity(target, runner)
+
+        self.assertEqual(identity["container_id"], "canonical-id")
+        self.assertEqual(identity["anchor_service"], "odoo-staging")
+
+    def test_validation_failure_cleanup_makes_legacy_v2_adoption_retryable(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        runner = ComposeAnchorRunner(
+            target,
+            {"odoo-staging": ["failed-id"], "odoo": ["legacy-id"]},
+            active_state=active_generation(target),
+        )
+        legacy_identity = {"anchor_service": "odoo"}
+
+        _cleanup_adoption_candidate_anchor(target, runner, legacy_identity)
+        identity = compose_identity(target, runner)
+
+        self.assertEqual(identity["container_id"], "legacy-id")
+        self.assertEqual(runner.services["odoo-staging"], [])
+
+    def test_staging_rejects_foreign_or_wrong_legacy_labels(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        for labels, message in (
+            ({"com.docker.compose.project": "foreign"}, "another Compose project"),
+            ({"com.docker.compose.service": "wrong"}, "wrong Compose service label"),
+        ):
+            with self.subTest(message=message):
+                runner = ComposeAnchorRunner(
+                    target,
+                    {"odoo": ["legacy-id"]},
+                    active_state=active_generation(target),
+                    label_overrides={"legacy-id": labels},
+                )
+                with self.assertRaisesRegex(RuntimeError, message):
+                    compose_identity(target, runner)
+
+    def test_production_does_not_probe_the_staging_legacy_transition(self) -> None:
+        target = load_target("production", HOST_TARGETS)
+        runner = ComposeAnchorRunner(target, {"odoo": ["production-id"]})
+
+        identity = compose_identity(target, runner)
+
+        self.assertEqual(identity["container_id"], "production-id")
+        service_filters = [
+            item
+            for command in runner.commands
+            for item in command
+            if item.startswith("label=com.docker.compose.service=")
+        ]
+        self.assertEqual(service_filters, ["label=com.docker.compose.service=odoo"])
 
     def test_status_rejects_foreign_volume_ownership(self) -> None:
         target = load_target("production", TARGETS)

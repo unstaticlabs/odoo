@@ -4,7 +4,7 @@ import hashlib
 import json
 import unittest
 
-from operations.qualification_plan import affected_modules
+from operations.qualification_plan import affected_modules, all_modules
 
 
 def inventory() -> dict:
@@ -37,6 +37,12 @@ def inventory() -> dict:
 
 
 class QualificationPlanTests(unittest.TestCase):
+    def test_all_modules_selects_every_owned_suite(self):
+        self.assertEqual(
+            all_modules(inventory()),
+            ["dependent", "foundation", "unrelated"],
+        )
+
     def test_changed_module_includes_reverse_dependencies(self):
         self.assertEqual(
             affected_modules(["custom-addons/foundation/models/item.py"], inventory()),

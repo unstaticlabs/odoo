@@ -3,10 +3,20 @@
 name: Distribution release
 
 on:
-  push:
-    branches:
-      - 19-usl
-      - 19-usl-staging
+  workflow_call:
+    inputs:
+      source_ref:
+        required: true
+        type: string
+      source_commit:
+        required: true
+        type: string
+      qualification_evidence_sha256:
+        required: true
+        type: string
+      qualification_run_id:
+        required: true
+        type: number
   workflow_dispatch:
     inputs:
       recovery_ref:
@@ -28,70 +38,46 @@ env:
   OLLAMA_DIMENSION: "1024"
 
 jobs:
-  admission:
-    name: Admit qualified release source
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    permissions:
-      checks: read
-      contents: read
-    outputs:
-      evidence_sha256: ${{ steps.admit.outputs.evidence_sha256 }}
-    steps:
-      - name: Admit a protected branch commit or explicit recovery tag
-        id: admit
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RECOVERY_REF: ${{ inputs.recovery_ref }}
-        run: |
-          case "$GITHUB_EVENT_NAME:$GITHUB_REF" in
-            push:refs/heads/19-usl|push:refs/heads/19-usl-staging)
-              qualified=false
-              for attempt in $(seq 1 240); do
-                gh api \
-                  -H 'Accept: application/vnd.github+json' \
-                  "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?per_page=100" \
-                  --jq '[.check_runs[] | select(.name == "USL qualification" and .head_sha == env.GITHUB_SHA and .status == "completed") | {id, name, head_sha, conclusion, details_url}] | sort_by(.id) | last' \
-                  > qualification-evidence.json
-                conclusion="$(jq -r '.conclusion // empty' qualification-evidence.json)"
-                if [ "$conclusion" = success ]; then
-                  qualified=true
-                  break
-                fi
-                if [ -n "$conclusion" ]; then
-                  printf 'USL qualification concluded %s for %s\n' "$conclusion" "$GITHUB_SHA" >&2
-                  exit 1
-                fi
-                sleep 10
-              done
-              test "$qualified" = true
-              test "$(jq -r '.head_sha // empty' qualification-evidence.json)" = "$GITHUB_SHA"
-              ;;
-            workflow_dispatch:refs/tags/recovery-*)
-              test "$RECOVERY_REF" = "${GITHUB_REF#refs/tags/}"
-              jq -n --arg event "$GITHUB_EVENT_NAME" --arg ref "$GITHUB_REF" --arg sha "$GITHUB_SHA" \
-                '{event: $event, ref: $ref, commit: $sha, explicitly_dispatched: true}' \
-                > qualification-evidence.json
-              ;;
-            *)
-              printf 'Release source is not authorized: %s %s\n' "$GITHUB_EVENT_NAME" "$GITHUB_REF" >&2
-              exit 2
-              ;;
-          esac
-          evidence_sha256="$(sha256sum qualification-evidence.json | cut -d' ' -f1)"
-          echo "evidence_sha256=$evidence_sha256" >> "$GITHUB_OUTPUT"
-
   resolve:
     name: Resolve component inputs
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.inputs.outputs.matrix }}
       mcp_commit: ${{ steps.inputs.outputs.mcp_commit }}
+      evidence_sha256: ${{ steps.admit.outputs.evidence_sha256 }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: false
+      - name: Validate caller or explicit recovery source
+        id: admit
+        env:
+          SOURCE_REF: ${{ inputs.source_ref }}
+          SOURCE_COMMIT: ${{ inputs.source_commit }}
+          QUALIFICATION_EVIDENCE_SHA256: ${{ inputs.qualification_evidence_sha256 }}
+          QUALIFICATION_RUN_ID: ${{ inputs.qualification_run_id }}
+          RECOVERY_REF: ${{ inputs.recovery_ref }}
+        run: |
+          if [ -n "$SOURCE_REF" ]; then
+            case "$GITHUB_REF" in refs/heads/19-usl|refs/heads/19-usl-staging) ;; *) exit 2 ;; esac
+              test "$SOURCE_REF" = "$GITHUB_REF"
+              test "$SOURCE_COMMIT" = "$GITHUB_SHA"
+              printf '%s\n' "$QUALIFICATION_EVIDENCE_SHA256" | grep -Eq '^[0-9a-f]{64}$'
+              printf '%s\n' "$QUALIFICATION_RUN_ID" | grep -Eq '^[1-9][0-9]*$'
+              evidence_sha256="$QUALIFICATION_EVIDENCE_SHA256"
+          else
+            case "$GITHUB_EVENT_NAME:$GITHUB_REF" in
+              workflow_dispatch:refs/tags/recovery-*) ;;
+              *) printf 'Release source is not authorized: %s %s\n' "$GITHUB_EVENT_NAME" "$GITHUB_REF" >&2; exit 2 ;;
+            esac
+              test "$RECOVERY_REF" = "${GITHUB_REF#refs/tags/}"
+              jq -n --arg ref "$GITHUB_REF" --arg sha "$GITHUB_SHA" \
+                '{event: "workflow_dispatch", ref: $ref, commit: $sha, explicitly_dispatched: true}' \
+                > recovery-evidence.json
+              evidence_sha256="$(sha256sum recovery-evidence.json | cut -d' ' -f1)"
+          fi
+          echo "evidence_sha256=$evidence_sha256" >> "$GITHUB_OUTPUT"
       - name: Resolve deterministic component identities
         id: inputs
         run: |
@@ -101,25 +87,9 @@ jobs:
           echo "mcp_commit=$(jq -r .commit deploy/odoo-mcp/release.json)" >> "$GITHUB_OUTPUT"
           cat component-inputs.json
 
-  test:
-    name: Release contract tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          submodules: false
-      - name: Run deterministic release tests
-        run: |
-          python3 -m unittest \
-            scripts.tests.test_component_build \
-            scripts.tests.test_distribution_release \
-            scripts.tests.test_release_manifest \
-            scripts.tests.test_odoo_mcp_release
-
   external:
     name: Verify MCP and renderer
-    needs: [admission, resolve]
+    needs: resolve
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -155,7 +125,7 @@ jobs:
 
   component:
     name: ${{ matrix.name }} image
-    needs: [admission, resolve]
+    needs: resolve
     runs-on: ubuntu-latest
     timeout-minutes: 45
     strategy:
@@ -241,20 +211,27 @@ jobs:
           TAG: ${{ matrix.tag }}
           BUILT_DIGEST: ${{ steps.build.outputs.digest }}
           REUSED: ${{ steps.existing.outputs.exists }}
+          STARTED: ${{ steps.existing.outputs.started }}
+          COMPONENT_NAME: ${{ matrix.name }}
+          INPUT_SHA256: ${{ matrix.input_sha256 }}
         run: |
           digest="$BUILT_DIGEST"
           if [ -z "$digest" ]; then
             digest="sha256:$(docker buildx imagetools inspect --raw "$IMAGE:$TAG" | sha256sum | cut -d' ' -f1)"
           fi
           printf '%s\n' "$digest" | grep -Eq '^sha256:[0-9a-f]{64}$'
-          elapsed="$(( $(date +%s) - ${{ steps.existing.outputs.started }} ))"
+          elapsed="$(( $(date +%s) - STARTED ))"
           result=built
           [ "$REUSED" = true ] && result=reused
           {
-            printf '### %s\n\n' '${{ matrix.name }}'
+            printf '### %s\n\n' "$COMPONENT_NAME"
+            # shellcheck disable=SC2016
             printf -- '- Result: `%s`\n' "$result"
-            printf -- '- Inputs: `%s`\n' '${{ matrix.input_sha256 }}'
+            # shellcheck disable=SC2016
+            printf -- '- Inputs: `%s`\n' "$INPUT_SHA256"
+            # shellcheck disable=SC2016
             printf -- '- Image: `%s@%s`\n' "$IMAGE" "$digest"
+            # shellcheck disable=SC2016
             printf -- '- Job time: `%ss`\n' "$elapsed"
           } >> "$GITHUB_STEP_SUMMARY"
           echo "digest=$digest" >> "$GITHUB_OUTPUT"
@@ -319,7 +296,7 @@ jobs:
 
   release:
     name: Assemble coordinated release
-    needs: [admission, resolve, test, external, component]
+    needs: [resolve, external, component]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -393,7 +370,7 @@ jobs:
             --ollama-model "$OLLAMA_MODEL" \
             --ollama-manifest "$OLLAMA_MANIFEST_SHA256" \
             --ollama-dimension "$OLLAMA_DIMENSION" \
-            --evidence "usl-qualification=${{ needs.admission.outputs.evidence_sha256 }}" \
+            --evidence "usl-qualification=${{ needs.resolve.outputs.evidence_sha256 }}" \
             --evidence "release-contract=$contract_evidence" \
             --workflow-run-id "$GITHUB_RUN_ID" \
             --workflow-run-attempt "$GITHUB_RUN_ATTEMPT" \
@@ -443,6 +420,7 @@ jobs:
             --form "variables[USL_GITHUB_RUN_ID]=$GITHUB_RUN_ID"
       - name: Summarize release
         run: |
+          # shellcheck disable=SC2016
           {
             printf '## Coordinated release\n\n'
             printf -- '- Commit: `%s`\n' "$GITHUB_SHA"

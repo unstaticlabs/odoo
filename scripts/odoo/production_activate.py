@@ -19,6 +19,9 @@ if os.environ.get("USL_EINVOICE_LIVE_ENABLED") != "0" or os.environ.get(
 params = env["ir.config_parameter"].sudo()  # noqa: F821
 admitted_fingerprint = params.get_str("usl.production.admitted_candidate_fingerprint")
 activation_fingerprint = params.get_str("usl.production.activation_candidate_fingerprint")
+quarantined_fingerprint = params.get_str("usl.production.quarantined_candidate_fingerprint")
+if quarantined_fingerprint != fingerprint:
+    raise RuntimeError("The production candidate was not quarantined under this identity.")
 if admitted_fingerprint and admitted_fingerprint != fingerprint:
     raise RuntimeError("The database already has a production admission fingerprint.")
 already_activated = not params.get_bool("database.is_neutralized")
@@ -37,6 +40,22 @@ if "fetchmail.server" in env.registry:  # noqa: F821
     active_fetchmail = env["fetchmail.server"].sudo().search([("active", "=", True)])  # noqa: F821
     if active_fetchmail:
         raise RuntimeError(f"Incoming mail servers remain active: {active_fetchmail.ids}")
+    try:
+        quarantined_fetchmail_ids = json.loads(
+            params.get_str("usl.production.quarantined_fetchmail_ids") or "[]",
+        )
+    except json.JSONDecodeError as error:
+        raise RuntimeError("Quarantined incoming-mail evidence is malformed.") from error
+    if not isinstance(quarantined_fetchmail_ids, list) or not all(
+        isinstance(record_id, int) and record_id > 0
+        for record_id in quarantined_fetchmail_ids
+    ):
+        raise RuntimeError("Quarantined incoming-mail evidence is invalid.")
+    if os.environ.get("USL_PRODUCTION_INBOUND_MAIL_ENABLED") == "1":
+        restored_fetchmail = env["fetchmail.server"].sudo().browse(quarantined_fetchmail_ids).exists()  # noqa: F821
+        if len(restored_fetchmail) != 1 or restored_fetchmail.state != "done":
+            raise RuntimeError("The approved incoming mail server cannot be restored.")
+        restored_fetchmail.write({"active": True})
 
 # Neutralization intentionally removed or disabled external credentials. Those
 # values stay removed. Production uses governed environment configuration and
@@ -49,6 +68,7 @@ neutralize_views = env["ir.ui.view"].sudo().search([  # noqa: F821
 if not already_activated:
     params.set_bool("database.is_neutralized", False)
     params.set_str("usl.production.activation_candidate_fingerprint", fingerprint)
+    params.set_str("usl.production.quarantined_fetchmail_ids", "[]")
     if neutralize_views:
         neutralize_views.write({"active": False})
 env.registry.clear_cache("stable")  # noqa: F821

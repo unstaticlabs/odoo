@@ -32,7 +32,12 @@ PY
 test -n "$modules"
 
 "${compose[@]}" up -d --wait db
-"${compose[@]}" --profile test build test
+if [[ "${USL_USE_PREBUILT_TEST_IMAGE:-0}" == "1" ]]; then
+  test -n "${ODOO_TEST_IMAGE:-}"
+  docker image inspect "$ODOO_TEST_IMAGE" >/dev/null
+else
+  "${compose[@]}" --profile test build test
+fi
 
 odoo_run() {
   "${compose[@]}" --profile test run --rm -T \
@@ -103,6 +108,7 @@ if [[ -n "$test_modules" ]]; then
       continue
     fi
     printf 'Running affected frontend suites on desktop and mobile: %s\n' "$module"
+    frontend_log="$(mktemp)"
     "${compose[@]}" --profile test run --rm -T \
       -e ODOO_INIT_DB="$database" \
       -e ODOO_DB_FILTER="^${database}$" \
@@ -116,9 +122,16 @@ if [[ -n "$test_modules" ]]; then
       --max-cron-threads=0 \
       --stop-after-init \
       --test-enable \
-      --test-tags="/$module:WebSuite.test_unit_desktop,/$module:MobileWebSuite.test_unit_mobile" \
-      --update="$module" \
-      --log-level=test
+      --test-tags="/web:WebSuite.test_unit_desktop[@$module],/web:MobileWebSuite.test_unit_mobile[@$module]" \
+      --update="web,$module" \
+      --log-level=test 2>&1 | tee "$frontend_log"
+    for frontend_method in WebSuite.test_unit_desktop MobileWebSuite.test_unit_mobile; do
+      if ! grep -E "$frontend_method.browser: .*\\[HOOT\\] Passed [1-9][0-9]* tests" "$frontend_log" >/dev/null; then
+        printf 'Frontend qualification did not execute a nonempty %s suite for %s; log: %s\n' "$frontend_method" "$module" "$frontend_log" >&2
+        exit 1
+      fi
+    done
+    rm "$frontend_log"
   done
 fi
 

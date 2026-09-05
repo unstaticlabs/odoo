@@ -123,16 +123,27 @@ services:
           esac
         fi
         case "$${USL_DEPLOYMENT_ENV}" in
-        preproduction|production)
+        staging|preproduction|production)
           [ "$${#PAPERLESS_DB_PASSWORD}" -ge 24 ] || { echo "Paperless database secret is too short"; exit 1; }
           [ "$${#PAPERLESS_SECRET_KEY}" -ge 48 ] || { echo "Paperless application secret is too short"; exit 1; }
           [ "$${PAPERLESS_DB_PASSWORD}" != "paperless-change-me-dev-only" ] || exit 1
           [ "$${PAPERLESS_SECRET_KEY}" != "paperless-change-me-dev-only" ] || exit 1
-          [ "$${PAPERLESS_OIDC_ENABLED}" = "1" ] || { echo "Paperless Pocket ID login must be enabled"; exit 1; }
-          [ "$${PAPERLESS_DISABLE_REGULAR_LOGIN}" = "true" ] || { echo "Paperless interactive password login must be disabled"; exit 1; }
-          [ "$${PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS}" = "false" ] || { echo "Pocket groups must not become Paperless authorization groups"; exit 1; }
           [ -n "$${POCKET_ID_APP_URL}" ] || { echo "Pocket ID issuer is required"; exit 1; }
-          [ "$${PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL}" = "https" ] || { echo "Production Paperless OIDC callbacks must use HTTPS"; exit 1; }
+          case "$${POCKET_ID_APP_URL}" in https://auth.unstaticlabs.com|https://auth.unstaticlabs.com/) :;; *) echo "Production-like Pocket ID issuer must be auth.unstaticlabs.com"; exit 1;; esac
+          case "$${PAPERLESS_PUBLIC_URL}" in
+            http://127.0.0.1:*)
+              [ "$${USL_DEPLOYMENT_ENV}" = "staging" ] || { echo "Only staging may keep Paperless internal"; exit 1; }
+              [ "$${PAPERLESS_OIDC_ENABLED}" = "0" ] || { echo "Internal-only Paperless must disable OIDC"; exit 1; }
+              [ -z "$${PAPERLESS_PUBLIC_BASE_URL}" ] || { echo "Internal-only Paperless must not publish an OIDC callback base"; exit 1; }
+              ;;
+            https://*)
+              [ "$${PAPERLESS_OIDC_ENABLED}" = "1" ] || { echo "Public Paperless requires Pocket ID login"; exit 1; }
+              [ "$${PAPERLESS_DISABLE_REGULAR_LOGIN}" = "true" ] || { echo "Public Paperless must disable interactive password login"; exit 1; }
+              [ "$${PAPERLESS_SOCIAL_ACCOUNT_SYNC_GROUPS}" = "false" ] || { echo "Pocket groups must not become Paperless authorization groups"; exit 1; }
+              [ "$${PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL}" = "https" ] || { echo "Public Paperless OIDC callbacks must use HTTPS"; exit 1; }
+              ;;
+            *) echo "Paperless must use exact loopback HTTP or public HTTPS"; exit 1;;
+          esac
           [ "$${ODOO_DB_PASSWORD}" != "odoo" ] || { echo "Odoo database password must not use the development default"; exit 1; }
           [ "$${ODOO_ADMIN_PASSWORD}" != "admin" ] || { echo "Odoo master password must not use the QA default"; exit 1; }
           case "$${ODOO_DB_FILTER}" in
@@ -170,12 +181,12 @@ services:
           esac
           [ "$${PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE}" = "512" ] || { echo "Paperless embedding chunk size is not frozen"; exit 1; }
           [ "$${PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE}" = "32" ] || { echo "Paperless embedding batch size is not qualified"; exit 1; }
-          case "$${PAPERLESS_PUBLIC_URL}" in https://*) :;; *) echo "Production Paperless URL must use HTTPS"; exit 1;; esac
-          case "$${POCKET_ID_APP_URL}" in https://*) :;; *) echo "Production Pocket ID URL must use HTTPS"; exit 1;; esac
           case "$${ODOO_MCP_PUBLIC_ORIGIN}" in https://*) :;; *) echo "Production Odoo MCP URL must use HTTPS"; exit 1;; esac
           case "$${ODOO_MCP_PUBLIC_ORIGIN}" in *127.0.0.1*|*localhost*) echo "Production-like Odoo MCP URL must not be local-only"; exit 1;; esac
-          case "$${PAPERLESS_PUBLIC_URL}" in *127.0.0.1*|*localhost*) echo "Production-like Paperless URL must not be local-only"; exit 1;; esac
-          case "$${PAPERLESS_ALLOWED_HOSTS}" in *localhost*|*127.0.0.1*) echo "Production-like allowed hosts must not include local QA hosts"; exit 1;; esac
+          if [ "$${PAPERLESS_OIDC_ENABLED}" = "1" ]; then
+            case "$${PAPERLESS_PUBLIC_URL}" in *127.0.0.1*|*localhost*) echo "Public Paperless URL must not be local-only"; exit 1;; esac
+            case "$${PAPERLESS_ALLOWED_HOSTS}" in *localhost*|*127.0.0.1*) echo "Public Paperless allowed hosts must not include local QA hosts"; exit 1;; esac
+          fi
           case "$${PAPERLESS_EMPTY_TRASH_DELAY}" in
             ""|*[!0-9]*) echo "Paperless Trash retention must be an explicit number of days"; exit 1;;
           esac
@@ -314,6 +325,7 @@ services:
       paperless-tika:
         condition: service_healthy
     environment:
+      USL_DEPLOYMENT_ENV: ${USL_DEPLOYMENT_ENV:-development}
       PAPERLESS_REDIS: redis://paperless-broker:6379
       PAPERLESS_DBHOST: paperless-db
       PAPERLESS_DBNAME: ${PAPERLESS_DB_NAME:-paperless}
@@ -688,6 +700,8 @@ services:
       USL_RECEIPT_FETCHER_CERT_DIR: /run/secrets/receipt-fetcher
       USL_DEPLOYMENT_ENV: ${USL_DEPLOYMENT_ENV:-development}
       USL_RELEASE_COMMIT: ${USL_RELEASE_COMMIT:-development}
+      USL_MCP_FEEDBACK_PROJECT_ID: ${USL_MCP_FEEDBACK_PROJECT_ID:-17}
+      USL_MCP_FEEDBACK_STAGE_ID: ${USL_MCP_FEEDBACK_STAGE_ID:-126}
       PAPERLESS_INTERNAL_URL: ${PAPERLESS_INTERNAL_URL:-http://paperless-webserver:8000}
       USL_POCKET_ID_ENABLED: ${USL_POCKET_ID_ENABLED:-0}
       USL_POCKET_ID_ISSUER: ${USL_POCKET_ID_ISSUER:-}
@@ -824,6 +838,8 @@ services:
       USL_EREPORTING_LIVE_ENABLED: ${USL_EREPORTING_LIVE_ENABLED:-0}
       USL_DEPLOYMENT_ENV: ${USL_DEPLOYMENT_ENV:-development}
       USL_RELEASE_COMMIT: ${USL_RELEASE_COMMIT:-development}
+      USL_MCP_FEEDBACK_PROJECT_ID: ${USL_MCP_FEEDBACK_PROJECT_ID:-17}
+      USL_MCP_FEEDBACK_STAGE_ID: ${USL_MCP_FEEDBACK_STAGE_ID:-126}
       USL_POCKET_ID_ENABLED: ${USL_POCKET_ID_ENABLED:-0}
       USL_POCKET_ID_ISSUER: ${USL_POCKET_ID_ISSUER:-}
       USL_POCKET_ID_CLIENT_ID: ${USL_POCKET_ID_CLIENT_ID:-}
@@ -856,6 +872,52 @@ services:
       - ./docs/users:/mnt/user-docs:ro
       - ${USL_ONLINE_DUMP_DIR:-./usl-online-dump}:/mnt/accounting-source:ro
       - ./artifacts/migration/private:/mnt/migration-evidence:ro
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}:/run/secrets/document-renderer:ro
+      - ${USL_SIGN_ODOO_SECRET_DIR:-./.secrets/sign/odoo}:/run/usl-sign:ro
+
+  # Release-only one-shot runner. Unlike init-db, this service never installs a
+  # bootstrap module and never inherits an open-ended initialization default.
+  # The controller supplies the exact, signed module closure for each run.
+  odoo-upgrade:
+    profiles: ["release"]
+    image: ${ODOO_IMAGE:-usl-odoo-saas-19-3-odoo:latest}
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - path: .env
+        required: false
+      - path: ${USL_SIGN_ODOO_ENV_FILE:-.secrets/sign/odoo.env}
+        required: false
+    environment:
+      ODOO_DB_HOST: ${ODOO_DB_HOST:-db}
+      ODOO_DB_PORT: ${ODOO_DB_PORT:-5432}
+      ODOO_DB_USER: ${ODOO_DB_USER:-odoo}
+      ODOO_DB_PASSWORD: ${ODOO_DB_PASSWORD:-odoo}
+      ODOO_DB_FILTER: ${ODOO_DB_FILTER:-^odoo_dev$}
+      ODOO_ADDONS_PATH: ${ODOO_ADDONS_PATH:-/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons}
+      ODOO_UPGRADE_DATABASE: ${ODOO_UPGRADE_DATABASE:-odoo_dev}
+      ODOO_UPGRADE_MODULES: ${ODOO_UPGRADE_MODULES:-}
+      ODOO_MAX_CRON_THREADS: 0
+      USL_EINVOICE_LIVE_ENABLED: 0
+      USL_EREPORTING_LIVE_ENABLED: 0
+      USL_DEPLOYMENT_ENV: release-upgrade
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - >-
+        test -n "$${ODOO_UPGRADE_MODULES}" || {
+        echo 'The signed upgrade module closure is required' >&2; exit 2; };
+        exec odoo --config=/etc/odoo/odoo.conf
+        --database="$${ODOO_UPGRADE_DATABASE}"
+        --update="$${ODOO_UPGRADE_MODULES}"
+        --stop-after-init --no-http --max-cron-threads=0
+    restart: "no"
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ./custom-addons:/mnt/custom-addons
+      - ./oca-src:/mnt/oca-src:ro
+      - ./oca-addons:/mnt/oca-addons:ro
+      - ./docs/users:/mnt/user-docs:ro
       - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}:/run/secrets/document-renderer:ro
       - ${USL_SIGN_ODOO_SECRET_DIR:-./.secrets/sign/odoo}:/run/usl-sign:ro
 
@@ -1104,6 +1166,7 @@ services:
 
   test:
     profiles: ["test"]
+    image: ${ODOO_TEST_IMAGE:-usl-odoo-saas-19-3-test:local}
     build:
       context: .
       dockerfile: Dockerfile

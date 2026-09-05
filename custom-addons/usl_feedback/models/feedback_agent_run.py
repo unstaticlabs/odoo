@@ -105,6 +105,13 @@ class FeedbackAgentRun(models.Model):
     @api.model
     def _configuration(self):
         params = self.env["ir.config_parameter"].sudo()
+        # A restored copy may retain provider credentials. Cron deactivation is
+        # insufficient because the reporter's polling RPC also processes runs.
+        if params.get_bool("database.is_neutralized"):
+            raise GeminiError(
+                ERROR_CONFIGURATION,
+                "Feedback assistant processing is disabled on a neutralized database.",
+            )
         model = params.get_str("usl_feedback.gemini_model") or "gemini-3.7-flash"
         enabled = params.get_str("usl_feedback.gemini_enabled") == "True"
         paid = params.get_str("usl_feedback.gemini_paid_tier_confirmed") == "True"
@@ -467,7 +474,7 @@ class FeedbackAgentRun(models.Model):
             )
         prompt = (
             f"Trusted deployment identity (do not author or alter it): "
-            f"{task._usl_feedback_identity_html()}\n\n"
+            f"{task._usl_feedback_snapshot_identity_html()}\n\n"
             f"Exact running release source: {release_url}\n\n"
             f"Sanitized submission context:\n{self._context_summary(task)}\n\n"
             f"Current shared feedback board summary:\n{board}\n\n"

@@ -72,6 +72,12 @@
     "paperless": "http://127.0.0.1:19010",
     "mcp": "http://127.0.0.1:19000"
   },
+  "admission_endpoints": {
+    "odoo": "http://127.0.0.1:19069",
+    "odoo_websocket": "http://127.0.0.1:19072",
+    "paperless": "http://127.0.0.1:19010",
+    "mcp": "http://127.0.0.1:19000"
+  },
   "ingress": {
     "proxy_mode": true,
     "list_db": false,
@@ -88,8 +94,8 @@
     "dimension": 1024
   },
   "backup": {
-    "durable_repository": "s3:https://dac5c03754f31ec46fbf248dccc54831.eu.r2.cloudflarestorage.com/usl-backups/odoo-staging/continuous-durable",
-    "cache_repository": "s3:https://dac5c03754f31ec46fbf248dccc54831.eu.r2.cloudflarestorage.com/usl-backups/odoo-staging/continuous-cache"
+    "durable_repository": "/var/lib/usl-odoo/restic/staging/durable",
+    "cache_repository": "/var/lib/usl-odoo/restic/staging/cache"
   },
   "release_manifest": "/opt/usl-odoo/staging/current/usl-release.json",
   "plan_signing": {"private_key": "/opt/usl-odoo/staging/secrets/upgrade-plan-signing.key", "public_key": "/opt/usl-odoo/staging/secrets/upgrade-plan-signing.pub"},

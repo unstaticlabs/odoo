@@ -26,6 +26,10 @@ COMPONENTS = {
     "receipt-fetcher",
     "sign-dss",
 }
+MCP_PUBLIC_METHODS = {
+    "usl.agent.current_identity",
+    "usl.agent.submit_mcp_feedback",
+}
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 COMMIT = re.compile(r"[0-9a-f]{40}\Z")
 DIGEST = re.compile(r"sha256:[0-9a-f]{64}\Z")
@@ -183,8 +187,14 @@ def _validate_common(root: dict[str, Any], *, commit: str | None, legacy: bool) 
         raise ReleaseManifestError("source.ref is not a release-authorized ref")
     if commit is not None and source["commit"] != commit:
         raise ReleaseManifestError("release commit differs from the requested commit")
-    components = _object(root["components"], COMPONENTS, "components")
-    for name in sorted(COMPONENTS):
+    # Historical v2/v3 releases predate the receipt sandbox. Keep them usable
+    # for baseline verification and recovery; create() requires the full set.
+    component_fields = COMPONENTS
+    receipt_components = {"receipt-fetcher", "receipt-egress"}
+    if isinstance(root["components"], dict) and not receipt_components.intersection(root["components"]):
+        component_fields = COMPONENTS - receipt_components
+    components = _object(root["components"], component_fields, "components")
+    for name in sorted(component_fields):
         _component(components[name], f"components.{name}", legacy=legacy)
     mcp_fields = {"repository", "ref", "commit", "image", "compatibility_sha256"}
     if not legacy:
@@ -308,6 +318,28 @@ def _parse_evidence(values: list[str]) -> dict[str, str]:
     return dict(sorted(evidence.items()))
 
 
+def _mcp_public_methods(identity_contract: dict[str, Any]) -> list[str]:
+    methods = sorted(MCP_PUBLIC_METHODS | {identity_contract["method"]})
+    surface = _read_json(
+        ROOT / "custom-addons/usl_access_control/policy/action_surface.json",
+        "qualified Odoo action surface",
+    )
+    available = {
+        item.get("key")
+        for item in surface.get("actions", [])
+        if isinstance(item, dict)
+    }
+    missing = sorted(
+        method for method in methods if f"rpc:{method}" not in available
+    )
+    if missing:
+        raise ReleaseManifestError(
+            "MCP public methods are absent from the qualified Odoo action surface: "
+            + ", ".join(missing)
+        )
+    return methods
+
+
 def create(arguments: argparse.Namespace) -> int:
     components = dict(_parse_component(raw) for raw in arguments.component)
     if set(components) != COMPONENTS:
@@ -338,7 +370,7 @@ def create(arguments: argparse.Namespace) -> int:
         "odoo_series": arguments.odoo_series,
         "supported_mcp_major": 1,
         "required_modules": legacy_contract["required_modules"],
-        "public_methods": [identity_contract["method"]],
+        "public_methods": _mcp_public_methods(identity_contract),
         "actions": sorted(
             action.removeprefix("rpc:")
             for action in (

@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "required": [
     "schema", "name", "environment", "protected", "transport", "compose",
-    "services", "databases", "storage", "volumes", "paths", "external_networks", "endpoints", "ingress",
+    "services", "databases", "storage", "volumes", "paths", "external_networks", "endpoints", "admission_endpoints", "ingress",
     "ollama", "backup", "release_manifest", "plan_signing", "cron_policy", "secrets", "state_directory"
   ],
   "properties": {
@@ -38,7 +38,8 @@
     "volumes": {"type": "object"},
     "paths": {"type": "object"},
     "external_networks": {"type": "object"},
-    "endpoints": {"type": "object"},
+    "endpoints": {"$ref": "#/$defs/serviceEndpoints"},
+    "admission_endpoints": {"$ref": "#/$defs/admissionEndpoints"},
     "ingress": {"type": "object"},
     "ollama": {"type": "object"},
     "backup": {"type": "object"},
@@ -69,6 +70,27 @@
     "state_directory": {"type": "string"}
   },
   "$defs": {
+    "serviceEndpoints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["odoo", "paperless", "mcp"],
+      "properties": {
+        "odoo": {"type": "string", "pattern": "^https?://"},
+        "paperless": {"type": "string", "pattern": "^https?://"},
+        "mcp": {"type": "string", "pattern": "^https?://"}
+      }
+    },
+    "admissionEndpoints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["odoo", "odoo_websocket", "paperless", "mcp"],
+      "properties": {
+        "odoo": {"type": "string", "pattern": "^https?://"},
+        "odoo_websocket": {"type": "string", "pattern": "^https?://"},
+        "paperless": {"type": "string", "pattern": "^https?://"},
+        "mcp": {"type": "string", "pattern": "^https?://"}
+      }
+    },
     "storageTier": {
       "type": "object",
       "additionalProperties": false,
