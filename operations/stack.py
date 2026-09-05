@@ -6752,7 +6752,8 @@ def _validate_recovery_proof_receipt(value: object, proof_id: str) -> dict:
         or durable.get("paperless", {}).get("status") != "passed"
         or not isinstance(durable.get("paperless", {}).get("document_records"), int)
         or durable.get("paperless", {}).get("document_records") < 1
-        or durable.get("mcp_oauth", {}).get("schema_version") != 1
+        or not isinstance(durable.get("mcp_oauth", {}).get("schema_version"), int)
+        or durable["mcp_oauth"]["schema_version"] < 1
         or set(samples) != sample_roles
         or any(
             not isinstance(sample, dict)
