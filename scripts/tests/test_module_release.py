@@ -69,19 +69,32 @@ class ModuleReleaseTests(unittest.TestCase):
         with self.assertRaisesRegex(ModuleReleaseError, "unapproved new"):
             validate_upgrade_plan(result)
 
-    def test_changed_source_without_version_bump_fails_closed(self):
+    def test_changed_source_without_version_bump_still_upgrades_dependents(self):
         candidate = copy.deepcopy(self.active_inventory)
         candidate["modules"]["base_product"]["source_sha256"] = "e" * 64
         import hashlib, json
         candidate["sha256"] = hashlib.sha256(
             json.dumps(candidate["modules"], sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest()
-        with self.assertRaisesRegex(ModuleReleaseError, "version bump"):
-            derive_upgrade_plan(
-                release("active", self.active_inventory),
-                release("candidate", candidate),
-                {"base_product"},
-            )
+        plan = derive_upgrade_plan(
+            release("active", self.active_inventory),
+            release("candidate", candidate),
+            {"base_product", "dependent"},
+        )
+        self.assertEqual(plan["upgrade_modules"], ["base_product", "dependent"])
+        self.assertIn("source-changed", plan["reasons"]["base_product"])
+        self.assertEqual(validate_upgrade_plan(plan), plan)
+
+    def test_changed_model_at_same_version_is_included_in_upgrade(self):
+        candidate = inventory(
+            [("base_product", "1.0", [], "e", "f"), ("dependent", "1.0", ["base_product"], "c", "d")]
+        )
+        plan = derive_upgrade_plan(
+            release("active", self.active_inventory), release("candidate", candidate),
+            {"base_product", "dependent"},
+        )
+        self.assertEqual(plan["upgrade_modules"], ["base_product", "dependent"])
+        self.assertIn("stored-model-changed", plan["reasons"]["base_product"])
 
     def test_foundation_change_upgrades_every_owned_installed_module(self):
         plan = derive_upgrade_plan(
