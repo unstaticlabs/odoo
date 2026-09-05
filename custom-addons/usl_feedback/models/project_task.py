@@ -1,3 +1,4 @@
+import os
 import re
 
 from markupsafe import Markup, escape
@@ -7,6 +8,10 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools.mail import html2plaintext
 
 RELEASE_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+MANIFEST_SHA_RE = re.compile(r"^[0-9a-f]{64}$")
+DEPLOYMENT_ENVIRONMENTS = {"development", "local", "staging", "preproduction", "production"}
+DEPLOYMENT_GENERATION_RE = re.compile(r"^g[a-z0-9][a-z0-9-]{0,30}$")
+IDENTITY_MARKER = "data-usl-feedback-deployment-identity"
 FEEDBACK_CATEGORIES = [
     ("bug", "Bug"),
     ("improvement", "Improvement"),
@@ -168,8 +173,10 @@ class ProjectTask(models.Model):
                 raise ValidationError(_("The source company must be available to the reporter."))
             if inbox and task.stage_id != inbox and not task.usl_feedback_category:
                 raise ValidationError(_("A feedback category is required outside the Inbox."))
-            if not RELEASE_SHA_RE.fullmatch(task.usl_feedback_release_sha or ""):
-                raise ValidationError(_("Feedback must carry an exact 40-character release SHA."))
+            if task.usl_feedback_release_sha not in {"Unknown", False} and not RELEASE_SHA_RE.fullmatch(
+                task.usl_feedback_release_sha or "",
+            ):
+                raise ValidationError(_("Feedback release identity must be an exact 40-character SHA or Unknown."))
             if not task.usl_feedback_agent_state:
                 raise ValidationError(_("A feedback assistant state is required."))
             if task.usl_feedback_source_res_id and not task.usl_feedback_source_model_id:
@@ -217,7 +224,113 @@ class ProjectTask(models.Model):
             project_id = values.get("project_id")
             if project_id and self.env["project.project"].sudo().browse(project_id).usl_feedback_project:
                 raise AccessError(_("Use the feedback conversation to create product feedback."))
-        return super().write(values)
+        if "description" not in values:
+            return super().write(values)
+        feedback_tasks = self.filtered(lambda task: task._usl_feedback_is_task())
+        other_tasks = self - feedback_tasks
+        result = True
+        if other_tasks:
+            result = super(ProjectTask, other_tasks).write(values) and result
+        # Each feedback card has an independent immutable snapshot. A batched
+        # maintainer write must therefore render the caller's narrative once per card.
+        for task in feedback_tasks:
+            task_values = dict(values)
+            task_values["description"] = task._usl_feedback_description_with_identity(
+                values["description"],
+            )
+            result = super(ProjectTask, task).write(task_values) and result
+        return result
+
+    @staticmethod
+    def _usl_feedback_identity_value(name, validator):
+        value = (os.environ.get(name) or "").strip()
+        return value if validator(value) else "Unknown"
+
+    @classmethod
+    def _usl_feedback_deployment_identity(cls):
+        """Read only validated runtime identity; never accept it from feedback input."""
+        return {
+            "environment": cls._usl_feedback_identity_value(
+                "USL_DEPLOYMENT_ENV", lambda value: value in DEPLOYMENT_ENVIRONMENTS,
+            ),
+            "release_commit": cls._usl_feedback_identity_value(
+                "USL_RELEASE_COMMIT", lambda value: bool(RELEASE_SHA_RE.fullmatch(value)),
+            ),
+            "gitops_commit": cls._usl_feedback_identity_value(
+                "USL_GITOPS_COMMIT", lambda value: bool(RELEASE_SHA_RE.fullmatch(value)),
+            ),
+            "generation": cls._usl_feedback_identity_value(
+                "USL_DEPLOYMENT_GENERATION", lambda value: bool(DEPLOYMENT_GENERATION_RE.fullmatch(value)),
+            ),
+            "manifest_sha256": cls._usl_feedback_identity_value(
+                "USL_RELEASE_MANIFEST_SHA256", lambda value: bool(MANIFEST_SHA_RE.fullmatch(value)),
+            ),
+        }
+
+    @classmethod
+    def _usl_feedback_identity_html(cls, identity=None):
+        identity = identity or cls._usl_feedback_deployment_identity()
+        release = identity["release_commit"]
+        gitops = identity["gitops_commit"]
+        def linked(value, repository, path):
+            if value == "Unknown":
+                return escape(value)
+            base = (
+                "https://gitlab.com/unstaticlabs/infra/gitops/-/commit"
+                if repository == "gitops"
+                else "https://github.com/unstaticlabs/odoo/tree"
+            )
+            return Markup('<a href="%s/%s">%s</a>') % (base, value, escape(value))
+        return Markup(
+            '<section data-usl-feedback-deployment-identity="server-owned" contenteditable="false">'
+            '<p><strong>Deployment identity</strong></p><ul>'
+            '<li>Environment: %s</li><li>Odoo release: %s</li><li>GitOps release: %s</li>'
+            '<li>Deployment generation: %s</li><li>Release manifest SHA-256: %s</li>'
+            '</ul></section>'
+        ) % (
+            escape(identity["environment"]),
+            linked(release, "odoo", "tree"),
+            linked(gitops, "gitops", "commit"),
+            escape(identity["generation"]),
+            escape(identity["manifest_sha256"]),
+        )
+
+    @classmethod
+    def _usl_feedback_strip_identity_blocks(cls, description):
+        """Remove untrusted look-alikes before appending the trusted server block."""
+        source = str(description or "")
+        # Identity blocks are generated as a closed section. Removing every matching
+        # section makes a reporter, provider, or maintainer-supplied marker inert.
+        pattern = (
+            r"<section\b[^>]*\b"
+            + IDENTITY_MARKER
+            + r"""(?:\s*=\s*(?:[^\s>]+|['"][^'"]*['"]))?[^>]*>.*?</section\s*>"""
+        )
+        return re.sub(
+            pattern,
+            "",
+            source,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+
+    def _usl_feedback_snapshot_identity_html(self, identity=None):
+        self.ensure_one()
+        # Keep the submission's deployment after the application is upgraded.
+        trusted = self._usl_feedback_identity_html(identity)
+        if IDENTITY_MARKER in (self.description or ""):
+            marker = re.search(
+                r"<section\b[^>]*\b" + IDENTITY_MARKER + r"[^>]*>.*?</section\s*>",
+                self.description or "", re.IGNORECASE | re.DOTALL,
+            )
+            if marker:
+                trusted = Markup(marker.group(0))
+        return trusted
+
+    def _usl_feedback_description_with_identity(self, description, identity=None):
+        self.ensure_one()
+        narrative = self._usl_feedback_strip_identity_blocks(description)
+        trusted = self._usl_feedback_snapshot_identity_html(identity)
+        return Markup("%s%s") % (Markup(narrative), trusted)
 
     def unlink(self):
         if not self.env.su and not self._usl_feedback_is_maintainer():

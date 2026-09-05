@@ -5,6 +5,7 @@ from ..exceptions import AgentPolicyAccessError
 from .agent_policy_tokens import (
     AGENT_COLLABORATION_CONTEXT_KEY,
     AGENT_COLLABORATION_TOKEN,
+    get_agent_operation_scope,
     has_agent_collaboration_token,
 )
 
@@ -12,10 +13,26 @@ from .agent_policy_tokens import (
 class MailThread(models.AbstractModel):
     _inherit = "mail.thread"
 
+    def _usl_agent_feedback_scope(self, agent):
+        operation_scope = get_agent_operation_scope(
+            self.env.context,
+            agent_user_id=agent.user_id.id,
+        )
+        return bool(
+            self.env.su
+            and operation_scope
+            and operation_scope.root_model == "usl.agent"
+            and operation_scope.root_method == "submit_mcp_feedback",
+        )
+
     def _usl_agent_collaboration(self, operation="read"):
         agent = self._usl_managed_agent()
         if not agent:
             return self
+        if self._usl_agent_feedback_scope(agent):
+            return self.with_context(
+                **{AGENT_COLLABORATION_CONTEXT_KEY: AGENT_COLLABORATION_TOKEN},
+            )
         if not agent._allows_model_operation(self._name, operation):
             raise AgentPolicyAccessError(
                 self.env._(
@@ -34,7 +51,11 @@ class MailThread(models.AbstractModel):
     def message_post(self, *args, **kwargs):
         records = self._usl_agent_collaboration()
         agent = self._usl_managed_agent()
-        if agent and agent._model_is_read_only(self._name):
+        if (
+            agent
+            and not self._usl_agent_feedback_scope(agent)
+            and agent._model_is_read_only(self._name)
+        ):
             message_type = kwargs.get("message_type", "notification")
             subtype_xmlid = kwargs.get("subtype_xmlid")
             subtype_id = kwargs.get("subtype_id")
@@ -121,6 +142,49 @@ class MailActivityMixin(models.AbstractModel):
                 **{AGENT_COLLABORATION_CONTEXT_KEY: AGENT_COLLABORATION_TOKEN},
             )
         return super(MailActivityMixin, records).activity_schedule(*args, **kwargs)
+
+
+class MailActivity(models.Model):
+    _inherit = "mail.activity"
+
+    def _usl_agent_complete_activity(self):
+        """Authorize completion against the activity's business record."""
+        agent = self._usl_managed_agent()
+        if not agent:
+            return self
+        for model_name, activities in self.grouped("res_model").items():
+            if not model_name or model_name not in self.env:
+                raise AgentPolicyAccessError(
+                    self.env._("This activity has no accessible business record."),
+                    "agent_read_only_action_denied",
+                )
+            if not agent._allows_model_operation(model_name, "write"):
+                raise AgentPolicyAccessError(
+                    self.env._(
+                        "This Agent has no approved application access for %(model)s.write.",
+                        model=model_name,
+                    ),
+                    "agent_read_only_action_denied",
+                )
+            records = self.env[model_name].browse(activities.mapped("res_id")).exists()
+            if len(records) != len(set(activities.mapped("res_id"))):
+                raise AccessError(self.env._("An activity business record is unavailable."))
+            records.check_access("write")
+        return self.with_context(
+            **{AGENT_COLLABORATION_CONTEXT_KEY: AGENT_COLLABORATION_TOKEN},
+        )
+
+    def action_feedback(self, *args, **kwargs):
+        activities = self._usl_agent_complete_activity()
+        return super(MailActivity, activities).action_feedback(*args, **kwargs)
+
+    def action_feedback_schedule_next(self, *args, **kwargs):
+        activities = self._usl_agent_complete_activity()
+        return super(MailActivity, activities).action_feedback_schedule_next(*args, **kwargs)
+
+    def action_done_schedule_next(self, *args, **kwargs):
+        activities = self._usl_agent_complete_activity()
+        return super(MailActivity, activities).action_done_schedule_next(*args, **kwargs)
 
 
 class UslDocument(models.Model):

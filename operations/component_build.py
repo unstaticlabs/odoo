@@ -70,10 +70,18 @@ COMPONENTS = {
             (
                 "docker/backup.Dockerfile",
                 "docker/backup.Dockerfile.dockerignore",
+                "compose.resources.production.json",
+                "compose.resources.staging.json",
+                "deploy/production.cron-policy.json",
                 "operations/**",
                 "operations/contracts/**",
                 "scripts/cohort-runtime",
                 "scripts/usl-stack",
+                "scripts/odoo/production_quarantine.py",
+                "scripts/odoo/production_activate.py",
+                "scripts/odoo/production_side_effect_boundary.py",
+                "scripts/sign-services-smoke.py",
+                "scripts/generate-receipt-fetcher-certs",
             ),
         ),
         Component(

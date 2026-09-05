@@ -425,6 +425,8 @@ class CiiExportFacturXFR(TestCiiFacturXCommon, TestUblCiiFRCommon):
         self._assert_invoice_ubl_file(invoice, 'test_invoice_cash_rounding_biggest_tax')
 
     def test_invoice_deferred_dates(self):
+        if not {'deferred_start_date', 'deferred_end_date'} <= self.env['account.move.line']._fields.keys():
+            self.skipTest('Line-level deferral fields are not installed in this Community registry')
         invoice = self._create_invoice(
             partner_id=self.partner_fr,
             partner_bank_id=self.recipient_bank,

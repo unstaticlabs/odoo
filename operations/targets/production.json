@@ -59,6 +59,9 @@
     "receipt_control": {"name": "usl-odoo-production-main_receipt-control", "class": "transient", "tier": "local"}
   },
   "paths": {
+    "mcp_secrets": {"path": "/run/usl-secrets/odoo-mcp", "class": "durable", "required": true, "tier": "local"},
+    "paperless_personal_ai_keys": {"path": "/opt/usl-odoo/secrets/paperless-personal-ai-keys.json", "class": "durable", "required": true, "tier": "local"},
+    "renderer_secrets": {"path": "/run/usl-secrets/document-renderer", "class": "durable", "required": true, "tier": "local"},
     "sign_secrets": {"path": "/opt/usl-odoo/secrets/sign", "class": "durable", "required": true, "tier": "local"},
     "sign_evidence": {"path": "/srv/usl/sign/evidence", "class": "durable", "required": false, "tier": "local"}
   },
@@ -71,6 +74,12 @@
     "odoo": "https://odoo.unstaticlabs.com",
     "paperless": "https://papers.unstaticlabs.com",
     "mcp": "https://odoo-mcp.unstaticlabs.com"
+  },
+  "admission_endpoints": {
+    "odoo": "http://127.0.0.1:18069",
+    "odoo_websocket": "http://127.0.0.1:18072",
+    "paperless": "http://127.0.0.1:18010",
+    "mcp": "http://127.0.0.1:18000"
   },
   "ingress": {
     "proxy_mode": true,
