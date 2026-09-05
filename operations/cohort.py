@@ -711,6 +711,26 @@ def _one_tag(tags: set[str], pattern: re.Pattern[str], label: str) -> str:
     return matches[0]
 
 
+def _staging_retention(durable: list[dict], cache: list[dict], now: datetime) -> dict[str, Any]:
+    cutoff = now - timedelta(days=1)
+    result = {"schema": "usl-retention-plan/v1", "policy": {"maximum_age_hours": 24}, "status": "planned"}
+    for classification, inventory in (("durable", durable), ("cache", cache)):
+        retained, expired = [], []
+        for snapshot in inventory:
+            tags = set(snapshot.get("tags", []))
+            if not {"usl-cohort", classification, "target-staging"} <= tags:
+                continue
+            if {tag for tag in tags if tag.startswith("target-")} != {"target-staging"}:
+                raise CohortError("staging snapshot has ambiguous target tags")
+            identity = str(snapshot.get("id", ""))
+            if not SNAPSHOT.fullmatch(identity):
+                raise CohortError("staging snapshot identity is invalid")
+            (expired if _snapshot_time(snapshot) <= cutoff else retained).append(identity)
+        result[f"retain_{classification}"] = sorted(retained)
+        result[f"delete_{classification}"] = sorted(expired)
+    return result
+
+
 def plan_retention(now: datetime | None = None) -> dict[str, Any]:
     """Plan paired durable/cache retention without deleting unqualified evidence."""
     now = (now or datetime.now(UTC)).astimezone(RETENTION_TIMEZONE)
@@ -721,6 +741,11 @@ def plan_retention(now: datetime | None = None) -> dict[str, Any]:
     )
     durable = _inventory(durable_environment)
     cache = _inventory(cache_environment)
+    target = os.environ.get("USL_TARGET", "production")
+    if target == "staging":
+        return _staging_retention(durable, cache, now)
+    if target != "production":
+        raise CohortError("retention requires a production or staging target")
     scoped_durable = [
         item for item in durable
         if {"usl-cohort", "durable", "target-production"} <= set(item.get("tags", []))

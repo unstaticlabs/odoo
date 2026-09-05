@@ -27,8 +27,12 @@ containers mount these persistent paths; snapshot qualification and checkpoint
 receipts remain required. These backups survive container replacement, but not
 loss of the VPS storage. Production backups and production-sourced recovery
 proofs continue to use R2. Existing staging snapshots in R2 are not migrated or
-deleted by this change. The production retention policy is not applied to these
-local staging repositories; their retention remains a separate operational task.
+deleted by this change. Staging snapshots expire after 24 hours in both local
+repositories. `scripts/usl-stack --target staging backup prune --json` applies
+this policy under the same operation lock used by backup and restore. GitOps
+calls it after a successful staging upgrade and reopening, like production's
+deployment retention stage. There is no separate timer: on idle days snapshots
+remain until the next deployment cleanup. Production retention remains unchanged.
 
 ## Backup
 

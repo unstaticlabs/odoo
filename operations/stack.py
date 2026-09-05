@@ -1255,6 +1255,7 @@ def _cohort_command(
         f"RESTIC_REPOSITORY={target.value['backup']['durable_repository']}",
         "--env",
         f"USL_BACKUP_CACHE_REPOSITORY={target.value['backup']['cache_repository']}",
+        "--env", f"USL_TARGET={target.name}",
         *_local_restic_mounts(target),
         "--volume",
         f"{target.value['state_directory']}:/cohort",
@@ -2645,7 +2646,16 @@ def backup_command(arguments: argparse.Namespace) -> int:
     release, release_sha, release_raw = _release(target, runner, arguments.release)
     _secret_file(target, runner)
     image = release["components"]["backup-tool"]["digest_reference"]
-    if arguments.action == "list":
+    if arguments.action == "prune":
+        if target.name != "staging" or not all(
+            repository.startswith("/var/lib/usl-odoo/restic/staging/")
+            for repository in target.value["backup"].values()
+        ):
+            raise RuntimeError("backup prune requires local staging repositories")
+        run_id = f"retention-{datetime.now(UTC):%Y%m%dt%H%M%S}"
+        with runtime_lock(target, runner, "retention", run_id):
+            result = _run_cohort(target, runner, image, "retention-apply", [], volumes=runtime["volumes"])
+    elif arguments.action == "list":
         result = _run_cohort(target, runner, image, "list", [], volumes=runtime["volumes"])
     elif arguments.action == "select":
         if target.name != "production":
@@ -9779,7 +9789,7 @@ def build_parser() -> argparse.ArgumentParser:
     storage.add_argument("--json", action="store_true")
     storage.set_defaults(handler=storage_command)
     backup = commands.add_parser("backup")
-    backup.add_argument("action", choices=("create", "list", "select", "verify"))
+    backup.add_argument("action", choices=("create", "list", "select", "verify", "prune"))
     backup.add_argument("--target", dest="command_target")
     backup.add_argument("--release", type=Path)
     backup.add_argument("--run-id")

@@ -1381,6 +1381,50 @@ class CohortContractTests(unittest.TestCase):
         ), self.assertRaisesRegex(cohort.CohortError, "no unique cache"):
             cohort.plan_retention(now)
 
+    def test_staging_retention_expires_both_repositories_after_24_hours(self) -> None:
+        now = datetime(2026, 9, 5, 12, tzinfo=UTC)
+        def snapshot(number, kind, age, target="staging"):
+            return {"id": f"{number:064x}", "time": (now - age).isoformat(),
+                    "tags": ["usl-cohort", kind, f"target-{target}"]}
+        durable = [snapshot(1, "durable", timedelta(hours=23)),
+                   snapshot(2, "durable", timedelta(hours=24)),
+                   snapshot(3, "durable", timedelta(days=3), "production")]
+        cache = [snapshot(4, "cache", timedelta(hours=23)),
+                 snapshot(5, "cache", timedelta(days=2)),
+                 snapshot(6, "cache", timedelta(days=3), "production")]
+        with mock.patch.dict(cohort.os.environ, {"USL_TARGET": "staging"}), mock.patch.object(
+            cohort, "restic_environment", return_value={},
+        ), mock.patch.object(cohort, "_inventory", side_effect=[durable, cache]):
+            plan = cohort.plan_retention(now)
+        self.assertEqual(plan["policy"], {"maximum_age_hours": 24})
+        self.assertEqual(plan["retain_durable"], [f"{1:064x}"])
+        self.assertEqual(plan["delete_durable"], [f"{2:064x}"])
+        self.assertEqual(plan["retain_cache"], [f"{4:064x}"])
+        self.assertEqual(plan["delete_cache"], [f"{5:064x}"])
+
+    def test_staging_retention_rejects_ambiguous_targets(self) -> None:
+        snapshot = {"id": "a" * 64, "time": datetime.now(UTC).isoformat(),
+                    "tags": ["usl-cohort", "durable", "target-staging", "target-production"]}
+        with self.assertRaisesRegex(cohort.CohortError, "ambiguous target"):
+            cohort._staging_retention([snapshot], [], datetime.now(UTC))
+
+    def test_staging_prune_acquires_the_operation_lock(self) -> None:
+        target = load_target("staging", TARGETS)
+        runner = mock.Mock()
+        arguments = build_parser().parse_args(["--target", "staging", "backup", "prune", "--json"])
+        release = {"components": {"backup-tool": {"digest_reference": "backup-image"}}}
+        with mock.patch.object(type(target), "runner", return_value=runner), mock.patch("operations.stack.load_target", return_value=target), mock.patch(
+            "operations.stack.inspect_runtime", return_value={"volumes": {}},
+        ), mock.patch("operations.stack._release", return_value=(release, "sha", "raw")), mock.patch(
+            "operations.stack._secret_file",
+        ), mock.patch("operations.stack.runtime_lock") as lock, mock.patch(
+            "operations.stack._run_cohort", return_value={"status": "applied"},
+        ) as run, mock.patch("builtins.print"):
+            self.assertEqual(backup_command(arguments), 0)
+        lock.assert_called_once()
+        self.assertEqual(lock.call_args.args[2], "retention")
+        run.assert_called_once_with(target, runner, "backup-image", "retention-apply", [], volumes={})
+
     def test_previous_generation_identity_rejects_paths_not_derived_from_state(self) -> None:
         target = mock.Mock(value={
             "state_directory": "/var/lib/usl-odoo/runtime/production",
