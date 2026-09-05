@@ -43,6 +43,10 @@ project refreshes the menu after the change is saved. Saving a project name,
 archive status, sequence, template status, company or visibility change also
 refreshes the menu, so an existing favorite cannot keep a stale label or remain
 visible after it leaves the user's scope.
+Archive, unarchive and template-conversion actions refresh the menu too. These
+refreshes run in order, so a delayed response cannot overwrite a newer favorite
+state. If a refresh fails, a warning explains how to reload the page; the next
+refresh can still succeed without undoing the saved project change.
 
 The menu includes at most 12 favorites, ordered by project sequence, name and
 identifier. This keeps the tablet and mobile navigation payload bounded for
@@ -55,6 +59,13 @@ Favorite entries are generated through the current user's ordinary
 and project-template filtering therefore apply before a name or destination is
 sent to the browser. The implementation does not use `sudo` and does not add a
 new access path.
+
+The action-risk inventory classifies `ir.ui.menu.load_web_menus` as read-only.
+Its native menu lookup and authorized favorite-project search read records and
+construct the response; they do not save menu or project records and have no
+external side effects. No reversal through `ir.ui.menu.write` is needed. The
+generated policy records are refreshed against the full product registry; the
+classification does not grant access to projects the user cannot otherwise read.
 
 On narrow desktop and tablet screens, favorite and native sections move into
 Odoo's **More** menu as space runs out; mobile uses the application menu. When

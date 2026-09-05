@@ -44665,6 +44665,7 @@
         "rpc:ir.ui.menu.hierarchy_read",
         "rpc:ir.ui.menu.load",
         "rpc:ir.ui.menu.load_menus_root",
+        "rpc:ir.ui.menu.load_web_menus",
         "rpc:ir.ui.menu.name_search",
         "rpc:ir.ui.menu.read",
         "rpc:ir.ui.menu.read_progress_bar",
@@ -54873,6 +54874,7 @@
         "rpc:ir.ui.menu.hierarchy_read": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
         "rpc:ir.ui.menu.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
         "rpc:ir.ui.menu.load_menus_root": "b7f55783c618d0ee340744916bd0f2f5d6d90d9808da6f5615573f53567ab0fc",
+        "rpc:ir.ui.menu.load_web_menus": "369d82d114f4ff3e07dd9b71434c0a2b5062ef63eca412dd0800ed34093e11c0",
         "rpc:ir.ui.menu.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
         "rpc:ir.ui.menu.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
         "rpc:ir.ui.menu.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
@@ -115590,7 +115592,6 @@
         "rpc:ir.ui.menu.formatted_read_grouping_sets",
         "rpc:ir.ui.menu.get_views",
         "rpc:ir.ui.menu.load_menus",
-        "rpc:ir.ui.menu.load_web_menus",
         "rpc:ir.ui.menu.name_create",
         "rpc:ir.ui.menu.onchange",
         "rpc:ir.ui.menu.update_field_translations",
@@ -123086,9 +123087,6 @@
           "reversal_action": "rpc:ir.ui.menu.write"
         },
         "rpc:ir.ui.menu.load_menus": {
-          "reversal_action": "rpc:ir.ui.menu.write"
-        },
-        "rpc:ir.ui.menu.load_web_menus": {
           "reversal_action": "rpc:ir.ui.menu.write"
         },
         "rpc:ir.ui.menu.name_create": {
@@ -131852,7 +131850,6 @@
         "rpc:ir.ui.menu.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:ir.ui.menu.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
         "rpc:ir.ui.menu.load_menus": "290fe96c3c094f39fb0fc83da72feea2126e5a0d8d791fcc4754b29d1b941d8a",
-        "rpc:ir.ui.menu.load_web_menus": "dc8ee0c71dc17678135f8da3fa4d7c36e5d61f9cea062be6761b928987d2e1a4",
         "rpc:ir.ui.menu.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
         "rpc:ir.ui.menu.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
         "rpc:ir.ui.menu.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
@@ -192569,6 +192566,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "316272035736eef93d7fdb28a6f134e783038164f6128d738138d0b12aa63d3d",
+  "qualified_policy_digest": "7aec2e3d286b5e5350e47b73dfaedfff0530ba4d553de825a3159b6c18694d10",
   "schema": "usl-action-risk-policy-v1"
 }

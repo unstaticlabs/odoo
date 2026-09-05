@@ -48,7 +48,9 @@ const { ResCompany, ResPartner, ResUsers } = webModels;
 defineModels({ MockPurchaseOrders, ResCompany, ResPartner, ResUsers });
 
 function mountSearchFromCurrentRoute(props) {
-    const { domain, groupBy, orderBy } = router.current;
+    // The test environment starts the router during mount. Parse the redirected
+    // location now rather than capturing the preceding test's router state.
+    const { domain, groupBy, orderBy } = router.urlToState(new URL(browser.location));
     return mountWithSearch(SearchBar, {
         ...props,
         urlState: { domain, groupBy, orderBy },
@@ -324,7 +326,7 @@ test("URL with single filter triggers RPC and filters record list", async () => 
     await mountView({
         type: "list",
         resModel: "mock.purchase.order",
-        urlState: { domain: router.current.domain },
+        urlState: { domain: router.urlToState(new URL(browser.location)).domain },
         arch: `<list> <field name="state"/> </list>`,
     });
 

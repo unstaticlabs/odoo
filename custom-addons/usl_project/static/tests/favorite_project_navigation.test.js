@@ -3,6 +3,7 @@ import { click } from "@odoo/hoot-dom";
 import { animationFrame } from "@odoo/hoot-mock";
 
 import { registry } from "@web/core/registry";
+import { Deferred } from "@web/core/utils/concurrency";
 import {
     clickSave,
     contains,
@@ -178,9 +179,10 @@ test("archiving a project refreshes a favorite that must leave the menu", async 
 });
 
 test("converting a project to a template refreshes a favorite that must leave the menu", async () => {
-    onRpc("project.project", "action_create_template_from_project", () =>
-        expect.step("action_create_template_from_project")
-    );
+    onRpc("project.project", "action_create_template_from_project", () => {
+        expect.step("action_create_template_from_project");
+        return false;
+    });
     await mountView({
         resModel: "project.project",
         type: "kanban",
@@ -223,4 +225,78 @@ test("the favorite client action opens the exact project", async () => {
         },
     ]);
     expect(result).toBe(next);
+});
+
+test("rapid archive and unarchive cannot restore an older favorite menu", async () => {
+    const firstResponse = new Deferred();
+    let active = true;
+    let menuActive = true;
+    let reads = 0;
+    mockService("menu", {
+        async reload() {
+            reads++;
+            const snapshot = active;
+            if (reads === 1) {
+                await firstResponse;
+            }
+            menuActive = snapshot;
+        },
+    });
+    onRpc("project.project", "action_archive", () => {
+        active = false;
+        return false;
+    });
+    onRpc("project.project", "action_unarchive", () => {
+        active = true;
+        return false;
+    });
+    await mountView({
+        resModel: "project.project",
+        type: "list",
+        arch: '<list><field name="name"/></list>',
+    });
+
+    await getService("orm").call("project.project", "action_archive", [[1]]);
+    await animationFrame();
+    await getService("orm").call("project.project", "action_unarchive", [[1]]);
+    await animationFrame();
+    expect(reads).toBe(1);
+    firstResponse.resolve();
+    await animationFrame();
+    expect(reads).toBe(2);
+    expect(menuActive).toBe(true);
+});
+
+test("a failed favorite refresh warns the user and does not block the next refresh", async () => {
+    let reads = 0;
+    mockService("menu", {
+        async reload() {
+            if (++reads === 1) {
+                throw new Error("Menu temporarily unavailable");
+            }
+            expect.step("recovered");
+        },
+    });
+    mockService("notification", {
+        add(message, options) {
+            expect(message).toBe(
+                "The Projects menu could not be refreshed. Reload the page to see your latest favorites."
+            );
+            expect(options.type).toBe("warning");
+            expect.step("warning");
+        },
+    });
+    onRpc("project.project", "action_archive", () => false);
+    onRpc("project.project", "action_unarchive", () => false);
+    await mountView({
+        resModel: "project.project",
+        type: "list",
+        arch: '<list><field name="name"/></list>',
+    });
+
+    await getService("orm").call("project.project", "action_archive", [[1]]);
+    await animationFrame();
+    await getService("orm").call("project.project", "action_unarchive", [[1]]);
+    await animationFrame();
+    expect.verifySteps(["warning", "recovered"]);
 });

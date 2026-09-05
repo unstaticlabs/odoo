@@ -1,5 +1,6 @@
 import { registry } from "@web/core/registry";
 import { rpcBus } from "@web/core/network/rpc";
+import { _t } from "@web/core/l10n/translation";
 import { useService } from "@web/core/utils/hooks";
 
 import { projectIsFavoriteField } from "@project/components/project_is_favorite/project_is_favorite_field";
@@ -27,8 +28,19 @@ const FAVORITE_MENU_MUTATION_METHODS = new Set([
 ]);
 
 registry.category("services").add("uslProjectFavoriteMenuRefresh", {
-    dependencies: ["menu"],
-    start(_env, { menu }) {
+    dependencies: ["menu", "notification"],
+    start(_env, { menu, notification }) {
+        let pending = Promise.resolve();
+        function refresh() {
+            // Serialize reads so an older response cannot replace newer menu state.
+            pending = pending.then(() => menu.reload()).catch(() => {
+                notification.add(
+                    _t("The Projects menu could not be refreshed. Reload the page to see your latest favorites."),
+                    { type: "warning" }
+                );
+            });
+            return pending;
+        }
         rpcBus.addEventListener("RPC:RESPONSE", ({ detail }) => {
             const { model, method } = detail.data.params;
             if (
@@ -36,16 +48,17 @@ registry.category("services").add("uslProjectFavoriteMenuRefresh", {
                 model === "project.project" &&
                 FAVORITE_MENU_MUTATION_METHODS.has(method)
             ) {
-                menu.reload();
+                refresh();
             }
         });
+        return { refresh };
     },
 });
 
 class UslProjectIsFavoriteField extends projectIsFavoriteField.component {
     setup() {
         super.setup();
-        this.menu = useService("menu");
+        this.favoriteMenu = useService("uslProjectFavoriteMenuRefresh");
     }
 
     async update() {
@@ -54,7 +67,7 @@ class UslProjectIsFavoriteField extends projectIsFavoriteField.component {
         }
         await super.update();
         if (this.props.autosave) {
-            await this.menu.reload();
+            await this.favoriteMenu.refresh();
         }
     }
 }
@@ -71,13 +84,13 @@ registry.category("fields").add(
 patch(ProjectProjectFormController.prototype, {
     setup() {
         super.setup(...arguments);
-        this.uslProjectMenu = useService("menu");
+        this.uslProjectMenu = useService("uslProjectFavoriteMenuRefresh");
     },
 
     async onRecordSaved(record, changes) {
         await super.onRecordSaved(...arguments);
         if (Object.keys(changes).some((fieldName) => FAVORITE_MENU_FIELDS.has(fieldName))) {
-            await this.uslProjectMenu.reload();
+            await this.uslProjectMenu.refresh();
         }
     },
 });
