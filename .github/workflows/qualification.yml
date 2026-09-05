@@ -284,7 +284,9 @@ jobs:
           fi
 
   publish:
-    if: github.event_name == 'push' && needs.result.result == 'success'
+    # Source policy is intentionally skipped on pushes. Do not inherit that
+    # skip through the qualification job; still require successful qualification.
+    if: github.event_name == 'push' && !cancelled() && needs.result.result == 'success'
     needs: result
     permissions:
       actions: read
