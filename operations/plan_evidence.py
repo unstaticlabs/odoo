@@ -13,12 +13,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from operations.control_manifest import ControlManifestError, release_digest
+from operations.control_manifest import ControlManifestError, classify
 from operations.module_release import validate_upgrade_plan
 from operations.release_manifest import ReleaseManifestError, validate as validate_release
 
 
-SCHEMA = "usl-staging-upgrade-plan-evidence/v1"
+SCHEMA = "usl-staging-upgrade-plan-evidence/v2"
 PROMOTION_SCHEMA = "usl-production-upgrade-plan-promotion/v1"
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 GENERATION = re.compile(r"g[a-zA-Z0-9._-]{1,31}\Z")
@@ -156,9 +156,12 @@ def sign(
     if health.get("status") != "passed" or smoke.get("status") != "passed":
         raise PlanEvidenceError("staging health and smoke must pass before attestation")
     try:
-        release_controls_sha256 = release_digest(smoke.get("controls"))
+        classify(smoke.get("controls"))
     except ControlManifestError as error:
         raise PlanEvidenceError("staging smoke controls are invalid") from error
+    release_definitions_sha256 = smoke.get("release_definitions_sha256")
+    if not isinstance(release_definitions_sha256, str) or not SHA256.fullmatch(release_definitions_sha256):
+        raise PlanEvidenceError("staging release definitions are missing or invalid")
     body = {
         "schema": SCHEMA,
         "plan": plan,
@@ -169,7 +172,7 @@ def sign(
             "candidate_release": plan["candidate_release"],
             "health_sha256": _digest(health),
             "smoke_sha256": _digest(smoke),
-            "release_controls_sha256": release_controls_sha256,
+            "release_definitions_sha256": release_definitions_sha256,
             "status": "passed",
         },
         "signed_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
@@ -186,7 +189,7 @@ def verify(value: object, public_key: Path) -> dict[str, Any]:
     staging = value.get("staging")
     if not isinstance(staging, dict) or set(staging) != {
         "target", "snapshot", "generation", "candidate_release", "health_sha256",
-        "smoke_sha256", "release_controls_sha256", "status"
+        "smoke_sha256", "release_definitions_sha256", "status"
     }:
         raise PlanEvidenceError("staging qualification evidence fields differ")
     if staging.get("target") != "staging" or staging.get("status") != "passed":
@@ -197,7 +200,7 @@ def verify(value: object, public_key: Path) -> dict[str, Any]:
         "snapshot",
         "health_sha256",
         "smoke_sha256",
-        "release_controls_sha256",
+        "release_definitions_sha256",
     ):
         item = staging.get(field)
         if not isinstance(item, str) or not SHA256.fullmatch(item):

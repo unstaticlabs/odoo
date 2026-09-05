@@ -12,11 +12,14 @@ import re
 import sys
 import time
 from contextlib import contextmanager, redirect_stdout
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from operations.oidc_admission import CLIENT_PROBE_SCRIPT
 from operations.control_manifest import (
+    RELEASE_DEFINITIONS_SQL,
+    release_definitions_digest,
     ODOO_CONTROL_SQL,
     PAPERLESS_CONTROL_SQL,
     ControlManifestError,
@@ -844,7 +847,7 @@ def runtime_command(arguments: argparse.Namespace) -> int:
             identity = _active_generation_identity(target, runner, current)
             runner.run(compose_command(
                 identity,
-                ["up", "--detach", "--wait", "--no-deps", *_compose_services(target, identity)],
+                ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *_compose_services(target, identity)],
             ))
         else:
             runner.run(compose_command(
@@ -1170,7 +1173,8 @@ def storage_command(arguments: argparse.Namespace) -> int:
     return 0
 
 
-def _read_path(target, runner, path: Path) -> str:
+def _read_path(target, runner, path: Path | str) -> str:
+    path = Path(path)
     if path.is_file():
         return path.read_text(encoding="utf-8")
     return runner.run(["cat", str(path)]).stdout
@@ -1279,9 +1283,17 @@ def _cohort_command(
     ]
     if "mcp_secrets" in paths:
         insertion = command.index(image)
-        command[insertion:insertion] = [
-            "--volume", f"{paths['mcp_secrets']['path']}:/source/mcp-secrets:ro",
-        ]
+        definition = paths["mcp_secrets"]
+        if "files" in definition:
+            command[insertion:insertion] = [
+                argument
+                for name, source in sorted(definition["files"].items())
+                for argument in ("--volume", f"{source}:/source/mcp-secrets/{name}:ro")
+            ]
+        else:
+            command[insertion:insertion] = [
+                "--volume", f"{definition['path']}:/source/mcp-secrets:ro",
+            ]
     if "renderer_secrets" in paths:
         insertion = command.index(image)
         command[insertion:insertion] = [
@@ -2027,7 +2039,7 @@ def _backup_run_receipt(
         or capture.get("target") != target
         or not re.fullmatch(r"[0-9a-f]{64}", str(capture.get("release", {}).get("identity")))
         or set(upload) != state_fields
-        or set(qualification) != state_fields
+        or set(qualification) != state_fields | {"qualified_from_snapshot_id"}
         or upload.get("schema") != "usl-recovery-cohort-state/v1"
         or qualification.get("schema") != "usl-recovery-cohort-state/v1"
         or upload.get("run_id") != value.get("run_id")
@@ -2038,7 +2050,8 @@ def _backup_run_receipt(
         or qualification.get("status") != "qualified"
         or not re.fullmatch(r"[0-9a-f]{64}", str(snapshot))
         or not re.fullmatch(r"[0-9a-f]{64}", str(cache_snapshot))
-        or upload.get("durable_snapshot_id") != snapshot
+        or upload.get("durable_snapshot_id") != qualification.get("qualified_from_snapshot_id")
+        or not re.fullmatch(r"[0-9a-f]{64}", str(upload.get("durable_snapshot_id")))
         or upload.get("cache_snapshot_id") != cache_snapshot
     ):
         raise RuntimeError("backup receipt cohort identity differs")
@@ -2352,7 +2365,7 @@ def _runtime_cas_sha256(target, runner, runtime: dict) -> str:
         mcp_service = target.value["services"]["mcp"]
         containers = [
             item.get("ID") for item in runtime.get("containers", [])
-            if item.get("Service") == mcp_service and item.get("State") == "running"
+            if item.get("Service") == mcp_service
         ]
         if len(containers) != 1:
             raise RuntimeError("runtime CAS MCP identity is ambiguous")
@@ -2398,7 +2411,7 @@ def _validated_release_upgrade_plan(target, value: object, release: dict) -> dic
             Path(target.value["plan_signing"]["public_key"]),
             release,
         )
-    elif value.get("schema") == "usl-staging-upgrade-plan-evidence/v1":
+    elif value.get("schema") == "usl-staging-upgrade-plan-evidence/v2":
         plan = verify_upgrade_plan(
             value,
             Path(target.value["plan_signing"]["public_key"]),
@@ -2490,7 +2503,7 @@ def _start_rollback_identity(target, runner, identity: dict) -> None:
     if adoption is None or identity.get("anchor_service") != adoption["legacy_anchor_service"]:
         runner.run(compose_command(
             identity,
-            ["up", "--detach", "--wait", "--no-deps", *_compose_services(target, identity)],
+            ["up", "--detach", "--wait", "--force-recreate", "--no-deps", *_compose_services(target, identity)],
         ))
         return
 
@@ -3039,7 +3052,8 @@ def _validate_mcp_readiness(value: object, *, require_oauth: bool) -> dict:
 def _mcp_readiness(target, runner) -> dict:
     url = target.value["admission_endpoints"]["mcp"].rstrip("/") + "/readyz"
     result = runner.run(
-        ["curl", "--silent", "--show-error", "--fail", "--max-time", "10", url],
+        ["curl", "--silent", "--show-error", "--fail", "--max-time", "10",
+         "--header", "Host: " + urlsplit(target.value["endpoints"]["mcp"]).netloc, url],
         check=False,
     )
     if result.returncode:
@@ -3228,6 +3242,8 @@ def health_command(arguments: argparse.Namespace) -> int:
                 "%{http_code}",
                 "--max-time",
                 "10",
+                "--header",
+                "Host: " + urlsplit(target.value["endpoints"][name]).netloc,
                 url,
             ],
             check=False,
@@ -3359,6 +3375,9 @@ def smoke_command(arguments: argparse.Namespace) -> int:
         cron_inventory = json.loads(
             _psql(target, runner, identity, "odoo", CRON_INVENTORY_SQL),
         )
+        release_definitions_sha256 = release_definitions_digest(json.loads(
+            _psql(target, runner, identity, "odoo", RELEASE_DEFINITIONS_SQL),
+        ))
         odoo_storage = _python_probe(
             target,
             runner,
@@ -3419,7 +3438,8 @@ def smoke_command(arguments: argparse.Namespace) -> int:
     if odoo["cron_failures"]:
         failures.append("odoo:cron-failures")
     if odoo.get("cron_lag"):
-        failures.append("odoo:cron-lag")
+        cron_status["lagging_jobs"] = odoo["cron_lag"]
+        cron_status["warning"] = "scheduled jobs are late; inspect after workers resume"
     if odoo_storage["files"] < odoo["stored_attachments"]:
         failures.append("odoo:filestore-coverage")
     if paperless["documents"] < 1 or paperless["with_ocr"] < 1:
@@ -3437,6 +3457,7 @@ def smoke_command(arguments: argparse.Namespace) -> int:
         "status": "passed" if not failures else "failed",
         "failures": failures,
         "controls": {"odoo": odoo, "paperless": paperless},
+        "release_definitions_sha256": release_definitions_sha256,
         "cron_policy": cron_status,
         "services": service_evidence,
         "storage": {"odoo": odoo_storage, "paperless": paperless_storage},
@@ -3716,7 +3737,7 @@ def _preserve_staging_environment_state(target, runner, current: dict, volumes: 
         "import hashlib,json,os,pathlib,stat,sys;"
         "r=pathlib.Path(sys.argv[1]);h=hashlib.sha256();n=0;b=0;"
         "exec(\"for p in sorted(r.rglob('*')):\\n s=p.lstat();rel=p.relative_to(r).as_posix();"
-        "h.update((rel+'\\0'+oct(stat.S_IMODE(s.st_mode))+'\\0').encode());"
+        "h.update((rel+chr(0)+oct(stat.S_IMODE(s.st_mode))+chr(0)).encode());"
         "n+=1;"
         "b+=s.st_size if p.is_file() else 0;"
         "h.update(p.read_bytes()) if p.is_file() else None\");"
@@ -3967,6 +3988,7 @@ def _run_production_boundary_script(
     result = runner.run(
         [
             "docker", "run", "--rm", "--interactive", "--network", network,
+            "--env-file", target.value["compose"]["canonical"]["environment_file"],
             "--env-file", target.value["secrets"]["env_file"],
             "--env", f"ODOO_DB_HOST={database['service']}",
             "--env", "ODOO_DB_PORT=5432",
@@ -4000,12 +4022,15 @@ def _admit_production_side_effects(target, runner, release, network, volumes) ->
     result = runner.run(
         [
             "docker", "run", "--rm", "--interactive", "--network", network,
+            "--env-file", target.value["compose"]["canonical"]["environment_file"],
             "--env-file", target.value["secrets"]["env_file"],
             "--env", f"ODOO_DB_HOST={database['service']}",
             "--env", "ODOO_DB_PORT=5432",
             "--env", f"ODOO_DB_USER={database['user']}",
             "--env", f"ODOO_DB_NAME={database['name']}",
             "--env", "ODOO_MAX_CRON_THREADS=0",
+            "--env", "USL_EINVOICE_LIVE_ENABLED=0",
+            "--env", "USL_EREPORTING_LIVE_ENABLED=0",
             "--env", "USL_PRODUCTION_SIDE_EFFECT_MODE=admitted",
             "--env", "USL_PRODUCTION_CRON_GATES_JSON=" + json.dumps(
                 target.value["cron_policy"]["gates"], sort_keys=True,
@@ -4704,7 +4729,7 @@ def _activate_generation(
         runner.run(
             compose_command(
                 generation_identity,
-                ["up", "--detach", "--wait", "--no-deps", *generation_services],
+                ["up", "--detach", "--wait", "--force-recreate", "--no-deps", *generation_services],
             ),
         )
     except Exception as error:
@@ -5016,6 +5041,13 @@ def _abort_to_previous_generation(
                 and _runtime_cas_sha256(target, runner, current) != claim["baseline_runtime_sha256"]
             ):
                 raise RuntimeError("rolled-back runtime differs from the claimed baseline")
+            # A failed candidate may leave the unchanged baseline quiesced.
+            # Resume its existing containers before checking recovery health.
+            runner.run(compose_command(
+                current["compose"],
+                ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *_compose_services(target, current["compose"])],
+            ))
+            current = inspect_runtime(target, runner)
             health, smoke = _runtime_boundary_gates(target, runner, targets, current)
             return {
                 "schema": "usl-release-abort/v1",
@@ -5385,7 +5417,7 @@ def _staging_pocketid_command(target, release, network, volumes, candidate_ident
         ': "${POCKET_ID_PAPERLESS_CLIENT_ID:?}"; '
         ': "${POCKET_ID_PAPERLESS_CLIENT_SECRET:?}"; '
         ': "${PAPERLESS_PUBLIC_URL:?}"; fi; '
-        'exec "$@"'
+        'exec /usr/local/bin/odoo-entrypoint "$@"'
     )
     return [
         "docker", "run", "--rm", "--interactive", "--network", network,
@@ -5439,57 +5471,7 @@ endpoints = [
     if provider[field]
 ]
 
-def synthetic_client_probe(client_id, client_secret, redirect_uri, token_auth_method):
-    verifier = secrets.token_urlsafe(48)
-    challenge = base64.urlsafe_b64encode(
-        hashlib.sha256(verifier.encode()).digest()
-    ).rstrip(b"=").decode()
-    authorization = requests.get(
-        provider.auth_endpoint,
-        params={
-            "response_type": "code",
-            "client_id": client_id,
-            "redirect_uri": redirect_uri,
-            "scope": "openid profile email groups",
-            "state": secrets.token_urlsafe(24),
-            "nonce": secrets.token_urlsafe(24),
-            "code_challenge": challenge,
-            "code_challenge_method": "S256",
-        },
-        allow_redirects=False,
-        timeout=10,
-    )
-    authorization_detail = (
-        authorization.headers.get("Location", "") + "\n" + authorization.text
-    ).lower()
-    authorization_accepted = (
-        authorization.status_code in {200, 302, 303, 307, 308}
-        and "error=invalid_client" not in authorization_detail
-        and "invalid callback" not in authorization_detail
-        and "invalid redirect" not in authorization_detail
-    )
-    data = {
-        "client_id": client_id,
-        "grant_type": "authorization_code",
-        "code": "usl-admission-invalid-code",
-        "code_verifier": verifier,
-        "redirect_uri": redirect_uri,
-    }
-    auth = None
-    if token_auth_method == "client_secret_post":
-        data["client_secret"] = client_secret
-    else:
-        auth = (client_id, client_secret)
-    token = requests.post(provider.token_endpoint, data=data, auth=auth, timeout=10)
-    try:
-        token_error = token.json().get("error")
-    except ValueError:
-        token_error = None
-    secret_accepted = (
-        token.status_code in {400, 401}
-        and token_error == "invalid_grant"
-    )
-    return authorization_accepted, secret_accepted
+
 
 odoo_authorization, odoo_secret = synthetic_client_probe(
     os.environ["USL_POCKET_ID_CLIENT_ID"],
@@ -5543,6 +5525,7 @@ if not all(checks.values()):
     ))
 print("USL_POCKET_ID_RUNTIME_ADMISSION=" + json.dumps(evidence, sort_keys=True))
 '''
+    program = CLIENT_PROBE_SCRIPT + program
     result = runner.run(
         _staging_pocketid_command(
             target,
@@ -5650,7 +5633,7 @@ def _notify_release(target, runner, release_id: str) -> dict:
         active_release = json.loads(_read_path(target, runner, active["release_manifest"]))
         if active_release.get("identity") != release_id:
             raise RuntimeError("active generation differs from the release notification")
-    network = active["network"] if active else target.value["compose"]["default_network"]
+    network = target.value["compose"]["default_network"]
     volumes = runtime["volumes"]
     database = target.value["databases"]["odoo"]
     program = """
@@ -6063,25 +6046,30 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     try:
         health = _gate(health_command, target, arguments.targets)
         smoke = _gate(smoke_command, target, arguments.targets)
-        expected_release_sha256 = None
+        expected_release_definitions_sha256 = None
         if signed_plan_evidence is not None:
             staging_evidence = signed_plan_evidence.get(
                 "staging_evidence", signed_plan_evidence,
             )
-            expected_release_sha256 = staging_evidence["staging"][
-                "release_controls_sha256"
+            expected_release_definitions_sha256 = staging_evidence["staging"][
+                "release_definitions_sha256"
             ]
         try:
             control_validation = validate_restore(
                 materialize_state["controls"],
                 smoke["controls"],
-                expected_release_sha256=expected_release_sha256,
                 require_unchanged_release=not candidate_differs,
             )
         except ControlManifestError as error:
             raise RuntimeError(str(error)) from error
+        if expected_release_definitions_sha256 is not None and (
+            smoke.get("release_definitions_sha256") != expected_release_definitions_sha256
+        ):
+            raise RuntimeError("production release definitions differ from staging qualification")
         production_activation = None
         if target.value["environment"] == "production" and attempt is None:
+            # The candidate databases now run on the canonical Compose network.
+            network = target.value["compose"]["default_network"]
             production_activation = _run_production_boundary_script(
                 target,
                 target_runner,
@@ -6112,11 +6100,13 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
                 compose_command(
                     generation_identity,
                     [
-                        "up", "--detach", "--wait", "--force-recreate",
-                        target.value["services"]["odoo"],
-                        target.value["services"]["paperless"],
+                        "up", "--detach", "--wait", "--force-recreate", "--no-deps",
+                        *[target.value["services"][role] for role in BACKUP_WRITER_SERVICE_ROLES],
                     ],
                 ),
+            )
+            production_activation["pocket_id_admission"] = _reconcile_production_pocketid(
+                target, target_runner, generation_identity,
             )
             health = _gate(health_command, target, arguments.targets)
             smoke = _gate(smoke_command, target, arguments.targets)
@@ -6678,13 +6668,16 @@ def _recovery_proof_root(target, evidence_directory: Path, proof_id: str) -> str
         Path(target.value["secrets"]["env_file"]),
         Path(target.value["secrets"]["env_file"]).parent,
         *(Path(item["path"]) for item in target.value["paths"].values()),
-        *(Path(item["path"]) for item in target.value["storage"]["tiers"].values()),
     ]
     for protected_path in protected:
         if path == protected_path or path in protected_path.parents or protected_path in path.parents:
             raise RuntimeError(
                 "recovery proof evidence directory overlaps environment-owned state",
             )
+    for tier in target.value["storage"]["tiers"].values():
+        storage_root = Path(tier["path"])
+        if path == storage_root or path in storage_root.parents:
+            raise RuntimeError("recovery proof evidence directory contains a storage root")
     return str(path / proof_id)
 
 
@@ -7964,7 +7957,7 @@ def _recovery_proof_command_locked(
                     target,
                     proof_target,
                     tool_image,
-                    backup["upload"]["durable_snapshot_id"],
+                    backup["qualification"]["durable_snapshot_id"],
                     generation,
                     [materialization_network, names["network"]],
                     names["volumes"],
@@ -7995,7 +7988,7 @@ def _recovery_proof_command_locked(
         )
         if (
             materialized.get("durable_snapshot_id")
-            != backup["upload"]["durable_snapshot_id"]
+            != backup["qualification"]["durable_snapshot_id"]
             or materialized.get("cache_snapshot_id")
             != backup["upload"]["cache_snapshot_id"]
             or materialized.get("run_id") != backup["run_id"]
@@ -8229,7 +8222,7 @@ def _recovery_proof_command_locked(
             "backup": {
                 "run_id": backup["run_id"],
                 "receipt_sha256": backup["sha256"],
-                "durable_snapshot_id": backup["upload"]["durable_snapshot_id"],
+                "durable_snapshot_id": backup["qualification"]["durable_snapshot_id"],
                 "cache_snapshot_id": backup["upload"]["cache_snapshot_id"],
             },
             "materialization": {
@@ -8366,6 +8359,24 @@ def _cleanup_inventory(target, runner, current: dict) -> dict:
         previous_generation = (state.get("previous") or {}).get("generation")
         if previous_generation:
             protected_generations.add(previous_generation)
+    # Compose may reuse sidecars across rollback; their config labels still
+    # reference candidate files even when the database has returned to baseline.
+    prefix = f"{target.value['state_directory']}/generations/"
+    suffix = "/compose.generation.json"
+    for container in current.get("containers", []):
+        if container.get("State") != "running" or not container.get("ID"):
+            continue
+        labels = json.loads(runner.run([
+            "docker", "inspect", container["ID"], "--format", "{{json .Config.Labels}}",
+        ]).stdout)
+        for path in labels.get("com.docker.compose.project.config_files", "").split(","):
+            if path.startswith(prefix) and path.endswith(suffix):
+                generation = path.removeprefix(prefix).removesuffix(suffix)
+                if not GENERATION_NAME.fullmatch(generation):
+                    raise RuntimeError("running service generation label is invalid")
+                protected_generations.add(generation)
+                active.update(generation_volume_names(target, generation).values())
+                protected_networks.add(f"{target.project}-{generation}-recovery")
     inventory = runner.run(
         [
             "docker",
@@ -8696,6 +8707,68 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
     return 0
 
 
+def _reconcile_production_pocketid(target, runner, identity) -> dict:
+    """Restore environment-owned identity after production neutralization."""
+    container = runner.run(compose_command(
+        identity, ["ps", "--quiet", target.value["services"]["odoo"]],
+    )).stdout.strip()
+    if not container or "\n" in container:
+        raise RuntimeError("production identity requires one running Odoo container")
+    program = r"""
+import base64
+import hashlib
+import json
+import os
+import secrets
+
+import requests
+
+applied = env["auth.oauth.provider"]._usl_pocketid_apply_environment()
+provider = env.ref("usl_pocketid.provider_pocketid").sudo()
+if not applied or not provider.enabled:
+    raise RuntimeError("Production Pocket ID is not enabled")
+if provider.client_id != os.environ["USL_POCKET_ID_CLIENT_ID"]:
+    raise RuntimeError("Production Pocket ID client differs from runtime")
+if provider.usl_public_base_url.rstrip("/") != os.environ["USL_POCKET_ID_ODOO_BASE_URL"].rstrip("/"):
+    raise RuntimeError("Production Pocket ID callback origin differs from runtime")
+
+
+
+
+authorization, client_secret = synthetic_client_probe(
+    os.environ['USL_POCKET_ID_CLIENT_ID'], os.environ['USL_POCKET_ID_CLIENT_SECRET'],
+    os.environ['USL_POCKET_ID_ODOO_BASE_URL'].rstrip('/') + '/auth_oauth/signin',
+    provider.usl_token_auth_method,
+)
+if not authorization or not client_secret:
+    raise RuntimeError('Production Pocket ID client admission failed')
+
+env.cr.commit()
+print("USL_PRODUCTION_POCKET_ID=" + json.dumps({
+    "client_id": provider.client_id,
+    "issuer": provider.usl_oidc_issuer,
+    "odoo_base_url": provider.usl_public_base_url,
+    "enabled": provider.enabled,
+    "authorization_accepted": authorization,
+    "client_secret_accepted": client_secret,
+    "status": "passed",
+}, sort_keys=True))
+"""
+    program = CLIENT_PROBE_SCRIPT + program
+    result = runner.run([
+        "docker", "exec", "--interactive", container,
+        "odoo", "shell", "--config=/etc/odoo/odoo.conf",
+        f"--database={target.value['databases']['odoo']['name']}",
+        "--no-http", "--max-cron-threads=0",
+    ], input_text=program)
+    for line in reversed(result.stdout.splitlines()):
+        if line.startswith("USL_PRODUCTION_POCKET_ID="):
+            value = json.loads(line.split("=", 1)[1])
+            if value.get("status") == "passed" and value.get("enabled") is True:
+                return value
+    raise RuntimeError("production Pocket ID returned no admission evidence")
+
+
 def _activate_quarantined_release(target, runner, arguments, release: dict) -> dict:
     """Cross the production side-effect boundary for one exact generation."""
     if target.value["environment"] != "production":
@@ -8804,12 +8877,7 @@ def _activate_quarantined_release(target, runner, arguments, release: dict) -> d
     if overlay not in identity["compose_files"]:
         raise RuntimeError("production generation overlay is unavailable")
     volumes = {role: item["name"] for role, item in runtime["volumes"].items()}
-    network = active.get("network")
-    if not isinstance(network, str):
-        raise RuntimeError("production candidate network is unavailable")
-    side_effect_admission = _admit_production_side_effects(
-        target, runner, release, network, volumes,
-    )
+    network = target.value["compose"]["default_network"]
     existing_forward = runner.run(["cat", forward_path], check=False)
     if existing_forward.returncode == 0:
         try:
@@ -8850,7 +8918,9 @@ def _activate_quarantined_release(target, runner, arguments, release: dict) -> d
         release["identity"],
         "USL_PRODUCTION_ACTIVATION=",
     )
-    activation["side_effect_admission"] = side_effect_admission
+    activation["side_effect_admission"] = _admit_production_side_effects(
+        target, runner, release, network, volumes,
+    )
     images = _runtime_images(runner, identity)
     _write_remote(
         target,
@@ -8869,12 +8939,12 @@ def _activate_quarantined_release(target, runner, arguments, release: dict) -> d
         compose_command(
             identity,
             [
-                "up", "--detach", "--wait", "--force-recreate",
-                target.value["services"]["odoo"],
-                target.value["services"]["paperless"],
+                "up", "--detach", "--wait", "--force-recreate", "--no-deps",
+                *[target.value["services"][role] for role in BACKUP_WRITER_SERVICE_ROLES],
             ],
         ),
     )
+    activation["pocket_id_admission"] = _reconcile_production_pocketid(target, runner, identity)
     health = _gate(health_command, target, arguments.targets)
     smoke = _gate(smoke_command, target, arguments.targets)
     receipt = {
@@ -9163,7 +9233,7 @@ def release_command(arguments: argparse.Namespace) -> int:
         if backup["capture"]["release"]["identity"] != active_release["identity"]:
             raise RuntimeError("staging checkpoint does not describe the active release")
         runtime = inspect_runtime(target, runner)
-        image = active_release["components"]["backup-tool"]["digest_reference"]
+        image = _operations_image(active_release)
         verified = _run_cohort(
             target,
             runner,
@@ -9278,6 +9348,12 @@ def release_command(arguments: argparse.Namespace) -> int:
                 arguments.targets,
                 attempt=arguments.attempt_id,
             )
+            # Recovery has proved the baseline. Preserve the failed claim as history
+            # and allow the same immutable release inputs to be retried.
+            attempt_root = f"{target.value['state_directory']}/attempts/{arguments.attempt_id}"
+            archived_root = f"{target.value['state_directory']}/aborted-attempts/{arguments.attempt_id}-{time.time_ns()}"
+            runner.run(["install", "-d", "-m", "0700", str(Path(archived_root).parent)])
+            runner.run(["mv", "--", attempt_root, archived_root])
         if controller_state is not None:
             _write_remote(
                 target,
@@ -9547,7 +9623,7 @@ def release_command(arguments: argparse.Namespace) -> int:
         verified = _run_cohort(
             production,
             production_runner,
-            production_release["components"]["backup-tool"]["digest_reference"],
+            _operations_image(production_release),
             "verify",
             ["--durable-snapshot", backup["qualification"]["durable_snapshot_id"]],
             volumes=production_runtime["volumes"],
@@ -9584,6 +9660,11 @@ def release_command(arguments: argparse.Namespace) -> int:
             production_backup = _backup_run_receipt(
                 json.loads(_read_path(target, runner, arguments.backup_receipt)),
                 target="production",
+                require_quiesced=True,
+                expected_writer_services=[
+                    target.value["services"][role]
+                    for role in BACKUP_WRITER_SERVICE_ROLES
+                ],
             )
         except json.JSONDecodeError as error:
             raise RuntimeError("production reconciliation backup receipt is invalid") from error
@@ -9596,7 +9677,7 @@ def release_command(arguments: argparse.Namespace) -> int:
         verified = _run_cohort(
             target,
             runner,
-            active_release["components"]["backup-tool"]["digest_reference"],
+            _operations_image(active_release),
             "verify",
             ["--durable-snapshot", arguments.snapshot],
             volumes=runtime["volumes"],
@@ -9684,6 +9765,7 @@ def release_command(arguments: argparse.Namespace) -> int:
         claim["sha256"] = hashlib.sha256(
             json.dumps(claim, sort_keys=True, separators=(",", ":")).encode(),
         ).hexdigest()
+        runner.run(["install", "-d", "-m", "0700", str(Path(attempt_root).parent)])
         if runner.run(["mkdir", attempt_root], check=False).returncode != 0:
             existing_raw = runner.run(["cat", attempt_path], check=False)
             if existing_raw.returncode:

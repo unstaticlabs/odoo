@@ -18,7 +18,9 @@ if os.environ.get("USL_EINVOICE_LIVE_ENABLED") != "0" or os.environ.get(
 
 params = env["ir.config_parameter"].sudo()  # noqa: F821
 existing = params.get_str("usl.production.quarantined_candidate_fingerprint")
-if existing and existing != fingerprint:
+if existing and existing != fingerprint and existing != params.get_str(
+    "usl.production.activation_candidate_fingerprint",
+):
     raise RuntimeError("The database is quarantined for another candidate.")
 params.set_bool("database.is_neutralized", True)
 params.set_str("usl.production.quarantined_candidate_fingerprint", fingerprint)
@@ -29,10 +31,11 @@ if active_crons:
     active_crons.write({"active": False})
 if "fetchmail.server" in env.registry:  # noqa: F821
     active_fetchmail = env["fetchmail.server"].sudo().search([("active", "=", True)])  # noqa: F821
-    params.set_str(
-        "usl.production.quarantined_fetchmail_ids",
-        json.dumps(sorted(active_fetchmail.ids)),
-    )
+    if existing != fingerprint:
+        params.set_str(
+            "usl.production.quarantined_fetchmail_ids",
+            json.dumps(sorted(active_fetchmail.ids)),
+        )
     if active_fetchmail:
         active_fetchmail.write({"active": False})
 env.cr.commit()  # noqa: F821

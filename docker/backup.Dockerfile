@@ -21,13 +21,17 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl openssl python3 python3-psycopg2 \
+    && apt-get install -y --no-install-recommends ca-certificates curl openssl python3 python3-psycopg2 rsync \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=restic /usr/bin/restic /usr/local/bin/restic
 COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker
 COPY --from=docker-cli /usr/local/libexec/docker/cli-plugins/docker-compose /usr/local/libexec/docker/cli-plugins/docker-compose
 COPY operations /opt/usl/operations
+COPY scripts/odoo/production_quarantine.py /opt/usl/scripts/odoo/production_quarantine.py
+COPY scripts/odoo/production_activate.py /opt/usl/scripts/odoo/production_activate.py
+COPY scripts/odoo/production_side_effect_boundary.py /opt/usl/scripts/odoo/production_side_effect_boundary.py
+COPY scripts/sign-services-smoke.py /opt/usl/scripts/sign-services-smoke.py
 COPY compose.resources.production.json compose.resources.staging.json /opt/usl/
 COPY deploy/production.cron-policy.json /opt/usl/deploy/production.cron-policy.json
 COPY --chmod=755 scripts/cohort-runtime /usr/local/bin/usl-cohort-runtime

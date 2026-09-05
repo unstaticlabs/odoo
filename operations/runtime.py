@@ -388,7 +388,16 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
     if not isinstance(paths, dict) or not required_paths <= set(paths):
         raise RuntimeError(f"target paths must include {sorted(required_paths)}")
     for role, definition in paths.items():
-        _exact(definition, {"path", "class", "required", "tier"}, f"paths.{role}")
+        _exact(definition, {"path", "class", "required", "tier"} | ({"files"} if "files" in definition else set()), f"paths.{role}")
+        if "files" in definition:
+            files = definition["files"]
+            if role != "mcp_secrets" or not isinstance(files, dict) or not files:
+                raise RuntimeError(f"paths.{role}.files must map MCP recovery filenames to source paths")
+            for name, source in files.items():
+                if not isinstance(name, str) or Path(name).name != name or name in {".", ".."}:
+                    raise RuntimeError(f"paths.{role}.files contains an invalid filename")
+                if not isinstance(source, str) or not source.startswith("/"):
+                    raise RuntimeError(f"paths.{role}.files source must be absolute")
         if definition["class"] not in {"durable", "cache", "transient"}:
             raise RuntimeError(f"paths.{role}.class is invalid")
         if not isinstance(definition["path"], str) or not definition["path"].startswith("/"):

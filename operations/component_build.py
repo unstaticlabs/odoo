@@ -77,6 +77,10 @@ COMPONENTS = {
                 "operations/contracts/**",
                 "scripts/cohort-runtime",
                 "scripts/usl-stack",
+                "scripts/odoo/production_quarantine.py",
+                "scripts/odoo/production_activate.py",
+                "scripts/odoo/production_side_effect_boundary.py",
+                "scripts/sign-services-smoke.py",
             ),
         ),
         Component(

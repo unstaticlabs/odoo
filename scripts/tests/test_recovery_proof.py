@@ -291,9 +291,14 @@ class RecoveryProofContractTests(unittest.TestCase):
             ),
             f"/var/lib/usl-recovery-proofs/{PROOF_ID}",
         )
+        self.assertEqual(
+            _recovery_proof_root(self.target, Path("/srv/storage/proofs"), PROOF_ID),
+            f"/srv/storage/proofs/{PROOF_ID}",
+        )
         for path in (
             "/var/lib/usl-odoo/runtime/production/proofs",
-            "/srv/storage/proofs",
+            "/srv/storage",
+            "/srv",
             "/opt/usl-odoo/secrets/proofs",
             "relative/proofs",
         ):
