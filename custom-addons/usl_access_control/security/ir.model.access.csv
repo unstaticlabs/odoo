@@ -1,6 +1,13 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_usl_audit_event_reader,usl.audit.event reader,model_usl_audit_event,group_audit_reader,1,0,0,0
 access_usl_audit_event_accounting_reviewer,usl.audit.event accounting reviewer,model_usl_audit_event,group_accounting_reviewer,1,0,0,0
+access_usl_audit_event_owner,usl.audit.event owner,model_usl_audit_event,base.group_user,1,0,0,0
+access_usl_agent_owner,usl.agent owner,model_usl_agent,base.group_user,1,1,1,0
+access_usl_agent_admin,usl.agent administrator,model_usl_agent,base.group_system,1,1,1,0
+access_usl_agent_credential_owner,usl.agent.credential owner,model_usl_agent_credential,base.group_user,1,0,0,0
+access_usl_agent_credential_admin,usl.agent.credential administrator,model_usl_agent_credential,base.group_system,1,0,0,0
+access_usl_agent_key_wizard,usl.agent.key.wizard,model_usl_agent_key_wizard,base.group_user,1,1,1,1
+access_usl_agent_transfer_wizard,usl.agent.transfer.wizard,model_usl_agent_transfer_wizard,base.group_system,1,1,1,1
 access_ir_module_module_technical_reader,ir.module.module technical reader,base.model_ir_module_module,group_technical_administrator,1,0,0,0
 access_ir_module_dependency_technical_reader,ir.module.module.dependency technical reader,base.model_ir_module_module_dependency,group_technical_administrator,1,0,0,0
 access_ir_model_technical_reader,ir.model technical reader,base.model_ir_model,group_technical_administrator,1,0,0,0

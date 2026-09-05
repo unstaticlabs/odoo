@@ -12,6 +12,10 @@ PROJECT_VALIDATION_PATH = (
     Path(__file__).parents[2]
     / "project_restore/addons/usl_project_restore/scripts/validate_restore.py"
 )
+ACCOUNTING_FINALIZE_PATH = (
+    Path(__file__).parents[2]
+    / "accounting_restore/addons/usl_accounting_restore/scripts/finalize_restore.py"
+)
 SPEC = spec_from_file_location("collaboration_routing", PATH)
 routing = module_from_spec(SPEC)
 SPEC.loader.exec_module(routing)
@@ -34,11 +38,15 @@ class RoutingTest(unittest.TestCase):
         self.assertEqual(routing.route_model("unexpected.model"), "unclassified")
 
     def test_locked_source_counts_are_declared(self):
-        self.assertEqual(routing.EXPECTED_COUNTS["messages"], 50005)
-        self.assertEqual(routing.EXPECTED_COUNTS["tracking"], 36946)
+        self.assertEqual(routing.EXPECTED_COUNTS["messages"], 51491)
+        self.assertEqual(routing.EXPECTED_COUNTS["tracking"], 37579)
         self.assertEqual(routing.EXPECTED_COUNTS["aliases"], 29)
-        self.assertEqual(routing.EXPECTED_COUNTS["parent_links"], 23093)
+        self.assertEqual(routing.EXPECTED_COUNTS["parent_links"], 24069)
         self.assertEqual(routing.EXPECTED_COUNTS["cross_accounting_parent_links"], 1643)
+        self.assertEqual(
+            routing.EXPECTED_MESSAGE_DISPOSITIONS,
+            {"visible": 50588, "external": 0, "deliberately_not_copied": 903},
+        )
 
     def test_every_populated_source_message_model_is_classified(self):
         populated = {
@@ -70,9 +78,20 @@ class RoutingTest(unittest.TestCase):
             "private_archive",
         )
 
+    def test_legacy_declaration_workflow_is_translated_to_current_axes(self):
+        self.assertEqual(
+            routing.legacy_declaration_workflow_values(submitted_on=None),
+            {"preparation_status": "not_required", "filing_status": "not_open"},
+        )
+        self.assertEqual(
+            routing.legacy_declaration_workflow_values(submitted_on="2026-01-15"),
+            {"preparation_status": "not_required", "filing_status": "filed"},
+        )
+
     def test_late_expense_materialization_defers_synthetic_attachment_chatter(self):
         restore_source = RESTORE_PATH.read_text()
         accounting_source = ACCOUNTING_IMPORT_PATH.read_text()
+        accounting_finalize_source = ACCOUNTING_FINALIZE_PATH.read_text()
         project_validation_source = PROJECT_VALIDATION_PATH.read_text()
 
         self.assertIn(
@@ -95,6 +114,10 @@ class RoutingTest(unittest.TestCase):
         self.assertIn(
             '"outbound_side_effect_counts_before": side_effect_before',
             restore_source,
+        )
+        self.assertIn(
+            'statistics.get("source_expense_count") == 443',
+            accounting_finalize_source,
         )
         self.assertIn("collaboration_fallback_note", project_validation_source)
         self.assertIn(

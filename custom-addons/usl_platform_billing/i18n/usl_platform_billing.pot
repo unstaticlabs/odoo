@@ -29,6 +29,14 @@ msgstr ""
 
 #. module: usl_platform_billing
 #. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid ""
+"%(count)s paid payout(s) do not have complete Platform Billing bank evidence; "
+"native Accounting settlement remains authoritative."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
 #: code:addons/usl_platform_billing/models/platform.py:0
 msgid "%(label)s (%(account)s) has an incompatible account type."
 msgstr ""

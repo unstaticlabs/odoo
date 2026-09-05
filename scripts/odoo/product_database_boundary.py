@@ -23,17 +23,18 @@ PRODUCT_MODULES = {
     "usl_documents_accounting",
     "usl_documents_b2c",
     "usl_expense_batch",
+    "usl_feedback",
     "usl_home",
     "usl_locale",
     "usl_platform_billing",
     "usl_platform_billing_pocketid",
     "usl_pocketid",
     "usl_project",
+    "usl_sign",
     "usl_tese_accounting",
     "usl_tese_payroll",
 }
 EXCLUDED_AUTO_INSTALL_MODULES = {
-    "contacts",
     "gamification",
     "hr_gamification",
     "hr_skills_survey",
@@ -108,7 +109,7 @@ module_states = dict(rows(
             MIGRATION_MODULES
             | PRODUCT_MODULES
             | EXCLUDED_AUTO_INSTALL_MODULES
-            | {"usl_bootstrap"}
+            | {"usl_bootstrap"},
         ),
     ),
 ))

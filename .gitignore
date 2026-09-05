@@ -11,15 +11,6 @@ _build/
 !.devcontainer/**
 !.agents/
 !.agents/**
-!.codex/
-.codex/*
-!.codex/hooks.json
-!.claude/
-.claude/*
-!.claude/skills/
-!.claude/skills/**
-!.cursor
-!.cursor/**
 !.env.example
 !.github
 !.mailmap
@@ -79,7 +70,6 @@ usl-online-dump/
 /artifacts/accounting-compat/private/
 /artifacts/action-risk/
 /artifacts/usl-document-templates/
-/artifacts/agent/
 /artifacts/b2c-restore/
 /artifacts/migration/private/
 /artifacts/platform-billing-restore/
@@ -90,35 +80,4 @@ usl-online-dump/
 /.pocket-id.env
 /.pocket-id-*.env
 /.documents-personal-ai-keys.json
-/private/document-renderer-certs/
-/.agent/
-
-# impeccable-ignore-start
-# Keep the shared Impeccable configuration and review records, but ignore
-# per-developer state, runtime sessions, screenshots and caches.
-!.impeccable/
-.impeccable/*
-!.impeccable/config.json
-!.impeccable/design.json
-!.impeccable/live/
-.impeccable/live/*
-!.impeccable/live/config.json
-!.impeccable/critique/
-.impeccable/critique/*
-!.impeccable/critique/*.md
-.impeccable/config.local.json
-.impeccable/hook.cache.json
-.impeccable/hook.pending.json
-.impeccable/*.png
-.impeccable/live/server.json
-.impeccable/live/sessions/
-.impeccable/live/previews/
-.impeccable/live/annotations/
-.impeccable/live/cache/
-.impeccable/live/manual-edit-apply-transaction.json
-.impeccable/live/manual-edit-events.jsonl
-.impeccable/live/manual-edit-evidence/
-.impeccable/live/pending-manual-edits.json
-.impeccable/live/deferred-svelte-component-accepts.json
-.impeccable/live/*.png
-# impeccable-ignore-end
+/private/

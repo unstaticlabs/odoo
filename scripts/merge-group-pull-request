@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+"""Resolve the queued PR from the merge commit's actual parent commits."""
+import json
+import os
+import subprocess
+
+
+def select_pull_request(commit, pulls, base):
+    parents = {item['sha'] for item in commit['parents']}
+    matches = [pr for pr in pulls if pr.get('state') == 'open'
+               and pr.get('base', {}).get('ref') == base
+               and pr.get('head', {}).get('sha') in parents]
+    if len(matches) != 1:
+        raise ValueError('merge queue must identify one open PR by its source parent')
+    return matches
+
+
+def main():
+    repository = os.environ['GITHUB_REPOSITORY']
+    with open(os.environ['GITHUB_EVENT_PATH']) as stream:
+        group = json.load(stream)['merge_group']
+    if group['head_sha'] != os.environ['GITHUB_SHA']:
+        raise ValueError('merge-group event and checked-out commit differ')
+    base = group['base_ref'].removeprefix('refs/heads/')
+    def api(path):
+        return json.loads(subprocess.check_output(['gh', 'api', path], text=True))
+    commit = api(f"repos/{repository}/git/commits/{group['head_sha']}")
+    if group['base_sha'] not in {item['sha'] for item in commit['parents']}:
+        raise ValueError('merge-group base is not a parent of the queued commit')
+    pulls = api(f'repos/{repository}/pulls?state=open&base={base}&per_page=100')
+    print(json.dumps(select_pull_request(commit, pulls, base)))
+
+
+if __name__ == '__main__':
+    main()

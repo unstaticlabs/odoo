@@ -1,0 +1,13 @@
+# Attach only Odoo to an existing reverse-proxy network. Keep this overlay
+# separate so local and isolated recovery runtimes do not require that network.
+services:
+  odoo:
+    networks:
+      external-ingress:
+        aliases:
+          - ${ODOO_INGRESS_ALIAS:?A unique Odoo ingress alias is required}
+
+networks:
+  external-ingress:
+    external: true
+    name: ${USL_EXTERNAL_INGRESS_NETWORK:?Existing ingress network is required}

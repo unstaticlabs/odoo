@@ -13,8 +13,7 @@ the frontend builder is pinned at
 
 ## Patch inventory
 
-Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1` has five bounded feature
-groups:
+Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+ollama-batch-v1+preview-contract-v1+byte-range-download-v1` has eight bounded feature groups:
 
 1. `paperless_ai/semantic_api.py` adds the authenticated, read-only
    `POST /api/documents/scoped_search/` endpoint. One request carries the
@@ -47,6 +46,18 @@ groups:
    patch adds those settings to **My profile**, gates the two existing
    generative entry points independently, removes the native global LLM
    settings, and compiles the normal localized frontend.
+6. The exact-source embedding/settings patch exposes the LlamaIndex Ollama
+   client batch size as `PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE`. The qualified
+   value is 32: measured native-Metal throughput has already plateaued there,
+   and release preflight rejects drift.
+7. The image build parses the final Paperless views module and proves that
+   every preview/download call matches the exact `serve_file` request
+   signature. The source-archive restore then validates a non-empty preview for
+   every restored document, so source or dependency drift fails before a QA or
+   production cohort can be accepted.
+8. `paperless_usl_ranges.py` adds authenticated HEAD and bounded single-range
+   download responses. It preserves exact version and original/archive
+   selection while allowing Odoo to stream large binaries without buffering.
 
 `tests/test_semantic_api.py` is an upstream-style Django/DRF test module
 covering both bounded endpoints and permission-vector invariance: permission

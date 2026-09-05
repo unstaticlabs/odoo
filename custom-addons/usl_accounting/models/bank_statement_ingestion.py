@@ -1,3 +1,4 @@
+import codecs
 import datetime as dt
 import hashlib
 import ipaddress
@@ -5,6 +6,7 @@ import logging
 import mimetypes
 import re
 import socket
+import unicodedata
 import urllib.parse
 import urllib.request
 import zipfile
@@ -15,7 +17,7 @@ from io import BytesIO
 from pathlib import PurePosixPath
 from urllib.error import HTTPError, URLError
 
-from lxml import html
+from lxml import etree, html
 from psycopg2 import IntegrityError
 
 from odoo import Command, _, api, fields, models
@@ -33,6 +35,15 @@ MAX_ARCHIVE_BYTES = 100 * 1024 * 1024
 MAX_ARCHIVE_MEMBERS = 100
 MAX_COMPRESSION_RATIO = 100
 MISSING_FITID_PREFIX = "__USL_MISSING_FITID_"
+OFX_XML_COMPATIBILITY_HEADER = (
+    b"OFXHEADER:200\n"
+    b"DATA:OFXXML\n"
+    b"VERSION:200\n"
+    b"SECURITY:NONE\n"
+    b"ENCODING:UTF-8\n"
+    b"CHARSET:NONE\n"
+    b"COMPRESSION:NONE\n\n"
+)
 
 
 def _split_config_values(value):
@@ -46,6 +57,33 @@ def _split_config_values(value):
 def _month_end(value):
     next_month = (value.replace(day=28) + dt.timedelta(days=4)).replace(day=1)
     return next_month - dt.timedelta(days=1)
+
+
+def _ofx_account_matches(configured_identifier, parsed_identifier, ofx_account):
+    """Match either a complete account identifier or strict French OFX parts."""
+    configured = sanitize_account_number(configured_identifier or "").upper()
+    parsed = sanitize_account_number(parsed_identifier or "").upper()
+    if parsed == configured:
+        return True
+    if not configured.startswith("FR") or len(configured) != 27:
+        return False
+    expected_bank = configured[4:9]
+    expected_branch = configured[9:14]
+    expected_account = configured[14:25]
+    return (
+        sanitize_account_number(
+            getattr(ofx_account, "routing_number", "") or "",
+        ).upper()
+        == expected_bank
+        and sanitize_account_number(
+            getattr(ofx_account, "branch_id", "") or "",
+        ).upper()
+        == expected_branch
+        and sanitize_account_number(
+            getattr(ofx_account, "account_id", "") or "",
+        ).upper()
+        == expected_account
+    )
 
 
 class AccountBankIngestionConfig(models.Model):
@@ -567,6 +605,19 @@ class AccountBankIngestion(models.Model):
     def _period_from_text(self, value):
         matches = re.findall(r"(\d{2})[/-](\d{2})[/-](\d{4})", value or "")
         if len(matches) < 2:
+            normalized = "".join(
+                char for char in unicodedata.normalize("NFKD", (value or "").casefold())
+                if not unicodedata.combining(char)
+            )
+            months = "janvier fevrier mars avril mai juin juillet aout septembre octobre novembre decembre".split()
+            periods = re.findall(r"\b(" + "|".join(months) + r")\s+(\d{4})\b", normalized)
+            if not matches and len(periods) == 1:
+                month, year = periods[0]
+                try:
+                    start = dt.date(int(year), months.index(month) + 1, 1)
+                    return start, _month_end(start)
+                except ValueError:
+                    pass
             return False, False
         try:
             dates = [
@@ -576,6 +627,45 @@ class AccountBankIngestion(models.Model):
         except ValueError:
             return False, False
         return min(dates), max(dates)
+
+    def action_correct_period(self):
+        self.ensure_one()
+        if not is_accounting_operator(self.env.user):
+            raise AccessError(_("Only an accountant can correct a bank export period."))
+        self.check_access("read")
+        if self.state not in ("attention", "failed"):
+            raise UserError(_("Only an export needing attention can be corrected."))
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Correct statement period"),
+            "res_model": "account.bank.ingestion.period",
+            "view_mode": "form",
+            "target": "new",
+            "context": {"default_ingestion_id": self.id,
+                        "default_period_start": self.period_start,
+                        "default_period_end": self.period_end},
+        }
+
+    def _verified_file_periods(self, pdf=None):
+        self.ensure_one()
+        verified = self.file_ids.filtered(
+            lambda source: source.classification == "ofx"
+            and source.processing_state in ("processed", "duplicate")
+            and source.statement_id
+        )
+        periods = {(source.period_start, source.period_end) for source in verified}
+        pdfs = pdf if pdf is not None else self.file_ids.filtered(lambda source: source.classification == "pdf")
+        for candidate in pdfs:
+            accepted = self.env["account.bank.ingestion.file"].search([
+                ("sha256", "=", candidate.sha256),
+                ("evidence_status", "=", "accepted"),
+                ("ingestion_id.config_id", "=", self.config_id.id),
+                ("company_id", "=", self.company_id.id),
+            ])
+            for source in accepted:
+                if source.statement_id.accepted_evidence_id == source:
+                    periods.add((source.statement_id.period_start, source.statement_id.period_end))
+        return periods
 
     def action_process_now(self):
         if not is_accounting_operator(self.env.user):
@@ -668,18 +758,7 @@ class AccountBankIngestion(models.Model):
                 lambda item: item.classification == "pdf",
             ):
                 source_file._process_isolated()
-            for source_file in files.filtered(
-                lambda item: item.classification == "unsupported",
-            ):
-                source_file._ensure_exception(
-                    "unsupported",
-                    _("Unsupported bank export attachment"),
-                    _(
-                        "The attachment %(name)s needs an accounting review.",
-                        name=source_file.filename,
-                    ),
-                )
-                source_file.processing_state = "attention"
+            self._finalize_retained_files()
             missing_ofx_name = _("OFX transaction export missing")
             matched_statements = files.filtered(
                 lambda item: item.classification == "pdf",
@@ -737,6 +816,7 @@ class AccountBankIngestion(models.Model):
                 type(error).__name__,
             )
             self.write({"state": "failed", "last_error": str(error)})
+            self._fail_pending_files(error)
             self._ensure_exception(
                 "import",
                 _("Bank export processing failed"),
@@ -744,6 +824,56 @@ class AccountBankIngestion(models.Model):
             )
         finally:
             self.config_id._sync_review_activity()
+
+    def _finalize_retained_files(self):
+        """Give every retained file a durable, explicit disposition."""
+        for ingestion in self.sorted("id"):
+            pending = ingestion.file_ids.filtered(
+                lambda item: item.processing_state == "pending",
+            ).sorted("id")
+            for source_file in pending:
+                if source_file.classification == "email":
+                    source_file.sudo().write(
+                        {
+                            "processing_state": "processed",
+                            "processing_detail": _(
+                                "Original source email retained unchanged.",
+                            ),
+                        },
+                    )
+                    continue
+                if source_file.classification in ("csv", "qif", "unsupported"):
+                    source_file._finalize_supplemental_file()
+                    continue
+                detail = _(
+                    "The retained file has no completed processing result. Retry the bank export; if it fails again, replace the file with a fresh bank export.",
+                )
+                source_file.sudo().write(
+                    {
+                        "processing_state": "failed",
+                        "processing_detail": detail,
+                    },
+                )
+                source_file._ensure_exception(
+                    "import",
+                    _("Retained file was not fully processed"),
+                    detail,
+                )
+
+    def _fail_pending_files(self, error):
+        detail = _(
+            "The bank email could not be fully processed: %(error)s Retry after correcting the reported problem.",
+            error=str(error),
+        )
+        for source_file in self.file_ids.filtered(
+            lambda item: item.processing_state == "pending",
+        ):
+            source_file.sudo().write(
+                {
+                    "processing_state": "failed",
+                    "processing_detail": detail,
+                },
+            )
 
     def _resolve_recovered_import_failures(self, files):
         self.ensure_one()
@@ -1045,6 +1175,7 @@ class AccountBankIngestionFile(models.Model):
             ("pending", "Pending"),
             ("processed", "Processed"),
             ("duplicate", "Already imported"),
+            ("ignored", "Intentionally ignored"),
             ("attention", "Needs attention"),
             ("failed", "Failed"),
         ],
@@ -1192,6 +1323,57 @@ class AccountBankIngestionFile(models.Model):
             )
         return content
 
+    def _finalize_supplemental_file(self):
+        self.ensure_one()
+        prior = self.search(
+            [
+                ("ingestion_id.config_id", "=", self.ingestion_id.config_id.id),
+                ("id", "<", self.id),
+                ("sha256", "=", self.sha256),
+                ("classification", "=", self.classification),
+                ("processing_state", "in", ("processed", "duplicate", "ignored")),
+            ],
+            order="id",
+            limit=1,
+        )
+        if prior:
+            values = {
+                "processing_state": "duplicate",
+                "processing_detail": _(
+                    "An identical retained file already has a final disposition on this bank import route.",
+                ),
+            }
+        else:
+            explanations = {
+                "csv": _(
+                    "CSV copy retained unchanged. OFX is the authoritative transaction import for this route.",
+                ),
+                "qif": _(
+                    "QIF copy retained unchanged. OFX is the authoritative transaction import for this route.",
+                ),
+                "unsupported": _(
+                    "File retained unchanged and intentionally ignored because this file type is not used by automated bank import.",
+                ),
+            }
+            values = {
+                "processing_state": "ignored",
+                "processing_detail": explanations[self.classification],
+            }
+        self.sudo().write(values)
+        self.exception_ids.filtered(
+            lambda item: item.kind == "unsupported" and item.state == "open",
+        ).sudo().with_context(bank_exception_internal=True).write(
+            {
+                "state": "resolved",
+                "resolution": "not_relevant",
+                "resolution_reason": _(
+                    "The retained supplemental file is not an input to automated bank import.",
+                ),
+                "resolved_by_id": self.env.user.id,
+                "resolved_at": fields.Datetime.now(),
+            },
+        )
+
     @api.model
     def _pdf_integrity_error(self, content):
         """Return user-facing guidance when a retained PDF cannot be opened."""
@@ -1311,7 +1493,8 @@ class AccountBankIngestionFile(models.Model):
     def _process_ofx(self):
         self.ensure_one()
         content = self._content()
-        parser_content = self._with_parser_fitid_placeholders(content)
+        parser_content = self._normalize_ofx_parser_content(content)
+        parser_content = self._with_parser_fitid_placeholders(parser_content)
         wizard = (
             self.env["account.statement.import"]
             .with_context(journal_id=self.ingestion_id.journal_id.id)
@@ -1330,18 +1513,43 @@ class AccountBankIngestionFile(models.Model):
             raise UserError(_("The bank export must contain exactly one bank account."))
         currency_code, account_number, statements_values = parsed_accounts[0]
         config = self.ingestion_id.config_id
-        if sanitize_account_number(account_number) != sanitize_account_number(
+        ofx_account = ofx.accounts[0]
+        if not _ofx_account_matches(
             config.source_account_identifier,
+            account_number,
+            ofx_account,
         ):
+            detail = _(
+                "The OFX account does not match the account configured for this route.",
+            )
             self._ensure_exception(
                 "account",
                 _("Bank account does not match"),
-                _(
-                    "The OFX account does not match the account configured for this route.",
-                ),
+                detail,
             )
-            self.processing_state = "attention"
+            self.sudo().write(
+                {
+                    "processing_state": "failed",
+                    "processing_detail": detail,
+                },
+            )
             return
+        canonical_account_id = sanitize_account_number(
+            config.source_account_identifier,
+        )
+        self.exception_ids.filtered(
+            lambda item: item.kind == "account" and item.state == "open",
+        ).sudo().with_context(bank_exception_internal=True).write(
+            {
+                "state": "resolved",
+                "resolution": "corrected_source",
+                "resolution_reason": _(
+                    "The retained OFX account components match the configured bank account.",
+                ),
+                "resolved_by_id": self.env.user.id,
+                "resolved_at": fields.Datetime.now(),
+            },
+        )
         currency = wizard._match_currency(currency_code)
         journal_currency = (
             config.journal_id.currency_id or config.company_id.currency_id
@@ -1370,6 +1578,14 @@ class AccountBankIngestionFile(models.Model):
         period_end = _month_end(max(dates))
         if period_start != max(dates).replace(day=1):
             raise UserError(_("One OFX file must cover a single calendar month."))
+        raw_statement = ofx.accounts[0].statement
+        header_start = fields.Date.to_date(getattr(raw_statement, "start_date", None))
+        header_end = fields.Date.to_date(getattr(raw_statement, "end_date", None))
+        if header_start or header_end:
+            if (not header_start or not header_end
+                    or header_start != period_start or header_end != period_end):
+                raise UserError(_("The OFX coverage must match its single calendar month."))
+            period_start, period_end = header_start, header_end
         if period_start < config.automatic_start_date.replace(day=1):
             raise UserError(
                 _("This export predates the configured ingestion cut-over."),
@@ -1395,6 +1611,7 @@ class AccountBankIngestionFile(models.Model):
         duplicate_ids = {item for item in raw_ids if item and raw_ids.count(item) > 1}
         new_values = []
         existing_lines = self.env["account.bank.statement.line"]
+        existing_provider_ids = {}
         ambiguous = []
         for ordinal, (line_values, raw_id) in enumerate(
             zip(transactions, raw_ids),
@@ -1404,14 +1621,14 @@ class AccountBankIngestionFile(models.Model):
             line_values["date"] = fields.Date.to_date(line_values["date"])
             if not raw_id or raw_id in duplicate_ids:
                 fallback = hashlib.sha256(
-                    f"{self.sha256}:{sanitize_account_number(account_number)}:{period_start}:{ordinal}".encode(),
+                    f"{self.sha256}:{canonical_account_id}:{period_start}:{ordinal}".encode(),
                 ).hexdigest()
                 candidate = {
                     **line_values,
                     "date": line_values["date"].isoformat(),
                     "unique_import_id": f"fallback-{fallback}",
                     "provider_code": config.provider,
-                    "provider_account_id": sanitize_account_number(account_number),
+                    "provider_account_id": canonical_account_id,
                     "provider_transaction_id": f"fallback:{fallback}",
                 }
                 prior_decision = self.env["account.bank.statement.exception"].search(
@@ -1446,6 +1663,7 @@ class AccountBankIngestionFile(models.Model):
                 raw_id,
                 line_values["unique_import_id"],
                 line_values["date"],
+                line_values["amount"],
             )
             if existing:
                 if (
@@ -1461,17 +1679,25 @@ class AccountBankIngestionFile(models.Model):
                             "A bank transaction identity already exists with different accounting facts.",
                         ),
                     )
+                prior_provider_id = existing_provider_ids.get(existing.id)
+                if prior_provider_id and prior_provider_id != raw_id:
+                    raise UserError(
+                        _(
+                            "Two source transactions resolve to the same migrated bank line.",
+                        ),
+                    )
+                existing_provider_ids[existing.id] = raw_id
                 existing_lines |= existing
                 continue
             line_values.update(
                 {
                     "provider_code": config.provider,
-                    "provider_account_id": sanitize_account_number(account_number),
+                    "provider_account_id": canonical_account_id,
                     "provider_transaction_id": raw_id,
                     "provider_identity_kind": "stable",
                     "transaction_details": {
                         "provider": config.provider,
-                        "account_id": sanitize_account_number(account_number),
+                        "account_id": canonical_account_id,
                         "transaction_id": raw_id,
                     },
                     "ingestion_file_ids": [Command.link(self.id)],
@@ -1491,22 +1717,12 @@ class AccountBankIngestionFile(models.Model):
             for line in existing_lines:
                 update = {"ingestion_file_ids": [Command.link(self.id)]}
                 if not line.provider_transaction_id:
-                    raw_id = next(
-                        (
-                            raw
-                            for parsed, raw in zip(transactions, raw_ids)
-                            if parsed["unique_import_id"] == line.unique_import_id
-                            or self._historical_extra_id(line) == raw
-                        ),
-                        False,
-                    )
+                    raw_id = existing_provider_ids.get(line.id)
                     if raw_id:
                         update.update(
                             {
                                 "provider_code": config.provider,
-                                "provider_account_id": sanitize_account_number(
-                                    account_number,
-                                ),
+                                "provider_account_id": canonical_account_id,
                                 "provider_transaction_id": raw_id,
                                 "provider_identity_kind": "stable",
                             },
@@ -1538,6 +1754,19 @@ class AccountBankIngestionFile(models.Model):
             ).sudo().with_context(bank_exception_internal=True).write(
                 {"statement_id": statement.id},
             )
+            self.exception_ids.filtered(
+                lambda item: item.kind == "import" and item.state == "open",
+            ).sudo().with_context(bank_exception_internal=True).write(
+                {
+                    "state": "resolved",
+                    "resolution": "corrected_source",
+                    "resolution_reason": _(
+                        "The retained OFX source parsed and imported successfully on retry.",
+                    ),
+                    "resolved_by_id": self.env.user.id,
+                    "resolved_at": fields.Datetime.now(),
+                },
+            )
         for ordinal, raw_id, candidate in ambiguous:
             exception = self._ensure_exception(
                 "identity",
@@ -1556,7 +1785,130 @@ class AccountBankIngestionFile(models.Model):
                 {"candidate_values": candidate},
             )
         if ambiguous:
-            self.processing_state = "attention"
+            self.sudo().write(
+                {
+                    "processing_state": "failed",
+                    "processing_detail": _(
+                        "One or more transactions need an identity decision before this OFX file can be completed.",
+                    ),
+                },
+            )
+
+    @api.model
+    def _normalize_ofx_parser_content(self, content):
+        """Return a parser-only UTF-8 copy for OFX 2.x XML.
+
+        ofxparse reads legacy OFX headers before it examines XML processing
+        instructions. Without an ``ENCODING:`` header it decodes the stream as
+        ASCII. Keep legacy SGML byte-for-byte compatible and add the header only
+        to a validated, in-memory OFX XML copy.
+        """
+        stripped = content.lstrip()
+        if stripped.upper().startswith(b"OFXHEADER:"):
+            return content
+
+        probe = content[:8192]
+        if probe.startswith((codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE)):
+            probe_text = probe.decode("utf-32", errors="ignore")
+        elif probe.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
+            probe_text = probe.decode("utf-16", errors="ignore")
+        else:
+            probe_text = probe.decode("latin-1")
+
+        xml_declaration = re.search(
+            r"<\?xml\b[^>]*\bencoding\s*=\s*(['\"])([^'\"]+)\1",
+            probe_text,
+            re.I,
+        )
+        ofx_instruction = re.search(
+            r"<\?ofx\b([^>]*)\?>",
+            probe_text,
+            re.I,
+        )
+        ofx_encoding = (
+            re.search(
+                r"\bencoding\s*=\s*(['\"])([^'\"]+)\1",
+                ofx_instruction.group(1),
+                re.I,
+            )
+            if ofx_instruction
+            else None
+        )
+        xml_encoding = xml_declaration.group(2).strip() if xml_declaration else None
+        instruction_encoding = (
+            ofx_encoding.group(2).strip() if ofx_encoding else None
+        )
+        explicit_xml = bool(xml_declaration or ofx_instruction)
+        unsupported_encoding_message = _(
+            "The OFX XML declares an unsupported encoding: %(encoding)s.",
+        )
+
+        def resolve_encoding(name):
+            try:
+                return codecs.lookup(name).name
+            except (LookupError, TypeError) as error:
+                raise UserError(
+                    unsupported_encoding_message
+                    % {"encoding": name or _("empty")},
+                ) from error
+
+        resolved_xml = resolve_encoding(xml_encoding) if xml_encoding else None
+        resolved_instruction = (
+            resolve_encoding(instruction_encoding)
+            if instruction_encoding
+            else None
+        )
+        if (
+            resolved_xml
+            and resolved_instruction
+            and resolved_xml != resolved_instruction
+        ):
+            raise UserError(
+                _(
+                    "The OFX XML declares conflicting encodings: %(xml)s and %(ofx)s.",
+                    xml=xml_encoding,
+                    ofx=instruction_encoding,
+                ),
+            )
+        encoding = resolved_xml or resolved_instruction or "utf-8"
+        try:
+            xml_text = content.decode(encoding).lstrip("\ufeff")
+        except UnicodeError as error:
+            raise UserError(
+                _(
+                    "The OFX XML is not valid %(encoding)s text.",
+                    encoding=xml_encoding or instruction_encoding or "UTF-8",
+                ),
+            ) from error
+
+        parser_xml = re.sub(
+            r"(<\?xml\b[^>]*\bencoding\s*=\s*['\"])[^'\"]+(['\"])",
+            r"\1UTF-8\2",
+            xml_text,
+            count=1,
+            flags=re.I,
+        ).encode("utf-8")
+        try:
+            root = etree.fromstring(
+                parser_xml,
+                parser=etree.XMLParser(
+                    recover=False,
+                    resolve_entities=False,
+                    no_network=True,
+                ),
+            )
+        except (etree.XMLSyntaxError, ValueError) as error:
+            if not explicit_xml:
+                return content
+            detail = getattr(error, "msg", None) or str(error).splitlines()[0]
+            raise UserError(
+                _("The OFX XML attachment is malformed: %(detail)s", detail=detail),
+            ) from error
+        if etree.QName(root).localname.upper() != "OFX":
+            if not explicit_xml:
+                return content
+            raise UserError(_("The XML attachment does not contain an OFX document."))
+        return OFX_XML_COMPATIBILITY_HEADER + parser_xml
 
     @api.model
     def _with_parser_fitid_placeholders(self, content):
@@ -1603,6 +1955,7 @@ class AccountBankIngestionFile(models.Model):
         raw_id,
         unique_import_id,
         transaction_date,
+        amount,
     ):
         Line = self.env["account.bank.statement.line"].sudo()
         existing = Line.search(
@@ -1637,12 +1990,41 @@ class AccountBankIngestionFile(models.Model):
                 lambda line: self._historical_extra_id(line) == raw_id,
             )
             if len(exact) > 1:
-                raise UserError(
-                    _(
-                        "The migrated bank history contains a conflicting transaction identity.",
-                    ),
+                matching_facts = exact.filtered(
+                    lambda line: line.currency_id.compare_amounts(
+                        line.amount,
+                        amount,
+                    )
+                    == 0,
                 )
+                if len(matching_facts) != 1:
+                    raise UserError(
+                        _(
+                            "The migrated bank history contains a conflicting transaction identity.",
+                        ),
+                    )
+                exact = matching_facts
             existing = exact[:1]
+            if not existing:
+                matching_facts = candidates.filtered(
+                    lambda line: line.currency_id.compare_amounts(
+                        line.amount,
+                        amount,
+                    )
+                    == 0,
+                )
+                if len(matching_facts) == 1:
+                    candidate = matching_facts
+                    historical_id = self._historical_extra_id(candidate)
+                    shared_historical_id = candidates.filtered(
+                        lambda line: (
+                            line != candidate
+                            and historical_id
+                            and self._historical_extra_id(line) == historical_id
+                        ),
+                    )
+                    if shared_historical_id:
+                        existing = candidate
             if existing and not existing.unique_import_id:
                 existing.with_context(
                     bank_review_internal=True,
@@ -1818,14 +2200,23 @@ class AccountBankIngestionFile(models.Model):
                 integrity_error,
             )
             return
-        period_start = self.ingestion_id.period_start
-        period_end = self.ingestion_id.period_end
+        periods = self.ingestion_id._verified_file_periods(pdf=self)
+        if len(periods) > 1:
+            raise UserError(_("The retained bank files disagree on the statement period."))
+        if periods:
+            period_start, period_end = periods.pop()
+            self.ingestion_id.write({"period_start": period_start, "period_end": period_end})
+        else:
+            period_start = self.ingestion_id.period_start
+            period_end = self.ingestion_id.period_end
+            if not period_start or not period_end:
+                period_start, period_end = self.ingestion_id._period_from_text(self.ingestion_id.subject)
         if not period_start or not period_end:
             self.write(
                 {
-                    "processing_state": "attention",
+                    "processing_state": "failed",
                     "processing_detail": _(
-                        "The statement period could not be determined from the email subject.",
+                        "The retained files and email do not establish a statement period.",
                     ),
                     "evidence_status": "candidate",
                 },
@@ -1833,18 +2224,34 @@ class AccountBankIngestionFile(models.Model):
             self._ensure_exception(
                 "evidence",
                 _("Confirm the PDF statement period"),
-                _("Set an unambiguous period on the received export, then retry."),
+                _("Use Correct period on the received export after checking the bank statement."),
             )
             return
-        self.write(
-            {
-                "period_start": period_start,
-                "period_end": period_end,
-                "processing_state": "processed",
-                "processing_detail": _("Official PDF retained unchanged."),
-                "evidence_status": "candidate",
-            },
-        )
+        values = {
+            "period_start": period_start,
+            "period_end": period_end,
+            "processing_state": "processed",
+            "processing_detail": _("Official PDF retained unchanged."),
+        }
+        # Retrying a fully retained source must not demote the statement's
+        # accepted evidence. The Documents archive worker deliberately selects
+        # only accepted files, so changing the same record back to candidate
+        # (and then duplicate below) would strand it outside the queue forever.
+        if self.evidence_status != "accepted":
+            values["evidence_status"] = "candidate"
+        self.write(values)
+        period_exception_names = {
+            "Confirm the PDF statement period", _("Confirm the PDF statement period"),
+        }
+        self.exception_ids.filtered(
+            lambda item: item.state == "open" and item.kind == "evidence"
+            and item.name in period_exception_names
+        ).with_context(bank_exception_internal=True).write({
+            "state": "resolved", "resolution": "corrected_source",
+            "resolution_reason": _("The retained PDF now has an established statement period."),
+            "resolved_by_id": self.env.user.id,
+            "resolved_at": fields.Datetime.now(),
+        })
         statement = self.env["account.bank.statement"].search(
             [
                 ("ingestion_config_id", "=", self.ingestion_id.config_id.id),
@@ -1855,7 +2262,17 @@ class AccountBankIngestionFile(models.Model):
         )
         if statement:
             self.statement_id = statement
-            if not statement.accepted_evidence_id:
+            if statement.accepted_evidence_id == self:
+                self.sudo().write(
+                    {
+                        "evidence_status": "accepted",
+                        "processing_state": "processed",
+                        "processing_detail": _(
+                            "This PDF remains the accepted official evidence.",
+                        ),
+                    },
+                )
+            elif not statement.accepted_evidence_id:
                 self._accept_evidence()
             elif statement.accepted_evidence_id.sha256 == self.sha256:
                 self.write(
@@ -1883,7 +2300,7 @@ class AccountBankIngestionFile(models.Model):
                     "evidence",
                     _("Bank statement PDF period does not match"),
                     _(
-                        "The PDF period inferred from the email does not match the OFX month. Review the source before accepting evidence.",
+                        "The PDF period does not match the OFX month. Review the source before accepting evidence.",
                     ),
                     statement=imported_statements,
                 )
@@ -2101,4 +2518,6 @@ class MailThread(models.AbstractModel):
                         "company_id": ingestion.company_id.id,
                     },
                 )
+                if ingestion.config_id.processing_enabled and ingestion.state == "received":
+                    ingestion.with_context(bank_ingestion_cron=True)._process()
         return record

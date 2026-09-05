@@ -9,7 +9,7 @@ import psycopg2.extras
 from odoo import Command, fields, models
 from odoo.tools import BinaryBytes
 
-RESTORE_REVISION = 1
+RESTORE_REVISION = 2
 SOURCE_FILESTORE = Path(
     os.getenv("IDENTITY_SOURCE_FILESTORE", "/mnt/accounting-source/filestore"),
 ).resolve()
@@ -317,6 +317,26 @@ class UslIdentityRestoreRun(models.Model):
                 [("id", "not in", list(task_ids_before) or [0])],
             ).unlink()
         return user
+
+    @staticmethod
+    def _company_partner_targets(source_companies, companies):
+        """Bind each source company partner to the native target company partner."""
+        targets = {}
+        for row in source_companies:
+            source_partner_id = row.get("partner_id")
+            if not source_partner_id:
+                raise RuntimeError(
+                    f"Source company {row['id']} has no partner identity",
+                )
+            target_partner = companies[row["id"]].partner_id
+            existing = targets.get(source_partner_id)
+            if existing and existing != target_partner:
+                raise RuntimeError(
+                    "Source company partner identity is shared by multiple "
+                    f"target companies: {source_partner_id}",
+                )
+            targets[source_partner_id] = target_partner
+        return targets
 
     def _trace_values(self, model, source_id):
         return {
@@ -823,6 +843,10 @@ class UslIdentityRestoreRun(models.Model):
         missing_companies = {row["id"] for row in source["companies"]} - set(companies)
         if missing_companies:
             raise RuntimeError(f"Accounting must restore source companies first: {sorted(missing_companies)}")
+        company_partners = self._company_partner_targets(
+            source["companies"],
+            companies,
+        )
 
         industries = {}
         for row in source["industries"]:
@@ -912,7 +936,21 @@ class UslIdentityRestoreRun(models.Model):
         }
         for row in source["partners"]:
             target_user = resolved_users.get(partner_to_user.get(row["id"]))
-            partner = target_user.partner_id if target_user else self._traced("res.partner", row["id"])
+            company_partner = company_partners.get(row["id"])
+            if (
+                target_user
+                and company_partner
+                and target_user.partner_id != company_partner
+            ):
+                raise RuntimeError(
+                    "Source partner is both a user and a company identity but "
+                    f"maps to different target partners: {row['id']}",
+                )
+            partner = (
+                target_user.partner_id
+                if target_user
+                else company_partner or self._traced("res.partner", row["id"])
+            )
             values = {field_name: row.get(field_name) for field_name in partner_fields}
             # SaaS 19.3 can retain NULL ranks on archived technical partners,
             # while Community stores the native zero default.  This carries no
@@ -1087,6 +1125,13 @@ class UslIdentityRestoreRun(models.Model):
             partner.sudo().with_context(tracking_disable=True).write(
                 {"image_1920": BinaryBytes(source_binary(row))},
             )
+
+        for row in source["companies"]:
+            if companies[row["id"]].partner_id != partners[row["partner_id"]]:
+                raise RuntimeError(
+                    "Restored company does not own its source partner identity: "
+                    f"company {row['id']}, partner {row['partner_id']}",
+                )
 
         banks = {}
         for row in source["banks"]:

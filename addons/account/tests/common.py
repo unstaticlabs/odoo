@@ -305,6 +305,11 @@ class AccountTestInvoicingCommon(ProductCommon):
             | cls.quick_ref('account.group_account_user')
             | cls.quick_ref('account.group_validate_bank_account')
             | cls.quick_ref('base.group_system')  # company creation during setups
+            # Distribution security protects company creation independently from
+            # Settings access. Keep the generic Accounting fixture authorized
+            # when that optional capability is installed, so downstream suites
+            # exercise their Accounting behavior instead of failing in setup.
+            | (cls.env.ref('usl_access_control.group_irreversible_actions', False) or no_group)
         )
 
     @classmethod

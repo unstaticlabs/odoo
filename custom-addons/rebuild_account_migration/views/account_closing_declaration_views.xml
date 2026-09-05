@@ -10,6 +10,10 @@
                 <field name="name"/>
                 <field name="category"/>
                 <field name="cadence"/>
+                <field name="period_basis"/>
+                <field name="trigger_kind" optional="hide"/>
+                <field name="threshold_amount" optional="hide"/>
+                <field name="secondary_threshold_amount" optional="hide"/>
                 <field name="form_code"/>
                 <field name="version"/>
                 <field name="effective_from"/>
@@ -35,8 +39,16 @@
                             <field name="code"/>
                             <field name="category"/>
                             <field name="cadence"/>
+                            <field name="period_basis"/>
+                            <field name="trigger_kind"/>
+                            <field name="deadline_rule"/>
+                            <field name="filing_channel"/>
+                            <field name="payment_required"/>
+                            <field name="threshold_amount" invisible="not threshold_amount"/>
+                            <field name="secondary_threshold_amount" invisible="not secondary_threshold_amount"/>
                             <field name="form_code"/>
                             <field name="tax_form_codes"/>
+                            <field name="supporting_form_codes"/>
                         </group>
                         <group>
                             <field name="version"/>
@@ -143,6 +155,8 @@
                 <filter name="group_category" string="Category" context="{'group_by': 'category'}"/>
                 <filter name="group_deadline" string="Deadline Month" context="{'group_by': 'deadline_date:month'}"/>
                 <filter name="group_status" string="Status" context="{'group_by': 'status'}"/>
+                <filter name="group_applicability" string="Applicability" context="{'group_by': 'applicability'}"/>
+                <filter name="group_preparation" string="Preparation" context="{'group_by': 'preparation_status'}"/>
             </search>
         </field>
     </record>
@@ -159,19 +173,23 @@
                 <field name="rule_version" string="Version"/>
                 <field name="period_start" optional="hide"/>
                 <field name="period_end"/>
+                <field name="applicability" widget="badge"
+                    decoration-success="applicability == 'applicable'"
+                    decoration-warning="applicability == 'conditional'"
+                    decoration-muted="applicability == 'not_applicable'"/>
                 <field name="status" widget="badge"
                     decoration-success="status in ('ready_to_file', 'filed', 'paid')"
                     decoration-info="status in ('internal_review', 'accountant_review', 'accountant_reviewed')"
                     decoration-warning="status in ('to_prepare', 'data_missing')"
                     decoration-danger="status == 'blocked'"
                     decoration-muted="status in ('archived', 'not_applicable')"/>
-                <field name="validation_status" widget="badge"
-                    decoration-success="validation_status == 'ready'"
-                    decoration-warning="validation_status == 'warning'"
-                    decoration-danger="validation_status == 'blocked'"
-                    decoration-muted="validation_status == 'not_run'"/>
+                <field name="validation_status" column_invisible="True"/>
                 <field name="review_status" optional="hide"/>
-                <field name="filing_status" optional="hide"/>
+                <field name="filing_status" widget="badge" optional="show"
+                    decoration-success="filing_status in ('filed', 'accepted')"
+                    decoration-info="filing_status == 'ready'"
+                    decoration-danger="filing_status == 'rejected'"
+                    decoration-muted="filing_status == 'not_open'"/>
                 <field name="payment_status" optional="hide"/>
                 <field name="unresolved_count"/>
                 <field name="is_overdue" optional="hide"/>
@@ -203,10 +221,10 @@
                     <button name="action_mark_internal_ready" type="object" string="Internal Review Ready" groups="account.group_account_manager" invisible="status not in ['to_prepare', 'data_missing', 'internal_review', 'blocked']"/>
                     <button name="action_mark_ready_to_file" type="object" string="Approve for Filing" class="oe_highlight" groups="account.group_account_manager" invisible="status != 'internal_review'" title="Confirm the internal review is complete and allow external filing. Accountant review remains optional."/>
                     <button name="action_request_accountant_review" type="object" string="Request Optional Accountant Review" groups="account.group_account_manager" invisible="status not in ['internal_review']"/>
-                    <button name="action_record_review_decision" type="object" string="Record Review Decision" groups="account.group_account_manager" invisible="status not in ['accountant_review', 'accountant_reviewed', 'ready_to_file']"/>
+                    <button name="action_record_review_decision" type="object" string="Record Review Decision" groups="account.group_account_manager,rebuild_account_migration.group_rebuild_accountant_reviewer" invisible="status not in ['accountant_review', 'accountant_reviewed', 'ready_to_file']"/>
                     <button name="action_mark_filed" type="object" string="Mark Filed Externally" class="oe_highlight" groups="account.group_account_manager" invisible="status not in ['accountant_reviewed', 'ready_to_file']"/>
                     <button name="action_mark_paid_or_refunded" type="object" string="Complete Payment / Refund" groups="account.group_account_manager" invisible="status != 'filed'"/>
-                    <field name="status" widget="statusbar" statusbar_visible="to_prepare,data_missing,internal_review,accountant_review,accountant_reviewed,ready_to_file,filed,paid,archived"/>
+                    <field name="status" widget="statusbar" readonly="1" statusbar_visible="to_prepare,data_missing,internal_review,accountant_review,accountant_reviewed,ready_to_file,filed,paid,archived"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
@@ -228,21 +246,69 @@
                             <field name="rule_id" options="{'no_create': True}"/>
                             <field name="form_code"/>
                             <field name="rule_version"/>
-                            <field name="applicability"/>
+                            <field name="preparation_status" widget="badge" readonly="1"
+                                decoration-success="preparation_status in ('ready_for_review', 'reviewed')"
+                                decoration-warning="preparation_status == 'missing_data' and applicability == 'conditional'"
+                                decoration-danger="preparation_status == 'missing_data' and applicability == 'applicable'"
+                                decoration-muted="preparation_status == 'not_required'"/>
+                            <field name="filing_status" widget="badge" readonly="1"
+                                decoration-success="filing_status in ('filed', 'accepted')"
+                                decoration-info="filing_status == 'ready'"
+                                decoration-danger="filing_status == 'rejected'"
+                                decoration-muted="filing_status == 'not_open'"/>
                         </group>
                         <group>
                             <field name="period_start"/>
                             <field name="period_end"/>
                             <field name="deadline_window_start"/>
                             <field name="deadline_date"/>
-                            <field name="validation_status" widget="badge"/>
+                            <field name="status" string="Workflow Status" widget="badge" readonly="1"
+                                decoration-success="status in ('ready_to_file', 'filed', 'paid', 'archived')"
+                                decoration-info="status in ('internal_review', 'accountant_review', 'accountant_reviewed')"
+                                decoration-warning="status in ('to_prepare', 'data_missing')"
+                                decoration-danger="status == 'blocked'"
+                                decoration-muted="status == 'not_applicable'"/>
+                            <field name="validation_status" widget="badge" readonly="1"
+                                decoration-success="validation_status == 'ready'"
+                                decoration-warning="validation_status == 'warning'"
+                                decoration-danger="validation_status == 'blocked'"
+                                decoration-muted="validation_status == 'not_run'"/>
                             <field name="is_overdue"/>
                         </group>
                     </group>
-                    <group string="Applicability and Deadline Basis">
-                        <field name="applicability_reason" nolabel="1"/>
-                        <field name="deadline_basis" nolabel="1"/>
-                    </group>
+                    <section class="o_usl_declaration_basis">
+                        <div class="o_usl_declaration_basis_header">
+                            <div class="o_usl_declaration_basis_heading">
+                                <span class="o_usl_declaration_basis_icon fa fa-balance-scale" title="Applicability and deadline" aria-hidden="true"/>
+                                <div>
+                                    <h2>Applicability and deadline</h2>
+                                    <p>See why this obligation applies and how its filing date is determined.</p>
+                                </div>
+                            </div>
+                            <field name="applicability" widget="badge" readonly="1" nolabel="1"
+                                decoration-success="applicability == 'applicable'"
+                                decoration-warning="applicability == 'conditional'"
+                                decoration-muted="applicability == 'not_applicable'"/>
+                        </div>
+                        <div class="o_usl_declaration_basis_grid">
+                            <article class="o_usl_declaration_basis_card">
+                                <div class="o_usl_declaration_basis_card_icon fa fa-check-circle-o" title="Why this applies" aria-hidden="true"/>
+                                <div class="o_usl_declaration_basis_card_content">
+                                    <h3>Why this applies</h3>
+                                    <p>Rules relevant to this company and declaration period.</p>
+                                    <field name="applicability_reason" nolabel="1"/>
+                                </div>
+                            </article>
+                            <article class="o_usl_declaration_basis_card">
+                                <div class="o_usl_declaration_basis_card_icon fa fa-calendar-check-o" title="How the deadline is calculated" aria-hidden="true"/>
+                                <div class="o_usl_declaration_basis_card_content">
+                                    <h3>How the deadline is calculated</h3>
+                                    <p>Statutory timing rule and any applicable filing window.</p>
+                                    <field name="deadline_basis" nolabel="1"/>
+                                </div>
+                            </article>
+                        </div>
+                    </section>
                     <notebook>
                         <page string="Prefilled Fields">
                             <field name="field_line_ids" nolabel="1" readonly="1">
@@ -270,10 +336,14 @@
                         <page string="Review and Filing">
                             <group>
                                 <group>
-                                    <field name="review_status"/>
-                                    <field name="filing_status"/>
-                                    <field name="acceptance_status"/>
-                                    <field name="payment_status"/>
+                                    <field name="review_status" widget="badge" readonly="1"
+                                        decoration-success="review_status == 'accepted'"
+                                        decoration-info="review_status in ('internal_ready', 'accountant_requested')"
+                                        decoration-warning="review_status == 'accepted_with_difference'"
+                                        decoration-danger="review_status == 'rejected'"
+                                        decoration-muted="review_status == 'not_started'"/>
+                                    <field name="acceptance_status" widget="badges_selection"/>
+                                    <field name="payment_status" widget="badges_selection" options="{'badge_limit': 4}"/>
                                 </group>
                                 <group>
                                     <field name="amount_due"/>
@@ -771,6 +841,9 @@
                                 invisible="not rebuild_declaration_profile_active or rebuild_corporate_tax_regime != 'is'"/>
                             <field name="rebuild_profit_tax_regime" required="rebuild_declaration_profile_active"/>
                             <field name="rebuild_vat_regime" required="rebuild_declaration_profile_active"/>
+                            <field name="rebuild_vat_transition_date"/>
+                            <field name="rebuild_oss_registered"/>
+                            <field name="rebuild_cfe_monthly_payment"/>
                             <field name="rebuild_first_fiscalyear_start"/>
                             <field name="rebuild_first_fiscalyear_end"/>
                         </group>
@@ -781,7 +854,10 @@
                                     class="oe_highlight" groups="account.group_account_manager"/>
                         </group>
                     </group>
-                    <group string="Profile Evidence"><field name="rebuild_declaration_profile_evidence" nolabel="1"/></group>
+                    <group string="Profile Evidence">
+                        <field name="rebuild_declaration_profile_evidence" nolabel="1"/>
+                        <field name="rebuild_oss_registration_evidence" invisible="not rebuild_oss_registered"/>
+                    </group>
                 </page>
             </xpath>
         </field>

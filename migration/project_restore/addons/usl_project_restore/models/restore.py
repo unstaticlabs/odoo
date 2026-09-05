@@ -7,7 +7,7 @@ from pathlib import Path
 import psycopg2
 import psycopg2.extras
 
-from odoo import SUPERUSER_ID, Command, fields, models
+from odoo import SUPERUSER_ID, Command, api, fields, models
 from odoo.tools import html_sanitize
 
 SOURCE_MODELS = (
@@ -16,7 +16,72 @@ SOURCE_MODELS = (
     "project.update",
     "project.milestone",
 )
-RESTORE_REVISION = 6
+RESTORE_REVISION = 9
+SOURCE_PRIMARY_ID_CONTEXT = "usl_project_restore_source_primary_id"
+
+
+class ProjectProject(models.Model):
+    _inherit = "project.project"
+
+    @api.model
+    def _prepare_create_values(self, vals_list):
+        values = super()._prepare_create_values(vals_list)
+        source_id = self.env.context.get(SOURCE_PRIMARY_ID_CONTEXT)
+        if source_id:
+            if len(values) != 1:
+                raise RuntimeError(
+                    "Source-ID project allocation requires one record at a time.",
+                )
+            values[0]["id"] = source_id
+        return values
+
+
+class ProjectTask(models.Model):
+    _inherit = "project.task"
+
+    @api.model
+    def _prepare_create_values(self, vals_list):
+        values = super()._prepare_create_values(vals_list)
+        source_id = self.env.context.get(SOURCE_PRIMARY_ID_CONTEXT)
+        if source_id:
+            if len(values) != 1:
+                raise RuntimeError(
+                    "Source-ID task allocation requires one record at a time.",
+                )
+            values[0]["id"] = source_id
+        return values
+
+
+class ProjectTaskType(models.Model):
+    _inherit = "project.task.type"
+
+    @api.model
+    def _prepare_create_values(self, vals_list):
+        values = super()._prepare_create_values(vals_list)
+        source_id = self.env.context.get(SOURCE_PRIMARY_ID_CONTEXT)
+        if source_id:
+            if len(values) != 1:
+                raise RuntimeError(
+                    "Source-ID task-stage allocation requires one record at a time.",
+                )
+            values[0]["id"] = source_id
+        return values
+
+
+class ProjectProjectStage(models.Model):
+    _inherit = "project.project.stage"
+
+    @api.model
+    def _prepare_create_values(self, vals_list):
+        values = super()._prepare_create_values(vals_list)
+        source_id = self.env.context.get(SOURCE_PRIMARY_ID_CONTEXT)
+        if source_id:
+            if len(values) != 1:
+                raise RuntimeError(
+                    "Source-ID project-stage allocation requires one record at a time.",
+                )
+            values[0]["id"] = source_id
+        return values
 
 
 class UslProjectRestoreRun(models.Model):
@@ -128,6 +193,288 @@ class UslProjectRestoreRun(models.Model):
             generated.unlink()
         return len(generated)
 
+    def _acquire_preserved_primary_id_control(self, payload):
+        """Lock Project writes and reject ambiguous source identities."""
+        self.ensure_one()
+        historical_stage_ids = payload.get("historical_task_stage_ids", [])
+        specifications = (
+            (
+                "project.project.stage",
+                "project_project_stage",
+                payload.get("project_stages", []),
+            ),
+            ("project.project", "project_project", payload["projects"]),
+            ("project.task", "project_task", payload["tasks"]),
+            ("project.task.type", "project_task_type", payload["task_stages"]),
+            (
+                "project.task.type.history",
+                "project_task_type",
+                [{"id": stage_id} for stage_id in historical_stage_ids],
+            ),
+        )
+        source_ids_by_model = {}
+        for model_name, _table, rows in specifications:
+            source_ids = [row.get("id") for row in rows]
+            invalid_ids = [
+                source_id
+                for source_id in source_ids
+                if isinstance(source_id, bool)
+                or not isinstance(source_id, int)
+                or source_id <= 0
+            ]
+            if invalid_ids:
+                raise RuntimeError(
+                    f"{model_name} contains invalid Online IDs: {invalid_ids!r}.",
+                )
+            if len(source_ids) != len(set(source_ids)):
+                raise RuntimeError(
+                    f"{model_name} contains duplicate Online IDs.",
+                )
+            source_ids_by_model[model_name] = source_ids
+        overlapping_stage_ids = set(
+            source_ids_by_model["project.task.type"],
+        ) & set(source_ids_by_model["project.task.type.history"])
+        if overlapping_stage_ids:
+            raise RuntimeError(
+                "Live and deleted historical task-stage IDs overlap: "
+                f"{sorted(overlapping_stage_ids)!r}.",
+            )
+
+        self.env.flush_all()
+        self.env.cr.execute(
+            "LOCK TABLE project_project, project_project_stage, project_task, "
+            "project_task_type IN ACCESS EXCLUSIVE MODE",
+        )
+        self._adopt_compatible_project_stage_fixtures(
+            payload.get("project_stages", []),
+        )
+        self._remove_task_stage_id_collisions(source_ids_by_model)
+        collisions = []
+        for model_name, table, _rows in specifications:
+            source_ids = source_ids_by_model[model_name]
+            if not source_ids:
+                continue
+            self.env.cr.execute(
+                f"""
+                    SELECT id,
+                           rebuild_source_database,
+                           rebuild_source_model,
+                           rebuild_source_id
+                      FROM {table}
+                     WHERE id = ANY(%s)
+                        OR (
+                            rebuild_source_model = %s
+                            AND rebuild_source_id = ANY(%s)
+                        )
+                     ORDER BY id
+                """,
+                (source_ids, model_name, source_ids),
+            )
+            for record_id, database, traced_model, traced_id in self.env.cr.fetchall():
+                same_source_identity = (
+                    database == self.source_database
+                    and traced_model == model_name
+                    and traced_id == record_id
+                )
+                if record_id in source_ids and not same_source_identity:
+                    collisions.append(
+                        f"{model_name} Online ID {record_id} is occupied",
+                    )
+                elif traced_id in source_ids and record_id != traced_id:
+                    collisions.append(
+                        f"{model_name} Online ID {traced_id} is already mapped "
+                        f"to target ID {record_id}",
+                    )
+        if collisions:
+            raise RuntimeError(
+                "Cannot preserve Project primary IDs: " + "; ".join(collisions),
+            )
+
+    def _adopt_compatible_project_stage_fixtures(self, rows):
+        """Reuse exact-ID native stages only when they are safe equivalents.
+
+        A clean Community installation owns the four native Project stages at
+        the same primary IDs as Online. Creating duplicate traced stages would
+        remap every project and make the native duration ledger invalid. Keep
+        the native XML-ID owner, but adopt the record only when it is untraced,
+        unreferenced, and semantically identical to the frozen source row.
+        """
+        Stage = self.env["project.project.stage"].sudo().with_context(
+            active_test=False,
+            lang="en_US",
+            tracking_disable=True,
+        )
+        for row in rows:
+            stage = Stage.browse(row["id"]).exists()
+            if not stage or stage.rebuild_source_model or stage.rebuild_source_id:
+                continue
+            self.env.cr.execute(
+                "SELECT count(*) FROM project_project WHERE stage_id = %s",
+                (stage.id,),
+            )
+            referenced = self.env.cr.fetchone()[0]
+            self.env.cr.execute(
+                """
+                    SELECT 1
+                      FROM ir_model_data
+                     WHERE module = 'project'
+                       AND model = 'project.project.stage'
+                       AND res_id = %s
+                """,
+                (stage.id,),
+            )
+            native_fixture = bool(self.env.cr.fetchone())
+            semantic_equivalent = (
+                stage.name == self._source_text(row["name"])
+                and stage.sequence == row["sequence"]
+                and stage.color == (row["color"] or 0)
+                and stage.active == row["active"]
+                and stage.fold == bool(row["fold"])
+                and stage.rotting_threshold_days
+                == (row["rotting_threshold_days"] or 0)
+            )
+            compatible = (
+                not referenced
+                and not row["company_id"]
+                and not stage.company_id
+                and (native_fixture or semantic_equivalent)
+            )
+            if not compatible:
+                continue
+            trace = self._trace_values(
+                "project.project.stage",
+                row["id"],
+                self.source_snapshot,
+                status="reused",
+            )
+            self.env.cr.execute(
+                """
+                    UPDATE project_project_stage
+                       SET rebuild_source_database = %s,
+                           rebuild_source_model = %s,
+                           rebuild_source_id = %s,
+                           rebuild_source_snapshot = %s,
+                           rebuild_import_status = %s,
+                           rebuild_import_note = %s
+                     WHERE id = %s
+                """,
+                (
+                    trace["rebuild_source_database"],
+                    trace["rebuild_source_model"],
+                    trace["rebuild_source_id"],
+                    trace["rebuild_source_snapshot"],
+                    trace["rebuild_import_status"],
+                    trace["rebuild_import_note"],
+                    stage.id,
+                ),
+            )
+            stage.invalidate_recordset(
+                [
+                    "rebuild_source_database",
+                    "rebuild_source_model",
+                    "rebuild_source_id",
+                    "rebuild_source_snapshot",
+                    "rebuild_import_status",
+                    "rebuild_import_note",
+                ],
+            )
+
+    def _remove_task_stage_id_collisions(self, source_ids_by_model):
+        """Discard only unowned target fixtures blocking source stage IDs."""
+        expected_identity = {
+            stage_id: model_name
+            for model_name in (
+                "project.task.type",
+                "project.task.type.history",
+            )
+            for stage_id in source_ids_by_model[model_name]
+        }
+        stage_ids = list(expected_identity)
+        if not stage_ids:
+            return
+        self.env.cr.execute(
+            """
+                SELECT id, rebuild_source_database, rebuild_source_model,
+                       rebuild_source_id
+                  FROM project_task_type
+                 WHERE id = ANY(%s)
+                 ORDER BY id
+            """,
+            (stage_ids,),
+        )
+        removable_ids = []
+        for record_id, database, source_model, source_id in self.env.cr.fetchall():
+            if (
+                database == self.source_database
+                and source_model == expected_identity[record_id]
+                and source_id == record_id
+            ):
+                continue
+            if source_model or source_id or database:
+                continue
+            removable_ids.append(record_id)
+        if not removable_ids:
+            return
+
+        references = []
+        for label, query in (
+            (
+                "tasks",
+                "SELECT count(*) FROM project_task WHERE stage_id = ANY(%s)",
+            ),
+            (
+                "projects",
+                "SELECT count(*) FROM project_task_type_rel "
+                "WHERE type_id = ANY(%s)",
+            ),
+            (
+                "personal task links",
+                "SELECT count(*) FROM project_task_user_rel "
+                "WHERE stage_id = ANY(%s)",
+            ),
+            (
+                "external IDs",
+                "SELECT count(*) FROM ir_model_data "
+                "WHERE model = 'project.task.type' AND res_id = ANY(%s)",
+            ),
+        ):
+            self.env.cr.execute(query, (removable_ids,))
+            count = self.env.cr.fetchone()[0]
+            if count:
+                references.append(f"{count} {label}")
+        if references:
+            raise RuntimeError(
+                "Cannot reserve Online task-stage IDs because target fixtures "
+                f"{removable_ids!r} still own " + ", ".join(references) + ".",
+            )
+
+        # These target fixture stages have no task, project, personal-stage, or
+        # external-ID owner, so replacing their IDs cannot erase business data.
+        self.env.cr.execute(
+            "DELETE FROM project_task_type WHERE id = ANY(%s)",
+            (removable_ids,),
+        )
+        self.env["project.task.type"].invalidate_model()
+
+    def _reset_preserved_primary_id_sequences(self):
+        self.ensure_one()
+        for table in (
+            "project_project",
+            "project_project_stage",
+            "project_task",
+            "project_task_type",
+        ):
+            self.env.cr.execute(
+                f"""
+                    SELECT setval(
+                        pg_get_serial_sequence('{table}', 'id'),
+                        COALESCE(max(id), 0) + 1,
+                        FALSE
+                    )
+                      FROM {table}
+                """,
+            )
+
     def _community_property_definition(self, definition):
         definition = copy.deepcopy(definition or [])
         field = self.env["project.project"]._fields[
@@ -213,6 +560,7 @@ class UslProjectRestoreRun(models.Model):
         values,
         snapshot,
         *,
+        preserve_primary_id=False,
         translation_fields=(),
     ):
         traced = self._traced(target_model, source_model, [row["id"]])
@@ -238,6 +586,11 @@ class UslProjectRestoreRun(models.Model):
             )
         )
         if record:
+            if preserve_primary_id and record.id != row["id"]:
+                raise RuntimeError(
+                    f"{source_model} Online ID {row['id']} is mapped to "
+                    f"target ID {record.id}.",
+                )
             if self._is_current_revision(record, snapshot):
                 return record
             record.with_context(
@@ -245,7 +598,17 @@ class UslProjectRestoreRun(models.Model):
                 mail_auto_subscribe_no_notify=True,
             ).write(values)
         else:
-            record = model.create(values)
+            create_model = model
+            if preserve_primary_id:
+                create_model = model.with_context(
+                    **{SOURCE_PRIMARY_ID_CONTEXT: row["id"]},
+                )
+            record = create_model.create(values)
+        if preserve_primary_id and record.id != row["id"]:
+            raise RuntimeError(
+                f"Failed to allocate {source_model} Online ID {row['id']}; "
+                f"the ORM returned target ID {record.id}.",
+            )
         if (
             record.rebuild_source_model != source_model
             or record.rebuild_source_id != row["id"]
@@ -559,6 +922,7 @@ class UslProjectRestoreRun(models.Model):
                     "rotting_threshold_days": row["rotting_threshold_days"],
                 },
                 snapshot,
+                preserve_primary_id=True,
                 translation_fields=("name",),
             )
             project_stages[row["id"]] = record
@@ -590,10 +954,36 @@ class UslProjectRestoreRun(models.Model):
                     "rotting_threshold_days": row["rotting_threshold_days"],
                 },
                 snapshot,
+                preserve_primary_id=True,
                 translation_fields=("name",),
             )
             task_stages[row["id"]] = record
             self._stamp_audit("project.task.type", record, row, users)
+
+        for stage_id in payload.get("historical_task_stage_ids", []):
+            row = {"id": stage_id}
+            record = self._upsert(
+                "project.task.type",
+                "project.task.type.history",
+                row,
+                {
+                    "name": f"Historical Online stage {stage_id} (deleted)",
+                    "sequence": 999_999,
+                    "color": 0,
+                    "active": False,
+                    "fold": True,
+                    "auto_validation_state": False,
+                    "user_id": False,
+                    "rotting_threshold_days": 0,
+                },
+                snapshot,
+                preserve_primary_id=True,
+            )
+            if record.id != stage_id or record.active or record.project_ids:
+                raise RuntimeError(
+                    f"Historical Online task-stage ID {stage_id} was not "
+                    "reserved as a hidden identity.",
+                )
 
         tags = {}
         for row in payload["tags"]:
@@ -737,6 +1127,7 @@ class UslProjectRestoreRun(models.Model):
                 row,
                 values,
                 snapshot,
+                preserve_primary_id=True,
                 translation_fields=("name", "label_tasks"),
             )
             projects[row["id"]] = record
@@ -949,6 +1340,7 @@ class UslProjectRestoreRun(models.Model):
                 row,
                 values,
                 snapshot,
+                preserve_primary_id=True,
             )
             tasks[row["id"]] = record
             self._stamp_audit("project.task", record, row, users)
@@ -1018,6 +1410,7 @@ class UslProjectRestoreRun(models.Model):
         payload,
         projects,
         tasks,
+        project_stages,
         task_stages,
     ):
         # Project's ORM deliberately updates lifecycle fields as relationships,
@@ -1028,15 +1421,29 @@ class UslProjectRestoreRun(models.Model):
             project = projects.get(row["id"])
             if not project or not self._written_this_run(project):
                 continue
+            stage = project_stages.get(row["stage_id"])
             self.env.cr.execute(
                 """
                     UPDATE project_project
-                       SET date_last_stage_update = %s
+                       SET stage_id = %s,
+                           date_last_stage_update = %s,
+                           duration_tracking = %s
                      WHERE id = %s
                 """,
-                (row["date_last_stage_update"], project.id),
+                (
+                    stage.id if stage else None,
+                    row["date_last_stage_update"],
+                    (
+                        psycopg2.extras.Json(row["duration_tracking"])
+                        if row["duration_tracking"] is not None
+                        else None
+                    ),
+                    project.id,
+                ),
             )
-            project.invalidate_recordset(["date_last_stage_update"])
+            project.invalidate_recordset(
+                ["stage_id", "date_last_stage_update", "duration_tracking"],
+            )
         for row in payload["tasks"]:
             task = tasks.get(row["id"])
             if not task or not self._written_this_run(task):
@@ -1053,7 +1460,8 @@ class UslProjectRestoreRun(models.Model):
                            date_deadline = %s,
                            date_last_stage_update = %s,
                            planned_date_begin = %s,
-                           html_field_history = %s
+                           html_field_history = %s,
+                           duration_tracking = %s
                      WHERE id = %s
                 """,
                 (
@@ -1066,6 +1474,11 @@ class UslProjectRestoreRun(models.Model):
                     row["date_last_stage_update"],
                     row["planned_date_begin"],
                     psycopg2.extras.Json(row["html_field_history"] or {}),
+                    (
+                        psycopg2.extras.Json(row["duration_tracking"])
+                        if row["duration_tracking"] is not None
+                        else None
+                    ),
                     task.id,
                 ),
             )
@@ -1080,6 +1493,7 @@ class UslProjectRestoreRun(models.Model):
                     "date_last_stage_update",
                     "planned_date_begin",
                     "html_field_history",
+                    "duration_tracking",
                 ],
             )
 
@@ -1239,9 +1653,16 @@ class UslProjectRestoreRun(models.Model):
                 if not self._is_current_revision(attachment, snapshot):
                     immutable = dict(values)
                     immutable.pop("raw")
-                    attachment.sudo().write(immutable)
+                    attachment.sudo().with_context(
+                        usl_documents_skip_attachment_queue=True,
+                    ).write(immutable)
             else:
-                attachment = self.env["ir.attachment"].sudo().create(values)
+                attachment = (
+                    self.env["ir.attachment"]
+                    .sudo()
+                    .with_context(usl_documents_skip_attachment_queue=True)
+                    .create(values)
+                )
                 attachments[row["id"]] = attachment
             self._stamp_audit("ir.attachment", attachment, row, users)
         return attachments
@@ -1576,11 +1997,12 @@ class UslProjectRestoreRun(models.Model):
     def restore_from_payload(self, payload, *, filestore):
         self.ensure_one()
         snapshot = self.source_snapshot
-        self._remove_generated_onboarding_todos()
         companies, partners, users = self._restore_partners_companies_users(
             payload,
             snapshot,
         )
+        self._remove_generated_onboarding_todos()
+        self._acquire_preserved_primary_id_control(payload)
         project_stages, task_stages, tags, activity_types = (
             self._restore_configuration(
                 payload,
@@ -1609,6 +2031,7 @@ class UslProjectRestoreRun(models.Model):
             task_stages,
             tags,
         )
+        self._reset_preserved_primary_id_sequences()
         updates = self._restore_updates(
             payload,
             snapshot,
@@ -1653,8 +2076,18 @@ class UslProjectRestoreRun(models.Model):
             payload,
             projects,
             tasks,
+            project_stages,
             task_stages,
         )
+        target_duration_ledgers = [
+            tasks[row["id"]].duration_tracking or {}
+            for row in payload["tasks"]
+            if tasks.get(row["id"])
+        ]
+        historical_stage_keys = {
+            str(stage_id)
+            for stage_id in payload.get("historical_task_stage_ids", [])
+        }
         project_ids = {record.id for record in projects.values()}
         self.env.cr.execute(
             """
@@ -1684,6 +2117,36 @@ class UslProjectRestoreRun(models.Model):
                 "tasks": len(tasks),
                 "project_stages": len(project_stages),
                 "task_stages": len(task_stages),
+                "projects_with_duration_tracking": sum(
+                    project.duration_tracking is not False
+                    for project in projects.values()
+                ),
+                "historical_task_stages": len(historical_stage_keys),
+                "tasks_with_duration_history": sum(
+                    bool(set(ledger) - {"d", "s"})
+                    for ledger in target_duration_ledgers
+                ),
+                "task_duration_buckets": sum(
+                    len(set(ledger) - {"d", "s"})
+                    for ledger in target_duration_ledgers
+                ),
+                "task_duration_minutes": sum(
+                    value
+                    for ledger in target_duration_ledgers
+                    for key, value in ledger.items()
+                    if key not in {"d", "s"}
+                ),
+                "deleted_stage_duration_buckets": sum(
+                    key in historical_stage_keys
+                    for ledger in target_duration_ledgers
+                    for key in ledger
+                ),
+                "deleted_stage_duration_minutes": sum(
+                    value
+                    for ledger in target_duration_ledgers
+                    for key, value in ledger.items()
+                    if key in historical_stage_keys
+                ),
                 "tags": len(tags),
                 "activity_types": len(activity_types),
                 "milestones": len(milestones),
@@ -1851,6 +2314,11 @@ class UslProjectRestoreRun(models.Model):
                 "source_project_documents": payload[
                     "project_document_count"
                 ],
+                "source_project_documents_disposition": (
+                    "Delegated to the governed Documents archive after Projects "
+                    "restoration so source folder and record relationships can be "
+                    "resolved against native Community project identities."
+                ),
                 "source_project_sales_links": payload[
                     "project_sales_link_count"
                 ],
@@ -1858,7 +2326,6 @@ class UslProjectRestoreRun(models.Model):
         }
         unsupported_source_links = {
             "project collaborators": payload["project_collaborator_count"],
-            "project Documents": payload["project_document_count"],
             "project sales links": payload["project_sales_link_count"],
         }
         for description, count in unsupported_source_links.items():
@@ -1989,6 +2456,55 @@ class ProjectSourceReader:
                 cursor_factory=psycopg2.extras.RealDictCursor,
             ) as cursor:
                 payload = self._read_core(cursor)
+                for project in payload["projects"]:
+                    ledger = project.get("duration_tracking")
+                    if ledger is None:
+                        continue
+                    if not isinstance(ledger, dict):
+                        raise RuntimeError(
+                            f"Project {project['id']} has an invalid duration ledger.",
+                        )
+                    current_stage_id = ledger.get("s")
+                    expected_stage_id = project.get("stage_id") or 0
+                    if current_stage_id != expected_stage_id:
+                        raise RuntimeError(
+                            f"Project {project['id']} duration ledger points to "
+                            f"stage {current_stage_id!r}, not current stage "
+                            f"{expected_stage_id!r}.",
+                        )
+                live_task_stage_ids = {
+                    row["id"] for row in payload["task_stages"]
+                }
+                duration_stage_ids = set()
+                for task in payload["tasks"]:
+                    ledger = task.get("duration_tracking")
+                    if not ledger:
+                        continue
+                    if not isinstance(ledger, dict):
+                        raise RuntimeError(
+                            f"Task {task['id']} has an invalid duration ledger.",
+                        )
+                    current_stage_id = ledger.get("s")
+                    expected_stage_id = task.get("stage_id") or 0
+                    if current_stage_id != expected_stage_id:
+                        raise RuntimeError(
+                            f"Task {task['id']} duration ledger points to stage "
+                            f"{current_stage_id!r}, not current stage "
+                            f"{expected_stage_id!r}.",
+                        )
+                    for key in set(ledger) - {"d", "s"}:
+                        try:
+                            stage_id = int(key)
+                        except (TypeError, ValueError) as error:
+                            raise RuntimeError(
+                                f"Task {task['id']} duration ledger contains "
+                                f"invalid stage key {key!r}.",
+                            ) from error
+                        if stage_id > 0:
+                            duration_stage_ids.add(stage_id)
+                payload["historical_task_stage_ids"] = sorted(
+                    duration_stage_ids - live_task_stage_ids,
+                )
                 payload.update(self._read_relations(cursor))
                 payload.update(self._read_mail(cursor))
                 payload.update(self._read_identities(cursor))
@@ -2169,10 +2685,41 @@ class ProjectSourceReader:
                     bool(row["account_id"])
                     for row in payload["projects"]
                 ),
+                "projects_with_duration_tracking": sum(
+                    row["duration_tracking"] is not None
+                    for row in payload["projects"]
+                ),
                 "linked_expenses": len(payload["linked_expense_ids"]),
                 "message_parent_links": sum(
                     bool(row["parent_id"])
                     for row in payload["messages"]
+                ),
+                "historical_task_stages": len(
+                    payload["historical_task_stage_ids"],
+                ),
+                "tasks_with_duration_history": sum(
+                    bool(set((row["duration_tracking"] or {})) - {"d", "s"})
+                    for row in payload["tasks"]
+                ),
+                "task_duration_buckets": sum(
+                    len(set((row["duration_tracking"] or {})) - {"d", "s"})
+                    for row in payload["tasks"]
+                ),
+                "task_duration_minutes": sum(
+                    value
+                    for row in payload["tasks"]
+                    for key, value in (row["duration_tracking"] or {}).items()
+                    if key not in {"d", "s"}
+                ),
+                "deleted_stage_duration_buckets": sum(
+                    str(stage_id) in (row["duration_tracking"] or {})
+                    for row in payload["tasks"]
+                    for stage_id in payload["historical_task_stage_ids"]
+                ),
+                "deleted_stage_duration_minutes": sum(
+                    (row["duration_tracking"] or {}).get(str(stage_id), 0)
+                    for row in payload["tasks"]
+                    for stage_id in payload["historical_task_stage_ids"]
                 ),
             },
         )
@@ -2219,7 +2766,8 @@ class ProjectSourceReader:
                            task_properties_definition, description, active,
                            allow_task_dependencies, allow_milestones,
                            allow_recurring_tasks, is_template,
-                           date_last_stage_update, create_uid, write_uid,
+                           date_last_stage_update, duration_tracking,
+                           create_uid, write_uid,
                            create_date, write_date, documents_folder_id,
                            alias_id,
                            (
@@ -2267,6 +2815,7 @@ class ProjectSourceReader:
                            recurring_task, is_template, date_end, date_assign,
                            date_deadline, date_last_stage_update,
                            allocated_hours, planned_date_begin,
+                           duration_tracking,
                            create_uid, write_uid, create_date, write_date
                       FROM project_task
                      ORDER BY id

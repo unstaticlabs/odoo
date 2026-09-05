@@ -54,7 +54,7 @@ Confirm:
 - current Odoo documentation and source have been reviewed;
 - maintained alternatives have been considered;
 - dependencies and affected modules are understood;
-- accounting, migration, privacy, and upgrade risks have been identified.
+- accounting, data, privacy, and upgrade risks have been identified.
 
 For material architectural choices, present at least two credible options with their pros and cons before implementation.
 
@@ -87,7 +87,7 @@ Contributions must:
 - use the ORM for normal business operations;
 - preserve company and permission boundaries;
 - remain understandable without relying on the original contributor;
-- include migration handling when persisted data changes.
+- include a versioned data-upgrade path when persisted data changes.
 
 Direct modifications to upstream Odoo code require explicit architectural approval and documentation.
 
@@ -104,7 +104,7 @@ At minimum, verify:
 - multi-company behaviour where relevant;
 - duplicate execution and retries;
 - module installation and upgrade;
-- migration impact where relevant.
+- stored-data and upgrade impact where relevant.
 
 Accounting-critical changes require realistic accounting fixtures and report validation.
 
@@ -137,7 +137,7 @@ Each pull request should include:
 - **Outcome:** what user or system need it addresses;
 - **Approach:** what changed;
 - **Alternatives:** options considered for material decisions;
-- **Risks:** accounting, security, privacy, migration, performance, or upgrade impact;
+- **Risks:** accounting, security, privacy, stored-data, performance, or upgrade impact;
 - **Testing:** checks executed and their results;
 - **Upstream impact:** whether standard Odoo code or behaviour is affected;
 - **Known limitations:** unresolved issues or follow-up work.
@@ -156,7 +156,7 @@ Update documentation when changing:
 - integrations;
 - deployment behaviour;
 - accounting behaviour;
-- migration expectations.
+- stored-data upgrade and recovery expectations.
 
 Create or update an Architecture Decision Record for material architectural choices.
 
@@ -200,6 +200,6 @@ A contribution is complete when:
 - relevant risks were considered;
 - permissions and failure behaviour were checked;
 - documentation is current;
-- migration and upgrade impact are understood;
+- stored-data and upgrade impact are understood;
 - no unexplained upstream divergence was introduced;
 - the repository remains coherent and maintainable.

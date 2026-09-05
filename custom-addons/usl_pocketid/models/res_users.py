@@ -2,7 +2,7 @@ import secrets
 import time
 
 from odoo import SUPERUSER_ID, Command, _, api, fields, models
-from odoo.exceptions import AccessDenied, UserError, ValidationError
+from odoo.exceptions import AccessDenied, AccessError, UserError, ValidationError
 from odoo.http import request
 
 from ..exceptions import PocketIDAccessDenied, PocketIDReason
@@ -70,6 +70,7 @@ _CONFIGURATION_KEYS = {
     "email",
     "profile",
     "companies",
+    "default_company",
     "create_if_missing",
     "optional_if_missing",
     "subject",
@@ -144,11 +145,71 @@ class ResUsers(models.Model):
         string="SSO-only login",
         compute="_compute_usl_sso_only_login",
     )
+    usl_pocketid_security_state = fields.Selection(
+        [
+            ("connected", "Connected"),
+            ("ready", "Ready for first sign-in"),
+            ("unavailable", "Not enabled"),
+        ],
+        string="Pocket ID status",
+        compute="_compute_usl_pocketid_security_summary",
+        compute_sudo=True,
+    )
+    usl_pocketid_security_email = fields.Char(
+        string="Pocket ID email",
+        compute="_compute_usl_pocketid_security_summary",
+        compute_sudo=True,
+    )
+    usl_pocketid_last_login_at = fields.Datetime(
+        string="Last Pocket ID sign-in",
+        compute="_compute_usl_pocketid_security_summary",
+        compute_sudo=True,
+    )
 
     def _compute_usl_sso_only_login(self):
         enabled = is_sso_only(self.env)
         for user in self:
             user.usl_sso_only_login = enabled
+
+    @api.depends(
+        "email",
+        "usl_pocketid_access",
+        "usl_oidc_identity_ids.active",
+        "usl_oidc_identity_ids.last_email",
+        "usl_oidc_identity_ids.last_login_at",
+    )
+    def _compute_usl_pocketid_security_summary(self):
+        for user in self:
+            identities = user.usl_oidc_identity_ids.filtered("active").sorted(
+                key=lambda identity: identity.last_login_at or identity.linked_at,
+                reverse=True,
+            )
+            identity = identities[:1]
+            if identity:
+                user.usl_pocketid_security_state = "connected"
+            elif user.usl_pocketid_access:
+                user.usl_pocketid_security_state = "ready"
+            else:
+                user.usl_pocketid_security_state = "unavailable"
+            user.usl_pocketid_security_email = (
+                identity.last_email if identity and identity.last_email else user.email
+            )
+            user.usl_pocketid_last_login_at = (
+                identity.last_login_at if identity else False
+            )
+
+    def action_open_pocketid_account(self):
+        self.ensure_one()
+        if self != self.env.user and not self.env.user.has_group("base.group_system"):
+            raise AccessError(_("You can only open Pocket ID for your own account."))
+        provider = self.env.ref("usl_pocketid.provider_pocketid").sudo()
+        if not provider.enabled or not provider.usl_oidc_issuer:
+            raise UserError(_("Pocket ID is not available. Contact an administrator."))
+        return {
+            "type": "ir.actions.act_url",
+            "url": provider.usl_oidc_issuer,
+            "target": "new",
+        }
 
     @api.model
     def _usl_pocketid_profile_definitions(self):
@@ -454,6 +515,30 @@ class ResUsers(models.Model):
                 if definition["active"]
                 else self.env["res.company"].browse()
             )
+            default_company_name = configuration.get("default_company")
+            if definition["active"]:
+                if default_company_name is not None and (
+                    not isinstance(default_company_name, str)
+                    or not default_company_name.strip()
+                ):
+                    self._usl_pocketid_configuration_error(
+                        _("The default company must be a non-empty company name."),
+                        login=login,
+                    )
+                default_company = (
+                    companies.filtered(
+                        lambda company: company.name == default_company_name.strip(),
+                    )
+                    if default_company_name
+                    else companies[:1]
+                )
+                if len(default_company) != 1:
+                    self._usl_pocketid_configuration_error(
+                        _("The default company must be one of the allowed companies."),
+                        login=login,
+                    )
+            else:
+                default_company = self.env["res.company"].browse()
             groups = (
                 self._usl_pocketid_resolve_groups(
                     definition["groups"],
@@ -471,6 +556,7 @@ class ResUsers(models.Model):
                 "profile": profile,
                 "definition": definition,
                 "companies_recordset": companies,
+                "default_company_recordset": default_company,
                 "groups_recordset": groups,
             }
             normalized["user_recordset"] = self._usl_pocketid_find_configured_user(
@@ -521,7 +607,7 @@ class ResUsers(models.Model):
             "name": configuration["name"],
             "email": configuration["email"],
             "active": True,
-            "company_id": configuration["companies_recordset"][0].id,
+            "company_id": configuration["default_company_recordset"].id,
             "company_ids": [Command.set(configuration["companies_recordset"].ids)],
             "group_ids": [Command.set(configuration["groups_recordset"].ids)],
             "password": secrets.token_urlsafe(48),
@@ -640,8 +726,9 @@ class ResUsers(models.Model):
             if definition["active"]:
                 companies = configuration["companies_recordset"]
                 groups = configuration["groups_recordset"]
-                if user.company_id != companies[0]:
-                    values["company_id"] = companies[0].id
+                default_company = configuration["default_company_recordset"]
+                if user.company_id != default_company:
+                    values["company_id"] = default_company.id
                 if set(user.company_ids.ids) != set(companies.ids):
                     values["company_ids"] = [Command.set(companies.ids)]
                 if set(user.group_ids.ids) != set(groups.ids):

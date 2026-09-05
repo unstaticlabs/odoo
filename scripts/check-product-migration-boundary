@@ -167,15 +167,15 @@ if COLLABORATION_MIGRATION_PATH not in service_text["project-migration"]:
     errors.append("The project-migration service does not expose Collaboration restoration.")
 
 restore_harnesses = {
-    "Accounting": ROOT / "scripts" / "accounting-restore",
-    "Projects": ROOT / "scripts" / "project-restore",
-    "Identity": ROOT / "scripts" / "identity-restore",
-    "Product": ROOT / "scripts" / "product-restore",
-    "B2C": ROOT / "scripts" / "b2c-restore",
-    "HR": ROOT / "scripts" / "hr-restore",
-    "TESE": ROOT / "scripts" / "tese-restore",
-    "Platform Billing": ROOT / "scripts" / "platform-billing-restore",
-    "Collaboration": ROOT / "scripts" / "collaboration-restore",
+    "Accounting": ROOT / "migration/internal/accounting-restore",
+    "Projects": ROOT / "migration/internal/project-restore",
+    "Identity": ROOT / "migration/internal/identity-restore",
+    "Product": ROOT / "migration/internal/product-restore",
+    "B2C": ROOT / "migration/internal/b2c-restore",
+    "HR": ROOT / "migration/internal/hr-restore",
+    "TESE": ROOT / "migration/internal/tese-restore",
+    "Platform Billing": ROOT / "migration/internal/platform-billing-restore",
+    "Collaboration": ROOT / "migration/internal/collaboration-restore",
 }
 for perimeter, harness_path in restore_harnesses.items():
     harness = harness_path.read_text()
@@ -184,14 +184,6 @@ for perimeter, harness_path in restore_harnesses.items():
             f"The {perimeter} restoration harness does not explicitly pass "
             "its migration-only add-ons path.",
         )
-
-platform_restore_harness = restore_harnesses["Platform Billing"].read_text()
-if "PLATFORM_BILLING_REQUIRE_ISOLATED_PROJECT" not in platform_restore_harness:
-    errors.append(
-        "The platform restoration harness lacks the isolated-project switch.",
-    )
-if 'compose_project" != usl-odoo-fp-*' not in platform_restore_harness:
-    errors.append("The platform restoration harness lacks its project guard.")
 
 runtime_modules = {
     PRODUCT_ADDONS / "usl_b2c": (

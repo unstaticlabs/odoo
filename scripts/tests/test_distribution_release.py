@@ -1,217 +1,318 @@
 from __future__ import annotations
 
-import ast
-import copy
-import importlib.util
+import json
+import os
 import re
+import subprocess
+import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 from pathlib import Path
+
+from operations.component_build import COMPONENTS, resolve
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SPEC = importlib.util.spec_from_file_location("distribution_release", ROOT / "scripts/distribution_release.py")
-assert SPEC and SPEC.loader
-distribution_release = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(distribution_release)
-
-COMMIT = "a" * 40
-DIGEST = "sha256:" + "b" * 64
-IMAGE = "ghcr.io/unstaticlabs/usl-odoo"
-BACKUP_TOOL_IMAGE = "ghcr.io/unstaticlabs/usl-odoo-backup"
-PRODUCT_MODULES = {
-    "rebuild_account_migration",
-    "usl_access_control",
-    "usl_accounting",
-    "usl_b2c",
-    "usl_documents",
-    "usl_documents_accounting",
-    "usl_documents_b2c",
-    "usl_expense_batch",
-    "usl_home",
-    "usl_locale",
-    "usl_platform_billing",
-    "usl_platform_billing_pocketid",
-    "usl_pocketid",
-    "usl_project",
-    "usl_sign",
-    "usl_tese_accounting",
-    "usl_tese_payroll",
-}
 
 
-def artifact() -> dict:
-    return {
-        "schema": "usl-distribution-release/v2",
-        "source": {"repository": "unstaticlabs/odoo", "commit_sha": COMMIT},
-        "image": {
-            "name": IMAGE,
-            "tag": f"sha-{COMMIT}",
-            "digest": DIGEST,
-            "digest_reference": f"{IMAGE}@{DIGEST}",
-        },
-        "backup_tool": {
-            "name": BACKUP_TOOL_IMAGE,
-            "tag": f"sha-{COMMIT}",
-            "digest": "sha256:" + "c" * 64,
-            "digest_reference": f"{BACKUP_TOOL_IMAGE}@sha256:{'c' * 64}",
-        },
-        "build": {
-            "workflow_run_id": 123,
-            "workflow_run_attempt": 1,
-            "workflow_url": "https://github.com/unstaticlabs/odoo/actions/runs/123",
-        },
-        "attestations": {
-            name: {
-                "oci_sbom": "generated",
-                "buildkit_provenance": "generated",
-                "github_provenance": "generated",
-            }
-            for name in ("distribution", "backup_tool")
-        },
-    }
-
-
-class DistributionReleaseContractTest(unittest.TestCase):
-    def test_accepts_exact_immutable_identity(self) -> None:
-        self.assertEqual(
-            distribution_release.validate(
-                artifact(), commit=COMMIT, image=IMAGE, backup_tool_image=BACKUP_TOOL_IMAGE
-            )["schema"],
-            "usl-distribution-release/v2",
+class DistributionReleaseWorkflowTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.workflow = (ROOT / ".github/workflows/product-image.yml").read_text(
+            encoding="utf-8",
         )
 
-    def test_rejects_mutable_or_mismatched_tag(self) -> None:
-        value = copy.deepcopy(artifact())
-        value["image"]["tag"] = "latest"
-        with self.assertRaisesRegex(distribution_release.ReleaseArtifactError, "image.tag"):
-            distribution_release.validate(value)
-
-    def test_rejects_mismatched_digest_reference(self) -> None:
-        value = copy.deepcopy(artifact())
-        value["image"]["digest_reference"] = f"{IMAGE}@sha256:{'e' * 64}"
-        with self.assertRaisesRegex(distribution_release.ReleaseArtifactError, "digest_reference"):
-            distribution_release.validate(value)
-
-    def test_rejects_unverified_attestation(self) -> None:
-        value = copy.deepcopy(artifact())
-        value["attestations"]["backup_tool"]["github_provenance"] = "not-run"
-        with self.assertRaisesRegex(distribution_release.ReleaseArtifactError, "backup_tool.github_provenance"):
-            distribution_release.validate(value)
-
-    def test_rejects_mutable_backup_tool_tag(self) -> None:
-        value = copy.deepcopy(artifact())
-        value["backup_tool"]["tag"] = "latest"
-        with self.assertRaisesRegex(distribution_release.ReleaseArtifactError, "backup_tool.tag"):
-            distribution_release.validate(value)
-
-
-class DistributionWorkflowPolicyTest(unittest.TestCase):
-    def setUp(self) -> None:
-        self.workflow = (ROOT / ".github/workflows/product-image.yml").read_text(encoding="utf-8")
-
-    def test_all_external_actions_are_pinned_to_full_shas(self) -> None:
+    def test_all_external_actions_are_pinned(self) -> None:
         for workflow in (ROOT / ".github/workflows").glob("*.yml"):
             for line in workflow.read_text(encoding="utf-8").splitlines():
                 if re.match(r"\s*uses:\s*", line):
-                    self.assertRegex(line, r"uses:\s+[^@\s]+@[0-9a-f]{40}(?:\s+#.*)?$", workflow)
+                    target = line.split("uses:", 1)[1].strip()
+                    if target.startswith("./"):
+                        self.assertRegex(target, r"^\./\.github/workflows/.+\.yml$")
+                    else:
+                        self.assertRegex(
+                            line,
+                            r"uses:\s+[^@\s]+@[0-9a-f]{40}(?:\s+#.*)?$",
+                            str(workflow),
+                        )
 
-    def test_workflow_runs_only_after_19_usl_push(self) -> None:
-        self.assertIn("push:\n    branches:\n      - 19-usl", self.workflow)
-        self.assertNotIn("pull_request:", self.workflow)
-        self.assertNotIn("merge_group:", self.workflow)
-        self.assertNotIn("workflow_dispatch:", self.workflow)
+    def test_release_components_are_content_addressed(self) -> None:
+        components = resolve()["components"]
+        self.assertEqual(set(components), set(COMPONENTS))
+        for component in components.values():
+            self.assertEqual(
+                component["tag"],
+                f"content-{component['input_sha256']}",
+            )
 
-    def test_product_module_perimeters_are_identical(self) -> None:
-        qa_environment = (ROOT / "scripts/qa-environment").read_text(encoding="utf-8")
-        qa_match = re.search(r"product_modules='([^']+)'", qa_environment)
-        self.assertIsNotNone(qa_match)
-        qa_modules = set(qa_match.group(1).split(","))
+    def test_workflow_builds_components_in_parallel_with_registry_cache(self) -> None:
+        self.assertIn("matrix: ${{ fromJSON(needs.resolve.outputs.matrix) }}", self.workflow)
+        self.assertIn("type=registry,ref=${{ matrix.image }}:buildcache", self.workflow)
+        self.assertIn("mode=max", self.workflow)
+        self.assertIn("type=gha,scope=${{ matrix.name }}", self.workflow)
+        self.assertNotIn("cache-to: type=gha", self.workflow)
 
-        target_finalize = (ROOT / "scripts/target-finalize").read_text(encoding="utf-8")
-        target_match = re.search(r"product_modules=\(\n(?P<body>.*?)\n\)", target_finalize, re.DOTALL)
-        self.assertIsNotNone(target_match)
-        target_modules = {
-            line.strip()
-            for line in target_match.group("body").splitlines()
-            if line.strip()
-        }
-
-        release_identity_path = ROOT / "scripts/odoo/release_identity.py"
-        release_tree = ast.parse(release_identity_path.read_text(encoding="utf-8"))
-        release_modules = None
-        for statement in release_tree.body:
-            if (
-                isinstance(statement, ast.Assign)
-                and any(
-                    isinstance(target, ast.Name) and target.id == "PRODUCT_MODULES"
-                    for target in statement.targets
-                )
-            ):
-                release_modules = set(ast.literal_eval(statement.value))
-                break
-        self.assertIsNotNone(release_modules)
-
-        preprod_release = (ROOT / "scripts/preprod-release").read_text(encoding="utf-8")
-        preprod_match = re.search(r'product_modules="([^"]+)"', preprod_release)
-        self.assertIsNotNone(preprod_match)
-        preprod_modules = set(preprod_match.group(1).split(","))
-
-        self.assertEqual(PRODUCT_MODULES, qa_modules)
-        self.assertEqual(PRODUCT_MODULES, target_modules)
-        self.assertEqual(PRODUCT_MODULES, release_modules)
-        self.assertEqual(PRODUCT_MODULES, preprod_modules)
-
-    def test_publish_identity_is_commit_tag_plus_digest(self) -> None:
-        self.assertIn("IMAGE_TAG: sha-${{ github.sha }}", self.workflow)
-        self.assertIn("digest_reference=$DISTRIBUTION_IMAGE@$digest", self.workflow)
-        self.assertNotIn("docker/metadata-action", self.workflow)
-        self.assertNotRegex(self.workflow, r"(?m)^\s*(?:tags:|-).*latest")
-        self.assertNotIn("type=ref,event=branch", self.workflow)
-
-    def test_backup_tool_uses_the_same_immutable_identity_boundary(self) -> None:
-        self.assertIn("BACKUP_TOOL_IMAGE: ghcr.io/unstaticlabs/usl-odoo-backup", self.workflow)
-        self.assertIn("file: docker/backup.Dockerfile", self.workflow)
-        self.assertIn("digest_reference=$BACKUP_TOOL_IMAGE@$digest", self.workflow)
-        self.assertIn("backup_tool_digest_reference:", self.workflow)
-        self.assertIn('--backup-tool-digest "$BACKUP_TOOL_DIGEST"', self.workflow)
-
-    def test_both_release_images_receive_sbom_and_provenance(self) -> None:
-        publish = self.workflow
-        self.assertGreaterEqual(publish.count("provenance: mode=max"), 2)
-        self.assertGreaterEqual(publish.count("sbom: true"), 2)
-        self.assertGreaterEqual(publish.count("uses: actions/attest@"), 2)
-        publish_permissions = publish.split("    outputs:\n", 1)[0]
-        self.assertIn("artifact-metadata: write", publish_permissions)
-
-    def test_only_19_usl_pushes_can_publish(self) -> None:
-        self.assertIn("push:\n    branches:\n      - 19-usl", self.workflow)
-        self.assertNotIn("push: false", self.workflow)
-        self.assertIn("push: true", self.workflow)
-
-    def test_release_metadata_is_uploaded_for_downstream_consumers(self) -> None:
-        self.assertIn("distribution-release-$GITHUB_SHA", self.workflow)
-        self.assertIn("distribution-release.json", self.workflow)
-        self.assertIn("actions/upload-artifact@", self.workflow)
-
-    def test_document_service_versions_match_deployment_examples(self) -> None:
-        compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
-        examples = (
-            ROOT / "deploy/documents/qa.env",
-            ROOT / "deploy/documents/preprod.env.example",
-            ROOT / "deploy/preprod.env.example",
-            ROOT / "deploy/production.external-pocket-id.env.example",
+    def test_existing_content_image_skips_build_and_attestation(self) -> None:
+        self.assertGreaterEqual(
+            self.workflow.count("if: steps.existing.outputs.exists != 'true'"),
+            2,
         )
-        for key in ("PAPERLESS_TIKA_IMAGE", "OLLAMA_IMAGE"):
-            values = []
-            for path in examples:
-                value = next(
-                    line.split("=", 1)[1]
-                    for line in path.read_text(encoding="utf-8").splitlines()
-                    if line.startswith(f"{key}=")
-                )
-                values.append(value)
-            self.assertEqual([values[0]] * len(values), values, key)
-            self.assertIn(f"${{{key}:-{values[0]}}}", compose)
+        self.assertIn("docker buildx imagetools inspect", self.workflow)
+
+    def test_receipt_images_are_qualified_before_attestation(self) -> None:
+        self.assertIn("Qualify isolated receipt component", self.workflow)
+        self.assertIn("-m unittest -v /app/test_app.py", self.workflow)
+        self.assertIn("chromium_sandbox=True", self.workflow)
+        self.assertIn("page.expect_download()", self.workflow)
+        self.assertIn(
+            "seccomp=$GITHUB_WORKSPACE/services/usl-receipt-fetcher/seccomp_profile.json",
+            self.workflow,
+        )
+
+    def test_release_binds_external_services_and_ollama(self) -> None:
+        self.assertIn("scripts/odoo-mcp verify", self.workflow)
+        self.assertIn("deploy/document-renderer/release.json", self.workflow)
+        self.assertIn("OLLAMA_MANIFEST_SHA256", self.workflow)
+        self.assertIn("scripts/release-manifest create", self.workflow)
+        self.assertIn("--release-notes operations/release-notes.json", self.workflow)
+        notes = json.loads(
+            (ROOT / "operations/release-notes.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(notes["schema"], "usl-release-notes/v1")
+        self.assertTrue(notes["changes"])
+
+    def test_release_attests_the_exact_verified_renderer_digest(self) -> None:
+        self.assertIn(
+            "name: Attest verified renderer as distribution integrator",
+            self.workflow,
+        )
+        self.assertIn(
+            "ghcr.io/unstaticlabs/usl-document-renderer@sha256:*",
+            self.workflow,
+        )
+        self.assertIn(
+            "subject-name: ${{ steps.renderer.outputs.subject_name }}",
+            self.workflow,
+        )
+        self.assertIn(
+            "subject-digest: ${{ steps.renderer.outputs.subject_digest }}",
+            self.workflow,
+        )
+        renderer_attestation = self.workflow.split(
+            "- name: Attest verified renderer as distribution integrator",
+            1,
+        )[1].split("- name: Install ORAS", 1)[0]
+        self.assertIn("create-storage-record: true", renderer_attestation)
+        self.assertNotIn("push-to-registry", renderer_attestation)
+
+    def test_release_is_only_published_from_permanent_release_branches(self) -> None:
+        qualification = (ROOT / ".github/workflows/qualification.yml").read_text(encoding="utf-8")
+        self.assertIn("workflow_call:", self.workflow)
+        self.assertNotIn("\n  push:", self.workflow)
+        self.assertIn("uses: ./.github/workflows/product-image.yml", qualification)
+        self.assertIn("if: github.event_name == 'push'", qualification)
+        self.assertIn("usl-odoo-release", self.workflow)
+        self.assertIn("actions/attest@", self.workflow)
+
+    def test_release_requires_exact_successful_qualification_or_recovery_tag(self) -> None:
+        self.assertIn('test "$SOURCE_COMMIT" = "$GITHUB_SHA"', self.workflow)
+        self.assertIn("QUALIFICATION_EVIDENCE_SHA256", self.workflow)
+        self.assertNotIn("for attempt in", self.workflow)
+        self.assertNotIn("  admission:", self.workflow)
+        self.assertIn("workflow_dispatch:refs/tags/recovery-*", self.workflow)
+        self.assertIn('test "$RECOVERY_REF" = "${GITHUB_REF#refs/tags/}"', self.workflow)
+
+    def test_stable_required_gate_includes_clean_database_qualification(self) -> None:
+        qualification = (ROOT / ".github/workflows/qualification.yml").read_text(
+            encoding="utf-8",
+        )
+        self.assertIn("pull_request:", qualification)
+        self.assertIn("merge_group:", qualification)
+        self.assertIn("push:", qualification)
+        self.assertIn("branches: [19-usl, 19-usl-staging]", qualification)
+        self.assertIn("name: USL qualification", qualification)
+        self.assertIn("scripts/ci-product-database", qualification)
+        self.assertIn("scripts/qualification-test-plan --all", qualification)
+        self.assertIn("USL_USE_PREBUILT_TEST_IMAGE=1", qualification)
+        self.assertIn("type=gha,scope=usl-odoo-test", qualification)
+        self.assertGreaterEqual(qualification.count("scripts/sync-oca-addons"), 2)
+        database_job = qualification.split("  database:\n", 1)[1].split("\n  result:\n", 1)[0]
+        self.assertIn("github.event_name == 'push'", database_job)
+        self.assertIn("github.event.pull_request.base.ref == '19-usl'", database_job)
+        self.assertNotIn("merge_group", database_job)
+
+    def test_production_promotion_reuses_only_exact_pr_tree_evidence(self) -> None:
+        qualification = (ROOT / ".github/workflows/qualification.yml").read_text(
+            encoding="utf-8",
+        )
+        self.assertIn(
+            "HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}",
+            qualification,
+        )
+        self.assertIn("EXPECTED_REPOSITORY: ${{ github.repository }}", qualification)
+        self.assertIn("name: USL production promotion", qualification)
+        self.assertNotIn("production-promotion-evidence:", qualification)
+        self.assertNotIn("gh attestation verify", qualification)
+        self.assertIn("production-qualification-$PR_NUMBER-$PR_HEAD_SHA", qualification)
+        self.assertEqual(qualification.count("python3 scripts/merge-group-pull-request"), 1)
+        self.assertIn("needs.source-policy.outputs.pr_head_sha", qualification)
+        self.assertIn('merge_tree="$(git rev-parse "$GITHUB_SHA^{tree}")"', qualification)
+        self.assertIn("scripts/qualification-evidence verify-merge-group", qualification)
+
+    def test_compatibility_consolidates_all_host_side_checks(self) -> None:
+        qualification = (ROOT / ".github/workflows/qualification.yml").read_text(encoding="utf-8")
+        for obsolete in ("  changes:\n", "  static:\n", "  accounting:\n", "  security:\n", "  ui:\n"):
+            self.assertNotIn(obsolete, qualification)
+        compatibility = qualification.split("  compatibility:\n", 1)[1].split("\n  database:\n", 1)[0]
+        self.assertIn("python3 -m unittest discover", compatibility)
+        self.assertIn("make product-migration-source-boundary", compatibility)
+        self.assertIn("make action-risk-inventory", compatibility)
+        self.assertIn("scripts/check-github-governance", compatibility)
+        self.assertIn("ElementTree", compatibility)
+
+    def test_affected_frontend_suites_run_on_desktop_and_mobile(self) -> None:
+        database_gate = (ROOT / "scripts/ci-product-database").read_text(
+            encoding="utf-8",
+        )
+        self.assertIn("static/tests", database_gate)
+        self.assertIn("*.test.js", database_gate)
+        self.assertIn("WebSuite.test_unit_desktop", database_gate)
+        self.assertIn("MobileWebSuite.test_unit_mobile", database_gate)
+        self.assertIn('--update="web,$frontend_module_list"', database_gate)
+
+    def test_frontend_gate_rejects_empty_or_partial_execution(self) -> None:
+        script = (ROOT / "scripts/ci-product-database").read_text()
+        block = script.split("  IFS=',' read -r -a affected_modules", 1)[1]
+        block = "IFS=',' read -r -a affected_modules" + block.split(
+            "\nfi\n\nUSL_PRODUCT_BOUNDARY", 1,
+        )[0]
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for module in ("alpha", "beta"):
+                tests = root / "custom-addons" / module / "static/tests"
+                tests.mkdir(parents=True)
+                (tests / "sample.test.js").write_text("// fixture\n")
+            stub = root / "compose.sh"
+            stub.write_text(
+                'printf "%s\\n" "$*" >> "$CALLS"\n'
+                'for ((i=0; i<SUCCESSES; i++)); do '
+                'echo "[HOOT] Test suite succeeded"; done\n'
+            )
+            for count in (0, 1, 2):
+                with self.subTest(successful_viewports=count):
+                    calls = root / f"calls-{count}"
+                    result = subprocess.run(
+                        ["bash", "-c", 'set -euo pipefail\ncompose=(bash "$STUB")\n'
+                         'test_modules=alpha,beta\ndatabase=test\n' + block],
+                        env={**os.environ, "ROOT": str(root), "STUB": str(stub),
+                             "CALLS": str(calls), "SUCCESSES": str(count), "TMPDIR": str(root)},
+                        capture_output=True, text=True,
+                    )
+                    self.assertEqual(result.returncode == 0, count == 2, result.stdout + result.stderr)
+                    commands = calls.read_text().splitlines()
+                    self.assertEqual(len(commands), 1)
+                    self.assertIn("--update=web,alpha,beta", commands[0])
+
+    def test_mcp_checkout_uses_the_exact_release_commit(self) -> None:
+        self.assertIn(
+            "ref: ${{ needs.resolve.outputs.mcp_commit }}",
+            self.workflow,
+        )
+        self.assertNotIn("mcp_ref", self.workflow)
+        release = json.loads(
+            (ROOT / "deploy/odoo-mcp/release.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(release["ref"], release["commit"])
+
+    def test_renderer_revision_is_consistent_across_release_inputs(self) -> None:
+        release = json.loads(
+            (ROOT / "deploy/document-renderer/release.json").read_text(
+                encoding="utf-8",
+            )
+        )
+        expected = release["commit"]
+        gitlink = subprocess.check_output(
+            ["git", "ls-files", "--stage", "services/usl-document-renderer"],
+            cwd=ROOT,
+            text=True,
+        ).split()[1]
+        self.assertEqual(gitlink, expected)
+
+        pin_check = (ROOT / "scripts/check-document-renderer-submodule").read_text(
+            encoding="utf-8",
+        )
+        self.assertIn(f'EXPECTED="{expected}"', pin_check)
+
+        compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+        self.assertIn(f"USL_TEMPLATE_REVISION: {expected}", compose)
+        self.assertIn(f"usl-document-renderer:{expected[:12]}", compose)
+
+        data = ET.parse(
+            ROOT
+            / "custom-addons/usl_document_templates/data/document_template_data.xml"
+        )
+        revision = data.find(
+            ".//record[@id='renderer_expected_revision']/field[@name='value']"
+        )
+        self.assertIsNotNone(revision)
+        self.assertEqual(revision.text, expected)
+
+    def test_production_compose_never_builds_from_checkout(self) -> None:
+        overlay = (ROOT / "compose.production.yaml").read_text(encoding="utf-8")
+        self.assertIn("build: !reset null", overlay)
+        self.assertNotIn("./custom-addons", overlay)
+
+    def test_real_production_compose_exposes_only_the_release_upgrade_runner(self) -> None:
+        environment = {
+            **os.environ,
+            "ODOO_UPGRADE_MODULES": "usl_home",
+            "USL_RECEIPT_FETCHER_IMAGE": "ghcr.io/unstaticlabs/usl-receipt-fetcher@sha256:" + "a" * 64,
+            "USL_RECEIPT_EGRESS_IMAGE": "ghcr.io/unstaticlabs/usl-receipt-egress@sha256:" + "b" * 64,
+            "ODOO_HTTP_PORT": "18069",
+            "ODOO_GEVENT_PORT": "18072",
+            "PAPERLESS_HTTP_PORT": "18010",
+            "ODOO_MCP_HTTP_PORT": "18000",
+            "PAPERLESS_IMAGE": "ghcr.io/unstaticlabs/paperless@sha256:" + "a" * 64,
+            "PAPERLESS_AI_LLM_EMBEDDING_ENDPOINT": "http://ollama:11434",
+            "PAPERLESS_AI_LLM_EMBEDDING_MODEL": "bge-m3:latest",
+            "PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE": "32",
+            "USL_OLLAMA_MANIFEST_SHA256": "7" * 64,
+            "USL_OLLAMA_EMBEDDING_DIMENSION": "1024",
+            "USL_EXTERNAL_OLLAMA_NETWORK": "ollama",
+        }
+        rendered = json.loads(subprocess.run(
+            [
+                "docker", "compose", "--env-file", ".env.example",
+                "-f", "compose.yaml", "-f", "compose.production.yaml",
+                "--profile", "init", "--profile", "release",
+                "config", "--format", "json",
+            ],
+            cwd=ROOT,
+            env=environment,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout)
+        self.assertNotIn("init-db", rendered["services"])
+        upgrade = rendered["services"]["odoo-upgrade"]
+        self.assertEqual(upgrade["environment"]["ODOO_MAX_CRON_THREADS"], "0")
+        self.assertEqual(upgrade["environment"]["USL_EINVOICE_LIVE_ENABLED"], "0")
+        self.assertIn('--update="$${ODOO_UPGRADE_MODULES}"', upgrade["command"][0])
+        self.assertFalse(any("custom-addons" in item["source"] for item in upgrade["volumes"]))
+
+    def test_release_image_can_load_installed_oca_tests(self) -> None:
+        requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8")
+        self.assertRegex(requirements, r"(?m)^responses==0\.26\.2\b")
+
+    def test_external_ingress_alias_is_explicit(self) -> None:
+        overlay = (ROOT / "compose.odoo-ingress.yaml").read_text(encoding="utf-8")
+        self.assertIn(
+            "${ODOO_INGRESS_ALIAS:?A unique Odoo ingress alias is required}",
+            overlay,
+        )
+        self.assertIn(
+            "${USL_EXTERNAL_INGRESS_NETWORK:?Existing ingress network is required}",
+            overlay,
+        )
 
 
 if __name__ == "__main__":

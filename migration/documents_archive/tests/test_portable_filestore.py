@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 SPEC = importlib.util.spec_from_file_location(
     "portable_filestore",
-    ROOT / "scripts/portable_filestore.py",
+    ROOT / "migration/portable_filestore.py",
 )
 portable = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(portable)

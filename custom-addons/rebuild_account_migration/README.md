@@ -76,8 +76,7 @@ validation database. One-off reconstruction and parity commands are documented i
 
 ## Release evidence
 
-Current acceptance scope, accounting counts, advisories and evidence locations
-are recorded in
-[`docs/accounting/milestone-13-final-candidate.md`](../../docs/accounting/milestone-13-final-candidate.md).
-Private production-derived artifacts under `artifacts/accounting-compat/private/`
-must never be committed.
+Durable Accounting requirements live under `docs/accounting/`. Current
+priorities and production acceptance gates live in `ROADMAP.md` and
+`docs/operations/production.md`. Private production-derived evidence must
+never be committed.

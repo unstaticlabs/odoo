@@ -1,5 +1,5 @@
 from odoo import api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
 
 
 class RebuildAccountAssuranceDecision(models.Model):
@@ -99,6 +99,25 @@ class RebuildAccountAssuranceDecision(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+            if self._is_scoped_accountant_reviewer():
+                declaration = self.env["rebuild.account.declaration"].browse(
+                    vals.get("declaration_id"),
+                ).exists()
+                if (
+                    vals.get("gate", "other") != "declaration_review"
+                    or not declaration
+                    or vals.get("company_id", self.env.company.id) != declaration.company_id.id
+                    or declaration.status not in {
+                        "accountant_review", "accountant_reviewed", "ready_to_file",
+                    }
+                    or vals.get("required_authority", "accountant") not in {"accountant", "joint"}
+                    or vals.get("state", "draft") != "draft"
+                ):
+                    raise AccessError(
+                        "Accountant reviewers may create draft declaration-review decisions only for an allowed company."
+                    )
+                vals["reviewer_user_id"] = self.env.user.id
+                vals["reviewed_at"] = fields.Datetime.now()
             if vals.get("name") in (None, "", "Accounting Review Decision"):
                 vals["name"] = self._default_name_from_values(vals)
         return super().create(vals_list)
@@ -111,7 +130,33 @@ class RebuildAccountAssuranceDecision(models.Model):
                 "Supersede the decision and create a new review decision instead."
             )
             raise UserError(message)
+        if self._is_scoped_accountant_reviewer():
+            allowed = {
+                "conclusion", "decision_summary", "evidence_summary",
+                "remaining_risk", "next_action", "reviewer_name",
+            }
+            recording = self.env.context.get("accountant_review_recording")
+            if recording:
+                allowed |= {"state", "reviewed_at", "reviewer_user_id"}
+            if set(vals) - allowed or self.filtered(
+                lambda decision: decision.gate != "declaration_review"
+                or not decision.declaration_id
+                or decision.required_authority not in {"accountant", "joint"}
+                or decision.reviewer_user_id != self.env.user
+            ):
+                raise AccessError(
+                    "Accountant reviewers may edit only the content of their draft declaration-review decisions."
+                )
         return super().write(vals)
+
+    @api.model
+    def _is_scoped_accountant_reviewer(self):
+        return (
+            self.env.user.has_group(
+                "rebuild_account_migration.group_rebuild_accountant_reviewer",
+            )
+            and not self.env.user.has_group("account.group_account_manager")
+        )
 
     @api.model
     def _default_name_from_values(self, vals):
@@ -129,6 +174,19 @@ class RebuildAccountAssuranceDecision(models.Model):
 
     def action_record(self):
         for decision in self:
+            if self._is_scoped_accountant_reviewer() and (
+                decision.gate != "declaration_review"
+                or not decision.declaration_id
+                or decision.required_authority not in {"accountant", "joint"}
+                or decision.company_id != decision.declaration_id.company_id
+                or decision.reviewer_user_id != self.env.user
+                or decision.declaration_id.status not in {
+                    "accountant_review", "accountant_reviewed", "ready_to_file",
+                }
+            ):
+                raise AccessError(
+                    "Accountant reviewers may record declaration-review decisions only for an allowed company."
+                )
             if not decision.decision_summary or decision.decision_summary == "Pending review.":
                 message = (
                     "Record a factual decision summary before marking this "
@@ -176,7 +234,7 @@ class RebuildAccountAssuranceDecision(models.Model):
                     ("state", "=", "recorded"),
                 ])
                 previous.write({"state": "superseded"})
-            decision.write({
+            decision.with_context(accountant_review_recording=True).write({
                 "state": "recorded",
                 "reviewed_at": fields.Datetime.now(),
                 "reviewer_user_id": self.env.user.id,
@@ -186,6 +244,10 @@ class RebuildAccountAssuranceDecision(models.Model):
         return True
 
     def action_supersede(self):
+        if self._is_scoped_accountant_reviewer():
+            raise AccessError(
+                "Only an Accounting Manager may supersede a recorded assurance decision."
+            )
         closings = self.filtered(
             lambda decision: (
                 decision.state == "recorded"
@@ -250,9 +312,17 @@ class RebuildAccountAssuranceDecision(models.Model):
             return
         vals = {"review_status": review_status}
         if self.conclusion in {"accepted", "accepted_with_difference", "not_applicable"}:
-            vals["status"] = "ready_to_file"
+            vals.update({
+                "status": "ready_to_file",
+                "preparation_status": "reviewed",
+                "filing_status": "ready",
+            })
         else:
-            vals["status"] = "data_missing"
+            vals.update({
+                "status": "data_missing",
+                "preparation_status": "missing_data",
+                "filing_status": "not_open",
+            })
         self.declaration_id.sudo().write(vals)
 
     def _apply_closing_decision(self):

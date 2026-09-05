@@ -1,6 +1,7 @@
 import datetime as dt
 import hashlib
 import json
+from contextlib import contextmanager
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
@@ -13,6 +14,20 @@ REVIEW_STATES = [
     ("certified", "Certified"),
     ("reopened", "Reopened"),
 ]
+
+_CERTIFIED_RECONCILIATION_CONTEXT_KEY = "usl_certified_reconciliation_token"
+_CERTIFIED_RECONCILIATION_TOKEN = object()
+_CERTIFIED_RECONCILIATION_MOVES = "usl_certified_reconciliation_moves"
+
+
+def _has_certified_reconciliation_token(env, move_ids):
+    return (
+        env.context.get(_CERTIFIED_RECONCILIATION_CONTEXT_KEY)
+        is _CERTIFIED_RECONCILIATION_TOKEN
+        and set(move_ids).issubset(
+            env.context.get(_CERTIFIED_RECONCILIATION_MOVES, ()),
+        )
+    )
 
 
 def is_accounting_operator(user):
@@ -601,6 +616,118 @@ class AccountBankStatementLine(models.Model):
         "WHERE provider_code IS NOT NULL AND provider_transaction_id IS NOT NULL",
     )
 
+    def _certified_reconciliation_fingerprint(self):
+        """Snapshot bank-origin facts that reconciliation may never change."""
+        self.ensure_one()
+        liquidity_lines, _suspense_lines, _other_lines = self._seek_for_lines()
+        return (
+            self.statement_id.id,
+            self.move_id.id,
+            self.journal_id.id,
+            self.company_id.id,
+            self.currency_id.id,
+            self.company_id.currency_id.id,
+            self.date,
+            self.amount,
+            self.payment_ref,
+            self.transaction_type,
+            json.dumps(self.transaction_details or {}, sort_keys=True, default=str),
+            self.unique_import_id,
+            self.provider_code,
+            self.provider_account_id,
+            self.provider_transaction_id,
+            self.provider_identity_kind,
+            tuple(sorted(self.ingestion_file_ids.ids)),
+            tuple(
+                (
+                    line.account_id.id,
+                    line.date,
+                    line.balance,
+                    line.currency_id.id,
+                    line.amount_currency,
+                )
+                for line in liquidity_lines.sorted(
+                    key=lambda item: (item.account_id.id, item.date, item.balance),
+                )
+            ),
+        )
+
+    def _write_reconciliation_metadata(self, vals):
+        """Enrich reconciliation metadata without reopening bank evidence.
+
+        Foreign-amount and partner metadata are not facts supplied by the bank
+        statement.  Odoo nevertheless rewrites the existing liquidity line
+        while synchronizing them.  This private service corridor permits that
+        internal rewrite only when the certified bank-origin fingerprint stays
+        economically equivalent.
+        """
+        allowed = self._certified_reconciliation_metadata_fields()
+        unsupported = set(vals) - allowed
+        if unsupported:
+            raise ValidationError(
+                _(
+                    "Certified reconciliation metadata cannot update: %(fields)s",
+                    fields=", ".join(sorted(unsupported)),
+                ),
+            )
+        with self._preserve_certified_bank_facts() as lines:
+            return lines.write(vals)
+
+    def _certified_reconciliation_metadata_fields(self):
+        return {"partner_id", "foreign_currency_id", "amount_currency"}
+
+    def _certified_reconciliation_fingerprints(self):
+        return {
+            line.id: line._certified_reconciliation_fingerprint()
+            for line in self.filtered(
+                lambda item: item.statement_id.certification_state == "certified",
+            )
+        }
+
+    def _assert_certified_reconciliation_fingerprints(self, before):
+        certified = self.filtered(lambda line: line.id in before)
+        certified.invalidate_recordset()
+        if any(
+            line._certified_reconciliation_fingerprint() != before[line.id]
+            for line in certified
+        ):
+            raise UserError(
+                _(
+                    "Bank matching attempted to change certified bank-statement facts. "
+                    "No changes were saved.",
+                ),
+            )
+
+    @contextmanager
+    def _preserve_certified_bank_facts(self):
+        """Allow atomic bookkeeping rewrites, not changes to bank evidence.
+
+        Posting state and counterpart identities are bookkeeping. Native
+        access, lock and hash checks still run. The opaque permission is scoped
+        to these moves; a failed invariant rolls back even if a caller catches
+        the exception and continues its transaction.
+        """
+        with self.env.cr.savepoint():
+            before = self._certified_reconciliation_fingerprints()
+            yield self.with_context(**{
+                _CERTIFIED_RECONCILIATION_CONTEXT_KEY:
+                    _CERTIFIED_RECONCILIATION_TOKEN,
+                _CERTIFIED_RECONCILIATION_MOVES: tuple(self.move_id.ids),
+            })
+            self._assert_certified_reconciliation_fingerprints(before)
+
+    def reconcile_bank_line(self):
+        with self._preserve_certified_bank_facts() as lines:
+            return super(AccountBankStatementLine, lines).reconcile_bank_line()
+
+    def unreconcile_bank_line(self):
+        with self._preserve_certified_bank_facts() as lines:
+            return super(AccountBankStatementLine, lines).unreconcile_bank_line()
+
+    def action_undo_reconciliation(self):
+        with self._preserve_certified_bank_facts() as lines:
+            return super(AccountBankStatementLine, lines).action_undo_reconciliation()
+
     def _check_certified_mutation(self, vals=None):
         protected = {
             "statement_id",
@@ -689,14 +816,16 @@ class AccountMove(models.Model):
             )
 
     def button_draft(self):
-        self._check_certified_statement_move()
-        return super().button_draft()
+        with self.statement_line_id._preserve_certified_bank_facts() as lines:
+            return super(AccountMove, self.with_env(lines.env)).button_draft()
 
     def button_cancel(self):
         self._check_certified_statement_move()
         return super().button_cancel()
 
     def write(self, vals):
+        if vals.get("state") == "cancel":
+            self._check_certified_statement_move()
         if {"date", "journal_id", "statement_line_id"}.intersection(vals):
             self._check_certified_statement_move()
         return super().write(vals)
@@ -730,6 +859,7 @@ class AccountMoveLine(models.Model):
                 statement_line.statement_id.certification_state == "certified"
                 and values.get("account_id")
                 == statement_line.journal_id.default_account_id.id
+                and not _has_certified_reconciliation_token(self.env, move.ids)
             ):
                 raise UserError(
                     _(
@@ -749,7 +879,11 @@ class AccountMoveLine(models.Model):
             "amount_currency",
             "currency_id",
         }
-        if protected.intersection(vals) and self._certified_bank_liquidity_lines():
+        if (
+            protected.intersection(vals)
+            and self._certified_bank_liquidity_lines()
+            and not _has_certified_reconciliation_token(self.env, self.move_id.ids)
+        ):
             raise UserError(
                 _(
                     "Reopen the certified bank statement before changing its liquidity entry.",
@@ -758,7 +892,10 @@ class AccountMoveLine(models.Model):
         return super().write(vals)
 
     def unlink(self):
-        if self._certified_bank_liquidity_lines():
+        if (
+            self._certified_bank_liquidity_lines()
+            and not _has_certified_reconciliation_token(self.env, self.move_id.ids)
+        ):
             raise UserError(
                 _(
                     "Reopen the certified bank statement before changing its liquidity entry.",
@@ -972,7 +1109,7 @@ class AccountBankStatementException(models.Model):
         self.file_id.sudo().write(
             {
                 "statement_id": statement.id,
-                "processing_state": "attention",
+                "processing_state": "processed",
                 "processing_detail": _(
                     "A manager approved a conservative transaction identity.",
                 ),
@@ -1021,7 +1158,13 @@ class AccountBankStatementException(models.Model):
         )
         self.sudo().with_context(bank_exception_internal=True).statement_id = statement
         self.file_id.sudo().write(
-            {"statement_id": statement.id, "processing_state": "attention"},
+            {
+                "statement_id": statement.id,
+                "processing_state": "processed",
+                "processing_detail": _(
+                    "A manager linked the transaction to an existing bank entry.",
+                ),
+            },
         )
         self.file_id._associate_period_pdfs(statement)
 

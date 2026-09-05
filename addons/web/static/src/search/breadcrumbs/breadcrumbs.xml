@@ -3,8 +3,9 @@
 
     <t t-name="web.Breadcrumbs">
         <t t-set="currentBreadcrumbs" t-value="this.props.breadcrumbs.slice(-1)"/>
-        <t t-set="previousBreadcrumb" t-value="this.props.breadcrumbs.at(-2)"/>
-        <t t-set="collapsedBreadcrumbs" t-value="this.props.breadcrumbs.slice(0, -2).reverse()"/>
+        <t t-set="historyBreadcrumbs" t-value="this.props.breadcrumbs.slice(0, -1)"/>
+        <t t-set="previousBreadcrumb" t-value="historyBreadcrumbs.at(-1)"/>
+        <t t-set="collapsedBreadcrumbs" t-value="historyBreadcrumbs.slice(0, -1).filter((item) => item?.name).reverse()"/>
         <t t-set="breadcrumb" t-value="currentBreadcrumbs[0] || {}"/>
 
         <div t-if="collapsedBreadcrumbs.length || previousBreadcrumb" class="o_breadcrumb d-flex flex-row flex-md-column align-self-stretch justify-content-between min-w-0">
@@ -30,10 +31,11 @@
                         </Dropdown>
                     </li>
                     <li t-if="previousBreadcrumb" class="breadcrumb-item d-inline-flex min-w-0 o_back_button" data-hotkey="b" t-on-click.prevent="previousBreadcrumb.onSelected">
-                        <a t-att-href="previousBreadcrumb.url" class="fw-bold text-truncate" t-att-data-tooltip="'Back to &quot;' + previousBreadcrumb.name + '&quot;' + (previousBreadcrumb.isFormView ? ' form' : '')">
-                            <t t-call="web.Breadcrumb.Name">
+                        <a t-att-href="previousBreadcrumb.url" class="fw-bold text-truncate" t-att-data-tooltip="previousBreadcrumb.name ? 'Back to &quot;' + previousBreadcrumb.name + '&quot;' + (previousBreadcrumb.isFormView ? ' form' : '') : this.getBreadcrumbTooltip(previousBreadcrumb)">
+                            <t t-if="previousBreadcrumb.name" t-call="web.Breadcrumb.Name">
                                 <t t-set="breadcrumb" t-value="previousBreadcrumb"/>
                             </t>
+                            <i t-else="" class="oi oi-fw oi-arrow-left" aria-label="Back"/>
                         </a>
                     </li>
                 </ol>
@@ -64,7 +66,6 @@
 
     <t t-name="web.Breadcrumb.Name">
         <t t-if="breadcrumb.name" t-out="breadcrumb.name"/>
-        <em t-else="" class="text-warning">Unnamed</em>
     </t>
 
 </templates>

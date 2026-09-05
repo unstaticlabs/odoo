@@ -7,6 +7,7 @@
     {"name": "odoo_collaborator", "status": "passed"},
     {"name": "accounting_read_only", "status": "passed"},
     {"name": "multi_company_isolation", "status": "passed"},
+    {"name": "odoo_mcp_oauth", "status": "passed"},
     {"name": "paperless_documents", "status": "passed"}
   ],
   "schema": "usl-production-browser-journeys-v1",

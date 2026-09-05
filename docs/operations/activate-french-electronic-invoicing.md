@@ -49,9 +49,11 @@ Stop if any business value or provider eligibility is uncertain.
 3. The Accounting Manager selects **Activate reception**.
 4. Complete legal-representative authentication and native Odoo Approved
    Platform receiver registration.
-5. Confirm the company is connected as a receiver and its stored incoming
-   flag is enabled.
-6. Confirm no other company was enabled and no e-reporting job or setting was
+5. Treat **Registration in progress** as a waiting state. Do not repeat
+   registration while the native state is `smp_registration`.
+6. After the company becomes a receiver, deliberately enable its stored
+   incoming flag and confirm the status is **Receiving**.
+7. Confirm no other company was enabled and no e-reporting job or setting was
    activated.
 
 Do not create a generic Peppol registration as a workaround. Do not copy

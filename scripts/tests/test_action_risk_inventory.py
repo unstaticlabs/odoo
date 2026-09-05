@@ -106,6 +106,24 @@ class ActionRiskInventoryTestCase(unittest.TestCase):
 
 
 class TestDiscovery(ActionRiskInventoryTestCase):
+    def test_generated_runtime_policies_do_not_change_module_identity(self):
+        self.manifest("app")
+        self.write("custom-addons/app/models.py", "VALUE = 1\n")
+        info = inventory.module_index(self.root)["app"]
+        initial = inventory._module_source_digest(info)
+
+        for name in (
+            "action_policy.json",
+            "action_surface.json",
+            "agent_readonly_runtime_policy.json",
+            "protected_runtime_policy.json",
+        ):
+            self.write(f"custom-addons/app/policy/{name}", '{"generated": true}\n')
+        self.assertEqual(inventory._module_source_digest(info), initial)
+
+        self.write("custom-addons/app/models.py", "VALUE = 2\n")
+        self.assertNotEqual(inventory._module_source_digest(info), initial)
+
     def _build_source_tree(self):
         self.manifest("base", origin="odoo/addons")
         self.manifest("app", depends=("base",))
@@ -137,6 +155,14 @@ from odoo import models
 
 class Thing(models.Model):
     _name = "x.thing"
+
+    @property
+    def display_token(self):
+        return self.id
+
+    @classmethod
+    def implementation_kind(cls):
+        return "thing"
 
     def create(self, values):
         return super().create(values)
@@ -194,6 +220,9 @@ class Thing(models.Model):
 
     def elevated_write(self):
         return self.sudo().write({"name": "elevated"})
+
+    def deescalated_read(self):
+        return self.sudo(False).read(["name"])
 """,
         )
         self.write(
@@ -276,6 +305,8 @@ export class Action {
             "guard:test.guarded",
         }
         self.assertTrue(expected <= actions.keys())
+        self.assertNotIn("rpc:x.thing.display_token", actions)
+        self.assertNotIn("rpc:x.thing.implementation_kind", actions)
         self.assertTrue(any(key.startswith("client:app:") for key in actions))
         self.assertTrue(
             any(
@@ -329,6 +360,10 @@ export class Action {
         self.assertEqual(
             {"orm_write", "sudo"},
             set(actions["rpc:x.thing.elevated_write"].get("sinks", [])),
+        )
+        self.assertNotIn(
+            "sudo",
+            actions["rpc:x.thing.deescalated_read"].get("sinks", []),
         )
         totp_sink = next(
             action
@@ -809,6 +844,123 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
             inventory.runtime_policy_digest(runtime_policy),
         )
 
+    def test_compiles_exact_agent_readonly_and_collaboration_allowlists(self):
+        read_action = self.action("rpc:res.partner.search_read", "rpc")
+        misleading_read_action = self.action("rpc:res.partner.action_archive", "rpc")
+        collaboration_action = self.action("rpc:project.task.message_post", "rpc")
+        write_action = self.action("rpc:project.task.write", "rpc")
+        surface = self.surface(
+            [read_action, misleading_read_action, collaboration_action, write_action],
+        )
+        policy = self.policy(
+            {
+                read_action["key"]: self.entry(read_action, "read_only"),
+                misleading_read_action["key"]: self.entry(
+                    misleading_read_action,
+                    "read_only",
+                ),
+                collaboration_action["key"]: self.entry(
+                    collaboration_action,
+                    "recoverable",
+                ),
+                write_action["key"]: self.entry(write_action, "operational"),
+            },
+        )
+
+        runtime_policy = inventory.build_agent_readonly_runtime_policy(surface, policy)
+
+        self.assertEqual(runtime_policy["read_only_actions"], [read_action["key"]])
+        self.assertEqual(
+            runtime_policy["collaboration_actions"],
+            [collaboration_action["key"]],
+        )
+        self.assertEqual(runtime_policy["write_actions"], [write_action["key"]])
+        self.assertEqual(
+            inventory.validate_agent_readonly_runtime_policy(
+                surface,
+                policy,
+                runtime_policy,
+            ),
+            [],
+        )
+        runtime_policy["read_only_actions"].append(write_action["key"])
+        errors = inventory.validate_agent_readonly_runtime_policy(
+            surface,
+            policy,
+            runtime_policy,
+        )
+        self.assertTrue(any("digest mismatch" in error for error in errors), errors)
+        self.assertTrue(any("stale" in error for error in errors), errors)
+
+    def test_agent_readonly_allowlist_rejects_mutating_method_names(self):
+        denied_names = (
+            "action_archive",
+            "action_unarchive",
+            "activity_feedback",
+            "activity_unlink",
+            "button_immediate_install",
+            "import_data",
+            "run",
+            "web_read",
+            "write",
+        )
+        actions = [self.action(f"rpc:x.thing.{name}", "rpc") for name in denied_names]
+        surface = self.surface(actions)
+        policy = self.policy(
+            {action["key"]: self.entry(action, "read_only") for action in actions},
+        )
+
+        runtime_policy = inventory.build_agent_readonly_runtime_policy(surface, policy)
+
+        self.assertEqual(runtime_policy["read_only_actions"], [])
+
+    def test_agent_readonly_allowlist_accepts_only_reviewed_explicit_helpers(self):
+        action = self.action("rpc:usl.agent.current_identity", "rpc")
+        surface = self.surface([action])
+
+        runtime_policy = inventory.build_agent_readonly_runtime_policy(
+            surface,
+            self.policy({action["key"]: self.entry(action, "read_only")}),
+        )
+        self.assertEqual(runtime_policy["read_only_actions"], [action["key"]])
+
+        runtime_policy = inventory.build_agent_readonly_runtime_policy(
+            surface,
+            self.policy({action["key"]: self.entry(action, "operational")}),
+        )
+        self.assertEqual(runtime_policy["read_only_actions"], [])
+
+    def test_tracked_agent_readonly_runtime_policy_is_bounded(self):
+        runtime_policy = inventory.load_json(
+            inventory.DEFAULT_AGENT_READONLY_RUNTIME_POLICY,
+        )
+        self.assertLess(
+            inventory.DEFAULT_AGENT_READONLY_RUNTIME_POLICY.stat().st_size,
+            inventory.MAX_AGENT_READONLY_RUNTIME_POLICY_BYTES,
+        )
+        self.assertEqual(
+            runtime_policy["runtime_policy_sha256"],
+            inventory.runtime_policy_digest(runtime_policy),
+        )
+        read_actions = set(runtime_policy["read_only_actions"])
+        for action_key in inventory.AGENT_READONLY_EXPLICIT_ACTIONS:
+            self.assertIn(action_key, read_actions)
+        self.assertNotIn("rpc:usl.expense.batch.get_review_summary", read_actions)
+        for forbidden_suffix in (
+            ".action_archive",
+            ".action_unarchive",
+            ".activity_feedback",
+            ".activity_unlink",
+            ".button_immediate_install",
+            ".import_data",
+            ".web_read",
+            ".write",
+        ):
+            self.assertFalse(
+                any(action_key.endswith(forbidden_suffix) for action_key in read_actions),
+                forbidden_suffix,
+            )
+
     def test_refresh_seals_policy_and_compiles_runtime_artifact(self):
         surface, policy = self._valid_inventory()
         policy.pop("qualified_policy_digest", None)
@@ -816,6 +968,7 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
         policy_path = self.root / "policy.json"
         surface_path = self.root / "surface.json"
         runtime_path = self.root / "runtime.json"
+        agent_runtime_path = self.root / "agent-runtime.json"
         inventory.write_json(candidate_path, surface)
         inventory.write_json(policy_path, policy)
 
@@ -830,11 +983,14 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
                 str(policy_path),
                 "--runtime-policy",
                 str(runtime_path),
+                "--agent-readonly-runtime-policy",
+                str(agent_runtime_path),
             ],
         )
         self.assertEqual(result, 0)
         sealed_policy = inventory.load_json(policy_path)
         runtime_policy = inventory.load_json(runtime_path)
+        agent_runtime_policy = inventory.load_json(agent_runtime_path)
         self.assertEqual(
             sealed_policy["qualified_policy_digest"],
             inventory.qualified_policy_digest(surface, sealed_policy),
@@ -844,6 +1000,14 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
                 surface,
                 sealed_policy,
                 runtime_policy,
+            ),
+            [],
+        )
+        self.assertEqual(
+            inventory.validate_agent_readonly_runtime_policy(
+                surface,
+                sealed_policy,
+                agent_runtime_policy,
             ),
             [],
         )

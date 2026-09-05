@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://unstaticlabs.com/schemas/operations/usl-runtime-v1.schema.json",
+  "title": "USL runtime target v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "name", "environment", "protected", "transport", "compose",
+    "services", "databases", "storage", "volumes", "paths", "external_networks", "endpoints", "admission_endpoints", "ingress",
+    "ollama", "backup", "release_manifest", "plan_signing", "cron_policy", "secrets", "state_directory"
+  ],
+  "properties": {
+    "schema": {"const": "usl-runtime/v1"},
+    "name": {"type": "string", "pattern": "^[a-z][a-z0-9-]{1,31}$"},
+    "environment": {"enum": ["production", "staging", "local"]},
+    "protected": {"type": "boolean"},
+    "transport": {"type": "object"},
+    "compose": {"type": "object"},
+    "services": {"type": "object"},
+    "databases": {"type": "object"},
+    "storage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tiers"],
+      "properties": {
+        "tiers": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["bulk", "database", "local"],
+          "properties": {
+            "bulk": {"$ref": "#/$defs/storageTier"},
+            "database": {"$ref": "#/$defs/storageTier"},
+            "local": {"$ref": "#/$defs/storageTier"}
+          }
+        }
+      }
+    },
+    "volumes": {"type": "object"},
+    "paths": {"type": "object"},
+    "external_networks": {"type": "object"},
+    "endpoints": {"$ref": "#/$defs/serviceEndpoints"},
+    "admission_endpoints": {"$ref": "#/$defs/admissionEndpoints"},
+    "ingress": {"type": "object"},
+    "ollama": {"type": "object"},
+    "backup": {"type": "object"},
+    "release_manifest": {"type": "string"},
+    "plan_signing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["private_key", "public_key"],
+      "properties": {
+        "private_key": {"type": ["string", "null"]},
+        "public_key": {"type": ["string", "null"]}
+      }
+    },
+    "cron_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "path", "gates"],
+      "properties": {
+        "mode": {"enum": ["managed", "neutralized", "unmanaged"]},
+        "path": {"type": ["string", "null"]},
+        "gates": {
+          "type": "object",
+          "additionalProperties": {"type": "boolean"}
+        }
+      }
+    },
+    "secrets": {"type": "object"},
+    "state_directory": {"type": "string"}
+  },
+  "$defs": {
+    "serviceEndpoints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["odoo", "paperless", "mcp"],
+      "properties": {
+        "odoo": {"type": "string", "pattern": "^https?://"},
+        "paperless": {"type": "string", "pattern": "^https?://"},
+        "mcp": {"type": "string", "pattern": "^https?://"}
+      }
+    },
+    "admissionEndpoints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["odoo", "odoo_websocket", "paperless", "mcp"],
+      "properties": {
+        "odoo": {"type": "string", "pattern": "^https?://"},
+        "odoo_websocket": {"type": "string", "pattern": "^https?://"},
+        "paperless": {"type": "string", "pattern": "^https?://"},
+        "mcp": {"type": "string", "pattern": "^https?://"}
+      }
+    },
+    "storageTier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "reserve_bytes"],
+      "properties": {
+        "path": {"type": "string", "pattern": "^/"},
+        "reserve_bytes": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

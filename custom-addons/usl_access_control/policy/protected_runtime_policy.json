@@ -116,6 +116,11 @@
       "classification": "protected"
     },
     {
+      "action_key": "guard:inventory.landed_cost.validate",
+      "action_name": "post a landed cost and its inventory valuation",
+      "classification": "protected"
+    },
+    {
       "action_key": "guard:module.install",
       "action_name": "install or import module code",
       "classification": "protected"
@@ -128,6 +133,10 @@
     {
       "action_key": "guard:module.upgrade",
       "action_name": "upgrade a module",
+      "classification": "protected"
+    },
+    {
+      "action_key": "guard:queue_job_authority",
       "classification": "protected"
     },
     {
@@ -1267,7 +1276,6 @@
     },
     {
       "action_key": "rpc:project.project.unlink",
-      "action_name": "permanently delete project.project",
       "classification": "protected",
       "enforcement": {
         "kind": "model_operation",
@@ -1287,7 +1295,6 @@
     },
     {
       "action_key": "rpc:project.task.type.unlink",
-      "action_name": "permanently delete project.task.type",
       "classification": "protected",
       "enforcement": {
         "kind": "model_operation",
@@ -1297,7 +1304,6 @@
     },
     {
       "action_key": "rpc:project.task.unlink",
-      "action_name": "permanently delete project.task",
       "classification": "protected",
       "enforcement": {
         "kind": "model_operation",
@@ -1314,6 +1320,64 @@
         "model": "purchase.order",
         "operation": "unlink"
       }
+    },
+    {
+      "action_key": "rpc:queue.job.channel.create",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "queue.job.channel",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:queue.job.channel.unlink",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "queue.job.channel",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:queue.job.channel.write",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "queue.job.channel",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:queue.job.function.create",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "queue.job.function",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:queue.job.function.unlink",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "queue.job.function",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:queue.job.function.write",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "queue.job.function",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:queue.job.write",
+      "classification": "protected"
     },
     {
       "action_key": "rpc:quotation.document.unlink",
@@ -1581,6 +1645,21 @@
       }
     },
     {
+      "action_key": "rpc:stock.landed.cost.button_validate",
+      "action_name": "post a landed cost and its inventory valuation",
+      "classification": "protected"
+    },
+    {
+      "action_key": "rpc:stock.landed.cost.unlink",
+      "action_name": "permanently delete stock.landed.cost",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "stock.landed.cost",
+        "operation": "unlink"
+      }
+    },
+    {
       "action_key": "rpc:stock.location.unlink",
       "action_name": "permanently delete stock.location",
       "classification": "protected",
@@ -1766,6 +1845,42 @@
       }
     },
     {
+      "action_key": "rpc:usl.feedback.agent.run.unlink",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.feedback.agent.run",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.mail.pdf.host.unlink",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.mail.pdf.host",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.mail.pdf.pattern.unlink",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.mail.pdf.pattern",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.mail.pdf.retrieval.unlink",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.mail.pdf.retrieval",
+        "operation": "unlink"
+      }
+    },
+    {
       "action_key": "rpc:usl.oidc.identity.create",
       "action_name": "create usl.oidc.identity",
       "classification": "protected",
@@ -1921,6 +2036,11 @@
       "classification": "protected"
     },
     {
+      "action_key": "server_action:usl_access_control.ir_cron_usl_agent_authority_reconcile_ir_actions_server",
+      "action_name": "reconcile delegated Agent authority",
+      "classification": "protected"
+    },
+    {
       "action_key": "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:ir.attachment.unlink:orm_unlink:1",
       "action_name": "permanently delete attachment evidence from a business record",
       "classification": "protected"
@@ -1951,8 +2071,8 @@
       "classification": "protected"
     }
   ],
-  "qualified_policy_digest": "43a8c511f8570b70222904257fb3612fda4ee04fe37ab7b84c9aa94abeb3dded",
-  "runtime_policy_sha256": "148a7b53e77e3f0a7573c094297dee7d5bfff269b5050b8dcdb89c56ea50e34f",
+  "qualified_policy_digest": "2f4ef9b8842c84ec003246bb5a18b0b81741fd0725c9a31046b38e474bae66a9",
+  "runtime_policy_sha256": "bd6251c05df39edba9df1415e082139def83d6e6beac4fc159e78ed41146792a",
   "schema": "usl-action-risk-protected-runtime-v2",
   "server_actions": [
     {
@@ -2112,14 +2232,6 @@
       "classification": "operational"
     },
     {
-      "action_key": "server_action:gamification.ir_cron_check_challenge_ir_actions_server",
-      "classification": "operational"
-    },
-    {
-      "action_key": "server_action:gamification.ir_cron_consolidate_ir_actions_server",
-      "classification": "operational"
-    },
-    {
       "action_key": "server_action:hr.action_hr_employee_create_users",
       "classification": "protected"
     },
@@ -2217,18 +2329,6 @@
     },
     {
       "action_key": "server_action:mail.ir_cron_web_push_notification_ir_actions_server",
-      "classification": "operational"
-    },
-    {
-      "action_key": "server_action:mass_mailing.ir_cron_mass_mailing_ab_testing_ir_actions_server",
-      "classification": "operational"
-    },
-    {
-      "action_key": "server_action:mass_mailing.ir_cron_mass_mailing_queue_ir_actions_server",
-      "classification": "operational"
-    },
-    {
-      "action_key": "server_action:mass_mailing.mailing_list_merge_action",
       "classification": "operational"
     },
     {
@@ -2388,6 +2488,10 @@
       "classification": "operational"
     },
     {
+      "action_key": "server_action:queue_job.ir_cron_autovacuum_queue_jobs_ir_actions_server",
+      "classification": "operational"
+    },
+    {
       "action_key": "server_action:rebuild_account_migration.ir_cron_rebuild_currency_rate_provider_ir_actions_server",
       "classification": "operational"
     },
@@ -2536,8 +2640,8 @@
       "classification": "operational"
     },
     {
-      "action_key": "server_action:survey.action_survey_print",
-      "classification": "operational"
+      "action_key": "server_action:usl_access_control.ir_cron_usl_agent_authority_reconcile_ir_actions_server",
+      "classification": "protected"
     },
     {
       "action_key": "server_action:usl_accounting.ir_cron_bank_export_expected_activities_ir_actions_server",
@@ -2549,6 +2653,10 @@
     },
     {
       "action_key": "server_action:usl_documents.action_archive_attachments_in_paperless",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_documents.ir_cron_usl_document_download_grants_cleanup_ir_actions_server",
       "classification": "operational"
     },
     {
@@ -2569,6 +2677,14 @@
     },
     {
       "action_key": "server_action:usl_documents_accounting.ir_cron_archive_bank_statement_evidence_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_feedback.ir_cron_feedback_agent_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_project.ir_cron_usl_reactivate_later_tasks_ir_actions_server",
       "classification": "operational"
     },
     {

@@ -21,6 +21,14 @@ esac
 export ODOO_INIT_DB="$DEV_DB"
 export ODOO_DB_FILTER="^${DEV_DB}$"
 
+case "${1:-}" in
+  init-db|test-js|test-tag|bootstrap-*-qa|disable-tours|reset)
+    python3 "$ROOT/migration/guard_runtime.py" \
+      --root "$ROOT" --project "$COMPOSE_PROJECT" \
+      --operation "Odoo development helper ${1:-}"
+    ;;
+esac
+
 current_branch() {
   local branch
   branch="$(git -C "$ROOT" branch --show-current 2>/dev/null || true)"
@@ -106,8 +114,7 @@ doctor() {
           ;;
         missing)
           printf '  The %s database is missing; deploy cannot recreate source data.\n' "$DEV_DB"
-          printf '  Reconstruct shipped product scopes with: make target-reconstruct-product\n'
-          printf '  Final migration uses: make migrate-production SOURCE_SHA=<sha256>\n'
+          printf '  Reconstruct migration targets only with: migration/manage qa refresh\n'
           ;;
         not-running)
           printf '  The database service is stopped; run make dev to inspect the target.\n'
@@ -120,12 +127,7 @@ doctor() {
     foreign|mixed)
       printf '  Action required before mutating this project.\n'
       printf '  The safety guard is preventing cross-checkout bind mounts and config.\n'
-      if [[ -d "$ROOT/.git" && "$COMPOSE_PROJECT" == "$CANONICAL_COMPOSE_PROJECT" ]]; then
-        printf '  Reclaim containers while preserving data:\n'
-        printf '    make dev-reclaim CONFIRM=%s\n' "$COMPOSE_PROJECT"
-      else
-        printf '  Use a dedicated COMPOSE_PROJECT and ports for this worktree.\n'
-      fi
+      printf '  Stop the project from its owning checkout or choose another COMPOSE_PROJECT.\n'
       ;;
     unavailable)
       printf '  Docker is unavailable. Start Docker, then rerun make doctor.\n'
@@ -143,103 +145,6 @@ doctor() {
     printf '      POCKET_ID_HTTP_PORT=%s PAPERLESS_HTTP_PORT=%s repair-pocket-id\n' \
       "${POCKET_ID_HTTP_PORT:-1411}" "${PAPERLESS_HTTP_PORT:-8010}"
   fi
-}
-
-reclaim_development_project() {
-  local confirmation="${USL_DEV_RECLAIM_CONFIRM:-}"
-  local unsafe_resources initial_ids current_ids
-
-  if [[ -f "$ROOT/.git" ]]; then
-    usl_cli_blocked \
-      "A linked worktree cannot reclaim the canonical development project." \
-      "Canonical ownership belongs exclusively to the main checkout." \
-      "Use a dedicated COMPOSE_PROJECT and non-conflicting ports." \
-      "Run: make doctor"
-    return 2
-  fi
-  if ! is_canonical_target; then
-    usl_cli_blocked \
-      "Reclaim is restricted to canonical project $CANONICAL_COMPOSE_PROJECT and database odoo_dev." \
-      "Selected project/database: $COMPOSE_PROJECT / $DEV_DB" \
-      "Run: make doctor"
-    return 2
-  fi
-
-  usl_cli_title "Reclaim development containers"
-  print_command_context
-  usl_print_compose_inventory "$COMPOSE_PROJECT" "$ROOT"
-  case "$USL_COMPOSE_SCOPE_STATE" in
-    unused|owned)
-      usl_cli_success "the canonical project is already available to this checkout."
-      printf 'Next: make dev\n'
-      return 0
-      ;;
-    unavailable)
-      usl_cli_blocked \
-        "The canonical project cannot be inspected." \
-        "Docker is unavailable or the current user cannot access it." \
-        "Start Docker, then run: make doctor"
-      return 2
-      ;;
-  esac
-
-  unsafe_resources="$(usl_compose_active_unsafe_resources)"
-  if [[ -n "$unsafe_resources" ]]; then
-    usl_cli_blocked \
-      "An active migration, test, or one-shot initialization is using the project." \
-      "These active services must finish before containers can be replaced:
-$(usl_format_compose_resources "$unsafe_resources")" \
-      "Wait for that operation or stop it from its owning checkout, then run make doctor."
-    return 2
-  fi
-  if [[ "$confirmation" != "$COMPOSE_PROJECT" ]]; then
-    usl_cli_blocked \
-      "Reclaim requires explicit confirmation." \
-      "This stops and recreates project containers; named volumes and data are preserved." \
-      "Run: make dev-reclaim CONFIRM=$COMPOSE_PROJECT"
-    return 2
-  fi
-
-  initial_ids="$(
-    printf '%s\n' "$USL_COMPOSE_SCOPE_RESOURCES" \
-      | awk -F'|' 'NF {print $1}' | sort
-  )"
-  usl_compose_scope_scan "$COMPOSE_PROJECT" "$ROOT"
-  unsafe_resources="$(usl_compose_active_unsafe_resources)"
-  if [[ -n "$unsafe_resources" ]]; then
-    usl_cli_blocked \
-      "A migration, test, or one-shot operation started during the safety check." \
-      "These active services must finish before containers can be replaced:
-$(usl_format_compose_resources "$unsafe_resources")" \
-      "Wait for that operation or stop it from its owning checkout, then run make doctor."
-    return 2
-  fi
-  current_ids="$(
-    printf '%s\n' "$USL_COMPOSE_SCOPE_RESOURCES" \
-      | awk -F'|' 'NF {print $1}' | sort
-  )"
-  if [[ "$initial_ids" != "$current_ids" ]]; then
-    usl_cli_blocked \
-      "Compose resources changed while preparing the reclaim." \
-      "Another operation created or removed a container during the safety check." \
-      "Run make doctor and retry after the other operation finishes."
-    return 2
-  fi
-
-  usl_cli_step "1/3" "Remove project containers only"
-  printf 'Named volumes, databases, filestores, archives, images, and dumps are preserved.\n'
-  usl_remove_compose_containers
-  usl_cli_step "2/3" "Recreate the canonical runtime from this checkout"
-  "${ODOO_DEV_RUNTIME_STARTER:-$ROOT/scripts/pocket-id-dev}" start-runtime
-  usl_cli_step "3/3" "Verify ownership"
-  usl_compose_scope_scan "$COMPOSE_PROJECT" "$ROOT"
-  if [[ "$USL_COMPOSE_SCOPE_STATE" != "owned" ]]; then
-    printf 'Reclaim completed, but ownership verification is %s.\n' \
-      "$USL_COMPOSE_SCOPE_STATE" >&2
-    return 1
-  fi
-  usl_cli_success "canonical containers now belong to $(current_branch)."
-  printf 'Next: make deploy\n'
 }
 
 is_canonical_target() {
@@ -328,6 +233,31 @@ sync_product_french_translations() {
     "${catalogues[@]}"
 }
 
+worktree_release_commit() {
+  git diff --quiet --ignore-submodules -- \
+    && git diff --cached --quiet --ignore-submodules -- \
+    && [[ -z "$(git ls-files --others --exclude-standard)" ]] \
+    && git rev-parse --verify HEAD
+}
+
+stamp_worktree_release_identity() {
+  local release_commit=""
+  if ! release_commit="$(worktree_release_commit)"; then
+    printf 'The tracked worktree is dirty; clearing its feedback release identity.\n'
+  fi
+  "${COMPOSE[@]}" up -d --wait db
+  "${COMPOSE[@]}" --profile init run --rm -T \
+    -e ODOO_INIT_DB="$DEV_DB" \
+    -e USL_DEPLOYMENT_ENV="${USL_DEPLOYMENT_ENV:-development}" \
+    -e USL_EINVOICE_LIVE_ENABLED="${USL_EINVOICE_LIVE_ENABLED:-0}" \
+    -e USL_EREPORTING_LIVE_ENABLED="${USL_EREPORTING_LIVE_ENABLED:-0}" \
+    -e USL_WORKTREE_RELEASE_COMMIT="$release_commit" \
+    init-db odoo shell \
+    --config=/etc/odoo/odoo.conf \
+    --database="$DEV_DB" \
+    < "$ROOT/scripts/odoo/worktree_release_identity.py"
+}
+
 deploy() {
   local module="${1:-$DEV_MODULE}"
   local update_step="${2:-1/2}"
@@ -342,6 +272,7 @@ deploy() {
     usl_cli_step "$settings_step" "Apply local QA preferences and maintained French translations"
     sync_product_french_translations
     disable_dev_tours
+    stamp_worktree_release_identity
     usl_cli_success "modules updated and the development runtime is healthy."
     return
   fi
@@ -349,6 +280,7 @@ deploy() {
     "$ROOT/scripts/pocket-id-dev" update-odoo "$update_modules"
     usl_cli_step "$settings_step" "Apply local QA preferences"
     disable_dev_tours
+    stamp_worktree_release_identity
     usl_cli_success "modules updated and the isolated SSO runtime is healthy."
     return
   fi
@@ -367,6 +299,7 @@ deploy() {
   usl_cli_step "$settings_step" "Apply local QA preferences and maintained French translations"
   sync_product_french_translations
   disable_dev_tours
+  stamp_worktree_release_identity
   print_url
   usl_cli_success "modules updated and the development runtime is healthy."
 }
@@ -753,6 +686,7 @@ command_name="${1:-help}"
 case "$command_name" in
   start) usl_cli_title "Start development"; print_command_context ;;
   deploy) usl_cli_title "Deploy add-ons"; print_command_context ;;
+  stamp-release-identity) usl_cli_title "Record worktree release identity"; print_command_context ;;
   rebuild) usl_cli_title "Rebuild and deploy"; print_command_context ;;
   stop) usl_cli_title "Stop development"; print_command_context ;;
   restart) usl_cli_title "Restart services"; print_command_context ;;
@@ -761,7 +695,7 @@ esac
 if [[ "$command_name" != "help" \
     && "$command_name" != "doctor" \
     && "$command_name" != "status" \
-    && "$command_name" != "reclaim" ]]; then
+    ]]; then
   usl_verify_compose_scope \
     "$COMPOSE_PROJECT" "$ROOT" "Odoo development helper"
 fi
@@ -785,6 +719,9 @@ case "$command_name" in
     ;;
   deploy)
     deploy "${2:-$DEV_MODULE}" "1/2" "2/2"
+    ;;
+  stamp-release-identity)
+    stamp_worktree_release_identity
     ;;
   rebuild)
     usl_cli_step "1/3" "Build the Odoo image"
@@ -889,9 +826,6 @@ case "$command_name" in
   status)
     doctor status
     ;;
-  reclaim)
-    reclaim_development_project
-    ;;
   help|*)
     cat <<'EOF'
 Usage: scripts/odoo-dev <command>
@@ -899,11 +833,12 @@ Usage: scripts/odoo-dev <command>
 Commands:
   doctor       Explain checkout, project ownership, services, and next steps
   status       Show project ownership, service health, and local URLs
-  reclaim      Recreate canonical containers after explicit confirmation
   build        Build Odoo images
   start        Start PostgreSQL and Odoo
   deploy [mod] Update a module and recreate the development server
   rebuild [mod] Rebuild images, update a module, and recreate the server
+  stamp-release-identity
+                Record the exact clean worktree commit for feedback submissions
   stop         Stop the stack
   restart      Restart services
   logs         Follow logs

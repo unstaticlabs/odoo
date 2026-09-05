@@ -25,6 +25,9 @@ ACCOUNT_CODE_SQL = (
 )
 ACCOUNT_NAME_SQL = "COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text)"
 
+FRENCH_BALANCE_SUPPLIER_PREFIXES = ("400", "401", "402", "403", "408")
+FRENCH_BALANCE_SUSPENSE_ASSET_PREFIXES = ("471", "472", "474", "475")
+
 MONETARY_REPORT_FIELDS = {
     "opening_balance",
     "debit",
@@ -68,6 +71,7 @@ MONETARY_REPORT_FIELDS = {
     "amount_residual_currency",
     "taxable_amount",
     "tax_amount",
+    "adjustment",
     "expense_amount",
     "accumulated_depreciation",
     "accumulated_depreciation_amount",
@@ -4372,6 +4376,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 f" · Arrondi : {metadata['amount_rounding_label']}"
             ),
         ]
+        if self.hide_zero_accounts:
+            context.append("Lignes à zéro masquées")
         if self.comparison_mode != "none":
             context.append(
                 "Comparaison : "
@@ -5551,7 +5557,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 None,
             )
             side_group_key = f"balance-sheet|{side_key}"
-            result.append({
+            side_header = {
                 "statement_key": side_key,
                 "statement_side": side_label,
                 "label": side_label,
@@ -5559,7 +5565,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "group_key": side_group_key,
                 "row_level": 0,
                 "presentation_role": "section",
-            })
+            }
+            if total_row:
+                side_header["amount"] = total_row.get("amount")
+            result.append(side_header)
             sections = {}
             for row in side_rows:
                 sections.setdefault(row.get("section") or side_label, []).append(row)
@@ -6745,18 +6754,26 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             if account_type.startswith(("income", "expense")):
                 continue
             amount = _amount(row["closing_balance"])
-            is_asset = account_type.startswith("asset")
+            statement_key = self._french_balance_sheet_side(
+                row["account_code"],
+                account_type,
+                amount,
+            )
+            if not statement_key:
+                continue
+            is_asset = statement_key == "bilan_actif"
             rows.append({
                 "statement": "Bilan",
-                "statement_key": (
-                    "bilan_actif" if is_asset else "bilan_passif"
-                ),
+                "statement_key": statement_key,
                 "statement_side": "Actif" if is_asset else "Passif",
-                "section": self._balance_sheet_section(account_type),
+                "section": self._balance_sheet_section(
+                    account_type,
+                    statement_key,
+                ),
                 "account_code": row["account_code"],
                 "account_name": row["account_name"],
                 "account_type": account_type,
-                "amount": _amount_text(amount if not account_type.startswith(("liability", "equity")) else -amount),
+                "amount": _amount_text(amount if is_asset else -amount),
             })
         result = sum(
             -_amount(row["closing_balance"])
@@ -6829,16 +6846,55 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         return rows
 
     @staticmethod
-    def _balance_sheet_section(account_type):
-        if account_type in ("asset_fixed", "asset_non_current"):
-            return "Immobilisations"
+    def _french_balance_sheet_side(account_code, account_type, balance):
+        """Apply French Bilan prefix D/C rules to one closing balance."""
+        code = str(account_code or "").strip()
+        account_type = account_type or ""
+
+        # Odoo's French Bilan nets these prefixes on their statutory side
+        # instead of reclassifying an exceptional opposite-sign balance.
+        # A debit supplier balance therefore reduces supplier debt on the
+        # Passif, while a credit suspense balance reduces current assets.
+        if code.startswith(FRENCH_BALANCE_SUPPLIER_PREFIXES):
+            return "bilan_passif"
+        if code.startswith(FRENCH_BALANCE_SUSPENSE_ASSET_PREFIXES):
+            return "bilan_actif"
+
+        # These prefixes are fixed to the Actif even with a credit balance:
+        # classes 2/3 include depreciation provisions, while 49/59 are the
+        # corresponding impairment accounts for receivables and treasury.
+        if code.startswith(("109", "2", "3", "49", "59")):
+            return "bilan_actif"
+        if code.startswith("1"):
+            return "bilan_passif"
+        if code.startswith(("4", "5")):
+            if balance > 0:
+                return "bilan_actif"
+            if balance < 0:
+                return "bilan_passif"
+
+        # Preserve a deterministic fallback for custom/non-PCG accounts while
+        # retaining the same debit/credit inversion semantics.
         if account_type.startswith("asset"):
+            return "bilan_actif" if balance >= 0 else "bilan_passif"
+        if account_type.startswith("liability"):
+            return "bilan_passif" if balance <= 0 else "bilan_actif"
+        if account_type.startswith("equity"):
+            return "bilan_passif"
+        return False
+
+    @staticmethod
+    def _balance_sheet_section(account_type, statement_key):
+        if statement_key == "bilan_actif" and account_type in (
+            "asset_fixed",
+            "asset_non_current",
+        ):
+            return "Immobilisations"
+        if statement_key == "bilan_actif":
             return "Actif circulant"
         if account_type.startswith("equity"):
             return "Capitaux propres"
-        if account_type.startswith("liability"):
-            return "Dettes et passifs"
-        return "Autres postes"
+        return "Dettes et passifs"
 
     def _tax_report_rows(self):
         rows = self._tax_report_group_rows("account_tax")
@@ -8156,6 +8212,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         )
         current_asset_debits, current_asset_debit_count = sum_types(
             {"asset_current", "asset_receivable", "asset_prepayments"},
+            excluded_prefixes=FRENCH_BALANCE_SUSPENSE_ASSET_PREFIXES,
             positive=True,
             balance_field="closing_balance",
         )
@@ -8165,12 +8222,23 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "liability_current",
                 "liability_non_current",
             },
+            excluded_prefixes=FRENCH_BALANCE_SUPPLIER_PREFIXES,
             positive=True,
             balance_field="closing_balance",
         )
-        other_receivables = current_asset_debits + liability_debits
+        suspense_assets, suspense_asset_count = sum_bal(
+            FRENCH_BALANCE_SUSPENSE_ASSET_PREFIXES,
+            balance_field="closing_balance",
+        )
+        other_receivables = (
+            current_asset_debits
+            + liability_debits
+            + suspense_assets
+        )
         other_receivable_count = (
-            current_asset_debit_count + liability_debit_count
+            current_asset_debit_count
+            + liability_debit_count
+            + suspense_asset_count
         )
         cash, cash_count = sum_types(
             {"asset_cash"},
@@ -8199,8 +8267,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             balance_field="closing_balance",
         )
         trade_payables, trade_payable_count = sum_bal(
-            ["401", "403", "4081", "4088"],
-            negative=True,
+            FRENCH_BALANCE_SUPPLIER_PREFIXES,
             balance_field="closing_balance",
         )
         tax_social_debt, tax_social_count = sum_bal(
@@ -8238,6 +8305,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             excluded_prefixes=[
                 "16", "17", "401", "403", "4081", "4088",
                 "42", "43", "44", "455",
+                *FRENCH_BALANCE_SUSPENSE_ASSET_PREFIXES,
             ],
             negative=True,
             balance_field="closing_balance",
@@ -8427,7 +8495,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             row("bilan_passif", "PASSIF_RESULTAT", "Résultat de l’exercice", current_result, "6 et 7", ["6", "7"], balance_result_count),
             row("bilan_passif", "PASSIF_CAPITAUX_PROPRES", "Total des capitaux propres", equity, "Capitaux propres + résultat de l’exercice", ["1", "6", "7"], capital_count + other_equity_count + balance_result_count, presentation_role="subtotal"),
             row("bilan_passif", "PASSIF_DETTES_FINANCIERES", "Emprunts et dettes financières diverses", financial_debt, "Soldes créditeurs 16/17 et comptes courants d’associés 455", ["16", "17", "455"], financial_debt_count),
-            row("bilan_passif", "PASSIF_DETTES_FOURNISSEURS", "Dettes fournisseurs et comptes rattachés", -trade_payables, "Soldes créditeurs 401/403/4081/4088", ["401", "403", "4081", "4088"], trade_payable_count),
+            row("bilan_passif", "PASSIF_DETTES_FOURNISSEURS", "Dettes fournisseurs et comptes rattachés", -trade_payables, "Solde net des comptes fournisseurs 400/401/402/403/408", FRENCH_BALANCE_SUPPLIER_PREFIXES, trade_payable_count),
             row("bilan_passif", "PASSIF_DETTES_FISCALES_SOCIALES", "Dettes fiscales et sociales", -tax_social_debt, "Soldes créditeurs 42/43/44", ["42", "43", "44"], tax_social_count),
             row("bilan_passif", "PASSIF_AUTRES_DETTES", "Autres dettes et découverts", -other_debt, "Autres soldes créditeurs classés en passif", ["1", "4", "5"], other_debt_count),
             row("bilan_passif", "PASSIF_TOTAL_DETTES", "Total des dettes", total_debt, "Dettes financières, fournisseurs, fiscales, sociales et autres", ["1", "4", "5"], financial_debt_count + trade_payable_count + tax_social_count + other_debt_count, presentation_role="subtotal"),

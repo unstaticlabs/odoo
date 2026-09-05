@@ -25,7 +25,12 @@ Confirm that:
 4. The legal representative completes the native Odoo Approved Platform
    authentication and accepts the displayed terms.
 5. Complete the native receiver registration.
-6. Confirm the company reaches **Receiving**.
+6. While Odoo reports `smp_registration`, the readiness workspace shows
+   **Registration in progress**. Wait for the native receiver state; do not
+   restart registration merely to change the badge.
+7. When the workspace returns to **Activation required**, select
+   **Start receiving invoices**.
+8. Confirm the company reaches **Receiving**.
 
 This journey activates incoming invoices only. It does not enable e-reporting,
 payment-lifecycle reporting or outgoing regulatory flows.

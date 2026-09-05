@@ -1,14 +1,11 @@
 # Accounting specifications
 
-These documents define the accounting truths that implementations and migrations must preserve.
+These documents define the Accounting truths that product changes, upgrades
+and releases must preserve.
 
 - [Accounting invariants](accounting-invariants.md)
 - [Parity standard](parity-standard.md)
 - [Previous-accountant plaquette parity, 30 September 2025](accountant-plaquette-parity-2025-09-30.md)
-- [Evidence catalogue](parity-evidence.md)
-- [Migration and release gates](migration-gates.md)
-- [Current SaaS 19.3 alignment register](saas-19.3-alignment-register.md)
-- [Historical SaaS 19.2 alignment register](saas-19.2-alignment-register.md)
 - [Configurable Accounting Controls](configurable-accounting-controls.md)
 - [Configurable Accounting Framework](configurable-accounting-framework.md)
 - [Accounting report presentation](accounting-report-presentation.md)
@@ -25,8 +22,10 @@ These documents define the accounting truths that implementations and migrations
 - [Platform billing accounting design](platform-billing.md)
 - [B2C metric and accounting-link contract](b2c-metrics.md)
 - [USL Accounting add-on architecture](custom-addon-architecture.md)
-- [Milestone 13 reporting and closing UX target](milestone-13-reporting-and-closing-ux-target.md)
-- [Milestone 13 declaration and closing workflow](milestone-13-declaration-closing-workflow.md)
-- [Milestone 13 screenshot and journey matrix](milestone-13-screenshot-parity-matrix.md)
+- [Accounting configuration capability](accounting-configuration-capability.md)
+- [Reporting and closing experience](reporting-and-closing-ux.md)
+- [Declarations and closing](declarations-and-closing.md)
 
-Superseded checkpoints and handoffs are retained under `docs/archive/accounting/`.
+Current release priorities and acceptance gates live in
+[`ROADMAP.md`](../../ROADMAP.md) and the
+[production runbook](../operations/production.md).

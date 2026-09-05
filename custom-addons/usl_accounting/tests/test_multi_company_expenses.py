@@ -74,6 +74,39 @@ class TestMultiCompanyExpenses(TransactionCase):
         self.assertTrue(company_b_employee.exists())
         self.assertEqual(company_b_employee.user_id, self.user)
 
+    def test_excluded_company_does_not_require_or_recreate_employee(self):
+        excluded_employee = self.env["hr.employee"].sudo().create({
+            "name": "Excluded employee identity",
+            "company_id": self.company_b.id,
+            "user_id": self.user.id,
+            "work_contact_id": self.user.partner_id.id,
+        })
+        self.user.write({
+            "usl_expense_excluded_company_ids": [Command.set(self.company_b.ids)],
+            "usl_expense_multi_company": True,
+        })
+        excluded_employee.active = False
+
+        self.user._usl_ensure_expense_company_profiles(strict=True)
+        self.user._usl_ensure_expense_company_profiles(strict=True)
+
+        company_b_profiles = self.env["hr.employee"].sudo().with_context(
+            active_test=False,
+        ).search([
+            ("user_id", "=", self.user.id),
+            ("company_id", "=", self.company_b.id),
+        ])
+        self.assertEqual(company_b_profiles, excluded_employee)
+        self.assertFalse(excluded_employee.active)
+        self.assertEqual(
+            self.user.usl_expense_company_profile_status,
+            "ready",
+        )
+        self.assertIn(
+            "1 companies",
+            self.user.usl_expense_company_profile_message,
+        )
+
     def test_ambiguous_unlinked_profiles_are_not_guessed(self):
         self.env["hr.employee"].sudo().create([
             {
@@ -104,6 +137,10 @@ class TestMultiCompanyExpenses(TransactionCase):
         with self.assertRaises(AccessError):
             self.user.with_user(self.user).write({
                 "usl_expense_multi_company": True,
+            })
+        with self.assertRaises(AccessError):
+            self.user.with_user(self.user).write({
+                "usl_expense_excluded_company_ids": [Command.link(self.company_b.id)],
             })
 
 

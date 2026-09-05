@@ -1,0 +1,327 @@
+#!/usr/bin/env bash
+set -euo pipefail
+umask 077
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT"
+MIGRATION="$ROOT/migration/internal"
+
+mode="${1:-}"
+runtime_kind="$mode"
+finalize_only=0
+case "$mode" in
+  qa|transition) ;;
+  transition-finalize)
+    runtime_kind=transition
+    finalize_only=1
+    ;;
+  *) printf 'Internal reconstruction mode must be qa, transition, or transition-finalize.\n' >&2; exit 2 ;;
+esac
+
+runtime_state="${USL_MIGRATION_RUNTIME_STATE:-}"
+if [[ -z "$runtime_state" ]]; then
+  printf 'Reconstruction must be invoked through migration/manage.\n' >&2
+  exit 2
+fi
+python3 - "$runtime_state" "$runtime_kind" "$ROOT" <<'PY'
+import json
+import os
+import stat
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+mode = sys.argv[2]
+root = Path(sys.argv[3]).resolve()
+if path.is_symlink() or not path.is_file() or stat.S_IMODE(path.stat().st_mode) != 0o600:
+    raise SystemExit("Runtime state must be a mode-0600 regular file.")
+value = json.loads(path.read_text(encoding="utf-8"))
+if value.get("schema") != "usl-migration-runtime-v1":
+    raise SystemExit("Unsupported runtime state schema.")
+if value.get("kind") != mode:
+    raise SystemExit("Runtime kind and reconstruction mode differ.")
+if value.get("status") in {"transition-live", "frozen-read-only"}:
+    raise SystemExit("Protected runtime cannot be reconstructed.")
+expected = {
+    "COMPOSE_PROJECT_NAME": (value.get("compose") or {}).get("project"),
+    "ODOO_DEV_DB": value.get("database"),
+    "USL_ONLINE_DUMP_DIR": (value.get("source") or {}).get("path"),
+}
+for name, configured in expected.items():
+    if os.environ.get(name) != configured:
+        raise SystemExit(f"Resolved runtime scope differs for {name}.")
+if Path((value.get("compose") or {}).get("working_directory", "")).resolve() != root:
+    raise SystemExit("Runtime belongs to another working directory.")
+PY
+
+compose_project="$COMPOSE_PROJECT_NAME"
+target_database="$ODOO_DEV_DB"
+source_dump_dir="$USL_ONLINE_DUMP_DIR"
+source_dump="$source_dump_dir/dump.sql"
+if [[ "$target_database" != odoo_dev ]]; then
+  printf 'Reconstruction is reserved for the canonical odoo_dev target.\n' >&2
+  exit 2
+fi
+if [[ ! -f "$source_dump" || ! -d "$source_dump_dir/filestore" ]]; then
+  printf 'Frozen source package is incomplete: %s\n' "$source_dump_dir" >&2
+  exit 2
+fi
+source_sha256="$(shasum -a 256 "$source_dump" | awk '{print $1}')"
+recorded_source_sha256="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["source"]["dump_sha256"])' "$runtime_state")"
+if [[ "$source_sha256" != "$recorded_source_sha256" ]]; then
+  printf 'Frozen source checksum changed after runtime resolution.\n' >&2
+  exit 2
+fi
+if [[ "${USL_EINVOICE_LIVE_ENABLED:-}" != 0 || "${USL_EREPORTING_LIVE_ENABLED:-}" != 0 ]]; then
+  printf 'Regulatory live integrations must remain disabled.\n' >&2
+  exit 2
+fi
+
+export ACCOUNTING_COMPAT_COMPOSE_PROJECT="$compose_project"
+export COMPOSE_IGNORE_ORPHANS=1
+export USL_QA_DATA_PROFILE=full
+export USL_MIGRATION_PURPOSE="$runtime_kind"
+evidence_purpose=qa
+if [[ "$runtime_kind" == transition ]]; then
+  evidence_purpose=production
+fi
+
+timing_dir="$ROOT/private/migration/runs"
+mkdir -p "$timing_dir"
+chmod 700 "$ROOT/private" "$ROOT/private/migration" "$timing_dir"
+timing_tsv="$timing_dir/${USL_MIGRATION_RUNTIME_ID}-$(date -u +%Y%m%dT%H%M%SZ).tsv"
+timing_json="${timing_tsv%.tsv}.json"
+: > "$timing_tsv"
+chmod 600 "$timing_tsv"
+run_started="$(date +%s)"
+run_started_iso="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+git_commit="$(git rev-parse HEAD)"
+migration_code_sha256="$(PYTHONPATH="$ROOT" python3 -c \
+  'from pathlib import Path; from migration.digests import migration_digest; print(migration_digest(Path.cwd()))')"
+
+run_stage() {
+  local label="$1" started status
+  shift
+  started="$(date +%s)"
+  set +e
+  (set -e; "$@")
+  status=$?
+  set -e
+  printf '%s\t%s\t%s\n' "$label" "$(( $(date +%s) - started ))" "$status" >> "$timing_tsv"
+  return "$status"
+}
+
+write_report() {
+  local outcome="$1"
+  python3 - "$timing_tsv" "$timing_json" "$outcome" "$evidence_purpose" \
+    "$source_sha256" "$git_commit" "$migration_code_sha256" "$compose_project" \
+    "$run_started" "$run_started_iso" "$ROOT" <<'PY'
+import hashlib
+import json
+import sys
+import time
+from pathlib import Path
+
+stages = []
+for row in Path(sys.argv[1]).read_text(encoding="utf-8").splitlines():
+    name, duration, status = row.split("\t")
+    stages.append({"name": name, "duration_seconds": int(duration), "status": int(status)})
+payload = {
+    "schema": "usl-production-migration-run-v2",
+    "outcome": sys.argv[3],
+    "purpose": sys.argv[4],
+    "profile": "full",
+    "validation_level": "production-source-wide",
+    "source_dump_sha256": sys.argv[5],
+    "git_commit": sys.argv[6],
+    "migration_code_sha256": sys.argv[7],
+    "compose_project": sys.argv[8],
+    "duration_seconds": int(time.time()) - int(sys.argv[9]),
+    "started_at": sys.argv[10],
+    "finished_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    "stages": stages,
+}
+evidence_root = Path(sys.argv[11]) / "artifacts/migration/private" / (
+    "source-" + sys.argv[5][:12]
+)
+for name, filename in (
+    ("source_coverage", "source-truth-inventory.json"),
+    ("attachment_coverage", "attachment-disposition-ledger.json"),
+):
+    path = evidence_root / filename
+    if not path.is_file():
+        raise SystemExit(f"Missing required {name} evidence: {path}")
+    value = json.loads(path.read_text(encoding="utf-8"))
+    payload[name] = {
+        "complete": value.get("summary", {}).get("complete") is True,
+        "evidence": str(path),
+        "evidence_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "summary": value.get("summary", {}),
+    }
+    if not payload[name]["complete"]:
+        raise SystemExit(f"Incomplete required {name} evidence: {path}")
+Path(sys.argv[2]).write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+Path(sys.argv[2]).chmod(0o600)
+PY
+}
+
+cleanup() {
+  local status=$?
+  trap - EXIT
+  if ((status)); then
+    write_report failed
+  fi
+  exit "$status"
+}
+trap cleanup EXIT
+
+stop_product() {
+  docker compose -p "$compose_project" stop odoo >/dev/null 2>&1 || true
+}
+
+prepare_personal_ai_keyring() {
+  local configured_path="$USL_PERSONAL_AI_MASTER_KEYS_HOST_PATH"
+  if [[ ! -f "$configured_path" ]]; then
+    printf 'Resolved Personal AI master-key file is missing.\n' >&2
+    return 2
+  fi
+  python3 "$ROOT/scripts/documents_sso_env.py" \
+    --personal-ai-key-file "$configured_path" >/dev/null
+}
+
+restore_projects() {
+  "$MIGRATION/project-restore" install
+  "$MIGRATION/project-restore" import
+  "$MIGRATION/project-restore" validate
+}
+
+restore_tese() {
+  "$MIGRATION/tese-restore" install
+  "$MIGRATION/tese-restore" import
+  "$MIGRATION/tese-restore" validate
+  "$MIGRATION/tese-restore" idempotence
+}
+
+restore_platform_billing() {
+  "$MIGRATION/platform-billing-restore" install
+  "$MIGRATION/platform-billing-restore" import
+  "$MIGRATION/platform-billing-restore" validate
+  "$MIGRATION/platform-billing-restore" idempotence
+}
+
+finalize_documents_runtime() {
+  local finalizer_log finalizer_status
+  finalizer_log="${timing_tsv%.tsv}-documents-runtime-finalize.log"
+  finalizer_status=0
+  "$MIGRATION/documents-finalize" \
+    | tee "$finalizer_log" \
+    || finalizer_status=${PIPESTATUS[0]}
+  chmod 600 "$finalizer_log"
+  if ((finalizer_status)); then
+    return "$finalizer_status"
+  fi
+}
+
+finalize_migration_boundary() {
+  "$MIGRATION/collaboration-restore" finalize
+  PLATFORM_BILLING_RESTORE_DEFER_PRODUCT_FINALIZE=1 \
+    "$MIGRATION/platform-billing-restore" finalize
+  TESE_RESTORE_DEFER_PRODUCT_VALIDATE=1 "$MIGRATION/tese-restore" finalize
+  PROJECT_RESTORE_DEFER_PRODUCT_VALIDATE=1 "$MIGRATION/project-restore" finalize
+  "$MIGRATION/hr-restore" finalize
+  "$MIGRATION/product-restore" finalize
+  "$MIGRATION/identity-restore" finalize
+  "$MIGRATION/accounting-restore" finalize
+  "$MIGRATION/platform-billing-restore" schema-finalize
+}
+
+run_stage "Docker resource preflight" "$MIGRATION/resource-preflight"
+run_stage "Personal AI key preflight" prepare_personal_ai_keyring
+run_stage "start target database" docker compose -p "$compose_project" up -d --wait db
+if (( ! finalize_only )); then
+  stop_product
+  run_stage "restore source database" "$MIGRATION/accounting-compat" source-restore
+  run_stage "source coverage gate" "$MIGRATION/source-truth" gate
+  run_stage "attachment disposition gate" "$MIGRATION/attachment-ledger" gate
+  run_stage "sync pinned OCA add-ons" scripts/sync-oca-addons
+  run_stage "source accounting controls" "$MIGRATION/accounting-compat" source-controls
+  run_stage "extract accounting source" "$MIGRATION/accounting-compat" extract
+  run_stage "reset target database" "$MIGRATION/accounting-compat" dev-reset
+  stop_product
+  run_stage "import accounting" "$MIGRATION/accounting-compat" dev-import
+  stop_product
+  run_stage "validate accounting" "$MIGRATION/accounting-compat" dev-validate
+  stop_product
+  run_stage "verify empty outbound queues after Accounting" \
+    "$MIGRATION/outbound-safety" post-accounting
+  run_stage "prepare Documents product" env DOCUMENTS_CANONICAL_TARGET=1 \
+    DOCUMENTS_TARGET_DATABASE=odoo_dev "$MIGRATION/documents-restore" prepare-target
+  stop_product
+  run_stage "install identity restoration" "$MIGRATION/identity-restore" install
+  run_stage "restore identities" "$MIGRATION/identity-restore" import
+  run_stage "validate identities" "$MIGRATION/identity-restore" validate
+  stop_product
+  run_stage "install product restoration" "$MIGRATION/product-restore" install
+  run_stage "restore product data" "$MIGRATION/product-restore" import
+  run_stage "validate product data" "$MIGRATION/product-restore" validate
+  stop_product
+  run_stage "repair Expense Batch transition" "$MIGRATION/accounting-restore" expense-batch-transition
+  stop_product
+  run_stage "repair final Accounting attachment targets" "$MIGRATION/accounting-restore" attachment-targets
+  stop_product
+  run_stage "restore B2C commerce evidence" env B2C_REQUIRE_FINAL_RELATIONSHIPS=0 \
+    "$MIGRATION/b2c-restore" all
+  stop_product
+  run_stage "install HR restoration" "$MIGRATION/hr-restore" install
+  run_stage "restore HR" "$MIGRATION/hr-restore" import
+  run_stage "validate HR" "$MIGRATION/hr-restore" validate
+  stop_product
+  run_stage "restore Projects" restore_projects
+  stop_product
+  run_stage "finalize source-backed saved preferences" "$MIGRATION/identity-restore" preferences
+  stop_product
+  run_stage "restore Documents archive" env DOCUMENTS_CANONICAL_TARGET=1 \
+    DOCUMENTS_CANONICAL_RESET=1 \
+    DOCUMENTS_RESTORE_PROFILE=full \
+    DOCUMENTS_TARGET_DATABASE=odoo_dev "$MIGRATION/documents-restore" all
+  stop_product
+  run_stage "finalize B2C relationships and Documents links" env \
+    B2C_REQUIRE_FINAL_RELATIONSHIPS=1 "$MIGRATION/b2c-restore" all
+  stop_product
+  run_stage "prepare Sign external archive" env SIGN_CANONICAL_TARGET=1 \
+    SIGN_TARGET_DATABASE=odoo_dev "$MIGRATION/sign-restore" prepare-target
+  stop_product
+  run_stage "restore Sign external archive" env SIGN_CANONICAL_TARGET=1 \
+    SIGN_TARGET_DATABASE=odoo_dev "$MIGRATION/sign-restore" all
+  stop_product
+  run_stage "restore Paie TESE" restore_tese
+  stop_product
+  run_stage "restore Platform Billing" restore_platform_billing
+  stop_product
+  run_stage "restore Collaboration history" "$MIGRATION/collaboration-restore" all
+  stop_product
+  run_stage "verify empty outbound queues after source restoration" \
+    "$MIGRATION/outbound-safety" post-source-restoration
+  run_stage "finalize migration boundary" finalize_migration_boundary
+fi
+run_stage "apply target configuration" "$MIGRATION/finalize"
+run_stage "verify empty outbound queues after target configuration" \
+  "$MIGRATION/outbound-safety" post-target-configuration
+run_stage "multi-company acceptance" docker compose -p "$compose_project" exec -T \
+  -e USL_EINVOICE_LIVE_ENABLED=0 -e USL_EREPORTING_LIVE_ENABLED=0 \
+  odoo odoo shell --config=/etc/odoo/odoo.conf --database=odoo_dev \
+  < scripts/odoo/multicompany_accounting_acceptance.py
+run_stage "finalize Documents runtime and drain attachment queue" \
+  finalize_documents_runtime
+run_stage "seal final Documents archive evidence" env DOCUMENTS_CANONICAL_TARGET=1 \
+  DOCUMENTS_RESTORE_PROFILE=full DOCUMENTS_TARGET_DATABASE=odoo_dev \
+  "$MIGRATION/documents-restore" seal-evidence
+if [[ "$runtime_kind" == transition ]]; then
+  run_stage "neutralize transition side effects" "$MIGRATION/transition-neutralize"
+fi
+run_stage "verify final empty outbound queues" "$MIGRATION/outbound-safety" final-reconstruction
+
+write_report passed
+trap - EXIT
+printf 'Reconstruction complete: runtime=%s mode=%s.\n' "$USL_MIGRATION_RUNTIME_ID" "$mode"
+printf 'Evidence: %s\n' "$timing_json"

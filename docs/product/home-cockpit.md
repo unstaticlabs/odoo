@@ -11,7 +11,9 @@ the user into the complete native workflow.
   today, which precedes future work, without inventing a second priority model.
 - **My Tasks** uses the canonical My Tasks domain. It reports the largest open
   stage groups and counts overdue, seven-day, waiting and changes-requested
-  work without loading the task backlog.
+  work without loading the task backlog. Every count opens as a named search
+  facet whose domain matches that exact count and survives browser history or
+  refresh.
 - **Favorite Views** stores current-user destinations as native actions,
   structured view state, records or curated system destinations. Raw URLs and
   executable expressions are not stored.
@@ -20,14 +22,20 @@ the user into the complete native workflow.
   `Pipeline`. It surfaces assigned open work marked `Agent Failed`, `Blocked`
   or `Needs Human`, plus changes-requested and Review-stage work. Renaming these
   operational tags intentionally changes discovery.
-- **Accounting & Compliance Alerts** reads the current active company's
-  `rebuild.account.overview` and links to existing closing, declaration,
-  review, bank, evidence and hygiene workflows. It never reports financial
-  values or aggregates companies.
+- **Accounting & Compliance Alerts** reads every selected company's
+  `rebuild.account.overview`. Counts are additive and combined by default,
+  with the non-zero per-company contributions visible on each tile. Links open
+  the matching selected-company population for closing, declaration, review,
+  bank, evidence and hygiene workflows; no financial values or legal-company
+  readiness states are consolidated.
 
 Each provider runs under the current user's ACLs and record rules. A failed
-provider does not prevent the others from loading. Company changes reload the
-available widgets and company-sensitive data.
+provider does not prevent the others from loading. The header states whether
+Home is showing one company or a combined selected-company scope. Activities,
+My Tasks and AI Pipelines combine readable records in multi-company mode;
+company-specific favorites remain labelled. Company changes reload the
+available widgets and company-sensitive data without changing the user's
+selected-company mode.
 
 ## Personalization and extension
 
@@ -40,16 +48,12 @@ opening them. The surface uses a compact two-column destination list on wider
 screens and one column on narrow screens; this increases useful density without
 introducing another launcher or hiding keyboard order.
 
-The production reconstruction gives Valentin an opinionated first-run setup
-from the protected Online dump. The temporary Identity preference stage uses
-the restored administrator mapping, native saved filters, and restored Project
-favorite relationships; it never stores source IDs in `usl_home`. It selects
-My Tasks, at most four operational source-favorite projects, available AI and
-Accounting workspaces, and the durable supplier-invoice and FY2526 bank-review
-saved views. Redundant Activities and transient cutover filters remain
-available in their native applications but do not crowd Home. Replaying the
-migration is idempotent; personalization after the shipped migration remains
-owned by Valentin and is not reset by product upgrades.
+Valentin starts with an opinionated layout based on his available Projects,
+saved views, Accounting workspaces and My Tasks. The defaults never store
+external source identifiers in `usl_home`. Redundant Activities and temporary
+operational filters remain available in their native applications but do not
+crowd Home. Personalization belongs to the user and product upgrades must not
+reset it.
 
 New widgets must use a bounded provider method on `usl.home.service`, declare a
 stable widget key and availability rule, and navigate into an existing product

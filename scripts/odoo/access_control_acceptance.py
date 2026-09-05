@@ -3,11 +3,18 @@
 """Read-only named-user and capability evidence for Distribution access QA."""
 
 import json
+import os
 
 from odoo.exceptions import ValidationError
 
 
 Users = env["res.users"].sudo().with_context(active_test=False)  # noqa: F821
+roger_profile = os.getenv(
+    "USL_EXPECT_ROGER_PROFILE",
+    "product_administrator",
+)
+if roger_profile not in {"administrator", "product_administrator"}:
+    raise ValidationError("USL_EXPECT_ROGER_PROFILE is invalid.")
 expected = {
     "admin": {
         "role": "usl_access_control.group_distribution_administrator",
@@ -22,10 +29,10 @@ expected = {
         "irreversible": True,
     },
     "roger@unstaticlabs.com": {
-        "role": "usl_access_control.group_technical_administrator",
+        "role": "usl_access_control.group_distribution_administrator",
         "companies": "all",
         "pocketid": True,
-        "irreversible": False,
+        "irreversible": roger_profile == "administrator",
     },
     "prosper": {
         "role": "usl_access_control.group_accounting_reviewer",
@@ -36,6 +43,7 @@ expected = {
 }
 all_companies = set(env["res.company"].sudo().search([]).mapped("name"))  # noqa: F821
 evidence = []
+prosper_user = Users.browse()
 for login, policy in expected.items():
     users = Users.search([("login", "=", login)])
     if len(users) != 1:
@@ -54,6 +62,9 @@ for login, policy in expected.items():
         raise ValidationError(f"Unexpected Pocket ID state for {login}.")
     if user.usl_has_irreversible_actions != policy["irreversible"]:
         raise ValidationError(f"Unexpected irreversible capability for {login}.")
+    multi_company_ui = user.has_group("base.group_multi_company")
+    if len(user.company_ids) > 1 and not multi_company_ui:
+        raise ValidationError(f"Missing native multi-company UI access for {login}.")
     identities = user.usl_oidc_identity_ids.filtered("active")
     if policy["pocketid"] and len(identities) != 1:
         raise ValidationError(f"Expected one active immutable identity for {login}.")
@@ -67,7 +78,39 @@ for login, policy in expected.items():
             "pocketid_subject": identities.subject if identities else None,
             "ai_agent": user.usl_is_ai_agent,
             "irreversible_actions": user.usl_has_irreversible_actions,
+            "multi_company_ui": multi_company_ui,
         },
+    )
+    if login == "prosper":
+        prosper_user = user
+
+prosper_context = {"allowed_company_ids": prosper_user.company_ids.ids}
+prosper_declarations = env["rebuild.account.declaration"].with_user(  # noqa: F821
+    prosper_user,
+).with_context(**prosper_context)
+prosper_decisions = env["rebuild.account.assurance.decision"].with_user(  # noqa: F821
+    prosper_user,
+).with_context(**prosper_context)
+capabilities = {
+    "declaration_read": prosper_declarations.has_access("read"),
+    "declaration_write": prosper_declarations.has_access("write"),
+    "decision_read": prosper_decisions.has_access("read"),
+    "decision_create": prosper_decisions.has_access("create"),
+    "decision_write": prosper_decisions.has_access("write"),
+    "decision_delete": prosper_decisions.has_access("unlink"),
+}
+expected_capabilities = {
+    "declaration_read": True,
+    "declaration_write": False,
+    "decision_read": True,
+    "decision_create": True,
+    "decision_write": True,
+    "decision_delete": False,
+}
+if capabilities != expected_capabilities:
+    raise ValidationError(
+        f"Unexpected Prosper declaration capabilities: {capabilities}; "
+        f"expected {expected_capabilities}."
     )
 
 conflicts = Users.search([]).filtered(
@@ -83,4 +126,7 @@ historical = Users.search([("login", "=", "roger@xaic.cat")])
 if historical and (historical.active or historical.usl_pocketid_access):
     raise ValidationError("The historical Roger identity is not inactive and sealed.")
 
-print(json.dumps({"named_users": evidence}, indent=2, sort_keys=True))  # noqa: T201
+print(json.dumps({  # noqa: T201
+    "named_users": evidence,
+    "prosper_declaration_capabilities": capabilities,
+}, indent=2, sort_keys=True))

@@ -5,6 +5,11 @@
         <field name="model">res.users</field>
         <field name="inherit_id" ref="base.view_users_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_owned_agents" type="object" class="oe_stat_button" icon="fa-cogs" invisible="not usl_owned_agent_count">
+                    <field name="usl_owned_agent_count" widget="statinfo" string="Agents"/>
+                </button>
+            </xpath>
             <xpath expr="//page[@name='access_rights']/group[1]" position="after">
                 <group string="Distribution access" groups="base.group_system">
                     <field name="usl_access_summary" readonly="1"/>
@@ -14,6 +19,43 @@
                         Application access is separate from irreversible actions. AI Agent identities are always denied irreversible actions by the server.
                     </div>
                 </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_users_form_agent_password_lifecycle" model="ir.ui.view">
+        <field name="name">res.users.form.agent.password.lifecycle</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="auth_signup.res_users_view_form"/>
+        <field name="priority">30</field>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_reset_password']" position="attributes">
+                <attribute name="invisible">state != 'new' or usl_is_ai_agent</attribute>
+            </xpath>
+            <xpath expr="//div[@name='auth']/button[@name='action_reset_password']" position="attributes">
+                <attribute name="invisible">id == uid or state != 'active' or usl_is_ai_agent</attribute>
+            </xpath>
+            <xpath expr="//div[@name='auth']/widget[@name='auth_signup.button_reset_password_link']" position="attributes">
+                <attribute name="invisible">id == uid or usl_is_ai_agent</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_users_form_simple_agents" model="ir.ui.view">
+        <field name="name">res.users.preferences.agents</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form_simple_modif"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='page_security']/*[1]" position="before">
+                <div class="d-md-flex mb-3">
+                    <div class="col-md-6 col-lg-3 d-flex flex-column">
+                        <span class="o_form_label">Agents</span>
+                        <span class="text-muted">Manage autonomous identities that act on your behalf.</span>
+                    </div>
+                    <div class="w-md-50 w-lg-75 d-flex align-items-center my-auto">
+                        <button name="action_open_owned_agents" type="object" string="Manage Agents" class="btn-secondary"/>
+                    </div>
+                </div>
             </xpath>
         </field>
     </record>

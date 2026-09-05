@@ -51,3 +51,40 @@ class AccountMove(models.Model):
             move.platform_billing_payment_state = (
                 "not_applicable" if move.move_type == "entry" else move.payment_state
             )
+
+    def _platform_billing_sessions_to_refresh(self):
+        moves = self.sudo().exists()
+        return (
+            moves.platform_billing_session_id
+            | moves.platform_billing_payout_ids.session_id
+        ).exists()
+
+    def _reverse_moves(self, default_values_list=None, cancel=False):
+        sessions = self._platform_billing_sessions_to_refresh()
+        result = super()._reverse_moves(default_values_list, cancel)
+        sessions |= result._platform_billing_sessions_to_refresh()
+        sessions._refresh_state()
+        return result
+
+
+class AccountPartialReconcile(models.Model):
+    _inherit = "account.partial.reconcile"
+
+    def _platform_billing_sessions_to_refresh(self):
+        moves = (
+            self.sudo().debit_move_id.move_id
+            | self.sudo().credit_move_id.move_id
+        )
+        return moves._platform_billing_sessions_to_refresh()
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        partials = super().create(vals_list)
+        partials._platform_billing_sessions_to_refresh()._refresh_state()
+        return partials
+
+    def unlink(self):
+        sessions = self._platform_billing_sessions_to_refresh()
+        result = super().unlink()
+        sessions._refresh_state()
+        return result

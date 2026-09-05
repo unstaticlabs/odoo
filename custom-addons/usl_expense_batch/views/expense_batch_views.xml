@@ -5,29 +5,33 @@
         <field name="model">usl.expense.batch</field>
         <field name="arch" type="xml">
             <list string="Expense Batches"
-                  decoration-info="state == 'draft'"
-                  decoration-warning="state == 'submitted'"
-                  decoration-success="state in ('approved', 'posted', 'paid')">
+                  class="o_usl_expense_batch_list"
+                  js_class="usl_expense_batch_list">
+                <field name="active" column_invisible="True"/>
                 <field name="currency_id" column_invisible="True"/>
+                <field name="expense_progress" column_invisible="True"/>
+                <field name="expense_progress_breakdown" column_invisible="True"/>
+                <field name="attention_count" column_invisible="True"/>
                 <field name="name"/>
                 <field name="context_type" optional="show"/>
                 <field name="employee_id" widget="many2one_avatar_employee"/>
-                <field name="purpose" optional="show"/>
-                <field name="date_from"/>
-                <field name="date_to" optional="hide"/>
-                <field name="expense_count"/>
-                <field name="total_amount" sum="Total"/>
-                <field name="readiness_state"
+                <field name="purpose" optional="hide"/>
+                <field name="period_summary" string="Period"/>
+                <field name="total_amount" string="Total" sum="Total"/>
+                <field name="expense_progress_summary"
+                       string="Expense Progress"
+                       class="o_usl_progress_summary"
+                       widget="expense_batch_progress"/>
+                <field name="readiness_summary"
+                       string="Readiness"
                        widget="badge"
-                       decoration-success="readiness_state == 'ready'"
-                       decoration-warning="readiness_state == 'incomplete'"/>
-                <field name="exception_count" optional="show"/>
+                       decoration-success="attention_count == 0"
+                       decoration-warning="attention_count &gt; 0"/>
                 <field name="warning_count" optional="hide"/>
-                <field name="state" widget="badge"
-                       decoration-info="state == 'draft'"
-                       decoration-warning="state == 'submitted'"
-                       decoration-success="state in ('approved', 'posted', 'paid')"
-                       decoration-danger="state == 'refused'"/>
+                <field name="batch_state"
+                       widget="badge"
+                       decoration-info="batch_state == 'open'"
+                       decoration-muted="batch_state == 'archived'"/>
                 <field name="company_id" groups="base.group_multi_company" optional="hide"/>
             </list>
         </field>
@@ -42,17 +46,25 @@
                 <field name="employee_id"/>
                 <field name="purpose"/>
                 <field name="context_type"/>
+                <filter name="open_batches" string="Open" domain="[('active', '=', True)]"/>
+                <filter name="needs_information"
+                        string="Needs information"
+                        domain="[('has_incomplete_expenses', '=', True)]"/>
                 <filter name="my_batches"
-                        string="My expense batches"
+                        string="My batches"
                         domain="[('employee_id.user_id', '=', uid)]"/>
+                <filter name="exceptions"
+                        string="Exceptions"
+                        domain="[('has_exceptions', '=', True)]"/>
                 <separator/>
-                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
-                <filter name="submitted" string="Waiting approval" domain="[('state', '=', 'submitted')]"/>
-                <filter name="approved" string="Ready to post" domain="[('state', '=', 'approved')]"/>
+                <filter name="draft" string="Has drafts" domain="[('expense_progress', '=', 'draft')]"/>
+                <filter name="submitted" string="Waiting approval" domain="[('expense_progress', '=', 'submitted')]"/>
+                <filter name="approved" string="Ready to post" domain="[('expense_progress', '=', 'approved')]"/>
+                <filter name="inactive" string="Archived" domain="[('active', '=', False)]"/>
                 <filter name="date" string="Expense period" date="date_from"/>
                 <group>
                     <filter name="employee" string="Employee" domain="[]" context="{'group_by': 'employee_id'}"/>
-                    <filter name="state" string="Status" domain="[]" context="{'group_by': 'state'}"/>
+                    <filter name="expense_progress" string="Expense progress" domain="[]" context="{'group_by': 'expense_progress'}"/>
                     <filter name="group_context_type" string="Context" domain="[]" context="{'group_by': 'context_type'}"/>
                     <filter name="company" string="Company" domain="[]" context="{'group_by': 'company_id'}"
                             groups="base.group_multi_company"/>
@@ -65,39 +77,49 @@
         <field name="name">usl.expense.batch.form</field>
         <field name="model">usl.expense.batch</field>
         <field name="arch" type="xml">
-            <form string="Expense Batch">
+            <form string="Expense Batch" js_class="usl_expense_batch_form">
                 <header>
                     <button name="action_open_context_wizard"
-                            string="Apply shared context"
+                            type="object"
+                            class="oe_highlight"
+                            title="Preview and apply this Batch's shared expense account and analytic distribution to eligible draft expenses. Line-specific choices remain unchanged unless you explicitly replace them in the preview."
+                            invisible="not active or draft_expense_count == 0 or (not account_override_id and not analytic_distribution)">
+                        <field name="apply_context_button_label" readonly="1"/>
+                    </button>
+                    <button name="action_open_add_expenses_wizard"
+                            string="Add expenses"
                             type="object"
                             class="btn-secondary"
-                            title="Preview changes to draft expenses. Line-specific choices stay unchanged unless a manager explicitly replaces them."
-                            invisible="state != 'draft' or expense_count == 0 or (not account_override_id and not analytic_distribution)"/>
+                            icon="fa-plus"
+                            title="Select unbatched draft, approved, or posted expenses for this employee and company. Existing accounting entries and expense states remain unchanged."
+                            invisible="not active"/>
                     <button name="action_submit"
                             string="Submit batch"
                             type="object"
-                            class="oe_highlight"
-                            title="Send only the draft expenses in this batch for manager approval. This does not post or pay them."
-                            invisible="state != 'draft' or expense_count == 0"/>
+                            class="btn-secondary"
+                            title="Submit every eligible draft expense in this Batch for manager approval. Posted, paid, refused, and already-submitted expenses remain unchanged."
+                            invisible="not active or draft_expense_count == 0"/>
                     <button name="action_approve"
                             string="Approve batch"
                             type="object"
                             class="oe_highlight"
-                            title="Approve the submitted expenses in this batch. Nothing is posted or paid."
+                            title="Approve every submitted expense in this Batch. This does not post accounting entries or make payments."
                             groups="hr_expense.group_hr_expense_team_approver"
-                            invisible="state != 'submitted'"/>
+                            invisible="not active or draft_expense_count != 0 or submitted_expense_count == 0"/>
                     <button name="action_post"
                             string="Post batch"
                             type="object"
                             class="oe_highlight"
-                            title="Post the approved expenses in this batch to Accounting."
+                            title="Post every approved expense in this Batch to Accounting. This does not pay the expenses or change expenses already posted."
                             groups="account.group_account_invoice"
-                            invisible="state != 'approved'"/>
-                    <field name="state"
-                           widget="statusbar"
-                           statusbar_visible="draft,submitted,approved,posted,paid"/>
+                            invisible="not active or draft_expense_count != 0 or submitted_expense_count != 0 or approved_expense_count == 0"/>
                 </header>
-                <sheet>
+                <sheet class="o_usl_expense_batch_form">
+                    <field name="active" invisible="1"/>
+                    <field name="draft_expense_count" invisible="1"/>
+                    <field name="submitted_expense_count" invisible="1"/>
+                    <field name="approved_expense_count" invisible="1"/>
+                    <widget name="web_ribbon" text="Archived" bg_color="text-bg-secondary" invisible="active"/>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_open_documents_workspace"
                                 type="object" class="oe_stat_button"
@@ -120,90 +142,88 @@
                             <field name="move_count" widget="statinfo" string="Journal Entries"/>
                         </button>
                     </div>
-                    <div class="oe_title">
+                    <div class="oe_title o_usl_expense_batch_title">
                         <label for="name"/>
                         <h1>
-                            <field name="name" readonly="state != 'draft'"/>
+                            <field name="name" readonly="not active"/>
                         </h1>
                         <field name="purpose"
                                class="text-muted"
                                nolabel="1"
                                placeholder="What are these expenses for?"
-                               readonly="state != 'draft'"/>
+                               readonly="not active"/>
                     </div>
                     <field name="currency_id" invisible="1"/>
-                    <div class="o_usl_batch_summary d-flex flex-wrap gap-3 py-3 my-3">
+                    <div class="o_usl_batch_summary mt-3 mb-2" role="group" aria-label="Batch summary">
                         <div class="o_usl_batch_metric">
-                            <div class="text-muted small">Total</div>
+                            <div class="o_usl_batch_metric_label small">Total</div>
                             <field name="total_amount" nolabel="1" class="fw-semibold"/>
                         </div>
                         <div class="o_usl_batch_metric">
-                            <div class="text-muted small">Expenses / receipts</div>
+                            <div class="o_usl_batch_metric_label small">Expenses</div>
                             <field name="expense_count" nolabel="1" class="oe_inline"/>
-                            <span class="text-muted"> / </span>
-                            <field name="attachment_count" nolabel="1" class="oe_inline"/>
                         </div>
                         <div class="o_usl_batch_metric">
-                            <div class="text-muted small">Expense dates</div>
+                            <div class="o_usl_batch_metric_label small">Expense period</div>
                             <field name="date_from" nolabel="1" class="oe_inline"/>
                             <span class="text-muted"> — </span>
                             <field name="date_to" nolabel="1" class="oe_inline"/>
                         </div>
                         <div class="o_usl_batch_metric">
-                            <div class="text-muted small">Paid by employee / company</div>
+                            <div class="o_usl_batch_metric_label small">Paid by employee / company</div>
                             <field name="employee_paid_total" nolabel="1" class="oe_inline"/>
                             <span class="text-muted"> / </span>
                             <field name="company_paid_total" nolabel="1" class="oe_inline"/>
                         </div>
-                        <div class="o_usl_batch_metric">
-                            <div class="text-muted small">Readiness</div>
-                            <field name="readiness_state"
+                        <div class="o_usl_batch_metric o_usl_batch_metric--readiness">
+                            <div class="o_usl_batch_metric_label small">Readiness</div>
+                            <field name="readiness_summary"
                                    nolabel="1"
                                    widget="badge"
-                                   decoration-success="readiness_state == 'ready'"
-                                   decoration-warning="readiness_state == 'incomplete'"/>
+                                   decoration-success="not attention_count"
+                                   decoration-warning="attention_count &gt; 0"/>
                         </div>
                     </div>
 
-                    <group string="Shared context" col="4">
-                        <field name="employee_id" readonly="state != 'draft'"/>
-                        <field name="company_id"
-                               groups="base.group_multi_company"
-                               readonly="state != 'draft'"/>
-                        <field name="context_type" readonly="state != 'draft'"/>
-                        <newline/>
-                        <label for="context_date_from" string="Context period"/>
-                        <div name="context_period" class="o_row">
-                            <field name="context_date_from"
-                                   nolabel="1"
-                                   readonly="state != 'draft'"/>
-                            <i class="fa fa-long-arrow-right mx-2"
-                               aria-label="To"
-                               title="To"/>
-                            <field name="context_date_to"
-                                   nolabel="1"
-                                   readonly="state != 'draft'"/>
-                        </div>
-                        <field name="analytic_distribution"
-                               widget="analytic_distribution"
-                               readonly="state != 'draft'"
-                               colspan="4"/>
+                    <group string="Shared context" col="2" class="o_usl_batch_context">
+                        <group>
+                            <field name="employee_id" readonly="not active or expense_count != 0"/>
+                            <field name="context_type" readonly="not active"/>
+                            <field name="analytic_distribution"
+                                   widget="analytic_distribution"
+                                   readonly="not active"/>
+                        </group>
+                        <group>
+                            <field name="company_id"
+                                   groups="base.group_multi_company"
+                                   readonly="not active or expense_count != 0"/>
+                            <label for="context_date_from" string="Context period"/>
+                            <div name="context_period" class="o_row">
+                                <field name="context_date_from"
+                                       nolabel="1"
+                                       readonly="not active"/>
+                                <i class="fa fa-long-arrow-right mx-2"
+                                   aria-label="To"
+                                   title="To"/>
+                                <field name="context_date_to"
+                                       nolabel="1"
+                                       readonly="not active"/>
+                            </div>
+                        </group>
                     </group>
 
-                    <div class="text-warning small mb-2"
+                    <div class="o_usl_batch_attention_summary text-warning small mb-2"
                          role="status"
-                         invisible="not incomplete_count and not exception_count and not stale_context_count and not warning_count">
-                        <i class="fa fa-exclamation-triangle me-1" aria-hidden="true"/>
-                        Some expenses need attention. Point to the warning indicator on a line for details.
+                         invisible="not attention_count">
+                        <i class="fa fa-exclamation-triangle me-1"
+                           title="Needs attention"
+                           aria-hidden="true"/>
+                        <strong><field name="attention_count" nolabel="1" class="oe_inline"/> issues require attention.</strong>
+                        Review the marked expense lines for details.
                     </div>
-                    <div class="text-muted small mb-3" invisible="not product_summary">
-                        <span class="fw-semibold">Expense types:</span>
-                        <field name="product_summary" nolabel="1" class="oe_inline"/>
-                    </div>
-
                     <notebook>
                         <page name="expenses" string="Expenses">
-                            <field name="expense_ids" readonly="state not in ('draft', 'submitted', 'approved')">
+                            <field name="expense_ids" readonly="not active">
                                 <list create="false" edit="false" delete="false" open_form_view="true"
                                       decoration-warning="batch_incomplete_reason">
                                     <field name="company_currency_id" column_invisible="True"/>
@@ -219,7 +239,15 @@
                                            widget="badge"
                                            decoration-success="batch_attachment_status in ('attached', 'not_required')"
                                            decoration-warning="batch_attachment_status == 'missing'"/>
-                                    <field name="state" string="Expense status" widget="badge"/>
+                                    <field name="state"
+                                           string="Expense status"
+                                           widget="badge"
+                                           decoration-muted="state == 'draft'"
+                                           decoration-warning="state == 'submitted'"
+                                           decoration-info="state == 'approved'"
+                                           decoration-primary="state in ('posted', 'in_payment')"
+                                           decoration-success="state == 'paid'"
+                                           decoration-danger="state == 'refused'"/>
                                     <field name="analytic_distribution"
                                            widget="analytic_distribution"
                                            optional="hide"
@@ -251,9 +279,9 @@
                               groups="account.group_account_readonly,hr_expense.group_hr_expense_manager">
                             <group string="Accounting treatment">
                                 <field name="account_override_id"
-                                       readonly="state != 'draft'"
+                                       readonly="not active"
                                        groups="hr_expense.group_hr_expense_manager,account.group_account_manager"/>
-                                <field name="notes" readonly="state != 'draft'"/>
+                                <field name="notes" readonly="not active"/>
                                 <field name="accounting_reconciliation_state" widget="badge"
                                        decoration-success="accounting_reconciliation_state == 'matched'"
                                        decoration-warning="accounting_reconciliation_state == 'pending'"
@@ -277,11 +305,64 @@
         </field>
     </record>
 
+    <record id="view_expense_batch_add_candidate_list" model="ir.ui.view">
+        <field name="name">hr.expense.batch.add.candidate.list</field>
+        <field name="model">hr.expense</field>
+        <field name="arch" type="xml">
+            <list string="Available expenses"
+                  js_class="usl_expense_batch_candidate_list"
+                  create="false"
+                  edit="false"
+                  delete="false"
+                  default_order="date desc, id desc">
+                <field name="company_currency_id" column_invisible="True"/>
+                <field name="date"/>
+                <field name="name"/>
+                <field name="product_id"/>
+                <field name="payment_mode" optional="hide"/>
+                <field name="batch_attachment_status"
+                       string="Receipt"
+                       widget="badge"
+                       decoration-success="batch_attachment_status in ('attached', 'not_required')"
+                       decoration-warning="batch_attachment_status == 'missing'"/>
+                <field name="state"
+                       string="Expense status"
+                       widget="badge"
+                       decoration-muted="state == 'draft'"
+                       decoration-info="state == 'approved'"
+                       decoration-primary="state == 'posted'"/>
+                <field name="total_amount"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_expense_batch_add_candidate_search" model="ir.ui.view">
+        <field name="name">hr.expense.batch.add.candidate.search</field>
+        <field name="model">hr.expense</field>
+        <field name="arch" type="xml">
+            <search string="Available expenses">
+                <field name="name"/>
+                <field name="product_id"/>
+                <field name="date"/>
+                <separator/>
+                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="approved" string="Approved" domain="[('state', '=', 'approved')]"/>
+                <filter name="posted" string="Posted" domain="[('state', '=', 'posted')]"/>
+                <filter name="date" string="Date" date="date"/>
+                <group>
+                    <filter name="group_state" string="Status" domain="[]" context="{'group_by': 'state'}"/>
+                    <filter name="group_product" string="Category" domain="[]" context="{'group_by': 'product_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
     <record id="action_expense_batches" model="ir.actions.act_window">
         <field name="name">Expense Batches</field>
         <field name="res_model">usl.expense.batch</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_expense_batch_search"/>
+        <field name="context">{'search_default_open_batches': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Create an expense batch</p>
             <p>Group related receipts into one clear submission and accounting context.</p>

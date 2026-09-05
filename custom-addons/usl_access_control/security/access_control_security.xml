@@ -32,13 +32,21 @@
         <field name="privilege_id" ref="privilege_special_capabilities"/>
         <field name="comment">Permit permanent deletion, lock changes, authorization changes, destructive technical maintenance, and other protected actions.</field>
         <field name="implied_ids" eval="[Command.link(ref('group_audit_reader'))]"/>
+        <field name="user_ids" eval="[
+            Command.link(ref('base.user_root')),
+            Command.link(ref('base.user_admin'))
+        ]"/>
     </record>
 
     <record id="group_ai_agent" model="res.groups">
         <field name="name">AI Agent</field>
         <field name="privilege_id" ref="privilege_identity_type"/>
         <field name="comment">Marks an autonomous identity. Combine with application groups; irreversible actions remain explicitly denied.</field>
-        <field name="implied_ids" eval="[Command.link(ref('base.group_user'))]"/>
+        <field name="api_key_duration">1826</field>
+        <field name="implied_ids" eval="[
+            Command.link(ref('base.group_user')),
+            Command.link(ref('api_doc.group_allow_doc'))
+        ]"/>
     </record>
 
     <record id="group_accounting_reviewer" model="res.groups">
@@ -58,6 +66,7 @@
         <field name="comment">Operate B2C, Projects and Documents and inspect technical configuration; security, locks, audit deletion and irreversible maintenance remain protected.</field>
         <field name="implied_ids" eval="[
             Command.link(ref('base.group_erp_manager')),
+            Command.link(ref('api_doc.group_allow_doc')),
             Command.link(ref('account.group_account_readonly')),
             Command.link(ref('usl_b2c.group_b2c_operator')),
             Command.link(ref('usl_b2c.group_b2c_sensitive_evidence')),
@@ -70,18 +79,21 @@
     <record id="group_distribution_administrator" model="res.groups">
         <field name="name">Full Product Administrator</field>
         <field name="privilege_id" ref="privilege_distribution_role"/>
-        <field name="comment">All Distribution applications and technical administration through an attributable user identity.</field>
+        <field name="comment">All Distribution applications and technical administration through an attributable user identity. Irreversible Actions remain a separate capability.</field>
         <field name="implied_ids" eval="[
-            Command.link(ref('base.group_system')),
-            Command.link(ref('account.group_account_manager')),
-            Command.link(ref('hr.group_hr_manager')),
-            Command.link(ref('hr_expense.group_hr_expense_manager')),
-            Command.link(ref('project.group_project_manager')),
-            Command.link(ref('usl_b2c.group_b2c_manager')),
-            Command.link(ref('usl_documents.group_documents_manager')),
-            Command.link(ref('usl_document_templates.group_document_letter_manager')),
-            Command.link(ref('usl_platform_billing.group_platform_billing_manager')),
-            Command.link(ref('group_irreversible_actions'))
+            Command.set([
+                ref('base.group_system'),
+                ref('api_doc.group_allow_doc'),
+                ref('account.group_account_manager'),
+                ref('hr.group_hr_manager'),
+                ref('hr_expense.group_hr_expense_manager'),
+                ref('project.group_project_manager'),
+                ref('usl_b2c.group_b2c_manager'),
+                ref('usl_documents.group_documents_manager'),
+                ref('usl_document_templates.group_document_letter_manager'),
+                ref('usl_platform_billing.group_platform_billing_manager'),
+                ref('usl_sign.group_sign_admin')
+            ])
         ]"/>
         <field name="user_ids" eval="[
             Command.link(ref('base.user_root')),
@@ -94,6 +106,73 @@
         <field name="model_id" ref="model_usl_audit_event"/>
         <field name="groups" eval="[Command.link(ref('group_accounting_reviewer'))]"/>
         <field name="domain_force">['|', '|', ('model_name', '=like', 'account.%'), ('model_name', '=like', 'rebuild.account.%'), ('model_name', '=like', 'usl.tese.%')]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_usl_agent_owner" model="ir.rule">
+        <field name="name">Agents: owner access</field>
+        <field name="model_id" ref="model_usl_agent"/>
+        <field name="groups" eval="[Command.link(ref('base.group_user'))]"/>
+        <field name="domain_force">[('owner_id', '=', user.id)]</field>
+    </record>
+    <record id="rule_usl_agent_company" model="ir.rule">
+        <field name="name">Agents: allowed companies</field>
+        <field name="model_id" ref="model_usl_agent"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_usl_agent_administrator" model="ir.rule">
+        <field name="name">Agents: administrator access</field>
+        <field name="model_id" ref="model_usl_agent"/>
+        <field name="groups" eval="[Command.link(ref('base.group_system'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="rule_usl_agent_credential_owner" model="ir.rule">
+        <field name="name">Agent credentials: owner access</field>
+        <field name="model_id" ref="model_usl_agent_credential"/>
+        <field name="groups" eval="[Command.link(ref('base.group_user'))]"/>
+        <field name="domain_force">[('agent_id.owner_id', '=', user.id)]</field>
+    </record>
+    <record id="rule_usl_agent_credential_company" model="ir.rule">
+        <field name="name">Agent credentials: allowed companies</field>
+        <field name="model_id" ref="model_usl_agent_credential"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('agent_id.company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_usl_agent_credential_administrator" model="ir.rule">
+        <field name="name">Agent credentials: administrator access</field>
+        <field name="model_id" ref="model_usl_agent_credential"/>
+        <field name="groups" eval="[Command.link(ref('base.group_system'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+    <record id="rule_usl_audit_owner" model="ir.rule">
+        <field name="name">Distribution audit: owned Agent activity</field>
+        <field name="model_id" ref="model_usl_audit_event"/>
+        <field name="groups" eval="[Command.link(ref('base.group_user'))]"/>
+        <field name="domain_force">[('owner_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_usl_audit_company" model="ir.rule">
+        <field name="name">Distribution audit: allowed companies</field>
+        <field name="model_id" ref="model_usl_audit_event"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_usl_audit_reader_all" model="ir.rule">
+        <field name="name">Distribution audit: full reader access</field>
+        <field name="model_id" ref="model_usl_audit_event"/>
+        <field name="groups" eval="[Command.link(ref('group_audit_reader'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>

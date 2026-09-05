@@ -5,6 +5,7 @@ from odoo import Command, SUPERUSER_ID, api
 
 
 MODULE = "usl_bootstrap"
+FRENCH_COMPANY_CHART = "fr_comp"
 
 
 def post_init_hook(env):
@@ -28,7 +29,7 @@ class Bootstrap:
         self._defer_accounting_seed()
 
     def _seed_after_chart(self):
-        if self.company.chart_template != "fr":
+        if self.company.chart_template != FRENCH_COMPANY_CHART:
             self._load_accounting()
         self._create_analytics()
         self._create_projects_and_tasks()
@@ -112,8 +113,12 @@ class Bootstrap:
         }, [("account_number", "=", "FR7630006000011234567890189")])
 
     def _load_accounting(self):
-        if self.company.chart_template != "fr":
-            self.env["account.chart.template"].try_loading("fr", company=self.company, install_demo=False)
+        if self.company.chart_template != FRENCH_COMPANY_CHART:
+            self.env["account.chart.template"].try_loading(
+                FRENCH_COMPANY_CHART,
+                company=self.company,
+                install_demo=False,
+            )
 
     def _configure_admin_user(self):
         admin = self.env.ref("base.user_admin")

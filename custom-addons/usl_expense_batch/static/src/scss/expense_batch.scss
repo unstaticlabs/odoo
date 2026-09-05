@@ -1,8 +1,681 @@
 .o_usl_batch_summary {
-    border-block: 1px solid var(--border-color, #dee2e6);
+    display: grid;
+    grid-template-columns:
+        repeat(3, minmax(7.5rem, 1fr))
+        minmax(10.5rem, 1.15fr)
+        minmax(11.5rem, 1.2fr);
+    overflow: hidden;
+    border: 1px solid var(--border-color, #dee2e6);
+    border-radius: var(--border-radius, 0.25rem);
+    background: var(--o-view-background-color, #fff);
 
     .o_usl_batch_metric {
-        min-width: 9rem;
+        min-width: 0;
+        padding: 0.8rem 1rem;
+
+        &:not(:last-child) {
+            border-inline-end: 1px solid var(--border-color, #dee2e6);
+        }
+    }
+
+    .o_usl_batch_metric_label {
+        margin-bottom: 0.2rem;
+        color: var(--o-gray-600, #6c757d);
+        font-weight: 400;
+        line-height: 1.2;
+    }
+
+    .o_usl_batch_metric > .o_field_widget {
+        font-weight: 600;
+        line-height: 1.35;
+    }
+
+    .o_usl_batch_metric_detail {
+        margin-top: 0.15rem;
+        color: var(--body-color, #5f6b76);
+        line-height: 1.25;
+    }
+
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 1.625rem;
+        max-width: 100%;
+        padding: 0.3rem 0.65rem;
+        overflow: hidden;
+        line-height: 1.1;
+        text-overflow: ellipsis;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    .o_usl_batch_metric--readiness > .o_field_widget {
+        display: inline-flex;
+        max-width: 100%;
+    }
+}
+
+.o_usl_expense_batch_title .o_field_text {
+    max-width: 64rem;
+}
+
+.o_usl_batch_context {
+    padding-block: 0.15rem;
+
+    .o_group {
+        min-width: 0;
+    }
+
+    .o_field_analytic_distribution {
+        min-width: 0;
+
+        .o_field_tags {
+            flex-wrap: nowrap;
+            max-width: 100%;
+            overflow-x: auto;
+        }
+    }
+
+    .o_form_label,
+    .o_wrap_label > label {
+        color: var(--o-gray-600, #6c757d);
+        font-weight: 400;
+    }
+}
+
+.o_usl_batch_attention_summary {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    min-height: 1.75rem;
+}
+
+.o_usl_expense_batch_list {
+    .o_list_table {
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    thead th {
+        padding-block: 0.65rem;
+        white-space: nowrap;
+    }
+
+    tbody td {
+        padding-block: 0.65rem;
+        vertical-align: middle;
+    }
+
+    td[name="name"] {
+        font-weight: 500;
+    }
+
+    th[data-name="name"],
+    td[name="name"] {
+        width: 21%;
+    }
+
+    th[data-name="context_type"],
+    td[name="context_type"] {
+        width: 8%;
+    }
+
+    th[data-name="employee_id"],
+    td[name="employee_id"] {
+        width: 8%;
+    }
+
+    th[data-name="period_summary"],
+    td[name="period_summary"] {
+        width: 16%;
+    }
+
+    td[name="period_summary"] {
+        line-height: 1.25;
+        white-space: nowrap;
+    }
+
+    td[name="total_amount"],
+    th[data-name="total_amount"] {
+        width: 7%;
+        font-variant-numeric: tabular-nums;
+        text-align: end;
+    }
+
+    th[data-name="expense_progress_summary"],
+    td[name="expense_progress_summary"] {
+        width: 18%;
+    }
+
+    td[name="expense_progress_summary"] .o_usl_progress_summary {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    th[data-name="readiness_summary"],
+    td[name="readiness_summary"] {
+        width: 13%;
+    }
+
+    th[data-name="batch_state"],
+    td[name="batch_state"] {
+        width: 6%;
+    }
+
+    td[name="name"],
+    td[name="context_type"],
+    td[name="employee_id"],
+    td[name="period_summary"] {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+}
+
+.o_usl_progress_summary {
+    display: grid;
+    gap: 0.25rem;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    outline: none;
+
+    &:focus-visible {
+        border-radius: var(--border-radius-sm, 0.2rem);
+        outline: 2px solid var(--o-action, #714b67);
+        outline-offset: 2px;
+    }
+
+    .o_usl_progress_track {
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        height: 0.45rem;
+        overflow: hidden;
+        border-radius: 999px;
+        background: var(--o-gray-200, #e9ecef);
+    }
+
+    .o_usl_progress_segment {
+        min-width: 2px;
+    }
+
+    .o_usl_progress_label {
+        display: flex;
+        align-items: baseline;
+        min-width: 0;
+        color: var(--o-gray-700, #495057);
+        font-size: 0.8125rem;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+
+    .o_usl_progress_count {
+        flex: 0 0 auto;
+        font-variant-numeric: tabular-nums;
+        margin-inline-end: 0.25rem;
+    }
+
+    .o_usl_progress_breakdown {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+body:has(.o_usl_expense_batch_list, .o_usl_expense_batch_form, .o_usl_expense_worklist) {
+    .o_main_navbar .o_navbar_breadcrumbs {
+        display: none;
+    }
+}
+
+.o_usl_batch_quick_filters {
+    display: flex;
+    gap: 0.55rem;
+    overflow-x: auto;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color, #dee2e6);
+    background: var(--o-view-background-color, #fff);
+    scrollbar-width: thin;
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2rem;
+        padding-inline: 0.85rem;
+        border-color: transparent;
+        font-weight: 500;
+    }
+
+    .btn-light {
+        color: var(--body-color, #5f6b76);
+        background: var(--o-gray-100, #f3f4f6);
+    }
+
+    .o_usl_batch_filter_count {
+        min-width: 1.25rem;
+        padding-inline: 0.35rem;
+        color: inherit;
+        background: color-mix(in srgb, currentColor 10%, transparent);
+        font-variant-numeric: tabular-nums;
+        text-align: center;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .o_usl_batch_summary {
+        grid-template-columns: repeat(2, minmax(8rem, 1fr));
+
+        .o_usl_batch_metric:nth-child(even) {
+            border-inline-end: 0;
+        }
+
+        .o_usl_batch_metric:nth-child(odd):last-child {
+            grid-column: 1 / -1;
+            border-block-start: 1px solid var(--border-color, #dee2e6);
+            border-inline-end: 0;
+        }
+    }
+
+    .o_usl_expense_batch_list {
+        th[data-name="context_type"],
+        td[name="context_type"] {
+            display: none !important;
+        }
+
+        th[data-name="name"],
+        td[name="name"] {
+            width: 19%;
+        }
+
+        th[data-name="employee_id"],
+        td[name="employee_id"] {
+            width: 12%;
+        }
+
+        th[data-name="period_summary"],
+        td[name="period_summary"] {
+            width: 14%;
+        }
+
+        th[data-name="total_amount"],
+        td[name="total_amount"] {
+            width: 9%;
+        }
+
+        th[data-name="expense_progress_summary"],
+        td[name="expense_progress_summary"] {
+            width: 22%;
+        }
+
+        th[data-name="readiness_summary"],
+        td[name="readiness_summary"] {
+            width: 11%;
+        }
+
+        th[data-name="batch_state"],
+        td[name="batch_state"] {
+            width: 6%;
+        }
+    }
+}
+
+@media (max-width: 767.98px) {
+    .o_usl_batch_summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-block: 0.65rem 0.85rem !important;
+
+        .o_usl_batch_metric {
+            min-height: 4rem;
+            padding: 0.55rem 0.65rem;
+            border-block-end: 1px solid var(--border-color, #dee2e6);
+        }
+
+        .o_usl_batch_metric:nth-child(even) {
+            border-inline-end: 0;
+        }
+
+        .o_usl_batch_metric:last-child {
+            grid-column: 1 / -1;
+            border-block-end: 0;
+        }
+
+        .o_usl_batch_metric_detail {
+            font-size: 0.75rem;
+        }
+    }
+
+    .o_usl_expense_batch_list {
+        .o_list_table,
+        .o_list_table tbody {
+            display: block;
+            width: 100%;
+            min-width: 0 !important;
+        }
+
+        .o_list_table thead {
+            display: none;
+        }
+
+        .o_list_table tr.o_data_row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 0.4rem 0.75rem;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color, #dee2e6);
+        }
+
+        .o_list_table tr.o_data_row > td {
+            display: none !important;
+            width: auto !important;
+            max-width: none !important;
+            padding: 0 !important;
+            border: 0 !important;
+        }
+
+        .o_list_table tr.o_data_row > td[name="name"],
+        .o_list_table tr.o_data_row > td[name="period_summary"],
+        .o_list_table tr.o_data_row > td[name="total_amount"],
+        .o_list_table tr.o_data_row > td[name="expense_progress_summary"],
+        .o_list_table tr.o_data_row > td[name="readiness_summary"],
+        .o_list_table tr.o_data_row > td[name="batch_state"] {
+            display: block !important;
+        }
+
+        td[name="name"] {
+            grid-column: 1 / -1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        td[name="period_summary"] {
+            grid-column: 1;
+            color: var(--body-color, #5f6b76);
+            font-size: 0.8125rem;
+        }
+
+        td[name="total_amount"] {
+            grid-column: 2;
+            font-weight: 600;
+            text-align: end;
+        }
+
+        td[name="expense_progress_summary"] {
+            grid-column: 1 / -1;
+            min-width: 0;
+        }
+
+        td[name="expense_progress_summary"] .o_usl_progress_summary {
+            max-width: 100%;
+        }
+
+        td[name="readiness_summary"] {
+            grid-column: 1;
+        }
+
+        td[name="batch_state"] {
+            grid-column: 2;
+            grid-row: 4;
+            align-self: end;
+            text-align: end;
+        }
+
+        td[name="employee_id"] {
+            display: none !important;
+        }
+
+        .o_list_table tfoot {
+            display: none;
+        }
+    }
+
+    .o_usl_batch_summary {
+        border: 1px solid var(--border-color, #dee2e6);
+
+        .o_usl_batch_metric {
+            border-block-start: 0;
+        }
+    }
+
+    .o_usl_batch_context {
+        > .o_group {
+            display: block;
+            width: 100%;
+        }
+
+        .o_group {
+            margin-bottom: 0;
+        }
+
+        .o_row {
+            max-width: 100%;
+        }
+    }
+
+    .o_usl_batch_attention_summary {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .o_usl_expense_batch_title {
+        margin-top: 0.5rem;
+
+        h1 {
+            font-size: 1.35rem;
+        }
+
+        .o_field_text {
+            display: -webkit-box;
+            overflow: hidden;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+        }
+    }
+
+    .o_usl_expense_batch_form {
+        .o_list_table,
+        .o_list_table tbody {
+            display: block;
+            width: 100%;
+            min-width: 0 !important;
+        }
+
+        .o_list_table thead,
+        .o_list_table tfoot {
+            display: none;
+        }
+
+        .o_list_table tr.o_data_row {
+            display: grid;
+            grid-template-columns: 1.1rem minmax(0, 1fr) auto;
+            gap: 0.35rem 0.5rem;
+            width: 100%;
+            padding: 0.75rem 0.25rem;
+            border-bottom: 1px solid var(--border-color, #dee2e6);
+        }
+
+        .o_list_table tr.o_data_row > td {
+            display: none !important;
+            width: auto !important;
+            max-width: none !important;
+            padding: 0 !important;
+            border: 0 !important;
+        }
+
+        .o_list_table tr.o_data_row > td[name="batch_attention_level"],
+        .o_list_table tr.o_data_row > td[name="name"],
+        .o_list_table tr.o_data_row > td[name="date"],
+        .o_list_table tr.o_data_row > td[name="product_id"],
+        .o_list_table tr.o_data_row > td[name="batch_attachment_status"],
+        .o_list_table tr.o_data_row > td[name="state"],
+        .o_list_table tr.o_data_row > td[name="total_amount"],
+        .o_list_table tr.o_data_row > td.o_list_button {
+            display: block !important;
+        }
+
+        td[name="batch_attention_level"] {
+            grid-column: 1;
+            grid-row: 1;
+            align-self: center;
+        }
+
+        td[name="name"] {
+            grid-column: 2;
+            grid-row: 1;
+            min-width: 0;
+            overflow: hidden;
+            font-weight: 500;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        td[name="total_amount"] {
+            grid-column: 3;
+            grid-row: 1;
+            align-self: center;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            text-align: end;
+        }
+
+        td[name="date"] {
+            grid-column: 2;
+            grid-row: 2;
+            color: var(--body-color, #5f6b76);
+            font-size: 0.8125rem;
+        }
+
+        td[name="state"] {
+            grid-column: 3;
+            grid-row: 2;
+            text-align: end;
+        }
+
+        td[name="product_id"] {
+            grid-column: 2;
+            grid-row: 3;
+            min-width: 0;
+            overflow: hidden;
+            color: var(--body-color, #5f6b76);
+            font-size: 0.8125rem;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        td[name="batch_attachment_status"] {
+            grid-column: 3;
+            grid-row: 3;
+            text-align: end;
+        }
+
+        td.o_list_button {
+            grid-column: 2 / -1;
+            grid-row: 4;
+            text-align: end;
+        }
+    }
+
+    .o_usl_add_expenses_dialog {
+        .o_list_table,
+        .o_list_table tbody {
+            display: block;
+            width: 100%;
+            min-width: 0 !important;
+        }
+
+        .o_list_table thead,
+        .o_list_table tfoot {
+            display: none;
+        }
+
+        .o_list_table tr.o_data_row {
+            display: grid;
+            grid-template-columns: 1.25rem minmax(0, 1fr) auto;
+            gap: 0.35rem 0.55rem;
+            width: 100%;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-color, #dee2e6);
+        }
+
+        .o_list_table tr.o_data_row > td {
+            display: none !important;
+            width: auto !important;
+            max-width: none !important;
+            padding: 0 !important;
+            border: 0 !important;
+        }
+
+        .o_list_table tr.o_data_row > td.o_list_record_selector,
+        .o_list_table tr.o_data_row > td[name="date"],
+        .o_list_table tr.o_data_row > td[name="name"],
+        .o_list_table tr.o_data_row > td[name="product_id"],
+        .o_list_table tr.o_data_row > td[name="batch_attachment_status"],
+        .o_list_table tr.o_data_row > td[name="state"],
+        .o_list_table tr.o_data_row > td[name="total_amount"] {
+            display: block !important;
+        }
+
+        td.o_list_record_selector {
+            grid-column: 1;
+            grid-row: 1 / span 4;
+            align-self: center;
+        }
+
+        td[name="name"] {
+            grid-column: 2 / -1;
+            grid-row: 1;
+            min-width: 0;
+            overflow: hidden;
+            font-weight: 500;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        td[name="date"] {
+            grid-column: 2;
+            grid-row: 2;
+            color: var(--o-gray-600, #6c757d);
+            font-size: 0.8125rem;
+        }
+
+        td[name="total_amount"] {
+            grid-column: 3;
+            grid-row: 2;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            text-align: end;
+        }
+
+        td[name="product_id"] {
+            grid-column: 2 / -1;
+            grid-row: 3;
+            min-width: 0;
+            overflow: hidden;
+            color: var(--o-gray-600, #6c757d);
+            font-size: 0.8125rem;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        td[name="batch_attachment_status"] {
+            grid-column: 2;
+            grid-row: 4;
+        }
+
+        td[name="state"] {
+            grid-column: 3;
+            grid-row: 4;
+            text-align: end;
+        }
+    }
+
+    .o_usl_batch_quick_filters {
+        padding-inline: 0.75rem;
     }
 }
 

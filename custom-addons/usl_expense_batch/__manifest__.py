@@ -1,7 +1,7 @@
 {
     "name": "USL Expense Batches",
     "summary": "Review related expenses with shared business and accounting context",
-    "version": "saas~19.3.1.2.6",
+    "version": "saas~19.3.1.3.12",
     "category": "Human Resources/Expenses",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -11,6 +11,7 @@
         "security/expense_batch_security.xml",
         "security/ir.model.access.csv",
         "wizard/expense_batch_create_wizard_views.xml",
+        "wizard/expense_batch_add_wizard_views.xml",
         "views/expense_batch_views.xml",
         "views/hr_expense_views.xml",
         "views/account_move_views.xml",
@@ -18,9 +19,15 @@
     "assets": {
         "web.assets_backend": [
             "usl_expense_batch/static/src/js/expense_batch_list.js",
+            "usl_expense_batch/static/src/js/expense_batch_workspace.js",
             "usl_expense_batch/static/src/js/expense_batch_attention_field.js",
+            "usl_expense_batch/static/src/js/expense_batch_progress_field.js",
+            "usl_expense_batch/static/src/js/expense_batch_form.js",
             "usl_expense_batch/static/src/xml/expense_batch_list.xml",
+            "usl_expense_batch/static/src/xml/expense_batch_workspace.xml",
             "usl_expense_batch/static/src/xml/expense_batch_attention_field.xml",
+            "usl_expense_batch/static/src/xml/expense_batch_progress_field.xml",
+            "usl_expense_batch/static/src/xml/expense_batch_form.xml",
             "usl_expense_batch/static/src/scss/expense_batch.scss",
         ],
         "web.assets_unit_tests": [

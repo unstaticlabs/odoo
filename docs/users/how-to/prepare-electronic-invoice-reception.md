@@ -32,8 +32,10 @@ identity, purchase journal or accounting contact returns the company to
 - **Ready to test**: configuration is complete; run the self-check.
 - **Ready for production**: software and setup are validated, but no live
   connection exists.
-- **Activation in progress**: production onboarding or registration is not
-  finished.
+- **Activation required**: the production receiver exists or is ready to be
+  registered, but reception is not enabled locally.
+- **Registration in progress**: Odoo's Approved Platform is still registering
+  the company in the French directory.
 - **Receiving**: incoming-invoice checks are enabled for this company.
 - **Needs attention**: a received document or connection check needs action.
 

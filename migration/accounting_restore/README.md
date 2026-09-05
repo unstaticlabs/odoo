@@ -1,53 +1,19 @@
 # Accounting restoration
 
-This directory contains the one-off, versioned Accounting importer for the
-USL Odoo Distribution. It is maintained and tested with the product, but it is
-not a delivered Odoo product add-on.
+`usl_accounting_restore` is a one-shot, versioned importer. It is available
+only to migration services and tests; the normal Odoo service cannot load it.
 
-`usl_accounting_restore` is available only through migration and test Compose
-profiles. During restoration it provides source bindings, replay services and
-parity records needed to reconstruct the Online snapshot through Odoo's ORM.
-The downstream Projects and Paie TESE importers temporarily depend on the same
-source identity layer. The normal `odoo`, `init-db` and Dev Container add-ons
-paths cannot load it.
+The importer uses the Odoo ORM to reconstruct ledger, currency, tax,
+reconciliation, analytic, expense, asset, evidence, chatter, and audit facts.
+Temporary source bindings remain only until dependent restoration stages
+finish. Finalization then uninstalls migration modules and rejects remaining
+migration models, fields, views, menus, or XML IDs.
 
-The canonical lifecycle is:
+Every run must pass exact debit/credit, journal, move, line, tax, currency,
+reconciliation, analytic, FEC, report, company-control, attachment, and
+idempotence gates. Technical evidence stays in the ignored runtime directory;
+native records and user-visible business history remain in Odoo.
 
-```text
-reset target → install temporary importer → import → validate
-→ restore downstream Projects and Paie TESE → uninstall importers
-→ validate product-only registry → apply target configuration
-```
-
-Run the complete lifecycle with:
-
-```bash
-make migrate-production SOURCE_SHA=<exact dump SHA-256>
-```
-
-For a local reconstruction limited to currently shipped product scopes, use
-`make target-reconstruct-product`. Only the production command is source-wide
-migration evidence.
-
-For focused development of this importer:
-
-```bash
-make accounting-restore-tests
-scripts/accounting-restore finalize
-scripts/accounting-restore product-validate
-```
-
-Finalization requires the latest Accounting import run to have passed and no
-active P0/P1 restoration discrepancy. It compares native business counts and
-posted totals before and after uninstalling the temporary module. The final
-validator then rejects any remaining migration model, source field, metadata,
-view or XML ID.
-
-Evidence files staged on temporary asset snapshots are reassigned to native
-`account.asset` records during native asset replay. Finalization compares the
-complete attachment count so importer removal cannot silently delete them.
-
-Import/parity logs and source identifiers are technical evidence. They remain
-in ignored private artifacts and are not copied into the finalized database.
-Native accounting records, chatter and attachments remain as operational
-business history.
+Use `migration/manage` for complete QA and transition reconstruction. See the
+[migration runbook](../../docs/operations/migration.md). Focused importer tests
+may invoke internal Odoo test modules but must use disposable databases.

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://unstaticlabs.com/schemas/operations/usl-release-v2.schema.json",
+  "title": "USL coordinated release v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "source", "components", "mcp", "renderer", "ollama", "build"],
+  "properties": {
+    "schema": {"const": "usl-release/v2"},
+    "source": {"type": "object"},
+    "components": {"type": "object"},
+    "mcp": {"type": "object"},
+    "renderer": {"type": "object"},
+    "ollama": {"type": "object"},
+    "build": {"type": "object"}
+  }
+}

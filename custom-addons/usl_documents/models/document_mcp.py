@@ -220,6 +220,18 @@ class UslDocumentMcp(models.Model):
     @api.model
     def _mcp_document_values(self, document, *, excerpt="", provenance=None):
         active_links = document._accessible_active_links()
+        binary_available = False
+        try:
+            binary_available = bool(document._check_archive_binary_access())
+        except AccessError:
+            pass
+        current_version = document.version_ids.filtered("is_current")[:1]
+        available_variants = (
+            ["original"]
+            + (["archive"] if current_version.archive_checksum else [])
+            if binary_available and current_version
+            else []
+        )
         return {
             "id": document.id,
             "name": document.name,
@@ -272,9 +284,9 @@ class UslDocumentMcp(models.Model):
             "version_count": len(document.version_ids),
             "link_count": len(active_links),
             "web_path": f"/odoo/usl.document/{document.id}",
-            "preview_path": f"/usl_documents/{document.id}/preview",
-            "download_path": f"/usl_documents/{document.id}/download?original=1",
-            "paperless_url": document.paperless_url or False,
+            "binary_available": binary_available,
+            "available_variants": available_variants,
+            "materialization_required": binary_available,
             "excerpt": self._mcp_excerpt(excerpt),
             "provenance": provenance or [],
         }
@@ -680,6 +692,7 @@ class UslDocumentMcp(models.Model):
     @api.model
     def mcp_get_versions(self, document_id):
         document = self._mcp_visible_document(document_id)
+        binary_available = bool(self._mcp_binary_documents(document))
         versions = document.version_ids.sorted(
             key=lambda item: (item.is_current, item.created_at or fields.Datetime.now()),
             reverse=True,
@@ -702,14 +715,13 @@ class UslDocumentMcp(models.Model):
                     "is_current": version.is_current,
                     "is_received_original": version.is_received_original,
                     "source": version.source,
-                    "preview_path": (
-                        f"/usl_documents/{document.id}/preview"
-                        f"?version={version.paperless_version_id}"
+                    "binary_available": binary_available,
+                    "available_variants": (
+                        ["original"] + (["archive"] if version.archive_checksum else [])
+                        if binary_available
+                        else []
                     ),
-                    "download_path": (
-                        f"/usl_documents/{document.id}/download"
-                        f"?original=1&version={version.paperless_version_id}"
-                    ),
+                    "materialization_required": binary_available,
                 }
                 for version in versions
             ],

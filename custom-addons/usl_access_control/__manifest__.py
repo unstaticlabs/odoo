@@ -1,26 +1,32 @@
 {
     "name": "USL Distribution Access Control",
     "summary": "Recoverability-based roles, protected actions, and agent auditability",
-    "version": "saas~19.3.1.2.1",
+    "version": "saas~19.3.1.6.6",
     "category": "Administration/Access Rights",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
     "depends": [
+        "api_doc",
+        "auth_signup",
         "base_automation",
         "base_import_module",
         "base_install_request",
         "payment",
         "rebuild_account_migration",
+        "rpc",
         "usl_b2c",
         "usl_document_templates",
         "usl_documents_accounting",
         "usl_platform_billing_pocketid",
         "usl_project",
+        "usl_sign",
         "usl_tese_payroll",
     ],
     "data": [
         "security/access_control_security.xml",
         "security/ir.model.access.csv",
+        "data/agent_data.xml",
+        "views/agent_views.xml",
         "views/audit_event_views.xml",
         "views/res_users_views.xml",
         "views/protected_action_views.xml",
@@ -28,7 +34,13 @@
     "assets": {
         "web.assets_backend": [
             "usl_access_control/static/src/js/accounting_readonly.js",
+            "usl_access_control/static/src/js/agent_access_field.js",
+            "usl_access_control/static/src/js/agent_user_menu.js",
             "usl_access_control/static/src/xml/accounting_readonly.xml",
+            "usl_access_control/static/src/xml/agent_access_field.xml",
+        ],
+        "web.assets_unit_tests": [
+            "usl_access_control/static/tests/agent_access_field.test.js",
         ],
         "usl_documents.assets_workspace": [
             "usl_access_control/static/src/xml/documents_access.xml",

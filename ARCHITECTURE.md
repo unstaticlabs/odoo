@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The Odoo Rebuild is the structured operational core of Unstatic Labs.
+The USL Odoo Distribution is the structured operational core of Unstatic Labs.
 
 It must provide a trusted, durable and extensible foundation for:
 
@@ -882,13 +882,13 @@ The architecture should prefer removable layers over permanent forks.
 
 ---
 
-# 20. Initial feature domains
+# 20. Product domains
 
 The first production-oriented scope includes:
 
 1. Reproducible development and deployment
 2. Cloud hosting and recovery
-3. Accounting parity with current Odoo Online usage
+3. Accounting continuity and French statutory controls
 4. French accounting and FEC
 5. Banking ingestion and reconciliation support
 6. Invoice and expense capture

@@ -268,7 +268,13 @@
                 </span>
             </div>
 
-            <div class="alert alert-warning mx-3" t-if="state.data.warning">
+            <div t-foreach="state.data.notices || []" t-as="notice" t-key="notice.message"
+                 t-att-class="'alert mx-3 alert-' + (notice.level || 'info')">
+                <i class="fa fa-info-circle me-2"/>
+                <t t-esc="notice.message"/>
+            </div>
+            <div t-att-class="'alert mx-3 alert-' + (state.data.warning_level || 'warning')"
+                 t-if="state.data.warning">
                 <i class="fa fa-exclamation-triangle me-2"/>
                 <t t-esc="state.data.warning"/>
             </div>
@@ -350,8 +356,18 @@
                             </td>
                             <td t-if="isDynamicReport" t-foreach="state.data.columns" t-as="column"
                                 t-key="column.key"
-                                t-att-class="column.type === 'currency' or column.type === 'number' ? amountClass(line.values[column.key]) : ''"
-                                t-esc="formatCell(line.values[column.key], column.type)"/>
+                                t-att-class="column.type === 'currency' or column.type === 'number' ? amountClass(line.values[column.key]) : ''">
+                                <span t-if="reportType === 'tax_report' and column.key === 'adjustment' and line.adjustment_editable"
+                                      class="o_usl_tax_adjustment_wrap">
+                                    <input class="form-control form-control-sm o_usl_tax_adjustment"
+                                           type="number" step="1"
+                                           t-att-value="line.values[column.key] || 0"
+                                           t-att-aria-label="'Ajustement pour ' + line.label"
+                                           t-on-change="(event) => this.onTaxAdjustmentChange(line, event)"/>
+                                    <i class="fa fa-pencil" aria-hidden="true"/>
+                                </span>
+                                <t t-else="" t-esc="formatCell(line.values[column.key], column.type)"/>
+                            </td>
                             <td t-att-class="amountClass(line.comparison_value)" t-if="isTrialBalance and showComparison" t-esc="formatAmount(line.comparison_value)"/>
                             <td class="text-end o_usl_report_action">
                                 <button t-if="line.can_drilldown" class="btn btn-sm btn-link"

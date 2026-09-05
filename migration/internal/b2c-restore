@@ -1,0 +1,202 @@
+#!/usr/bin/env bash
+set -euo pipefail
+export COMPOSE_IGNORE_ORPHANS=1
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT"
+source "$ROOT/scripts/lib/compose-scope.sh"
+source "$ROOT/scripts/lib/migration-addons.sh"
+
+command_name="${1:-all}"
+compose_project="${COMPOSE_PROJECT_NAME:?migration/manage did not resolve COMPOSE_PROJECT_NAME}"
+target_database="${ODOO_DEV_DB:?migration/manage did not resolve ODOO_DEV_DB}"
+test_database="${B2C_TEST_DATABASE:-odoo_test_usl_b2c_restore}"
+source_dump_dir="${USL_ONLINE_DUMP_DIR:?migration/manage did not resolve USL_ONLINE_DUMP_DIR}"
+expected_sha256="${USL_MIGRATION_SOURCE_SHA256:?migration/manage did not resolve the source checksum}"
+supplemental_dir="$source_dump_dir/supplemental/b2c"
+medusa_items_name="medusa-sold-items-2026-08-05.csv"
+medusa_items_sha256="e8308c402a63d4c4fd7ee066c8a59daeba7b00cd66f421221191cec50418550a"
+migration_addons_path="$USL_MIGRATION_ADDONS_PATH"
+usl_verify_compose_scope "$compose_project" "$ROOT" "B2C restoration"
+
+case "$target_database" in
+    odoo_online_source_saas_19_3|odoo_saas_19_3_validation_exact|odoo_saas_19_3_validation_native)
+        echo "Refusing protected B2C target $target_database." >&2
+        exit 2
+        ;;
+esac
+if [[ ! -f "$source_dump_dir/dump.sql" || ! -d "$source_dump_dir/filestore" ]]; then
+    echo "Source dump or filestore is missing under $source_dump_dir." >&2
+    exit 2
+fi
+source_dump_dir="$(cd "$source_dump_dir" && pwd -P)"
+source_sha256="$(shasum -a 256 "$source_dump_dir/dump.sql" | awk '{print $1}')"
+if [[ "$source_sha256" != "$expected_sha256" ]]; then
+    echo "B2C source dump SHA-256 changed: $source_sha256" >&2
+    exit 2
+fi
+source_snapshot="source-${source_sha256:0:12}"
+export USL_ONLINE_DUMP_DIR="$source_dump_dir"
+export USL_EINVOICE_LIVE_ENABLED=0
+export USL_EREPORTING_LIVE_ENABLED=0
+mkdir -p "$ROOT/artifacts/b2c-restore"
+compose=(docker compose -p "$compose_project")
+export ACCOUNTING_COMPAT_COMPOSE_PROJECT="$compose_project"
+
+validate_supplemental_evidence() {
+    local source_file="$supplemental_dir/$medusa_items_name" actual_sha256
+    if [[ ! -f "$source_file" ]]; then
+        echo "Required supplemental B2C evidence is missing: $source_file" >&2
+        return 2
+    fi
+    actual_sha256="$(shasum -a 256 "$source_file" | awk '{print $1}')"
+    if [[ "$actual_sha256" != "$medusa_items_sha256" ]]; then
+        echo "Medusa sold-items SHA-256 changed: $actual_sha256" >&2
+        return 2
+    fi
+}
+
+case "$command_name" in
+    all|import|test|validate)
+        validate_supplemental_evidence
+        supplemental_dir="$(cd "$supplemental_dir" && pwd -P)"
+        ;;
+esac
+
+product_was_running=0
+if [[ "$command_name" != product-validate ]] \
+    && "${compose[@]}" ps --status running --services | grep -qx odoo; then
+    product_was_running=1
+    "${compose[@]}" stop odoo >/dev/null
+fi
+restore_product_service() {
+    if ((product_was_running)); then
+        # Start the stopped container in place.  Re-running ``compose up`` can
+        # reinterpret unset custom-port variables and recreate an isolated QA
+        # service on the default ports after a focused migration test.
+        "${compose[@]}" start odoo
+    fi
+}
+trap restore_product_service EXIT INT TERM
+
+run_shell() {
+    local script_path="$1"
+    "${compose[@]}" --profile accounting-compat --profile b2c-migration run --rm -T \
+        -e B2C_SOURCE_DB_HOST="${B2C_SOURCE_DB_HOST:-accounting-source-db}" \
+        -e B2C_SOURCE_DB_PORT="${B2C_SOURCE_DB_PORT:-5432}" \
+        -e B2C_SOURCE_DB_USER="${B2C_SOURCE_DB_USER:-odoo}" \
+        -e B2C_SOURCE_DB_PASSWORD="${B2C_SOURCE_DB_PASSWORD:-odoo}" \
+        -e B2C_SOURCE_DATABASE="${B2C_SOURCE_DATABASE:-odoo_online_source_saas_19_3}" \
+        -e B2C_SOURCE_SNAPSHOT="$source_snapshot" \
+        -e B2C_REQUIRE_FINAL_RELATIONSHIPS="${B2C_REQUIRE_FINAL_RELATIONSHIPS:-0}" \
+        b2c-migration odoo shell --config=/etc/odoo/odoo.conf \
+        --addons-path="$migration_addons_path" --database="$target_database" \
+        --shell-interface=python < "$script_path"
+}
+
+install_module() {
+    local operation="--init=usl_b2c_restore"
+    if "${compose[@]}" exec -T db psql -U "${ODOO_DB_USER:-odoo}" \
+        -d "$target_database" -Atc \
+        "SELECT 1 FROM ir_module_module WHERE name='usl_b2c_restore' AND state IN ('installed', 'to upgrade')" \
+        | grep -qx 1; then
+        operation="--update=usl_b2c_restore"
+    fi
+    "${compose[@]}" --profile accounting-compat --profile b2c-migration run --rm \
+        -e ODOO_INIT_DB="$target_database" b2c-migration \
+        odoo --config=/etc/odoo/odoo.conf \
+        --addons-path="$migration_addons_path" --database="$target_database" \
+        "$operation" --without-demo=true --stop-after-init
+}
+
+validate_product_boundary() {
+    if [[ -n "$("${compose[@]}" ps --status running -q odoo)" ]]; then
+        "${compose[@]}" exec -T odoo \
+            odoo shell --config=/etc/odoo/odoo.conf \
+            --database="$target_database" --shell-interface=python \
+            < migration/b2c_restore/scripts/validate_product_boundary.py
+    else
+        "${compose[@]}" --profile init run --rm -T --no-deps \
+            -e ODOO_INIT_DB="$target_database" init-db \
+            odoo shell --config=/etc/odoo/odoo.conf \
+            --database="$target_database" --shell-interface=python \
+            < migration/b2c_restore/scripts/validate_product_boundary.py
+    fi
+}
+
+cleanup_test_database() {
+    "${compose[@]}" exec -T \
+        -e TEST_DATABASE="$test_database" \
+        db sh -c \
+        'dropdb --if-exists --force -U "$POSTGRES_USER" "$TEST_DATABASE"'
+    "${compose[@]}" --profile test run --rm --no-deps \
+        --entrypoint sh -e TEST_DATABASE="$test_database" test -c '
+          directory="/var/lib/odoo/filestore/$TEST_DATABASE"
+          if [ -d "$directory" ]; then
+            find "$directory" -mindepth 1 -delete
+            rmdir "$directory"
+          fi
+        '
+}
+
+test_parsers() {
+    local status=0
+    case "$test_database" in
+        ""|"$target_database"|odoo_dev|*[!A-Za-z0-9_]*)
+            echo "Refusing unsafe B2C parser test database: $test_database" >&2
+            return 2
+            ;;
+    esac
+    # A parser test must be reproducible with an empty source PostgreSQL volume.
+    # Restoring here also applies the canonical dump checksum/read-only controls;
+    # relying on a prior reconstruction would make this test state-dependent.
+    migration/internal/accounting-compat source-restore
+    "${compose[@]}" --profile accounting-compat up -d --wait db accounting-source-db
+    "${compose[@]}" --profile test build test
+    cleanup_test_database
+    "${compose[@]}" --profile test run --rm -T \
+        --volume "$ROOT/migration/b2c_restore/addons:/mnt/b2c-migration-addons:ro" \
+        --volume "$source_dump_dir:/mnt/accounting-source:ro" \
+        -e ODOO_INIT_DB="$test_database" \
+        -e "ODOO_DB_FILTER=^${test_database}$" \
+        -e B2C_SOURCE_DB_HOST="${B2C_SOURCE_DB_HOST:-accounting-source-db}" \
+        -e B2C_SOURCE_DB_PORT="${B2C_SOURCE_DB_PORT:-5432}" \
+        -e B2C_SOURCE_DB_USER="${B2C_SOURCE_DB_USER:-odoo}" \
+        -e B2C_SOURCE_DB_PASSWORD="${B2C_SOURCE_DB_PASSWORD:-odoo}" \
+        -e B2C_SOURCE_DATABASE="${B2C_SOURCE_DATABASE:-odoo_online_source_saas_19_3}" \
+        -e B2C_REQUIRE_FINAL_RELATIONSHIPS=0 \
+        -e B2C_SUPPLEMENTAL_EVIDENCE_DIR=/mnt/accounting-source/supplemental/b2c \
+        -e USL_EINVOICE_LIVE_ENABLED=0 \
+        -e USL_EREPORTING_LIVE_ENABLED=0 \
+        test odoo --config=/etc/odoo/odoo.conf \
+        --addons-path="$migration_addons_path" --database="$test_database" \
+        --init=usl_b2c_restore --without-demo=true --test-enable \
+        --test-tags=b2c_source --stop-after-init --log-level=test \
+        --log-handler=odoo.modules.loading:WARNING \
+        --log-handler=odoo.addons.base.models.assetsbundle:WARNING || status=$?
+    cleanup_test_database
+    return "$status"
+}
+
+case "$command_name" in
+    install) install_module ;;
+    import) run_shell migration/b2c_restore/addons/usl_b2c_restore/scripts/run_restore.py ;;
+    validate) run_shell migration/b2c_restore/addons/usl_b2c_restore/scripts/validate_restore.py ;;
+    product-validate) validate_product_boundary ;;
+    test) test_parsers ;;
+    finalize)
+        run_shell migration/b2c_restore/addons/usl_b2c_restore/scripts/finalize_restore.py
+        scripts/check-product-migration-boundary
+        ;;
+    all)
+        install_module
+        run_shell migration/b2c_restore/addons/usl_b2c_restore/scripts/run_restore.py
+        run_shell migration/b2c_restore/addons/usl_b2c_restore/scripts/validate_restore.py
+        run_shell migration/b2c_restore/addons/usl_b2c_restore/scripts/finalize_restore.py
+        scripts/check-product-migration-boundary
+        ;;
+    *)
+        echo "Usage: migration/internal/b2c-restore [install|import|validate|finalize|product-validate|test|all]" >&2
+        exit 2
+        ;;
+esac

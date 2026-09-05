@@ -1,0 +1,13 @@
+{
+  "schema": "usl-external-oci-image/v1",
+  "reason": "The private renderer package is not writable by the Odoo repository workflow token. The approved one-off migration release therefore carries the qualified image as a private OCI archive.",
+  "repository": "https://github.com/unstaticlabs/unstatic_latex_templates.git",
+  "commit": "5ab496f8d8f9ce0c38a1ca87cbd3116de2facad6",
+  "image": "ghcr.io/unstaticlabs/usl-document-renderer",
+  "tag": "sha-5ab496f8d8f9ce0c38a1ca87cbd3116de2facad6",
+  "digest": "sha256:162c780c40336df4d69f2e0f1e3d3a05321d3d6cb6b9fd88edd6f30f01c6695e",
+  "platform": "linux/amd64",
+  "archive_name": "usl-document-renderer-amd64.oci",
+  "archive_sha256": "92ac08974e8d79aa4c9d0cde7147ffb86e740f5808d52597aa3ac92726c79ed8",
+  "transport": "encrypted-production-cohort"
+}

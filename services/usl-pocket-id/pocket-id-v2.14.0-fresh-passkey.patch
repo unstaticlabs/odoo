@@ -1,0 +1,321 @@
+diff --git a/backend/internal/controller/well_known_controller.go b/backend/internal/controller/well_known_controller.go
+index 0c318e2..4f06708 100644
+--- a/backend/internal/controller/well_known_controller.go
++++ b/backend/internal/controller/well_known_controller.go
+@@ -111,0 +112 @@ func (wkc *WellKnownController) computeServerMetadata() ([]byte, error) {
++		"fresh_passkey_reauthentication_supported":       true,
+diff --git a/backend/internal/dto/oidc_dto.go b/backend/internal/dto/oidc_dto.go
+index 9ad737e..0233456 100644
+--- a/backend/internal/dto/oidc_dto.go
++++ b/backend/internal/dto/oidc_dto.go
+@@ -21,0 +22,2 @@ type OidcClientDto struct {
++	RequiresFreshPasskey                bool                     `json:"requiresFreshPasskey"`
++	DisableRefreshTokens                bool                     `json:"disableRefreshTokens"`
+@@ -48,0 +51,2 @@ type OidcClientUpdateDto struct {
++	RequiresFreshPasskey                *bool                    `json:"requiresFreshPasskey"`
++	DisableRefreshTokens                *bool                    `json:"disableRefreshTokens"`
+diff --git a/backend/internal/model/oidc.go b/backend/internal/model/oidc.go
+index 0024c1e..41d7da7 100644
+--- a/backend/internal/model/oidc.go
++++ b/backend/internal/model/oidc.go
+@@ -57,0 +58,2 @@ type OidcClient struct {
++	RequiresFreshPasskey                bool `sortable:"true" filterable:"true"`
++	DisableRefreshTokens                bool `sortable:"true" filterable:"true"`
+diff --git a/backend/internal/oidc/authorization_service.go b/backend/internal/oidc/authorization_service.go
+index bb0ab83..6468cc5 100644
+--- a/backend/internal/oidc/authorization_service.go
++++ b/backend/internal/oidc/authorization_service.go
+@@ -154 +154 @@ func (s *authorizationService) authorize(ctx context.Context, input authorizeInp
+-			ReauthenticationRequired: prompt.has("login") || client.RequiresReauthentication,
++			ReauthenticationRequired: prompt.has("login") || client.RequiresReauthentication || client.RequiresFreshPasskey,
+@@ -330 +330 @@ func (s *authorizationService) resolveRequirements(ctx context.Context, req auth
+-		ReauthenticationRequired: req.prompt.has("login") || req.client.RequiresReauthentication || maxAgeReauthenticationRequired,
++		ReauthenticationRequired: req.prompt.has("login") || req.client.RequiresReauthentication || req.client.RequiresFreshPasskey || maxAgeReauthenticationRequired,
+@@ -354 +354,3 @@ func (s *authorizationService) resolveRequirements(ctx context.Context, req auth
+-	if requirements.ReauthenticationRequired && req.reauthenticationToken != "" && s.reauth != nil {
++	credentialProofRequired := interactionSession != nil && interactionSession.Client.RequiresFreshPasskey
++	credentialProofValid := !credentialProofRequired || strings.HasPrefix(req.reauthenticationToken, "phr.")
++	if requirements.ReauthenticationRequired && req.reauthenticationToken != "" && credentialProofValid && s.reauth != nil {
+@@ -377 +379,8 @@ func (s *authorizationService) buildAuthorizedSession(req authorizeRequest, inte
+-	return NewAuthenticatedSession(req.userID, req.authenticationMethod, authenticationTime, requestedAt)
++	authenticationMethod := req.authenticationMethod
++	if interactionSession != nil &&
++		interactionSession.Client.RequiresFreshPasskey &&
++		interactionSession.ReauthenticatedAt != nil {
++		authenticationMethod = "phr"
++	}
++
++	return NewAuthenticatedSession(req.userID, authenticationMethod, authenticationTime, requestedAt)
+@@ -669,0 +679,3 @@ func (s *authorizationService) completeReauthenticationStep(ctx context.Context,
++	if interactionSession.Client.RequiresFreshPasskey && !strings.HasPrefix(reauthenticationToken, "phr.") {
++		return apperror.ReauthenticationRequired()
++	}
+@@ -736 +748 @@ func (s *authorizationService) interactionRequirementsForUser(ctx context.Contex
+-		ReauthenticationRequired: prompt.has("login") || interactionSession.Client.RequiresReauthentication || maxAgeReauthenticationRequired,
++		ReauthenticationRequired: prompt.has("login") || interactionSession.Client.RequiresReauthentication || interactionSession.Client.RequiresFreshPasskey || maxAgeReauthenticationRequired,
+diff --git a/backend/internal/oidc/authorization_service_test.go b/backend/internal/oidc/authorization_service_test.go
+index a624983..90193bf 100644
+--- a/backend/internal/oidc/authorization_service_test.go
++++ b/backend/internal/oidc/authorization_service_test.go
+@@ -23,0 +24,32 @@ type fakeAuditLogger struct {
++type trackingReauthenticationConsumer struct {
++	called bool
++	when   time.Time
++}
++
++func (f *trackingReauthenticationConsumer) ConsumeReauthenticationToken(_ context.Context, _ *gorm.DB, _ string, _ string) (time.Time, error) {
++	f.called = true
++	return f.when, nil
++}
++
++func TestStrictFreshPasskeyRejectsSessionProof(t *testing.T) {
++	db := testutils.NewDatabaseForTest(t)
++	consumer := &trackingReauthenticationConsumer{when: time.Now().UTC()}
++	service := newAuthorizationService(db, newInteractionSessionService(db), newClaimsService(db, nil, "", nil), consumer, nil, nil)
++	userID := "fresh-passkey-user"
++	interaction := &InteractionSession{
++		UserID:                   &userID,
++		ReauthenticationRequired: true,
++		Client:                   model.OidcClient{RequiresFreshPasskey: true},
++	}
++
++	err := service.completeReauthenticationStep(t.Context(), interaction, userID, "session.recent-login")
++	require.Error(t, err)
++	require.True(t, apperror.IsCode(err, apperror.CodeReauthenticationRequired))
++	require.False(t, consumer.called)
++
++	err = service.completeReauthenticationStep(t.Context(), interaction, userID, "phr.credential-backed")
++	require.NoError(t, err)
++	require.True(t, consumer.called)
++	require.False(t, interaction.ReauthenticationRequired)
++}
++
+@@ -944,0 +977,37 @@ func TestAuthorizationServiceAuthorizeRequiresReauthenticationWhenMaxAgeExceeded
++func TestAuthorizationServiceFreshPasskeyAlwaysRequiresCredentialProof(t *testing.T) {
++	db := testutils.NewDatabaseForTest(t)
++	service := newAuthorizationService(db, newInteractionSessionService(db), newClaimsService(db, nil, "", nil), nil, nil, nil)
++
++	const (
++		userID   = "fresh-passkey-user"
++		clientID = "fresh-passkey-client"
++	)
++	require.NoError(t, db.Create(&model.User{Base: model.Base{ID: userID}}).Error)
++	require.NoError(t, db.Create(&model.OidcClient{
++		Base:                 model.Base{ID: clientID},
++		Name:                 "Fresh passkey client",
++		RequiresFreshPasskey: true,
++	}).Error)
++	require.NoError(t, db.Create(&model.UserAuthorizedOidcClient{
++		UserID: userID, ClientID: clientID, Scope: datatype.StringList{"openid"},
++	}).Error)
++
++	requester := newTestAuthorizeRequester("fresh-passkey-request", clientID, "")
++	requester.(*fosite.AuthorizeRequest).Client = Client{OidcClient: model.OidcClient{
++		Base:                 model.Base{ID: clientID},
++		Name:                 "Fresh passkey client",
++		RequiresFreshPasskey: true,
++	}}
++	authorization, err := service.authorize(t.Context(), authorizeInput{
++		userID:             userID,
++		authenticationTime: time.Now().UTC(),
++		requester:          requester,
++	})
++	require.NoError(t, err)
++	require.True(t, authorization.RequiresInteraction)
++
++	interaction, err := service.getInteractionSession(t.Context(), authorization.InteractionID)
++	require.NoError(t, err)
++	require.Equal(t, interactionStepReauthenticate, interaction.CurrentStep)
++}
++
+@@ -961,2 +1030,3 @@ func TestAuthorizationServiceAuthorizeUsesCompletedReauthenticationTime(t *testi
+-		Base: model.Base{ID: clientID},
+-		Name: "Test Client",
++		Base:                 model.Base{ID: clientID},
++		Name:                 "Test Client",
++		RequiresFreshPasskey: true,
+@@ -989,0 +1060 @@ func TestAuthorizationServiceAuthorizeUsesCompletedReauthenticationTime(t *testi
++	require.Equal(t, "phr", authorization.Session.AuthenticationMethod)
+diff --git a/backend/internal/oidc/client.go b/backend/internal/oidc/client.go
+index 9fc5746..459e993 100644
+--- a/backend/internal/oidc/client.go
++++ b/backend/internal/oidc/client.go
+@@ -50,0 +51,4 @@ func (c Client) GetGrantTypes() fosite.Arguments {
++	if c.RequiresFreshPasskey {
++		return fosite.Arguments{string(fosite.GrantTypeAuthorizationCode)}
++	}
++
+@@ -53 +56,0 @@ func (c Client) GetGrantTypes() fosite.Arguments {
+-		string(fosite.GrantTypeRefreshToken),
+@@ -55,0 +59,3 @@ func (c Client) GetGrantTypes() fosite.Arguments {
++	if !c.DisableRefreshTokens {
++		grantTypes = append(grantTypes, string(fosite.GrantTypeRefreshToken))
++	}
+@@ -82 +88,5 @@ func (c Client) GetScopes() fosite.Arguments {
+-	scopes := make(fosite.Arguments, 5, 5+len(c.apiScopes))
++	scopeCount := 4
++	if !c.DisableRefreshTokens && !c.RequiresFreshPasskey {
++		scopeCount++
++	}
++	scopes := make(fosite.Arguments, scopeCount, scopeCount+len(c.apiScopes))
+@@ -87 +97,3 @@ func (c Client) GetScopes() fosite.Arguments {
+-	scopes[4] = "offline_access"
++	if scopeCount == 5 {
++		scopes[4] = "offline_access"
++	}
+diff --git a/backend/internal/oidc/client_test.go b/backend/internal/oidc/client_test.go
+index 1f23da5..656eff5 100644
+--- a/backend/internal/oidc/client_test.go
++++ b/backend/internal/oidc/client_test.go
+@@ -24,0 +25,20 @@ var (
++func TestFreshPasskeyClientOnlyAllowsAuthorizationCode(t *testing.T) {
++	client := Client{OidcClient: model.OidcClient{
++		RequiresFreshPasskey: true,
++		DisableRefreshTokens: true,
++	}}
++
++	require.Equal(t, fosite.Arguments{string(fosite.GrantTypeAuthorizationCode)}, client.GetGrantTypes())
++	require.NotContains(t, client.GetScopes(), "offline_access")
++}
++
++func TestClientCanDisableRefreshTokens(t *testing.T) {
++	client := Client{OidcClient: model.OidcClient{DisableRefreshTokens: true}}
++	require.NotContains(t, client.GetGrantTypes(), string(fosite.GrantTypeRefreshToken))
++	require.NotContains(t, client.GetScopes(), "offline_access")
++
++	client.DisableRefreshTokens = false
++	require.Contains(t, client.GetGrantTypes(), string(fosite.GrantTypeRefreshToken))
++	require.Contains(t, client.GetScopes(), "offline_access")
++}
++
+diff --git a/backend/internal/service/oidc_service.go b/backend/internal/service/oidc_service.go
+index 4717136..89b14d0 100644
+--- a/backend/internal/service/oidc_service.go
++++ b/backend/internal/service/oidc_service.go
+@@ -213,0 +214,2 @@ func (s *OidcService) UpdateClient(ctx context.Context, clientID string, input d
++				"RequiresFreshPasskey",
++				"DisableRefreshTokens",
+@@ -255,0 +258,6 @@ func updateOIDCClientModelFromDto(client *model.OidcClient, input *dto.OidcClien
++	if input.RequiresFreshPasskey != nil {
++		client.RequiresFreshPasskey = *input.RequiresFreshPasskey
++	}
++	if input.DisableRefreshTokens != nil {
++		client.DisableRefreshTokens = *input.DisableRefreshTokens
++	}
+diff --git a/backend/internal/service/oidc_service_test.go b/backend/internal/service/oidc_service_test.go
+index 156042c..02f8ea0 100644
+--- a/backend/internal/service/oidc_service_test.go
++++ b/backend/internal/service/oidc_service_test.go
+@@ -844,5 +844,7 @@ func TestOidcService_UpdateClient_CIMDPreservesMetadataFields(t *testing.T) {
+-		Name:               "Metadata Client",
+-		CallbackURLs:       datatype.StringList{"https://metadata.example.com/callback"},
+-		LogoutCallbackURLs: datatype.StringList{"https://metadata.example.com/logout"},
+-		IsPublic:           true,
+-		PkceEnabled:        true,
++		Name:                 "Metadata Client",
++		CallbackURLs:         datatype.StringList{"https://metadata.example.com/callback"},
++		LogoutCallbackURLs:   datatype.StringList{"https://metadata.example.com/logout"},
++		IsPublic:             true,
++		PkceEnabled:          true,
++		RequiresFreshPasskey: true,
++		DisableRefreshTokens: true,
+@@ -897,0 +900,2 @@ func TestOidcService_UpdateClient_CIMDPreservesMetadataFields(t *testing.T) {
++	assert.True(t, fetched.RequiresFreshPasskey)
++	assert.True(t, fetched.DisableRefreshTokens)
+diff --git a/backend/internal/webauthn/service.go b/backend/internal/webauthn/service.go
+index 35302c7..37a61a3 100644
+--- a/backend/internal/webauthn/service.go
++++ b/backend/internal/webauthn/service.go
+@@ -493 +493 @@ func (s *Service) CreateReauthenticationTokenWithAccessToken(ctx context.Context
+-	reauthToken, err := s.createReauthenticationToken(ctx, tx, user.ID)
++	reauthToken, err := s.createReauthenticationToken(ctx, tx, user.ID, "session")
+@@ -558 +558 @@ func (s *Service) CreateReauthenticationTokenWithWebauthn(ctx context.Context, s
+-	token, err := s.createReauthenticationToken(ctx, tx, user.ID)
++	token, err := s.createReauthenticationToken(ctx, tx, user.ID, "phr")
+@@ -601,2 +601,2 @@ func (s *Service) ConsumeReauthenticationToken(ctx context.Context, tx *gorm.DB,
+-func (s *Service) createReauthenticationToken(ctx context.Context, tx *gorm.DB, userID string) (string, error) {
+-	token, err := utils.GenerateRandomAlphanumericString(32)
++func (s *Service) createReauthenticationToken(ctx context.Context, tx *gorm.DB, userID, proof string) (string, error) {
++	randomToken, err := utils.GenerateRandomAlphanumericString(32)
+@@ -605,0 +606 @@ func (s *Service) createReauthenticationToken(ctx context.Context, tx *gorm.DB,
++	token := proof + "." + randomToken
+diff --git a/backend/internal/webauthn/service_test.go b/backend/internal/webauthn/service_test.go
+index ebdd90f..9da595a 100644
+--- a/backend/internal/webauthn/service_test.go
++++ b/backend/internal/webauthn/service_test.go
+@@ -90 +90 @@ func TestCreateReauthenticationTokenWithAccessToken(t *testing.T) {
+-	t.Run("accepts a fresh access token from WebAuthn login", func(t *testing.T) {
++	t.Run("accepts a fresh access token as a session proof", func(t *testing.T) {
+@@ -98 +98 @@ func TestCreateReauthenticationTokenWithAccessToken(t *testing.T) {
+-		assert.NotEmpty(t, reauthenticationToken)
++		assert.Contains(t, reauthenticationToken, "session.")
+diff --git a/backend/resources/migrations/postgres/20260829000000_disable_oidc_refresh_tokens.down.sql b/backend/resources/migrations/postgres/20260829000000_disable_oidc_refresh_tokens.down.sql
+new file mode 100644
+index 0000000..6f46563
+--- /dev/null
++++ b/backend/resources/migrations/postgres/20260829000000_disable_oidc_refresh_tokens.down.sql
+@@ -0,0 +1 @@
++ALTER TABLE oidc_clients DROP COLUMN disable_refresh_tokens;
+diff --git a/backend/resources/migrations/postgres/20260829000000_disable_oidc_refresh_tokens.up.sql b/backend/resources/migrations/postgres/20260829000000_disable_oidc_refresh_tokens.up.sql
+new file mode 100644
+index 0000000..c86878b
+--- /dev/null
++++ b/backend/resources/migrations/postgres/20260829000000_disable_oidc_refresh_tokens.up.sql
+@@ -0,0 +1 @@
++ALTER TABLE oidc_clients ADD COLUMN disable_refresh_tokens BOOLEAN NOT NULL DEFAULT FALSE;
+diff --git a/backend/resources/migrations/postgres/20260829001000_requires_fresh_passkey.down.sql b/backend/resources/migrations/postgres/20260829001000_requires_fresh_passkey.down.sql
+new file mode 100644
+index 0000000..db69af8
+--- /dev/null
++++ b/backend/resources/migrations/postgres/20260829001000_requires_fresh_passkey.down.sql
+@@ -0,0 +1 @@
++ALTER TABLE oidc_clients DROP COLUMN requires_fresh_passkey;
+diff --git a/backend/resources/migrations/postgres/20260829001000_requires_fresh_passkey.up.sql b/backend/resources/migrations/postgres/20260829001000_requires_fresh_passkey.up.sql
+new file mode 100644
+index 0000000..76ebb9d
+--- /dev/null
++++ b/backend/resources/migrations/postgres/20260829001000_requires_fresh_passkey.up.sql
+@@ -0,0 +1 @@
++ALTER TABLE oidc_clients ADD COLUMN requires_fresh_passkey BOOLEAN NOT NULL DEFAULT FALSE;
+diff --git a/backend/resources/migrations/sqlite/20260829000000_disable_oidc_refresh_tokens.down.sql b/backend/resources/migrations/sqlite/20260829000000_disable_oidc_refresh_tokens.down.sql
+new file mode 100644
+index 0000000..6f46563
+--- /dev/null
++++ b/backend/resources/migrations/sqlite/20260829000000_disable_oidc_refresh_tokens.down.sql
+@@ -0,0 +1 @@
++ALTER TABLE oidc_clients DROP COLUMN disable_refresh_tokens;
+diff --git a/backend/resources/migrations/sqlite/20260829000000_disable_oidc_refresh_tokens.up.sql b/backend/resources/migrations/sqlite/20260829000000_disable_oidc_refresh_tokens.up.sql
+new file mode 100644
+index 0000000..c86878b
+--- /dev/null
++++ b/backend/resources/migrations/sqlite/20260829000000_disable_oidc_refresh_tokens.up.sql
+@@ -0,0 +1 @@
++ALTER TABLE oidc_clients ADD COLUMN disable_refresh_tokens BOOLEAN NOT NULL DEFAULT FALSE;
+diff --git a/backend/resources/migrations/sqlite/20260829001000_requires_fresh_passkey.down.sql b/backend/resources/migrations/sqlite/20260829001000_requires_fresh_passkey.down.sql
+new file mode 100644
+index 0000000..db69af8
+--- /dev/null
++++ b/backend/resources/migrations/sqlite/20260829001000_requires_fresh_passkey.down.sql
+@@ -0,0 +1 @@
++ALTER TABLE oidc_clients DROP COLUMN requires_fresh_passkey;
+diff --git a/backend/resources/migrations/sqlite/20260829001000_requires_fresh_passkey.up.sql b/backend/resources/migrations/sqlite/20260829001000_requires_fresh_passkey.up.sql
+new file mode 100644
+index 0000000..76ebb9d
+--- /dev/null
++++ b/backend/resources/migrations/sqlite/20260829001000_requires_fresh_passkey.up.sql
+@@ -0,0 +1 @@
++ALTER TABLE oidc_clients ADD COLUMN requires_fresh_passkey BOOLEAN NOT NULL DEFAULT FALSE;
+diff --git a/frontend/package.json b/frontend/package.json
+index 52865c3..e8f044b 100644
+--- a/frontend/package.json
++++ b/frontend/package.json
+@@ -3 +3 @@
+-	"version": "2.14.0",
++	"version": "2.14.0-usl1",
+diff --git a/frontend/src/routes/login/alternative/code/+page.svelte b/frontend/src/routes/login/alternative/code/+page.svelte
+index c7e7941..d9b42cc 100644
+--- a/frontend/src/routes/login/alternative/code/+page.svelte
++++ b/frontend/src/routes/login/alternative/code/+page.svelte
+@@ -36 +36 @@
+-		if (e.from?.url.pathname) {
++		if (e.from?.url?.pathname) {

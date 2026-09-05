@@ -6,8 +6,8 @@ services:
     environment: &odoo_external_identity
       ODOO_LIST_DB: "False"
       ODOO_MAX_CRON_THREADS: ${ODOO_MAX_CRON_THREADS:-0}
-      USL_EINVOICE_LIVE_ENABLED: "0"
-      USL_EREPORTING_LIVE_ENABLED: "0"
+      USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}
+      USL_EREPORTING_LIVE_ENABLED: ${USL_EREPORTING_LIVE_ENABLED:-0}
       USL_POCKET_ID_ENABLED: "1"
       USL_POCKET_ID_ISSUER: ${POCKET_ID_APP_URL:?External Pocket ID issuer is required}
       USL_POCKET_ID_CLIENT_ID: ${POCKET_ID_CLIENT_ID:?External Odoo client ID is required}
@@ -28,6 +28,10 @@ services:
       - "127.0.0.1:${ODOO_GEVENT_PORT}:8072"
     volumes: !override
       - odoo-data:/var/lib/odoo
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}/ca.crt:/run/secrets/document-renderer/ca.crt:ro
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}/odoo.crt:/run/secrets/document-renderer/odoo.crt:ro
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}/odoo.key:/run/secrets/document-renderer/odoo.key:ro
+      - ${USL_SIGN_ODOO_SECRET_DIR:-./.secrets/sign/odoo}:/run/usl-sign:ro
 
   init-db:
     build: !reset null
@@ -37,6 +41,10 @@ services:
       - external-identity
     volumes: !override
       - odoo-data:/var/lib/odoo
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}/ca.crt:/run/secrets/document-renderer/ca.crt:ro
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}/odoo.crt:/run/secrets/document-renderer/odoo.crt:ro
+      - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}/odoo.key:/run/secrets/document-renderer/odoo.key:ro
+      - ${USL_SIGN_ODOO_SECRET_DIR:-./.secrets/sign/odoo}:/run/usl-sign:ro
 
   paperless-preflight:
     environment:
@@ -54,7 +62,7 @@ services:
 
   paperless-webserver:
     environment: &paperless_external_identity
-      PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect
+      PAPERLESS_APPS: allauth.socialaccount.providers.openid_connect,paperless_personal_ai
       PAPERLESS_SOCIALACCOUNT_PROVIDERS: >-
         {"openid_connect":{"SCOPE":["openid","profile","email","groups"],"OAUTH_PKCE_ENABLED":true,"APPS":[{"provider_id":"pocket-id","name":"Pocket ID","client_id":"${POCKET_ID_PAPERLESS_CLIENT_ID:?External Paperless client ID is required}","secret":"${POCKET_ID_PAPERLESS_CLIENT_SECRET:?External Paperless client secret is required}","settings":{"server_url":"${POCKET_ID_APP_URL:?External Pocket ID issuer is required}","token_auth_method":"client_secret_basic"}}]}}
       PAPERLESS_SOCIAL_AUTO_SIGNUP: "true"
@@ -65,9 +73,12 @@ services:
       PAPERLESS_REDIRECT_LOGIN_TO_SSO: "true"
       PAPERLESS_ACCOUNT_DEFAULT_HTTP_PROTOCOL: https
     networks:
-      - default
-      - external-identity
-      - external-ingress
+      default:
+      external-identity:
+      external-ingress:
+        aliases:
+          - paperless
+      external-ollama:
     ports: !override
       - "127.0.0.1:${PAPERLESS_HTTP_PORT}:8000"
 
@@ -80,6 +91,11 @@ services:
   paperless-access-init:
     networks:
       - default
+
+  odoo-mcp:
+    networks:
+      - default
+      - external-ingress
 
 volumes:
   postgres-data:
@@ -110,6 +126,9 @@ volumes:
   paperless-trash:
     name: ${USL_PAPERLESS_TRASH_VOLUME:?Dedicated Paperless trash volume is required}
     labels: *candidate_volume_labels
+  odoo-mcp-oauth-data:
+    name: ${USL_ODOO_MCP_OAUTH_VOLUME:?Dedicated Odoo MCP OAuth volume is required}
+    labels: *candidate_volume_labels
 
 networks:
   external-identity:
@@ -118,3 +137,6 @@ networks:
   external-ingress:
     external: true
     name: ${USL_EXTERNAL_INGRESS_NETWORK:?Existing ingress network is required}
+  external-ollama:
+    external: true
+    name: ${USL_EXTERNAL_OLLAMA_NETWORK:?Existing shared Ollama network is required}

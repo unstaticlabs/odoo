@@ -1,8 +1,0 @@
----
-description: Repository-wide AI contributor guidance
-alwaysApply: true
----
-
-Follow the canonical repository guidance in `AGENTS.md`.
-
-Before editing, inspect the relevant code and current documentation under `docs/product/`, `docs/operations/`, `docs/accounting/`, and `docs/agents/` when those areas apply.

@@ -32,14 +32,55 @@ msgid "ID"
 msgstr "ID"
 
 #. module: usl_project
+#: model:ir.model.fields.selection,name:usl_project.selection__project_task_type__usl_reactivation_role__inbox
+msgid "Inbox destination"
+msgstr "Destination Boîte de réception"
+
+#. module: usl_project
+#: model:ir.model.constraint,message:usl_project.constraint_project_task_type_usl_reactivation_role_unique
+msgid "A user can have only one personal stage for each reactivation role."
+msgstr "Un utilisateur ne peut avoir qu’une étape personnelle par rôle de réactivation."
+
+#. module: usl_project
+#: model:ir.model.fields.selection,name:usl_project.selection__project_task_type__usl_reactivation_role__later
+msgid "Later source"
+msgstr "Source Plus tard"
+
+#. module: usl_project
+#: model_terms:ir.ui.view,arch_db:usl_project.project_task_type_form_reactivation_role
+msgid "No automatic reactivation role"
+msgstr "Aucun rôle de réactivation automatique"
+
+#. module: usl_project
+#: model:ir.model.constraint,message:usl_project.constraint_project_task_type_usl_reactivation_role_owner
+msgid "Only a personal task stage can have a reactivation role."
+msgstr "Seule une étape personnelle peut avoir un rôle de réactivation."
+
+#. module: usl_project
 #: model:ir.model.fields,field_description:usl_project.field_project_task__planned_date_begin
 msgid "Planned Start"
 msgstr "Début prévu"
 
 #. module: usl_project
+#: model:ir.model.fields,field_description:usl_project.field_project_task_type__usl_reactivation_role
+msgid "Reactivation Role"
+msgstr "Rôle de réactivation"
+
+#. module: usl_project
 #: model:ir.model,name:usl_project.model_project_task
 msgid "Task"
 msgstr "Tâche"
+
+#. module: usl_project
+#: model:ir.actions.server,name:usl_project.ir_cron_usl_reactivate_later_tasks_ir_actions_server
+#: model:ir.cron,cron_name:usl_project.ir_cron_usl_reactivate_later_tasks
+msgid "Tasks: return actionable deferred tasks to Inbox"
+msgstr "Tâches : renvoyer les tâches reportées et exploitables vers la Boîte de réception"
+
+#. module: usl_project
+#: model:ir.model.fields,help:usl_project.field_project_task_type__usl_reactivation_role
+msgid "For a personal stage, identifies where deferred tasks wait and where they return when work becomes actionable."
+msgstr "Pour une étape personnelle, indique où les tâches reportées attendent et où elles reviennent lorsque le travail devient possible."
 
 #. module: usl_project
 #: model:ir.model.fields,help:usl_project.field_project_task__planned_date_begin

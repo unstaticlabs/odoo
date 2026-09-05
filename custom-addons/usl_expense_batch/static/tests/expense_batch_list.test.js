@@ -6,6 +6,19 @@ import {
     refreshExpenseList,
 } from "../src/js/expense_batch_list";
 import { attentionIconClass } from "../src/js/expense_batch_attention_field";
+import {
+    expenseProgressSegments,
+    parseExpenseProgressBreakdown,
+} from "../src/js/expense_batch_progress_field";
+import {
+    EXPENSE_BATCH_ADD_STATES,
+    expenseBatchCandidateDomain,
+    relationalId,
+} from "../src/js/expense_batch_form";
+import {
+    activeQuickFilterName,
+    quickFilterItemIds,
+} from "../src/js/expense_batch_workspace";
 
 function record(state, expenseBatchId = false) {
     return {
@@ -37,8 +50,8 @@ test("batch creation accepts only unbatched eligible expense states", () => {
     );
 });
 
-test("batch assignment is primary only for eligible multi-selection", () => {
-    expect(batchActionIsPrimary([record("draft")])).toBe(false);
+test("batch assignment is the primary action for every eligible selection", () => {
+    expect(batchActionIsPrimary([record("draft")])).toBe(true);
     expect(batchActionIsPrimary([record("draft"), record("draft")])).toBe(true);
     expect(batchActionIsPrimary([record("draft"), record("submitted")])).toBe(
         false
@@ -67,4 +80,62 @@ test("closing the batch wizard reloads and renders the expense list", async () =
 test("attention indicator stays compact and distinguishes warnings from locks", () => {
     expect(attentionIconClass("warning")).toInclude("text-warning");
     expect(attentionIconClass("info")).toInclude("fa-lock");
+});
+
+test("expense progress keeps every state as a proportional segment", () => {
+    expect(
+        expenseProgressSegments(
+            '{"draft":2,"submitted":1,"approved":3,"posted":4,' +
+                '"in_payment":5,"paid":6,"refused":1}',
+        ).map(({ key, count }) => [key, count]),
+    ).toEqual([
+        ["draft", 2],
+        ["submitted", 1],
+        ["approved", 3],
+        ["posted", 4],
+        ["in_payment", 5],
+        ["paid", 6],
+        ["refused", 1],
+    ]);
+});
+
+test("expense progress safely ignores malformed presentation data", () => {
+    expect(parseExpenseProgressBreakdown("not-json")).toEqual({});
+    expect(parseExpenseProgressBreakdown("[]")).toEqual({});
+    expect(expenseProgressSegments('{"draft":-1,"paid":"invalid"}')).toEqual(
+        [],
+    );
+});
+
+test("direct Batch picker keeps the server eligibility and ownership domain", () => {
+    expect(relationalId([7, "Valentin"])).toBe(7);
+    expect(relationalId({ id: 8, display_name: "USL" })).toBe(8);
+    expect(EXPENSE_BATCH_ADD_STATES).toEqual(["draft", "approved", "posted"]);
+    expect(
+        expenseBatchCandidateDomain({
+            employee_id: [7, "Valentin"],
+            company_id: { id: 8, display_name: "USL" },
+        }),
+    ).toEqual([
+        ["employee_id", "=", 7],
+        ["company_id", "=", 8],
+        ["expense_batch_id", "=", false],
+        ["state", "in", ["draft", "approved", "posted"]],
+    ]);
+});
+
+test("batch quick filters expose one clear active workspace", () => {
+    const searchItems = {
+        1: { id: 1, name: "open_batches" },
+        2: { id: 2, name: "needs_information" },
+        3: { id: 3, name: "my_batches" },
+        4: { id: 4, name: "exceptions" },
+        5: { id: 5, name: "unrelated" },
+    };
+
+    expect(activeQuickFilterName(searchItems, [])).toBe("all");
+    expect(activeQuickFilterName(searchItems, [{ searchItemId: 2 }])).toBe(
+        "needs_information",
+    );
+    expect(quickFilterItemIds(searchItems)).toEqual([1, 2, 3, 4]);
 });

@@ -1,117 +1,129 @@
-# Production image CI boundary
+# Production image CI
 
-## Contract
+The `Distribution release` reusable workflow builds the immutable artifacts
+consumed by future deployment workflows. It is called only after the exact
+protected-branch push has passed `USL qualification`; an explicit
+`recovery-*` tag may also be dispatched manually. It does not alter a runtime.
+The caller passes the exact source ref, source commit, qualification evidence
+digest and qualification run ID, so publication has no polling admission job.
 
-The `Distribution image` GitHub Actions workflow is the repository build
-boundary for the future production and recovery pipelines:
+## Content-addressed builds
 
-```text
-19-usl @ <40-character-git-sha>
-    -> ghcr.io/unstaticlabs/usl-odoo:sha-<40-character-git-sha>
-    -> ghcr.io/unstaticlabs/usl-odoo@sha256:<64-hex-image-digest>
+`scripts/component-build` hashes only the tracked inputs of each independently
+released component:
 
-19-usl @ <40-character-git-sha>
-    -> ghcr.io/unstaticlabs/usl-odoo-backup:sha-<40-character-git-sha>
-    -> ghcr.io/unstaticlabs/usl-odoo-backup@sha256:<64-hex-image-digest>
-```
+- Distribution;
+- backup tool;
+- Paperless;
+- Sign DSS.
 
-Commit tags are immutable lookup aids. Digest references are the release
-identities and are the only references production GitOps may consume. Do not
-deploy `19-usl`, `latest`, another branch tag, or a commit tag without resolving
-and recording its digest.
+The workflow first checks GHCR for `content-<input-sha256>`. If it exists, the
+image is reused without building. Otherwise BuildKit builds it with registry
+cache, publishes the content tag, records its digest, SBOM and provenance, and
+adds a GitHub attestation. A source-only operations change therefore rebuilds
+only the backup tool; unchanged product images normally resolve in about one
+minute.
 
-The Distribution image embeds and CI verifies the exact commit, pinned OCA bundle digest,
-reviewed action-risk policy digest, and `distribution` runtime label. BuildKit
-attaches an OCI SBOM and maximum provenance. GitHub also records build
-provenance for the pushed digest through its artifact-attestation service.
-The backup-tool image independently embeds the commit and pinned PostgreSQL 16
-and Restic runtimes. It receives the same SBOM, provenance, digest and
-attestation treatment.
+The SBOM is retained as build metadata. It is not evaluated as a release gate,
+and this distribution has no SBOM-enforcement requirement.
 
-## Workflow behavior and outputs
+Odoo MCP and the document renderer remain separately owned images. The
+Distribution workflow verifies their pinned commits, compatibility metadata,
+OCI revision labels, and digest references before assembling a release. After
+that verification, the protected Distribution release job adds an artifact
+attestation for the exact renderer digest with `unstaticlabs/odoo` as the
+trusted integration owner. GitHub stores the public-repository attestation;
+the separately owned renderer package does not need to accept a cross-package
+write. The workflow neither rebuilds nor retags the renderer.
 
-Every pull request runs repository unit checks, the existing action-risk and
-delivered-registry qualification, and no-push builds of the Distribution and
-backup-tool images. This includes stacked pull requests whose temporary base is
-another feature branch; the `19-usl` ruleset still makes this check mandatory at
-final integration. The PR job has only `contents: read`, does not log in to
-GHCR, and cannot access production credentials.
+## Release artifact
 
-A push to `19-usl` runs the same qualification and then the separately
-permissioned publish job. That job uses the built-in `GITHUB_TOKEN` only,
-builds and pushes both images once, verifies them by digest, attests each, and
-publishes all of these outputs:
+The final `usl-release.json` binds:
 
-- job outputs `image`, `tag`, `digest`, `digest_reference`, and
-  `metadata_artifact`, plus `backup_tool_image`, `backup_tool_tag`,
-  `backup_tool_digest`, and `backup_tool_digest_reference`;
-- a GitHub step summary showing both digest references;
-- artifact `distribution-release-<git-sha>` containing
-  `distribution-release.json` with schema `usl-distribution-release/v2`.
+- the exact repository commit and workflow run;
+- every repository-owned component input hash and image digest;
+- the pinned MCP ref, commit, compatibility digest, and image;
+- the renderer source and image;
+- the Ollama image, model digest, and embedding dimension.
 
-The JSON artifact is the stable cross-workflow interface for the future
-production GitOps pipeline. That pipeline must select a successful
-`Distribution image` run for the intended `19-usl` commit, download the named
-artifact, run:
+Validate an artifact before use:
 
 ```bash
-python3 scripts/distribution_release.py validate \
-  distribution-release.json \
-  --commit <expected-40-character-sha> \
-  --image ghcr.io/unstaticlabs/usl-odoo \
-  --backup-tool-image ghcr.io/unstaticlabs/usl-odoo-backup
+scripts/release-manifest validate usl-release.json --commit <full-git-commit>
 ```
 
-and deploy only `image.digest_reference` and
-`backup_tool.digest_reference`. It must also verify both GitHub attestations
-before promotion. A rerun reuses an existing commit tag only when
-all embedded identity labels match; a conflicting tag or invalid digest fails
-closed instead of overwriting release identity.
+Deploy only its digest references. Branch names, commit tags, and `latest` are
+lookup aids, not deployable identities.
 
-Manual `workflow_dispatch` runs qualification and both no-push image builds for
-the selected ref. It cannot publish. Production deployment, database backup or
-upgrade, Komodo orchestration, health verification, and recovery are outside
-this workflow.
+## Permissions
 
-## GitHub settings requiring an administrator
+The calling qualification job grants the repository `GITHUB_TOKEN` the write
+permissions that a reusable workflow cannot elevate for itself. The called
+workflow then narrows those permissions per job:
 
-The repository was inspected on 2026-08-28. It is public, its default branch is
-`19-usl`, and active ruleset `no force push no delete` targets the default
-branch with deletion and non-fast-forward protections and no user bypass. No
-classic branch protection was found. The Elio agent has `MAINTAIN`, not
-administrator access, so Actions and organization package policies could not
-be read or changed.
+- `contents: read` for source;
+- `packages: read` when verifying external MCP and renderer images;
+- `packages: write`, `id-token: write`, `attestations: write`, and
+  `artifact-metadata: write` for repository-owned image publication and the
+  exact verified renderer digest's GitHub-stored integration attestation.
 
-After this workflow has run at least once, a repository administrator must:
+Each GHCR package must grant `unstaticlabs/odoo` Actions read access; the four
+repository-owned packages must also permit publication from this repository.
+No production, SSH, Pocket ID, database, Restic, SMTP, or application secret
+belongs in this build workflow.
 
-1. Extend the `19-usl` ruleset to require pull requests, at least one
-   independent approval, dismissal of stale approvals, resolved conversations,
-   and branches current with `19-usl` before merge.
-2. Require `Distribution image / Qualify repository and image` and
-   `Agent process / contracts`. Do not require the publish job on PRs because
-   it intentionally runs only after merge.
-3. Keep force pushes and branch deletion blocked. Restrict bypass to a named,
-   audited emergency role if an operational exception is ever necessary.
-4. Keep merge commits enabled and disable squash and rebase merging so the
-   repository's reviewed integration history is preserved.
-5. Set the default workflow token to read-only. Permit this workflow's explicit
-   `packages: write`, `id-token: write`, and `attestations: write` only for the
-   protected post-merge publish job. Do not add PATs, SSH keys, production
-   credentials, or production environments to PR workflows.
-6. Confirm the `usl-odoo` GHCR package is linked to this repository, permits
-   this repository's Actions workflow to publish, and has the visibility and
-   pull policy required by the future production runner. Limit package write
-   access to trusted repository automation and administrators.
-   Apply the same controls to `usl-odoo-backup`.
-7. Create or select a Lead Developer CODEOWNERS team, then protect
-   `.github/workflows/**`, `Dockerfile`, `docker/**`,
-   `scripts/distribution_release.py`, and future deployment/upgrade tooling
-   with required Code Owner review. No team name is guessed in this change.
-8. Review the organization's allowed-Actions policy so the exact SHA-pinned
-   GitHub and Docker actions used here are permitted. Enable dependency update
-   review for those pins; never replace them with mutable major tags.
+Configure package access in GitHub under the package's **Package settings →
+Manage Actions access**. Grant `unstaticlabs/odoo` read access to the separately
+owned `odoo-mcp` and document-renderer packages. Repository-owned Distribution,
+backup-tool, Paperless, and Sign packages inherit publication access from
+`unstaticlabs/odoo`; their workflow job alone receives `packages: write`.
 
-No GitHub production environment or persistent self-hosted runner is required
-for this build boundary. A later deployment feature must create its own
-protected environment, credentials, approval gate, migration/backup sequencing,
-verification, and recovery contract without changing this digest interface.
+Deployment admission verifies the renderer digest against the
+`unstaticlabs/odoo` attestation owner and this Distribution workflow identity.
+It retrieves that renderer bundle from GitHub's attestation store rather than
+requiring an OCI referrer write to the separately owned package. The renderer's
+own BuildKit provenance remains separate source-build evidence.
+
+The validated repository context is `unstaticlabs/odoo`, not a fork or local
+runner. Run 33568552569 at commit `84c8d30159dbc99258c8e44f3316fbdec88bf799`
+completed release tests, external image verification, content-addressed
+component resolution, and coordinated release assembly in about three minutes.
+Unchanged Distribution, Paperless, and Sign images were reused. The backup tool
+alone rebuilt because its tracked orchestration inputs changed.
+
+## Deployment boundary
+
+A later protected deployment workflow consumes the release artifact and uses
+`scripts/usl-stack` to:
+
+1. verify the running release and take a qualified backup;
+2. freeze access and deploy the exact image cohort;
+3. run required Odoo module upgrades;
+4. run health and business smoke gates;
+5. reopen after admission; recover the previous generation on pre-activation
+   failure, and repair forward once production activation has started;
+6. after production admission, create and qualify a new production backup;
+7. reset staging from that exact post-admission backup only when its
+   pre-production staging intent still matches the complete staging runtime.
+
+Ordinary staging releases use a staging checkpoint and upgrade the existing
+staging state. They never restore a production backup. A scheduled run with no
+production release change performs the production backup and an independent
+disposable restore proof, but leaves persistent staging unchanged.
+
+Build caching and runtime backup caching are separate: OCI layers stay in
+GHCR, while OCR, previews, Tantivy, and vectors use the reusable Restic cache
+repository described in [Backup and recovery](backup-and-recovery.md).
+
+
+Production qualification compares ACLs, record rules, group implications and
+cron definitions using stable model/XML identities. Database row IDs are used
+only for preserving the same database's business state. Signed staging plan
+evidence uses `usl-staging-upgrade-plan-evidence/v2`; a v1 attestation must be
+refreshed before production promotion.
+
+Activation restores the production Pocket ID provider from its running service
+environment and verifies the authorization callback and client credentials.
+A healthy HTTP endpoint alone does not prove that users can authenticate.
+Late scheduled jobs remain visible as warnings while workers catch up; actual
+cron failures and changes to enabled-job policy still block admission.

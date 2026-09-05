@@ -1,4 +1,5 @@
 import json
+import os
 import tempfile
 from pathlib import Path
 from unittest.mock import call, patch
@@ -17,6 +18,9 @@ class TestActionPolicyLoader(BaseCase):
         self.runtime_policy_path = (
             Path(self.temporary_directory.name) / "protected_runtime_policy.json"
         )
+        self.agent_runtime_policy_path = (
+            Path(self.temporary_directory.name) / "agent_readonly_runtime_policy.json"
+        )
         path_patch = patch.object(
             action_policy,
             "_RUNTIME_POLICY_FILE",
@@ -24,8 +28,23 @@ class TestActionPolicyLoader(BaseCase):
         )
         path_patch.start()
         self.addCleanup(path_patch.stop)
+        agent_path_patch = patch.object(
+            action_policy,
+            "_AGENT_READONLY_RUNTIME_POLICY_FILE",
+            self.agent_runtime_policy_path,
+        )
+        agent_path_patch.start()
+        self.addCleanup(agent_path_patch.stop)
         action_policy.load_action_policy.cache_clear()
+        action_policy.load_agent_readonly_policy.cache_clear()
+        environment_patch = patch.dict(
+            os.environ,
+            {"USL_ACTION_RISK_POLICY_SHA256": "unverified"},
+        )
+        environment_patch.start()
+        self.addCleanup(environment_patch.stop)
         self.addCleanup(action_policy.load_action_policy.cache_clear)
+        self.addCleanup(action_policy.load_agent_readonly_policy.cache_clear)
 
     def _write_policy(
         self,
@@ -47,6 +66,62 @@ class TestActionPolicyLoader(BaseCase):
         )
         self.runtime_policy_path.write_text(json.dumps(policy), encoding="utf-8")
         return policy
+
+    def _write_agent_policy(
+        self,
+        *,
+        reads=None,
+        collaboration=None,
+        writes=None,
+        qualified_policy_digest="a" * 64,
+    ):
+        policy = {
+            "collaboration_actions": collaboration or [],
+            "qualified_policy_digest": qualified_policy_digest,
+            "read_only_actions": reads or [],
+            "schema": "usl-agent-access-runtime-v2",
+            "write_actions": writes or [],
+        }
+        policy["runtime_policy_sha256"] = action_policy._runtime_policy_digest(policy)
+        self.agent_runtime_policy_path.write_text(json.dumps(policy), encoding="utf-8")
+        return policy
+
+    def test_loads_exact_agent_readonly_and_collaboration_methods(self):
+        self._write_agent_policy(
+            reads=["rpc:res.partner.search_read"],
+            collaboration=["rpc:project.task.message_post"],
+        )
+
+        policy = action_policy.load_agent_readonly_policy()
+
+        self.assertEqual(policy.access_for("res.partner", "search_read"), "read_only")
+        self.assertEqual(policy.access_for("project.task", "message_post"), "collaboration")
+        self.assertIsNone(policy.access_for("project.task", "write"))
+
+        action_policy.load_agent_readonly_policy.cache_clear()
+        self._write_agent_policy(writes=["rpc:project.task.write"])
+        policy = action_policy.load_agent_readonly_policy()
+        self.assertEqual(policy.access_for("project.task", "write"), "write")
+
+    def test_rejects_stale_or_ambiguous_agent_readonly_policy(self):
+        policy = self._write_agent_policy(
+            reads=["rpc:res.partner.search_read"],
+            collaboration=["rpc:res.partner.search_read"],
+        )
+        with self.assertRaisesRegex(
+            action_policy.ActionPolicyConfigurationError,
+            "overlap",
+        ):
+            action_policy.load_agent_readonly_policy()
+
+        action_policy.load_agent_readonly_policy.cache_clear()
+        policy["runtime_policy_sha256"] = "0" * 64
+        self.agent_runtime_policy_path.write_text(json.dumps(policy), encoding="utf-8")
+        with self.assertRaisesRegex(
+            action_policy.ActionPolicyConfigurationError,
+            "digest does not match",
+        ):
+            action_policy.load_agent_readonly_policy()
 
     def test_loads_semantic_and_model_operation_guards(self):
         self._write_policy(

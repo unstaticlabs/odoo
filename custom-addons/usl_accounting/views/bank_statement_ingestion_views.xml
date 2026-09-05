@@ -40,7 +40,7 @@
                         <group string="Statement review">
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="journal_id" string="Bank account"/>
-                            <field name="source_account_identifier" password="True"/>
+                            <field name="source_account_identifier"/>
                             <field name="responsible_user_id"/>
                             <field name="automatic_start_date" string="Review statements from"/>
                         </group>
@@ -125,6 +125,7 @@
                     <button name="action_process_now" type="object" string="Process now" class="btn-primary" groups="account.group_account_user,account.group_account_manager" invisible="state != 'received'" title="Import the OFX transactions, link the monthly statement, and send its official PDF to Documents."/>
                     <button name="action_retry" type="object" string="Retry" class="btn-primary" groups="account.group_account_user,account.group_account_manager" invisible="state not in ('attention', 'failed')" title="Try processing the retained email and files again. Existing transactions will not be duplicated."/>
                     <button name="action_open_add_source_file" type="object" string="Add missing file" groups="account.group_account_user,account.group_account_manager" invisible="state == 'processing'" title="Add a bank file that was missing from the email or could not be downloaded. The file remains linked to this received email."/>
+                    <button name="action_correct_period" type="object" string="Correct period" groups="account.group_account_user,account.group_account_manager" invisible="state not in ('attention', 'failed')"/>
                     <field name="state" widget="statusbar" statusbar_visible="received,processing,attention,done,failed"/>
                 </header>
                 <sheet>
@@ -151,7 +152,7 @@
                     <notebook>
                         <page string="Files">
                             <field name="file_ids" readonly="1">
-                                <list decoration-danger="processing_state == 'failed'" decoration-warning="processing_state == 'attention'">
+                                <list decoration-danger="processing_state == 'failed'" decoration-warning="processing_state == 'attention'" decoration-muted="processing_state == 'ignored'">
                                     <field name="filename"/>
                                     <field name="classification"/>
                                     <field name="processing_state" widget="badge"/>
@@ -200,7 +201,7 @@
             <form string="Retained Bank Export File" create="false" edit="false" delete="false">
                 <header>
                     <button name="action_accept_evidence" type="object" string="Accept as official statement" class="btn-primary" groups="account.group_account_user,account.group_account_manager" invisible="classification != 'pdf' or evidence_status in ('accepted', 'duplicate') or not statement_id" title="Use this retained PDF as the official evidence for the monthly review. Prior evidence remains in the history."/>
-                    <field name="processing_state" widget="statusbar" statusbar_visible="pending,processed,duplicate,attention,failed"/>
+                    <field name="processing_state" widget="statusbar" statusbar_visible="pending,processed,duplicate,ignored,attention,failed"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">

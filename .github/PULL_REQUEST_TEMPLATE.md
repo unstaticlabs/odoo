@@ -1,16 +1,22 @@
-<!--
-Feature Developers: replace this entire template with the exact output of:
+## Outcome
 
-  scripts/agent/handoff render PATH
+Describe the user or operator outcome and why the change is needed.
 
-The helper generates a review-first GitHub Markdown summary and retains the
-validated machine-readable contract in a collapsed section. Do not paste a raw
-JSON handoff or edit generated evidence independently of its source contract.
--->
+## Changes
 
-## Handoff not generated
+- List the scoped implementation changes.
 
-Run the Feature Developer handoff workflow before requesting Lead Developer
-review. A generated PR body includes the goal, acceptance criteria, change
-scope, decisions, verification evidence, migration and QA qualification,
-integration concerns, release notes, limitations, and review checklist.
+## Validation
+
+- List each command or journey actually run and its result.
+- State anything intentionally not run.
+
+## Risk and recovery
+
+Describe persistent-data, security, accounting, deployment or compatibility
+risks. Give the forward upgrade and credible recovery procedure when relevant.
+
+## Review notes
+
+Call out known limitations, follow-up work and any area that needs particular
+review attention.

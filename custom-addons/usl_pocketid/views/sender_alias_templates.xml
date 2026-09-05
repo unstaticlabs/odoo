@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="sender_alias_verification_result" name="Personal email verification">
+        <t t-call="web.login_layout">
+            <div class="oe_login_form">
+                <div t-if="verified" class="alert alert-success" role="status">
+                    <h2 class="h4" t-out="title"/>
+                    <p class="mb-0">
+                        Odoo will now recognize messages sent from
+                        <strong t-out="email"/>.
+                    </p>
+                </div>
+                <div t-else="" class="alert alert-warning" role="alert">
+                    <h2 class="h4" t-out="title"/>
+                    <p class="mb-0">This link is invalid, expired, or already used. Request a new verification email from your Odoo preferences.</p>
+                </div>
+                <a href="/odoo" class="btn btn-primary w-100">Open Odoo</a>
+            </div>
+        </t>
+    </template>
+</odoo>

@@ -47,7 +47,7 @@
     </record>
     <record id="renderer_expected_revision" model="ir.config_parameter">
         <field name="key">usl_document_templates.renderer_expected_revision</field>
-        <field name="value">5ab496f8d8f9ce0c38a1ca87cbd3116de2facad6</field>
+        <field name="value">a01385982eb406947bd1e312a1cefd7fe4636943</field>
     </record>
     <record id="renderer_ca_path" model="ir.config_parameter">
         <field name="key">usl_document_templates.renderer_ca_path</field>

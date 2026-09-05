@@ -9,16 +9,19 @@ authorizations or execute destructive technical maintenance.
 
 | Role or capability | Intended use | Effective product access | Explicit exclusions |
 | --- | --- | --- | --- |
-| Full Product Administrator | Attributable administration by Valentin and the sealed local administrator | All delivered applications, Accounting management and technical administration | None; protected actions are allowed and audited |
-| Technical Administrator | Roger's daily product and safe technical work | B2C operations and sensitive evidence, Projects, Documents, Accounting read-only, audit and technical inspection | Accounting mutation, identity/security mutation, locks, governed-history deletion, modules and unreviewed automation |
+| Full Product Administrator | Attributable administration by approved human operators | All delivered applications, including Accounting and Sign management, plus technical administration | Irreversible Actions remain separately assigned |
+| Technical Administrator | Safe product operations and technical inspection without full administration | B2C operations and sensitive evidence, Projects, Documents, Accounting read-only, audit and technical inspection | Accounting mutation, identity/security mutation, locks, governed-history deletion, modules and unreviewed automation |
 | Accounting Reviewer | Prosper's annual Accounting work | Read and reversible write work in unlocked Accounting periods, posting, reset to draft, reconciliation, Accounting evidence and reports | Unrelated applications, user/security administration, locks and permanent deletion |
 | AI Agent | Explicit machine-identity marker, combined with separate application groups | The application groups assigned to the Agent | Every irreversible action, even through an implied group, RPC or `sudo()` |
+| Feedback Maintainer | Explicit Product Feedback capability for a human maintainer | The shared governed Product Feedback Project and all feedback cards | Other Project administration |
+| Feedback Agent (read-only service) | Dedicated non-human identity used only by the remote Projects MCP | Read-only access to the governed feedback Project, cards, stages, tags, attachments and activities | Internal-user access, chatter or any create/write/delete operation; unrelated Projects and business records |
 | Irreversible Actions | Separately visible human capability | Permanent deletion, lock and authorization changes, destructive technical maintenance and external registration changes | Incompatible with AI Agent |
 
 Roles do not replace company access. Odoo's allowed-company list and active
 company context remain authoritative for every role. Roger is reconciled to all
-approved product companies; Prosper is explicitly assigned both Unstatic Labs
-and USL MEDIA.
+approved product companies as a Product Administrator. His temporary
+Irreversible Actions grant is removed independently after initial company
+configuration. Prosper is explicitly assigned both Unstatic Labs and USL MEDIA.
 
 Application groups remain composable for Agents. For example, an Agent may
 receive Accounting User and Project Manager and can then create, update, post,

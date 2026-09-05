@@ -179,7 +179,8 @@ without interrupting everyday work.
 ## Release evidence
 
 The automated and manual results for these journeys belong in
-`docs/operations/sign-validation-report.md`. A journey is not accepted from a
+the private runtime evidence referenced by
+`docs/operations/sign-runbook.md`. A journey is not accepted from a
 mockup or code review alone: its relevant model, access, failure-state and UI
 tests must pass, and any remaining real-device or external-provider limitation
 must be stated explicitly.

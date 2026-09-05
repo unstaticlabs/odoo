@@ -1,11 +1,13 @@
 import tempfile
 import unittest
+from datetime import datetime
 from pathlib import Path
 
 from migration.sign_restore.source import (
     identity_search_domains,
     match_exports,
     sha1,
+    source_datetime,
     validate_source_structure,
 )
 
@@ -35,6 +37,20 @@ class TestSignIdentityMatching(unittest.TestCase):
                 email="signer@example.com",
             ),
             [("email", [("email", "=ilike", "signer@example.com")])],
+        )
+
+
+class TestSourceDatetime(unittest.TestCase):
+    def test_preserves_six_digit_postgresql_microseconds(self):
+        self.assertEqual(
+            source_datetime("2026-08-26 18:04:17.061056"),
+            datetime(2026, 8, 26, 18, 4, 17, 61056),
+        )
+
+    def test_normalizes_aware_timestamp_to_utc_naive(self):
+        self.assertEqual(
+            source_datetime("2026-08-26T20:04:17.061056+02:00"),
+            datetime(2026, 8, 26, 18, 4, 17, 61056),
         )
 
 
