@@ -4169,7 +4169,7 @@ def _neutralize_generation(target, runner, release: dict, generation: str, netwo
 
 def _run_production_boundary_script(
     target, runner, release: dict, network: str, volumes: dict[str, str],
-    script: str, fingerprint: str, prefix: str,
+    script: str, fingerprint: str, prefix: str, *, environment_file: str | None = None,
 ) -> dict:
     if target.value["environment"] != "production":
         raise RuntimeError("production boundary scripts are production-only")
@@ -4177,8 +4177,10 @@ def _run_production_boundary_script(
     result = runner.run(
         [
             "docker", "run", "--rm", "--interactive", "--network", network,
-            "--env-file", target.value["compose"]["canonical"]["environment_file"],
-            "--env-file", target.value["secrets"]["env_file"],
+            *(["--env-file", environment_file] if environment_file is not None else [
+                "--env-file", target.value["compose"]["canonical"]["environment_file"],
+                "--env-file", target.value["secrets"]["env_file"],
+            ]),
             "--env", f"ODOO_DB_HOST={database['service']}",
             "--env", "ODOO_DB_PORT=5432",
             "--env", f"ODOO_DB_USER={database['user']}",
@@ -5759,6 +5761,7 @@ if not all(checks.values()):
     raise RuntimeError("Pocket ID runtime admission failed: " + ", ".join(
         key for key, value in checks.items() if not value
     ))
+env.cr.commit()
 print("USL_POCKET_ID_RUNTIME_ADMISSION=" + json.dumps(evidence, sort_keys=True))
 '''
     program = CLIENT_PROBE_SCRIPT + program

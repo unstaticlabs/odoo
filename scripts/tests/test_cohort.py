@@ -1353,6 +1353,26 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("if evidence_url:", operator_program)
         compile(operator_program, "notification", "exec")
 
+    def test_recovery_quarantine_uses_its_disposable_environment_only(self):
+        from operations.stack import _run_production_boundary_script
+        target = load_target("production", TARGETS)
+        target.value["compose"]["canonical"] = {"environment_file": "/production-runtime.env"}
+        runner = mock.Mock()
+        fingerprint = "a" * 64
+        runner.run.return_value = subprocess.CompletedProcess([], 0,
+            'USL_PRODUCTION_QUARANTINE=' + json.dumps({"status": "passed", "candidate_fingerprint": fingerprint}), '')
+        release = {"components": {"distribution": {"digest_reference": "odoo@sha256:" + "b" * 64}}}
+        for isolated in (None, "/proof/database.env"):
+            _run_production_boundary_script(target, runner, release, "isolated-network",
+                {"odoo_filestore": "disposable-filestore"}, "production_quarantine.py",
+                fingerprint, "USL_PRODUCTION_QUARANTINE=", environment_file=isolated)
+            command = runner.run.call_args.args[0]
+            files = [command[i+1] for i, v in enumerate(command) if v == "--env-file"]
+            expected = [isolated] if isolated else [target.value["compose"]["canonical"]["environment_file"], target.value["secrets"]["env_file"]]
+            self.assertEqual(files, expected)
+            self.assertIn("isolated-network", command)
+            self.assertIn("disposable-filestore:/var/lib/odoo", command)
+
     def test_release_notification_rejects_untrusted_identity(self) -> None:
         target = mock.Mock(value={"environment": "production"})
         with self.assertRaisesRegex(RuntimeError, "identity"):
@@ -2219,6 +2239,8 @@ class CohortContractTests(unittest.TestCase):
         self.assertNotIn("client-secret-value", " ".join(command))
         program = runner.run.call_args.kwargs["input_text"]
         self.assertIn("synthetic_client_probe", program)
+        self.assertLess(program.index("env.cr.commit()"), program.index('print("USL_POCKET_ID_RUNTIME_ADMISSION='))
+        self.assertGreater(program.index("env.cr.commit()"), program.index("if not all(checks.values()):"))
         compile(program, "<staging-oidc-admission>", "exec")
 
         internal_checks = {
