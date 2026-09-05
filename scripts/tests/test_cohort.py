@@ -1372,6 +1372,25 @@ class CohortContractTests(unittest.TestCase):
         self.assertNotIn("ODOO_API_KEY", values)
         self.assertEqual(evidence["status"], "passed")
 
+    def test_recovery_exited_service_fails_without_readiness_retries(self):
+        from operations.stack import (_recovery_proof_runtime_health_once,
+            _recovery_proof_runtime_health, _recovery_proof_names, RecoveryProofServiceExited)
+        target = load_target("production", TARGETS)
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "exited\n", "")
+        names = _recovery_proof_names(target, "daily-fixture")
+        with self.assertRaisesRegex(RecoveryProofServiceExited, "stopped: exited"):
+            _recovery_proof_runtime_health_once(target, runner, names, {})
+        self.assertEqual(runner.run.call_count, 1)
+        with mock.patch("operations.stack._require_recovery_proof_deadline"), mock.patch(
+            "operations.stack._recovery_proof_runtime_health_once",
+            side_effect=RecoveryProofServiceExited("stopped"),
+        ) as health, mock.patch("operations.stack.time.sleep") as sleep:
+            with self.assertRaises(RecoveryProofServiceExited):
+                _recovery_proof_runtime_health(target, runner, names, {}, started=0, deadline_at="fixture")
+        self.assertEqual(health.call_count, 1)
+        sleep.assert_not_called()
+
     def test_recovery_sign_uses_restored_credentials_and_generated_configuration(self):
         from operations.stack import _start_recovery_proof_runtime, _recovery_proof_names
         target = load_target("production", TARGETS)

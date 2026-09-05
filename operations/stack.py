@@ -7566,14 +7566,21 @@ def _start_recovery_proof_runtime(
     }
 
 
+class RecoveryProofServiceExited(RuntimeError):
+    """A disposable service stopped and cannot become ready without repair."""
+
+
 def _recovery_proof_runtime_health_once(target, runner, names: dict, release: dict) -> tuple[dict, dict]:
     checks: dict[str, bool] = {}
     for role in RECOVERY_PROOF_RUNTIME_ROLES:
         state = runner.run([
             "docker", "inspect", names["containers"][role],
-            "--format", "{{.State.Running}}",
+            "--format", "{{.State.Status}}",
         ], check=False)
-        checks[f"{role}_running"] = state.returncode == 0 and state.stdout.strip() == "true"
+        status = state.stdout.strip()
+        if state.returncode == 0 and status in {"exited", "dead"}:
+            raise RecoveryProofServiceExited(f"recovery proof service {role} stopped: {status}")
+        checks[f"{role}_running"] = state.returncode == 0 and status == "running"
     commands = {
         "odoo_http": [
             "python", "-c",
@@ -7714,11 +7721,13 @@ def _recovery_proof_runtime_health(
         _require_recovery_proof_deadline(started, deadline_at)
         try:
             return _recovery_proof_runtime_health_once(target, runner, names, release)
+        except RecoveryProofServiceExited:
+            raise
         except RuntimeError as error:
             last_error = error
             if attempt < 59:
                 time.sleep(5)
-    raise RuntimeError("recovery proof runtime did not become ready") from last_error
+    raise RuntimeError(f"recovery proof runtime did not become ready: {last_error}") from last_error
 
 
 def _recovery_proof_isolation(runner, names: dict) -> str:
