@@ -153,7 +153,8 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         self.assertNotIn("production-promotion-evidence:", qualification)
         self.assertNotIn("gh attestation verify", qualification)
         self.assertIn("production-qualification-$PR_NUMBER-$PR_HEAD_SHA", qualification)
-        self.assertIn("commits/$GITHUB_SHA/pulls?per_page=100", qualification)
+        self.assertEqual(qualification.count("python3 scripts/merge-group-pull-request"), 1)
+        self.assertIn("needs.source-policy.outputs.pr_head_sha", qualification)
         self.assertIn('merge_tree="$(git rev-parse "$GITHUB_SHA^{tree}")"', qualification)
         self.assertIn("scripts/qualification-evidence verify-merge-group", qualification)
 

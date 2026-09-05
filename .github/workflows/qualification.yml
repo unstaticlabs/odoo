@@ -17,6 +17,10 @@ concurrency:
 jobs:
   source-policy:
     name: USL source policy
+    outputs:
+      pr_number: ${{ steps.source.outputs.pr_number }}
+      pr_head_sha: ${{ steps.source.outputs.pr_head_sha }}
+      pr_head_ref: ${{ steps.source.outputs.pr_head_ref }}
     if: >-
       (github.event_name == 'pull_request' && github.event.pull_request.base.ref == '19-usl') ||
       (github.event_name == 'merge_group' && github.event.merge_group.base_ref == 'refs/heads/19-usl')
@@ -27,6 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Enforce protected-branch source policy
+        id: source
         env:
           GH_TOKEN: ${{ github.token }}
           BASE_REF: ${{ github.event.pull_request.base.ref || github.event.merge_group.base_ref }}
@@ -36,15 +41,17 @@ jobs:
         run: |
           base="${BASE_REF#refs/heads/}"
           if [ "$GITHUB_EVENT_NAME" = merge_group ]; then
-            gh api \
-              -H 'Accept: application/vnd.github+json' \
-              "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls?per_page=100" \
-              > associated-pulls.json
+            python3 scripts/merge-group-pull-request > associated-pulls.json
             scripts/check-release-source-policy \
               --event merge_group \
               --base "$base" \
               --pull-requests associated-pulls.json \
               --expected-repository "$EXPECTED_REPOSITORY"
+            {
+              echo "pr_number=$(jq -r '.[0].number' associated-pulls.json)"
+              echo "pr_head_sha=$(jq -r '.[0].head.sha' associated-pulls.json)"
+              echo "pr_head_ref=$(jq -r '.[0].head.ref' associated-pulls.json)"
+            } >> "$GITHUB_OUTPUT"
           else
             scripts/check-release-source-policy \
               --event pull_request \
@@ -201,7 +208,7 @@ jobs:
         (github.event_name == 'pull_request' && github.event.pull_request.base.ref == '19-usl') ||
         (github.event_name == 'merge_group' && github.event.merge_group.base_ref == 'refs/heads/19-usl')
       )
-    needs: result
+    needs: [result, source-policy]
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -225,16 +232,14 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           EVENT_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          QUEUE_PR_NUMBER: ${{ needs.source-policy.outputs.pr_number }}
+          QUEUE_PR_HEAD_SHA: ${{ needs.source-policy.outputs.pr_head_sha }}
+          QUEUE_PR_HEAD_REF: ${{ needs.source-policy.outputs.pr_head_ref }}
         run: |
           if [ "$GITHUB_EVENT_NAME" = merge_group ]; then
-            gh api \
-              -H 'Accept: application/vnd.github+json' \
-              "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls?per_page=100" \
-              > associated-pulls.json
-            test "$(jq 'length' associated-pulls.json)" = 1
-            PR_NUMBER="$(jq -r '.[0].number' associated-pulls.json)"
-            PR_HEAD_SHA="$(jq -r '.[0].head.sha' associated-pulls.json)"
-            PR_HEAD_REF="$(jq -r '.[0].head.ref' associated-pulls.json)"
+            PR_NUMBER="$QUEUE_PR_NUMBER"
+            PR_HEAD_SHA="$QUEUE_PR_HEAD_SHA"
+            PR_HEAD_REF="$QUEUE_PR_HEAD_REF"
           else
             PR_HEAD_REF="$EVENT_HEAD_REF"
           fi
