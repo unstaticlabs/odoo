@@ -42,6 +42,18 @@ class GithubGovernanceTests(unittest.TestCase):
         with self.assertRaisesRegex(GovernanceError, "staging-release"):
             validate_production(value)
 
+    def test_production_requires_signed_promotion_check(self):
+        value = copy.deepcopy(load(PRODUCTION_RULESET))
+        for rule in value["rules"]:
+            if rule["type"] == "required_status_checks":
+                rule["parameters"]["required_status_checks"] = [
+                    item
+                    for item in rule["parameters"]["required_status_checks"]
+                    if item["context"] != "USL production promotion"
+                ]
+        with self.assertRaisesRegex(GovernanceError, "promotion"):
+            validate_production(value)
+
     def test_rejected_urgent_fix_closes_its_staging_mirror(self):
         workflow = URGENT_MIRROR.read_text(encoding="utf-8")
         self.assertIn("SOURCE_MERGED: ${{ github.event.pull_request.merged }}", workflow)

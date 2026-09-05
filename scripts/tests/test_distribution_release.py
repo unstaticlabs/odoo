@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import unittest
@@ -127,7 +128,29 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         self.assertIn("test \"$DATABASE\" = success", qualification)
         self.assertGreaterEqual(qualification.count("scripts/sync-oca-addons"), 2)
         database_job = qualification.split("  database:\n", 1)[1].split("\n  accounting:\n", 1)[0]
-        self.assertIn("fetch-depth: 0", database_job)
+        self.assertIn('git fetch --no-tags --depth=1 origin "$BASE_SHA"', database_job)
+        self.assertNotIn("fetch-depth: 0", database_job)
+
+    def test_production_promotion_is_a_signed_event_bound_check(self) -> None:
+        qualification = (ROOT / ".github/workflows/qualification.yml").read_text(
+            encoding="utf-8",
+        )
+        self.assertIn(
+            "HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}",
+            qualification,
+        )
+        self.assertIn("EXPECTED_REPOSITORY: ${{ github.repository }}", qualification)
+        self.assertIn("name: USL production promotion", qualification)
+        self.assertIn("subject-path: production-promotion.json", qualification)
+        self.assertIn("gh attestation verify production-promotion.json", qualification)
+        self.assertIn('--source-ref "$GITHUB_REF"', qualification)
+        self.assertIn('--source-digest "$GITHUB_SHA"', qualification)
+        self.assertIn("commits/$GITHUB_SHA/pulls?per_page=100", qualification)
+        self.assertIn("--production-merge-group-tree \"$GITHUB_SHA\"", qualification)
+        self.assertGreaterEqual(
+            qualification.count('git merge-base --is-ancestor "$source_tree" "$GITHUB_SHA"'),
+            2,
+        )
 
     def test_affected_frontend_suites_run_on_desktop_and_mobile(self) -> None:
         database_gate = (ROOT / "scripts/ci-product-database").read_text(
@@ -187,6 +210,44 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         overlay = (ROOT / "compose.production.yaml").read_text(encoding="utf-8")
         self.assertIn("build: !reset null", overlay)
         self.assertNotIn("./custom-addons", overlay)
+
+    def test_real_production_compose_exposes_only_the_release_upgrade_runner(self) -> None:
+        environment = {
+            **os.environ,
+            "ODOO_UPGRADE_MODULES": "usl_home",
+            "USL_RECEIPT_FETCHER_IMAGE": "ghcr.io/unstaticlabs/usl-receipt-fetcher@sha256:" + "a" * 64,
+            "USL_RECEIPT_EGRESS_IMAGE": "ghcr.io/unstaticlabs/usl-receipt-egress@sha256:" + "b" * 64,
+            "ODOO_HTTP_PORT": "18069",
+            "ODOO_GEVENT_PORT": "18072",
+            "PAPERLESS_HTTP_PORT": "18010",
+            "ODOO_MCP_HTTP_PORT": "18000",
+            "PAPERLESS_IMAGE": "ghcr.io/unstaticlabs/paperless@sha256:" + "a" * 64,
+            "PAPERLESS_AI_LLM_EMBEDDING_ENDPOINT": "http://ollama:11434",
+            "PAPERLESS_AI_LLM_EMBEDDING_MODEL": "bge-m3:latest",
+            "PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE": "32",
+            "USL_OLLAMA_MANIFEST_SHA256": "7" * 64,
+            "USL_OLLAMA_EMBEDDING_DIMENSION": "1024",
+            "USL_EXTERNAL_OLLAMA_NETWORK": "ollama",
+        }
+        rendered = json.loads(subprocess.run(
+            [
+                "docker", "compose", "--env-file", ".env.example",
+                "-f", "compose.yaml", "-f", "compose.production.yaml",
+                "--profile", "init", "--profile", "release",
+                "config", "--format", "json",
+            ],
+            cwd=ROOT,
+            env=environment,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout)
+        self.assertNotIn("init-db", rendered["services"])
+        upgrade = rendered["services"]["odoo-upgrade"]
+        self.assertEqual(upgrade["environment"]["ODOO_MAX_CRON_THREADS"], "0")
+        self.assertEqual(upgrade["environment"]["USL_EINVOICE_LIVE_ENABLED"], "0")
+        self.assertIn('--update="$${ODOO_UPGRADE_MODULES}"', upgrade["command"][0])
+        self.assertFalse(any("custom-addons" in item["source"] for item in upgrade["volumes"]))
 
     def test_release_image_can_load_installed_oca_tests(self) -> None:
         requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8")

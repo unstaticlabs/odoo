@@ -165,6 +165,7 @@ class ReleaseControllerTests(unittest.TestCase):
                 action="abort",
                 target="production",
                 targets=Path("targets"),
+                attempt_id="attempt-20260904-a1b2c3d4",
                 json=True,
                 gitops_commit="a" * 40,
             )

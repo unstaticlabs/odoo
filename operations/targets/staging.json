@@ -72,6 +72,12 @@
     "paperless": "http://127.0.0.1:19010",
     "mcp": "http://127.0.0.1:19000"
   },
+  "admission_endpoints": {
+    "odoo": "http://127.0.0.1:19069",
+    "odoo_websocket": "http://127.0.0.1:19072",
+    "paperless": "http://127.0.0.1:19010",
+    "mcp": "http://127.0.0.1:19000"
+  },
   "ingress": {
     "proxy_mode": true,
     "list_db": false,

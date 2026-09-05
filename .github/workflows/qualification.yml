@@ -25,23 +25,30 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           BASE_REF: ${{ github.event.pull_request.base.ref || github.event.merge_group.base_ref || github.ref }}
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          EXPECTED_REPOSITORY: ${{ github.repository }}
         run: |
           base="${BASE_REF#refs/heads/}"
-          scripts/check-release-source-policy --event "$EVENT_NAME" --base "$base" --head "$HEAD_REF"
+          scripts/check-release-source-policy \
+            --event "$EVENT_NAME" \
+            --base "$base" \
+            --head "$HEAD_REF" \
+            --head-repository "$HEAD_REPOSITORY" \
+            --expected-repository "$EXPECTED_REPOSITORY"
 
   changes:
     runs-on: ubuntu-latest
+    env:
+      BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
     outputs:
       accounting: ${{ steps.paths.outputs.accounting }}
       security: ${{ steps.paths.outputs.security }}
       ui: ${{ steps.paths.outputs.ui }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
+      - name: Fetch exact comparison base
+        run: git fetch --no-tags --depth=1 origin "$BASE_SHA"
       - id: paths
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
         run: |
           files="$(git diff --name-only "$BASE_SHA" "$GITHUB_SHA")"
           flag() { if printf '%s\n' "$files" | grep -Eq "$2"; then printf '%s=true\n' "$1" >> "$GITHUB_OUTPUT"; else printf '%s=false\n' "$1" >> "$GITHUB_OUTPUT"; fi; }
@@ -87,17 +94,17 @@ jobs:
     name: Clean install and repeated upgrade
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    env:
+      BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
+      - name: Fetch exact comparison base
+        run: git fetch --no-tags --depth=1 origin "$BASE_SHA"
       - name: Restore Docker build cache
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
       - name: Resolve pinned OCA sources
         run: scripts/sync-oca-addons
       - name: Qualify the canonical product database
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
         run: |
           test_modules="$(scripts/qualification-test-plan --base "$BASE_SHA" --head "$GITHUB_SHA")"
           USL_TEST_MODULES="$test_modules" scripts/ci-product-database
@@ -166,3 +173,163 @@ jobs:
           test "$ACCOUNTING" = success -o "$NEED_ACCOUNTING" = false
           test "$SECURITY" = success -o "$NEED_SECURITY" = false
           test "$UI" = success -o "$NEED_UI" = false
+
+  production-promotion-evidence:
+    name: Sign production promotion evidence
+    if: >-
+      always() &&
+      (
+        (github.event_name == 'pull_request' && github.event.pull_request.base.ref == '19-usl') ||
+        (github.event_name == 'merge_group' && github.event.merge_group.base_ref == 'refs/heads/19-usl')
+      )
+    needs: result
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      attestations: write
+      contents: read
+      id-token: write
+      pull-requests: read
+    steps:
+      - name: Require exact successful qualification
+        env:
+          QUALIFICATION_RESULT: ${{ needs.result.result }}
+        run: test "$QUALIFICATION_RESULT" = success
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Resolve and bind production source
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_REF: ${{ github.event.pull_request.base.ref || github.event.merge_group.base_ref }}
+          HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          base="${BASE_REF#refs/heads/}"
+          case "$GITHUB_EVENT_NAME" in
+            pull_request)
+              scripts/production-promotion-evidence create \
+                --event pull_request \
+                --repository "$GITHUB_REPOSITORY" \
+                --base-branch "$base" \
+                --pull-request-number "$PULL_REQUEST_NUMBER" \
+                --source-repository "$HEAD_REPOSITORY" \
+                --source-branch "$HEAD_REF" \
+                --source-tree "$HEAD_SHA" \
+                --qualified-git-tree "$GITHUB_SHA" \
+                --output production-promotion.json
+              ;;
+            merge_group)
+              gh api \
+                -H 'Accept: application/vnd.github+json' \
+                "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls?per_page=100" \
+                > associated-pulls.json
+              scripts/production-promotion-evidence create \
+                --event merge_group \
+                --repository "$GITHUB_REPOSITORY" \
+                --base-branch "$base" \
+                --pull-requests associated-pulls.json \
+                --qualified-git-tree "$GITHUB_SHA" \
+                --production-merge-group-tree "$GITHUB_SHA" \
+                --output production-promotion.json
+              ;;
+            *)
+              exit 2
+              ;;
+          esac
+          source_tree="$(python3 -c 'import json; print(json.load(open("production-promotion.json"))["source_tree"])')"
+          git cat-file -e "$source_tree^{commit}"
+          git merge-base --is-ancestor "$source_tree" "$GITHUB_SHA"
+      - name: Attest exact production promotion evidence
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: production-promotion.json
+      - name: Retain production promotion evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: production-promotion-${{ github.run_id }}
+          path: production-promotion.json
+          if-no-files-found: error
+          retention-days: 90
+
+  production-promotion:
+    name: USL production promotion
+    if: >-
+      always() &&
+      (
+        (github.event_name == 'pull_request' && github.event.pull_request.base.ref == '19-usl') ||
+        (github.event_name == 'merge_group' && github.event.merge_group.base_ref == 'refs/heads/19-usl')
+      )
+    needs: production-promotion-evidence
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Require signed evidence job
+        env:
+          EVIDENCE_RESULT: ${{ needs.production-promotion-evidence.result }}
+        run: test "$EVIDENCE_RESULT" = success
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Download exact evidence
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: production-promotion-${{ github.run_id }}
+      - name: Verify signed evidence and event binding
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_REF: ${{ github.event.pull_request.base.ref || github.event.merge_group.base_ref }}
+          HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh attestation verify production-promotion.json \
+            --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/qualification.yml" \
+            --source-ref "$GITHUB_REF" \
+            --source-digest "$GITHUB_SHA" \
+            --deny-self-hosted-runners \
+            --format json \
+            > promotion-attestation-verification.json
+          test -s promotion-attestation-verification.json
+          source_tree="$(python3 -c 'import json; print(json.load(open("production-promotion.json"))["source_tree"])')"
+          git cat-file -e "$source_tree^{commit}"
+          git merge-base --is-ancestor "$source_tree" "$GITHUB_SHA"
+          base="${BASE_REF#refs/heads/}"
+          case "$GITHUB_EVENT_NAME" in
+            pull_request)
+              scripts/production-promotion-evidence verify \
+                --event pull_request \
+                --repository "$GITHUB_REPOSITORY" \
+                --base-branch "$base" \
+                --pull-request-number "$PULL_REQUEST_NUMBER" \
+                --source-repository "$HEAD_REPOSITORY" \
+                --source-branch "$HEAD_REF" \
+                --source-tree "$HEAD_SHA" \
+                --qualified-git-tree "$GITHUB_SHA" \
+                --evidence production-promotion.json
+              ;;
+            merge_group)
+              gh api \
+                -H 'Accept: application/vnd.github+json' \
+                "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls?per_page=100" \
+                > associated-pulls.json
+              scripts/production-promotion-evidence verify \
+                --event merge_group \
+                --repository "$GITHUB_REPOSITORY" \
+                --base-branch "$base" \
+                --pull-requests associated-pulls.json \
+                --qualified-git-tree "$GITHUB_SHA" \
+                --production-merge-group-tree "$GITHUB_SHA" \
+                --evidence production-promotion.json
+              ;;
+            *)
+              exit 2
+              ;;
+          esac

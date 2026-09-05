@@ -44,7 +44,9 @@ services:
     image: ${USL_RECEIPT_EGRESS_IMAGE:?Qualified receipt egress image is required}
     logging: *production-logging
 
-  init-db:
+  init-db: !reset null
+
+  odoo-upgrade:
     logging: *production-logging
     environment:
       ODOO_ADDONS_PATH: /opt/odoo/addons,/opt/odoo/odoo/addons,/opt/odoo/custom-addons,/opt/odoo/oca-addons
