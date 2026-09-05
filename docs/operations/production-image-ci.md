@@ -36,6 +36,20 @@ trusted integration owner. GitHub stores the public-repository attestation;
 the separately owned renderer package does not need to accept a cross-package
 write. The workflow neither rebuilds nor retags the renderer.
 
+## Translations in the image
+
+`Dockerfile.dockerignore` keeps only the `.pot` templates and the `en*.po`,
+`fr.po`, and `fr_*.po` catalogs out of the `i18n/` and `i18n_extra/`
+directories of core, custom, and OCA add-ons. The distribution activates only
+English and French (`usl_locale`), and the other catalogs made up about 740 MB
+of the `addons` layer. Every non-`.po` file still enters the image.
+
+Odoo reads `<module>/i18n/<lang>.po` when a language is activated or a module
+is updated. If a third language is activated on a running database, its terms
+stay in English until the image is rebuilt with that catalog. To add a
+language, add its exception lines to `Dockerfile.dockerignore` and to
+`.dockerignore`, then build a new release.
+
 ## Release artifact
 
 The final `usl-release.json` binds:
