@@ -1367,6 +1367,8 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(values["ODOO_PUBLIC_ORIGIN"], target.value["endpoints"]["odoo"])
         self.assertEqual(values["ODOO_INTERNAL_ORIGIN"], "http://odoo:8069")
         self.assertEqual(values["MCP_ALLOW_LOCAL_HTTP_ODOO"], "false")
+        for key in ("MCP_PUBLIC_ORIGIN", "MCP_ALLOWED_ORIGINS", "MCP_OAUTH_TRUSTED_ORIGINS"):
+            self.assertEqual(values[key], target.value["endpoints"]["mcp"])
         self.assertNotIn("ODOO_API_KEY", values)
         self.assertEqual(evidence["status"], "passed")
 

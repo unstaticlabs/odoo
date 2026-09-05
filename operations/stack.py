@@ -7342,9 +7342,9 @@ def _recovery_proof_environment(
     }
     selected["mcp"].update({
         "MCP_HOST": "0.0.0.0", "MCP_PORT": "3000",
-        "MCP_PUBLIC_ORIGIN": "http://odoo-mcp:3000",
+        "MCP_PUBLIC_ORIGIN": target.value["endpoints"]["mcp"],
         "MCP_ALLOWED_HOSTS": "odoo-mcp", "MCP_HEALTHCHECK_HOST": "odoo-mcp",
-        "MCP_ALLOWED_ORIGINS": "http://odoo-mcp:3000",
+        "MCP_ALLOWED_ORIGINS": target.value["endpoints"]["mcp"],
         "MCP_ALLOW_LOCAL_HTTP_ODOO": "false",
         "ODOO_PUBLIC_ORIGIN": target.value["endpoints"]["odoo"],
         "ODOO_INTERNAL_ORIGIN": "http://odoo:8069",
@@ -7352,7 +7352,7 @@ def _recovery_proof_environment(
         "MCP_OAUTH_ENABLED": "true", "MCP_OAUTH_DATABASE": "/data/oauth.sqlite",
         "BETTER_AUTH_SECRET_FILE": "/run/secrets/better-auth.secret",
         "MCP_CREDENTIAL_ENCRYPTION_KEY_FILE": "/run/secrets/credential-encryption-key.secret",
-        "MCP_OAUTH_TRUSTED_ORIGINS": "http://odoo-mcp:3000",
+        "MCP_OAUTH_TRUSTED_ORIGINS": target.value["endpoints"]["mcp"],
     })
     selected["dss"] = {
         key: str(value)
