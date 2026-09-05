@@ -30,7 +30,9 @@ services:
       - document-renderer
       - external-ollama
 
-  init-db:
+  init-db: !reset null
+
+  odoo-upgrade:
     logging: *production-logging
     environment:
       ODOO_ADDONS_PATH: /opt/odoo/addons,/opt/odoo/odoo/addons,/opt/odoo/custom-addons,/opt/odoo/oca-addons

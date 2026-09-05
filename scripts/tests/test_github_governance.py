@@ -17,10 +17,18 @@ class GithubGovernanceTests(unittest.TestCase):
     def test_versioned_ruleset_is_valid(self):
         validate(load(RULESET))
 
-    def test_missing_staging_branch_is_rejected(self):
+    def test_staging_ruleset_may_not_target_production(self):
         value = copy.deepcopy(load(RULESET))
         value["conditions"]["ref_name"]["include"] = ["refs/heads/19-usl"]
-        with self.assertRaisesRegex(GovernanceError, "both permanent"):
+        with self.assertRaisesRegex(GovernanceError, "only 19-usl-staging"):
+            validate(value)
+
+    def test_staging_intentionally_requires_zero_approving_reviews(self):
+        value = copy.deepcopy(load(RULESET))
+        for rule in value["rules"]:
+            if rule["type"] == "pull_request":
+                rule["parameters"]["required_approving_review_count"] = 1
+        with self.assertRaisesRegex(GovernanceError, "zero approving reviews"):
             validate(value)
 
     def test_missing_stable_check_is_rejected(self):
@@ -34,12 +42,35 @@ class GithubGovernanceTests(unittest.TestCase):
     def test_production_admission_ruleset_is_valid(self):
         validate_production(load(PRODUCTION_RULESET))
 
-    def test_production_requires_staging_deployment(self):
+    def test_production_rejects_obsolete_required_deployment_gate(self):
+        value = copy.deepcopy(load(PRODUCTION_RULESET))
+        value["rules"].append(
+            {
+                "type": "required_deployments",
+                "parameters": {"required_deployment_environments": ["staging-release"]},
+            }
+        )
+        with self.assertRaisesRegex(GovernanceError, "production protection inventory"):
+            validate_production(value)
+
+    def test_production_intentionally_requires_zero_approving_reviews(self):
         value = copy.deepcopy(load(PRODUCTION_RULESET))
         for rule in value["rules"]:
-            if rule["type"] == "required_deployments":
-                rule["parameters"]["required_deployment_environments"] = []
-        with self.assertRaisesRegex(GovernanceError, "staging-release"):
+            if rule["type"] == "pull_request":
+                rule["parameters"]["required_approving_review_count"] = 1
+        with self.assertRaisesRegex(GovernanceError, "zero approving reviews"):
+            validate_production(value)
+
+    def test_production_requires_signed_promotion_check(self):
+        value = copy.deepcopy(load(PRODUCTION_RULESET))
+        for rule in value["rules"]:
+            if rule["type"] == "required_status_checks":
+                rule["parameters"]["required_status_checks"] = [
+                    item
+                    for item in rule["parameters"]["required_status_checks"]
+                    if item["context"] != "USL production promotion"
+                ]
+        with self.assertRaisesRegex(GovernanceError, "promotion"):
             validate_production(value)
 
     def test_rejected_urgent_fix_closes_its_staging_mirror(self):

@@ -66,7 +66,10 @@ Before applying a module or schema upgrade to the local production dataset:
 6. record the observed data effect and recovery point in private evidence.
 
 Non-trivial repairs must be versioned, idempotent, and rehearsed on a clone.
-Production deployment remains CI-owned.
+Protected CI/GitOps remains the default deployment path. An explicitly
+authorized operator may deploy manually or bypass CI after verifying a current
+restorable backup and the exact up-to-date GitOps desired state. The same
+Accounting preservation and post-change evidence requirements still apply.
 
 ## Focused commands
 

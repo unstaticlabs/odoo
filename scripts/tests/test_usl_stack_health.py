@@ -93,7 +93,7 @@ class TargetWithRunner:
 
 
 class HealthContractTests(unittest.TestCase):
-    def run_health(self, *, proxy_mode: bool = True) -> tuple[int, dict]:
+    def run_health(self, *, proxy_mode: bool = True) -> tuple[int, dict, HealthRunner]:
         target = load_target("production", TARGETS)
         runner = HealthRunner(target, proxy_mode=proxy_mode)
         wrapped = TargetWithRunner(target, runner)
@@ -115,22 +115,44 @@ class HealthContractTests(unittest.TestCase):
         with (
             patch("operations.stack.load_target", return_value=wrapped),
             patch("operations.stack.inspect_runtime", return_value=status),
+            patch(
+                "operations.stack._runtime_admission_evidence",
+                return_value={"mcp": {"status": "ready"}, "sign": {"status": "ready"}},
+            ),
             redirect_stdout(output),
         ):
             result = health_command(
                 argparse.Namespace(target="production", targets=TARGETS, json=True),
             )
-        return result, json.loads(output.getvalue())
+        return result, json.loads(output.getvalue()), runner
 
     def test_health_proves_proxy_config_https_and_websocket(self) -> None:
-        result, report = self.run_health()
+        result, report, runner = self.run_health()
         self.assertEqual(result, 0)
         self.assertEqual(report["status"], "passed")
         self.assertTrue(report["odoo_config"]["proxy_mode"])
         self.assertEqual(report["websocket"]["status_code"], 101)
+        curl_commands = [command for command in runner.commands if command[0] == "curl"]
+        self.assertTrue(
+            any("http://127.0.0.1:18069/web/health?db_server_status=1" in command for command in curl_commands),
+        )
+        self.assertTrue(
+            any("http://127.0.0.1:18010/api/" in command for command in curl_commands),
+        )
+        self.assertTrue(
+            any("http://127.0.0.1:18000/readyz" in command for command in curl_commands),
+        )
+        websocket = next(command for command in curl_commands if "--include" in command)
+        self.assertIn("http://127.0.0.1:18072/websocket", websocket)
+        self.assertIn("Origin: https://odoo.unstaticlabs.com", websocket)
+        self.assertEqual(report["configured_endpoints"]["odoo"], "https://odoo.unstaticlabs.com")
+        self.assertEqual(
+            report["endpoints"]["odoo"]["url"],
+            "http://127.0.0.1:18069/web/health?db_server_status=1",
+        )
 
     def test_health_rejects_false_proxy_mode(self) -> None:
-        result, report = self.run_health(proxy_mode=False)
+        result, report, _runner = self.run_health(proxy_mode=False)
         self.assertEqual(result, 2)
         self.assertIn("odoo:config-mismatch", report["failures"])
 

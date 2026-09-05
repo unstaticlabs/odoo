@@ -28,7 +28,7 @@ production-admission work.
 | Historical commerce evidence and native future sales/inventory foundations | `usl_b2c`, `usl_documents_b2c` | **B2C**, **Sales**, **Inventory** | Variants, locations, traceability, UoM and Landed Costs available; physical opening inventory and advanced automation remain |
 | French-first terminology, European dates and company-aware presentation | `usl_locale` | All affected backend views | Operational |
 | French electronic-invoice reception for UBL, CII and Factur-X | `rebuild_account_migration`, native Accounting/localization | **Vendors > Incoming E-Invoices** | Ready but inactive pending approved-platform production onboarding |
-| Agent-authenticated Odoo automation endpoint and tool contract | separately built `odoo-mcp` image pinned by the release | **My Agents** and the MCP service endpoint | MCP operational; governed Agent identities are qualified for coordinated release |
+| Agent-authenticated Odoo automation endpoint and tool contract | separately built `odoo-mcp` image admitted by its environment GitOps ledger | **My Agents** and the MCP service endpoint | MCP operational; governed Agent identities are qualified for compatibility, while MCP advances independently |
 
 Detailed behavior belongs in the relevant product, Accounting, user and
 operations documents rather than in this inventory.

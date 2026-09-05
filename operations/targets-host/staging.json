@@ -9,7 +9,25 @@
     "anchor_service": "odoo-staging",
     "profiles": ["document-renderer", "mcp", "paperless", "sign"],
     "default_network": "usl-odoo-staging-main_default",
-    "resource_overlay": "compose.resources.staging.json"
+    "resource_overlay": "compose.resources.staging.json",
+    "canonical": {
+      "working_directory": "komodo/stacks/prod-odoo-nbg1-2/usl-odoo-staging",
+      "compose_files": ["compose.yaml", "compose.resources.json"],
+      "environment_file": "/opt/usl-odoo/staging/staging.env"
+    },
+    "adoption": {
+      "schema": "usl-compose-adoption/v1",
+      "legacy_anchor_service": "odoo",
+      "legacy_release_schema": "usl-release/v2",
+      "candidate": {
+        "working_directory": "/etc/komodo/stacks/usl-odoo-production-main/komodo/stacks/prod-odoo-nbg1-2/usl-odoo-staging",
+        "compose_files": [
+          "/etc/komodo/stacks/usl-odoo-production-main/komodo/stacks/prod-odoo-nbg1-2/usl-odoo-staging/compose.yaml",
+          "/etc/komodo/stacks/usl-odoo-production-main/komodo/stacks/prod-odoo-nbg1-2/usl-odoo-staging/compose.resources.json"
+        ],
+        "environment_file": "/opt/usl-odoo/staging/staging.env"
+      }
+    }
   },
   "services": {
     "odoo": "odoo-staging",
@@ -51,11 +69,12 @@
   },
   "external_networks": {"identity": "usl-identity", "ingress": "cloudflare", "ollama": "ollama"},
   "endpoints": {"odoo": "https://odoo-staging.unstaticlabs.com", "paperless": "http://127.0.0.1:19010", "mcp": "http://127.0.0.1:19000"},
+  "admission_endpoints": {"odoo": "http://127.0.0.1:19069", "odoo_websocket": "http://127.0.0.1:19072", "paperless": "http://127.0.0.1:19010", "mcp": "http://127.0.0.1:19000"},
   "ingress": {"proxy_mode": true, "list_db": false, "dbfilter": "^odoo_staging$", "websocket": true},
   "ollama": {"mode": "external", "container": "ollama", "network": "ollama", "url": "http://ollama:11434", "model": "bge-m3:latest", "manifest_sha256": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab", "dimension": 1024},
   "backup": {
-    "durable_repository": "s3:https://dac5c03754f31ec46fbf248dccc54831.eu.r2.cloudflarestorage.com/usl-backups/odoo-staging/continuous-durable",
-    "cache_repository": "s3:https://dac5c03754f31ec46fbf248dccc54831.eu.r2.cloudflarestorage.com/usl-backups/odoo-staging/continuous-cache"
+    "durable_repository": "/var/lib/usl-odoo/restic/staging/durable",
+    "cache_repository": "/var/lib/usl-odoo/restic/staging/cache"
   },
   "release_manifest": "/opt/usl-odoo/staging/current/usl-release.json",
   "plan_signing": {"private_key": "/opt/usl-odoo/staging/secrets/upgrade-plan-signing.key", "public_key": "/opt/usl-odoo/staging/secrets/upgrade-plan-signing.pub"},

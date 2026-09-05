@@ -19,6 +19,16 @@ Cloudflare routes production to `odoo:8069` and staging to
 `odoo-staging:8069`; websocket routes use port `8072`. Never reuse the ingress
 alias across environments.
 
+The first v3 staging rollout may discover the active v2 generation under its
+legacy `odoo` Compose label. The controller accepts that anchor only when the
+canonical `odoo-staging` anchor is absent, exactly one running and healthy
+legacy anchor has complete provenance for the staging project, and its recorded
+active release is schema v2. Candidate and resource overlays use the canonical
+`odoo-staging` service, while failure rollback retains the captured v2 Compose
+identity. Once a v3 generation exists, the canonical anchor takes precedence
+and staging never falls back to a stale legacy container. Production always
+requires `odoo` and has no transition fallback.
+
 Odoo enables `proxy_mode` only in production-like targets. Cloudflare is the
 trusted edge for those targets and must preserve `Host`, `X-Forwarded-For`, and
 `X-Forwarded-Proto`. The public `/websocket` route must reach Odoo's gevent
@@ -58,7 +68,11 @@ GHCR; digest references—not branch names or `latest`—are deployable identiti
 The runtime release manifest must match the images actually running. Backup
 refuses a mismatched manifest.
 
-Production deployment belongs to protected CI/GitOps. A release workflow must:
+Protected CI/GitOps is the normal deployment path, not the only authorized
+path. An operator may deploy manually or bypass CI when the owner explicitly
+instructs it. Before changing production, confirm that a current qualified
+backup is restorable and that the current GitOps checkout and desired-state
+ledgers describe the intended release. Automated and manual releases must both:
 
 1. freeze user writes;
 2. create and qualify a coordinated backup;
@@ -67,6 +81,10 @@ Production deployment belongs to protected CI/GitOps. A release workflow must:
 5. unfreeze and notify on success;
 6. restore the pre-release snapshot and report clearly on failure;
 7. recreate staging from the successful production recovery point.
+
+The branch rules intentionally require zero approving reviews: qualified
+promotion MRs are expected to merge unattended. SBOMs remain generated build
+metadata and are not an admission or enforcement gate.
 
 ## Backup and recovery
 

@@ -65,6 +65,12 @@
     "paperless": "http://papers.localhost:28671",
     "mcp": "http://mcp.localhost:28672"
   },
+  "admission_endpoints": {
+    "odoo": "http://odoo.localhost:28669",
+    "odoo_websocket": "http://odoo.localhost:28669",
+    "paperless": "http://papers.localhost:28671",
+    "mcp": "http://mcp.localhost:28672"
+  },
   "ingress": {
     "proxy_mode": false,
     "list_db": true,

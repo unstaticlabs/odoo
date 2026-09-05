@@ -19,6 +19,10 @@ ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = "usl-release/v3"
 LEGACY_SCHEMA = "usl-release/v2"
 COMPONENTS = {"distribution", "backup-tool", "paperless", "sign-dss"}
+MCP_PUBLIC_METHODS = {
+    "usl.agent.current_identity",
+    "usl.agent.submit_mcp_feedback",
+}
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 COMMIT = re.compile(r"[0-9a-f]{40}\Z")
 DIGEST = re.compile(r"sha256:[0-9a-f]{64}\Z")
@@ -301,6 +305,28 @@ def _parse_evidence(values: list[str]) -> dict[str, str]:
     return dict(sorted(evidence.items()))
 
 
+def _mcp_public_methods(identity_contract: dict[str, Any]) -> list[str]:
+    methods = sorted(MCP_PUBLIC_METHODS | {identity_contract["method"]})
+    surface = _read_json(
+        ROOT / "custom-addons/usl_access_control/policy/action_surface.json",
+        "qualified Odoo action surface",
+    )
+    available = {
+        item.get("key")
+        for item in surface.get("actions", [])
+        if isinstance(item, dict)
+    }
+    missing = sorted(
+        method for method in methods if f"rpc:{method}" not in available
+    )
+    if missing:
+        raise ReleaseManifestError(
+            "MCP public methods are absent from the qualified Odoo action surface: "
+            + ", ".join(missing)
+        )
+    return methods
+
+
 def create(arguments: argparse.Namespace) -> int:
     components = dict(_parse_component(raw) for raw in arguments.component)
     if set(components) != COMPONENTS:
@@ -331,7 +357,7 @@ def create(arguments: argparse.Namespace) -> int:
         "odoo_series": arguments.odoo_series,
         "supported_mcp_major": 1,
         "required_modules": legacy_contract["required_modules"],
-        "public_methods": [identity_contract["method"]],
+        "public_methods": _mcp_public_methods(identity_contract),
         "actions": sorted(
             action.removeprefix("rpc:")
             for action in (
