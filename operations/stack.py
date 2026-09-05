@@ -2415,6 +2415,25 @@ def _require_same_preparation(current: dict, receipt: dict) -> None:
             raise RuntimeError(f"release preparation changed after maintenance: {field}")
 
 
+def _staging_release_definitions_sha256(plan_evidence: dict | None) -> str | None:
+    """Return the staging-qualified release definitions digest carried by a plan.
+
+    Only staging-signed evidence and its production promotion envelope carry
+    staging evidence. A plan that production derives from its own baseline
+    carries none, so there is nothing to compare.
+    """
+    if plan_evidence is None:
+        return None
+    staging_evidence = plan_evidence.get("staging_evidence", plan_evidence)
+    staging = staging_evidence.get("staging") if isinstance(staging_evidence, dict) else None
+    if not isinstance(staging, dict):
+        return None
+    value = staging.get("release_definitions_sha256")
+    if not isinstance(value, str) or not value:
+        raise RuntimeError("staging evidence lacks its release definitions digest")
+    return value
+
+
 def _validated_release_upgrade_plan(target, value: object, release: dict) -> dict:
     if not isinstance(value, dict):
         raise PlanEvidenceError("upgrade plan must be a JSON object")
@@ -6293,14 +6312,9 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     try:
         health = _gate(health_command, target, arguments.targets)
         smoke = _gate(smoke_command, target, arguments.targets)
-        expected_release_definitions_sha256 = None
-        if signed_plan_evidence is not None:
-            staging_evidence = signed_plan_evidence.get(
-                "staging_evidence", signed_plan_evidence,
-            )
-            expected_release_definitions_sha256 = staging_evidence["staging"][
-                "release_definitions_sha256"
-            ]
+        expected_release_definitions_sha256 = _staging_release_definitions_sha256(
+            signed_plan_evidence,
+        )
         preservation_proof = None
         compared_controls = smoke["controls"]
         if preservation_baseline is not None:
