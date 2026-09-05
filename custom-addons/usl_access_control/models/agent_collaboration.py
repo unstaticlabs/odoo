@@ -143,6 +143,24 @@ class MailActivityMixin(models.AbstractModel):
             )
         return super(MailActivityMixin, records).activity_schedule(*args, **kwargs)
 
+    def activity_reschedule(self, *args, **kwargs):
+        agent = self._usl_managed_agent()
+        records = self
+        if agent:
+            if not agent._allows_model_operation(self._name, "write"):
+                raise AgentPolicyAccessError(
+                    self.env._(
+                        "This Agent has no approved application access for %(model)s.write.",
+                        model=self._name,
+                    ),
+                    "agent_read_only_action_denied",
+                )
+            self.check_access("write")
+            records = self.with_context(
+                **{AGENT_COLLABORATION_CONTEXT_KEY: AGENT_COLLABORATION_TOKEN},
+            )
+        return super(MailActivityMixin, records).activity_reschedule(*args, **kwargs)
+
 
 class MailActivity(models.Model):
     _inherit = "mail.activity"

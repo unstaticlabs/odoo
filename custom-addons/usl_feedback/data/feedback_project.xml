@@ -51,22 +51,22 @@
     </record>
 
     <record id="tag_feedback_bug" model="project.tags">
-        <field name="name">Bug</field>
+        <field name="name">Feedback: Bug</field>
         <field name="color">1</field>
         <field name="usl_feedback_tag" eval="True"/>
     </record>
     <record id="tag_feedback_improvement" model="project.tags">
-        <field name="name">Improvement</field>
+        <field name="name">Feedback: Improvement</field>
         <field name="color">4</field>
         <field name="usl_feedback_tag" eval="True"/>
     </record>
     <record id="tag_feedback_question" model="project.tags">
-        <field name="name">Question</field>
+        <field name="name">Feedback: Question</field>
         <field name="color">3</field>
         <field name="usl_feedback_tag" eval="True"/>
     </record>
     <record id="tag_feedback_ux" model="project.tags">
-        <field name="name">UX</field>
+        <field name="name">Feedback: UX</field>
         <field name="color">5</field>
         <field name="usl_feedback_tag" eval="True"/>
     </record>

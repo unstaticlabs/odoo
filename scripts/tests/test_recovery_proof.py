@@ -426,6 +426,16 @@ class RecoveryProofContractTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "completion duration is invalid"):
             _validate_recovery_proof_receipt(receipt, PROOF_ID)
 
+    def test_sqlite_schema_counter_is_not_the_mcp_application_version(self) -> None:
+        receipt = completion_receipt()
+        receipt["durable_state"]["mcp_oauth"]["schema_version"] = 35
+        receipt = _digested_document({key: value for key, value in receipt.items() if key != "sha256"})
+        self.assertEqual(_validate_recovery_proof_receipt(receipt, PROOF_ID), receipt)
+        receipt["durable_state"]["mcp_oauth"]["schema_version"] = 0
+        receipt = _digested_document({key: value for key, value in receipt.items() if key != "sha256"})
+        with self.assertRaises(RuntimeError):
+            _validate_recovery_proof_receipt(receipt, PROOF_ID)
+
     def test_completed_retry_returns_receipt_without_inspecting_or_mutating_runtime(self) -> None:
         runner = ResourceRunner()
         proof_root = f"/var/lib/usl-recovery-proofs/{PROOF_ID}"

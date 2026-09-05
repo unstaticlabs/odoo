@@ -123,6 +123,39 @@ describe("Html Paste cleaning - whitelist", () => {
         });
     });
 
+    test("should convert table headers in non-first rows to normal cells on paste", async () => {
+        await testEditor({
+            contentBefore: `
+                <p>[]<br></p>
+            `,
+            stepFunction: async (editor) => {
+                pasteHtml(
+                    editor,
+                    unformat(`
+                        <table>
+                            <thead>
+                                <tr><th>Header 1</th></tr>
+                                <tr><th>Header 2</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Cell</td></tr>
+                            </tbody>
+                        </table>
+                    `)
+                );
+            },
+            contentAfter: unformat(`
+                <table class="table table-bordered o_table">
+                    <tbody>
+                        <tr><th class="o_table_header">Header 1</th></tr>
+                        <tr><td>Header 2</td></tr>
+                        <tr><td>Cell[]</td></tr>
+                    </tbody>
+                </table>
+            `),
+        });
+    });
+
     test("should not keep span", async () => {
         await testEditor({
             contentBefore: "<p>123[]</p>",
@@ -3110,11 +3143,11 @@ describe("link", () => {
                 stepFunction: async (editor) => {
                     pasteHtml(
                         editor,
-                        '<a href="www.odoo.com">odoo.com</a><br><a href="google.com">google.com</a>'
+                        '<a href="https://www.odoo.com">odoo.com</a><br><a href="https://google.com">google.com</a>'
                     );
                 },
                 contentAfter:
-                    '<p><a href="www.odoo.com">odoo.com</a></p><p><a href="https://google.com">google.com[]</a></p>',
+                    '<p><a href="https://www.odoo.com">odoo.com</a></p><p><a href="https://google.com">google.com[]</a></p>',
             });
         });
         test("should paste html content over an empty link (collapsed) (2)", async () => {
@@ -3123,11 +3156,11 @@ describe("link", () => {
                 stepFunction: async (editor) => {
                     pasteHtml(
                         editor,
-                        '<a href="www.odoo.com">odoo.com</a><br><a href="www.google.com">google.com</a>'
+                        '<a href="https://www.odoo.com">odoo.com</a><br><a href="https://www.google.com">google.com</a>'
                     );
                 },
                 contentAfter:
-                    '<p><a href="www.odoo.com">odoo.com</a></p><p><a href="www.google.com">google.com[]</a></p>',
+                    '<p><a href="https://www.odoo.com">odoo.com</a></p><p><a href="https://www.google.com">google.com[]</a></p>',
             });
         });
 
@@ -3308,7 +3341,7 @@ describe("link", () => {
                 stepFunction: async (editor) => {
                     pasteHtml(
                         editor,
-                        '<a href="www.odoo.com">odoo.com</a><br><a href="www.google.com">google.com</a>'
+                        '<a href="https://www.odoo.com">odoo.com</a><br><a href="https://www.google.com">google.com</a>'
                     );
                     undo(editor);
                 },
@@ -3465,11 +3498,11 @@ describe("link", () => {
                 stepFunction: async (editor) => {
                     pasteHtml(
                         editor,
-                        '<a href="www.odoo.com">odoo.com</a><br><a href="google.com">google.com</a>'
+                        '<a href="https://www.odoo.com">odoo.com</a><br><a href="https://google.com">google.com</a>'
                     );
                 },
                 contentAfter:
-                    '<p><a href="www.odoo.com">odoo.com</a></p><p><a href="https://google.com">google.com[]</a></p>',
+                    '<p><a href="https://www.odoo.com">odoo.com</a></p><p><a href="https://google.com">google.com[]</a></p>',
             });
         });
         test("should paste html content over a link if all of its contents is selected (not collapsed) (2)", async () => {
@@ -3478,11 +3511,47 @@ describe("link", () => {
                 stepFunction: async (editor) => {
                     pasteHtml(
                         editor,
-                        '<a href="www.odoo.com">odoo.com</a><br><a href="www.google.com">google.com</a>'
+                        '<a href="https://www.odoo.com">odoo.com</a><br><a href="https://www.google.com">google.com</a>'
                     );
                 },
                 contentAfter:
-                    '<p><a href="www.odoo.com">odoo.com</a></p><p><a href="www.google.com">google.com[]</a></p>',
+                    '<p><a href="https://www.odoo.com">odoo.com</a></p><p><a href="https://www.google.com">google.com[]</a></p>',
+            });
+        });
+        test("should paste URL as label when link with same label and href is selected", async () => {
+            await testEditor({
+                contentBefore: '<p><a href="https://www.xyz.com">[https://www.xyz.com]</a></p>',
+                stepFunction: async (editor) => {
+                    pasteText(editor, "https://google.com");
+                },
+                contentAfter: '<p><a href="https://google.com">https://google.com</a>[]</p>',
+            });
+        });
+        test("should paste URL as label when link with same label and href is selected (2)", async () => {
+            await testEditor({
+                contentBefore: '<p>[<a href="https://www.xyz.com">https://www.xyz.com</a>]</p>',
+                stepFunction: async (editor) => {
+                    pasteText(editor, "https://google.com");
+                },
+                contentAfter: '<p><a href="https://google.com">https://google.com</a>[]</p>',
+            });
+        });
+        test("should paste URL as label when link with same label and href is selected (3)", async () => {
+            await testEditor({
+                contentBefore: '<p>[<a href="https://www.xyz.com/">https://www.xyz.com</a>]</p>',
+                stepFunction: async (editor) => {
+                    pasteText(editor, "https://google.com");
+                },
+                contentAfter: '<p><a href="https://google.com">https://google.com</a>[]</p>',
+            });
+        });
+        test("should keep label same when label and href don't match strictly", async () => {
+            await testEditor({
+                contentBefore: '<p><a href="https://xyz.com">[xyz.com]</a></p>',
+                stepFunction: async (editor) => {
+                    pasteText(editor, "https://google.com");
+                },
+                contentAfter: '<p><a href="https://google.com">xyz.com</a>[]</p>',
             });
         });
     });

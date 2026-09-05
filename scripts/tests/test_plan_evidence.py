@@ -145,6 +145,11 @@ class PlanEvidenceTests(unittest.TestCase):
         value = copy.deepcopy(staging)
         value["source"]["ref"] = "refs/heads/19-usl"
         value["source"]["commit"] = "e" * 40
+        value["foundation"]["odoo_core_commit"] = "e" * 40
+        value["foundation"]["digest"] = hashlib.sha256(json.dumps(
+            {key: item for key, item in value["foundation"].items() if key != "digest"},
+            sort_keys=True, separators=(",", ":"),
+        ).encode()).hexdigest()
         value["identity"] = hashlib.sha256(
             json.dumps(
                 {key: item for key, item in value.items() if key != "identity"},
@@ -187,6 +192,27 @@ class PlanEvidenceTests(unittest.TestCase):
         result = verify_promotion(promoted, self.public, production)
         self.assertEqual(result["candidate_release"], production["identity"])
         self.assertEqual(result["upgrade_modules"], unsigned["upgrade_modules"])
+
+    def test_operator_recovery_preserves_exact_signed_staging_plan(self):
+        staging = manifest()
+        staging["source"]["ref"] = "refs/tags/recovery-local"
+        staging["build"] = {"operator_run_id": "local", "evidence_sha256": "a" * 64}
+        staging.pop("identity")
+        staging["identity"] = hashlib.sha256(json.dumps(staging, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        unsigned = plan()
+        unsigned["candidate_release"] = staging["identity"]
+        unsigned.pop("sha256")
+        unsigned["sha256"] = hashlib.sha256(json.dumps(unsigned, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        evidence = sign(unsigned, self.private, snapshot="d" * 64, generation="g-qualified", health={"status": "passed"}, smoke=smoke())
+        promoted = promote(evidence, staging, copy.deepcopy(staging), self.private, self.public)
+        self.assertEqual(verify_promotion(promoted, self.public, staging), unsigned)
+        self.assertEqual(promoted["staging_evidence"], evidence)
+        different = copy.deepcopy(staging)
+        different["build"]["operator_run_id"] = "other"
+        different.pop("identity")
+        different["identity"] = hashlib.sha256(json.dumps(different, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        with self.assertRaisesRegex(PlanEvidenceError, "staging branch"):
+            promote(evidence, staging, different, self.private, self.public)
 
     def test_promotion_allows_branch_specific_release_notes(self):
         staging = manifest()

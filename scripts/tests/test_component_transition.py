@@ -5,15 +5,46 @@ import json
 import subprocess
 import unittest
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
+from types import SimpleNamespace
 
 from operations.release_manifest import validate, ReleaseManifestError
 from operations.runtime import load_target, read_active_state, RuntimeError
-from operations.stack import _compose_services, _release_images, _generation_overlay
+from operations.stack import _active_cron_policy, _compose_services, _release_images, _generation_overlay
 from test_release_manifest import manifest
 
 
 class ComponentTransitionTests(unittest.TestCase):
+    def test_rollback_cron_policy_comes_from_active_release_not_candidate_tools(self):
+        release = manifest()
+        active_image = release["components"]["backup-tool"]["digest_reference"]
+        policy = {
+            "schema": "usl-production-cron-policy-v1",
+            "gates": ["always"],
+            "crons": {"base.autovacuum_job": {"gate": "always", "reason": "Maintenance"}},
+        }
+        target = SimpleNamespace(value={"cron_policy": {
+            "mode": "managed", "path": "/opt/usl/deploy/production.cron-policy.json",
+            "gates": {"always": True},
+        }})
+        runner = Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, json.dumps(policy), "")
+        with patch("operations.stack._release", return_value=(release, "digest", "raw")), patch(
+            "operations.stack._ensure_image",
+        ) as ensure, patch.dict("os.environ", {"USL_OPERATIONS_IMAGE": "candidate-tools"}):
+            self.assertEqual(_active_cron_policy(target, runner), policy)
+        ensure.assert_called_once_with(runner, active_image)
+        command = runner.run.call_args.args[0]
+        self.assertEqual(command[-2:], [active_image, target.value["cron_policy"]["path"]])
+        self.assertNotIn("candidate-tools", command)
+
+    def test_unmanaged_crons_do_not_load_an_image(self):
+        runner = Mock()
+        self.assertIsNone(_active_cron_policy(SimpleNamespace(value={
+            "cron_policy": {"mode": "unmanaged"},
+        }), runner))
+        runner.run.assert_not_called()
+
     def test_current_release_remains_a_valid_backup_and_restore_input(self):
         release = manifest()
         for name in ("receipt-fetcher", "receipt-egress"):

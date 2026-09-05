@@ -50,6 +50,7 @@
     "payment.cron_post_process_payment_tx": {"gate": "always", "reason": "Finalize payment transactions already accepted by configured providers."},
     "project.ir_cron_rating_project": {"gate": "project_ratings", "reason": "Send project ratings only after stored rating configuration and backlog review."},
     "purchase.purchase_send_reminder_mail": {"gate": "purchase_reminders", "reason": "Send purchase reminders only after stored configuration and backlog review."},
+    "queue_job.ir_cron_autovacuum_queue_jobs": {"gate": "always", "reason": "Remove completed or cancelled queue records under configured channel retention without deleting business evidence."},
     "rebuild_account_migration.ir_cron_rebuild_currency_rate_provider": {"gate": "always", "reason": "Retrieve daily ECB reference exchange rates."},
     "sale.send_invoice_cron": {"gate": "sales_automation", "reason": "Run automatic invoicing only after stored configuration and backlog review."},
     "sale.send_pending_emails_cron": {"gate": "sales_automation", "reason": "Send pending sales emails only after stored configuration and backlog review."},

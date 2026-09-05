@@ -171,7 +171,6 @@ msgstr "Tableau"
 
 #. module: usl_feedback
 #: model:ir.model.fields.selection,name:usl_feedback.selection__project_task__usl_feedback_category__bug
-#: model:project.tags,name:usl_feedback.tag_feedback_bug
 msgid "Bug"
 msgstr "Anomalie"
 
@@ -602,7 +601,6 @@ msgstr "Identifie le projet gouverné utilisé pour les retours produit privés.
 
 #. module: usl_feedback
 #: model:ir.model.fields.selection,name:usl_feedback.selection__project_task__usl_feedback_category__improvement
-#: model:project.tags,name:usl_feedback.tag_feedback_improvement
 msgid "Improvement"
 msgstr "Amélioration"
 
@@ -977,7 +975,6 @@ msgstr "Conservation des données par le fournisseur"
 
 #. module: usl_feedback
 #: model:ir.model.fields.selection,name:usl_feedback.selection__project_task__usl_feedback_category__question
-#: model:project.tags,name:usl_feedback.tag_feedback_question
 msgid "Question"
 msgstr "Question"
 
@@ -1407,7 +1404,6 @@ msgstr "Réessayer"
 
 #. module: usl_feedback
 #: model:ir.model.fields.selection,name:usl_feedback.selection__project_task__usl_feedback_category__ux
-#: model:project.tags,name:usl_feedback.tag_feedback_ux
 msgid "UX"
 msgstr "UX"
 
@@ -2414,3 +2410,23 @@ msgstr "L’agent a préparé votre brouillon."
 #~ "taille de la fenêtre et la version exacte. Les URL, paramètres de "
 #~ "requête, jetons, fragments et autres états arbitraires du navigateur ne "
 #~ "sont jamais collectés."
+
+#. module: usl_feedback
+#: model:project.tags,name:usl_feedback.tag_feedback_bug
+msgid "Feedback: Bug"
+msgstr "Retour produit : Anomalie"
+
+#. module: usl_feedback
+#: model:project.tags,name:usl_feedback.tag_feedback_improvement
+msgid "Feedback: Improvement"
+msgstr "Retour produit : Amélioration"
+
+#. module: usl_feedback
+#: model:project.tags,name:usl_feedback.tag_feedback_question
+msgid "Feedback: Question"
+msgstr "Retour produit : Question"
+
+#. module: usl_feedback
+#: model:project.tags,name:usl_feedback.tag_feedback_ux
+msgid "Feedback: UX"
+msgstr "Retour produit : UX"

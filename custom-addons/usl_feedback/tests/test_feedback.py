@@ -654,6 +654,25 @@ class TestProductFeedback(TransactionCase):
                 },
             )
 
+    def test_installation_preserves_existing_generic_category_tags(self):
+        from odoo.tools.convert import convert_file
+
+        Tags = self.env["project.tags"].sudo().with_context(lang="en_US")
+        existing = Tags.browse()
+        for name in ("Bug", "Improvement", "Question", "UX"):
+            tag = Tags.search([("name", "=", name), ("usl_feedback_tag", "=", False)], limit=1)
+            existing |= tag or Tags.create({"name": name})
+        before = [(tag.id, tag.name, tag.color, tag.usl_feedback_tag) for tag in existing]
+        for category in ("bug", "improvement", "question", "ux"):
+            self.env.ref(f"usl_feedback.tag_feedback_{category}").sudo().unlink()
+        convert_file(self.env, "usl_feedback", "data/feedback_project.xml", {}, mode="init", noupdate=True)
+        self.assertEqual([(tag.id, tag.name, tag.color, tag.usl_feedback_tag) for tag in existing], before)
+        for category in ("bug", "improvement", "question", "ux"):
+            tag = self.env.ref(f"usl_feedback.tag_feedback_{category}")
+            self.assertNotIn(tag, existing)
+            self.assertTrue(tag.usl_feedback_tag)
+            self.assertTrue(tag.with_context(lang="en_US").name.startswith("Feedback: "))
+
     def test_feedback_metadata_is_governed_even_for_generic_project_managers(self):
         task, _payload = self._submit()
         stage = self.env.ref("usl_feedback.stage_feedback_new")

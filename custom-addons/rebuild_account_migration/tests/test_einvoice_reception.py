@@ -1,6 +1,7 @@
 import io
 import os
 from datetime import timedelta
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from odoo import Command, fields
@@ -954,6 +955,55 @@ class TestFrenchEinvoiceReception(
             self.company.rebuild_einvoice_provider_contract_status,
             "not_verified",
         )
+
+    def test_cii_billing_period_without_complete_deferred_fields(self):
+        cii = self.env["account.edi.cii"]
+        start = fields.Date.to_date("2026-09-01")
+        end = fields.Date.to_date("2026-09-30")
+        for line_fields in ({}, {"deferred_start_date": object()}, {"deferred_end_date": object()}):
+            for invoice_date, due_date in ((start, end), (False, end), (start, False), (False, False)):
+                with self.subTest(fields=list(line_fields), start=invoice_date, end=due_date):
+                    # A non-iterable fixture proves the fallback never reads
+                    # absent line-level deferral data, including partial schemas.
+                    invoice = SimpleNamespace(
+                        invoice_line_ids=SimpleNamespace(_fields=line_fields),
+                        invoice_date=invoice_date,
+                        invoice_date_due=due_date,
+                    )
+                    node = cii._cii_get_billing_specified_period_node({"invoice": invoice})
+                    self.assertEqual(node, {
+                        "ram:StartDateTime": {
+                            "udt:DateTimeString": {"_text": "20260901", "format": "102"},
+                        } if invoice_date else None,
+                        "ram:EndDateTime": {
+                            "udt:DateTimeString": {"_text": "20260930", "format": "102"},
+                        } if due_date else None,
+                    })
+
+    def test_cii_billing_period_preserves_native_complete_deferral_range(self):
+        class DeferredLines(list):
+            _fields = {"deferred_start_date": object(), "deferred_end_date": object()}
+
+        invoice = SimpleNamespace(
+            invoice_date=fields.Date.to_date("2026-09-01"),
+            invoice_date_due=fields.Date.to_date("2026-09-30"),
+            invoice_line_ids=DeferredLines([
+                SimpleNamespace(
+                    deferred_start_date=fields.Date.to_date("2026-08-01"),
+                    deferred_end_date=fields.Date.to_date("2026-10-31"),
+                ),
+                SimpleNamespace(deferred_start_date=False, deferred_end_date=False),
+            ]),
+        )
+        node = self.env["account.edi.cii"]._cii_get_billing_specified_period_node({"invoice": invoice})
+        self.assertEqual(node, {
+            "ram:StartDateTime": {
+                "udt:DateTimeString": {"_text": "20260801", "format": "102"},
+            },
+            "ram:EndDateTime": {
+                "udt:DateTimeString": {"_text": "20261031", "format": "102"},
+            },
+        })
 
     def test_supported_formats_credit_notes_taxes_and_currencies(self):
         source = self._source_invoice()

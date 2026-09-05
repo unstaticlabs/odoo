@@ -24,9 +24,9 @@ EREPORTING_CRONS = {
 INBOUND_MAIL_CRONS = {"mail.ir_cron_mail_gateway_action"}
 
 
-def custom_addon_crons():
+def addon_crons(directory):
     cron_xmlids = set()
-    for manifest_path in sorted((ROOT / "custom-addons").glob("*/__manifest__.py")):
+    for manifest_path in sorted(directory.glob("*/__manifest__.py")):
         manifest = ast.literal_eval(manifest_path.read_text(encoding="utf-8"))
         if manifest.get("installable", True) is False:
             continue
@@ -38,7 +38,7 @@ def custom_addon_crons():
             for record in root.findall(".//record[@model='ir.cron']"):
                 record_id = record.get("id")
                 if record_id:
-                    cron_xmlids.add(f"{manifest_path.parent.name}.{record_id}")
+                    cron_xmlids.add(record_id if "." in record_id else f"{manifest_path.parent.name}.{record_id}")
     return cron_xmlids
 
 
@@ -67,7 +67,14 @@ class ProductionCronPolicyTest(unittest.TestCase):
             if xmlid.partition(".")[0] in owned_modules
         }
 
-        self.assertEqual(declared_owned_crons, custom_addon_crons())
+        self.assertEqual(declared_owned_crons, addon_crons(ROOT / "custom-addons"))
+
+    def test_pinned_oca_scheduled_actions_have_policy_rules(self):
+        directory = ROOT / "oca-addons"
+        if not list(directory.glob("*/__manifest__.py")):
+            self.skipTest("Pinned OCA sources have not been resolved")
+        policy = json.loads(POLICY.read_text(encoding="utf-8"))
+        self.assertEqual(addon_crons(directory) - set(policy["crons"]), set())
 
     def test_reception_and_ereporting_have_independent_cron_gates(self):
         policy = json.loads(POLICY.read_text(encoding="utf-8"))

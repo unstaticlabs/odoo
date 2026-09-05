@@ -57,19 +57,44 @@ class ModuleReleaseTests(unittest.TestCase):
         self.assertEqual(plan["upgrade_modules"], ["base_product", "dependent"])
         self.assertEqual(validate_upgrade_plan(plan), plan)
 
-    def test_changed_source_without_version_bump_fails_closed(self):
+    def test_new_product_module_installs_without_enabling_existing_optional_module(self):
+        active = inventory([("base", "1.0", [], "a", "b"), ("optional", "1.0", [], "c", "d")])
+        candidate = inventory([("base", "1.0", [], "a", "b"), ("optional", "1.0", [], "c", "d"), ("new_feature", "1.0", ["base"], "e", "f")])
+        result = derive_upgrade_plan(release("active", active), release("candidate", candidate), {"base"})
+        self.assertEqual(result["installed_modules"], ["base"])
+        self.assertEqual(result["upgrade_modules"], ["new_feature"])
+        self.assertEqual(result["reasons"], {"new_feature": ["new-product-module"]})
+        self.assertEqual(validate_upgrade_plan(result), result)
+        result["reasons"]["new_feature"] = ["source-changed"]
+        with self.assertRaisesRegex(ModuleReleaseError, "unapproved new"):
+            validate_upgrade_plan(result)
+
+    def test_changed_source_without_version_bump_still_upgrades_dependents(self):
         candidate = copy.deepcopy(self.active_inventory)
         candidate["modules"]["base_product"]["source_sha256"] = "e" * 64
         import hashlib, json
         candidate["sha256"] = hashlib.sha256(
             json.dumps(candidate["modules"], sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest()
-        with self.assertRaisesRegex(ModuleReleaseError, "version bump"):
-            derive_upgrade_plan(
-                release("active", self.active_inventory),
-                release("candidate", candidate),
-                {"base_product"},
-            )
+        plan = derive_upgrade_plan(
+            release("active", self.active_inventory),
+            release("candidate", candidate),
+            {"base_product", "dependent"},
+        )
+        self.assertEqual(plan["upgrade_modules"], ["base_product", "dependent"])
+        self.assertIn("source-changed", plan["reasons"]["base_product"])
+        self.assertEqual(validate_upgrade_plan(plan), plan)
+
+    def test_changed_model_at_same_version_is_included_in_upgrade(self):
+        candidate = inventory(
+            [("base_product", "1.0", [], "e", "f"), ("dependent", "1.0", ["base_product"], "c", "d")]
+        )
+        plan = derive_upgrade_plan(
+            release("active", self.active_inventory), release("candidate", candidate),
+            {"base_product", "dependent"},
+        )
+        self.assertEqual(plan["upgrade_modules"], ["base_product", "dependent"])
+        self.assertIn("stored-model-changed", plan["reasons"]["base_product"])
 
     def test_foundation_change_upgrades_every_owned_installed_module(self):
         plan = derive_upgrade_plan(
@@ -100,6 +125,21 @@ class ModuleReleaseTests(unittest.TestCase):
             ["legacy-v2-release-has-no-module-inventory"],
         )
         self.assertEqual(validate_upgrade_plan(plan), plan)
+
+    def test_inventory_ignores_python_and_test_cache_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            module = root / "custom-addons/product"
+            module.mkdir(parents=True)
+            (module / "__manifest__.py").write_text("{'version': '1.0', 'depends': []}")
+            baseline = build_inventory(root)
+            for relative in ("__pycache__/__manifest__.cpython-314.pyc", "models/__pycache__/model.pyc", ".pytest_cache/result", "stale.pyo"):
+                cache = module / relative
+                cache.parent.mkdir(parents=True, exist_ok=True)
+                cache.write_bytes(b"generated locally")
+            self.assertEqual(build_inventory(root), baseline)
+            (module / "models/model.py").write_text("new_model = True")
+            self.assertNotEqual(build_inventory(root), baseline)
 
     def test_release_inventory_rejects_missing_dependency(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -78,6 +78,115 @@ class TestBankStatementIngestion(TransactionCase):
         ) as fixture:
             cls.pdf = fixture.read()
 
+    def test_month_subject_and_attachment_period(self):
+        parser = self.env["account.bank.ingestion"]
+        self.assertEqual(parser._period_from_text("Export comptable USL - août 2026"),
+                         (dt.date(2026, 8, 1), dt.date(2026, 8, 31)))
+        ingestion = self._ingestion("<attachment-period@test.invalid>", ofx=self.ofx,
+                                    pdf=self.pdf, subject="Scheduled bank export")
+        ingestion.action_process_now()
+        self.assertEqual(ingestion.state, "done")
+        self.assertEqual(ingestion.period_start, dt.date(2026, 7, 1))
+
+    def test_duplicate_pdf_without_subject_period(self):
+        original, statement = self._process_complete_month()
+        duplicate = self._ingestion("<duplicate-period@test.invalid>", pdf=self.pdf,
+                                   subject="Scheduled bank export")
+        duplicate.action_process_now()
+        self.assertEqual(duplicate.state, "done")
+        self.assertEqual(duplicate.file_ids.filtered(lambda f: f.classification == "pdf").evidence_status, "duplicate")
+        self.assertEqual(statement.accepted_evidence_id.ingestion_id, original)
+
+    def test_period_correction_resolves_only_retained_pdf(self):
+        ingestion = self._ingestion("<manual-period@test.invalid>", pdf=self.pdf,
+                                    subject="Scheduled bank export")
+        ingestion.action_process_now()
+        self.assertEqual(ingestion.state, "attention")
+        action = ingestion.action_correct_period()
+        self.assertEqual(action["target"], "new")
+        wizard = self.env["account.bank.ingestion.period"].create({
+            "ingestion_id": ingestion.id, "period_start": "2026-07-01",
+            "period_end": "2026-07-31", "reason": "Checked official statement",
+        })
+        with patch.object(type(ingestion), "_process", side_effect=AssertionError("No reimport")):
+            wizard.action_apply()
+        self.assertEqual(ingestion.period_start, dt.date(2026, 7, 1))
+
+    def test_period_correction_denies_non_accountant(self):
+        ingestion = self._ingestion("<denied-period@test.invalid>", pdf=self.pdf,
+                                    subject="Scheduled bank export")
+        ingestion.action_process_now()
+        user = new_test_user(self.env, login="bank_period_denied", groups="base.group_user")
+        with self.assertRaises(AccessError):
+            ingestion.with_user(user).action_correct_period()
+
+    def test_retry_clears_legacy_period_exception_without_new_lines(self):
+        original, statement = self._process_complete_month()
+        duplicate = self._ingestion("<legacy-period@test.invalid>", ofx=self.ofx,
+                                   pdf=self.pdf, subject="Scheduled bank export")
+        duplicate.action_process_now()
+        pdf = duplicate.file_ids.filtered(lambda source: source.classification == "pdf")
+        pdf.sudo()._ensure_exception("evidence", "Confirm the PDF statement period", "Legacy subject failure")
+        duplicate.sudo().write({"period_start": False, "period_end": False, "state": "attention"})
+        line_ids = statement.line_ids.ids
+        duplicate.action_retry()
+        self.assertEqual(duplicate.state, "done")
+        self.assertFalse(pdf.exception_ids.filtered(lambda item: item.state == "open"))
+        self.assertEqual(statement.line_ids.ids, line_ids)
+        self.assertEqual(statement.accepted_evidence_id.ingestion_id, original)
+
+    def test_ofx_header_conflict_is_not_inferred_away(self):
+        ofx = self.ofx.replace(b"<DTSTART>20260701000000", b"<DTSTART>20260601000000")
+        ingestion = self._ingestion("<bad-coverage@test.invalid>", ofx=ofx, subject="Scheduled export")
+        ingestion.action_process_now()
+        self.assertEqual(ingestion.state, "attention")
+        self.assertFalse(ingestion.statement_ids)
+
+    def test_correction_denies_cross_company_and_conflicting_evidence(self):
+        ingestion, statement = self._process_complete_month()
+        ingestion.sudo().state = "attention"
+        accountant = new_test_user(self.env, login="bank_period_accountant",
+                                  groups="account.group_account_user", company_id=self.company.id,
+                                  company_ids=[Command.set(self.company.ids)])
+        wizard = self.env["account.bank.ingestion.period"].with_user(accountant).create({
+            "ingestion_id": ingestion.id, "period_start": "2026-08-01",
+            "period_end": "2026-08-31", "reason": "Conflicting dates",
+        })
+        with self.assertRaises(UserError):
+            wizard.action_apply()
+        other_company = self.env["res.company"].create({"name": "Period isolation"})
+        outsider = new_test_user(self.env, login="bank_period_outsider",
+                                groups="account.group_account_user", company_id=other_company.id,
+                                company_ids=[Command.set(other_company.ids)])
+        with self.assertRaises(AccessError):
+            ingestion.with_user(outsider).action_correct_period()
+
+    def test_identical_pdf_cannot_be_reused_for_another_ofx_month(self):
+        self._process_complete_month()
+        ingestion = self._ingestion("<wrong-month-pdf@test.invalid>",
+                                    ofx=self.ofx.replace(b"202607", b"202608").replace(b"shine-synthetic-", b"shine-next-"),
+                                    pdf=self.pdf, subject="Export - août 2026")
+        ingestion.action_process_now()
+        self.assertEqual(ingestion.state, "attention")
+        self.assertFalse(ingestion.statement_ids.accepted_evidence_id)
+
+    def test_period_correction_rejects_invalid_month_reason_and_stale_state(self):
+        ingestion = self._ingestion("<invalid-manual-period@test.invalid>", subject="Scheduled export")
+        ingestion.sudo().state = "attention"
+        wizard = self.env["account.bank.ingestion.period"].create({
+            "ingestion_id": ingestion.id, "period_start": "2026-07-08",
+            "period_end": "2026-07-31", "reason": "Checked statement",
+        })
+        with self.assertRaises(UserError):
+            wizard.action_apply()
+        wizard.write({"period_start": "2026-07-01", "reason": " "})
+        with self.assertRaises(UserError):
+            wizard.action_apply()
+        wizard.reason = "Checked statement"
+        ingestion.sudo().state = "done"
+        with self.assertRaises(UserError):
+            wizard.action_apply()
+
     def _ingestion(self, message_id, *, ofx=None, pdf=None, sender=None, subject=None):
         ingestion = self.env["account.bank.ingestion"].message_new(
             {
@@ -1319,6 +1428,179 @@ class TestBankStatementIngestion(TransactionCase):
                 {"amount": bank_line.amount + 1},
             )
 
+    def test_certified_bookkeeping_reset_and_both_undo_entrypoints(self):
+        _ingestion, statement = self._process_complete_month()
+        self._confirm_and_certify(statement, 1000, 1200)
+        history = statement.certification_ids.ids
+        category = self.env["account.account"].create({
+            "name": "Synthetic bank categorization",
+            "code": "CERTQA",
+            "account_type": "expense",
+            "company_ids": [Command.set(self.company.ids)],
+        })
+        manager = new_test_user(
+            self.env, login="certified-bookkeeper",
+            groups="account.group_account_manager",
+            company_id=self.company.id,
+            company_ids=[Command.set(self.company.ids)],
+        )
+        for bank_line in statement.line_ids:
+            bank_line = bank_line.with_user(manager)
+            before = bank_line._certified_reconciliation_fingerprint()
+            bank_line.move_id.button_draft()
+            self.assertEqual(bank_line.move_id.state, "draft")
+            self.assertEqual(bank_line._certified_reconciliation_fingerprint(), before)
+            bank_line.move_id.action_post()
+            _liquidity, suspense, _other = bank_line._seek_for_lines()
+            suspense.account_id = category
+            self.assertTrue(bank_line.is_reconciled)
+            bank_line.action_undo_reconciliation()
+            self.assertFalse(bank_line.is_reconciled)
+            self.assertEqual(bank_line._certified_reconciliation_fingerprint(), before)
+            _liquidity, suspense, _other = bank_line._seek_for_lines()
+            suspense.account_id = category
+            self.assertTrue(bank_line.is_reconciled)
+            bank_line.unreconcile_bank_line()
+            self.assertFalse(bank_line.is_reconciled)
+            self.assertEqual(bank_line._certified_reconciliation_fingerprint(), before)
+        self.assertEqual(statement.certification_state, "certified")
+        self.assertEqual(statement.certification_ids.ids, history)
+
+    def test_certified_bookkeeping_still_protects_evidence_and_hashes(self):
+        _ingestion, statement = self._process_complete_month()
+        self._confirm_and_certify(statement, 1000, 1200)
+        bank_line = statement.line_ids[0]
+        move = bank_line.move_id
+        for operation in (
+            lambda: move.button_cancel(),
+            lambda: move.write({"state": "cancel"}),
+            lambda: move.unlink(),
+            lambda: bank_line.write({"amount": bank_line.amount + 1}),
+            lambda: bank_line.write({"date": bank_line.date + dt.timedelta(days=1)}),
+            lambda: bank_line.unlink(),
+        ):
+            with self.assertRaises(UserError), self.env.cr.savepoint():
+                operation()
+        move.inalterable_hash = "synthetic-certified-hash"
+        with self.assertRaisesRegex(UserError, "locked journal entry"):
+            move.button_draft()
+        self.assertEqual(move.state, "posted")
+
+    def test_certified_bookkeeping_rolls_back_failed_invariant(self):
+        _ingestion, statement = self._process_complete_month()
+        self._confirm_and_certify(statement, 1000, 1200)
+        bank_line = statement.line_ids.filtered(lambda line: line.amount > 0)[:1]
+        before = bank_line._certified_reconciliation_fingerprint()
+        with self.assertRaisesRegex(UserError, "certified bank-statement facts"):
+            with bank_line._preserve_certified_bank_facts() as scoped:
+                liquidity, _suspense, _other = scoped._seek_for_lines()
+                liquidity.with_context(
+                    check_move_validity=False,
+                    skip_account_move_synchronization=True,
+                ).write({"debit": liquidity.debit + 1})
+        self.assertEqual(bank_line._certified_reconciliation_fingerprint(), before)
+
+    def test_certified_bookkeeping_permission_is_not_rpc_forgeable_or_transferable(self):
+        _ingestion, statement = self._process_complete_month()
+        self._confirm_and_certify(statement, 1000, 1200)
+        first, second = statement.line_ids[:2]
+        liquidity, _suspense, _other = first._seek_for_lines()
+        with self.assertRaises(UserError):
+            liquidity.with_context(
+                usl_certified_reconciliation_token=True,
+                usl_certified_reconciliation_moves=first.move_id.ids,
+            ).write({"balance": liquidity.balance})
+        with first._preserve_certified_bank_facts() as scoped:
+            other_liquidity, _suspense, _other = second.with_env(scoped.env)._seek_for_lines()
+            with self.assertRaises(UserError):
+                other_liquidity.write({"balance": other_liquidity.balance})
+
+    def test_general_reconciliation_selection_survives_rpc_defaults(self):
+        _ingestion, statement = self._process_complete_month()
+        source = statement.line_ids[0].move_id.line_ids.filtered(
+            lambda line: line.account_id == self.journal.suspense_account_id,
+        )
+        source.account_id.reconcile = True
+        counterpart_move = self.env["account.move"].create({
+            "journal_id": self.journal.id,
+            "date": source.date,
+            "line_ids": [Command.create({
+                "account_id": source.account_id.id,
+                "currency_id": source.currency_id.id,
+                "amount_currency": -source.amount_currency,
+                "debit": source.credit,
+                "credit": source.debit,
+            }), Command.create({
+                "account_id": self.journal.default_account_id.id,
+                "currency_id": source.currency_id.id,
+                "amount_currency": source.amount_currency,
+                "debit": source.debit,
+                "credit": source.credit,
+            })],
+        })
+        counterpart_move.action_post()
+        counterpart = counterpart_move.line_ids.filtered(
+            lambda line: line.account_id == source.account_id,
+        )
+        action = source.action_reconcile_manually()
+        self.assertNotIn("default_account_move_lines", action["context"])
+        workspace = self.env["account.account.reconcile"].search(action["domain"])
+        self.assertEqual(workspace.reconcile_data_info["counterparts"], source.ids)
+        saved_response = workspace.web_save({
+            "reconcile_data_info": workspace._recompute_data({
+                "data": [], "counterparts": (source + counterpart).ids,
+            }),
+        }, {"selected_count": {}})
+        self.assertEqual(saved_response[0]["selected_count"], 2)
+        self.env.flush_all()
+        other_user = new_test_user(
+            self.env, login="other-reconciliation-user",
+            groups="account.group_account_manager",
+            company_id=self.company.id,
+            company_ids=[Command.set(self.company.ids)],
+        )
+        self.env.invalidate_all()
+        self.assertEqual(
+            workspace.with_user(other_user).reconcile_data_info["counterparts"], [],
+        )
+        # Simulate a fresh request from an old tab retaining its launch default.
+        self.env.invalidate_all()
+        workspace = workspace.with_context(default_account_move_lines=source.ids)
+        self.assertEqual(set(workspace.reconcile_data_info["counterparts"]),
+                         set((source + counterpart).ids))
+        workspace.clean_reconcile()
+        self.env.flush_all()
+        self.env.invalidate_all()
+        self.assertEqual(workspace.reconcile_data_info["counterparts"], [])
+        # A deliberate new launch replaces old saved state exactly once.
+        (source + counterpart).action_reconcile_manually()
+        self.env.invalidate_all()
+        self.assertEqual(workspace.selected_count, 2)
+        workspace.reconcile()
+        self.assertTrue(source.reconciled)
+        self.assertTrue(counterpart.reconciled)
+
+    def test_certified_bookkeeping_respects_user_and_company_access(self):
+        _ingestion, statement = self._process_complete_month()
+        self._confirm_and_certify(statement, 1000, 1200)
+        other_company = self.env["res.company"].create({"name": "Certification other company"})
+        for name, company, groups in (
+            ("certified-readonly", self.company, "account.group_account_readonly"),
+            ("certified-other-company", other_company, "account.group_account_manager"),
+        ):
+            user = new_test_user(
+                self.env, login=name, groups=groups,
+                company_id=company.id, company_ids=[Command.set(company.ids)],
+            )
+            bank_line = statement.line_ids[0].with_user(user).with_context(
+                allowed_company_ids=company.ids,
+            )
+            for operation in (lambda: bank_line.move_id.button_draft(),
+                              bank_line.action_undo_reconciliation,
+                              bank_line.unreconcile_bank_line):
+                with self.assertRaises(AccessError), self.env.cr.savepoint():
+                    operation()
+
     def test_balance_mismatch_is_saved_and_blocks_certification(self):
         _ingestion, statement = self._process_complete_month()
         self.env["account.bank.statement.confirm"].create(
@@ -1344,7 +1626,7 @@ class TestBankStatementIngestion(TransactionCase):
         august = self._ingestion(
             "<synthetic-august@example.invalid>",
             ofx=august_ofx,
-            pdf=self.pdf,
+            pdf=self.pdf + b"\n% August statement fixture\n",
             subject="Export comptable Synthetic - du 01/08/2026 au 31/08/2026",
         )
         august.action_process_now()

@@ -1341,6 +1341,126 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("base.partner_root", program)
         self.assertIn("message_post", program)
         self.assertNotIn("_bus_send", program)
+        self.assertIn("https://github.com/unstaticlabs/odoo/actions/runs/1", program)
+        release["build"] = {"operator_run_id": "manual-test", "evidence_sha256": "d" * 64}
+        with mock.patch("operations.stack.inspect_runtime", return_value=runtime), mock.patch(
+            "operations.stack._release", return_value=(release, "c" * 64, "{}")
+        ):
+            _notify_release(target, runner, release_id)
+        operator_program = runner.run.call_args.kwargs["input_text"]
+        self.assertIn("usl_release_notification_evidence_url=None", operator_program)
+        self.assertNotIn("https://github.com", operator_program)
+        self.assertIn("if evidence_url:", operator_program)
+        compile(operator_program, "notification", "exec")
+
+    def test_recovery_mcp_keeps_public_identity_and_uses_isolated_transport(self):
+        from operations.stack import _recovery_proof_environment
+        target = load_target("production", TARGETS)
+        services = {name: {"environment": {}} for name in target.value["services"].values()}
+        services[target.value["services"]["paperless"]]["environment"]["PAPERLESS_DBPASS"] = "fixture"
+        services[target.value["services"]["odoo"]]["environment"]["ODOO_DB_PASSWORD"] = "fixture"
+        with mock.patch("operations.stack._write_remote") as write:
+            paths, evidence = _recovery_proof_environment(target, mock.Mock(),
+                "/proof/daily-test", {"services": services}, "a" * 64, "b" * 64)
+        content = next(c.args[3] for c in write.call_args_list if c.args[2] == paths["mcp"])
+        values = dict(line.split("=", 1) for line in content.splitlines())
+        self.assertEqual(values["ODOO_PUBLIC_ORIGIN"], target.value["endpoints"]["odoo"])
+        self.assertEqual(values["ODOO_INTERNAL_ORIGIN"], "http://odoo:8069")
+        self.assertEqual(values["MCP_ALLOW_LOCAL_HTTP_ODOO"], "false")
+        for key in ("MCP_PUBLIC_ORIGIN", "MCP_ALLOWED_ORIGINS", "MCP_OAUTH_TRUSTED_ORIGINS"):
+            self.assertEqual(values[key], target.value["endpoints"]["mcp"])
+        self.assertNotIn("ODOO_API_KEY", values)
+        self.assertEqual(evidence["status"], "passed")
+
+    def test_recovery_accepts_relative_filestore_names_but_rejects_traversal(self):
+        from operations.stack import _recovery_proof_durable_state, _recovery_proof_names
+        target = load_target("production", TARGETS)
+        names = _recovery_proof_names(target, "daily-fixture")
+        for sample, expected in (("ab/" + "a" * 40, "durable sample is missing"),
+                ("../outside", "sample path is unsafe"), ("attachment name.pdf", "durable sample is missing")):
+            runner = mock.Mock()
+            runner.run.return_value = subprocess.CompletedProcess([], 1, "", "")
+            with self.subTest(sample=sample), mock.patch("operations.stack._recovery_proof_query",
+                    side_effect=[{"sample": sample}, {}]):
+                with self.assertRaisesRegex(RuntimeError, expected):
+                    _recovery_proof_durable_state(target, runner, names,
+                        {"components": {"paperless": {"digest_reference": "fixture"}}}, {}, "/proof", {})
+
+    def test_recovery_file_probe_checks_containment_and_content(self):
+        from operations.stack import RECOVERY_FILE_SAMPLE_SCRIPT
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "filestore"
+            root.mkdir()
+            stored = root / "ordinary attachment.pdf"
+            stored.write_bytes(b"preserved content")
+            outside = Path(directory) / "outside"
+            outside.write_bytes(b"outside content")
+            escaped = root / "link"
+            escaped.symlink_to(outside)
+            def probe(path):
+                return subprocess.run([__import__("sys").executable, "-c",
+                    RECOVERY_FILE_SAMPLE_SCRIPT, str(path), str(root)], capture_output=True, text=True)
+            valid = probe(stored)
+            self.assertEqual(valid.returncode, 0)
+            self.assertEqual(valid.stdout.strip(), "1:" + hashlib.sha256(b"preserved content").hexdigest())
+            for path in (outside, escaped, root / "missing"):
+                with self.subTest(path=path):
+                    self.assertNotEqual(probe(path).returncode, 0)
+
+    def test_recovery_exited_service_fails_without_readiness_retries(self):
+        from operations.stack import (_recovery_proof_runtime_health_once,
+            _recovery_proof_runtime_health, _recovery_proof_names, RecoveryProofServiceExited)
+        target = load_target("production", TARGETS)
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "exited\n", "")
+        names = _recovery_proof_names(target, "daily-fixture")
+        with self.assertRaisesRegex(RecoveryProofServiceExited, "stopped: exited"):
+            _recovery_proof_runtime_health_once(target, runner, names, {})
+        self.assertEqual(runner.run.call_count, 1)
+        with mock.patch("operations.stack._require_recovery_proof_deadline"), mock.patch(
+            "operations.stack._recovery_proof_runtime_health_once",
+            side_effect=RecoveryProofServiceExited("stopped"),
+        ) as health, mock.patch("operations.stack.time.sleep") as sleep:
+            with self.assertRaises(RecoveryProofServiceExited):
+                _recovery_proof_runtime_health(target, runner, names, {}, started=0, deadline_at="fixture")
+        self.assertEqual(health.call_count, 1)
+        sleep.assert_not_called()
+
+    def test_recovery_sign_uses_restored_credentials_and_generated_configuration(self):
+        from operations.stack import _start_recovery_proof_runtime, _recovery_proof_names
+        target = load_target("production", TARGETS)
+        names = _recovery_proof_names(target, "daily-fixture")
+        images = {name: "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "a" * 64 for name in target.value["services"].values()}
+        release = {"components": {key: {"digest_reference": "fixture@sha256:" + "a" * 64}
+            for key in ("distribution", "paperless", "sign-dss")}, "renderer": {"image": "fixture"}}
+        env = {key: "/generated/" + key for key in
+            ("odoo", "dss", "paperless", "mcp", "personal-ai", "better-auth", "credential-encryption-key")}
+        with mock.patch("operations.stack._run_recovery_proof_container", return_value="fixture") as start:
+            _start_recovery_proof_runtime(target, mock.Mock(), "daily-fixture", "/proof",
+                names, release, images, env)
+        sign = next(call for call in start.call_args_list if call.args[3] == "sign")
+        self.assertTrue(sign.kwargs["env_file"][0].endswith("/sign-secrets/dss.env"))
+        self.assertEqual(sign.kwargs["env_file"][1], env["dss"])
+
+    def test_recovery_quarantine_uses_its_disposable_environment_only(self):
+        from operations.stack import _run_production_boundary_script
+        target = load_target("production", TARGETS)
+        target.value["compose"]["canonical"] = {"environment_file": "/production-runtime.env"}
+        runner = mock.Mock()
+        fingerprint = "a" * 64
+        runner.run.return_value = subprocess.CompletedProcess([], 0,
+            'USL_PRODUCTION_QUARANTINE=' + json.dumps({"status": "passed", "candidate_fingerprint": fingerprint}), '')
+        release = {"components": {"distribution": {"digest_reference": "odoo@sha256:" + "b" * 64}}}
+        for isolated in (None, "/proof/database.env"):
+            _run_production_boundary_script(target, runner, release, "isolated-network",
+                {"odoo_filestore": "disposable-filestore"}, "production_quarantine.py",
+                fingerprint, "USL_PRODUCTION_QUARANTINE=", environment_file=isolated)
+            command = runner.run.call_args.args[0]
+            files = [command[i+1] for i, v in enumerate(command) if v == "--env-file"]
+            expected = [isolated] if isolated else [target.value["compose"]["canonical"]["environment_file"], target.value["secrets"]["env_file"]]
+            self.assertEqual(files, expected)
+            self.assertIn("isolated-network", command)
+            self.assertIn("disposable-filestore:/var/lib/odoo", command)
 
     def test_release_notification_rejects_untrusted_identity(self) -> None:
         target = mock.Mock(value={"environment": "production"})
@@ -2122,7 +2242,8 @@ class CohortContractTests(unittest.TestCase):
             "schema": "usl-module-upgrade-plan/v1",
             "active_release": "c" * 64,
             "candidate_release": release["identity"],
-            "upgrade_modules": ["usl_pocketid"],
+            "upgrade_modules": ["usl_feedback", "usl_pocketid"],
+            "installed_modules": ["usl_pocketid"],
             "changed_modules": ["usl_pocketid"],
             "reasons": {"usl_pocketid": ["source_sha256"]},
         }
@@ -2140,6 +2261,8 @@ class CohortContractTests(unittest.TestCase):
             )
         command = runner.run.call_args.args[0]
         self.assertIn(candidate["environment_file"], command)
+        self.assertIn("--init=usl_feedback", command)
+        self.assertIn("--update=usl_feedback,usl_pocketid", command)
         self.assertIn("USL_EINVOICE_LIVE_ENABLED=0", command)
         self.assertIn("USL_EREPORTING_LIVE_ENABLED=0", command)
         self.assertIn("USL_POCKET_ID_ENABLED=1", command)
@@ -2205,6 +2328,8 @@ class CohortContractTests(unittest.TestCase):
         self.assertNotIn("client-secret-value", " ".join(command))
         program = runner.run.call_args.kwargs["input_text"]
         self.assertIn("synthetic_client_probe", program)
+        self.assertLess(program.index("env.cr.commit()"), program.index('print("USL_POCKET_ID_RUNTIME_ADMISSION='))
+        self.assertGreater(program.index("env.cr.commit()"), program.index("if not all(checks.values()):"))
         compile(program, "<staging-oidc-admission>", "exec")
 
         internal_checks = {
@@ -6036,6 +6161,19 @@ class CohortContractTests(unittest.TestCase):
             )
             second = _runtime_cas_sha256(target, runner, runtime)
         self.assertNotEqual(first, second)
+
+    def test_runtime_cas_normalizes_replaced_mcp_authority_file(self) -> None:
+        target = mock.Mock()
+        runtime = {"compose": {"project": "staging", "working_directory": "/release", "environment_file": "/runtime.env", "compose_files": ["/release/compose.yaml", "/authorities/old.json"]}, "volumes": {"odoo": {"name": "data", "path": "/data"}}}
+        normalized = {**runtime["compose"], "compose_files": ["/release/compose.yaml", "/authorities/current.json"]}
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, '{"services":{"odoo":{"image":"stable"}}}', '')
+        with mock.patch("operations.stack._release", return_value=({"identity":"a"*64}, "b"*64, "{}")), mock.patch("operations.stack._mcp_runtime_authority", return_value=None), mock.patch("operations.stack._with_mcp_runtime_authority", return_value=normalized):
+            before = _runtime_cas_sha256(target, runner, runtime)
+            after = _runtime_cas_sha256(target, runner, {**runtime, "compose": normalized})
+            self.assertEqual(before, after)
+            changed = _runtime_cas_sha256(target, runner, {**runtime, "volumes": {"odoo": {"name": "other", "path": "/other"}}})
+            self.assertNotEqual(before, changed)
 
     def test_runtime_cas_rejects_running_mcp_outside_gitops_authority(self) -> None:
         target = load_target("staging", TARGETS)

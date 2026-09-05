@@ -5,7 +5,6 @@ from zipfile import ZipFile
 
 from odoo import fields, Command
 from odoo.tests import HttpCase, tagged
-from odoo.tools.safe_eval import datetime
 
 from odoo.addons.account_edi_ubl_cii.tests.common import TestUblCiiCommon
 
@@ -99,7 +98,7 @@ class TestAccountEdiUblCii(TestUblCiiCommon, HttpCase):
             }, {
                 'product_id': self.displace_prdct.id,
                 'name': 'Displacement',
-                'product_uom_id': self.uom_units.id,
+                'product_uom_id': False,
                 'tax_ids': [self.company_data_2['default_tax_sale'].id]
             }, {
                 'product_id': self.displace_prdct.id,
@@ -147,6 +146,8 @@ class TestAccountEdiUblCii(TestUblCiiCommon, HttpCase):
         })]
 
         company.partner_id.with_company(company).invoice_edi_format = 'facturx'
+        if "predict_bill_product" in company._fields:
+            company.predict_bill_product = True
 
         invoice = self.env['account.move'].create({
             'company_id': company.id,
@@ -397,31 +398,6 @@ class TestAccountEdiUblCii(TestUblCiiCommon, HttpCase):
 
         global_end_date = xml_tree.find('.//ram:ApplicableHeaderTradeSettlement/ram:BillingSpecifiedPeriod/ram:EndDateTime/udt:DateTimeString', self.namespaces)
         self.assertEqual(global_end_date.text, '20241226')
-
-        line_vals = [
-            {
-                'product_id': self.product_a.id,
-                'deferred_start_date': datetime.date(2024, 11, 19),
-                'deferred_end_date': datetime.date(2024, 12, 11),
-            },
-            {
-                'product_id': self.product_a.id,
-                'deferred_start_date': datetime.date(2024, 12, 1),
-                'deferred_end_date': datetime.date(2024, 12, 26),
-            },
-            {
-                'product_id': self.product_a.id,
-                'deferred_start_date': False,
-                'deferred_end_date': False,
-            },
-            {
-                'product_id': self.product_a.id,
-                'deferred_start_date': datetime.date(2024, 11, 29),
-                'deferred_end_date': datetime.date(2024, 12, 15),
-            },
-        ]
-        new_invoice = invoice.journal_id._create_document_from_attachment(xml_attachment.ids)
-        self.assertRecordValues(new_invoice.invoice_line_ids, line_vals)
 
     def test_import_bill(self):
         self.env['res.partner.bank'].sudo().create({

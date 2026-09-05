@@ -26,7 +26,6 @@ class TestPdpReportsFlowLifecycle(TestL10nFrPdpCommon):
             'email': 'info@company.frexample.com',
             'l10n_fr_pdp_annuaire_start_date': '2025-01-01',
             'l10n_fr_pdp_periodicity': 'normal_monthly',
-            'l10n_fr_pdp_pilot_phase': True,
             'l10n_fr_pdp_send_to_ppf': True,
             'name': 'NOM MATELAS',
             'company_registry': '34057796400024',
@@ -575,6 +574,7 @@ class TestPdpReportsFlowLifecycle(TestL10nFrPdpCommon):
             'operation_type': 'purchase',
             'state': 'ready',
         }])
+
         self.assertIn(bill, flow._get_moves())
 
         xml = self._build_flow_xml(flow)
@@ -582,6 +582,38 @@ class TestPdpReportsFlowLifecycle(TestL10nFrPdpCommon):
         invoices = xml.findall('./TransactionsReport/Invoice')
         self.assertEqual(len(invoices), 1)
         self.assertEqual(invoices[0].findtext('ID'), bill.name)
+        self.assertEqual(invoices[0].findtext('TypeCode'), '380')
+
+    def test_invoice_type_codes(self):
+        builder = self.env['pdp.flow.10.xml.builder']
+        purchase_journal = self.company_data['default_journal_purchase']
+        sale_journal = self.company_data['default_journal_sale']
+
+        customer_invoice = self.env['account.move'].new({
+            'move_type': 'out_invoice',
+            'journal_id': sale_journal.id,
+        })
+        customer_credit_note = self.env['account.move'].new({
+            'move_type': 'out_refund',
+            'journal_id': sale_journal.id,
+        })
+        vendor_bill = self.env['account.move'].new({
+            'move_type': 'in_invoice',
+            'journal_id': purchase_journal.id,
+        })
+        vendor_credit_note = self.env['account.move'].new({
+            'move_type': 'in_refund',
+            'journal_id': purchase_journal.id,
+        })
+
+        self.assertEqual(builder._get_move_typecode(customer_invoice), '380')
+        self.assertEqual(builder._get_move_typecode(customer_credit_note), '381')
+        self.assertEqual(builder._get_move_typecode(vendor_bill), '380')
+        self.assertEqual(builder._get_move_typecode(vendor_credit_note), '381')
+
+        purchase_journal.is_self_billing = True
+        self.assertEqual(builder._get_move_typecode(vendor_bill), '389')
+        self.assertEqual(builder._get_move_typecode(vendor_credit_note), '261')
 
     def test_mixed_b2c_b2bi_invoices_create_transaction_flow_payload(self):
         b2c_invoice = self._create_reporting_invoice(partner=self.b2c_customer)
@@ -2106,6 +2138,5 @@ class TestPdpReportsFlowLifecycle(TestL10nFrPdpCommon):
             tax_ids=self._get_tax_on_payment_20(),
             post=True,
         )
-        branch.l10n_fr_pdp_pilot_phase = True
         self.assertTrue(branch.l10n_fr_f10_enable_reporting)
         self.assertTrue(invoice.l10n_fr_pdp_last_flow_id)

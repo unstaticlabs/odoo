@@ -56,6 +56,14 @@ transaction provenance always records the complete configured IBAN.
 
 ## Recovery
 
+- **Unknown statement period:** use **Correct period** on the received export,
+  verify both dates against the bank statement, and record a reason. Do not
+  edit or replace immutable source attachments to change dates. The correction
+  uses retained PDFs only; it does not repeat the import or download email links.
+- **Repeated monthly email:** OFX transaction identities prevent duplicate
+  entries, and an identical accepted PDF is marked already imported. A different
+  Message-ID is a new delivery, not necessarily a new statement. Check the file
+  dispositions before treating the new ingestion record as an accounting error.
 - **No export:** verify Shine scheduling, the alias address and inbound mail
   gateway. Recover the export from Shine and deliver it to the same alias.
 - **Expired link:** download a fresh archive from Shine, attach it to the
