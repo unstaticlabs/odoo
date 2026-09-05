@@ -39,6 +39,8 @@
     "paperless_tika": "paperless-tika",
     "mcp": "odoo-mcp",
     "renderer": "usl-document-renderer",
+    "receipt_fetcher": "usl-receipt-fetcher",
+    "receipt_egress": "usl-receipt-egress",
     "sign": "usl-sign-dss",
     "sign_ca": "usl-sign-step-ca"
   },
@@ -52,6 +54,7 @@
     "local": {"path": "/var/lib/usl-odoo", "reserve_bytes": 2147483648}
   }},
   "volumes": {
+    "receipt_control": {"name": "usl-odoo-staging-main_receipt-control", "class": "transient", "tier": "local"},
     "odoo_postgres": {"name": "usl-odoo-staging-main_postgres-data", "class": "transient", "tier": "database"},
     "odoo_filestore": {"name": "usl-odoo-staging-main_odoo-data", "class": "durable", "tier": "bulk"},
     "paperless_postgres": {"name": "usl-odoo-staging-main_paperless-postgres-data", "class": "transient", "tier": "database"},

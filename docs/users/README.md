@@ -31,6 +31,7 @@ Start with [the guided Accounting tutorial](tutorials/accounting-application.md)
 - [Export reports and FEC](how-to/export-reports-and-fec.md)
 - [Provide read-only accountant access](how-to/provide-accountant-access.md)
 - [Sign in with Pocket ID](how-to/sign-in-with-pocket-id.md)
+- [Send product feedback](how-to/send-product-feedback.md)
 
 ## Look something up
 

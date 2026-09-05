@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="linked_receipt_handoff" name="Open receipt website">
+        <t t-call="web.frontend_layout"
+           html_data="{'style': 'height: 100%;'}"
+           body_classname.f="bg-100"
+           no_header="True"
+           no_footer="True">
+            <main class="container py-5">
+              <div class="card border-0 shadow-sm mx-auto" style="max-width: 480px;">
+                <div class="card-body p-4 p-sm-5">
+                  <div class="text-center mb-4">
+                    <i class="fa fa-external-link fa-2x text-primary" aria-hidden="true"/>
+                    <h1 class="h3 mt-3">Open the receipt website</h1>
+                    <p class="text-muted mb-0" t-out="instruction"/>
+                  </div>
+                  <div class="alert alert-info" role="status">
+                      Download the PDF receipt, then return to your expense and attach it.
+                  </div>
+                  <form t-att-action="'/usl/expenses/linked-receipt/%s/continue' % retrieval.id"
+                        method="post">
+                    <input type="hidden" name="csrf_token" t-att-value="csrf_token"/>
+                    <input type="hidden" name="generation" t-att-value="generation"/>
+                    <button type="submit" class="btn btn-primary w-100">
+                      Continue to receipt website
+                    </button>
+                  </form>
+                  <a t-att-href="'/odoo/hr.expense/%s' % retrieval.expense_id.id"
+                     class="btn btn-link w-100 mt-2">
+                      Back to expense
+                  </a>
+                </div>
+              </div>
+            </main>
+        </t>
+    </template>
+
+    <template id="linked_receipt_handoff_unavailable" name="Receipt website unavailable">
+        <t t-call="web.frontend_layout"
+           html_data="{'style': 'height: 100%;'}"
+           body_classname.f="bg-100"
+           no_header="True"
+           no_footer="True">
+            <main class="container py-5">
+              <div class="card border-0 shadow-sm mx-auto" style="max-width: 480px;">
+                <div class="card-body p-4 p-sm-5">
+                  <div class="alert alert-warning" role="alert">
+                    <h1 class="h4">Receipt website unavailable</h1>
+                    <p class="mb-0" t-out="message"/>
+                  </div>
+                  <a href="/odoo" class="btn btn-primary w-100">Back to Odoo</a>
+                </div>
+              </div>
+            </main>
+        </t>
+    </template>
+</odoo>

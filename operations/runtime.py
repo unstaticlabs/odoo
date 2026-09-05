@@ -328,6 +328,8 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         "paperless_tika",
         "mcp",
         "renderer",
+        "receipt_fetcher",
+        "receipt_egress",
         "sign",
         "sign_ca",
     }
@@ -371,6 +373,7 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         "paperless_broker",
         "paperless_export",
         "mcp_oauth",
+        "receipt_control",
     }
     if not isinstance(volumes, dict) or not required_volumes <= set(volumes):
         raise RuntimeError(f"target volumes must include {sorted(required_volumes)}")

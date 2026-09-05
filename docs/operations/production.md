@@ -7,7 +7,7 @@ data moves only through the coordinated backup and recovery contract.
 ## Runtime topology
 
 Production and staging each run isolated Odoo, PostgreSQL, Paperless, broker,
-MCP, Sign, and renderer services. Both use the protected shared Ollama service
+MCP, Sign, renderer, receipt-fetcher, and receipt-egress services. Both use the protected shared Ollama service
 and its qualified BGE-M3 model. They use separate volumes, databases, OAuth
 state, ports, ingress aliases, and external-side-effect policies.
 
@@ -53,7 +53,8 @@ start either VPS stack without its environment-specific resource overlay.
 Every release manifest binds:
 
 - the Distribution source commit;
-- immutable Odoo, backup-tool, Paperless, Sign, MCP, and renderer images;
+- immutable Odoo, backup-tool, Paperless, Sign, MCP, renderer, receipt-fetcher,
+  and receipt-egress images;
 - the MCP compatibility contract;
 - OCA and action-risk-policy identities;
 - the required BGE model digest and embedding dimension;
@@ -106,6 +107,8 @@ External effects are controlled independently from image deployment.
 - Sending and e-reporting require their own accepted activation gates.
 - Bank ingestion must validate the intended company, journal, account, and
   sender before automatic processing.
+- Linked receipt retrieval remains doubly gated, uses mTLS over an isolated
+  Unix socket, and may reach public HTTPS only through its pinned egress proxy.
 
 Historical queues must never be replayed during an upgrade or restore. Staging
 must remain neutralized: no live mail, filing, payment, bank, or signing side
@@ -139,6 +142,8 @@ Before opening a changed runtime, require:
 - Odoo filestore and Paperless original coverage;
 - preserved OCR, previews, Tantivy, and vectors;
 - no unexplained mail, Documents, bank, payment, Sign, or PDP queue work;
+- healthy receipt sidecars, four Odoo queue workers, a two-slot receipt
+  channel, and negative private-network reachability probes;
 - zero active cron failures;
 - Pocket ID and multi-company access checks;
 - a qualified recovery point and tested rollback.
@@ -171,4 +176,5 @@ The Online export is historical evidence, never a production rollback source.
 - [Document renderer](document-renderer-runbook.md)
 - [Sign](sign-runbook.md)
 - [Odoo MCP](odoo-mcp.md)
+- [Linked expense receipts](linked-receipt-runbook.md)
 - [Product and migration boundary](product-migration-boundary.md)

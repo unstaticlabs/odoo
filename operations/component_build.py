@@ -96,6 +96,20 @@ COMPONENTS = {
                 "addons/web/static/fonts/sign/NotoSans-Reg.ttf",
             ),
         ),
+        Component(
+            "receipt-fetcher",
+            "ghcr.io/unstaticlabs/usl-receipt-fetcher",
+            "services/usl-receipt-fetcher/Dockerfile",
+            None,
+            ("services/usl-receipt-fetcher/**",),
+        ),
+        Component(
+            "receipt-egress",
+            "ghcr.io/unstaticlabs/usl-receipt-egress",
+            "services/usl-receipt-egress/Dockerfile",
+            None,
+            ("services/usl-receipt-egress/**",),
+        ),
     )
 }
 

@@ -18,7 +18,14 @@ from operations.module_release import build_inventory, validate_inventory
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = "usl-release/v3"
 LEGACY_SCHEMA = "usl-release/v2"
-COMPONENTS = {"distribution", "backup-tool", "paperless", "sign-dss"}
+COMPONENTS = {
+    "backup-tool",
+    "distribution",
+    "paperless",
+    "receipt-egress",
+    "receipt-fetcher",
+    "sign-dss",
+}
 MCP_PUBLIC_METHODS = {
     "usl.agent.current_identity",
     "usl.agent.submit_mcp_feedback",

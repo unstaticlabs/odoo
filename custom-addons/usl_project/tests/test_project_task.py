@@ -1,4 +1,6 @@
 from datetime import datetime, timedelta
+from pathlib import Path
+from runpy import run_path
 
 from odoo import Command
 from odoo.tests import TransactionCase, new_test_user, tagged
@@ -118,6 +120,79 @@ class TestProjectTask(TransactionCase):
             "//field[@name='stage_id'][@widget='rotting_statusbar_duration']",
         )
         self.assertEqual(len(native_duration_controls), 1)
+
+    def test_upgrade_merges_translated_duplicate_personal_stages(self):
+        task_in_english_stage = self.env["project.task"].create({
+            "name": "English personal-stage task",
+            "user_ids": [Command.set(self.todo_sender.ids)],
+        })
+        task_in_french_stage = self.env["project.task"].create({
+            "name": "French personal-stage task",
+            "user_ids": [Command.set(self.todo_sender.ids)],
+        })
+        existing_stage = self.env["project.task.type"].search([
+            ("user_id", "=", self.todo_sender.id),
+            ("name", "=", "This Week"),
+        ], limit=1)
+        duplicate_stage = self.env["project.task.type"].create({
+            "name": "Cette semaine",
+            "sequence": existing_stage.sequence + 1,
+            "user_id": self.todo_sender.id,
+        })
+        task_in_english_stage.with_user(
+            self.todo_sender,
+        ).personal_stage_type_id = existing_stage
+        task_in_french_stage.with_user(
+            self.todo_sender,
+        ).personal_stage_type_id = duplicate_stage
+        migration = run_path(
+            Path(__file__).parents[1]
+            / "migrations"
+            / "saas~19.3.1.0.8"
+            / "post-merge-default-personal-stages.py",
+        )
+
+        migration["migrate"](self.env.cr, "saas~19.3.1.0.7")
+        self.env.invalidate_all()
+
+        active_week_stages = self.env["project.task.type"].search([
+            ("user_id", "=", self.todo_sender.id),
+            ("id", "in", [existing_stage.id, duplicate_stage.id]),
+        ])
+        self.assertEqual(active_week_stages, existing_stage)
+        self.assertEqual(
+            task_in_english_stage.with_user(
+                self.todo_sender,
+            ).personal_stage_type_id,
+            existing_stage,
+        )
+        self.assertEqual(
+            task_in_french_stage.with_user(
+                self.todo_sender,
+            ).personal_stage_type_id,
+            existing_stage,
+        )
+        self.assertEqual(
+            existing_stage.with_context(lang="en_US").name,
+            "This Week",
+        )
+        self.assertEqual(
+            existing_stage.with_context(lang="fr_FR").name,
+            "Cette semaine",
+        )
+        self.assertFalse(
+            duplicate_stage.with_context(active_test=False).active,
+        )
+
+        migration["migrate"](self.env.cr, "saas~19.3.1.0.7")
+        self.env.invalidate_all()
+        self.assertEqual(
+            self.env["project.task.type"].search_count([
+                ("user_id", "=", self.todo_sender.id),
+                ("id", "in", [existing_stage.id, duplicate_stage.id]),
+            ]),
+            1,
+        )
 
     def test_product_models_have_no_project_restore_provenance(self):
         forbidden_fields = {

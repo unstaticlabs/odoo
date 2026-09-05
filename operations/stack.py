@@ -79,6 +79,7 @@ VOLUME_LOGICAL_NAMES = {
     "paperless_consume": "paperless-consume",
     "paperless_export": "paperless-export",
     "mcp_oauth": "odoo-mcp-oauth-data",
+    "receipt_control": "receipt-control",
 }
 VOLUME_RUNTIME_SERVICE_KEYS = {
     "odoo_postgres": "odoo_db",
@@ -91,6 +92,7 @@ VOLUME_RUNTIME_SERVICE_KEYS = {
     "paperless_consume": "paperless",
     "paperless_export": "paperless",
     "mcp_oauth": "mcp",
+    "receipt_control": "receipt_fetcher",
 }
 RELEASE_IMAGE_SERVICES = {
     "distribution": ("odoo", "odoo-upgrade"),
@@ -101,12 +103,16 @@ RELEASE_IMAGE_SERVICES = {
         "paperless-identity-init",
     ),
     "sign-dss": ("usl-sign-dss",),
+    "receipt-fetcher": ("usl-receipt-fetcher",),
+    "receipt-egress": ("usl-receipt-egress",),
     "renderer": ("usl-document-renderer",),
 }
 RELEASE_RUNTIME_SERVICES = {
     "distribution": "odoo",
     "paperless": "paperless",
     "sign-dss": "sign",
+    "receipt-fetcher": "receipt_fetcher",
+    "receipt-egress": "receipt_egress",
     "renderer": "renderer",
 }
 MINIMUM_FREE_BYTES = 2 * 1024**3
@@ -124,6 +130,7 @@ RESOURCE_FIELDS = {
 }
 BACKUP_WRITER_SERVICE_ROLES = ("odoo", "paperless", "mcp", "sign", "sign_ca")
 GENERATION_NAME = re.compile(r"g[a-z0-9][a-z0-9-]{0,30}\Z")
+GIT_COMMIT = re.compile(r"[0-9a-f]{40}\Z")
 RELEASE_ATTEMPT = re.compile(r"[a-z0-9][a-z0-9._-]{7,63}\Z")
 RECOVERY_PROOF_ID = re.compile(r"[a-z0-9][a-z0-9-]{7,23}\Z")
 RECOVERY_PROOF_OWNER = "usl-disposable-recovery-proof"
@@ -978,6 +985,8 @@ def _release_images(release: dict, mcp_authority: dict | None = None) -> list[st
         release["components"]["distribution"]["digest_reference"],
         release["components"]["paperless"]["digest_reference"],
         release["components"]["sign-dss"]["digest_reference"],
+        release["components"]["receipt-fetcher"]["digest_reference"],
+        release["components"]["receipt-egress"]["digest_reference"],
         release["renderer"]["image"],
     }
     if mcp_authority is not None:
@@ -2793,11 +2802,13 @@ def health_command(arguments: argparse.Namespace) -> int:
     ingress = target.value["ingress"]
     odoo_service = target.value["services"]["odoo"]
     config_probe = (
-        "import configparser,json;"
+        "import configparser,json,os;"
         "c=configparser.ConfigParser();c.read('/etc/odoo/odoo.conf');"
         "o=c['options'];"
         "print(json.dumps({'proxy_mode':o.getboolean('proxy_mode'),"
-        "'list_db':o.getboolean('list_db'),'dbfilter':o.get('dbfilter')}))"
+        "'list_db':o.getboolean('list_db'),'dbfilter':o.get('dbfilter'),"
+        "'workers':o.getint('workers'),'server_wide_modules':o.get('server_wide_modules'),"
+        "'queue_channels':os.environ.get('ODOO_QUEUE_JOB_CHANNELS','')}))"
     )
     config_result = runner.run(
         compose_command(
@@ -2820,8 +2831,147 @@ def health_command(arguments: argparse.Namespace) -> int:
                 "list_db": ingress["list_db"],
                 "dbfilter": ingress["dbfilter"],
             }
-            if odoo_config != expected_config:
+            if any(odoo_config.get(key) != value for key, value in expected_config.items()):
                 failures.append("odoo:config-mismatch")
+            if target.value["environment"] == "production" and odoo_config.get("workers", 0) < 4:
+                failures.append("odoo:receipt-worker-capacity")
+            modules = {
+                value.strip()
+                for value in odoo_config.get("server_wide_modules", "").split(",")
+            }
+            if "queue_job" not in modules:
+                failures.append("odoo:queue-job-not-loaded")
+            channels = odoo_config.get("queue_channels", "").replace(" ", "")
+            if "root.receipt_fetch:2" not in channels.split(","):
+                failures.append("odoo:receipt-channel-capacity")
+
+    receipt_mtls_probe = """
+import httpx, json, ssl
+socket_path = '/run/receipt-control/fetcher.sock'
+ca = '/run/secrets/receipt-fetcher/ca.crt'
+context = ssl.create_default_context(cafile=ca)
+context.load_cert_chain(
+    '/run/secrets/receipt-fetcher/odoo.crt',
+    '/run/secrets/receipt-fetcher/odoo.key',
+)
+valid = httpx.Client(
+    transport=httpx.HTTPTransport(verify=context, uds=socket_path, retries=0),
+    timeout=5,
+    trust_env=False,
+)
+valid_ok = valid.get('https://usl-receipt-fetcher/healthz').status_code == 200
+valid.close()
+anonymous = httpx.Client(
+    transport=httpx.HTTPTransport(verify=ca, uds=socket_path, retries=0),
+    timeout=5,
+    trust_env=False,
+)
+client_certificate_required = False
+try:
+    anonymous.get('https://usl-receipt-fetcher/healthz')
+except httpx.HTTPError:
+    client_certificate_required = True
+anonymous.close()
+print(json.dumps({
+    'healthy': valid_ok,
+    'client_certificate_required': client_certificate_required,
+}))
+"""
+    receipt_mtls_result = runner.run(
+        compose_command(
+            status["compose"],
+            ["exec", "--no-TTY", odoo_service, "python", "-c", receipt_mtls_probe],
+        ),
+        check=False,
+    )
+    receipt_mtls = None
+    if receipt_mtls_result.returncode:
+        failures.append("receipt-fetcher:mtls")
+    else:
+        try:
+            receipt_mtls = json.loads(receipt_mtls_result.stdout.strip())
+        except json.JSONDecodeError:
+            failures.append("receipt-fetcher:mtls-invalid")
+        else:
+            if receipt_mtls != {"healthy": True, "client_certificate_required": True}:
+                failures.append("receipt-fetcher:mtls")
+
+    project = status["compose"]["project"]
+    expected_networks = {
+        target.value["services"]["receipt_fetcher"]: {f"{project}_receipt-proxy"},
+        target.value["services"]["receipt_egress"]: {
+            f"{project}_receipt-proxy",
+            f"{project}_receipt-public",
+        },
+    }
+    receipt_networks = {}
+    for service, expected_service_networks in expected_networks.items():
+        item = containers.get(service, {})
+        actual = {
+            value.strip()
+            for value in str(item.get("Networks") or "").split(",")
+            if value.strip()
+        }
+        receipt_networks[service] = sorted(actual)
+        if actual != expected_service_networks:
+            failures.append(f"{service}:network-boundary")
+
+    receipt_containment_probe = """
+import httpx, json, socket
+business_names_blocked = True
+for host in ('odoo', 'db', 'paperless-webserver'):
+    try:
+        socket.getaddrinfo(host, 443)
+        business_names_blocked = False
+    except socket.gaierror:
+        pass
+direct_egress_blocked = False
+try:
+    connection = socket.create_connection(('1.1.1.1', 443), 1)
+    connection.close()
+except OSError:
+    direct_egress_blocked = True
+private_proxy_blocked = False
+try:
+    client = httpx.Client(
+        proxy='http://usl-receipt-egress:4750',
+        verify=False,
+        timeout=3,
+        trust_env=False,
+    )
+    client.get('https://127.0.0.1/')
+    client.close()
+except httpx.HTTPError:
+    private_proxy_blocked = True
+print(json.dumps({
+    'business_names_blocked': business_names_blocked,
+    'direct_egress_blocked': direct_egress_blocked,
+    'private_proxy_blocked': private_proxy_blocked,
+}))
+"""
+    fetcher_service = target.value["services"]["receipt_fetcher"]
+    containment_result = runner.run(
+        compose_command(
+            status["compose"],
+            ["exec", "--no-TTY", fetcher_service, "python", "-c", receipt_containment_probe],
+        ),
+        check=False,
+    )
+    receipt_containment = None
+    if containment_result.returncode:
+        failures.append("receipt-fetcher:containment")
+    else:
+        try:
+            receipt_containment = json.loads(containment_result.stdout.strip())
+        except json.JSONDecodeError:
+            failures.append("receipt-fetcher:containment-invalid")
+        else:
+            if receipt_containment != {
+                "business_names_blocked": True,
+                "direct_egress_blocked": True,
+                "private_proxy_blocked": True,
+            }:
+                failures.append("receipt-fetcher:containment")
     websocket_status = {"required": ingress["websocket"], "status_code": None, "ok": True}
     if ingress["websocket"]:
         origin = admission["odoo_websocket"].rstrip("/")
@@ -2891,6 +3041,9 @@ def health_command(arguments: argparse.Namespace) -> int:
         "endpoints": endpoints,
         "configured_endpoints": target.value["endpoints"],
         "odoo_config": odoo_config,
+        "receipt_mtls": receipt_mtls,
+        "receipt_networks": receipt_networks,
+        "receipt_containment": receipt_containment,
         "websocket": websocket_status,
         "ollama": ollama_status,
         "services": service_evidence,
@@ -3372,6 +3525,7 @@ def _generation_overlay(
     ingress: dict | None = None,
     sign_secret_root: str | None = None,
     service_names: dict[str, str] | None = None,
+    deployment_identity: dict[str, str] | None = None,
     quarantine: bool = False,
 ) -> str:
     value = {
@@ -3381,32 +3535,34 @@ def _generation_overlay(
         },
     }
     if release is not None:
+        service_names = service_names or {}
         images = {
             "distribution": release["components"]["distribution"]["digest_reference"],
             "paperless": release["components"]["paperless"]["digest_reference"],
             "sign-dss": release["components"]["sign-dss"]["digest_reference"],
+            "receipt-fetcher": release["components"]["receipt-fetcher"]["digest_reference"],
+            "receipt-egress": release["components"]["receipt-egress"]["digest_reference"],
             "renderer": release["renderer"]["image"],
         }
         value["services"] = {
-            (service_names or {}).get("odoo", "odoo") if service == "odoo" else service: {
-                "image": images[component]
-            }
+            (service_names or {}).get(service, service): {"image": images[component]}
             for component, services in RELEASE_IMAGE_SERVICES.items()
             for service in services
             if available_services is None
             or service in available_services
-            or (
-                service == "odoo"
-                and (service_names or {}).get("odoo") in available_services
-            )
+            or (service_names or {}).get(service, service) in available_services
         }
         odoo_service = (service_names or {}).get("odoo", "odoo")
+        init_db_service = (service_names or {}).get("odoo-upgrade", "odoo-upgrade")
         if ingress is not None and odoo_service in value["services"]:
             value["services"][odoo_service]["environment"] = {
                 "ODOO_PROXY_MODE": "True" if ingress["proxy_mode"] else "False",
                 "ODOO_LIST_DB": "True" if ingress["list_db"] else "False",
                 "ODOO_DB_FILTER": ingress["dbfilter"],
+                **(deployment_identity or {}),
             }
+            if init_db_service in value["services"]:
+                value["services"][init_db_service]["environment"] = dict(deployment_identity or {})
         if quarantine:
             if ingress is None:
                 raise RuntimeError("production quarantine requires ingress configuration")
@@ -4496,6 +4652,7 @@ def _abort_to_previous_generation(
     target,
     runner,
     targets: Path,
+    gitops_commit: str | None = None,
     *,
     attempt: str | None = None,
 ) -> dict:
@@ -4612,6 +4769,40 @@ def _abort_to_previous_generation(
             )
             neutralization = _staging_abort_neutralization(target, runner, current)
     previous_identity, previous_state = _previous_generation_identity(target, runner, current)
+    if gitops_commit is not None and not GIT_COMMIT.fullmatch(gitops_commit):
+        raise RuntimeError("release abort GitOps commit is invalid")
+    if previous_state is not None and gitops_commit is not None:
+        previous = json.loads(previous_state)
+        release_path = previous["release_manifest"]
+        release_raw = _read_path(target, runner, release_path)
+        try:
+            release = validate_release(json.loads(release_raw))
+        except (ValueError, json.JSONDecodeError) as error:
+            raise RuntimeError("rollback release manifest is invalid") from error
+        generation = previous["generation"]
+        overlay = f"{target.value['state_directory']}/generations/{generation}/compose.generation.json"
+        _write_remote(
+            target,
+            runner,
+            overlay,
+            _generation_overlay(
+                previous["volumes"], release, set(target.value["services"].values()), target.value["ingress"],
+                sign_secret_root=(
+                    f"{target.value['state_directory']}/generations/{generation}/sign-secrets"
+                    if target.value["environment"] == "production" else None
+                ),
+                service_names=target.value["services"],
+                deployment_identity={
+                    "USL_DEPLOYMENT_ENV": target.value["environment"],
+                    "USL_RELEASE_COMMIT": release["source"]["commit"],
+                    "USL_GITOPS_COMMIT": gitops_commit if GIT_COMMIT.fullmatch(gitops_commit or "") else "Unknown",
+                    "USL_DEPLOYMENT_GENERATION": generation,
+                    "USL_RELEASE_MANIFEST_SHA256": hashlib.sha256(
+                        json.dumps(release, separators=(",", ":"), sort_keys=True).encode(),
+                    ).hexdigest(),
+                },
+            ),
+        )
     cohort_services = sorted(set(target.value["services"].values()))
     runner.run(
         compose_command(current["compose"], ["stop", "--timeout", "60", *cohort_services]),
@@ -5299,6 +5490,9 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         raise RuntimeError("protected restore requires --replace and exact --confirm")
     if arguments.replace and arguments.confirm != target.name:
         raise RuntimeError("replacement confirmation must equal the target name")
+    gitops_commit = getattr(arguments, "gitops_commit", None)
+    if gitops_commit is not None and not GIT_COMMIT.fullmatch(gitops_commit):
+        raise RuntimeError("release activation GitOps commit is invalid")
     target_runner = target.runner()
     if source.value["transport"] != target.value["transport"]:
         raise RuntimeError("source and target must be reachable through the same runtime host")
@@ -5531,6 +5725,13 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
                 else None
             ),
             service_names=target.value["services"],
+            deployment_identity={
+                "USL_DEPLOYMENT_ENV": target.value["environment"],
+                "USL_RELEASE_COMMIT": release["source"]["commit"],
+                "USL_GITOPS_COMMIT": gitops_commit if GIT_COMMIT.fullmatch(gitops_commit or "") else "Unknown",
+                "USL_DEPLOYMENT_GENERATION": generation,
+                "USL_RELEASE_MANIFEST_SHA256": release_sha,
+            },
             quarantine=target.value["environment"] == "production",
         ),
     )
@@ -8811,6 +9012,7 @@ def release_command(arguments: argparse.Namespace) -> int:
                 runner,
                 arguments.targets,
                 attempt=arguments.attempt_id,
+                gitops_commit=getattr(arguments, "gitops_commit", None),
             )
         if controller_state is not None:
             _write_remote(
@@ -9325,6 +9527,7 @@ def release_command(arguments: argparse.Namespace) -> int:
             replace=arguments.replace,
             confirm=arguments.confirm,
             json=arguments.json,
+            gitops_commit=getattr(arguments, "gitops_commit", None),
         )
         return restore_command(restore_arguments)
     raise RuntimeError(f"unsupported release action: {arguments.action}")
@@ -9433,6 +9636,7 @@ def build_parser() -> argparse.ArgumentParser:
     release.add_argument("--replace", action="store_true")
     release.add_argument("--confirm")
     release.add_argument("--release-id")
+    release.add_argument("--gitops-commit")
     release.add_argument("--attempt-id")
     release.add_argument("--maintenance-receipt", type=Path)
     release.add_argument("--prepare-receipt", type=Path)

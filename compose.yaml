@@ -572,6 +572,78 @@ services:
     volumes:
       - ${USL_SIGN_DSS_SECRET_DIR:-./.secrets/sign/dss}:/run/usl-sign-dss:ro
 
+  usl-receipt-egress:
+    build:
+      context: .
+      dockerfile: services/usl-receipt-egress/Dockerfile
+      args:
+        SMOKESCREEN_COMMIT: d4da883a671475551d78da812db547341c8fe6c3
+    image: ${USL_RECEIPT_EGRESS_IMAGE:-usl-receipt-egress:d4da883a6714}
+    restart: unless-stopped
+    read_only: true
+    init: true
+    cap_drop: ["ALL"]
+    security_opt:
+      - no-new-privileges:true
+      - seccomp=services/usl-receipt-egress/seccomp_profile.json
+    pids_limit: 64
+    cpus: 0.50
+    mem_limit: 128m
+    ulimits:
+      nofile:
+        soft: 256
+        hard: 256
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/smokescreen", "--version"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - receipt-proxy
+      - receipt-public
+
+  usl-receipt-fetcher:
+    build:
+      context: .
+      dockerfile: services/usl-receipt-fetcher/Dockerfile
+    image: ${USL_RECEIPT_FETCHER_IMAGE:-usl-receipt-fetcher:playwright-1.62.0}
+    restart: unless-stopped
+    depends_on:
+      usl-receipt-egress:
+        condition: service_healthy
+    environment:
+      USL_RECEIPT_EGRESS_PROXY: http://usl-receipt-egress:4750
+    read_only: true
+    init: true
+    tmpfs:
+      - /tmp/receipt-fetcher:size=96m,mode=1700,uid=1001,gid=1001,noexec,nosuid,nodev
+    cap_drop: ["ALL"]
+    # Chromium's Linux namespace sandbox performs its own chroot after dropping
+    # privileges. Keep only that capability; all others remain removed.
+    cap_add: ["SYS_CHROOT"]
+    security_opt:
+      - no-new-privileges:true
+      - seccomp=services/usl-receipt-fetcher/seccomp_profile.json
+    pids_limit: 256
+    cpus: 1.50
+    mem_limit: 768m
+    shm_size: 256m
+    ulimits:
+      nofile:
+        soft: 512
+        hard: 512
+    healthcheck:
+      test: ["CMD-SHELL", "kill -0 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    volumes:
+      - ${USL_RECEIPT_FETCHER_SECRET_DIR:-./.secrets/receipts/fetcher}:/run/secrets/receipt-fetcher:ro
+      - receipt-control:/run/receipt-control
+    networks:
+      - receipt-proxy
+
   odoo:
     image: ${ODOO_IMAGE:-usl-odoo-saas-19-3-odoo:latest}
     build:
@@ -603,6 +675,8 @@ services:
       ODOO_LIST_DB: ${ODOO_LIST_DB:-True}
       ODOO_PROXY_MODE: ${ODOO_PROXY_MODE:-False}
       ODOO_WORKERS: ${ODOO_WORKERS:-0}
+      ODOO_SERVER_WIDE_MODULES: ${ODOO_SERVER_WIDE_MODULES:-web,queue_job}
+      ODOO_QUEUE_JOB_CHANNELS: ${ODOO_QUEUE_JOB_CHANNELS:-root:4,root.receipt_fetch:2}
       ODOO_MAX_CRON_THREADS: ${ODOO_MAX_CRON_THREADS:-1}
       ODOO_SMTP_SERVER: ${ODOO_SMTP_SERVER:-localhost}
       ODOO_SMTP_PORT: ${ODOO_SMTP_PORT:-25}
@@ -619,6 +693,11 @@ services:
       USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
       USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}
       USL_EREPORTING_LIVE_ENABLED: ${USL_EREPORTING_LIVE_ENABLED:-0}
+      USL_LINKED_PDF_DOWNLOAD_ENABLED: ${USL_LINKED_PDF_DOWNLOAD_ENABLED:-0}
+      USL_LINKED_PDF_DOWNLOAD_ADMITTED: ${USL_LINKED_PDF_DOWNLOAD_ADMITTED:-0}
+      USL_RECEIPT_FETCHER_URL: ${USL_RECEIPT_FETCHER_URL:-https://usl-receipt-fetcher}
+      USL_RECEIPT_FETCHER_SOCKET: /run/receipt-control/fetcher.sock
+      USL_RECEIPT_FETCHER_CERT_DIR: /run/secrets/receipt-fetcher
       USL_DEPLOYMENT_ENV: ${USL_DEPLOYMENT_ENV:-development}
       USL_RELEASE_COMMIT: ${USL_RELEASE_COMMIT:-development}
       USL_MCP_FEEDBACK_PROJECT_ID: ${USL_MCP_FEEDBACK_PROJECT_ID:-17}
@@ -655,6 +734,8 @@ services:
       - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}:/run/secrets/document-renderer:ro
       - ./scripts/sign-services-smoke.py:/usr/local/bin/usl-sign-services-smoke:ro
       - ${USL_SIGN_ODOO_SECRET_DIR:-./.secrets/sign/odoo}:/run/usl-sign:ro
+      - ${USL_RECEIPT_ODOO_SECRET_DIR:-./.secrets/receipts/odoo}:/run/secrets/receipt-fetcher:ro
+      - receipt-control:/run/receipt-control:ro
     networks:
       - default
       - document-renderer
@@ -1204,10 +1285,14 @@ volumes:
   paperless-trash:
   paperless-ollama-data:
   odoo-mcp-oauth-data:
+  receipt-control:
 
 networks:
   document-renderer:
     internal: true
+  receipt-proxy:
+    internal: true
+  receipt-public:
 
 secrets:
   usl_personal_ai_master_keys:
