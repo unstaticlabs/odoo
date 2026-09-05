@@ -30,3 +30,10 @@ receipt supersession. The HTTP suite covers owner-bound handoff and CSRF.
 Service tests run with offline fixtures, including a Chromium download under
 the production sandbox restrictions. Inventory refresh does not substitute
 for executing these tests and comparing the exact installed registry.
+
+The merged receipt upload widget can appear outside the expense form header.
+Both read-only expense roles now remove that widget wherever it appears.
+The `hr.expense.get_view` implementation digest was refreshed for this restriction;
+its classification and permission grants are unchanged. The reviewer test also
+calls `attach_document` directly and verifies denial and preservation of the
+existing main attachment.

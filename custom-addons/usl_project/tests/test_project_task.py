@@ -148,11 +148,11 @@ class TestProjectTask(TransactionCase):
         migration = run_path(
             Path(__file__).parents[1]
             / "migrations"
-            / "saas~19.3.1.0.8"
+            / "saas~19.3.1.0.9"
             / "post-merge-default-personal-stages.py",
         )
 
-        migration["migrate"](self.env.cr, "saas~19.3.1.0.7")
+        migration["migrate"](self.env.cr, "saas~19.3.1.0.8")
         self.env.invalidate_all()
 
         active_week_stages = self.env["project.task.type"].search([
@@ -184,7 +184,7 @@ class TestProjectTask(TransactionCase):
             duplicate_stage.with_context(active_test=False).active,
         )
 
-        migration["migrate"](self.env.cr, "saas~19.3.1.0.7")
+        migration["migrate"](self.env.cr, "saas~19.3.1.0.8")
         self.env.invalidate_all()
         self.assertEqual(
             self.env["project.task.type"].search_count([

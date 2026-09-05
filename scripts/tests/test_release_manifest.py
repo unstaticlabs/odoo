@@ -133,6 +133,49 @@ def manifest() -> dict[str, object]:
 
 
 class ReleaseManifestTests(unittest.TestCase):
+    def operator_manifest(self):
+        value = manifest()
+        value["source"]["ref"] = "refs/tags/recovery-local-validation"
+        value["build"] = {"operator_run_id": "manual-20260905", "evidence_sha256": "a" * 64}
+        value["identity"] = hashlib.sha256(json.dumps(
+            {key: item for key, item in value.items() if key != "identity"},
+            sort_keys=True, separators=(",", ":"),
+        ).encode()).hexdigest()
+        return value
+
+    def test_operator_provenance_is_explicit_and_recovery_only(self):
+        value = self.operator_manifest()
+        self.assertEqual(validate(value)["build"], value["build"])
+        value["source"]["ref"] = "refs/heads/19-usl"
+        with self.assertRaisesRegex(ReleaseManifestError, "recovery tag"):
+            validate(value)
+
+    def test_operator_provenance_cannot_skip_shared_validation(self):
+        for section, field, invalid in (
+            ("mcp", "image", "ghcr.io/unstaticlabs/odoo-mcp:latest"),
+            ("mcp", "compatibility_sha256", "invalid"),
+            ("foundation", "security_policy_sha256", "invalid"),
+            ("qualification", "evidence", {}),
+        ):
+            with self.subTest(section=section, field=field):
+                value = self.operator_manifest()
+                value[section][field] = invalid
+                if section == "foundation":
+                    value[section]["digest"] = hashlib.sha256(json.dumps(
+                        {key: item for key, item in value[section].items() if key != "digest"},
+                        sort_keys=True, separators=(",", ":"),
+                    ).encode()).hexdigest()
+                value["identity"] = hashlib.sha256(json.dumps(
+                    {key: item for key, item in value.items() if key != "identity"},
+                    sort_keys=True, separators=(",", ":"),
+                ).encode()).hexdigest()
+                with self.assertRaises(ReleaseManifestError):
+                    validate(value)
+        value = self.operator_manifest()
+        value["identity"] = "0" * 64
+        with self.assertRaisesRegex(ReleaseManifestError, "identity digest"):
+            validate(value)
+
     def test_publishes_every_qualified_mcp_public_method(self) -> None:
         identity = manifest()["mcp_contract"]["agent_identity"]
         self.assertEqual(_mcp_public_methods(identity), sorted(MCP_PUBLIC_METHODS))

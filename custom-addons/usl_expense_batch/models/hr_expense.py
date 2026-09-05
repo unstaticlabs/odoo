@@ -121,7 +121,7 @@ class HrExpense(models.Model):
             arch.set("create", "false")
             arch.set("edit", "false")
             arch.set("delete", "false")
-            for control in arch.xpath("//header/button | //header/widget"):
+            for control in arch.xpath("//header/button | //header/widget | //widget[@name='attach_document']"):
                 control.getparent().remove(control)
             result["arch"] = etree.tostring(arch, encoding="unicode")
         return result

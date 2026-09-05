@@ -231,9 +231,16 @@ def promote(
         raise PlanEvidenceError("promotion release manifest is invalid") from error
     if staging_release["identity"] != staging_plan["candidate_release"]:
         raise PlanEvidenceError("staging evidence and staging release differ")
-    if staging_release["source"]["ref"] != "refs/heads/19-usl-staging":
+    # Explicit operator releases can reuse their own signed staging plan. Normal
+    # hosted releases still require the staging-to-production branch boundary.
+    operator_recovery = (
+        staging_release == production_release
+        and "operator_run_id" in staging_release["build"]
+        and staging_release["source"]["ref"].startswith("refs/tags/recovery-")
+    )
+    if not operator_recovery and staging_release["source"]["ref"] != "refs/heads/19-usl-staging":
         raise PlanEvidenceError("promotion source was not the staging branch")
-    if production_release["source"]["ref"] != "refs/heads/19-usl":
+    if not operator_recovery and production_release["source"]["ref"] != "refs/heads/19-usl":
         raise PlanEvidenceError("promotion target was not the production branch")
     if staging_release["source"]["repository"] != production_release["source"]["repository"]:
         raise PlanEvidenceError("promotion releases come from different repositories")

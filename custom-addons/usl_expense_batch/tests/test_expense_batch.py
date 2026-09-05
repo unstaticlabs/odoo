@@ -866,6 +866,10 @@ class TestExpenseBatch(TestExpenseCommon):
         self.assertEqual(expense.with_user(reviewer).name, expense.name)
         with self.assertRaises(AccessError):
             expense.with_user(reviewer).write({"name": "Forbidden expense edit"})
+        attachment = expense.message_main_attachment_id
+        with self.assertRaises(AccessError):
+            expense.with_user(reviewer).attach_document(attachment_ids=attachment.ids)
+        self.assertEqual(expense.message_main_attachment_id, attachment)
         with self.assertRaisesRegex(AccessError, "Read-only accountants"):
             batch.with_user(reviewer).write({"purpose": "Forbidden edit"})
         with self.assertRaisesRegex(AccessError, "Read-only accountants"):

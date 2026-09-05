@@ -40,7 +40,12 @@ def build_inventory(root: Path, *, require_dependencies: bool = False) -> dict[s
         value = ast.literal_eval(manifest_path.read_text(encoding="utf-8"))
         if not value.get("installable", True):
             continue
-        files = [path for path in manifest_path.parent.rglob("*") if path.is_file()]
+        files = [
+            path for path in manifest_path.parent.rglob("*")
+            if path.is_file()
+            and not {"__pycache__", ".pytest_cache"}.intersection(path.parts)
+            and path.suffix not in {".pyc", ".pyo"}
+        ]
         model_files = [
             path
             for path in files
@@ -152,6 +157,12 @@ def derive_upgrade_plan(
             if current["version"] == wanted["version"]:
                 raise ModuleReleaseError(f"stored model changed without versioned upgrade path: {name}")
             reasons[name].append("stored-model-changed")
+    # New product modules must be installed; existing optional modules that an
+    # environment deliberately left uninstalled remain untouched.
+    new_modules = set(candidate) - set(active) - installed_modules
+    changed.update(new_modules)
+    for name in new_modules:
+        reasons[name].append("new-product-module")
     if foundation_changed:
         changed.update(installed_modules)
         for name in installed_modules:
@@ -227,8 +238,9 @@ def validate_upgrade_plan(value: object) -> dict[str, Any]:
     for field in ("installed_modules", "upgrade_modules"):
         if value[field] != sorted(set(value[field])):
             raise ModuleReleaseError(f"upgrade plan {field} is not canonical")
-    if not set(value["upgrade_modules"]) <= set(value["installed_modules"]):
-        raise ModuleReleaseError("upgrade plan contains an uninstalled module")
+    for name in set(value["upgrade_modules"]) - set(value["installed_modules"]):
+        if value["reasons"].get(name) != ["new-product-module"]:
+            raise ModuleReleaseError("upgrade plan contains an unapproved new module")
     body = {key: item for key, item in value.items() if key != "sha256"}
     canonical = json.dumps(body, sort_keys=True, separators=(",", ":"))
     if hashlib.sha256(canonical.encode()).hexdigest() != value["sha256"]:
