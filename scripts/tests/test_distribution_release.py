@@ -51,6 +51,18 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         self.assertIn("type=gha,scope=${{ matrix.name }}", self.workflow)
         self.assertNotIn("cache-to: type=gha", self.workflow)
 
+    def test_workflow_exports_layers_with_the_commit_timestamp(self) -> None:
+        self.assertIn(
+            "outputs: type=image,push=true,rewrite-timestamp=true",
+            self.workflow,
+        )
+        self.assertIn(
+            "SOURCE_DATE_EPOCH=${{ matrix.source_date_epoch }}",
+            self.workflow,
+        )
+        self.assertIn("all(type == \"number\")", self.workflow)
+        self.assertNotIn("push: true", self.workflow)
+
     def test_existing_content_image_skips_build_and_attestation(self) -> None:
         self.assertGreaterEqual(
             self.workflow.count("if: steps.existing.outputs.exists != 'true'"),

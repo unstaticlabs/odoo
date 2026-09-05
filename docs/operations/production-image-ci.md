@@ -36,6 +36,41 @@ trusted integration owner. GitHub stores the public-repository attestation;
 the separately owned renderer package does not need to accept a cross-package
 write. The workflow neither rebuilds nor retags the renderer.
 
+## Reproducible layers
+
+`scripts/component-build --json` reports `source_date_epoch`, the committer
+time of `HEAD`. The build step passes it as the `SOURCE_DATE_EPOCH` build
+argument and exports the image with `rewrite-timestamp=true`. BuildKit then
+clamps every file timestamp in the exported layers to that time, so a layer
+digest depends on the file content and the commit only. A checkout sets the
+file times to the checkout time, so without this option the same tree got a
+new layer digest on every runner. Base image layers are not rewritten.
+
+A build of the same commit gives the same layer digests on any machine, with
+or without a build cache. An unchanged tree in a later commit still shares
+its layer through the registry cache, as before. For a local build, pass the
+same values:
+
+```bash
+docker buildx build --file Dockerfile --target distribution \
+  --build-arg SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)" \
+  --output type=image,name=usl-odoo:local,rewrite-timestamp=true .
+```
+
+## Translations in the image
+
+`Dockerfile.dockerignore` keeps only the `.pot` templates and the `en*.po`,
+`fr.po`, and `fr_*.po` catalogs out of the `i18n/` and `i18n_extra/`
+directories of core, custom, and OCA add-ons. The distribution activates only
+English and French (`usl_locale`), and the other catalogs made up about 740 MB
+of the `addons` layer. Every non-`.po` file still enters the image.
+
+Odoo reads `<module>/i18n/<lang>.po` when a language is activated or a module
+is updated. If a third language is activated on a running database, its terms
+stay in English until the image is rebuilt with that catalog. To add a
+language, add its exception lines to `Dockerfile.dockerignore` and to
+`.dockerignore`, then build a new release.
+
 ## Release artifact
 
 The final `usl-release.json` binds:
