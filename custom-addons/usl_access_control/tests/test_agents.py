@@ -1,3 +1,4 @@
+import contextlib
 import datetime
 import inspect
 from types import MethodType, SimpleNamespace
@@ -1895,6 +1896,57 @@ class TestAutonomousAgents(TransactionCase):
                     "expiration_date": fields.Datetime.now() + datetime.timedelta(days=1827),
                 },
             )
+    def test_agent_api_audit_is_recorded_after_the_request_transaction_ends(self):
+        """The audit insert must not run on a second connection while the
+        request transaction is open: its foreign-key checks wait on rows that
+        the request locked, which wedges the HTTP worker."""
+        agent = self._create_agent()
+        controller = UslAgentJson2Controller()
+        request_state = SimpleNamespace(
+            env=self.env, registry=self.env.registry,
+            httprequest=SimpleNamespace(remote_addr="127.0.0.1", user_agent=SimpleNamespace(string="test")),
+        )
+        events = self.env["usl.audit.event"].sudo()
+
+        def record(request_id, outcome="succeeded"):
+            controller._record_agent_api_call(
+                agent=agent, model_name="res.partner", method_name="search_read",
+                record_ids=(), outcome=outcome, request_id=request_id, correlation_id=request_id,
+            )
+
+        same_transaction = patch.object(
+            self.env.registry, "cursor", return_value=contextlib.nullcontext(self.env.cr),
+        )
+        with (
+            patch.object(json2_module, "request", request_state),
+            same_transaction,
+            patch.object(self.env.cr, "commit", lambda: None),
+        ):
+            record("req-committed")
+            self.assertFalse(events.search([("request_id", "=", "req-committed")]))
+            self.env.cr.postcommit.run()
+            self.assertEqual(
+                events.search([("request_id", "=", "req-committed")]).mapped("outcome"),
+                ["succeeded"],
+            )
+
+            record("req-rolled-back")
+            self.env.cr.postcommit.clear()
+            self.env.cr.postrollback.run()
+            self.assertEqual(
+                events.search([("request_id", "=", "req-rolled-back")]).mapped("outcome"),
+                ["failed"],
+            )
+
+            record("req-denied", outcome="denied")
+            self.env.cr.postcommit.clear()
+            self.env.cr.postrollback.run()
+            self.assertEqual(
+                events.search([("request_id", "=", "req-denied")]).mapped("outcome"),
+                ["denied"],
+            )
+
+
 
 
 @tagged("post_install", "-at_install", "usl_access_control")
