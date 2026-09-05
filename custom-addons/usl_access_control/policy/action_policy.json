@@ -40275,7 +40275,6 @@
         "route:json2:ANY:/doc/<model_name>.json",
         "route:json2:DELETE,GET,PATCH,POST,PUT:/json/2",
         "route:json2:DELETE,GET,PATCH,POST,PUT:/json/2/<path:subpath>",
-        "route:json2:POST:/json/2/<__model__>/<__method__>",
         "route:jsonrpc:ANY:/html_editor/bus_broadcast",
         "route:jsonrpc:ANY:/html_editor/generate_text",
         "route:jsonrpc:ANY:/html_editor/get_ice_servers",
@@ -50479,7 +50478,6 @@
         "route:json2:ANY:/doc/<model_name>.json": "a6e42a0e182579439a1ba5088377063e78d64f5a657ed66e3b357a757d35c243",
         "route:json2:DELETE,GET,PATCH,POST,PUT:/json/2": "b3c009beac46c777fbda4d3673c72ce9372810cf01fea6c53997fc05614cb11d",
         "route:json2:DELETE,GET,PATCH,POST,PUT:/json/2/<path:subpath>": "947396b931b39ef45aea67de72b7e2e57d14b2d18cd94ed8c67e27237dec29cc",
-        "route:json2:POST:/json/2/<__model__>/<__method__>": "e7081b17702c41c45f2625738e53e23e1f2f3c7ec1fcc82d3539f7dea99513da",
         "route:jsonrpc:ANY:/html_editor/bus_broadcast": "502515d2a68234a923b9cd1ffd3781a91c037fb648ca8ad38843a8e45a1489ff",
         "route:jsonrpc:ANY:/html_editor/generate_text": "db04ba5d279150080bc73b765b224456bd40aa96b66bcd6d8b735344b865af4e",
         "route:jsonrpc:ANY:/html_editor/get_ice_servers": "d2bb21a51b7580066baeee3b7776d1a4177984d66be3ea6b4b637f7d6dee4229",
@@ -60732,7 +60730,6 @@
         "route:http:GET:/peppol/authentication/callback",
         "route:http:POST:/peppol/authentication/webhook",
         "rpc:account.account.action_unmerge",
-        "rpc:account.account.activity_reschedule",
         "rpc:account.account.activity_schedule",
         "rpc:account.account.activity_send_mail",
         "rpc:account.account.copy",
@@ -60974,7 +60971,6 @@
         "rpc:account.analytic.plan.write",
         "rpc:account.asset.action_archive_attachment",
         "rpc:account.asset.action_open_documents_workspace",
-        "rpc:account.asset.activity_reschedule",
         "rpc:account.asset.activity_schedule",
         "rpc:account.asset.activity_send_mail",
         "rpc:account.asset.compute.copy",
@@ -61151,12 +61147,10 @@
         "rpc:account.bank.ingestion.action_archive",
         "rpc:account.bank.ingestion.action_process_now",
         "rpc:account.bank.ingestion.action_unarchive",
-        "rpc:account.bank.ingestion.activity_reschedule",
         "rpc:account.bank.ingestion.activity_schedule",
         "rpc:account.bank.ingestion.activity_send_mail",
         "rpc:account.bank.ingestion.config.action_archive",
         "rpc:account.bank.ingestion.config.action_unarchive",
-        "rpc:account.bank.ingestion.config.activity_reschedule",
         "rpc:account.bank.ingestion.config.activity_schedule",
         "rpc:account.bank.ingestion.config.activity_send_mail",
         "rpc:account.bank.ingestion.config.copy",
@@ -61264,7 +61258,6 @@
         "rpc:account.bank.statement.action_certify",
         "rpc:account.bank.statement.action_confirm_cutover_baseline",
         "rpc:account.bank.statement.action_open_documents_workspace",
-        "rpc:account.bank.statement.activity_reschedule",
         "rpc:account.bank.statement.activity_schedule",
         "rpc:account.bank.statement.activity_send_mail",
         "rpc:account.bank.statement.certification.action_archive",
@@ -61874,7 +61867,6 @@
         "rpc:account.invoice.report.web_search_read",
         "rpc:account.invoice.report.write",
         "rpc:account.journal.action_create_vendor_bill",
-        "rpc:account.journal.activity_reschedule",
         "rpc:account.journal.activity_schedule",
         "rpc:account.journal.activity_send_mail",
         "rpc:account.journal.button_refresh_out_einvoices_status",
@@ -61999,7 +61991,6 @@
         "rpc:account.move.action_switch_move_type",
         "rpc:account.move.action_update_fpos_values",
         "rpc:account.move.action_validate_moves_with_confirmation",
-        "rpc:account.move.activity_reschedule",
         "rpc:account.move.activity_schedule",
         "rpc:account.move.activity_send_mail",
         "rpc:account.move.button_cancel",
@@ -62158,7 +62149,6 @@
         "rpc:account.payment.action_archive_attachment",
         "rpc:account.payment.action_open_documents_workspace",
         "rpc:account.payment.action_post",
-        "rpc:account.payment.activity_reschedule",
         "rpc:account.payment.activity_schedule",
         "rpc:account.payment.activity_send_mail",
         "rpc:account.payment.copy",
@@ -62754,7 +62744,6 @@
         "rpc:b2c.accounting.session.action_lock",
         "rpc:b2c.accounting.session.action_mark_reviewed",
         "rpc:b2c.accounting.session.action_refresh",
-        "rpc:b2c.accounting.session.activity_reschedule",
         "rpc:b2c.accounting.session.activity_schedule",
         "rpc:b2c.accounting.session.activity_send_mail",
         "rpc:b2c.accounting.session.copy",
@@ -64030,9 +64019,6 @@
         "rpc:account.account.action_unmerge": {
           "reversal_action": "rpc:account.account.write"
         },
-        "rpc:account.account.activity_reschedule": {
-          "reversal_action": "rpc:account.account.write"
-        },
         "rpc:account.account.activity_schedule": {
           "reversal_action": "rpc:account.account.write"
         },
@@ -64756,9 +64742,6 @@
         "rpc:account.asset.action_open_documents_workspace": {
           "reversal_action": "rpc:account.asset.write"
         },
-        "rpc:account.asset.activity_reschedule": {
-          "reversal_action": "rpc:account.asset.write"
-        },
         "rpc:account.asset.activity_schedule": {
           "reversal_action": "rpc:account.asset.write"
         },
@@ -65287,9 +65270,6 @@
         "rpc:account.bank.ingestion.action_unarchive": {
           "reversal_action": "rpc:account.bank.ingestion.action_archive"
         },
-        "rpc:account.bank.ingestion.activity_reschedule": {
-          "reversal_action": "rpc:account.bank.ingestion.write"
-        },
         "rpc:account.bank.ingestion.activity_schedule": {
           "reversal_action": "rpc:account.bank.ingestion.write"
         },
@@ -65301,9 +65281,6 @@
         },
         "rpc:account.bank.ingestion.config.action_unarchive": {
           "reversal_action": "rpc:account.bank.ingestion.config.action_archive"
-        },
-        "rpc:account.bank.ingestion.config.activity_reschedule": {
-          "reversal_action": "rpc:account.bank.ingestion.config.write"
         },
         "rpc:account.bank.ingestion.config.activity_schedule": {
           "reversal_action": "rpc:account.bank.ingestion.config.write"
@@ -65624,9 +65601,6 @@
           "reversal_action": "rpc:account.bank.statement.reopen.action_reopen"
         },
         "rpc:account.bank.statement.action_open_documents_workspace": {
-          "reversal_action": "rpc:account.bank.statement.write"
-        },
-        "rpc:account.bank.statement.activity_reschedule": {
           "reversal_action": "rpc:account.bank.statement.write"
         },
         "rpc:account.bank.statement.activity_schedule": {
@@ -67456,9 +67430,6 @@
         "rpc:account.journal.action_create_vendor_bill": {
           "reversal_action": "rpc:account.journal.write"
         },
-        "rpc:account.journal.activity_reschedule": {
-          "reversal_action": "rpc:account.journal.write"
-        },
         "rpc:account.journal.activity_schedule": {
           "reversal_action": "rpc:account.journal.write"
         },
@@ -67829,9 +67800,6 @@
           "reversal_action": "rpc:account.move.write"
         },
         "rpc:account.move.action_validate_moves_with_confirmation": {
-          "reversal_action": "rpc:account.move.write"
-        },
-        "rpc:account.move.activity_reschedule": {
           "reversal_action": "rpc:account.move.write"
         },
         "rpc:account.move.activity_schedule": {
@@ -68307,9 +68275,6 @@
         },
         "rpc:account.payment.action_post": {
           "reversal_action": "rpc:account.payment.action_draft"
-        },
-        "rpc:account.payment.activity_reschedule": {
-          "reversal_action": "rpc:account.payment.write"
         },
         "rpc:account.payment.activity_schedule": {
           "reversal_action": "rpc:account.payment.write"
@@ -70094,9 +70059,6 @@
           "reversal_action": "rpc:b2c.accounting.session.write"
         },
         "rpc:b2c.accounting.session.action_refresh": {
-          "reversal_action": "rpc:b2c.accounting.session.write"
-        },
-        "rpc:b2c.accounting.session.activity_reschedule": {
           "reversal_action": "rpc:b2c.accounting.session.write"
         },
         "rpc:b2c.accounting.session.activity_schedule": {
@@ -73882,7 +73844,6 @@
         "route:http:GET:/peppol/authentication/callback": "e4d07e4e02a54eabfdd856a85b1d650652d4c170d4eb78536533b343103297c0",
         "route:http:POST:/peppol/authentication/webhook": "8f577744d0bd54e1bb8ea906dfed4d24d189e768e7d96f0d499719192ad8a936",
         "rpc:account.account.action_unmerge": "12f752ab5d5fabd4e396c22da5648896b10a1bb3e319994751469816ad5ab06f",
-        "rpc:account.account.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:account.account.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:account.account.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:account.account.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
@@ -74124,7 +74085,6 @@
         "rpc:account.analytic.plan.write": "eedc28eec18953cd9d44e0d27151ba0fda1c42ef6139ef1b7a1bad1d15941bf1",
         "rpc:account.asset.action_archive_attachment": "b709c664d814f18382ebd8438cd811570de88cb255a51bc05c7cad3e294c5b77",
         "rpc:account.asset.action_open_documents_workspace": "a77c4b201439ce301a99985661cf9f8dbe058829d55d16ea62e0b5fcaaecbaad",
-        "rpc:account.asset.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:account.asset.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:account.asset.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:account.asset.compute.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
@@ -74301,12 +74261,10 @@
         "rpc:account.bank.ingestion.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
         "rpc:account.bank.ingestion.action_process_now": "fc0081ada27d46d9f78056d04e6e3f0c5f4f4a9f5105b8b5dc358a10f9f45f8e",
         "rpc:account.bank.ingestion.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
-        "rpc:account.bank.ingestion.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:account.bank.ingestion.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:account.bank.ingestion.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:account.bank.ingestion.config.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
         "rpc:account.bank.ingestion.config.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
-        "rpc:account.bank.ingestion.config.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:account.bank.ingestion.config.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:account.bank.ingestion.config.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:account.bank.ingestion.config.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
@@ -74414,7 +74372,6 @@
         "rpc:account.bank.statement.action_certify": "fb86f0968d487d4832ead80617635052aa3839fa85ce8358ec273ace253ab447",
         "rpc:account.bank.statement.action_confirm_cutover_baseline": "47d90d9b6d0eff652b623c14236156afa8096b57a8c9712e61da72c11396e829",
         "rpc:account.bank.statement.action_open_documents_workspace": "a77c4b201439ce301a99985661cf9f8dbe058829d55d16ea62e0b5fcaaecbaad",
-        "rpc:account.bank.statement.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:account.bank.statement.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:account.bank.statement.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:account.bank.statement.certification.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
@@ -75024,7 +74981,6 @@
         "rpc:account.invoice.report.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:account.invoice.report.write": "010ab28dd1877e9843e54acd846e0ab610a1d9b9dd59117f5f93494efba41b4f",
         "rpc:account.journal.action_create_vendor_bill": "1f39bcee1204d44f498614b953120671a258de2a5310caf7f579670b38391b67",
-        "rpc:account.journal.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:account.journal.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:account.journal.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:account.journal.button_refresh_out_einvoices_status": "5a381c16ee43523630ba9f812fa38aec96d428a035d410fffea722d45c32ce2d",
@@ -75149,7 +75105,6 @@
         "rpc:account.move.action_switch_move_type": "39addb649388be2716d52b211c41b2209b1f081c28267e7db1fdc221c198a82b",
         "rpc:account.move.action_update_fpos_values": "c9f65ae72e2508bc2438fc742833894001f9ca883b5a9d3508fdce989d1530c0",
         "rpc:account.move.action_validate_moves_with_confirmation": "33753eeae20d73c02a3b8ca240df60d2c54b51ab90a2977a7e3e0defcd11155f",
-        "rpc:account.move.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:account.move.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:account.move.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:account.move.button_cancel": "2d8724206503d8eaf76eac59749bf8235a36417fd9f4a4ffdc55ddd39e383474",
@@ -75308,7 +75263,6 @@
         "rpc:account.payment.action_archive_attachment": "b709c664d814f18382ebd8438cd811570de88cb255a51bc05c7cad3e294c5b77",
         "rpc:account.payment.action_open_documents_workspace": "a77c4b201439ce301a99985661cf9f8dbe058829d55d16ea62e0b5fcaaecbaad",
         "rpc:account.payment.action_post": "8b49037614edfa7c4635b786527c73a4a5b8521b2ece021b183d0ee989841024",
-        "rpc:account.payment.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:account.payment.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:account.payment.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:account.payment.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
@@ -75904,7 +75858,6 @@
         "rpc:b2c.accounting.session.action_lock": "2845c2c0e522fe15e6b8fe011d8b741dd82ba6f36b1b113c3a6aa87361462c6b",
         "rpc:b2c.accounting.session.action_mark_reviewed": "47d179f0c4e8ee98bc12d7a5df25b37e51d13ee670a15e68ebef3ffebf1e1544",
         "rpc:b2c.accounting.session.action_refresh": "ef253f413c5e8fb0537b76e9a7c7b4a556a96c5a6495f439eb7bc0255efc0e21",
-        "rpc:b2c.accounting.session.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:b2c.accounting.session.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:b2c.accounting.session.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:b2c.accounting.session.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
@@ -78593,7 +78546,6 @@
         "rpc:stock.inventory.warning.web_save",
         "rpc:stock.inventory.warning.web_save_multi",
         "rpc:stock.inventory.warning.web_search_read",
-        "rpc:stock.landed.cost.activity_reschedule",
         "rpc:stock.landed.cost.activity_schedule",
         "rpc:stock.landed.cost.button_cancel",
         "rpc:stock.landed.cost.compute_landed_cost",
@@ -83429,9 +83381,6 @@
         "rpc:stock.inventory.warning.web_search_read": {
           "reversal_action": "rpc:stock.inventory.warning.write"
         },
-        "rpc:stock.landed.cost.activity_reschedule": {
-          "reversal_action": "rpc:stock.landed.cost.write"
-        },
         "rpc:stock.landed.cost.activity_schedule": {
           "reversal_action": "rpc:stock.landed.cost.write"
         },
@@ -86519,7 +86468,6 @@
         "rpc:stock.inventory.warning.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:stock.inventory.warning.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:stock.inventory.warning.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:stock.landed.cost.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:stock.landed.cost.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:stock.landed.cost.button_cancel": "a015a36e1bce04b4462beaa386706978b43e5b9be6d37febda934b93011b7fd7",
         "rpc:stock.landed.cost.compute_landed_cost": "393dd45f4b8d203f7d735366af1f8344dbcd933ecf8904dff25ab3c77cb4a64c",
@@ -87081,7 +87029,6 @@
         "route:http:ANY:/google_gmail/iap_confirm",
         "route:http:POST:/mail/attachment/upload",
         "route:jsonrpc:POST:/web_unsplash/attachment/add",
-        "rpc:b2c.order.activity_reschedule",
         "rpc:b2c.order.activity_schedule",
         "rpc:b2c.order.activity_send_mail",
         "rpc:b2c.order.get_views",
@@ -87098,7 +87045,6 @@
         "rpc:b2c.order.message_update",
         "rpc:b2c.order.notify_cancel_by_type",
         "rpc:b2c.order.set_message_pin",
-        "rpc:b2c.product.alias.activity_reschedule",
         "rpc:b2c.product.alias.activity_schedule",
         "rpc:b2c.product.alias.activity_send_mail",
         "rpc:b2c.product.alias.get_views",
@@ -87115,7 +87061,6 @@
         "rpc:b2c.product.alias.message_update",
         "rpc:b2c.product.alias.notify_cancel_by_type",
         "rpc:b2c.product.alias.set_message_pin",
-        "rpc:base.automation.activity_reschedule",
         "rpc:base.automation.activity_schedule",
         "rpc:base.automation.activity_send_mail",
         "rpc:base.automation.get_views",
@@ -87215,7 +87160,6 @@
         "rpc:google.gmail.mixin.web_save",
         "rpc:google.gmail.mixin.web_save_multi",
         "rpc:google.gmail.mixin.web_search_read",
-        "rpc:hr.department.activity_reschedule",
         "rpc:hr.department.activity_schedule",
         "rpc:hr.department.activity_send_mail",
         "rpc:hr.department.get_views",
@@ -87234,7 +87178,6 @@
         "rpc:hr.department.set_message_pin",
         "rpc:hr.employee.action_archive_attachment",
         "rpc:hr.employee.action_open_documents_workspace",
-        "rpc:hr.employee.activity_reschedule",
         "rpc:hr.employee.activity_schedule",
         "rpc:hr.employee.activity_send_mail",
         "rpc:hr.employee.get_views",
@@ -87253,7 +87196,6 @@
         "rpc:hr.employee.set_message_pin",
         "rpc:hr.expense.action_archive_attachment",
         "rpc:hr.expense.action_open_documents_workspace",
-        "rpc:hr.expense.activity_reschedule",
         "rpc:hr.expense.activity_schedule",
         "rpc:hr.expense.activity_send_mail",
         "rpc:hr.expense.create_expense_from_attachments",
@@ -87286,7 +87228,6 @@
         "rpc:hr.job.message_update",
         "rpc:hr.job.notify_cancel_by_type",
         "rpc:hr.job.set_message_pin",
-        "rpc:hr.version.activity_reschedule",
         "rpc:hr.version.activity_schedule",
         "rpc:hr.version.activity_send_mail",
         "rpc:hr.version.get_views",
@@ -87304,7 +87245,6 @@
         "rpc:hr.version.notify_cancel_by_type",
         "rpc:hr.version.set_message_pin",
         "rpc:ir.actions.report.save_xlsx_report_attachment",
-        "rpc:ir.actions.server.activity_reschedule",
         "rpc:ir.actions.server.activity_schedule",
         "rpc:ir.actions.server.activity_send_mail",
         "rpc:ir.actions.server.get_views",
@@ -87344,7 +87284,6 @@
         "rpc:ir.attachment.web_search_read",
         "rpc:ir.config_parameter.set_bool",
         "rpc:ir.config_parameter.set_str",
-        "rpc:ir.cron.activity_reschedule",
         "rpc:ir.cron.activity_schedule",
         "rpc:ir.cron.activity_send_mail",
         "rpc:ir.cron.get_views",
@@ -87379,7 +87318,6 @@
         "rpc:ir.mail_server.web_save",
         "rpc:ir.mail_server.web_save_multi",
         "rpc:ir.mail_server.web_search_read",
-        "rpc:l10n.fr.pdp.reports.flow.activity_reschedule",
         "rpc:l10n.fr.pdp.reports.flow.activity_schedule",
         "rpc:l10n.fr.pdp.reports.flow.activity_send_mail",
         "rpc:l10n.fr.pdp.reports.flow.get_views",
@@ -87403,7 +87341,6 @@
         "rpc:mail.activity.copy_data",
         "rpc:mail.activity.formatted_read_grouping_sets",
         "rpc:mail.activity.get_views",
-        "rpc:mail.activity.mixin.activity_reschedule",
         "rpc:mail.activity.mixin.activity_schedule",
         "rpc:mail.activity.mixin.activity_send_mail",
         "rpc:mail.activity.mixin.copy",
@@ -88202,7 +88139,6 @@
         "rpc:mrp.bom.message_update",
         "rpc:mrp.bom.notify_cancel_by_type",
         "rpc:mrp.bom.set_message_pin",
-        "rpc:mrp.production.activity_reschedule",
         "rpc:mrp.production.activity_schedule",
         "rpc:mrp.production.activity_send_mail",
         "rpc:mrp.production.get_views",
@@ -88219,7 +88155,6 @@
         "rpc:mrp.production.message_update",
         "rpc:mrp.production.notify_cancel_by_type",
         "rpc:mrp.production.set_message_pin",
-        "rpc:mrp.routing.workcenter.activity_reschedule",
         "rpc:mrp.routing.workcenter.activity_schedule",
         "rpc:mrp.routing.workcenter.activity_send_mail",
         "rpc:mrp.routing.workcenter.get_views",
@@ -88236,7 +88171,6 @@
         "rpc:mrp.routing.workcenter.message_update",
         "rpc:mrp.routing.workcenter.notify_cancel_by_type",
         "rpc:mrp.routing.workcenter.set_message_pin",
-        "rpc:mrp.unbuild.activity_reschedule",
         "rpc:mrp.unbuild.activity_schedule",
         "rpc:mrp.unbuild.activity_send_mail",
         "rpc:mrp.unbuild.get_views",
@@ -88267,7 +88201,6 @@
         "rpc:mrp.workcenter.message_update",
         "rpc:mrp.workcenter.notify_cancel_by_type",
         "rpc:mrp.workcenter.set_message_pin",
-        "rpc:mrp.workorder.activity_reschedule",
         "rpc:mrp.workorder.activity_schedule",
         "rpc:mrp.workorder.activity_send_mail",
         "rpc:mrp.workorder.get_views",
@@ -88313,7 +88246,6 @@
         "rpc:product.category.message_update",
         "rpc:product.category.notify_cancel_by_type",
         "rpc:product.category.set_message_pin",
-        "rpc:product.pricelist.activity_reschedule",
         "rpc:product.pricelist.activity_schedule",
         "rpc:product.pricelist.activity_send_mail",
         "rpc:product.pricelist.get_views",
@@ -88330,7 +88262,6 @@
         "rpc:product.pricelist.message_update",
         "rpc:product.pricelist.notify_cancel_by_type",
         "rpc:product.pricelist.set_message_pin",
-        "rpc:product.product.activity_reschedule",
         "rpc:product.product.activity_schedule",
         "rpc:product.product.activity_send_mail",
         "rpc:product.product.get_views",
@@ -88347,7 +88278,6 @@
         "rpc:product.product.message_update",
         "rpc:product.product.notify_cancel_by_type",
         "rpc:product.product.set_message_pin",
-        "rpc:product.template.activity_reschedule",
         "rpc:product.template.activity_schedule",
         "rpc:product.template.activity_send_mail",
         "rpc:product.template.get_views",
@@ -88380,7 +88310,6 @@
         "rpc:project.milestone.set_message_pin",
         "rpc:project.project.action_archive_attachment",
         "rpc:project.project.action_open_documents_workspace",
-        "rpc:project.project.activity_reschedule",
         "rpc:project.project.activity_schedule",
         "rpc:project.project.activity_send_mail",
         "rpc:project.project.copy_data",
@@ -88401,7 +88330,6 @@
         "rpc:project.share.wizard.action_send_mail",
         "rpc:project.task.action_archive_attachment",
         "rpc:project.task.action_open_documents_workspace",
-        "rpc:project.task.activity_reschedule",
         "rpc:project.task.activity_schedule",
         "rpc:project.task.activity_send_mail",
         "rpc:project.task.get_views",
@@ -88416,7 +88344,6 @@
         "rpc:project.task.message_update",
         "rpc:project.task.notify_cancel_by_type",
         "rpc:project.task.set_message_pin",
-        "rpc:project.update.activity_reschedule",
         "rpc:project.update.activity_schedule",
         "rpc:project.update.activity_send_mail",
         "rpc:project.update.get_views",
@@ -88434,7 +88361,6 @@
         "rpc:project.update.notify_cancel_by_type",
         "rpc:project.update.set_message_pin",
         "rpc:publisher_warranty.contract.update_notification",
-        "rpc:purchase.order.activity_reschedule",
         "rpc:purchase.order.activity_schedule",
         "rpc:purchase.order.activity_send_mail",
         "rpc:purchase.order.create_document_from_attachment",
@@ -88514,10 +88440,8 @@
         "rpc:res.company.set_message_pin",
         "rpc:res.partner.action_archive_attachment",
         "rpc:res.partner.action_open_documents_workspace",
-        "rpc:res.partner.activity_reschedule",
         "rpc:res.partner.activity_schedule",
         "rpc:res.partner.activity_send_mail",
-        "rpc:res.partner.bank.activity_reschedule",
         "rpc:res.partner.bank.activity_schedule",
         "rpc:res.partner.bank.activity_send_mail",
         "rpc:res.partner.bank.get_views",
@@ -88550,7 +88474,6 @@
         "rpc:res.partner.notify_cancel_by_type",
         "rpc:res.partner.search_for_channel_invite",
         "rpc:res.partner.set_message_pin",
-        "rpc:sale.order.activity_reschedule",
         "rpc:sale.order.activity_schedule",
         "rpc:sale.order.activity_send_mail",
         "rpc:sale.order.create_document_from_attachment",
@@ -88571,7 +88494,6 @@
         "rpc:sign.oca.request.action_archive_attachment",
         "rpc:sign.oca.request.action_open_documents_workspace",
         "rpc:sign.oca.request.action_send",
-        "rpc:sign.oca.request.activity_reschedule",
         "rpc:sign.oca.request.activity_schedule",
         "rpc:sign.oca.request.activity_send_mail",
         "rpc:sign.oca.request.add_item",
@@ -88593,7 +88515,6 @@
         "rpc:sign.oca.request.notify_cancel_by_type",
         "rpc:sign.oca.request.set_item_data",
         "rpc:sign.oca.request.set_message_pin",
-        "rpc:sign.oca.request.signer.activity_reschedule",
         "rpc:sign.oca.request.signer.activity_schedule",
         "rpc:sign.oca.request.signer.activity_send_mail",
         "rpc:sign.oca.request.signer.create",
@@ -88655,7 +88576,6 @@
         "rpc:snailmail.letter.web_save",
         "rpc:snailmail.letter.web_save_multi",
         "rpc:snailmail.letter.web_search_read",
-        "rpc:stock.lot.activity_reschedule",
         "rpc:stock.lot.activity_schedule",
         "rpc:stock.lot.activity_send_mail",
         "rpc:stock.lot.get_views",
@@ -88672,7 +88592,6 @@
         "rpc:stock.lot.message_update",
         "rpc:stock.lot.notify_cancel_by_type",
         "rpc:stock.lot.set_message_pin",
-        "rpc:stock.picking.activity_reschedule",
         "rpc:stock.picking.activity_schedule",
         "rpc:stock.picking.activity_send_mail",
         "rpc:stock.picking.get_views",
@@ -88700,7 +88619,6 @@
         "rpc:usl.document.action_set_library_visibility",
         "rpc:usl.document.action_set_starred",
         "rpc:usl.document.action_sync_permissions",
-        "rpc:usl.document.activity_reschedule",
         "rpc:usl.document.activity_schedule",
         "rpc:usl.document.activity_send_mail",
         "rpc:usl.document.context.tag.copy",
@@ -88789,7 +88707,6 @@
         "rpc:usl.document.user.state.write",
         "rpc:usl.expense.batch.action_archive_attachment",
         "rpc:usl.expense.batch.action_open_documents_workspace",
-        "rpc:usl.expense.batch.activity_reschedule",
         "rpc:usl.expense.batch.activity_schedule",
         "rpc:usl.expense.batch.activity_send_mail",
         "rpc:usl.expense.batch.get_views",
@@ -88911,7 +88828,6 @@
         "rpc:usl.platform.billing.bank.allocation.message_update",
         "rpc:usl.platform.billing.bank.allocation.notify_cancel_by_type",
         "rpc:usl.platform.billing.bank.allocation.set_message_pin",
-        "rpc:usl.platform.billing.payout.activity_reschedule",
         "rpc:usl.platform.billing.payout.activity_schedule",
         "rpc:usl.platform.billing.payout.activity_send_mail",
         "rpc:usl.platform.billing.payout.get_views",
@@ -88928,7 +88844,6 @@
         "rpc:usl.platform.billing.payout.message_update",
         "rpc:usl.platform.billing.payout.notify_cancel_by_type",
         "rpc:usl.platform.billing.payout.set_message_pin",
-        "rpc:usl.platform.billing.platform.activity_reschedule",
         "rpc:usl.platform.billing.platform.activity_schedule",
         "rpc:usl.platform.billing.platform.activity_send_mail",
         "rpc:usl.platform.billing.platform.get_views",
@@ -88945,7 +88860,6 @@
         "rpc:usl.platform.billing.platform.message_update",
         "rpc:usl.platform.billing.platform.notify_cancel_by_type",
         "rpc:usl.platform.billing.platform.set_message_pin",
-        "rpc:usl.platform.billing.session.activity_reschedule",
         "rpc:usl.platform.billing.session.activity_schedule",
         "rpc:usl.platform.billing.session.activity_send_mail",
         "rpc:usl.platform.billing.session.get_views",
@@ -88976,7 +88890,6 @@
         "rpc:usl.sign.daily.manifest.receipt.write",
         "rpc:usl.sign.daily.manifest.unlink",
         "rpc:usl.sign.daily.manifest.write",
-        "rpc:usl.sign.enrollment.activity_reschedule",
         "rpc:usl.sign.enrollment.activity_schedule",
         "rpc:usl.sign.enrollment.activity_send_mail",
         "rpc:usl.sign.enrollment.create",
@@ -89003,7 +88916,6 @@
         "rpc:usl.sign.evidence.create",
         "rpc:usl.sign.evidence.unlink",
         "rpc:usl.sign.evidence.write",
-        "rpc:usl.sign.external.journey.activity_reschedule",
         "rpc:usl.sign.external.journey.activity_schedule",
         "rpc:usl.sign.external.journey.activity_send_mail",
         "rpc:usl.sign.external.journey.create",
@@ -89041,7 +88953,6 @@
         "rpc:usl.sign.validation.write",
         "rpc:usl.tese.payslip.action_archive_attachment",
         "rpc:usl.tese.payslip.action_open_documents_workspace",
-        "rpc:usl.tese.payslip.activity_reschedule",
         "rpc:usl.tese.payslip.activity_schedule",
         "rpc:usl.tese.payslip.activity_send_mail",
         "rpc:usl.tese.payslip.get_views",
@@ -89058,7 +88969,6 @@
         "rpc:usl.tese.payslip.message_update",
         "rpc:usl.tese.payslip.notify_cancel_by_type",
         "rpc:usl.tese.payslip.set_message_pin",
-        "rpc:usl.tese.profile.activity_reschedule",
         "rpc:usl.tese.profile.activity_schedule",
         "rpc:usl.tese.profile.activity_send_mail",
         "rpc:usl.tese.profile.get_views",
@@ -89093,9 +89003,6 @@
         },
         "route:jsonrpc:POST:/web_unsplash/attachment/add": {
           "reversal_action": "route:jsonrpc:POST:/web_unsplash/attachment/add"
-        },
-        "rpc:b2c.order.activity_reschedule": {
-          "reversal_action": "rpc:b2c.order.write"
         },
         "rpc:b2c.order.activity_schedule": {
           "reversal_action": "rpc:b2c.order.write"
@@ -89145,9 +89052,6 @@
         "rpc:b2c.order.set_message_pin": {
           "reversal_action": "rpc:b2c.order.write"
         },
-        "rpc:b2c.product.alias.activity_reschedule": {
-          "reversal_action": "rpc:b2c.product.alias.write"
-        },
         "rpc:b2c.product.alias.activity_schedule": {
           "reversal_action": "rpc:b2c.product.alias.write"
         },
@@ -89195,9 +89099,6 @@
         },
         "rpc:b2c.product.alias.set_message_pin": {
           "reversal_action": "rpc:b2c.product.alias.write"
-        },
-        "rpc:base.automation.activity_reschedule": {
-          "reversal_action": "rpc:base.automation.write"
         },
         "rpc:base.automation.activity_schedule": {
           "reversal_action": "rpc:base.automation.write"
@@ -89496,9 +89397,6 @@
         "rpc:google.gmail.mixin.web_search_read": {
           "reversal_action": "rpc:google.gmail.mixin.write"
         },
-        "rpc:hr.department.activity_reschedule": {
-          "reversal_action": "rpc:hr.department.write"
-        },
         "rpc:hr.department.activity_schedule": {
           "reversal_action": "rpc:hr.department.write"
         },
@@ -89553,9 +89451,6 @@
         "rpc:hr.employee.action_open_documents_workspace": {
           "reversal_action": "rpc:hr.employee.write"
         },
-        "rpc:hr.employee.activity_reschedule": {
-          "reversal_action": "rpc:hr.employee.write"
-        },
         "rpc:hr.employee.activity_schedule": {
           "reversal_action": "rpc:hr.employee.write"
         },
@@ -89608,9 +89503,6 @@
           "reversal_action": "rpc:hr.expense.write"
         },
         "rpc:hr.expense.action_open_documents_workspace": {
-          "reversal_action": "rpc:hr.expense.write"
-        },
-        "rpc:hr.expense.activity_reschedule": {
           "reversal_action": "rpc:hr.expense.write"
         },
         "rpc:hr.expense.activity_schedule": {
@@ -89709,9 +89601,6 @@
         "rpc:hr.job.set_message_pin": {
           "reversal_action": "rpc:hr.job.write"
         },
-        "rpc:hr.version.activity_reschedule": {
-          "reversal_action": "rpc:hr.version.write"
-        },
         "rpc:hr.version.activity_schedule": {
           "reversal_action": "rpc:hr.version.write"
         },
@@ -89762,9 +89651,6 @@
         },
         "rpc:ir.actions.report.save_xlsx_report_attachment": {
           "reversal_action": "rpc:ir.actions.report.write"
-        },
-        "rpc:ir.actions.server.activity_reschedule": {
-          "reversal_action": "rpc:ir.actions.server.write"
         },
         "rpc:ir.actions.server.activity_schedule": {
           "reversal_action": "rpc:ir.actions.server.write"
@@ -89883,9 +89769,6 @@
         "rpc:ir.config_parameter.set_str": {
           "reversal_action": "rpc:ir.config_parameter.write"
         },
-        "rpc:ir.cron.activity_reschedule": {
-          "reversal_action": "rpc:ir.cron.write"
-        },
         "rpc:ir.cron.activity_schedule": {
           "reversal_action": "rpc:ir.cron.write"
         },
@@ -89988,9 +89871,6 @@
         "rpc:ir.mail_server.web_search_read": {
           "reversal_action": "rpc:ir.mail_server.write"
         },
-        "rpc:l10n.fr.pdp.reports.flow.activity_reschedule": {
-          "reversal_action": "rpc:l10n.fr.pdp.reports.flow.write"
-        },
         "rpc:l10n.fr.pdp.reports.flow.activity_schedule": {
           "reversal_action": "rpc:l10n.fr.pdp.reports.flow.write"
         },
@@ -90059,9 +89939,6 @@
         },
         "rpc:mail.activity.get_views": {
           "reversal_action": "rpc:mail.activity.write"
-        },
-        "rpc:mail.activity.mixin.activity_reschedule": {
-          "reversal_action": "rpc:mail.activity.mixin.write"
         },
         "rpc:mail.activity.mixin.activity_schedule": {
           "reversal_action": "rpc:mail.activity.mixin.write"
@@ -92457,9 +92334,6 @@
         "rpc:mrp.bom.set_message_pin": {
           "reversal_action": "rpc:mrp.bom.write"
         },
-        "rpc:mrp.production.activity_reschedule": {
-          "reversal_action": "rpc:mrp.production.write"
-        },
         "rpc:mrp.production.activity_schedule": {
           "reversal_action": "rpc:mrp.production.write"
         },
@@ -92508,9 +92382,6 @@
         "rpc:mrp.production.set_message_pin": {
           "reversal_action": "rpc:mrp.production.write"
         },
-        "rpc:mrp.routing.workcenter.activity_reschedule": {
-          "reversal_action": "rpc:mrp.routing.workcenter.write"
-        },
         "rpc:mrp.routing.workcenter.activity_schedule": {
           "reversal_action": "rpc:mrp.routing.workcenter.write"
         },
@@ -92558,9 +92429,6 @@
         },
         "rpc:mrp.routing.workcenter.set_message_pin": {
           "reversal_action": "rpc:mrp.routing.workcenter.write"
-        },
-        "rpc:mrp.unbuild.activity_reschedule": {
-          "reversal_action": "rpc:mrp.unbuild.write"
         },
         "rpc:mrp.unbuild.activity_schedule": {
           "reversal_action": "rpc:mrp.unbuild.write"
@@ -92651,9 +92519,6 @@
         },
         "rpc:mrp.workcenter.set_message_pin": {
           "reversal_action": "rpc:mrp.workcenter.write"
-        },
-        "rpc:mrp.workorder.activity_reschedule": {
-          "reversal_action": "rpc:mrp.workorder.write"
         },
         "rpc:mrp.workorder.activity_schedule": {
           "reversal_action": "rpc:mrp.workorder.write"
@@ -92790,9 +92655,6 @@
         "rpc:product.category.set_message_pin": {
           "reversal_action": "rpc:product.category.write"
         },
-        "rpc:product.pricelist.activity_reschedule": {
-          "reversal_action": "rpc:product.pricelist.write"
-        },
         "rpc:product.pricelist.activity_schedule": {
           "reversal_action": "rpc:product.pricelist.write"
         },
@@ -92841,9 +92703,6 @@
         "rpc:product.pricelist.set_message_pin": {
           "reversal_action": "rpc:product.pricelist.write"
         },
-        "rpc:product.product.activity_reschedule": {
-          "reversal_action": "rpc:product.product.write"
-        },
         "rpc:product.product.activity_schedule": {
           "reversal_action": "rpc:product.product.write"
         },
@@ -92891,9 +92750,6 @@
         },
         "rpc:product.product.set_message_pin": {
           "reversal_action": "rpc:product.product.write"
-        },
-        "rpc:product.template.activity_reschedule": {
-          "reversal_action": "rpc:product.template.write"
         },
         "rpc:product.template.activity_schedule": {
           "reversal_action": "rpc:product.template.write"
@@ -92991,9 +92847,6 @@
         "rpc:project.project.action_open_documents_workspace": {
           "reversal_action": "rpc:project.project.write"
         },
-        "rpc:project.project.activity_reschedule": {
-          "reversal_action": "rpc:project.project.write"
-        },
         "rpc:project.project.activity_schedule": {
           "reversal_action": "rpc:project.project.write"
         },
@@ -93054,9 +92907,6 @@
         "rpc:project.task.action_open_documents_workspace": {
           "reversal_action": "rpc:project.task.write"
         },
-        "rpc:project.task.activity_reschedule": {
-          "reversal_action": "rpc:project.task.write"
-        },
         "rpc:project.task.activity_schedule": {
           "reversal_action": "rpc:project.task.write"
         },
@@ -93098,9 +92948,6 @@
         },
         "rpc:project.task.set_message_pin": {
           "reversal_action": "rpc:project.task.write"
-        },
-        "rpc:project.update.activity_reschedule": {
-          "reversal_action": "rpc:project.update.write"
         },
         "rpc:project.update.activity_schedule": {
           "reversal_action": "rpc:project.update.write"
@@ -93152,9 +92999,6 @@
         },
         "rpc:publisher_warranty.contract.update_notification": {
           "reversal_action": "rpc:publisher_warranty.contract.write"
-        },
-        "rpc:purchase.order.activity_reschedule": {
-          "reversal_action": "rpc:purchase.order.write"
         },
         "rpc:purchase.order.activity_schedule": {
           "reversal_action": "rpc:purchase.order.write"
@@ -93393,17 +93237,11 @@
         "rpc:res.partner.action_open_documents_workspace": {
           "reversal_action": "rpc:res.partner.write"
         },
-        "rpc:res.partner.activity_reschedule": {
-          "reversal_action": "rpc:res.partner.write"
-        },
         "rpc:res.partner.activity_schedule": {
           "reversal_action": "rpc:res.partner.write"
         },
         "rpc:res.partner.activity_send_mail": {
           "reversal_action": "rpc:res.partner.write"
-        },
-        "rpc:res.partner.bank.activity_reschedule": {
-          "reversal_action": "rpc:res.partner.bank.write"
         },
         "rpc:res.partner.bank.activity_schedule": {
           "reversal_action": "rpc:res.partner.bank.write"
@@ -93501,9 +93339,6 @@
         "rpc:res.partner.set_message_pin": {
           "reversal_action": "rpc:res.partner.write"
         },
-        "rpc:sale.order.activity_reschedule": {
-          "reversal_action": "rpc:sale.order.write"
-        },
         "rpc:sale.order.activity_schedule": {
           "reversal_action": "rpc:sale.order.write"
         },
@@ -93563,9 +93398,6 @@
         },
         "rpc:sign.oca.request.action_send": {
           "reversal_action": "rpc:sign.oca.request.action_send"
-        },
-        "rpc:sign.oca.request.activity_reschedule": {
-          "reversal_action": "rpc:sign.oca.request.activity_reschedule"
         },
         "rpc:sign.oca.request.activity_schedule": {
           "reversal_action": "rpc:sign.oca.request.activity_schedule"
@@ -93629,9 +93461,6 @@
         },
         "rpc:sign.oca.request.set_message_pin": {
           "reversal_action": "rpc:sign.oca.request.set_message_pin"
-        },
-        "rpc:sign.oca.request.signer.activity_reschedule": {
-          "reversal_action": "rpc:sign.oca.request.signer.activity_reschedule"
         },
         "rpc:sign.oca.request.signer.activity_schedule": {
           "reversal_action": "rpc:sign.oca.request.signer.activity_schedule"
@@ -93816,9 +93645,6 @@
         "rpc:snailmail.letter.web_search_read": {
           "reversal_action": "rpc:snailmail.letter.write"
         },
-        "rpc:stock.lot.activity_reschedule": {
-          "reversal_action": "rpc:stock.lot.write"
-        },
         "rpc:stock.lot.activity_schedule": {
           "reversal_action": "rpc:stock.lot.write"
         },
@@ -93866,9 +93692,6 @@
         },
         "rpc:stock.lot.set_message_pin": {
           "reversal_action": "rpc:stock.lot.write"
-        },
-        "rpc:stock.picking.activity_reschedule": {
-          "reversal_action": "rpc:stock.picking.write"
         },
         "rpc:stock.picking.activity_schedule": {
           "reversal_action": "rpc:stock.picking.write"
@@ -93949,9 +93772,6 @@
           "reversal_action": "rpc:usl.document.action_set_starred"
         },
         "rpc:usl.document.action_sync_permissions": {
-          "reversal_action": "rpc:usl.document.write"
-        },
-        "rpc:usl.document.activity_reschedule": {
           "reversal_action": "rpc:usl.document.write"
         },
         "rpc:usl.document.activity_schedule": {
@@ -94216,9 +94036,6 @@
           "reversal_action": "rpc:usl.expense.batch.write"
         },
         "rpc:usl.expense.batch.action_open_documents_workspace": {
-          "reversal_action": "rpc:usl.expense.batch.write"
-        },
-        "rpc:usl.expense.batch.activity_reschedule": {
           "reversal_action": "rpc:usl.expense.batch.write"
         },
         "rpc:usl.expense.batch.activity_schedule": {
@@ -94584,9 +94401,6 @@
         "rpc:usl.platform.billing.bank.allocation.set_message_pin": {
           "reversal_action": "rpc:usl.platform.billing.bank.allocation.write"
         },
-        "rpc:usl.platform.billing.payout.activity_reschedule": {
-          "reversal_action": "rpc:usl.platform.billing.payout.write"
-        },
         "rpc:usl.platform.billing.payout.activity_schedule": {
           "reversal_action": "rpc:usl.platform.billing.payout.write"
         },
@@ -94635,9 +94449,6 @@
         "rpc:usl.platform.billing.payout.set_message_pin": {
           "reversal_action": "rpc:usl.platform.billing.payout.write"
         },
-        "rpc:usl.platform.billing.platform.activity_reschedule": {
-          "reversal_action": "rpc:usl.platform.billing.platform.write"
-        },
         "rpc:usl.platform.billing.platform.activity_schedule": {
           "reversal_action": "rpc:usl.platform.billing.platform.write"
         },
@@ -94685,9 +94496,6 @@
         },
         "rpc:usl.platform.billing.platform.set_message_pin": {
           "reversal_action": "rpc:usl.platform.billing.platform.write"
-        },
-        "rpc:usl.platform.billing.session.activity_reschedule": {
-          "reversal_action": "rpc:usl.platform.billing.session.write"
         },
         "rpc:usl.platform.billing.session.activity_schedule": {
           "reversal_action": "rpc:usl.platform.billing.session.write"
@@ -94779,9 +94587,6 @@
         "rpc:usl.sign.daily.manifest.write": {
           "reversal_action": "rpc:usl.sign.daily.manifest.write"
         },
-        "rpc:usl.sign.enrollment.activity_reschedule": {
-          "reversal_action": "rpc:usl.sign.enrollment.activity_reschedule"
-        },
         "rpc:usl.sign.enrollment.activity_schedule": {
           "reversal_action": "rpc:usl.sign.enrollment.activity_schedule"
         },
@@ -94859,9 +94664,6 @@
         },
         "rpc:usl.sign.evidence.write": {
           "reversal_action": "rpc:usl.sign.evidence.write"
-        },
-        "rpc:usl.sign.external.journey.activity_reschedule": {
-          "reversal_action": "rpc:usl.sign.external.journey.activity_reschedule"
         },
         "rpc:usl.sign.external.journey.activity_schedule": {
           "reversal_action": "rpc:usl.sign.external.journey.activity_schedule"
@@ -94974,9 +94776,6 @@
         "rpc:usl.tese.payslip.action_open_documents_workspace": {
           "reversal_action": "rpc:usl.tese.payslip.write"
         },
-        "rpc:usl.tese.payslip.activity_reschedule": {
-          "reversal_action": "rpc:usl.tese.payslip.write"
-        },
         "rpc:usl.tese.payslip.activity_schedule": {
           "reversal_action": "rpc:usl.tese.payslip.write"
         },
@@ -95024,9 +94823,6 @@
         },
         "rpc:usl.tese.payslip.set_message_pin": {
           "reversal_action": "rpc:usl.tese.payslip.write"
-        },
-        "rpc:usl.tese.profile.activity_reschedule": {
-          "reversal_action": "rpc:usl.tese.profile.write"
         },
         "rpc:usl.tese.profile.activity_schedule": {
           "reversal_action": "rpc:usl.tese.profile.write"
@@ -95083,7 +94879,6 @@
         "route:http:ANY:/google_gmail/iap_confirm": "0b9885a504c3efda3e9219e9b2e78ae95a5a054261470af92812ce06693ffdfb",
         "route:http:POST:/mail/attachment/upload": "5daa518b9c4b151df461a8a45bb3421238e2938317e06ae993d4ca087bdf2add",
         "route:jsonrpc:POST:/web_unsplash/attachment/add": "dcc59ac213a3a7f2abb867ce1f7ba430d02b16d71618de5fb8ce878306cbd4dc",
-        "rpc:b2c.order.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:b2c.order.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:b2c.order.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:b2c.order.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -95100,7 +94895,6 @@
         "rpc:b2c.order.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
         "rpc:b2c.order.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:b2c.order.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
-        "rpc:b2c.product.alias.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:b2c.product.alias.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:b2c.product.alias.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:b2c.product.alias.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -95117,7 +94911,6 @@
         "rpc:b2c.product.alias.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
         "rpc:b2c.product.alias.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:b2c.product.alias.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
-        "rpc:base.automation.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:base.automation.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:base.automation.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:base.automation.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -95217,7 +95010,6 @@
         "rpc:google.gmail.mixin.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:google.gmail.mixin.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:google.gmail.mixin.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:hr.department.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:hr.department.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:hr.department.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:hr.department.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -95236,7 +95028,6 @@
         "rpc:hr.department.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
         "rpc:hr.employee.action_archive_attachment": "b709c664d814f18382ebd8438cd811570de88cb255a51bc05c7cad3e294c5b77",
         "rpc:hr.employee.action_open_documents_workspace": "a77c4b201439ce301a99985661cf9f8dbe058829d55d16ea62e0b5fcaaecbaad",
-        "rpc:hr.employee.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:hr.employee.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:hr.employee.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:hr.employee.get_views": "4749eb87e4f8e6f1eaecadb232d8e5256fe1e4db3ebaea1270872936400475fc",
@@ -95255,7 +95046,6 @@
         "rpc:hr.employee.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
         "rpc:hr.expense.action_archive_attachment": "b709c664d814f18382ebd8438cd811570de88cb255a51bc05c7cad3e294c5b77",
         "rpc:hr.expense.action_open_documents_workspace": "a77c4b201439ce301a99985661cf9f8dbe058829d55d16ea62e0b5fcaaecbaad",
-        "rpc:hr.expense.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:hr.expense.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:hr.expense.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:hr.expense.create_expense_from_attachments": "f38fe7d9c1c079bdcaf8825d6ee358f80934b9e2e71965546606a754130b899b",
@@ -95288,7 +95078,6 @@
         "rpc:hr.job.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
         "rpc:hr.job.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:hr.job.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
-        "rpc:hr.version.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:hr.version.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:hr.version.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:hr.version.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -95306,7 +95095,6 @@
         "rpc:hr.version.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:hr.version.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
         "rpc:ir.actions.report.save_xlsx_report_attachment": "78f875e6e85b0dfe558cd7952240f51e602f8ad5f05cdc93f72439c320bc2a00",
-        "rpc:ir.actions.server.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:ir.actions.server.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:ir.actions.server.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:ir.actions.server.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -95346,7 +95134,6 @@
         "rpc:ir.attachment.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:ir.config_parameter.set_bool": "da54f50e9792ad44f4075a8745020b2555f06b0f9f4ae19b953a9b2878bb2a8f",
         "rpc:ir.config_parameter.set_str": "710373439610680dc90b302444fecd386d40a8680e127671f7d59a9ccde3e094",
-        "rpc:ir.cron.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:ir.cron.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:ir.cron.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:ir.cron.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -95381,7 +95168,6 @@
         "rpc:ir.mail_server.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:ir.mail_server.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:ir.mail_server.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:l10n.fr.pdp.reports.flow.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:l10n.fr.pdp.reports.flow.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:l10n.fr.pdp.reports.flow.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:l10n.fr.pdp.reports.flow.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -95405,7 +95191,6 @@
         "rpc:mail.activity.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
         "rpc:mail.activity.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:mail.activity.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
-        "rpc:mail.activity.mixin.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:mail.activity.mixin.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:mail.activity.mixin.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:mail.activity.mixin.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
@@ -96204,7 +95989,6 @@
         "rpc:mrp.bom.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
         "rpc:mrp.bom.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:mrp.bom.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
-        "rpc:mrp.production.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:mrp.production.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:mrp.production.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:mrp.production.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -96221,7 +96005,6 @@
         "rpc:mrp.production.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
         "rpc:mrp.production.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:mrp.production.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
-        "rpc:mrp.routing.workcenter.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:mrp.routing.workcenter.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:mrp.routing.workcenter.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:mrp.routing.workcenter.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -96238,7 +96021,6 @@
         "rpc:mrp.routing.workcenter.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
         "rpc:mrp.routing.workcenter.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:mrp.routing.workcenter.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
-        "rpc:mrp.unbuild.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:mrp.unbuild.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:mrp.unbuild.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:mrp.unbuild.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -96269,7 +96051,6 @@
         "rpc:mrp.workcenter.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
         "rpc:mrp.workcenter.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:mrp.workcenter.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
-        "rpc:mrp.workorder.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:mrp.workorder.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:mrp.workorder.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:mrp.workorder.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -96315,7 +96096,6 @@
         "rpc:product.category.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
         "rpc:product.category.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:product.category.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
-        "rpc:product.pricelist.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:product.pricelist.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:product.pricelist.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:product.pricelist.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -96332,7 +96112,6 @@
         "rpc:product.pricelist.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
         "rpc:product.pricelist.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:product.pricelist.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
-        "rpc:product.product.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:product.product.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:product.product.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:product.product.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -96349,7 +96128,6 @@
         "rpc:product.product.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
         "rpc:product.product.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:product.product.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
-        "rpc:product.template.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:product.template.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:product.template.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:product.template.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -96382,7 +96160,6 @@
         "rpc:project.milestone.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
         "rpc:project.project.action_archive_attachment": "b709c664d814f18382ebd8438cd811570de88cb255a51bc05c7cad3e294c5b77",
         "rpc:project.project.action_open_documents_workspace": "a77c4b201439ce301a99985661cf9f8dbe058829d55d16ea62e0b5fcaaecbaad",
-        "rpc:project.project.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:project.project.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:project.project.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:project.project.copy_data": "4184c453e9572adaafc0d4299d09a4e2bfe26318efe8543046bd99af9948ad03",
@@ -96403,7 +96180,6 @@
         "rpc:project.share.wizard.action_send_mail": "0ff60a93dff85decf8ed631778bb0986b805c29c6d171d8ab1140f2337b197e4",
         "rpc:project.task.action_archive_attachment": "b709c664d814f18382ebd8438cd811570de88cb255a51bc05c7cad3e294c5b77",
         "rpc:project.task.action_open_documents_workspace": "a77c4b201439ce301a99985661cf9f8dbe058829d55d16ea62e0b5fcaaecbaad",
-        "rpc:project.task.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:project.task.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:project.task.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:project.task.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -96418,7 +96194,6 @@
         "rpc:project.task.message_update": "4dbeab2058f58236331c77d7f29eb9e4d3cda3930f68bca1abb290d5609abe13",
         "rpc:project.task.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:project.task.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
-        "rpc:project.update.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:project.update.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:project.update.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:project.update.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -96436,7 +96211,6 @@
         "rpc:project.update.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:project.update.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
         "rpc:publisher_warranty.contract.update_notification": "e9a02c208f4f6b69c7baa0e6f17ae087ce48a5be12246950f7031f39db448ea6",
-        "rpc:purchase.order.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:purchase.order.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:purchase.order.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:purchase.order.create_document_from_attachment": "e8b0516e9af94db196a1d2fc3a620f8dcf558383cf4a37a5c535f4d1dec28467",
@@ -96516,10 +96290,8 @@
         "rpc:res.company.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
         "rpc:res.partner.action_archive_attachment": "b709c664d814f18382ebd8438cd811570de88cb255a51bc05c7cad3e294c5b77",
         "rpc:res.partner.action_open_documents_workspace": "a77c4b201439ce301a99985661cf9f8dbe058829d55d16ea62e0b5fcaaecbaad",
-        "rpc:res.partner.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:res.partner.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:res.partner.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
-        "rpc:res.partner.bank.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:res.partner.bank.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:res.partner.bank.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:res.partner.bank.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -96552,7 +96324,6 @@
         "rpc:res.partner.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:res.partner.search_for_channel_invite": "a99cb7da50695ceb62011cc8d887389b26e0bf2a7111106c8419750503c83e66",
         "rpc:res.partner.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
-        "rpc:sale.order.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:sale.order.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:sale.order.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:sale.order.create_document_from_attachment": "26be04f46453ad2b19444135fd885815ff2803dea8b0ba0df6d6ac9a6ac7bd3f",
@@ -96573,7 +96344,6 @@
         "rpc:sign.oca.request.action_archive_attachment": "b709c664d814f18382ebd8438cd811570de88cb255a51bc05c7cad3e294c5b77",
         "rpc:sign.oca.request.action_open_documents_workspace": "a77c4b201439ce301a99985661cf9f8dbe058829d55d16ea62e0b5fcaaecbaad",
         "rpc:sign.oca.request.action_send": "d872e2bfcc04859c6540847ddce7f899c40a3934c708c45c243062ff139b37c7",
-        "rpc:sign.oca.request.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:sign.oca.request.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:sign.oca.request.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:sign.oca.request.add_item": "d878298be522291e5726be437196679516bb60d299d2bc7c691f4666efe4e262",
@@ -96595,7 +96365,6 @@
         "rpc:sign.oca.request.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:sign.oca.request.set_item_data": "977137d0094e7dd06de79fa705839dcc94240cf97b7372d5c4cdee6e44494e97",
         "rpc:sign.oca.request.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
-        "rpc:sign.oca.request.signer.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:sign.oca.request.signer.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:sign.oca.request.signer.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:sign.oca.request.signer.create": "f21e3934257dfbc8466494763418a0b19b5425366a62c75cfeee2aee50086195",
@@ -96657,7 +96426,6 @@
         "rpc:snailmail.letter.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:snailmail.letter.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:snailmail.letter.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:stock.lot.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:stock.lot.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:stock.lot.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:stock.lot.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -96674,7 +96442,6 @@
         "rpc:stock.lot.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
         "rpc:stock.lot.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:stock.lot.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
-        "rpc:stock.picking.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:stock.picking.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:stock.picking.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:stock.picking.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -96702,7 +96469,6 @@
         "rpc:usl.document.action_set_library_visibility": "01065980293d85c184d64634b1fdbe95c312f941c3fab82c5e9da4cc4f28cbb6",
         "rpc:usl.document.action_set_starred": "f9ec67540d88ab5139d49420849a038642abb9a15bb211d14a5d6ebcc9fb847a",
         "rpc:usl.document.action_sync_permissions": "3705885878f5ef2808e1854075825b52e73c1571cc62cdad936ca627073260f9",
-        "rpc:usl.document.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:usl.document.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:usl.document.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:usl.document.context.tag.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
@@ -96791,7 +96557,6 @@
         "rpc:usl.document.user.state.write": "010ab28dd1877e9843e54acd846e0ab610a1d9b9dd59117f5f93494efba41b4f",
         "rpc:usl.expense.batch.action_archive_attachment": "b709c664d814f18382ebd8438cd811570de88cb255a51bc05c7cad3e294c5b77",
         "rpc:usl.expense.batch.action_open_documents_workspace": "a77c4b201439ce301a99985661cf9f8dbe058829d55d16ea62e0b5fcaaecbaad",
-        "rpc:usl.expense.batch.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:usl.expense.batch.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:usl.expense.batch.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:usl.expense.batch.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -96913,7 +96678,6 @@
         "rpc:usl.platform.billing.bank.allocation.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
         "rpc:usl.platform.billing.bank.allocation.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:usl.platform.billing.bank.allocation.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
-        "rpc:usl.platform.billing.payout.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:usl.platform.billing.payout.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:usl.platform.billing.payout.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:usl.platform.billing.payout.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -96930,7 +96694,6 @@
         "rpc:usl.platform.billing.payout.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
         "rpc:usl.platform.billing.payout.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:usl.platform.billing.payout.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
-        "rpc:usl.platform.billing.platform.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:usl.platform.billing.platform.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:usl.platform.billing.platform.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:usl.platform.billing.platform.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -96947,7 +96710,6 @@
         "rpc:usl.platform.billing.platform.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
         "rpc:usl.platform.billing.platform.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:usl.platform.billing.platform.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
-        "rpc:usl.platform.billing.session.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:usl.platform.billing.session.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:usl.platform.billing.session.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:usl.platform.billing.session.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -96978,7 +96740,6 @@
         "rpc:usl.sign.daily.manifest.receipt.write": "0fa243ff9344f9b5b95c066e288f69fe298357213f569949f8246c491cd4aec0",
         "rpc:usl.sign.daily.manifest.unlink": "fdec0674d7f087578337c7f2c0982dce090e3ef4a91df4f2325fe16eff12df95",
         "rpc:usl.sign.daily.manifest.write": "88b9e2106ad730b9ee08deafb0a3d76a958505084ef73d7e77c5bfb762b1d41c",
-        "rpc:usl.sign.enrollment.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:usl.sign.enrollment.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:usl.sign.enrollment.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:usl.sign.enrollment.create": "245db1e8f640c6f6a6f5f52724dca1a19d01245cfe38e3c23ca3b9ca41469b27",
@@ -97005,7 +96766,6 @@
         "rpc:usl.sign.evidence.create": "7633e627cd44bbd68949cd13319e7bab1c8c98ed290600ba14e41d4371f3c3ed",
         "rpc:usl.sign.evidence.unlink": "a5f811965a48e985b626296ce26a956ae6bb05524f069dad04598c2789cf2434",
         "rpc:usl.sign.evidence.write": "3e48396303c770df3a6a24460bec5edaca914fc940a9b025a98fe7373b8a1579",
-        "rpc:usl.sign.external.journey.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:usl.sign.external.journey.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:usl.sign.external.journey.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:usl.sign.external.journey.create": "a5133f68256cae8e5ed5e185fdc2aa8c182ec479a9eeff93e11a7c8c0086ccce",
@@ -97043,7 +96803,6 @@
         "rpc:usl.sign.validation.write": "eed9efb4ddaeac89be4da750fc1629692d7403da7518521dfb19c3dfa3875aec",
         "rpc:usl.tese.payslip.action_archive_attachment": "b709c664d814f18382ebd8438cd811570de88cb255a51bc05c7cad3e294c5b77",
         "rpc:usl.tese.payslip.action_open_documents_workspace": "a77c4b201439ce301a99985661cf9f8dbe058829d55d16ea62e0b5fcaaecbaad",
-        "rpc:usl.tese.payslip.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:usl.tese.payslip.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:usl.tese.payslip.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:usl.tese.payslip.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -97060,7 +96819,6 @@
         "rpc:usl.tese.payslip.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
         "rpc:usl.tese.payslip.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:usl.tese.payslip.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
-        "rpc:usl.tese.profile.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:usl.tese.profile.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:usl.tese.profile.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:usl.tese.profile.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
@@ -97084,7 +96842,6 @@
         "rpc:res.company.action_usl_document_check_renderer",
         "rpc:res.config.settings.action_usl_document_preview_pack",
         "rpc:usl.document.letter.action_create_correction",
-        "rpc:usl.document.letter.activity_reschedule",
         "rpc:usl.document.letter.activity_schedule",
         "rpc:usl.document.letter.activity_send_mail",
         "rpc:usl.document.letter.copy",
@@ -97165,9 +96922,6 @@
         },
         "rpc:usl.document.letter.action_create_correction": {
           "reversal_action": "rpc:usl.document.letter.unlink"
-        },
-        "rpc:usl.document.letter.activity_reschedule": {
-          "reversal_action": "rpc:usl.document.letter.write"
         },
         "rpc:usl.document.letter.activity_schedule": {
           "reversal_action": "rpc:usl.document.letter.write"
@@ -97370,7 +97124,6 @@
         "rpc:res.company.action_usl_document_check_renderer": "6f1e0ace7e534c254e91f19c496e898f7c65a34cfb5737433818fcc65e5e3db2",
         "rpc:res.config.settings.action_usl_document_preview_pack": "829efb63f41091c412d918d5a4436609fb61d5f14bd9f7355ad77e92a4559147",
         "rpc:usl.document.letter.action_create_correction": "ab4b01644ca139ec14c188bbdb5719f2f498d9ee5d9c3d0cc686568a49d23031",
-        "rpc:usl.document.letter.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:usl.document.letter.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:usl.document.letter.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:usl.document.letter.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
@@ -164630,8 +164383,6 @@
     {
       "action_keys": [
         "cron:usl_access_control.ir_cron_usl_agent_authority_reconcile",
-        "sink:usl_access_control:custom-addons/usl_access_control/controllers/json2.py:UslAgentJson2Controller.web_json_2_rpc:sudo:1",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:res.users.apikeys._check_credentials:orm_write:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._allows_model_operation:sudo:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_all:sudo:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:1",
@@ -164687,12 +164438,6 @@
       "overrides": {
         "cron:usl_access_control.ir_cron_usl_agent_authority_reconcile": {
           "reachability_proof": "Fixed scheduler entry invokes only the reviewed Agent authority reconciliation workflow; manual server-action execution is separately protected."
-        },
-        "sink:usl_access_control:custom-addons/usl_access_control/controllers/json2.py:UslAgentJson2Controller.web_json_2_rpc:sudo:1": {
-          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
-        },
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:res.users.apikeys._check_credentials:orm_write:1": {
-          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._allows_model_operation:sudo:1": {
           "reachability_proof": "Internal read of model-access metadata used by Agent authorization checks; it has no independent RPC, controller, UI, or scheduled entry point and performs no mutation."
@@ -164836,8 +164581,6 @@
       "rationale": "Reachability is limited to the reviewed caller or scheduler; any separately reachable action is classified independently.",
       "reviewed_digests": {
         "cron:usl_access_control.ir_cron_usl_agent_authority_reconcile": "68b2784e283cd0bfd8bb2e336dca3df9cefadc486fb46d5ca73fb42574d3067d",
-        "sink:usl_access_control:custom-addons/usl_access_control/controllers/json2.py:UslAgentJson2Controller.web_json_2_rpc:sudo:1": "d8b23b7ccdf69765f728ba4fe510a142ce6c3b5bddd6c6e53cbb748ae7db9261",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:res.users.apikeys._check_credentials:orm_write:1": "637e3d57bd5763918eeb64b7436356331e9be481e42dc5b47ce832131ab9d98c",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._allows_model_operation:sudo:1": "4a85fbdfdd0815a5565f6ce0dc7338febe026a3c9fcc6b6992f9e2d9757aa773",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_all:sudo:1": "ab023e5e5e9fa738aea9fc1f8fd6ebde4640654955c4bfd9fb3c3163205a7e91",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:1": "e1e030924aed03966beb2576cb215b159309a8d2cd2987a3ec5b28b5c8f23515",
@@ -186126,7 +185869,6 @@
         "rpc:queue.job.action_reschedule_my_next_today",
         "rpc:queue.job.action_reschedule_my_next_tomorrow",
         "rpc:queue.job.activity_feedback",
-        "rpc:queue.job.activity_reschedule",
         "rpc:queue.job.activity_schedule",
         "rpc:queue.job.activity_send_mail",
         "rpc:queue.job.activity_unlink",
@@ -186311,9 +186053,6 @@
         },
         "rpc:queue.job.activity_feedback": {
           "rationale": "Exact inherited implementation equivalence; classify writes, imports, chatter and pseudo-record helpers conservatively as operational. Native CRUD reaches applicable central semantic/configuration guards. Exact implementation equivalent: rpc:account.account.activity_feedback; runtime digest a0c4b61c922b4101f91faf396e6dbf2048c198b03c7da3528181c121c07616f7."
-        },
-        "rpc:queue.job.activity_reschedule": {
-          "rationale": "Exact inherited implementation equivalence; classify writes, imports, chatter and pseudo-record helpers conservatively as operational. Native CRUD reaches applicable central semantic/configuration guards. Exact implementation equivalent: rpc:account.account.activity_reschedule; runtime digest 5f19bab503e2886fa9a74869b74f32ebf3b9f1f0aa35bb4c8b82f338b8784198."
         },
         "rpc:queue.job.activity_schedule": {
           "rationale": "Exact inherited implementation equivalence; classify writes, imports, chatter and pseudo-record helpers conservatively as operational. Native CRUD reaches applicable central semantic/configuration guards. Exact implementation equivalent: rpc:account.account.activity_schedule; runtime digest 62b54e79df231cd0b971c28114932f729cf5c1fbffb163d14160ca4304f2daec."
@@ -186804,7 +186543,6 @@
         "rpc:queue.job.action_reschedule_my_next_today": "62336990f6e0800dc3d5955fc8a573fc20ef2c3a47c7bbe0e75645730322f206",
         "rpc:queue.job.action_reschedule_my_next_tomorrow": "fe70844aa3aca077d267b7b608dc5d2f90ae1eaa7dc5754d79b937075b51c6e6",
         "rpc:queue.job.activity_feedback": "81db87cf91b5b4c4fa86edddf1c1b5b76785febf85cfef3c7b1e52f8d5fe2d2e",
-        "rpc:queue.job.activity_reschedule": "54fcf5afb764ed3ac5c53ec4d678448b8a30fb0570daa09831f79b731f640901",
         "rpc:queue.job.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:queue.job.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:queue.job.activity_unlink": "7dfece5344a786c5be58e3aef93f092c543e6729ce183d52c1b2aae8e001a523",
@@ -193450,6 +193188,365 @@
       "reviewed_digests": {
         "ui:l10n_fr_pdp.l10n_fr_pdp_action_open_response_wizard": "6eb7bd2ef4dfc3e328cea1f9d669e3e17ceb42f82fc731deaf67654884ffd883"
       }
+    },
+    {
+      "action_keys": [
+        "route:json2:POST:/json/2/<__model__>/<__method__>"
+      ],
+      "classification": "read_only",
+      "consequence": "Returns data, metadata, navigation, or a computed result without changing Odoo or an external system.",
+      "domain": "system_framework",
+      "evidence_id": "read-only-no-sink-v1",
+      "id": "read_only.system_framework.actions.pr101",
+      "overrides": {},
+      "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
+      "reviewed_digests": {
+        "route:json2:POST:/json/2/<__model__>/<__method__>": "24d7189a9a4dd0b1883bbd13db915db0083068da141664a4e22b4436ed2ead68"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:account.account.activity_reschedule",
+        "rpc:account.asset.activity_reschedule",
+        "rpc:account.bank.ingestion.activity_reschedule",
+        "rpc:account.bank.ingestion.config.activity_reschedule",
+        "rpc:account.bank.statement.activity_reschedule",
+        "rpc:account.journal.activity_reschedule",
+        "rpc:account.move.activity_reschedule",
+        "rpc:account.payment.activity_reschedule",
+        "rpc:b2c.accounting.session.activity_reschedule"
+      ],
+      "classification": "recoverable",
+      "consequence": "Changes ordinary business or transient state through a supported Odoo/OCA workflow.",
+      "domain": "accounting",
+      "evidence_id": "recoverable-perform-reverse-v1",
+      "id": "recoverable.accounting.actions.pr101",
+      "overrides": {
+        "rpc:account.account.activity_reschedule": {
+          "reversal_action": "rpc:account.account.write"
+        },
+        "rpc:account.asset.activity_reschedule": {
+          "reversal_action": "rpc:account.asset.write"
+        },
+        "rpc:account.bank.ingestion.activity_reschedule": {
+          "reversal_action": "rpc:account.bank.ingestion.write"
+        },
+        "rpc:account.bank.ingestion.config.activity_reschedule": {
+          "reversal_action": "rpc:account.bank.ingestion.config.write"
+        },
+        "rpc:account.bank.statement.activity_reschedule": {
+          "reversal_action": "rpc:account.bank.statement.write"
+        },
+        "rpc:account.journal.activity_reschedule": {
+          "reversal_action": "rpc:account.journal.write"
+        },
+        "rpc:account.move.activity_reschedule": {
+          "reversal_action": "rpc:account.move.write"
+        },
+        "rpc:account.payment.activity_reschedule": {
+          "reversal_action": "rpc:account.payment.write"
+        },
+        "rpc:b2c.accounting.session.activity_reschedule": {
+          "reversal_action": "rpc:b2c.accounting.session.write"
+        }
+      },
+      "rationale": "The declared exact reversal restores the relevant state; native record identity/history and Distribution agent before/submitted-value evidence preserve how to perform and verify recovery.",
+      "reviewed_digests": {
+        "rpc:account.account.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:account.asset.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:account.bank.ingestion.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:account.bank.ingestion.config.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:account.bank.statement.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:account.journal.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:account.move.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:account.payment.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:b2c.accounting.session.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:stock.landed.cost.activity_reschedule"
+      ],
+      "classification": "recoverable",
+      "consequence": "Changes ordinary business or transient state through a supported Odoo/OCA workflow.",
+      "domain": "commerce_and_fulfilment",
+      "evidence_id": "recoverable-perform-reverse-v1",
+      "id": "recoverable.commerce_and_fulfilment.actions.pr101",
+      "overrides": {
+        "rpc:stock.landed.cost.activity_reschedule": {
+          "reversal_action": "rpc:stock.landed.cost.write"
+        }
+      },
+      "rationale": "The declared exact reversal restores the relevant state; native record identity/history and Distribution agent before/submitted-value evidence preserve how to perform and verify recovery.",
+      "reviewed_digests": {
+        "rpc:stock.landed.cost.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:b2c.order.activity_reschedule",
+        "rpc:b2c.product.alias.activity_reschedule",
+        "rpc:base.automation.activity_reschedule",
+        "rpc:hr.department.activity_reschedule",
+        "rpc:hr.employee.activity_reschedule",
+        "rpc:hr.expense.activity_reschedule",
+        "rpc:hr.version.activity_reschedule",
+        "rpc:ir.actions.server.activity_reschedule",
+        "rpc:ir.cron.activity_reschedule",
+        "rpc:l10n.fr.pdp.reports.flow.activity_reschedule",
+        "rpc:mail.activity.mixin.activity_reschedule",
+        "rpc:mrp.production.activity_reschedule",
+        "rpc:mrp.routing.workcenter.activity_reschedule",
+        "rpc:mrp.unbuild.activity_reschedule",
+        "rpc:mrp.workorder.activity_reschedule",
+        "rpc:product.pricelist.activity_reschedule",
+        "rpc:product.product.activity_reschedule",
+        "rpc:product.template.activity_reschedule",
+        "rpc:project.project.activity_reschedule",
+        "rpc:project.task.activity_reschedule",
+        "rpc:project.update.activity_reschedule",
+        "rpc:purchase.order.activity_reschedule",
+        "rpc:res.partner.activity_reschedule",
+        "rpc:res.partner.bank.activity_reschedule",
+        "rpc:sale.order.activity_reschedule",
+        "rpc:sign.oca.request.activity_reschedule",
+        "rpc:sign.oca.request.signer.activity_reschedule",
+        "rpc:stock.lot.activity_reschedule",
+        "rpc:stock.picking.activity_reschedule",
+        "rpc:usl.document.activity_reschedule",
+        "rpc:usl.expense.batch.activity_reschedule",
+        "rpc:usl.platform.billing.payout.activity_reschedule",
+        "rpc:usl.platform.billing.platform.activity_reschedule",
+        "rpc:usl.platform.billing.session.activity_reschedule",
+        "rpc:usl.sign.enrollment.activity_reschedule",
+        "rpc:usl.sign.external.journey.activity_reschedule",
+        "rpc:usl.tese.payslip.activity_reschedule",
+        "rpc:usl.tese.profile.activity_reschedule"
+      ],
+      "classification": "recoverable",
+      "consequence": "Changes ordinary business or transient state through a supported Odoo/OCA workflow.",
+      "domain": "documents_and_communications",
+      "evidence_id": "recoverable-perform-reverse-v1",
+      "id": "recoverable.documents_and_communications.actions.pr101",
+      "overrides": {
+        "rpc:b2c.order.activity_reschedule": {
+          "reversal_action": "rpc:b2c.order.write"
+        },
+        "rpc:b2c.product.alias.activity_reschedule": {
+          "reversal_action": "rpc:b2c.product.alias.write"
+        },
+        "rpc:base.automation.activity_reschedule": {
+          "reversal_action": "rpc:base.automation.write"
+        },
+        "rpc:hr.department.activity_reschedule": {
+          "reversal_action": "rpc:hr.department.write"
+        },
+        "rpc:hr.employee.activity_reschedule": {
+          "reversal_action": "rpc:hr.employee.write"
+        },
+        "rpc:hr.expense.activity_reschedule": {
+          "reversal_action": "rpc:hr.expense.write"
+        },
+        "rpc:hr.version.activity_reschedule": {
+          "reversal_action": "rpc:hr.version.write"
+        },
+        "rpc:ir.actions.server.activity_reschedule": {
+          "reversal_action": "rpc:ir.actions.server.write"
+        },
+        "rpc:ir.cron.activity_reschedule": {
+          "reversal_action": "rpc:ir.cron.write"
+        },
+        "rpc:l10n.fr.pdp.reports.flow.activity_reschedule": {
+          "reversal_action": "rpc:l10n.fr.pdp.reports.flow.write"
+        },
+        "rpc:mail.activity.mixin.activity_reschedule": {
+          "reversal_action": "rpc:mail.activity.mixin.write"
+        },
+        "rpc:mrp.production.activity_reschedule": {
+          "reversal_action": "rpc:mrp.production.write"
+        },
+        "rpc:mrp.routing.workcenter.activity_reschedule": {
+          "reversal_action": "rpc:mrp.routing.workcenter.write"
+        },
+        "rpc:mrp.unbuild.activity_reschedule": {
+          "reversal_action": "rpc:mrp.unbuild.write"
+        },
+        "rpc:mrp.workorder.activity_reschedule": {
+          "reversal_action": "rpc:mrp.workorder.write"
+        },
+        "rpc:product.pricelist.activity_reschedule": {
+          "reversal_action": "rpc:product.pricelist.write"
+        },
+        "rpc:product.product.activity_reschedule": {
+          "reversal_action": "rpc:product.product.write"
+        },
+        "rpc:product.template.activity_reschedule": {
+          "reversal_action": "rpc:product.template.write"
+        },
+        "rpc:project.project.activity_reschedule": {
+          "reversal_action": "rpc:project.project.write"
+        },
+        "rpc:project.task.activity_reschedule": {
+          "reversal_action": "rpc:project.task.write"
+        },
+        "rpc:project.update.activity_reschedule": {
+          "reversal_action": "rpc:project.update.write"
+        },
+        "rpc:purchase.order.activity_reschedule": {
+          "reversal_action": "rpc:purchase.order.write"
+        },
+        "rpc:res.partner.activity_reschedule": {
+          "reversal_action": "rpc:res.partner.write"
+        },
+        "rpc:res.partner.bank.activity_reschedule": {
+          "reversal_action": "rpc:res.partner.bank.write"
+        },
+        "rpc:sale.order.activity_reschedule": {
+          "reversal_action": "rpc:sale.order.write"
+        },
+        "rpc:sign.oca.request.activity_reschedule": {
+          "reversal_action": "rpc:sign.oca.request.activity_reschedule"
+        },
+        "rpc:sign.oca.request.signer.activity_reschedule": {
+          "reversal_action": "rpc:sign.oca.request.signer.activity_reschedule"
+        },
+        "rpc:stock.lot.activity_reschedule": {
+          "reversal_action": "rpc:stock.lot.write"
+        },
+        "rpc:stock.picking.activity_reschedule": {
+          "reversal_action": "rpc:stock.picking.write"
+        },
+        "rpc:usl.document.activity_reschedule": {
+          "reversal_action": "rpc:usl.document.write"
+        },
+        "rpc:usl.expense.batch.activity_reschedule": {
+          "reversal_action": "rpc:usl.expense.batch.write"
+        },
+        "rpc:usl.platform.billing.payout.activity_reschedule": {
+          "reversal_action": "rpc:usl.platform.billing.payout.write"
+        },
+        "rpc:usl.platform.billing.platform.activity_reschedule": {
+          "reversal_action": "rpc:usl.platform.billing.platform.write"
+        },
+        "rpc:usl.platform.billing.session.activity_reschedule": {
+          "reversal_action": "rpc:usl.platform.billing.session.write"
+        },
+        "rpc:usl.sign.enrollment.activity_reschedule": {
+          "reversal_action": "rpc:usl.sign.enrollment.activity_reschedule"
+        },
+        "rpc:usl.sign.external.journey.activity_reschedule": {
+          "reversal_action": "rpc:usl.sign.external.journey.activity_reschedule"
+        },
+        "rpc:usl.tese.payslip.activity_reschedule": {
+          "reversal_action": "rpc:usl.tese.payslip.write"
+        },
+        "rpc:usl.tese.profile.activity_reschedule": {
+          "reversal_action": "rpc:usl.tese.profile.write"
+        }
+      },
+      "rationale": "The declared exact reversal restores the relevant state; native record identity/history and Distribution agent before/submitted-value evidence preserve how to perform and verify recovery.",
+      "reviewed_digests": {
+        "rpc:b2c.order.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:b2c.product.alias.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:base.automation.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:hr.department.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:hr.employee.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:hr.expense.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:hr.version.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:ir.actions.server.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:ir.cron.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:l10n.fr.pdp.reports.flow.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:mail.activity.mixin.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:mrp.production.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:mrp.routing.workcenter.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:mrp.unbuild.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:mrp.workorder.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:product.pricelist.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:product.product.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:product.template.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:project.project.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:project.task.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:project.update.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:purchase.order.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:res.partner.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:res.partner.bank.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:sale.order.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:sign.oca.request.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:sign.oca.request.signer.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:stock.lot.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:stock.picking.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:usl.document.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:usl.expense.batch.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:usl.platform.billing.payout.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:usl.platform.billing.platform.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:usl.platform.billing.session.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:usl.sign.enrollment.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:usl.sign.external.journey.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:usl.tese.payslip.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7",
+        "rpc:usl.tese.profile.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:usl.document.letter.activity_reschedule"
+      ],
+      "classification": "recoverable",
+      "consequence": "Changes ordinary business or transient state through a supported Odoo/OCA workflow.",
+      "domain": "documents_and_communications",
+      "evidence_id": "recoverable-perform-reverse-v1",
+      "id": "recoverable.documents_and_communications.latex_documents.pr101",
+      "overrides": {
+        "rpc:usl.document.letter.activity_reschedule": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        }
+      },
+      "rationale": "The declared exact reversal restores the relevant state; native record identity/history and Distribution agent before/submitted-value evidence preserve how to perform and verify recovery.",
+      "reviewed_digests": {
+        "rpc:usl.document.letter.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7"
+      }
+    },
+    {
+      "action_keys": [
+        "sink:usl_access_control:custom-addons/usl_access_control/controllers/json2.py:UslAgentJson2Controller.web_json_2_rpc:sudo:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential._touch_last_used_at:raw_sql_mutation:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Supports a reviewed workflow internally and has no independent ordinary-user entry point.",
+      "domain": "security_and_administration",
+      "evidence_id": "internal-reachability-v1",
+      "id": "system_internal.security_and_administration.governed_agent_20260902.pr101",
+      "overrides": {
+        "sink:usl_access_control:custom-addons/usl_access_control/controllers/json2.py:UslAgentJson2Controller.web_json_2_rpc:sudo:1": {
+          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential._touch_last_used_at:raw_sql_mutation:1": {
+          "reachability_proof": "Private authenticated-credential telemetry helper; updates only last_used_at and ORM audit timestamps on its own credential. No public RPC entry point; credential validity, Agent status and transport checks run before this helper."
+        }
+      },
+      "rationale": "Reachability is limited to the reviewed caller or scheduler; any separately reachable action is classified independently.",
+      "reviewed_digests": {
+        "sink:usl_access_control:custom-addons/usl_access_control/controllers/json2.py:UslAgentJson2Controller.web_json_2_rpc:sudo:1": "e2685d6f7c17b07858f9a944ed44e9d238af50c2f9d7f29810776ca198456be6",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential._touch_last_used_at:raw_sql_mutation:1": "5a8d08e234e9b50548fc9cef563d6829e54b5f4b1b218af8511d3d4b37154a97"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:queue.job.activity_reschedule"
+      ],
+      "classification": "operational",
+      "consequence": "Performs reviewed receipt recovery or queue work under native ACL/company controls and separately enforced authority boundaries.",
+      "domain": "security_and_administration",
+      "evidence_id": "guarded-receipt-queue-20260905",
+      "id": "operational.security_and_administration.guarded_receipt_queue_20260905.pr101",
+      "overrides": {
+        "rpc:queue.job.activity_reschedule": {
+          "rationale": "Exact inherited implementation equivalence; classify writes, imports, chatter and pseudo-record helpers conservatively as operational. Native CRUD reaches applicable central semantic/configuration guards. Exact implementation equivalent: rpc:account.account.activity_reschedule; runtime digest 5f19bab503e2886fa9a74869b74f32ebf3b9f1f0aa35bb4c8b82f338b8784198."
+        }
+      },
+      "rationale": "Reviewed receipt and queue workflow; see docs/operations/receipt-action-risk-review.md and exact per-action rationale.",
+      "reviewed_digests": {
+        "rpc:queue.job.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7"
+      }
     }
   ],
   "evidence_families": {
@@ -193577,6 +193674,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "007530a0fce9fb6e6637d7fdccf4fbfc8f0ad589759ac91410e165cdd7dad06a",
+  "qualified_policy_digest": "9562e87e0e345e2b0d73f602f6a7d41247e011d1a855dc8c17930d056a57b33c",
   "schema": "usl-action-risk-policy-v1"
 }
