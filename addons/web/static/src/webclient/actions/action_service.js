@@ -91,6 +91,16 @@ function parseActiveIds(ids) {
     return activeIds;
 }
 
+function applyStatePatch(state, patch) {
+    for (const [key, value] of Object.entries(patch)) {
+        if (value === undefined) {
+            delete state[key];
+        } else {
+            state[key] = value;
+        }
+    }
+}
+
 const DIALOG_SIZES = {
     "extra-large": "xl",
     large: "lg",
@@ -120,6 +130,7 @@ const EMBEDDED_ACTIONS_CTX_KEYS = [
     "parent_action_id",
     "from_embedded_action",
 ];
+const URL_STATE_KEYS = ["domain", "groupBy", "orderBy", "offset"];
 
 // only register this template once for all dynamic classes ControllerComponent
 const ControllerComponentTemplate = xml`<t t-component="this.Component" t-props="this.componentProps"/>`;
@@ -594,6 +605,10 @@ export function makeActionManager(env, router = _router) {
                 }
             }
         }
+        const urlState = pick(state, ...URL_STATE_KEYS);
+        if (Object.keys(urlState).length) {
+            options.props = { ...options.props, urlState };
+        }
         if (!actionRequest) {
             // If the last action isn't valid (eg a model with no resId and no view_type) which can
             // happen if the user edits the url and removes the id from the end of the url, we don't want
@@ -629,7 +644,7 @@ export function makeActionManager(env, router = _router) {
         };
         actionProps.updateActionState = (controller, patchState) => {
             const oldState = { ...currentState };
-            Object.assign(currentState, patchState);
+            applyStatePatch(currentState, patchState);
             const changed = !shallowEqual(currentState, oldState);
             if (changed && action.target !== "new" && controller.isMounted) {
                 pushState();
@@ -762,12 +777,14 @@ export function makeActionManager(env, router = _router) {
         }
 
         const currentState = {
+            ...pick(viewProps.urlState || {}, ...URL_STATE_KEYS),
             resId: viewProps.resId,
             active_id: action.context.active_id || false,
         };
         viewProps.updateActionState = (controller, patchState) => {
             const oldState = { ...currentState };
-            Object.assign(currentState, patchState);
+            applyStatePatch(currentState, patchState);
+            controller.props.urlState = pick(currentState, ...URL_STATE_KEYS);
             const changed = !shallowEqual(currentState, oldState);
             if (changed && target !== "new" && controller.isMounted) {
                 pushState();

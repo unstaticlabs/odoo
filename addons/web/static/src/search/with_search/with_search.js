@@ -3,6 +3,7 @@ import { Component, onWillStart, onWillUpdateProps, toRaw } from "@odoo/owl";
 import { CallbackRecorder, useSetupAction } from "@web/search/action_hook";
 import { SearchModel } from "@web/search/search_model";
 import { useBus, useService } from "@web/core/utils/hooks";
+import { shallowEqual } from "@web/core/utils/objects";
 
 export const SEARCH_KEYS = ["context", "domain", "groupBy", "orderBy"];
 
@@ -40,6 +41,8 @@ export class WithSearch extends Component {
         searchMenuTypes: { type: Array, element: String, optional: true },
         canOrderByCount: { type: Boolean, optional: true },
         defaultGroupBy: { type: Array, element: String, optional: true },
+        urlState: { type: Object, optional: true },
+        updateActionState: { type: Function, optional: true },
     };
 
     setup() {
@@ -71,6 +74,9 @@ export class WithSearch extends Component {
         useSubEnv({ searchModel: this.searchModel, searchPanelState });
 
         useBus(this.searchModel, "update", this.render);
+        useBus(this.searchModel, "update", () =>
+            this.updateURLState({ resetOffsetIfChanged: true })
+        );
         useSetupAction({
             getGlobalState: () => ({
                 searchModel: JSON.stringify(this.searchModel.exportState()),
@@ -84,6 +90,7 @@ export class WithSearch extends Component {
                 delete config.globalState;
             }
             await this.searchModel.load(config);
+            this.updateURLState();
         });
 
         onWillUpdateProps(async (nextProps) => {
@@ -95,5 +102,19 @@ export class WithSearch extends Component {
             }
             await this.searchModel.reload(config);
         });
+    }
+
+    updateURLState({ resetOffsetIfChanged = false } = {}) {
+        const state = this.searchModel.getURLState();
+        const hasChanged =
+            this.lastURLState === undefined || !shallowEqual(state, this.lastURLState);
+        this.lastURLState = { ...state };
+        if (!hasChanged) {
+            return;
+        }
+        if (resetOffsetIfChanged) {
+            state.offset = undefined;
+        }
+        this.props.updateActionState?.(state);
     }
 }

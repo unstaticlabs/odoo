@@ -154,9 +154,7 @@ export class NavBar extends Component {
         }
 
         // Save initial state to further check if new render has to be done.
-        const initialAppSectionsExtra = this.currentAppSectionsExtra;
-        const firstInitialAppSectionExtra = [...initialAppSectionsExtra].shift();
-        const initialAppId = firstInitialAppSectionExtra && firstInitialAppSectionExtra.appID;
+        const initialExtraSectionIds = this.currentAppSectionsExtra.map(({ id }) => id);
 
         // Restore (needed to get offset widths)
         const sections = [
@@ -202,11 +200,10 @@ export class NavBar extends Component {
         }
 
         // ------- Final rendering -------
-        const firstCurrentAppSectionExtra = [...this.currentAppSectionsExtra].shift();
-        const currentAppId = firstCurrentAppSectionExtra && firstCurrentAppSectionExtra.appID;
+        const currentExtraSectionIds = this.currentAppSectionsExtra.map(({ id }) => id);
         if (
-            initialAppSectionsExtra.length === this.currentAppSectionsExtra.length &&
-            initialAppId === currentAppId
+            initialExtraSectionIds.length === currentExtraSectionIds.length &&
+            initialExtraSectionIds.every((id, index) => id === currentExtraSectionIds[index])
         ) {
             // Do not render if more menu items stayed the same.
             return;

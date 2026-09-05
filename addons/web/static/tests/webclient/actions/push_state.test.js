@@ -11,16 +11,21 @@ import {
     fields,
     getService,
     models,
+    mountWebClient,
     mountWithCleanup,
     onRpc,
     patchWithCleanup,
+    toggleMenuItem,
+    toggleSearchBarMenu,
     validateSearch,
 } from "@web/../tests/web_test_helpers";
 
 import { browser } from "@web/core/browser/browser";
 import { router } from "@web/core/browser/router";
 import { registry } from "@web/core/registry";
+import { SearchModel } from "@web/search/search_model";
 import { redirect } from "@web/core/utils/urls";
+import { SelectCreateDialog } from "@web/views/view_dialogs/select_create_dialog";
 import { WebClient } from "@web/webclient/webclient";
 
 describe.current.tags("desktop");
@@ -59,6 +64,20 @@ defineActions([
             [false, "list"],
             [false, "form"],
         ],
+    },
+    {
+        id: 9,
+        name: "Default filtered partners",
+        res_model: "partner",
+        views: [[2, "list"]],
+        context: { search_default_yop: 1 },
+    },
+    {
+        id: 10,
+        name: "Paged partners",
+        res_model: "partner",
+        views: [[2, "list"]],
+        limit: 2,
     },
     {
         id: 1001,
@@ -125,6 +144,8 @@ class Partner extends models.Model {
         search: /* xml */ `
             <search>
                 <field name="foo" string="Foo" />
+                <filter name="yop" string="Yop" domain="[('foo', '=', 'yop')]"/>
+                <filter name="groupby_foo" string="Foo" context="{'group_by': 'foo'}"/>
             </search>
         `,
     };
@@ -177,6 +198,23 @@ beforeEach(() => {
     });
     redirect("/odoo");
 });
+
+async function openFilteredPagedActionA() {
+    await getService("action").doAction(10);
+    await editSearch("p");
+    await validateSearch();
+    await contains(`th.o_column_sortable[data-name="foo"]`).click();
+    await contains(".o_pager_next").click();
+    await animationFrame();
+    router.pushState({ groupBy: JSON.stringify(["foo"]) });
+    await animationFrame();
+
+    const url = new URL(browser.location.href);
+    expect(url.searchParams.get("domain")).toInclude("ilike");
+    expect(url.searchParams.get("groupBy")).toBe('["foo"]');
+    expect(url.searchParams.get("orderBy")).toBe('[{"name":"foo","asc":true}]');
+    expect(url.searchParams.get("offset")).toBe("2");
+}
 
 test(`basic action as App`, async () => {
     await mountWithCleanup(WebClient);
@@ -612,22 +650,27 @@ test(`properly push globalState`, async () => {
     //open record
     await contains(".o_kanban_record").click();
     expect(".o_form_view").toHaveCount(1);
-    expect(browser.location.href).toBe("http://example.com/odoo/action-4/2");
+    expect(browser.location.href).toBe(
+        "http://example.com/odoo/action-4/2?domain=%5B(%22foo%22%2C%20%22ilike%22%2C%20%22blip%22)%5D"
+    );
     expect(router.current).toEqual({
         action: 4,
         actionStack: [
             {
                 action: 4,
                 displayName: "Partners Action 4",
+                domain: '[("foo", "ilike", "blip")]',
                 view_type: "kanban",
             },
             {
                 action: 4,
                 displayName: "Second record",
+                domain: '[("foo", "ilike", "blip")]',
                 resId: 2,
                 view_type: "form",
             },
         ],
+        domain: '[("foo", "ilike", "blip")]',
         resId: 2,
     });
 
@@ -637,5 +680,209 @@ test(`properly push globalState`, async () => {
 
     // The search Model should be restored
     expect(queryAllTexts(".o_facet_value")).toEqual(["blip"]);
+    expect(browser.location.href).toBe(
+        "http://example.com/odoo/action-4?domain=%5B(%22foo%22%2C%20%22ilike%22%2C%20%22blip%22)%5D"
+    );
+});
+
+test(`search changes update the URL and browser history`, async () => {
+    await mountWithCleanup(WebClient);
+    await getService("action").doAction(4);
     expect(browser.location.href).toBe("http://example.com/odoo/action-4");
+    expect(browser.history.length).toBe(2);
+
+    await editSearch("blip");
+    await validateSearch();
+    await animationFrame();
+
+    const filteredUrl = new URL(browser.location.href);
+    expect(filteredUrl.searchParams.get("domain")).toInclude("blip");
+    expect(browser.history.length).toBe(3, {
+        message: "applying a filter creates a restorable history entry",
+    });
+    expect(queryAllTexts(".o_facet_value")).toEqual(["blip"]);
+
+    await contains(".o_facet_remove").click();
+    await animationFrame();
+    expect(new URL(browser.location.href).searchParams.has("domain")).toBe(false);
+    expect(browser.history.length).toBe(4, {
+        message: "removing a filter creates a restorable history entry",
+    });
+    expect(router.current.actionStack.at(-1)).toEqual({
+        action: 4,
+        displayName: "Partners Action 4",
+        view_type: "kanban",
+    });
+
+    browser.history.back();
+    await animationFrame();
+    expect(queryAllTexts(".o_facet_value")).toEqual(["Shared"], {
+        message: "browser history restores the portable domain as a shared filter",
+    });
+    expect(new URL(browser.location.href).searchParams.get("domain")).toInclude("blip");
+
+    browser.history.forward();
+    await animationFrame();
+    expect(queryAllTexts(".o_facet_value")).toEqual([]);
+    expect(new URL(browser.location.href).searchParams.has("domain")).toBe(false);
+});
+
+test(`default filters are present in the initial action URL`, async () => {
+    await mountWithCleanup(WebClient);
+    await getService("action").doAction(9);
+
+    const url = new URL(browser.location.href);
+    expect(url.searchParams.get("domain")).toBe("[(\"foo\", \"=\", \"yop\")]", {
+        message: "refreshing the initial URL preserves the default filter",
+    });
+    expect(queryAllTexts(".o_facet_value")).toEqual(["Yop"]);
+    expect(browser.history.length).toBe(2, {
+        message: "initial search state is part of the action entry, not a duplicate entry",
+    });
+});
+
+test(`grouping and list ordering update the URL and restore with browser history`, async () => {
+    await mountWithCleanup(WebClient);
+    await getService("action").doAction(3);
+
+    await toggleSearchBarMenu();
+    await toggleMenuItem("Foo");
+    await animationFrame();
+    expect(JSON.parse(new URL(browser.location.href).searchParams.get("groupBy"))).toEqual([
+        "foo",
+    ]);
+
+    await contains(`th.o_column_sortable[data-name="foo"]`).click();
+    await animationFrame();
+    expect(JSON.parse(new URL(browser.location.href).searchParams.get("orderBy"))).toEqual([
+        { name: "foo", asc: true },
+    ]);
+
+    browser.history.back();
+    await animationFrame();
+    expect(new URL(browser.location.href).searchParams.has("orderBy")).toBe(false);
+    expect(JSON.parse(new URL(browser.location.href).searchParams.get("groupBy"))).toEqual([
+        "foo",
+    ]);
+
+    browser.history.forward();
+    await animationFrame();
+    expect(JSON.parse(new URL(browser.location.href).searchParams.get("orderBy"))).toEqual([
+        { name: "foo", asc: true },
+    ]);
+});
+
+test(`list pagination updates the URL and restores with browser history`, async () => {
+    let activeSearchModel;
+    patchWithCleanup(SearchModel.prototype, {
+        getURLState() {
+            activeSearchModel = this;
+            return super.getURLState(...arguments);
+        },
+    });
+    await mountWithCleanup(WebClient);
+    await getService("action").doAction(10);
+    expect(queryAllTexts(".o_data_cell[name=foo]")).toEqual(["yop", "blip"]);
+    expect(new URL(browser.location.href).searchParams.has("offset")).toBe(false);
+
+    await contains(".o_pager_next").click();
+    await animationFrame();
+    expect(new URL(browser.location.href).searchParams.get("offset")).toBe("2");
+    expect(queryAllTexts(".o_data_cell[name=foo]")).toEqual(["gnap", "plop"]);
+
+    const historyLength = browser.history.length;
+    activeSearchModel.trigger("update");
+    await animationFrame();
+    expect(new URL(browser.location.href).searchParams.get("offset")).toBe("2", {
+        message: "an unrelated search-model refresh does not reset the current page",
+    });
+    expect(browser.history.length).toBe(historyLength);
+
+    browser.history.back();
+    await animationFrame();
+    expect(new URL(browser.location.href).searchParams.has("offset")).toBe(false);
+    expect(queryAllTexts(".o_data_cell[name=foo]")).toEqual(["yop", "blip"]);
+
+    browser.history.forward();
+    await animationFrame();
+    expect(new URL(browser.location.href).searchParams.get("offset")).toBe("2");
+    expect(queryAllTexts(".o_data_cell[name=foo]")).toEqual(["gnap", "plop"]);
+
+    await editSearch("yop");
+    await validateSearch();
+    await animationFrame();
+    expect(new URL(browser.location.href).searchParams.has("offset")).toBe(false, {
+        message: "changing the filter resets the page in the route",
+    });
+    expect(queryAllTexts(".o_data_cell[name=foo]")).toEqual(["yop"]);
+});
+
+test(`portable state from a filtered page does not seed a different action`, async () => {
+    await mountWithCleanup(WebClient);
+    await openFilteredPagedActionA();
+
+    await getService("action").doAction(3);
+    await animationFrame();
+
+    expect(queryAllTexts(".o_facet_value")).toEqual([]);
+    expect(queryAllTexts(".o_data_cell[name=foo]")).toEqual(["yop", "blip", "gnap", "plop", "zoup"]);
+    const url = new URL(browser.location.href);
+    expect(url.pathname.endsWith("/action-3")).toBe(true);
+    for (const key of ["domain", "groupBy", "orderBy", "offset"]) {
+        expect(url.searchParams.has(key)).toBe(false);
+    }
+});
+
+test(`portable state from a filtered page does not seed a target-new action`, async () => {
+    await mountWithCleanup(WebClient);
+    await openFilteredPagedActionA();
+    const sourceUrl = browser.location.href;
+
+    await getService("action").doAction({
+        type: "ir.actions.act_window",
+        name: "Choose a partner",
+        res_model: "partner",
+        views: [[2, "list"]],
+        target: "new",
+        limit: 2,
+    });
+    await animationFrame();
+
+    expect(".modal .o_searchview_facet").toHaveCount(0);
+    expect(queryAllTexts(".modal .o_data_cell[name=foo]")).toEqual(["yop", "blip"]);
+    expect(browser.location.href).toBe(sourceUrl, {
+        message: "the dialog neither consumes nor replaces its opener's URL state",
+    });
+});
+
+test(`portable state from a filtered page does not seed a list selection dialog`, async () => {
+    await mountWithCleanup(WebClient);
+    await openFilteredPagedActionA();
+
+    getService("dialog").add(SelectCreateDialog, {
+        noCreate: true,
+        multiSelect: true,
+        resModel: "partner",
+        onSelected() {},
+    });
+    await animationFrame();
+
+    expect(".modal .o_searchview_facet").toHaveCount(0);
+    expect(queryAllTexts(".modal .o_data_cell[name=foo]")).toEqual([
+        "yop",
+        "blip",
+        "gnap",
+        "plop",
+        "zoup",
+    ]);
+});
+
+test(`a hostile route cannot override the action page size or request an unbounded offset`, async () => {
+    redirect("/odoo/action-10?limit=999999999&offset=999999999");
+
+    await mountWebClient();
+
+    expect(queryAllTexts(".o_data_cell[name=foo]")).toEqual(["yop", "blip"]);
+    expect(new URL(browser.location.href).searchParams.has("limit")).toBe(false);
+    expect(new URL(browser.location.href).searchParams.has("offset")).toBe(false);
 });

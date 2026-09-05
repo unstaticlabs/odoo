@@ -485,6 +485,59 @@ test("'more' menu sections properly updated on app change", async () => {
     );
 });
 
+test.tags("desktop");
+test("'more' menu refreshes when hidden sections change within the current app", async () => {
+    let sections = [];
+    class MyNavbar extends NavBar {
+        get currentAppSections() {
+            return sections;
+        }
+    }
+    defineMenus([
+        {
+            id: 1,
+            children: [
+                { id: 10, name: "My Tasks" },
+                { id: 11, name: "Customer Portal" },
+                { id: 12, name: "Operations Automation" },
+            ],
+        },
+    ]);
+
+    await resize({ width: 0 });
+    mockService("ui", () => ({
+        isSmall: false,
+        getActiveElementOf: () => document.activeElement,
+    }));
+    await makeMockEnv();
+    getService("menu").setCurrentMenu(1);
+    sections = getService("menu").getMenuAsTree(1).childrenTree;
+    const navbar = await mountWithCleanup(MyNavbar);
+
+    await contains(".o_menu_sections_more .dropdown-toggle").click();
+    expect(queryAllTexts(".dropdown-menu > *")).toEqual([
+        "My Tasks",
+        "Customer Portal",
+        "Operations Automation",
+    ]);
+    await contains(".o_menu_sections_more .dropdown-toggle").click();
+
+    sections = [
+        sections[0],
+        sections[1],
+        { ...sections[2], id: 13, name: "Product Launch" },
+    ];
+    navbar.env.bus.trigger("MENUS:APP-CHANGED");
+    await animationFrame();
+    await animationFrame();
+
+    await contains(".o_menu_sections_more .dropdown-toggle").click();
+    expect(queryAllTexts(".dropdown-menu > *")).toEqual(
+        ["My Tasks", "Customer Portal", "Product Launch"],
+        { message: "a replaced hidden favorite is visible without waiting for a resize" }
+    );
+});
+
 test("Do not execute adapt when navbar is destroyed", async () => {
     expect.assertions(3);
 
