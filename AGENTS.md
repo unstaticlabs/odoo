@@ -62,8 +62,16 @@ documentation, reports, comments, and commit messages.
   escaped newlines or repeat attribution text manually.
 - Commit subjects follow Conventional Commits:
   `<type>(<scope>): <description>`.
-- The helper enforces the worktree-local author
-  `Coding Agent <318050048+elio-usl@users.noreply.github.com>`, adds
-  `AI-generated commit`, and adds exactly:
-  `Co-authored-by: ValentinViennot <18735898+ValentinViennot@users.noreply.github.com>`.
+- The history names the person who asked for the work and the agent that made
+  it. The commit author is the driving human of the session; the helper adds
+  `AI-generated commit` and `Co-authored-by:` with the agent identity. Both
+  come from worktree-local Git settings that every session sets once:
+  `user.name`/`user.email` and `usl.drivingHuman` for the human
+  (`Name <id+login@users.noreply.github.com>`), and `usl.agent` for the agent
+  (for example `Claude Fable 5.1 <noreply@anthropic.com>` or
+  `Coding Agent <318050048+elio-usl@users.noreply.github.com>` for Codex).
+  Never hard-code a person and never commit as the agent account.
+- Open pull requests with the GitHub account of the driving human. Agent
+  service accounts such as `@elio-usl` are for automation that no person
+  drives. Name the agent in the PR body.
 - Use terminal Git and GitHub CLI. Do not use a browser for repository actions.
