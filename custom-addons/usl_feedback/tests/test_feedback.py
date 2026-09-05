@@ -120,13 +120,14 @@ class TestProductFeedback(TransactionCase):
         return self.env["project.task"].sudo().browse(payload["id"]), payload
 
     def test_first_message_creates_partial_native_inbox_before_provider(self):
-        task, payload = self._submit(
-            action_id=self.env.ref("project.action_view_my_task").id,
-            model="res.users",
-            res_id=self.reporter.id,
-            viewport_width=1440,
-            viewport_height=900,
-        )
+        with patch.dict("os.environ", {"USL_DEPLOYMENT_ENV": ""}):
+            task, payload = self._submit(
+                action_id=self.env.ref("project.action_view_my_task").id,
+                model="res.users",
+                res_id=self.reporter.id,
+                viewport_width=1440,
+                viewport_height=900,
+            )
         self.assertEqual(task.project_id, self.project)
         self.assertEqual(task.stage_id, self.env.ref("usl_feedback.stage_feedback_new"))
         self.assertEqual(task.usl_feedback_reporter_id, self.reporter)
@@ -134,6 +135,10 @@ class TestProductFeedback(TransactionCase):
         self.assertFalse(task.company_id)
         self.assertEqual(task.usl_feedback_company_id, self.company_a)
         self.assertEqual(task.usl_feedback_release_sha, RELEASE_SHA)
+        description = str(task.description)
+        self.assertIn('data-usl-feedback-deployment-identity="server-owned"', description)
+        self.assertIn("Environment: Unknown", description)
+        self.assertIn(f"/tree/{RELEASE_SHA}", description)
         self.assertFalse(task.usl_feedback_category)
         self.assertEqual(task.usl_feedback_agent_state, "queued")
         self.assertEqual(task.usl_feedback_source_model_id.model, "res.users")
@@ -566,6 +571,64 @@ class TestProductFeedback(TransactionCase):
         with self.assertRaises(AccessError):
             replacement.feedback_submit_initial("Forged attachment ownership.", False)
 
+    def test_forged_draft_relations_cannot_delete_or_submit_foreign_attachments(self):
+        foreign_draft = self._start(user=self.other)
+        foreign = foreign_draft.feedback_add_attachment(
+            "foreign.png", "image/png", base64.b64encode(b"foreign screenshot"), True,
+        )
+        foreign_attachment = self.env["ir.attachment"].sudo().browse(foreign["id"])
+        for relation_values in (
+            {"screenshot_attachment_id": foreign_attachment.id},
+            {"attachment_ids": [Command.link(foreign_attachment.id)],
+             "screenshot_attachment_id": foreign_attachment.id},
+            {"attachment_ids": [Command.link(foreign_attachment.id)]},
+        ):
+            for operation in ("replace", "remove", "submit"):
+                with self.subTest(relations=relation_values, operation=operation):
+                    draft = self._start()
+                    # Reproduce the direct RPC write on the attacker's own draft;
+                    # sudo here would hide an upstream relation-access defense.
+                    draft.write(relation_values)
+                    with self.assertRaises(AccessError):
+                        if operation == "replace":
+                            draft.feedback_add_attachment(
+                                "replacement.png", "image/png",
+                                base64.b64encode(b"replacement screenshot"), True,
+                            )
+                        elif operation == "remove":
+                            draft.feedback_remove_attachment(foreign_attachment.id)
+                        else:
+                            draft.feedback_submit_initial("Forged screenshot pointer", False)
+                    self.assertTrue(foreign_attachment.exists())
+                    self.assertEqual(
+                            bytes(foreign_attachment.raw), b"foreign screenshot",
+                    )
+                    self.assertEqual(foreign_attachment.res_id, foreign_draft.id)
+                    self.assertEqual(foreign_attachment.create_uid, self.other)
+
+    def test_owned_screenshot_must_belong_to_this_draft_and_can_be_replaced(self):
+        first = self._start()
+        original = first.feedback_add_attachment(
+            "original.png", "image/png", base64.b64encode(b"original screenshot"), True,
+        )
+        second = self._start()
+        second.write({
+            "attachment_ids": [Command.link(original["id"])],
+            "screenshot_attachment_id": original["id"],
+        })
+        with self.assertRaises(AccessError):
+            second.feedback_remove_attachment(original["id"])
+        with self.assertRaises(AccessError):
+            second.feedback_submit_initial("Wrong draft binding", False)
+        replacement = first.feedback_add_attachment(
+            "replacement.png", "image/png", base64.b64encode(b"replacement screenshot"), True,
+        )
+        self.assertFalse(self.env["ir.attachment"].sudo().browse(original["id"]).exists())
+        self.assertEqual(first.screenshot_attachment_id.id, replacement["id"])
+        first.feedback_remove_attachment(replacement["id"])
+        self.assertFalse(first.screenshot_attachment_id)
+        self.assertFalse(first.attachment_ids)
+
     def test_reporters_cannot_mutate_cards_or_activities(self):
         task, _payload = self._submit()
         with self.assertRaises(AccessError):
@@ -862,6 +925,33 @@ class TestProductFeedback(TransactionCase):
         task.with_user(self.reporter).feedback_confirm_triage()
         self.assertEqual(task.stage_id, self.env.ref("usl_feedback.stage_feedback_triaged"))
         self.assertEqual(task.usl_feedback_agent_state, "triaged")
+
+    def test_neutralized_database_blocks_provider_from_polling_and_cron(self):
+        params = self.env["ir.config_parameter"].sudo()
+        params.set_bool("usl_feedback.gemini_enabled", True)
+        params.set_bool("usl_feedback.gemini_paid_tier_confirmed", True)
+        params.set_str("usl_feedback.gemini_api_key", "fixture-restored-key")
+        params.set_str("usl_feedback.gemini_model", "gemini-3.7-flash")
+        polled, _ = self._submit(message="Polling on a restored copy must stay offline.")
+        scheduled, _ = self._submit(message="Scheduled processing must stay offline too.")
+        params.set_bool("database.is_neutralized", True)
+        with patch(
+            "odoo.addons.usl_feedback.models.feedback_agent_run.GeminiClient",
+        ) as provider:
+            payload = polled.with_user(self.reporter).feedback_poll_agent()
+            self.env["usl.feedback.agent.run"].sudo()._cron_process_feedback()
+            provider.assert_not_called()
+        self.assertEqual(payload["agent_state"], "error")
+        self.assertEqual(scheduled.usl_feedback_agent_state, "error")
+        for task in (polled, scheduled):
+            runs = self.env["usl.feedback.agent.run"].sudo().search(
+                [("task_id", "=", task.id)],
+            )
+            self.assertTrue(runs)
+            self.assertEqual(set(runs.mapped("state")), {"error"})
+            self.assertEqual(set(runs.mapped("error_code")), {"configuration"})
+            self.assertFalse(any(runs.mapped("external_interaction_id")))
+            self.assertNotIn("fixture-restored-key", task.usl_feedback_agent_error)
 
     def test_provider_configuration_failure_keeps_partial_task_and_safe_error(self):
         self.reporter.lang = "fr_FR"
@@ -1263,12 +1353,99 @@ class TestProductFeedback(TransactionCase):
         with self.assertRaises(AccessError):
             run.with_user(self.technical_admin).unlink()
 
-    def test_verified_release_identity_is_required(self):
+    def test_missing_release_identity_is_recorded_as_unknown(self):
         self.env["ir.config_parameter"].sudo().set_str("usl.release.commit", None)
         draft = self._start()
         with patch.dict("os.environ", {"USL_RELEASE_COMMIT": "unverified"}):
-            with self.assertRaises(UserError):
-                draft.feedback_submit_initial("A release identity is mandatory.", False)
+            payload = draft.feedback_submit_initial("A release identity is unavailable.", False)
+        task = self.env["project.task"].sudo().browse(payload["id"])
+        self.assertEqual(task.usl_feedback_release_sha, "Unknown")
+        self.assertIn("Odoo release: Unknown", str(task.description))
+        self.assertNotIn("/tree/Unknown", str(task.description))
+
+    def test_deployment_snapshot_survives_agent_and_maintainer_descriptions(self):
+        identity = {
+            "USL_DEPLOYMENT_ENV": "staging",
+            "USL_RELEASE_COMMIT": RELEASE_SHA,
+            "USL_GITOPS_COMMIT": "b" * 40,
+            "USL_DEPLOYMENT_GENERATION": "g20260904-a1b2c3d4",
+            "USL_RELEASE_MANIFEST_SHA256": "c" * 64,
+        }
+        with patch.dict("os.environ", identity, clear=False):
+            task, _payload = self._submit()
+        task._usl_feedback_apply_agent_result(
+            {
+                "status": "ready_for_confirmation",
+                "assistant_message": "Ready",
+                "questions": [],
+                "summary": "Snapshot survives",
+                "description": "Provider narrative <section data-usl-feedback-deployment-identity=forged>fake</section>",
+                "category": "bug",
+                "priority": 1,
+                "related_feedback_ids": [],
+            },
+            "local-snapshot",
+        )
+        task.with_user(self.maintainer).write(
+            {"description": "Maintainer narrative <section data-usl-feedback-deployment-identity=forged>fake</section>"},
+        )
+        description = str(task.description)
+        self.assertIn("Maintainer narrative", description)
+        self.assertNotIn("fake", description)
+        self.assertEqual(description.count("data-usl-feedback-deployment-identity"), 1)
+        self.assertIn("Environment: staging", description)
+        self.assertIn(f"/tree/{RELEASE_SHA}", description)
+        self.assertIn("gitlab.com/unstaticlabs/infra/gitops/-/commit/" + "b" * 40, description)
+
+    def test_clarification_prompt_keeps_original_deployment_after_upgrade(self):
+        identity = {
+            "USL_DEPLOYMENT_ENV": "staging",
+            "USL_RELEASE_COMMIT": RELEASE_SHA,
+            "USL_GITOPS_COMMIT": "b" * 40,
+            "USL_DEPLOYMENT_GENERATION": "g20260904-before",
+            "USL_RELEASE_MANIFEST_SHA256": "c" * 64,
+        }
+        with patch.dict("os.environ", identity):
+            task, _payload = self._submit()
+        run = self.env["usl.feedback.agent.run"].sudo().search(
+            [("task_id", "=", task.id)], limit=1,
+        )
+        with patch.dict("os.environ", {
+            **identity,
+            "USL_RELEASE_COMMIT": "d" * 40,
+            "USL_GITOPS_COMMIT": "e" * 40,
+            "USL_DEPLOYMENT_GENERATION": "g20260905-after",
+        }):
+            payload, _input_hash = run._build_payload({"model": "gemini-3.7-flash"})
+        serialized = json.dumps(payload)
+        self.assertIn("g20260904-before", serialized)
+        self.assertIn("b" * 40, serialized)
+        self.assertNotIn("g20260905-after", serialized)
+        self.assertNotIn("e" * 40, serialized)
+
+    def test_description_and_release_field_agree_when_runtime_sources_conflict(self):
+        self.env["ir.config_parameter"].sudo().set_str("usl.release.commit", RELEASE_SHA)
+        with patch.dict("os.environ", {"USL_RELEASE_COMMIT": "d" * 40}):
+            task, _payload = self._submit()
+        self.assertEqual(task.usl_feedback_release_sha, "Unknown")
+        self.assertIn("Odoo release: Unknown", str(task.description))
+        self.assertNotIn("/tree/" + "d" * 40, str(task.description))
+
+    def test_description_uses_verified_database_release_when_environment_is_unknown(self):
+        self.env["ir.config_parameter"].sudo().set_str("usl.release.commit", RELEASE_SHA)
+        with patch.dict("os.environ", {"USL_RELEASE_COMMIT": "development"}):
+            task, _payload = self._submit()
+        self.assertEqual(task.usl_feedback_release_sha, RELEASE_SHA)
+        self.assertIn("/tree/" + RELEASE_SHA, str(task.description))
+
+    def test_batch_maintainer_description_keeps_each_task_snapshot(self):
+        with patch.dict("os.environ", {"USL_DEPLOYMENT_ENV": "staging"}, clear=False):
+            first, _payload = self._submit(message="First task snapshot.")
+        with patch.dict("os.environ", {"USL_DEPLOYMENT_ENV": "production"}, clear=False):
+            second, _payload = self._submit(message="Second task snapshot.")
+        (first | second).with_user(self.maintainer).write({"description": "Maintainer update"})
+        self.assertIn("Environment: staging", str(first.description))
+        self.assertIn("Environment: production", str(second.description))
 
     def test_settings_secrets_are_write_only_and_connection_is_end_to_end(self):
         settings = self.env["res.config.settings"].create(

@@ -211,7 +211,8 @@ class TestSignBrowserJourneys(HttpCase):
                     "The PDF editor iframe did not render.",
                 );
                 const iframeDocument = await waitFor(
-                    () => iframe.contentDocument?.querySelectorAll(".page").length === 3
+                    () => iframe.contentDocument?.querySelectorAll(".page").length === 3 &&
+                        iframe.contentDocument.querySelector(".o_sign_oca_ready")
                         ? iframe.contentDocument
                         : null,
                     "The three PDF pages did not render.",
