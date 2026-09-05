@@ -5902,15 +5902,15 @@ if not message:
         Markup("<h3>%s</h3><p>%s</p><ul>%s</ul>%s")
         % (escape(notes["title"]), escape(notes["summary"]), items, action)
         + Markup(
-            "<p>Deployed %s · release <code>%s</code> · "
-            '<a href="%s">technical evidence</a></p>'
+            "<p>Deployed %s · release <code>%s</code></p>"
         )
         % (
             escape(fields.Datetime.now()),
             escape(release_id[:12]),
-            escape(evidence_url),
         )
     )
+    if evidence_url:
+        body += Markup('<p><a href="%s">technical evidence</a></p>') % escape(evidence_url)
     message = channel.message_post(
         author_id=odoobot.id,
         body=body,
@@ -5949,7 +5949,7 @@ print("USL_RELEASE_NOTIFICATION_RESULT=" + json.dumps({
             + ", usl_release_notification_notes="
             + repr(json.dumps(release["release_notes"], sort_keys=True))
             + ", usl_release_notification_evidence_url="
-            + repr(release["build"]["workflow_url"])
+            + repr(release["build"].get("workflow_url"))
             + "))\n"
             + program
         ),

@@ -1341,6 +1341,17 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("base.partner_root", program)
         self.assertIn("message_post", program)
         self.assertNotIn("_bus_send", program)
+        self.assertIn("https://github.com/unstaticlabs/odoo/actions/runs/1", program)
+        release["build"] = {"operator_run_id": "manual-test", "evidence_sha256": "d" * 64}
+        with mock.patch("operations.stack.inspect_runtime", return_value=runtime), mock.patch(
+            "operations.stack._release", return_value=(release, "c" * 64, "{}")
+        ):
+            _notify_release(target, runner, release_id)
+        operator_program = runner.run.call_args.kwargs["input_text"]
+        self.assertIn("usl_release_notification_evidence_url=None", operator_program)
+        self.assertNotIn("https://github.com", operator_program)
+        self.assertIn("if evidence_url:", operator_program)
+        compile(operator_program, "notification", "exec")
 
     def test_release_notification_rejects_untrusted_identity(self) -> None:
         target = mock.Mock(value={"environment": "production"})
