@@ -6,9 +6,11 @@ from unittest.mock import patch
 from lxml import etree
 
 from odoo import SUPERUSER_ID, Command, api, fields
-from odoo.exceptions import AccessError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.models import get_public_method
 from odoo.tests import TransactionCase, tagged
+
+from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 
 from ..controllers.json2 import UslAgentJson2Controller
 from ..exceptions import AgentAuthenticationError, AgentPolicyAccessError
@@ -1686,4 +1688,167 @@ class TestAutonomousAgents(TransactionCase):
                     "duration": "custom",
                     "expiration_date": fields.Datetime.now() + datetime.timedelta(days=1827),
                 },
+            )
+
+
+@tagged("post_install", "-at_install", "usl_access_control")
+class TestAgentDraftVendorBillConfiguration(AccountTestInvoicingCommon):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        accounting_manager = cls.env.ref("account.group_account_manager")
+        cls.agent = cls.env["usl.agent"].create(
+            {
+                "name": "Accounting configuration Agent",
+                "purpose": "Prepare draft vendor bills for human accounting review.",
+                "owner_id": cls.env.user.id,
+                "company_id": cls.env.company.id,
+                "company_ids": [Command.set(cls.env.company.ids)],
+                "delegated_group_ids": [Command.set(accounting_manager.ids)],
+                "read_only_group_ids": [Command.clear()],
+                "access_mode": "read_write",
+            },
+        )
+        cls.reverse_charge_tax = cls.env["account.tax"].create(
+            {
+                "name": "Agent reverse charge purchase tax",
+                "amount_type": "percent",
+                "amount": 20.0,
+                "type_tax_use": "purchase",
+                "company_id": cls.env.company.id,
+                "invoice_repartition_line_ids": [
+                    Command.create({"repartition_type": "base"}),
+                    Command.create(
+                        {
+                            "repartition_type": "tax",
+                            "factor_percent": 100.0,
+                            "account_id": cls.company_data["default_account_tax_purchase"].id,
+                        },
+                    ),
+                    Command.create(
+                        {
+                            "repartition_type": "tax",
+                            "factor_percent": -100.0,
+                            "account_id": cls.company_data["default_account_tax_purchase"].id,
+                        },
+                    ),
+                ],
+                "refund_repartition_line_ids": [
+                    Command.create({"repartition_type": "base"}),
+                    Command.create(
+                        {
+                            "repartition_type": "tax",
+                            "factor_percent": 100.0,
+                            "account_id": cls.company_data["default_account_tax_purchase"].id,
+                        },
+                    ),
+                    Command.create(
+                        {
+                            "repartition_type": "tax",
+                            "factor_percent": -100.0,
+                            "account_id": cls.company_data["default_account_tax_purchase"].id,
+                        },
+                    ),
+                ],
+            },
+        )
+
+    def _bill(self, move_type="in_invoice", taxes=None):
+        return self.init_invoice(
+            move_type,
+            invoice_date=fields.Date.today(),
+            amounts=[100.0],
+            taxes=taxes if taxes is not None else self.tax_purchase_a,
+        )
+
+    def _configure(self, bill, **values):
+        access = self.agent._api_method_access(
+            "account.move",
+            "configure_draft_vendor_bill",
+        )
+        self.assertEqual(access, "write")
+        context = UslAgentJson2Controller._agent_call_context(
+            context={},
+            agent=self.agent,
+            model_name="account.move",
+            method_name="configure_draft_vendor_bill",
+            access=access,
+        )
+        result = bill.with_user(self.agent.user_id).with_context(context).configure_draft_vendor_bill(
+            **values,
+        )
+        self.env.flush_all()
+        self.env.cr.precommit.run()
+        return result
+
+    def test_agent_replaces_and_removes_draft_vendor_bill_tax(self):
+        bill = self._bill()
+        line = bill.invoice_line_ids
+
+        replacement = self._configure(
+            bill,
+            line_patches=[{"line_id": line.id, "tax_ids": self.tax_purchase_b.ids}],
+        )
+        self.assertEqual(line.tax_ids, self.tax_purchase_b)
+        self.assertEqual(replacement["invoice_lines"][0]["tax_ids"], self.tax_purchase_b.ids)
+        self.assertTrue(replacement["tax_lines"])
+
+        removal = self._configure(
+            bill,
+            line_patches=[{"line_id": line.id, "tax_ids": []}],
+        )
+        self.assertFalse(line.tax_ids)
+        self.assertFalse(removal["tax_lines"])
+        self.assertEqual(removal["bill"]["amount_tax"], 0.0)
+
+    def test_agent_applies_reverse_charge_tax_and_returns_both_generated_lines(self):
+        bill = self._bill(taxes=self.env["account.tax"])
+        result = self._configure(
+            bill,
+            line_patches=[
+                {
+                    "line_id": bill.invoice_line_ids.id,
+                    "tax_ids": self.reverse_charge_tax.ids,
+                },
+            ],
+        )
+        self.assertEqual(bill.invoice_line_ids.tax_ids, self.reverse_charge_tax)
+        self.assertEqual(len(result["tax_lines"]), 2)
+        self.assertEqual(result["bill"]["amount_tax"], 0.0)
+
+    def test_agent_recomputes_tax_on_draft_vendor_credit_note(self):
+        credit_note = self._bill(move_type="in_refund")
+        result = self._configure(
+            credit_note,
+            line_patches=[
+                {
+                    "line_id": credit_note.invoice_line_ids.id,
+                    "tax_ids": self.tax_purchase_b.ids,
+                },
+            ],
+        )
+        self.assertEqual(result["bill"]["move_type"], "in_refund")
+        self.assertEqual(credit_note.invoice_line_ids.tax_ids, self.tax_purchase_b)
+        self.assertTrue(result["tax_lines"])
+
+    def test_agent_cannot_patch_generated_or_posted_accounting_lines(self):
+        bill = self._bill()
+        other_bill = self._bill()
+        generated_tax_line = bill.line_ids.filtered(lambda line: line.display_type == "tax")
+        with self.assertRaises(ValidationError):
+            self._configure(
+                bill,
+                line_patches=[{"line_id": generated_tax_line.id, "name": "Denied"}],
+            )
+        with self.assertRaises(ValidationError):
+            self._configure(
+                bill,
+                line_patches=[{"line_id": other_bill.invoice_line_ids.id, "name": "Denied"}],
+            )
+
+        bill.action_post()
+        with self.assertRaises(UserError):
+            self._configure(
+                bill,
+                line_patches=[{"line_id": bill.invoice_line_ids.id, "tax_ids": []}],
             )

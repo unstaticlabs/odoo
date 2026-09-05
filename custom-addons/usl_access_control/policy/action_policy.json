@@ -6,6 +6,7 @@
         "rpc:account.bank.ingestion.upload.unlink",
         "rpc:account.bank.statement.confirm.unlink",
         "rpc:account.bank.statement.reopen.unlink",
+        "rpc:account.move.configure_draft_vendor_bill",
         "rpc:mail.message.write",
         "server_action:account.accountant_reset_to_draft_entries_action",
         "server_action:account.action_account_confirm_payments",
@@ -43,7 +44,9 @@
         "server_action:stock_account.stock_move_action_adjust_valuation",
         "server_action:usl_accounting.ir_cron_bank_export_expected_activities_ir_actions_server",
         "server_action:usl_accounting.ir_cron_process_bank_exports_ir_actions_server",
-        "server_action:usl_documents_accounting.ir_cron_archive_bank_statement_evidence_ir_actions_server"
+        "server_action:usl_documents_accounting.ir_cron_archive_bank_statement_evidence_ir_actions_server",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_configuration.py:account.move.configure_draft_vendor_bill:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_configuration.py:account.move.configure_draft_vendor_bill:orm_write:2"
       ],
       "classification": "operational",
       "consequence": "Performs attributable day-to-day product work or cleans derived, temporary, or user-owned state without crossing the protected authority and destructive control-plane boundary.",
@@ -57,6 +60,7 @@
         "rpc:account.bank.ingestion.upload.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:account.bank.statement.confirm.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:account.bank.statement.reopen.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
+        "rpc:account.move.configure_draft_vendor_bill": "7f76345583ddcd7f504e0c32e702f43cdb48951138124fc1424cd248bef52b14",
         "rpc:mail.message.write": "fc11a242b86c0eae073f6f1310134d67b4487bb1522f7182d6398b4d870acd7b",
         "server_action:account.accountant_reset_to_draft_entries_action": "1a42c67d313bbba788c090e04c913a4b1a4007a58ebe429d972067d1d4df9edd",
         "server_action:account.action_account_confirm_payments": "f054db04ccd7bddbc80da432b0cf2545f5103032ea073ef03921dc3e64f667bd",
@@ -94,7 +98,9 @@
         "server_action:stock_account.stock_move_action_adjust_valuation": "25387464ed6b43c08e752c33c4ea51d76cd8d2d65bd563f8b2964a2c8945c8fe",
         "server_action:usl_accounting.ir_cron_bank_export_expected_activities_ir_actions_server": "5c7b54fd69cc4c2b90b85bb81787753521a7b351337d20b239648751401c19e4",
         "server_action:usl_accounting.ir_cron_process_bank_exports_ir_actions_server": "79190be92b6360c6d72790ad2442632886bdcff54368c375c12ed1db3b051e98",
-        "server_action:usl_documents_accounting.ir_cron_archive_bank_statement_evidence_ir_actions_server": "efbfffc3414be448bbd5cd7664c7428cf05f95a4fc3536ce76a5e2e7a8bd7ae6"
+        "server_action:usl_documents_accounting.ir_cron_archive_bank_statement_evidence_ir_actions_server": "efbfffc3414be448bbd5cd7664c7428cf05f95a4fc3536ce76a5e2e7a8bd7ae6",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_configuration.py:account.move.configure_draft_vendor_bill:orm_write:1": "354d3e0a5dc713a00916b4a0d9b3c35178bdf543a394caa0c4f066478ba5a1c4",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_configuration.py:account.move.configure_draft_vendor_bill:orm_write:2": "89674b9c78f636802deb32834e66fdbc4decb150a124d9f4e73f0084e717047c"
       }
     },
     {
@@ -186356,6 +186362,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "ca275a08ecdf11b77adfe11874ccbf05a1c74badabf59c33ed0ee470c008d5c4",
+  "qualified_policy_digest": "e5a0ac9eeeaadcd74670bbf81f517d2b9eab17ec43b04385321b055d2504495e",
   "schema": "usl-action-risk-policy-v1"
 }
