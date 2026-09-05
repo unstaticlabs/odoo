@@ -1353,6 +1353,23 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("if evidence_url:", operator_program)
         compile(operator_program, "notification", "exec")
 
+    def test_recovery_mcp_keeps_public_identity_and_uses_isolated_transport(self):
+        from operations.stack import _recovery_proof_environment
+        target = load_target("production", TARGETS)
+        services = {name: {"environment": {}} for name in target.value["services"].values()}
+        services[target.value["services"]["paperless"]]["environment"]["PAPERLESS_DBPASS"] = "fixture"
+        services[target.value["services"]["odoo"]]["environment"]["ODOO_DB_PASSWORD"] = "fixture"
+        with mock.patch("operations.stack._write_remote") as write:
+            paths, evidence = _recovery_proof_environment(target, mock.Mock(),
+                "/proof/daily-test", {"services": services}, "a" * 64, "b" * 64)
+        content = next(c.args[3] for c in write.call_args_list if c.args[2] == paths["mcp"])
+        values = dict(line.split("=", 1) for line in content.splitlines())
+        self.assertEqual(values["ODOO_PUBLIC_ORIGIN"], target.value["endpoints"]["odoo"])
+        self.assertEqual(values["ODOO_INTERNAL_ORIGIN"], "http://odoo:8069")
+        self.assertEqual(values["MCP_ALLOW_LOCAL_HTTP_ODOO"], "false")
+        self.assertNotIn("ODOO_API_KEY", values)
+        self.assertEqual(evidence["status"], "passed")
+
     def test_recovery_quarantine_uses_its_disposable_environment_only(self):
         from operations.stack import _run_production_boundary_script
         target = load_target("production", TARGETS)
