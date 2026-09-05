@@ -359,6 +359,22 @@ def validate_manifest(value: object) -> dict[str, Any]:
     return value
 
 
+def _capture_runtime_images(durable: Path) -> None:
+    runtime_images = os.environ.get("USL_RUNTIME_IMAGES_JSON")
+    if runtime_images is not None:
+        try:
+            images = json.loads(runtime_images)
+        except json.JSONDecodeError as error:
+            raise CohortError("captured runtime images are invalid JSON") from error
+        if not isinstance(images, dict) or not images or any(
+            not isinstance(value, str) or not re.fullmatch(r"[^\s@]+@sha256:[0-9a-f]{64}", value)
+            for value in images.values()
+        ):
+            raise CohortError("captured runtime images must be immutable references")
+        # Included in the durable tree identity and therefore snapshot verification.
+        (durable / "runtime-images.json").write_text(json.dumps(images, sort_keys=True), encoding="utf-8")
+
+
 def capture(arguments: argparse.Namespace) -> dict[str, Any]:
     if not RUN_ID.fullmatch(arguments.run_id):
         raise CohortError("run ID is invalid")
@@ -395,6 +411,7 @@ def capture(arguments: argparse.Namespace) -> dict[str, Any]:
         if release_value.get("identity") != _required_environment("USL_RELEASE_IDENTITY"):
             raise CohortError("supplied release identity differs")
         (durable / "release.json").write_text(release_raw, encoding="utf-8")
+        _capture_runtime_images(durable)
         odoo_database = os.environ["ODOO_DB_NAME"]
         copy_tree(
             Path("/source/odoo-data/filestore") / odoo_database,

@@ -1374,6 +1374,17 @@ def _ensure_image(runner, image: str) -> None:
         runner.run(["docker", "pull", image])
 
 
+def _operations_image(release: dict) -> str:
+    """Use the selected operations runtime, independently of the data's release."""
+    image = os.environ.get("USL_OPERATIONS_IMAGE")
+    if image is None:
+        # The release reader already validates this signed immutable reference.
+        return release["components"]["backup-tool"]["digest_reference"]
+    if not re.fullmatch(r"ghcr\.io/unstaticlabs/usl-odoo-backup@sha256:[0-9a-f]{64}", image):
+        raise RuntimeError("operations image must be an immutable backup-tool reference")
+    return image
+
+
 def _release_images(release: dict, mcp_authority: dict | None = None) -> list[str]:
     """Return Odoo-cohort images needed before a restore can start.
 
@@ -1382,7 +1393,7 @@ def _release_images(release: dict, mcp_authority: dict | None = None) -> list[st
     happened to qualify this Odoo release.
     """
     images = {
-        release["components"]["backup-tool"]["digest_reference"],
+        _operations_image(release),
         release["components"]["distribution"]["digest_reference"],
         release["components"]["paperless"]["digest_reference"],
         release["components"]["sign-dss"]["digest_reference"],
@@ -1451,7 +1462,7 @@ def _load_gitops_json(root: Path, relative: str) -> dict:
     return value
 
 
-def _mcp_runtime_authority(target, release: dict | None = None) -> dict | None:
+def _mcp_runtime_authority(target) -> dict | None:
     """Validate the independently promoted MCP state from the pinned GitOps tree."""
     if target.value["environment"] == "local":
         return None
@@ -1508,50 +1519,64 @@ def _mcp_runtime_authority(target, release: dict | None = None) -> dict | None:
             or (compatibility.get("oauth_vault") or {}).get("schema_version") != 1
         ):
             raise RuntimeError("GitOps MCP manifest and ledger differ")
-        if release is not None:
-            contract = release.get("mcp_contract") or {}
-            version = re.fullmatch(
-                r"(?P<major>0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)"
-                r"(?:[-+][0-9A-Za-z.-]+)?",
-                str(compatibility.get("server_version", "")),
-            )
-            if (
-                contract.get("schema") != "usl-odoo-mcp-support/v1"
-                or version is None
-                or int(version.group("major")) != contract.get("supported_mcp_major")
-                or contract.get("odoo_series") not in compatibility.get("supported_odoo_series", [])
-            ):
-                raise RuntimeError("GitOps MCP release is incompatible with Odoo")
-            for required_name, available_name in (
-                ("required_modules", "required_modules"),
-                ("required_public_methods", "public_methods"),
-                ("required_actions", "actions"),
-            ):
-                required = compatibility.get(required_name)
-                available = contract.get(available_name)
-                if (
-                    not isinstance(required, list)
-                    or not isinstance(available, list)
-                    or set(required) - set(available)
-                ):
-                    raise RuntimeError(f"GitOps MCP {required_name} exceed Odoo support")
-            required_identity = compatibility.get("required_agent_identity") or {}
-            available_identity = contract.get("agent_identity") or {}
-            if (
-                required_identity.get("method") != available_identity.get("method")
-                or required_identity.get("principal_kind") != available_identity.get("principal_kind")
-                or not isinstance(required_identity.get("schema_version"), int)
-                or not isinstance(available_identity.get("schema_version"), int)
-                or required_identity["schema_version"] > available_identity["schema_version"]
-                or not isinstance(required_identity.get("fields"), list)
-                or not isinstance(available_identity.get("fields"), list)
-                or set(required_identity["fields"]) - set(available_identity["fields"])
-            ):
-                raise RuntimeError("GitOps MCP Agent identity exceeds Odoo support")
     authority = {**selected, "gitops_commit": gitops_commit}
     authority["sha256"] = hashlib.sha256(json.dumps(
         authority, sort_keys=True, separators=(",", ":"),
     ).encode()).hexdigest()
+    return authority
+
+
+def _validate_candidate_mcp_support(release: dict, compatibility: dict) -> None:
+    """Admission policy for a candidate, never a prerequisite to capture its baseline."""
+    contract = release.get("mcp_contract") or {}
+    version = re.fullmatch(
+        r"(?P<major>0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)"
+        r"(?:[-+][0-9A-Za-z.-]+)?",
+        str(compatibility.get("server_version", "")),
+    )
+    if (
+        contract.get("schema") != "usl-odoo-mcp-support/v1"
+        or version is None
+        or int(version.group("major")) != contract.get("supported_mcp_major")
+        or contract.get("odoo_series") not in compatibility.get("supported_odoo_series", [])
+    ):
+        raise RuntimeError("GitOps MCP release is incompatible with Odoo")
+    for required_name, available_name in (
+        ("required_modules", "required_modules"),
+        ("required_public_methods", "public_methods"),
+        ("required_actions", "actions"),
+    ):
+        required = compatibility.get(required_name)
+        available = contract.get(available_name)
+        if (
+            not isinstance(required, list)
+            or not isinstance(available, list)
+            or set(required) - set(available)
+        ):
+            raise RuntimeError(f"GitOps MCP {required_name} exceed Odoo support")
+    required_identity = compatibility.get("required_agent_identity") or {}
+    available_identity = contract.get("agent_identity") or {}
+    if (
+        required_identity.get("method") != available_identity.get("method")
+        or required_identity.get("principal_kind") != available_identity.get("principal_kind")
+        or not isinstance(required_identity.get("schema_version"), int)
+        or not isinstance(available_identity.get("schema_version"), int)
+        or required_identity["schema_version"] > available_identity["schema_version"]
+        or not isinstance(required_identity.get("fields"), list)
+        or not isinstance(available_identity.get("fields"), list)
+        or set(required_identity["fields"]) - set(available_identity["fields"])
+    ):
+        raise RuntimeError("GitOps MCP Agent identity exceeds Odoo support")
+
+
+def _candidate_mcp_authority(target, release: dict) -> dict | None:
+    authority = _mcp_runtime_authority(target)
+    if authority is not None:
+        root, _commit = _gitops_root()
+        manifest = _load_gitops_json(
+            root, f"komodo/releases/usl-odoo-{target.value['environment']}-mcp-manifest.json",
+        )
+        _validate_candidate_mcp_support(release, manifest.get("compatibility") or {})
     return authority
 
 
@@ -1621,7 +1646,7 @@ def _validate_runtime_release_images(target, runner, runtime: dict, release: dic
                 f"running {component} image differs from the selected release",
             )
         verified[component] = expected
-    authority = _mcp_runtime_authority(target, release)
+    authority = _mcp_runtime_authority(target)
     if authority is not None:
         service = target.value["services"]["mcp"]
         container = containers.get(service)
@@ -1753,7 +1778,7 @@ def _prepare_release_candidate(
 ) -> dict:
     """Validate and cache a candidate without changing application runtime state."""
     _prepare_secret_contract(target, runner)
-    mcp_authority = _mcp_runtime_authority(target, release)
+    mcp_authority = _candidate_mcp_authority(target, release)
     candidate_identity = _candidate_compose_identity(target, runner, current["compose"])
     for definition in target.value["storage"]["tiers"].values():
         path = definition["path"]
@@ -1765,7 +1790,7 @@ def _prepare_release_candidate(
     capacity_before_pull = _require_restore_capacity(target, runner, "prepare")
     for image in _release_images(release, mcp_authority):
         _ensure_image(runner, image)
-    tool_image = release["components"]["backup-tool"]["digest_reference"]
+    tool_image = _operations_image(release)
     candidate_bytes = _measure_candidate_bytes(target, runner, tool_image, current)
     capacity_after_pull = _require_restore_capacity(
         target, runner, "prepare image pull", candidate_bytes=candidate_bytes,
@@ -2312,7 +2337,7 @@ def _runtime_baseline_sha256(runtime: dict) -> str:
 def _runtime_cas_sha256(target, runner, runtime: dict) -> str:
     """Bind runtime topology to rendered Compose and the exact active release."""
     release, release_sha256, _release_raw = _release(target, runner, None)
-    mcp_authority = _mcp_runtime_authority(target, release)
+    mcp_authority = _mcp_runtime_authority(target)
     identity = _with_mcp_runtime_authority(
         target, runner, runtime["compose"], mcp_authority,
     )
@@ -2645,7 +2670,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
     runtime = inspect_runtime(target, runner)
     release, release_sha, release_raw = _release(target, runner, arguments.release)
     _secret_file(target, runner)
-    image = release["components"]["backup-tool"]["digest_reference"]
+    image = _operations_image(release)
     if arguments.action == "prune":
         if target.name != "staging" or not all(
             repository.startswith("/var/lib/usl-odoo/restic/staging/")
@@ -2711,7 +2736,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
             if not arguments.resume:
                 identity = compose_identity(target, runner)
                 identity = _with_mcp_runtime_authority(
-                    target, runner, identity, _mcp_runtime_authority(target, release),
+                    target, runner, identity, _mcp_runtime_authority(target),
                 )
                 writer_services = [
                     target.value["services"][name]
@@ -2731,6 +2756,8 @@ def backup_command(arguments: argparse.Namespace) -> int:
                         f"USL_RELEASE_MANIFEST_SHA256={release_sha}",
                         "--env",
                         f"USL_RELEASE_MANIFEST_JSON={release_raw}",
+                        "--env",
+                        f"USL_RUNTIME_IMAGES_JSON={json.dumps(runtime_images, sort_keys=True)}",
                         "--env",
                         f"USL_OLLAMA_MODEL={target.value['ollama']['model']}",
                         "--env",
@@ -5781,13 +5808,13 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
                 signed_plan_evidence = plan_value
         except (json.JSONDecodeError, ModuleReleaseError, PlanEvidenceError) as error:
             raise RuntimeError("upgrade plan is invalid") from error
-    tool_image = release["components"]["backup-tool"]["digest_reference"]
+    tool_image = _operations_image(release)
     generation = arguments.generation or f"g{datetime.now(UTC):%Y%m%dt%H%M}-{arguments.snapshot[:8]}"
     if len(generation) > 32 or not generation.startswith("g"):
         raise RuntimeError("generation name is invalid")
     identity = current["compose"]
     candidate_identity = _candidate_compose_identity(target, target_runner, identity)
-    mcp_authority = _mcp_runtime_authority(target, release)
+    mcp_authority = _candidate_mcp_authority(target, release)
     candidate_identity = _with_mcp_runtime_authority(
         target, target_runner, candidate_identity, mcp_authority,
     )
@@ -7890,11 +7917,11 @@ def _recovery_proof_command_locked(
             raise RuntimeError("production runtime changed while taking recovery proof backup")
         identity = current_after_backup["compose"]
         identity = _with_mcp_runtime_authority(
-            target, runner, identity, _mcp_runtime_authority(target, release),
+            target, runner, identity, _mcp_runtime_authority(target),
         )
         rendered = _recovery_proof_runtime_config(runner, identity)
         images = {name: value["image"] for name, value in rendered["services"].items()}
-        tool_image = release["components"]["backup-tool"]["digest_reference"]
+        tool_image = _operations_image(release)
         capacity = _recovery_proof_capacity(
             target, runner, tool_image, current_after_backup,
         )
@@ -8618,7 +8645,7 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
             ):
                 release, _release_sha, _release_raw = _release(target, runner, None)
                 _secret_file(target, runner)
-                retention_image = release["components"]["backup-tool"]["digest_reference"]
+                retention_image = _operations_image(release)
                 retention_plan = _run_cohort(
                     target, runner, retention_image, "retention-plan", [],
                     volumes=current["volumes"],
@@ -8658,7 +8685,7 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
         ):
             release, _release_sha, _release_raw = _release(target, runner, None)
             _secret_file(target, runner)
-            retention_image = release["components"]["backup-tool"]["digest_reference"]
+            retention_image = _operations_image(release)
             retention_plan = _run_cohort(
                 target, runner, retention_image, "retention-plan", [],
                 volumes=current["volumes"],

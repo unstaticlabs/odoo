@@ -246,9 +246,23 @@ jobs:
             "repos/$GITHUB_REPOSITORY/actions/artifacts?name=$name&per_page=100" \
             --jq '[.artifacts[] | select(.expired == false)] | sort_by(.created_at) | last | .id // empty')"
           test -n "$artifact_id"
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact_id" > artifact.json
+          run_id="$(jq -r '.workflow_run.id' artifact.json)"
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id" > originating-run.json
           gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$artifact_id/zip" > evidence.zip
           unzip -q evidence.zip -d evidence
           test -f evidence/qualification-evidence.json
+          python3 - <<'PYTHON'
+          import json, os
+          from pathlib import Path
+          from operations.qualification_evidence import load, verify_origin
+          verify_origin(
+              load(Path("evidence/qualification-evidence.json")),
+              json.loads(Path("artifact.json").read_text()),
+              json.loads(Path("originating-run.json").read_text()),
+              current_run_id=int(os.environ["GITHUB_RUN_ID"]), event=os.environ["GITHUB_EVENT_NAME"],
+          )
+          PYTHON
           {
             echo "pr_number=$PR_NUMBER"
             echo "pr_head_sha=$PR_HEAD_SHA"
