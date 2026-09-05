@@ -40,7 +40,12 @@ def build_inventory(root: Path, *, require_dependencies: bool = False) -> dict[s
         value = ast.literal_eval(manifest_path.read_text(encoding="utf-8"))
         if not value.get("installable", True):
             continue
-        files = [path for path in manifest_path.parent.rglob("*") if path.is_file()]
+        files = [
+            path for path in manifest_path.parent.rglob("*")
+            if path.is_file()
+            and not {"__pycache__", ".pytest_cache"}.intersection(path.parts)
+            and path.suffix not in {".pyc", ".pyo"}
+        ]
         model_files = [
             path
             for path in files

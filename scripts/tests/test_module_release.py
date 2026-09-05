@@ -101,6 +101,21 @@ class ModuleReleaseTests(unittest.TestCase):
         )
         self.assertEqual(validate_upgrade_plan(plan), plan)
 
+    def test_inventory_ignores_python_and_test_cache_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            module = root / "custom-addons/product"
+            module.mkdir(parents=True)
+            (module / "__manifest__.py").write_text("{'version': '1.0', 'depends': []}")
+            baseline = build_inventory(root)
+            for relative in ("__pycache__/__manifest__.cpython-314.pyc", "models/__pycache__/model.pyc", ".pytest_cache/result", "stale.pyo"):
+                cache = module / relative
+                cache.parent.mkdir(parents=True, exist_ok=True)
+                cache.write_bytes(b"generated locally")
+            self.assertEqual(build_inventory(root), baseline)
+            (module / "models/model.py").write_text("new_model = True")
+            self.assertNotEqual(build_inventory(root), baseline)
+
     def test_release_inventory_rejects_missing_dependency(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

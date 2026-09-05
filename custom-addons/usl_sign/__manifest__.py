@@ -2,7 +2,7 @@
     "name": "USL Sign",
     "summary": "Odoo-native signatures with reinforced local evidence",
     "description": "Standard, strong personal and provider-neutral qualified signing workflows.",
-    "version": "saas~19.3.2.0.0",
+    "version": "saas~19.3.2.0.1",
     "category": "Productivity/Sign",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
