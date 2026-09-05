@@ -307,6 +307,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      pull-requests: read
       packages: write
       id-token: write
       attestations: write
@@ -346,6 +347,18 @@ jobs:
           create-storage-record: true
       - name: Install ORAS
         uses: oras-project/setup-oras@22ce207df3b08e061f537244349aac6ae1d214f6 # v1.2.4
+      - name: Build release notes from merged pull requests
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          scripts/release-notes \
+            --repository "$GITHUB_REPOSITORY" \
+            --before "$RELEASE_BEFORE_SHA" \
+            --sha "$GITHUB_SHA" \
+            --fallback operations/release-notes.json \
+            --output usl-release-notes.json
+          cat usl-release-notes.json
       - name: Create release manifest from published components
         run: |
           scripts/component-build --json > component-inputs.json
@@ -367,7 +380,7 @@ jobs:
             --commit "$GITHUB_SHA" \
             "${arguments[@]}" \
             --renderer-release deploy/document-renderer/release.json \
-            --release-notes operations/release-notes.json \
+            --release-notes usl-release-notes.json \
             --odoo-series 19.3 \
             --odoo-core-commit "$odoo_core_commit" \
             --odoo-core-sha256 "$odoo_core_sha" \
