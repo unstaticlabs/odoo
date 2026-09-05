@@ -6040,6 +6040,19 @@ class CohortContractTests(unittest.TestCase):
             second = _runtime_cas_sha256(target, runner, runtime)
         self.assertNotEqual(first, second)
 
+    def test_runtime_cas_normalizes_replaced_mcp_authority_file(self) -> None:
+        target = mock.Mock()
+        runtime = {"compose": {"project": "staging", "working_directory": "/release", "environment_file": "/runtime.env", "compose_files": ["/release/compose.yaml", "/authorities/old.json"]}, "volumes": {"odoo": {"name": "data", "path": "/data"}}}
+        normalized = {**runtime["compose"], "compose_files": ["/release/compose.yaml", "/authorities/current.json"]}
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, '{"services":{"odoo":{"image":"stable"}}}', '')
+        with mock.patch("operations.stack._release", return_value=({"identity":"a"*64}, "b"*64, "{}")), mock.patch("operations.stack._mcp_runtime_authority", return_value=None), mock.patch("operations.stack._with_mcp_runtime_authority", return_value=normalized):
+            before = _runtime_cas_sha256(target, runner, runtime)
+            after = _runtime_cas_sha256(target, runner, {**runtime, "compose": normalized})
+            self.assertEqual(before, after)
+            changed = _runtime_cas_sha256(target, runner, {**runtime, "volumes": {"odoo": {"name": "other", "path": "/other"}}})
+            self.assertNotEqual(before, changed)
+
     def test_runtime_cas_rejects_running_mcp_outside_gitops_authority(self) -> None:
         target = load_target("staging", TARGETS)
         image = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "a" * 64

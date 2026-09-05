@@ -17,6 +17,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from operations import upgrade_preservation
 from operations.oidc_admission import CLIENT_PROBE_SCRIPT
 from operations.control_manifest import (
     RELEASE_DEFINITIONS_SQL,
@@ -2393,7 +2394,7 @@ def _runtime_cas_sha256(target, runner, runtime: dict) -> str:
         if mcp_runtime_image != mcp_authority["image"]:
             raise RuntimeError("runtime CAS MCP image differs from GitOps authority")
     body = {
-        "runtime_sha256": _runtime_baseline_sha256(runtime),
+        "runtime_sha256": _runtime_baseline_sha256({**runtime, "compose": identity}),
         "release": release["identity"],
         "release_manifest_sha256": release_sha256,
         "mcp_authority_sha256": None if mcp_authority is None else mcp_authority["sha256"],
@@ -6135,6 +6136,16 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         candidate_differs = snapshot_release["manifest_sha256"] != release_sha
         if candidate_differs and upgrade_plan is None:
             raise RuntimeError("cross-release restore requires the staging-qualified upgrade plan")
+        preservation_baseline = None
+        if candidate_differs:
+            preservation_baseline = upgrade_preservation.capture(
+                lambda query: json.dumps(_recovery_proof_query(
+                    target, target_runner, database_containers[0], "odoo", query,
+                )),
+            )
+            _write_remote(target, target_runner,
+                f"{generation_root}/upgrade-preservation-baseline.json",
+                json.dumps(preservation_baseline, sort_keys=True) + "\n")
         if upgrade_plan is not None:
             snapshot_identity = snapshot_release.get("identity", snapshot_release["manifest_sha256"])
             if upgrade_plan["active_release"] != snapshot_identity:
@@ -6299,12 +6310,28 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             expected_release_definitions_sha256 = staging_evidence["staging"][
                 "release_definitions_sha256"
             ]
+        preservation_proof = None
+        compared_controls = smoke["controls"]
+        if preservation_baseline is not None:
+            execute = lambda query: _psql(target, target_runner, generation_identity, "odoo", query)
+            preservation_proof = upgrade_preservation.verify(preservation_baseline, execute)
+            compared_controls = {
+                **smoke["controls"],
+                "odoo": json.loads(execute(upgrade_preservation.scoped_controls_sql(
+                    ODOO_CONTROL_SQL, preservation_baseline["scope"],
+                ))),
+            }
         try:
             control_validation = validate_restore(
                 materialize_state["controls"],
-                smoke["controls"],
+                compared_controls,
                 require_unchanged_release=not candidate_differs,
             )
+            if preservation_proof is not None:
+                control_validation["upgrade_preservation"] = preservation_proof
+                control_validation["raw_candidate_controls_sha256"] = hashlib.sha256(
+                    json.dumps(smoke["controls"], sort_keys=True, separators=(",", ":")).encode(),
+                ).hexdigest()
         except ControlManifestError as error:
             raise RuntimeError(str(error)) from error
         if expected_release_definitions_sha256 is not None and (
