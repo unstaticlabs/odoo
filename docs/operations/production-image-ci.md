@@ -119,8 +119,11 @@ repository described in [Backup and recovery](backup-and-recovery.md).
 Production qualification compares ACLs, record rules, group implications and
 cron definitions using stable model/XML identities. Database row IDs are used
 only for preserving the same database's business state. Signed staging plan
-evidence uses `usl-staging-upgrade-plan-evidence/v2`; a v1 attestation must be
-refreshed before production promotion.
+evidence uses `usl-staging-upgrade-plan-evidence/v2` and applies to staging
+targets only. Production derives its own `usl-module-upgrade-plan/v1` plan from
+its active release and installed modules; see
+[Continuous delivery](continuous-delivery.md) for the plan contract and the
+coordination rule for the operations image and the GitOps launcher.
 
 Activation restores the production Pocket ID provider from its running service
 environment and verifies the authorization callback and client credentials.

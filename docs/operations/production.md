@@ -69,6 +69,12 @@ GHCR; digest references—not branch names or `latest`—are deployable identiti
 The runtime release manifest must match the images actually running. Backup
 refuses a mismatched manifest.
 
+Production plans its module upgrade from its own active release and the
+modules installed in its database. It does not consume a staging-signed plan.
+[Continuous delivery](continuous-delivery.md) describes the plan contract, the
+required production checks and the coordination rule for the operations image
+and the GitOps launcher.
+
 Protected CI/GitOps is the normal deployment path, not the only authorized
 path. An operator may deploy manually or bypass CI when the owner explicitly
 instructs it. Before changing production, confirm that a current qualified
