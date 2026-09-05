@@ -4,6 +4,7 @@ import argparse
 import contextlib
 import hashlib
 import json
+import os
 import subprocess
 import tempfile
 import unittest
@@ -36,6 +37,9 @@ from operations.stack import (
     _gateway_service_hash,
     _independent_mcp_image,
     _mcp_runtime_authority,
+    _candidate_mcp_authority,
+    _operations_image,
+    _validate_candidate_mcp_support,
     _with_mcp_runtime_authority,
     _with_stable_gateway_config,
     _wait_legacy_staging_origin,
@@ -3059,6 +3063,28 @@ class CohortContractTests(unittest.TestCase):
             current_mcp,
         )
 
+    def test_captured_runtime_images_are_immutable_snapshot_metadata(self):
+        with tempfile.TemporaryDirectory() as directory:
+            durable = Path(directory)
+            images = {"mcp": "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "a" * 64}
+            with mock.patch.dict(os.environ, {"USL_RUNTIME_IMAGES_JSON": json.dumps(images)}):
+                cohort._capture_runtime_images(durable)
+            self.assertEqual(json.loads((durable / "runtime-images.json").read_text()), images)
+            with mock.patch.dict(os.environ, {"USL_RUNTIME_IMAGES_JSON": '{"mcp":"image:latest"}'}):
+                with self.assertRaisesRegex(cohort.CohortError, "immutable"):
+                    cohort._capture_runtime_images(durable)
+
+    def test_operations_tooling_is_independent_of_captured_release(self):
+        old = "ghcr.io/unstaticlabs/usl-odoo-backup@sha256:" + "a" * 64
+        new = "ghcr.io/unstaticlabs/usl-odoo-backup@sha256:" + "b" * 64
+        release = {"components": {"backup-tool": {"digest_reference": old}}}
+        with mock.patch.dict(os.environ, {"USL_OPERATIONS_IMAGE": new}):
+            self.assertEqual(_operations_image(release), new)
+            self.assertEqual(release["components"]["backup-tool"]["digest_reference"], old)
+        with mock.patch.dict(os.environ, {"USL_OPERATIONS_IMAGE": "mutable:latest"}):
+            with self.assertRaisesRegex(RuntimeError, "immutable"):
+                _operations_image(release)
+
     def test_mcp_runtime_authority_is_bound_to_pinned_gitops_ledger(self) -> None:
         target = load_target("staging", TARGETS)
         image = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "b" * 64
@@ -3110,6 +3136,11 @@ class CohortContractTests(unittest.TestCase):
                 authority = _mcp_runtime_authority(target)
                 self.assertEqual(authority["image"], image)
                 self.assertEqual(authority["gitops_commit"], "e" * 40)
+                # Capturing this exact MCP remains possible without an Odoo
+                # candidate contract, while candidate admission still rejects it.
+                with mock.patch("operations.stack._mcp_runtime_authority", side_effect=_mcp_runtime_authority):
+                    with self.assertRaisesRegex(RuntimeError, "incompatible with Odoo"):
+                        _candidate_mcp_authority(target, {"schema": "usl-release/v2"})
                 manifest["source"]["commit"] = "f" * 40
                 manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
                 with self.assertRaisesRegex(RuntimeError, "manifest and ledger differ"):
@@ -5817,13 +5848,14 @@ class CohortContractTests(unittest.TestCase):
         runner.run.side_effect = run
         with (
             mock.patch("operations.stack._release", return_value=(release, "d" * 64, "{}")),
-            mock.patch("operations.stack._mcp_runtime_authority", return_value=authority),
+            mock.patch("operations.stack._mcp_runtime_authority", return_value=authority) as authority_reader,
             mock.patch(
                 "operations.stack._with_mcp_runtime_authority",
                 side_effect=lambda _target, _runner, identity, _authority: identity,
             ),
         ):
             self.assertRegex(_runtime_cas_sha256(target, runner, runtime), r"[0-9a-f]{64}")
+            authority_reader.assert_called_with(target)
             authority["image"] = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "e" * 64
             with self.assertRaisesRegex(RuntimeError, "differs from GitOps authority"):
                 _runtime_cas_sha256(target, runner, runtime)

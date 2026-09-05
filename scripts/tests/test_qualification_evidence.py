@@ -3,7 +3,7 @@ from __future__ import annotations
 import unittest
 
 from operations.qualification_evidence import (
-    QualificationEvidenceError, create, verify_merge_group, verify_production_pr,
+    QualificationEvidenceError, create, verify_merge_group, verify_production_pr, verify_origin,
 )
 
 
@@ -25,6 +25,20 @@ def evidence() -> dict:
 
 
 class QualificationEvidenceTests(unittest.TestCase):
+    def test_artifact_must_belong_to_successful_qualification_run(self):
+        value = evidence()
+        artifact = {"expired": False, "workflow_run": {"id": 123}}
+        run = {"id": 123, "event": "pull_request", "path": ".github/workflows/qualification.yml", "head_sha": "a" * 40,
+               "repository": {"full_name": "unstaticlabs/odoo"}, "status": "completed", "conclusion": "success",
+               "pull_requests": [{"number": 42, "base": {"sha": "b" * 40}, "head": {"sha": "a" * 40}}]}
+        verify_origin(value, artifact, run, current_run_id=456, event="merge_group")
+        for change in ({"conclusion": "failure"}, {"id": 124}, {"head_sha": "e" * 40}, {"pull_requests": []}):
+            with self.subTest(change=change), self.assertRaises(QualificationEvidenceError):
+                verify_origin(value, artifact, {**run, **change}, current_run_id=456, event="merge_group")
+        verify_origin(value, artifact, {**run, "status": "in_progress", "conclusion": None}, current_run_id=123, event="pull_request")
+        with self.assertRaises(QualificationEvidenceError):
+            verify_origin(value, artifact, run, current_run_id=456, event="pull_request")
+
     def test_production_pr_matches_exact_evidence(self):
         self.assertEqual(
             verify_production_pr(

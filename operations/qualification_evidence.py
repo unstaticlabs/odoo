@@ -157,3 +157,24 @@ def verify_merge_group(
     }:
         raise QualificationEvidenceError("merge-group qualification results differ")
     return value
+
+
+def verify_origin(value: dict[str, Any], artifact: dict, run: dict, *, current_run_id: int, event: str) -> None:
+    """Bind downloaded evidence to GitHub's independently reported workflow run."""
+    validate(value)
+    run_id = value["workflow_run_id"]
+    if artifact.get("expired") or (artifact.get("workflow_run") or {}).get("id") != run_id or run.get("id") != run_id:
+        raise QualificationEvidenceError("qualification artifact run differs")
+    if run.get("event") != "pull_request" or run.get("path") != ".github/workflows/qualification.yml" or run.get("head_sha") != value["source_sha"]:
+        raise QualificationEvidenceError("qualification originating workflow differs")
+    if (run.get("repository") or {}).get("full_name") != value["repository"]:
+        raise QualificationEvidenceError("qualification originating repository differs")
+    if event == "pull_request":
+        # This job follows successful qualification in the same still-running workflow.
+        if run_id != current_run_id:
+            raise QualificationEvidenceError("qualification must come from this PR run")
+    elif run.get("status") != "completed" or run.get("conclusion") != "success":
+        raise QualificationEvidenceError("qualification originating run did not succeed")
+    pulls = [pr for pr in run.get("pull_requests", []) if pr.get("number") == value["pull_request"]]
+    if len(pulls) != 1 or pulls[0].get("base", {}).get("sha") != value["base_sha"] or pulls[0].get("head", {}).get("sha") != value["source_sha"]:
+        raise QualificationEvidenceError("qualification originating PR differs")
