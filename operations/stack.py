@@ -7461,6 +7461,7 @@ def _start_recovery_proof_runtime(
     secrets = f"{proof_root}/generations/{generation}/sign-secrets"
     renderer_secrets = f"{proof_root}/generations/{generation}/renderer-secrets"
     volumes = names["volumes"]
+    _prepare_generation_volume_ownership(runner, release, volumes)
     started: dict[str, str] = {}
     started["paperless_broker"] = _run_recovery_proof_container(
         runner, proof_id, names, "paperless_broker",
