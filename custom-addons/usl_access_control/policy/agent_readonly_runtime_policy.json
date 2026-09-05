@@ -284,7 +284,7 @@
     "rpc:usl.tese.profile.message_subscribe",
     "rpc:usl.tese.profile.message_unsubscribe"
   ],
-  "qualified_policy_digest": "657193fcdfc9dfbe45dc665610154ad2bcdd3fdfcec4e929b9a98a1a3bcaede7",
+  "qualified_policy_digest": "0a688a55fdd7bb7704ce6ecc8c4b7db25eadf16e51b3457b690a54f84889341d",
   "read_only_actions": [
     "rpc:_unknown.check_field_access",
     "rpc:_unknown.export_data",
@@ -12406,7 +12406,7 @@
     "rpc:wizard.open.tax.balances.search_count",
     "rpc:wizard.open.tax.balances.search_read"
   ],
-  "runtime_policy_sha256": "f5077548e3a9ebaac2254f936abffd7f759e9aea1accc6789ad432c2e2f5771b",
+  "runtime_policy_sha256": "173ce9d4ceb259e4d46e37a6ad42e9fc00031546e8e5cb2b5620b4da1561e796",
   "schema": "usl-agent-access-runtime-v2",
   "write_actions": [
     "rpc:_unknown.copy",
@@ -13677,6 +13677,7 @@
     "rpc:account.move.button_create_landed_costs",
     "rpc:account.move.button_draft",
     "rpc:account.move.button_hash",
+    "rpc:account.move.configure_draft_vendor_bill",
     "rpc:account.move.copy",
     "rpc:account.move.copy_data",
     "rpc:account.move.create",

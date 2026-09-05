@@ -19,4 +19,5 @@ from . import (
     immediate_settlement,
     invoice_document,
     readonly_evidence,
+    vendor_bill_configuration,
 )

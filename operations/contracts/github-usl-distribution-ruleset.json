@@ -1,12 +1,11 @@
 {
-  "name": "USL Distribution",
+  "name": "USL Distribution — Staging",
   "target": "branch",
   "enforcement": "active",
   "conditions": {
     "ref_name": {
       "exclude": [],
       "include": [
-        "refs/heads/19-usl",
         "refs/heads/19-usl-staging"
       ]
     }
@@ -40,7 +39,7 @@
     {
       "type": "required_status_checks",
       "parameters": {
-        "strict_required_status_checks_policy": true,
+        "strict_required_status_checks_policy": false,
         "do_not_enforce_on_create": false,
         "required_status_checks": [
           {
@@ -61,5 +60,6 @@
         "check_response_timeout_minutes": 60
       }
     }
-  ]
+  ],
+  "bypass_actors": null
 }

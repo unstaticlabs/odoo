@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import hashlib
 import json
 import subprocess
 import tempfile
@@ -31,9 +32,13 @@ from operations.stack import (
     _cleanup_workspaces,
     _delete_cleanup_resources,
     _generation_overlay,
+    _gateway_semantic_hash,
+    _gateway_service_hash,
     _independent_mcp_image,
     _mcp_runtime_authority,
     _with_mcp_runtime_authority,
+    _with_stable_gateway_config,
+    _wait_legacy_staging_origin,
     _forward_only_receipt,
     _ensure_image,
     _materialize_command,
@@ -61,6 +66,7 @@ from operations.stack import (
     _release_images,
     _remove_materialization_workspace,
     _resource_overlay,
+    _restore_legacy_ingress,
     _require_restore_capacity,
     _measure_candidate_bytes,
     _notify_release,
@@ -89,8 +95,10 @@ from operations.stack import (
     _validated_cleanup_volume,
     _validate_recovery_selection,
     _validate_staging_auth_compose,
+    _validate_gateway_container,
     cleanup_command,
     generation_volume_names,
+    runtime_command,
     generation_volume_path,
     release_command,
     runtime_lock,
@@ -1373,6 +1381,50 @@ class CohortContractTests(unittest.TestCase):
         ), self.assertRaisesRegex(cohort.CohortError, "no unique cache"):
             cohort.plan_retention(now)
 
+    def test_staging_retention_expires_both_repositories_after_24_hours(self) -> None:
+        now = datetime(2026, 9, 5, 12, tzinfo=UTC)
+        def snapshot(number, kind, age, target="staging"):
+            return {"id": f"{number:064x}", "time": (now - age).isoformat(),
+                    "tags": ["usl-cohort", kind, f"target-{target}"]}
+        durable = [snapshot(1, "durable", timedelta(hours=23)),
+                   snapshot(2, "durable", timedelta(hours=24)),
+                   snapshot(3, "durable", timedelta(days=3), "production")]
+        cache = [snapshot(4, "cache", timedelta(hours=23)),
+                 snapshot(5, "cache", timedelta(days=2)),
+                 snapshot(6, "cache", timedelta(days=3), "production")]
+        with mock.patch.dict(cohort.os.environ, {"USL_TARGET": "staging"}), mock.patch.object(
+            cohort, "restic_environment", return_value={},
+        ), mock.patch.object(cohort, "_inventory", side_effect=[durable, cache]):
+            plan = cohort.plan_retention(now)
+        self.assertEqual(plan["policy"], {"maximum_age_hours": 24})
+        self.assertEqual(plan["retain_durable"], [f"{1:064x}"])
+        self.assertEqual(plan["delete_durable"], [f"{2:064x}"])
+        self.assertEqual(plan["retain_cache"], [f"{4:064x}"])
+        self.assertEqual(plan["delete_cache"], [f"{5:064x}"])
+
+    def test_staging_retention_rejects_ambiguous_targets(self) -> None:
+        snapshot = {"id": "a" * 64, "time": datetime.now(UTC).isoformat(),
+                    "tags": ["usl-cohort", "durable", "target-staging", "target-production"]}
+        with self.assertRaisesRegex(cohort.CohortError, "ambiguous target"):
+            cohort._staging_retention([snapshot], [], datetime.now(UTC))
+
+    def test_staging_prune_acquires_the_operation_lock(self) -> None:
+        target = load_target("staging", TARGETS)
+        runner = mock.Mock()
+        arguments = build_parser().parse_args(["--target", "staging", "backup", "prune", "--json"])
+        release = {"components": {"backup-tool": {"digest_reference": "backup-image"}}}
+        with mock.patch.object(type(target), "runner", return_value=runner), mock.patch("operations.stack.load_target", return_value=target), mock.patch(
+            "operations.stack.inspect_runtime", return_value={"volumes": {}},
+        ), mock.patch("operations.stack._release", return_value=(release, "sha", "raw")), mock.patch(
+            "operations.stack._secret_file",
+        ), mock.patch("operations.stack.runtime_lock") as lock, mock.patch(
+            "operations.stack._run_cohort", return_value={"status": "applied"},
+        ) as run, mock.patch("builtins.print"):
+            self.assertEqual(backup_command(arguments), 0)
+        lock.assert_called_once()
+        self.assertEqual(lock.call_args.args[2], "retention")
+        run.assert_called_once_with(target, runner, "backup-image", "retention-apply", [], volumes={})
+
     def test_previous_generation_identity_rejects_paths_not_derived_from_state(self) -> None:
         target = mock.Mock(value={
             "state_directory": "/var/lib/usl-odoo/runtime/production",
@@ -1614,7 +1666,7 @@ class CohortContractTests(unittest.TestCase):
         target.name = "production"
         target.value = {
                 "state_directory": "/var/lib/usl-odoo/runtime/production",
-                "compose": {"resource_overlay": None},
+                "compose": {"resource_overlay": None, "anchor_service": "odoo"},
                 "volumes": {"odoo_postgres": {}},
                 "services": {"odoo": "odoo", "odoo_db": "db"},
             }
@@ -1662,8 +1714,10 @@ class CohortContractTests(unittest.TestCase):
         ):
             result = _abort_to_previous_generation(target, runner, TARGETS)
         self.assertEqual(result["status"], "rolled-back")
-        up = next(command for command in runner.commands if command[-3:] == ["up", "--detach", "--wait"])
+        up = next(command for command in runner.commands if "up" in command)
         self.assertNotIn(candidate_file, up)
+        self.assertIn("--no-deps", up)
+        self.assertNotIn("gateway", up[up.index("up") + 1:])
         self.assertIn(
             ["rm", "-f", "/var/lib/usl-odoo/runtime/production/active.json"],
             runner.commands,
@@ -3587,6 +3641,13 @@ class CohortContractTests(unittest.TestCase):
                 target, Runner(), volumes, [], set(), set(),
             )
 
+        container["Config"]["Labels"]["com.docker.compose.project"] = target.project
+        container["Config"]["Labels"]["com.docker.compose.service"] = "gateway"
+        with self.assertRaisesRegex(RuntimeError, "cleanup refuses the stable gateway"):
+            _validated_cleanup_containers(
+                target, Runner(), volumes, [], set(), set(),
+            )
+
     def test_cleanup_rejects_bind_options_for_non_database_volumes(self) -> None:
         target = load_target("staging", TARGETS)
         generation = "g20260904-a1b2c3d4"
@@ -3821,7 +3882,10 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(command[-3:], ["1000:1000", "/var/lib/odoo", "/var/lib/odoo/filestore"])
 
     def test_rollback_failure_preserves_the_activation_error(self) -> None:
-        target = mock.Mock(value={"compose": {}})
+        target = mock.Mock(value={
+            "compose": {"anchor_service": "odoo"},
+            "services": {"odoo": "odoo", "odoo_db": "db"},
+        })
         identity = {
             "project": "safe-project",
             "working_directory": "/release",
@@ -3839,7 +3903,10 @@ class CohortContractTests(unittest.TestCase):
             _rollback_after_failure(target, FailedRunner(), identity, RuntimeError("original failure"))
 
     def test_rollback_reactivates_the_previous_generation_overlay(self) -> None:
-        target = mock.Mock(value={"compose": {}})
+        target = mock.Mock(value={
+            "compose": {"anchor_service": "odoo"},
+            "services": {"odoo": "odoo", "odoo_db": "db"},
+        })
         identity = {
             "project": "safe-project",
             "working_directory": "/release",
@@ -3865,11 +3932,16 @@ class CohortContractTests(unittest.TestCase):
             "/runtime/generations/g-previous/compose.generation.json",
             command,
         )
-        self.assertEqual(command[-3:], ["up", "--detach", "--wait"])
+        self.assertIn("--no-deps", command)
+        self.assertEqual(command[-2:], ["db", "odoo"])
+        self.assertNotIn("gateway", command[command.index("up") + 1:])
         self.assertNotIn("--force-recreate", command)
 
     def test_pre_boundary_failure_restores_active_state_and_previous_runtime(self) -> None:
-        target = mock.Mock(value={"compose": {"adoption": None}})
+        target = mock.Mock(value={
+            "compose": {"adoption": None, "anchor_service": "odoo"},
+            "services": {"odoo": "odoo", "odoo_db": "db"},
+        })
         current_identity = {
             "project": "staging",
             "working_directory": "/release",
@@ -3910,11 +3982,17 @@ class CohortContractTests(unittest.TestCase):
         candidate_stop = next(command for command in commands if "stop" in command)
         previous_up = next(command for command in commands if "up" in command)
         self.assertIn("/runtime/candidate.json", candidate_stop)
+        self.assertNotIn("gateway", candidate_stop[candidate_stop.index("stop") + 1:])
         self.assertIn("/runtime/previous.json", previous_up)
+        self.assertIn("--no-deps", previous_up)
+        self.assertNotIn("gateway", previous_up[previous_up.index("up") + 1:])
         self.assertNotIn("--force-recreate", previous_up)
 
     def test_pre_boundary_failure_removes_uncommitted_active_state_for_adopted_baseline(self) -> None:
-        target = mock.Mock(value={"compose": {"adoption": None}})
+        target = mock.Mock(value={
+            "compose": {"adoption": None, "anchor_service": "odoo"},
+            "services": {"odoo": "odoo", "odoo_db": "db"},
+        })
         identity = {
             "project": "staging",
             "working_directory": "/release",
@@ -4170,7 +4248,8 @@ class CohortContractTests(unittest.TestCase):
         with mock.patch("operations.stack._start_rollback_identity") as starter, self.assertRaisesRegex(
             RuntimeError, "candidate failed",
         ):
-            _activate_generation(target, runner, legacy, candidate)
+            with mock.patch("operations.stack._validate_stable_gateway_generation"):
+                _activate_generation(target, runner, legacy, candidate, candidate)
 
         stop = runner.commands[0]
         failed_up = runner.commands[1]
@@ -4178,6 +4257,8 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("odoo", stop)
         self.assertNotIn("odoo-staging", stop)
         self.assertIn("/runtime/v3.json", failed_up)
+        self.assertIn("--no-deps", failed_up)
+        self.assertNotIn("gateway", failed_up[failed_up.index("up") + 1:])
         starter.assert_called_once_with(target, runner, legacy)
         self.assertIn(["docker", "rm", "--force", "candidate-id"], runner.commands)
 
@@ -4221,12 +4302,12 @@ class CohortContractTests(unittest.TestCase):
             environment.write_text("SAFE=value\n")
             contract["environment_file"] = str(environment)
             runner = CandidateRunner()
-            with mock.patch.dict(
-                "os.environ",
-                {
-                    "USL_RELEASE_GITOPS_ROOT": str(root),
-                    "USL_RELEASE_GITOPS_COMMIT": commit,
-                },
+            with mock.patch.dict("os.environ", {
+                "USL_RELEASE_GITOPS_ROOT": str(root),
+                "USL_RELEASE_GITOPS_COMMIT": commit,
+            }), mock.patch(
+                "operations.stack._with_stable_gateway_config",
+                side_effect=lambda _target, _runner, identity: identity,
             ):
                 candidate = _candidate_compose_identity(target, runner, legacy)
 
@@ -4265,12 +4346,384 @@ class CohortContractTests(unittest.TestCase):
         runner = mock.Mock()
         runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
 
-        _activate_generation(target, runner, current, candidate)
+        with mock.patch("operations.stack._validate_stable_gateway_generation"):
+            _activate_generation(target, runner, current, current, candidate)
 
         stop = runner.run.call_args_list[0].args[0]
         self.assertIn("odoo-staging", stop)
         self.assertNotIn("odoo", stop)
-        self.assertIn("/runtime/v3-next.json", runner.run.call_args_list[1].args[0])
+        candidate_up = runner.run.call_args_list[1].args[0]
+        self.assertIn("/runtime/v3-next.json", candidate_up)
+        self.assertIn("--no-deps", candidate_up)
+        self.assertNotIn("gateway", candidate_up[candidate_up.index("up") + 1:])
+
+    def test_production_activation_never_reconciles_gateway(self) -> None:
+        target = load_target("production", TARGETS)
+        current = {
+            "project": target.project, "working_directory": "/gitops/production",
+            "environment_file": "/runtime/production.env", "profiles": [],
+            "anchor_service": target.value["compose"]["anchor_service"],
+            "compose_files": ["/gitops/production/compose.yaml", "/runtime/active.json"],
+        }
+        candidate = {**current, "compose_files": ["/gitops/production/compose.yaml"]}
+        generation = {**candidate, "compose_files": [*candidate["compose_files"], "/runtime/next.json"]}
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+
+        with mock.patch("operations.stack._mcp_runtime_authority", return_value=None):
+            _activate_generation(target, runner, current, candidate, generation)
+
+        for call in runner.run.call_args_list:
+            command = call.args[0]
+            if "stop" in command or "up" in command:
+                action = "stop" if "stop" in command else "up"
+                self.assertNotIn("gateway", command[command.index(action) + 1:])
+        candidate_up = runner.run.call_args_list[1].args[0]
+        self.assertIn("--no-deps", candidate_up)
+
+    def test_staging_gateway_drift_fails_before_cohort_mutation(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        identity = {
+            "project": target.project, "working_directory": "/gitops/staging",
+            "environment_file": "/runtime/staging.env", "profiles": [],
+            "anchor_service": target.value["compose"]["anchor_service"],
+            "compose_files": ["/gitops/staging/compose.yaml"],
+        }
+        generation = {**identity, "compose_files": [*identity["compose_files"], "/runtime/next.json"]}
+        runner = mock.Mock()
+        with mock.patch("operations.stack._mcp_runtime_authority", return_value=None), mock.patch(
+            "operations.stack._validate_stable_gateway_generation",
+            side_effect=RuntimeError("gateway drift"),
+        ), self.assertRaisesRegex(RuntimeError, "gateway drift"):
+            _activate_generation(target, runner, identity, identity, generation)
+        runner.run.assert_not_called()
+
+    def test_runtime_start_reconciles_only_the_active_cohort(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        identity = {
+            "project": target.project, "working_directory": "/gitops/staging",
+            "environment_file": "/runtime/staging.env", "profiles": [],
+            "anchor_service": target.value["compose"]["anchor_service"],
+            "compose_files": ["/gitops/staging/compose.yaml", "/runtime/active.json"],
+        }
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        arguments = argparse.Namespace(
+            target="staging", targets=HOST_TARGETS, action="start", json=True,
+        )
+        with mock.patch.object(type(target), "runner", return_value=runner), mock.patch(
+            "operations.stack.load_target", return_value=target,
+        ), mock.patch(
+            "operations.stack.inspect_runtime",
+            side_effect=[{"compose": identity}, {"compose": identity}],
+        ), mock.patch(
+            "operations.stack._active_generation_identity", return_value=identity,
+        ):
+            runtime_command(arguments)
+
+        command = runner.run.call_args.args[0]
+        self.assertIn("--no-deps", command)
+        self.assertNotIn("gateway", command[command.index("up") + 1:])
+
+    def test_runtime_stop_stops_only_the_active_cohort(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        identity = {
+            "project": target.project, "working_directory": "/gitops/staging",
+            "environment_file": "/runtime/staging.env", "profiles": [],
+            "anchor_service": target.value["compose"]["anchor_service"],
+            "compose_files": ["/gitops/staging/compose.yaml", "/runtime/active.json"],
+        }
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        arguments = argparse.Namespace(
+            target="staging", targets=HOST_TARGETS, action="stop", json=True,
+        )
+        with mock.patch.object(type(target), "runner", return_value=runner), mock.patch(
+            "operations.stack.load_target", return_value=target,
+        ), mock.patch(
+            "operations.stack.inspect_runtime",
+            side_effect=[{"compose": identity}, {"compose": identity}],
+        ):
+            runtime_command(arguments)
+
+        command = runner.run.call_args.args[0]
+        self.assertNotIn("gateway", command[command.index("stop") + 1:])
+        self.assertEqual(
+            set(command[command.index("stop") + 1:]),
+            set(target.value["services"].values()),
+        )
+
+    def test_gateway_semantics_ignore_snapshot_path_but_bind_config_content(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+
+        class Runner:
+            def run(self, command, *, check=True, input_text=None):
+                if command[:2] == ["sha256sum", "--"]:
+                    return subprocess.CompletedProcess(command, 0, "c" * 64 + "  " + command[-1], "")
+                source = "/snap/next/gateway.conf" if "/runtime/next.json" in command else "/snap/current/gateway.conf"
+                gateway = {
+                    "image": "nginx@sha256:" + "d" * 64,
+                    "command": ["nginx", "-g", "daemon off;"],
+                    "healthcheck": {"test": ["CMD", "nginx", "-t"]},
+                    "networks": {"cloudflare": {"aliases": ["odoo-staging"]}},
+                    "pids_limit": 64,
+                    "security_opt": ["no-new-privileges:true"],
+                    "volumes": [
+                        {"type": "bind", "source": source, "target": "/etc/nginx/usl-gateway.conf", "read_only": True},
+                        {"type": "bind", "source": "/var/lib/usl-odoo/gateway/staging", "target": "/run/usl-gateway", "read_only": True},
+                    ],
+                }
+                mutations = {
+                    "/runtime/image.json": ("image", "nginx@sha256:" + "e" * 64),
+                    "/runtime/command.json": ("command", ["nginx", "-T"]),
+                    "/runtime/health.json": ("healthcheck", {"test": ["NONE"]}),
+                    "/runtime/network.json": ("networks", {"other": {}}),
+                    "/runtime/resource.json": ("pids_limit", 65),
+                    "/runtime/security.json": ("security_opt", []),
+                }
+                for path, (field, value) in mutations.items():
+                    if path in command:
+                        gateway[field] = value
+                rendered = {"services": {"gateway": gateway}}
+                return subprocess.CompletedProcess(command, 0, json.dumps(rendered), "")
+
+        base = {
+            "project": target.project, "working_directory": "/gitops/staging",
+            "environment_file": "/runtime/staging.env", "profiles": [],
+            "compose_files": ["/gitops/staging/compose.yaml"],
+        }
+        generation = {**base, "compose_files": [*base["compose_files"], "/runtime/next.json"]}
+        runner = Runner()
+        baseline = _gateway_semantic_hash(target, runner, base)
+        self.assertEqual(baseline, _gateway_semantic_hash(target, runner, generation))
+        for name in ("image", "command", "health", "network", "resource", "security"):
+            drift = {**base, "compose_files": [*base["compose_files"], f"/runtime/{name}.json"]}
+            with self.subTest(name=name):
+                self.assertNotEqual(baseline, _gateway_semantic_hash(target, runner, drift))
+
+    def test_candidate_gateway_config_uses_a_persistent_content_address(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        content = "events {}\nhttp {}\n"
+        digest = hashlib.sha256(content.encode()).hexdigest()
+        identity = {
+            "project": target.project, "working_directory": "/gitops/staging",
+            "environment_file": "/runtime/staging.env", "profiles": [],
+            "compose_files": ["/gitops/staging/compose.yaml"],
+        }
+        config_path = f"/var/lib/usl-odoo/gateway/staging/configs/{digest}/gateway.conf"
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, content, "")
+        gateway = {"image": "nginx@sha256:" + "a" * 64, "volumes": []}
+        with mock.patch(
+            "operations.stack._gateway_semantic_contract",
+            side_effect=[
+                ("b" * 64, digest, "/snapshot/gateway.conf", gateway),
+                ("b" * 64, digest, config_path, gateway),
+            ],
+        ), mock.patch("operations.stack._write_remote") as write_remote:
+            stable = _with_stable_gateway_config(target, runner, identity)
+
+        self.assertEqual(
+            stable["compose_files"][-1],
+            f"/var/lib/usl-odoo/gateway/staging/configs/{digest}/compose.gateway.json",
+        )
+        writes = [call.args for call in write_remote.call_args_list]
+        self.assertEqual(writes[0][2:5], (config_path, content, "0444"))
+        overlay = json.loads(writes[1][3])
+        self.assertEqual(overlay["services"]["gateway"]["volumes"][0]["source"], config_path)
+
+    def test_gateway_validation_accepts_historical_paths_only_for_equal_semantics(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        raw_hash = "a" * 64
+        labels = {
+            "com.docker.compose.project": target.project,
+            "com.docker.compose.service": "gateway",
+            "com.docker.compose.project.working_dir": (
+                "/var/lib/usl-odoo/gitops-runs/" + "1" * 40
+                + ".previous/komodo/stacks/prod-odoo-nbg1-2/usl-odoo-staging"
+            ),
+            "com.docker.compose.project.environment_file": "/runtime/staging.env",
+            "com.docker.compose.project.config_files": (
+                "/var/lib/usl-odoo/gitops-runs/" + "1" * 40
+                + ".previous/komodo/stacks/prod-odoo-nbg1-2/usl-odoo-staging/compose.yaml,"
+                "/var/lib/usl-odoo/runtime/staging/generations/gprevious/compose.generation.json"
+            ),
+            "com.docker.compose.config-hash": raw_hash,
+        }
+
+        class Runner:
+            generation_image = "nginx@sha256:" + "d" * 64
+            runtime_config_digest = "c" * 64
+            runtime_health_test = ["CMD", "nginx", "-t"]
+            runtime_memory = 100_663_296
+            cgroup_version = "2"
+
+            def run(self, command, *, check=True, input_text=None):
+                if command[:3] == ["docker", "exec", "gateway-id"]:
+                    return subprocess.CompletedProcess(
+                        command, 0, self.runtime_config_digest + "  runtime-config\n", "",
+                    )
+                if command[:3] == ["docker", "inspect", "gateway-id"]:
+                    value = {
+                        "Config": {
+                            "Labels": labels,
+                            "Image": self.generation_image,
+                            "Cmd": ["nginx", "-g", "daemon off;"],
+                            "Healthcheck": {
+                                "Test": self.runtime_health_test,
+                                "Interval": 10_000_000_000,
+                                "Timeout": 3_000_000_000,
+                                "Retries": 6,
+                            },
+                        },
+                        "State": {"Running": True, "Health": {"Status": "healthy"}},
+                        "HostConfig": {
+                            "ReadonlyRootfs": True,
+                            "RestartPolicy": {"Name": "unless-stopped"},
+                            "NanoCpus": 250_000_000,
+                            "CpuShares": 256,
+                            "Memory": self.runtime_memory,
+                            "MemoryReservation": 16_777_216,
+                            "MemorySwap": 134_217_728,
+                            # Docker accepts this Compose option on cgroup v2,
+                            # then discards it and reports null at runtime.
+                            "MemorySwappiness": None,
+                            "OomScoreAdj": -100,
+                            "PidsLimit": 64,
+                        },
+                        "Mounts": [
+                            {
+                                "Type": "bind", "Source": "/snap/previous/gateway.conf",
+                                "Destination": "/etc/nginx/usl-gateway.conf", "RW": False,
+                            },
+                            {
+                                "Type": "bind", "Source": "/var/lib/usl-odoo/gateway/staging",
+                                "Destination": "/run/usl-gateway", "RW": False,
+                            },
+                        ],
+                    }
+                    return subprocess.CompletedProcess(command, 0, json.dumps(value), "")
+                if command[:2] == ["test", "-f"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command == ["docker", "info", "--format", "{{.CgroupVersion}}"]:
+                    return subprocess.CompletedProcess(
+                        command, 0, self.cgroup_version + "\n", "",
+                    )
+                if command[:3] == ["readlink", "-f", "--"]:
+                    return subprocess.CompletedProcess(command, 0, command[-1] + "\n", "")
+                if "--hash" in command:
+                    return subprocess.CompletedProcess(command, 0, "gateway " + raw_hash + "\n", "")
+                if "--format" in command:
+                    source = "/snap/previous/gateway.conf"
+                    if any("/generations/gnext/" in item for item in command):
+                        source = "/snap/next/gateway.conf"
+                    elif not any("/generations/gprevious/" in item for item in command):
+                        source = "/snap/current/gateway.conf"
+                    image = self.generation_image
+                    if any("/generations/gdrift/" in item for item in command):
+                        image = "nginx@sha256:" + "e" * 64
+                    rendered = {"services": {"gateway": {
+                        "image": image,
+                        "command": ["nginx", "-g", "daemon off;"],
+                        "healthcheck": {
+                            "test": ["CMD", "nginx", "-t"],
+                            "interval": "10s", "timeout": "3s", "retries": 6,
+                        },
+                        "cpus": 0.25,
+                        "cpu_shares": 256,
+                        "mem_limit": "100663296",
+                        "mem_reservation": "16777216",
+                        "memswap_limit": "134217728",
+                        "mem_swappiness": "10",
+                        "oom_score_adj": -100,
+                        "pids_limit": 64,
+                        "networks": {"cloudflare": {"aliases": ["odoo-staging"]}},
+                        "volumes": [{
+                            "type": "bind", "source": source,
+                            "target": "/etc/nginx/usl-gateway.conf", "read_only": True,
+                        }],
+                    }}}
+                    return subprocess.CompletedProcess(command, 0, json.dumps(rendered), "")
+                if command[:2] == ["sha256sum", "--"]:
+                    return subprocess.CompletedProcess(command, 0, "c" * 64 + "  " + command[-1], "")
+                raise AssertionError(command)
+
+        canonical = {
+            "project": target.project,
+            "working_directory": (
+                "/var/lib/usl-odoo/gitops-runs/" + "2" * 40
+                + ".current/komodo/stacks/prod-odoo-nbg1-2/usl-odoo-staging"
+            ),
+            "environment_file": "/runtime/staging.env", "profiles": [],
+            "compose_files": [
+                "/var/lib/usl-odoo/gitops-runs/" + "2" * 40
+                + ".current/komodo/stacks/prod-odoo-nbg1-2/usl-odoo-staging/compose.yaml",
+            ],
+        }
+        generation = {
+            **canonical,
+            "compose_files": [
+                *canonical["compose_files"],
+                "/var/lib/usl-odoo/runtime/staging/generations/gnext/compose.generation.json",
+            ],
+        }
+        networks = {
+            target.value["external_networks"]["ingress"]: {"Aliases": ["odoo-staging"]},
+            target.value["compose"]["default_network"]: {"Aliases": ["gateway"]},
+        }
+        runner = Runner()
+        with mock.patch("operations.stack._container_networks", return_value=networks):
+            _validate_gateway_container(target, runner, "gateway-id", canonical, generation)
+            recorded_files = labels["com.docker.compose.project.config_files"]
+            labels["com.docker.compose.project.config_files"] = (
+                "/var/lib/usl-odoo/gitops-runs/" + "1" * 40
+                + ".previous/komodo/stacks/prod-odoo-nbg1-2/usl-odoo-staging/compose.yaml,"
+                "/tmp/foreign.json"
+            )
+            with self.assertRaisesRegex(RuntimeError, "running gateway Compose identity is invalid"):
+                _validate_gateway_container(target, runner, "gateway-id", canonical, generation)
+            labels["com.docker.compose.project.config_files"] = recorded_files
+            labels["com.docker.compose.config-hash"] = "invalid"
+            with self.assertRaisesRegex(RuntimeError, "running gateway Compose hash is invalid"):
+                _validate_gateway_container(target, runner, "gateway-id", canonical, generation)
+            labels["com.docker.compose.config-hash"] = raw_hash
+            runner.runtime_config_digest = "d" * 64
+            with self.assertRaisesRegex(RuntimeError, "running gateway configuration content differs"):
+                _validate_gateway_container(target, runner, "gateway-id", canonical, generation)
+            runner.runtime_config_digest = "c" * 64
+            runner.runtime_health_test = ["NONE"]
+            with self.assertRaisesRegex(RuntimeError, "running gateway semantic configuration differs"):
+                _validate_gateway_container(target, runner, "gateway-id", canonical, generation)
+            runner.runtime_health_test = ["CMD", "nginx", "-t"]
+            runner.runtime_memory += 1
+            with self.assertRaisesRegex(RuntimeError, "running gateway semantic configuration differs"):
+                _validate_gateway_container(target, runner, "gateway-id", canonical, generation)
+            runner.runtime_memory -= 1
+            runner.cgroup_version = "1"
+            with self.assertRaisesRegex(RuntimeError, "running gateway semantic configuration differs"):
+                _validate_gateway_container(target, runner, "gateway-id", canonical, generation)
+            runner.cgroup_version = "2"
+            drift = {
+                **generation,
+                "compose_files": [
+                    canonical["compose_files"][0],
+                    "/var/lib/usl-odoo/runtime/staging/generations/gdrift/compose.generation.json",
+                ],
+            }
+            with self.assertRaisesRegex(RuntimeError, "generation gateway semantic configuration differs"):
+                _validate_gateway_container(target, runner, "gateway-id", canonical, drift)
+
+    def test_gateway_hash_evidence_and_running_label_fail_closed(self) -> None:
+        identity = {
+            "project": "staging", "working_directory": "/gitops/staging",
+            "environment_file": "/runtime/staging.env", "profiles": [],
+            "compose_files": ["/gitops/staging/compose.yaml"],
+        }
+        for output in ("", "gateway not-a-hash\n", "gateway " + "a" * 64 + "\ngateway " + "a" * 64):
+            runner = mock.Mock()
+            runner.run.return_value = subprocess.CompletedProcess([], 0, output, "")
+            with self.subTest(output=output), self.assertRaisesRegex(RuntimeError, "hash evidence is invalid"):
+                _gateway_service_hash(runner, identity)
 
     def test_first_v3_gateway_adoption_rolls_back_when_gateway_start_fails(self) -> None:
         target = load_target("staging", HOST_TARGETS)
@@ -4321,6 +4774,9 @@ class CohortContractTests(unittest.TestCase):
             "operations.stack._container_identifier", return_value="legacy-id",
         ), mock.patch("operations.stack._container_networks", side_effect=networks), mock.patch(
             "operations.stack._network_alias_owners", side_effect=owners,
+        ), mock.patch(
+            "operations.stack._wait_legacy_staging_origin",
+            return_value={"status": "running", "running": True, "health": "healthy"},
         ), mock.patch("operations.stack._gateway_container", return_value=None), self.assertRaisesRegex(
             RuntimeError, "gateway start failed",
         ):
@@ -4376,6 +4832,9 @@ class CohortContractTests(unittest.TestCase):
         ), mock.patch("operations.stack._gateway_container", side_effect=lambda *_: "gateway-id" if runner.gateway else None), mock.patch(
             "operations.stack._validate_gateway_container",
         ), mock.patch(
+            "operations.stack._wait_legacy_staging_origin",
+            return_value={"status": "running", "running": True, "health": "healthy"},
+        ), mock.patch(
             "operations.stack._probe_staging_gateway_maintenance",
             return_value={"schema": "usl-staging-gateway-maintenance/v1", "status": "passed", "http_status": 503, "websocket_status": 503},
         ):
@@ -4389,7 +4848,7 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(second["adoption"], "already-adopted")
         self.assertEqual(
             sum(command[:2] == ["docker", "restart"] for command in runner.commands),
-            2,
+            1,
         )
 
     def test_first_v3_gateway_adoption_restarts_only_detached_legacy_origin(self) -> None:
@@ -4450,6 +4909,9 @@ class CohortContractTests(unittest.TestCase):
         ), mock.patch(
             "operations.stack._validate_gateway_container",
         ), mock.patch(
+            "operations.stack._wait_legacy_staging_origin",
+            return_value={"status": "running", "running": True, "health": "healthy"},
+        ), mock.patch(
             "operations.stack._probe_staging_gateway_maintenance",
             return_value={"schema": "usl-staging-gateway-maintenance/v1", "status": "passed", "http_status": 503, "websocket_status": 503},
         ):
@@ -4459,6 +4921,77 @@ class CohortContractTests(unittest.TestCase):
         self.assertTrue(runner.assert_detached_at_restart)
         restart = next(command for command in runner.commands if command[:2] == ["docker", "restart"])
         self.assertEqual(restart, ["docker", "restart", "--time", "30", "legacy-id"])
+
+    def test_legacy_origin_waits_past_restart_until_healthy(self) -> None:
+        states = [
+            {"Status": "running", "Running": True, "Health": {"Status": "starting"}},
+            {"Status": "running", "Running": True, "Health": {"Status": "healthy"}},
+        ]
+
+        class Runner:
+            def run(self, command, *, check=True, input_text=None):
+                return subprocess.CompletedProcess(command, 0, json.dumps(states.pop(0)), "")
+
+        with mock.patch("operations.stack.time.sleep") as sleep:
+            result = _wait_legacy_staging_origin(Runner(), "legacy-id")
+        self.assertEqual(result["health"], "healthy")
+        sleep.assert_called_once_with(2.0)
+
+    def test_legacy_origin_health_wait_is_bounded_and_rejects_terminal_state(self) -> None:
+        class Runner:
+            state = {"Status": "running", "Running": True, "Health": {"Status": "starting"}}
+
+            def run(self, command, *, check=True, input_text=None):
+                return subprocess.CompletedProcess(command, 0, json.dumps(self.state), "")
+
+        runner = Runner()
+        with (
+            mock.patch("operations.stack.time.monotonic", side_effect=[0.0, 121.0]),
+            mock.patch("operations.stack.time.sleep"),
+            self.assertRaisesRegex(RuntimeError, "did not become healthy within 120 seconds"),
+        ):
+            _wait_legacy_staging_origin(runner, "legacy-id")
+        runner.state = {"Status": "exited", "Running": False, "Health": {"Status": "unhealthy"}}
+        with self.assertRaisesRegex(RuntimeError, "entered a terminal state"):
+            _wait_legacy_staging_origin(runner, "legacy-id")
+
+    def test_failed_legacy_health_keeps_admitted_maintenance_gateway(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        candidate = {
+            "project": target.project, "working_directory": "/gitops/staging",
+            "environment_file": "/runtime/staging.env", "profiles": [],
+            "anchor_service": "odoo-staging", "compose_files": ["/gitops/compose.yaml"],
+        }
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:2] == ["docker", "start"]:
+                    return subprocess.CompletedProcess(command, 0, "legacy-id\n", "")
+                raise AssertionError(command)
+
+        runner = Runner()
+        with (
+            mock.patch("operations.stack._gateway_container", return_value="gateway-id"),
+            mock.patch(
+                "operations.stack._wait_legacy_staging_origin",
+                side_effect=RuntimeError("health timeout"),
+            ),
+            mock.patch("operations.stack._validate_gateway_container") as validate_gateway,
+            mock.patch("operations.stack._network_alias_owners", return_value=["gateway-id"]),
+            mock.patch(
+                "operations.stack._probe_staging_gateway_maintenance",
+                return_value={"status": "passed"},
+            ) as maintenance,
+            self.assertRaisesRegex(RuntimeError, "maintenance gateway remains active"),
+        ):
+            _restore_legacy_ingress(target, runner, candidate, "legacy-id", ["odoo-staging"])
+        validate_gateway.assert_called_once_with(target, runner, "gateway-id", candidate)
+        maintenance.assert_called_once_with(target, runner)
+        self.assertFalse(any("rm" in command and "gateway" in command for command in runner.commands))
 
     def test_first_v3_gateway_adoption_stops_on_alias_transfer_failure(self) -> None:
         target = load_target("staging", HOST_TARGETS)
@@ -4626,6 +5159,27 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("USL_RESTORE_GENERATION_CONFIRMED=g20260901-a1b2c3d4", joined)
         self.assertIn("USL_TARGET_ENVIRONMENT=staging", joined)
         self.assertIn("--env-file /run/usl/source-backup.env", joined)
+
+    def test_staging_backup_and_restore_share_persistent_local_repositories(self) -> None:
+        staging = load_target("staging", TARGETS)
+        production = load_target("production", TARGETS)
+        names = generation_volume_names(staging, "g20260901-a1b2c3d4")
+        backup = _cohort_command(staging, "backup-image", "push", [])
+        restore = _materialize_command(
+            staging, staging, "backup-image", "b" * 64,
+            "g20260901-a1b2c3d4", "recovery-network", names, "/run/source.env",
+        )
+        production_restore = _materialize_command(
+            production, staging, "backup-image", "b" * 64,
+            "g20260901-a1b2c3d4", "recovery-network", names, "/run/source.env",
+        )
+        for repository in staging.value["backup"].values():
+            for command in (backup, restore):
+                self.assertIn(f"{repository}:{repository}", command)
+                self.assertLess(command.index(f"{repository}:{repository}"), command.index("backup-image"))
+            self.assertNotIn(f"{repository}:{repository}", production_restore)
+        self.assertIn("--durable-snapshot", restore)
+        self.assertIn("b" * 64, restore)
 
     def test_backup_v2_receipt_binds_exact_quiesced_staging_cohort(self) -> None:
         target = load_target("staging", TARGETS)

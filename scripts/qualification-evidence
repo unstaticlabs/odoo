@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+"""Create or verify exact USL qualification evidence."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from operations.qualification_evidence import (  # noqa: E402
+    QualificationEvidenceError, create, load, verify_merge_group, verify_production_pr,
+)
+
+
+def parser() -> argparse.ArgumentParser:
+    value = argparse.ArgumentParser(description=__doc__)
+    value.add_argument("mode", choices=("create", "verify-pr", "verify-merge-group"))
+    value.add_argument("--evidence", type=Path)
+    value.add_argument("--output", type=Path)
+    value.add_argument("--repository", required=True)
+    value.add_argument("--event")
+    value.add_argument("--pull-request-number", dest="pull_request", type=int)
+    value.add_argument("--source-ref", required=True)
+    value.add_argument("--source-sha", required=True)
+    value.add_argument("--base-ref")
+    value.add_argument("--base-sha")
+    value.add_argument("--qualified-commit")
+    value.add_argument("--qualified-tree", required=True)
+    value.add_argument("--database-mode", choices=("all", "focused", "skipped"))
+    value.add_argument("--workflow-run-id", type=int)
+    value.add_argument("--result", action="append", default=[])
+    return value
+
+
+def main() -> int:
+    arguments = parser().parse_args()
+    try:
+        if arguments.mode == "create":
+            if arguments.output is None:
+                raise QualificationEvidenceError("create requires --output")
+            try:
+                results = dict(item.split("=", 1) for item in arguments.result)
+            except ValueError as error:
+                raise QualificationEvidenceError("results must use name=value") from error
+            value = create(
+                repository=arguments.repository,
+                event=arguments.event,
+                pull_request=arguments.pull_request,
+                source_ref=arguments.source_ref,
+                source_sha=arguments.source_sha,
+                base_ref=arguments.base_ref,
+                base_sha=arguments.base_sha,
+                qualified_commit=arguments.qualified_commit,
+                qualified_tree=arguments.qualified_tree,
+                database_mode=arguments.database_mode,
+                workflow_run_id=arguments.workflow_run_id,
+                results=results,
+            )
+            arguments.output.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        else:
+            if arguments.evidence is None or arguments.pull_request is None:
+                raise QualificationEvidenceError("verification requires evidence and pull request")
+            value = load(arguments.evidence)
+            verifier = verify_production_pr if arguments.mode == "verify-pr" else verify_merge_group
+            keywords = {
+                "repository": arguments.repository,
+                "pull_request": arguments.pull_request,
+                "source_ref": arguments.source_ref,
+                "source_sha": arguments.source_sha,
+                "qualified_tree": arguments.qualified_tree,
+            }
+            if arguments.mode == "verify-pr":
+                keywords["base_sha"] = arguments.base_sha
+            verifier(value, **keywords)
+    except QualificationEvidenceError as error:
+        print(f"qualification evidence: {error}", file=sys.stderr)
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

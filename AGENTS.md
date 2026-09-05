@@ -35,8 +35,16 @@ and its upgrade cost is documented.
   manifests, source bindings, or finalization behavior change.
 - Preserve foreign Docker projects and persistent resources. Delete only
   resources whose ownership and scope are proven.
-- Production deployment belongs to CI. Do not deploy production manually.
-
+- Protected CI/GitOps is the default delivery path, not an exclusive one. When
+  the user explicitly authorizes it, an operator may deploy staging or
+  production manually and may bypass CI. Before a production mutation, verify
+  a current qualified, restorable backup and confirm that the current GitOps
+  checkout and desired-state ledgers already describe the intended release.
+- Release branches intentionally require zero approving reviews so qualified
+  merges and promotions can run unattended. Do not propose a human-review gate
+  merely as a generic production safeguard.
+- Builds generate SBOM metadata, but this distribution does not enforce or gate
+  releases on SBOM policy.
 ## Product references
 
 - Feature and module map: `docs/product/fork-overview.md`
