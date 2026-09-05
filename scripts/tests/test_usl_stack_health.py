@@ -25,6 +25,8 @@ class HealthRunner:
 
     def run(self, command: list[str], *, check: bool = True) -> subprocess.CompletedProcess[str]:
         self.commands.append(command)
+        if "python" in command and "-c" in command:
+            compile(command[command.index("-c") + 1], "health-probe", "exec")
         if command[0] == "curl":
             if "--include" in command:
                 return subprocess.CompletedProcess(
@@ -150,6 +152,7 @@ class HealthContractTests(unittest.TestCase):
         with (
             patch("operations.stack.load_target", return_value=wrapped),
             patch("operations.stack.inspect_runtime", return_value=status),
+            patch("operations.stack._release", return_value=({"components": {"receipt-fetcher": {}, "receipt-egress": {}}}, "", "")),
             patch(
                 "operations.stack._runtime_admission_evidence",
                 return_value={"mcp": {"status": "ready"}, "sign": {"status": "ready"}},

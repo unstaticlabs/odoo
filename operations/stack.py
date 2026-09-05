@@ -11,6 +11,7 @@ import os
 import re
 import sys
 import time
+import textwrap
 from contextlib import contextmanager, redirect_stdout
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -854,11 +855,11 @@ def runtime_command(arguments: argparse.Namespace) -> int:
             identity = _active_generation_identity(target, runner, current)
             runner.run(compose_command(
                 identity,
-                ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *_compose_services(target, identity)],
+                ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *_compose_services(target, identity, runner)],
             ))
         else:
             runner.run(compose_command(
-                identity, ["stop", *_compose_services(target, identity)],
+                identity, ["stop", *_compose_services(target, identity, runner)],
             ))
         result = inspect_runtime(target, runner)
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
@@ -1416,8 +1417,8 @@ def _release_images(release: dict, mcp_authority: dict | None = None) -> list[st
         release["components"]["distribution"]["digest_reference"],
         release["components"]["paperless"]["digest_reference"],
         release["components"]["sign-dss"]["digest_reference"],
-        release["components"]["receipt-fetcher"]["digest_reference"],
-        release["components"]["receipt-egress"]["digest_reference"],
+        *(item["digest_reference"] for name, item in release["components"].items()
+          if name in {"receipt-fetcher", "receipt-egress"}),
         release["renderer"]["image"],
     }
     if mcp_authority is not None:
@@ -1645,6 +1646,8 @@ def _validate_runtime_release_images(target, runner, runtime: dict, release: dic
     }
     verified = {}
     for component, service_key in RELEASE_RUNTIME_SERVICES.items():
+        if component != "renderer" and component not in release["components"]:
+            continue
         service = target.value["services"][service_key]
         container = containers.get(service)
         if not container:
@@ -1799,6 +1802,12 @@ def _prepare_release_candidate(
 ) -> dict:
     """Validate and cache a candidate without changing application runtime state."""
     _prepare_secret_contract(target, runner)
+    if "receipt-fetcher" in release["components"]:
+        secret_root = str(Path(target.value["secrets"]["env_file"]).parent / "receipts")
+        runner.run(
+            ["env", f"USL_RECEIPT_SECRET_ROOT={secret_root}", "bash", "-s"],
+            input_text=(ROOT / "scripts/generate-receipt-fetcher-certs").read_text(),
+        )
     mcp_authority = _candidate_mcp_authority(target, release)
     candidate_identity = _candidate_compose_identity(target, runner, current["compose"])
     for definition in target.value["storage"]["tiers"].values():
@@ -2512,7 +2521,7 @@ def _start_rollback_identity(target, runner, identity: dict) -> None:
     if adoption is None or identity.get("anchor_service") != adoption["legacy_anchor_service"]:
         runner.run(compose_command(
             identity,
-            ["up", "--detach", "--wait", "--force-recreate", "--no-deps", *_compose_services(target, identity)],
+            ["up", "--detach", "--wait", "--force-recreate", "--no-deps", *_compose_services(target, identity, runner)],
         ))
         return
 
@@ -2525,7 +2534,7 @@ def _start_rollback_identity(target, runner, identity: dict) -> None:
     if _network_alias_owners(runner, ingress, "odoo-staging") != [gateway]:
         raise RuntimeError("legacy rollback gateway does not uniquely own public ingress")
 
-    services = _compose_services(target, identity)
+    services = _compose_services(target, identity, runner)
     runner.run(compose_command(
         identity,
         ["create", "--force-recreate", "--no-deps", *services],
@@ -3151,7 +3160,7 @@ def _legacy_staging_baseline(target, runner, runtime: dict, release: dict) -> di
     """Prove the one v2 staging baseline without assuming candidate-only schema."""
     if target.value["environment"] != "staging" or release.get("schema") != "usl-release/v2":
         raise RuntimeError("legacy baseline admission requires an active staging v2 release")
-    expected = set(_compose_services(target, runtime["compose"]))
+    expected = set(_compose_services(target, runtime["compose"], runner))
     containers = {item.get("Service"): item for item in runtime["containers"]}
     unhealthy = sorted(
         service
@@ -3225,7 +3234,11 @@ def health_command(arguments: argparse.Namespace) -> int:
     target = load_target(arguments.target, arguments.targets)
     runner = target.runner()
     status = inspect_runtime(target, runner)
+    active_release, _, _ = _release(target, runner, None)
+    receipts_enabled = "receipt-fetcher" in active_release["components"]
     expected = set(target.value["services"].values())
+    if not receipts_enabled:
+        expected -= {target.value["services"]["receipt_fetcher"], target.value["services"]["receipt_egress"]}
     containers = {item.get("Service"): item for item in status["containers"]}
     failures = []
     for service in sorted(expected):
@@ -3271,7 +3284,8 @@ def health_command(arguments: argparse.Namespace) -> int:
         "print(json.dumps({'proxy_mode':o.getboolean('proxy_mode'),"
         "'list_db':o.getboolean('list_db'),'dbfilter':o.get('dbfilter'),"
         "'workers':o.getint('workers'),'server_wide_modules':o.get('server_wide_modules'),"
-        "'queue_channels':os.environ.get('ODOO_QUEUE_JOB_CHANNELS','')}))"
+        "'queue_channels':os.environ.get('ODOO_QUEUE_JOB_CHANNELS',''),"
+        "'quarantined':os.environ.get('USL_PRODUCTION_CANDIDATE_QUARANTINED')=='1'}))"
     )
     config_result = runner.run(
         compose_command(
@@ -3296,145 +3310,150 @@ def health_command(arguments: argparse.Namespace) -> int:
             }
             if any(odoo_config.get(key) != value for key, value in expected_config.items()):
                 failures.append("odoo:config-mismatch")
-            if target.value["environment"] == "production" and odoo_config.get("workers", 0) < 4:
-                failures.append("odoo:receipt-worker-capacity")
-            modules = {
-                value.strip()
-                for value in odoo_config.get("server_wide_modules", "").split(",")
-            }
-            if "queue_job" not in modules:
-                failures.append("odoo:queue-job-not-loaded")
-            channels = odoo_config.get("queue_channels", "").replace(" ", "")
-            if "root.receipt_fetch:2" not in channels.split(","):
-                failures.append("odoo:receipt-channel-capacity")
+            if receipts_enabled:
+                if target.value["environment"] == "production" and odoo_config.get("workers", 0) < 4:
+                    failures.append("odoo:receipt-worker-capacity")
+                modules = {
+                    value.strip()
+                    for value in odoo_config.get("server_wide_modules", "").split(",")
+                }
+                if "queue_job" not in modules:
+                    failures.append("odoo:queue-job-not-loaded")
+                channels = odoo_config.get("queue_channels", "").replace(" ", "")
+                expected_channel = "root:0" if odoo_config.get("quarantined") else "root.receipt_fetch:2"
+                if expected_channel not in channels.split(","):
+                    failures.append("odoo:receipt-channel-capacity")
 
-    receipt_mtls_probe = """
-import httpx, json, ssl
-socket_path = '/run/receipt-control/fetcher.sock'
-ca = '/run/secrets/receipt-fetcher/ca.crt'
-context = ssl.create_default_context(cafile=ca)
-context.load_cert_chain(
-    '/run/secrets/receipt-fetcher/odoo.crt',
-    '/run/secrets/receipt-fetcher/odoo.key',
-)
-valid = httpx.Client(
-    transport=httpx.HTTPTransport(verify=context, uds=socket_path, retries=0),
-    timeout=5,
-    trust_env=False,
-)
-valid_ok = valid.get('https://usl-receipt-fetcher/healthz').status_code == 200
-valid.close()
-anonymous = httpx.Client(
-    transport=httpx.HTTPTransport(verify=ca, uds=socket_path, retries=0),
-    timeout=5,
-    trust_env=False,
-)
-client_certificate_required = False
-try:
-    anonymous.get('https://usl-receipt-fetcher/healthz')
-except httpx.HTTPError:
-    client_certificate_required = True
-anonymous.close()
-print(json.dumps({
-    'healthy': valid_ok,
-    'client_certificate_required': client_certificate_required,
-}))
-"""
-    receipt_mtls_result = runner.run(
-        compose_command(
-            status["compose"],
-            ["exec", "--no-TTY", odoo_service, "python", "-c", receipt_mtls_probe],
-        ),
-        check=False,
-    )
-    receipt_mtls = None
-    if receipt_mtls_result.returncode:
-        failures.append("receipt-fetcher:mtls")
-    else:
-        try:
-            receipt_mtls = json.loads(receipt_mtls_result.stdout.strip())
-        except json.JSONDecodeError:
-            failures.append("receipt-fetcher:mtls-invalid")
-        else:
-            if receipt_mtls != {"healthy": True, "client_certificate_required": True}:
-                failures.append("receipt-fetcher:mtls")
-
-    project = status["compose"]["project"]
-    expected_networks = {
-        target.value["services"]["receipt_fetcher"]: {f"{project}_receipt-proxy"},
-        target.value["services"]["receipt_egress"]: {
-            f"{project}_receipt-proxy",
-            f"{project}_receipt-public",
-        },
-    }
+    receipt_mtls = receipt_containment = None
     receipt_networks = {}
-    for service, expected_service_networks in expected_networks.items():
-        item = containers.get(service, {})
-        actual = {
-            value.strip()
-            for value in str(item.get("Networks") or "").split(",")
-            if value.strip()
-        }
-        receipt_networks[service] = sorted(actual)
-        if actual != expected_service_networks:
-            failures.append(f"{service}:network-boundary")
-
-    receipt_containment_probe = """
-import httpx, json, socket
-business_names_blocked = True
-for host in ('odoo', 'db', 'paperless-webserver'):
-    try:
-        socket.getaddrinfo(host, 443)
-        business_names_blocked = False
-    except socket.gaierror:
-        pass
-direct_egress_blocked = False
-try:
-    connection = socket.create_connection(('1.1.1.1', 443), 1)
-    connection.close()
-except OSError:
-    direct_egress_blocked = True
-private_proxy_blocked = False
-try:
-    client = httpx.Client(
-        proxy='http://usl-receipt-egress:4750',
-        verify=False,
-        timeout=3,
+    if receipts_enabled:
+        receipt_mtls_probe = """
+    import httpx, json, ssl
+    socket_path = '/run/receipt-control/fetcher.sock'
+    ca = '/run/secrets/receipt-fetcher/ca.crt'
+    context = ssl.create_default_context(cafile=ca)
+    context.load_cert_chain(
+        '/run/secrets/receipt-fetcher/odoo.crt',
+        '/run/secrets/receipt-fetcher/odoo.key',
+    )
+    valid = httpx.Client(
+        transport=httpx.HTTPTransport(verify=context, uds=socket_path, retries=0),
+        timeout=5,
         trust_env=False,
     )
-    client.get('https://127.0.0.1/')
-    client.close()
-except httpx.HTTPError:
-    private_proxy_blocked = True
-print(json.dumps({
-    'business_names_blocked': business_names_blocked,
-    'direct_egress_blocked': direct_egress_blocked,
-    'private_proxy_blocked': private_proxy_blocked,
-}))
-"""
-    fetcher_service = target.value["services"]["receipt_fetcher"]
-    containment_result = runner.run(
-        compose_command(
-            status["compose"],
-            ["exec", "--no-TTY", fetcher_service, "python", "-c", receipt_containment_probe],
-        ),
-        check=False,
+    valid_ok = valid.get('https://usl-receipt-fetcher/healthz').status_code == 200
+    valid.close()
+    anonymous = httpx.Client(
+        transport=httpx.HTTPTransport(verify=ca, uds=socket_path, retries=0),
+        timeout=5,
+        trust_env=False,
     )
-    receipt_containment = None
-    if containment_result.returncode:
-        failures.append("receipt-fetcher:containment")
-    else:
-        try:
-            receipt_containment = json.loads(containment_result.stdout.strip())
-        except json.JSONDecodeError:
-            failures.append("receipt-fetcher:containment-invalid")
+    client_certificate_required = False
+    try:
+        anonymous.get('https://usl-receipt-fetcher/healthz')
+    except httpx.HTTPError:
+        client_certificate_required = True
+    anonymous.close()
+    print(json.dumps({
+        'healthy': valid_ok,
+        'client_certificate_required': client_certificate_required,
+    }))
+    """
+        receipt_mtls_result = runner.run(
+            compose_command(
+                status["compose"],
+                ["exec", "--no-TTY", odoo_service, "python", "-c", textwrap.dedent(receipt_mtls_probe)],
+            ),
+            check=False,
+        )
+        receipt_mtls = None
+        if receipt_mtls_result.returncode:
+            failures.append("receipt-fetcher:mtls")
         else:
-            if receipt_containment != {
-                "business_names_blocked": True,
-                "direct_egress_blocked": True,
-                "private_proxy_blocked": True,
-            }:
-                failures.append("receipt-fetcher:containment")
+            try:
+                receipt_mtls = json.loads(receipt_mtls_result.stdout.strip())
+            except json.JSONDecodeError:
+                failures.append("receipt-fetcher:mtls-invalid")
+            else:
+                if receipt_mtls != {"healthy": True, "client_certificate_required": True}:
+                    failures.append("receipt-fetcher:mtls")
+
+        project = status["compose"]["project"]
+        expected_networks = {
+            target.value["services"]["receipt_fetcher"]: {f"{project}_receipt-proxy"},
+            target.value["services"]["receipt_egress"]: {
+                f"{project}_receipt-proxy",
+                f"{project}_receipt-public",
+            },
+        }
+        receipt_networks = {}
+        for service, expected_service_networks in expected_networks.items():
+            item = containers.get(service, {})
+            actual = {
+                value.strip()
+                for value in str(item.get("Networks") or "").split(",")
+                if value.strip()
+            }
+            receipt_networks[service] = sorted(actual)
+            if actual != expected_service_networks:
+                failures.append(f"{service}:network-boundary")
+
+        receipt_containment_probe = """
+    import httpx, json, socket
+    business_names_blocked = True
+    for host in ('odoo', 'db', 'paperless-webserver'):
+        try:
+            socket.getaddrinfo(host, 443)
+            business_names_blocked = False
+        except socket.gaierror:
+            pass
+    direct_egress_blocked = False
+    try:
+        connection = socket.create_connection(('1.1.1.1', 443), 1)
+        connection.close()
+    except OSError:
+        direct_egress_blocked = True
+    private_proxy_blocked = False
+    try:
+        client = httpx.Client(
+            proxy='http://usl-receipt-egress:4750',
+            verify=False,
+            timeout=3,
+            trust_env=False,
+        )
+        client.get('https://127.0.0.1/')
+        client.close()
+    except httpx.HTTPError:
+        private_proxy_blocked = True
+    print(json.dumps({
+        'business_names_blocked': business_names_blocked,
+        'direct_egress_blocked': direct_egress_blocked,
+        'private_proxy_blocked': private_proxy_blocked,
+    }))
+    """
+        fetcher_service = target.value["services"]["receipt_fetcher"]
+        containment_result = runner.run(
+            compose_command(
+                status["compose"],
+                ["exec", "--no-TTY", fetcher_service, "python", "-c", textwrap.dedent(receipt_containment_probe)],
+            ),
+            check=False,
+        )
+        receipt_containment = None
+        if containment_result.returncode:
+            failures.append("receipt-fetcher:containment")
+        else:
+            try:
+                receipt_containment = json.loads(containment_result.stdout.strip())
+            except json.JSONDecodeError:
+                failures.append("receipt-fetcher:containment-invalid")
+            else:
+                if receipt_containment != {
+                    "business_names_blocked": True,
+                    "direct_egress_blocked": True,
+                    "private_proxy_blocked": True,
+                }:
+                    failures.append("receipt-fetcher:containment")
     websocket_status = {"required": ingress["websocket"], "status_code": None, "ok": True}
     if ingress["websocket"]:
         origin = admission["odoo_websocket"].rstrip("/")
@@ -4009,13 +4028,14 @@ def _generation_overlay(
             "distribution": release["components"]["distribution"]["digest_reference"],
             "paperless": release["components"]["paperless"]["digest_reference"],
             "sign-dss": release["components"]["sign-dss"]["digest_reference"],
-            "receipt-fetcher": release["components"]["receipt-fetcher"]["digest_reference"],
-            "receipt-egress": release["components"]["receipt-egress"]["digest_reference"],
+            **{name: item["digest_reference"] for name, item in release["components"].items()
+               if name in {"receipt-fetcher", "receipt-egress"}},
             "renderer": release["renderer"]["image"],
         }
         value["services"] = {
             (service_names or {}).get(service, service): {"image": images[component]}
             for component, services in RELEASE_IMAGE_SERVICES.items()
+            if component in images
             for service in services
             if available_services is None
             or service in available_services
@@ -4043,6 +4063,7 @@ def _generation_overlay(
                 "USL_EINVOICE_LIVE_ENABLED": "0",
                 "USL_EREPORTING_LIVE_ENABLED": "0",
                 "USL_PRODUCTION_CANDIDATE_QUARANTINED": "1",
+                "ODOO_QUEUE_JOB_CHANNELS": "root:0",
             })
             value["services"][odoo_service].setdefault("labels", {})[
                 "com.unstaticlabs.runtime.side-effects"
@@ -4728,7 +4749,7 @@ def _validated_legacy_compose_identity(target, runner, value: dict, generation: 
     return value
 
 
-def _compose_services(target, identity: dict) -> list[str]:
+def _compose_services(target, identity: dict, runner=None) -> list[str]:
     """Return target services using the captured runtime anchor when it is legacy."""
     services = set(target.value["services"].values())
     anchor = target.value["compose"]["anchor_service"]
@@ -4736,6 +4757,15 @@ def _compose_services(target, identity: dict) -> list[str]:
     if captured != anchor:
         services.remove(anchor)
         services.add(captured)
+    if runner is not None:
+        available = set(runner.run(
+            compose_command(identity, ["config", "--services"]),
+        ).stdout.splitlines())
+        missing = services - available
+        introduced = {target.value["services"].get(role) for role in ("receipt_fetcher", "receipt_egress")}
+        if missing - introduced:
+            raise RuntimeError("captured Compose is missing required services: " + ", ".join(sorted(missing - introduced)))
+        services &= available
     return sorted(services)
 
 
@@ -4874,12 +4904,12 @@ def _activate_generation(
     _validate_stable_gateway_generation(
         target, runner, canonical_identity, generation_identity,
     )
-    generation_services = _compose_services(target, generation_identity)
+    generation_services = _compose_services(target, generation_identity, runner)
     try:
         runner.run(
             compose_command(
                 current_identity,
-                ["stop", "--timeout", "60", *_compose_services(target, current_identity)],
+                ["stop", "--timeout", "60", *_compose_services(target, current_identity, runner)],
             ),
         )
         runner.run(
@@ -4917,7 +4947,7 @@ def _rollback_active_candidate(
     runner.run(
         compose_command(
             generation_identity,
-            ["stop", "--timeout", "60", *_compose_services(target, generation_identity)],
+            ["stop", "--timeout", "60", *_compose_services(target, generation_identity, runner)],
         ),
         check=False,
     )
@@ -5202,7 +5232,7 @@ def _abort_to_previous_generation(
             # Resume its existing containers before checking recovery health.
             runner.run(compose_command(
                 current["compose"],
-                ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *_compose_services(target, current["compose"])],
+                ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *_compose_services(target, current["compose"], runner)],
             ))
             current = inspect_runtime(target, runner)
             health, smoke = _runtime_boundary_gates(target, runner, targets, current)
@@ -5297,7 +5327,7 @@ def _abort_to_previous_generation(
                 },
             ),
         )
-    cohort_services = sorted(set(target.value["services"].values()))
+    cohort_services = _compose_services(target, current["compose"], runner)
     runner.run(
         compose_command(current["compose"], ["stop", "--timeout", "60", *cohort_services]),
         check=False,
@@ -6295,6 +6325,13 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
                     target.value["ingress"],
                     sign_secret_root=f"{generation_root}/sign-secrets",
                     service_names=target.value["services"],
+                    deployment_identity={
+                        "USL_DEPLOYMENT_ENV": target.value["environment"],
+                        "USL_RELEASE_COMMIT": release["source"]["commit"],
+                        "USL_GITOPS_COMMIT": gitops_commit or "Unknown",
+                        "USL_DEPLOYMENT_GENERATION": generation,
+                        "USL_RELEASE_MANIFEST_SHA256": hashlib.sha256(json.dumps(release, sort_keys=True, separators=(",", ":")).encode()).hexdigest(),
+                    },
                 ),
             )
             target_runner.run(
@@ -7216,6 +7253,7 @@ def _recovery_proof_environment(
         "ODOO_SMTP_PORT": "1",
         "ODOO_SMTP_USER": "",
         "ODOO_SMTP_PASSWORD": "",
+        "ODOO_QUEUE_JOB_CHANNELS": "root:0",
         "USL_DEPLOYMENT_ENV": "recovery-proof",
         "USL_EINVOICE_LIVE_ENABLED": "0",
         "USL_EREPORTING_LIVE_ENABLED": "0",
@@ -9134,6 +9172,13 @@ def _activate_quarantined_release(target, runner, arguments, release: dict) -> d
             target.value["ingress"],
             sign_secret_root=f"{generation_root}/sign-secrets",
             service_names=target.value["services"],
+            deployment_identity={
+                "USL_DEPLOYMENT_ENV": target.value["environment"],
+                "USL_RELEASE_COMMIT": release["source"]["commit"],
+                "USL_GITOPS_COMMIT": claim["gitops_commit"] or "Unknown",
+                "USL_DEPLOYMENT_GENERATION": generation,
+                "USL_RELEASE_MANIFEST_SHA256": hashlib.sha256(json.dumps(release, sort_keys=True, separators=(",", ":")).encode()).hexdigest(),
+            },
         ),
     )
     runner.run(

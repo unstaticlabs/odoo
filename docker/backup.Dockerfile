@@ -31,6 +31,7 @@ COPY operations /opt/usl/operations
 COPY scripts/odoo/production_quarantine.py /opt/usl/scripts/odoo/production_quarantine.py
 COPY scripts/odoo/production_activate.py /opt/usl/scripts/odoo/production_activate.py
 COPY scripts/odoo/production_side_effect_boundary.py /opt/usl/scripts/odoo/production_side_effect_boundary.py
+COPY scripts/generate-receipt-fetcher-certs /opt/usl/scripts/generate-receipt-fetcher-certs
 COPY scripts/sign-services-smoke.py /opt/usl/scripts/sign-services-smoke.py
 COPY compose.resources.production.json compose.resources.staging.json /opt/usl/
 COPY deploy/production.cron-policy.json /opt/usl/deploy/production.cron-policy.json

@@ -718,7 +718,12 @@ def read_active_state(target: Target, runner: Runner) -> dict[str, Any] | None:
         raise RuntimeError("active generation state belongs to another target")
     if not TARGET_NAME.fullmatch(str(state["generation"])):
         raise RuntimeError("active generation name is invalid")
-    if set(state["volumes"]) != set(target.value["volumes"]):
+    recorded_roles = set(state["volumes"])
+    target_roles = set(target.value["volumes"])
+    if recorded_roles - target_roles or any(
+        target.value["volumes"][role]["class"] != "transient"
+        for role in target_roles - recorded_roles
+    ):
         raise RuntimeError("active generation volume perimeter differs")
     if not isinstance(state["network"], str) or not state["network"]:
         raise RuntimeError("active generation network is invalid")
@@ -758,7 +763,7 @@ def effective_volumes(target: Target, runner: Runner) -> tuple[dict[str, dict[st
         for role, name in state["volumes"].items()
         if isinstance(name, str) and name
     }
-    if set(volumes) != set(target.value["volumes"]):
+    if set(volumes) != set(state["volumes"]):
         raise RuntimeError("active generation contains an invalid volume name")
     return volumes, state["generation"]
 

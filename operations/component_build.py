@@ -81,6 +81,7 @@ COMPONENTS = {
                 "scripts/odoo/production_activate.py",
                 "scripts/odoo/production_side_effect_boundary.py",
                 "scripts/sign-services-smoke.py",
+                "scripts/generate-receipt-fetcher-certs",
             ),
         ),
         Component(

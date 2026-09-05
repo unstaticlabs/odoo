@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import contextlib
 import hashlib
 import json
@@ -17,6 +16,7 @@ from operations import cohort
 from operations.runtime import load_target
 from operations.stack import (
     BACKUP_WRITER_SERVICE_ROLES,
+    _compose_services,
     VOLUME_LOGICAL_NAMES,
     build_parser,
     backup_command,
@@ -314,6 +314,12 @@ class CohortContractTests(unittest.TestCase):
             "operations.stack._mcp_runtime_authority", return_value=None,
         )
         self.mcp_authority.start()
+        # Lifecycle fixtures isolate Compose discovery; its service selection has
+        # separate tests using real command output below.
+        selection = mock.patch("operations.stack._compose_services",
+            side_effect=lambda target, identity, runner=None: _compose_services(target, identity))
+        selection.start()
+        self.addCleanup(selection.stop)
 
     def tearDown(self) -> None:
         self.mcp_authority.stop()

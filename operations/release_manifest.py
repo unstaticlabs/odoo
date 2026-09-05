@@ -187,8 +187,14 @@ def _validate_common(root: dict[str, Any], *, commit: str | None, legacy: bool) 
         raise ReleaseManifestError("source.ref is not a release-authorized ref")
     if commit is not None and source["commit"] != commit:
         raise ReleaseManifestError("release commit differs from the requested commit")
-    components = _object(root["components"], COMPONENTS, "components")
-    for name in sorted(COMPONENTS):
+    # Releases created before receipt recovery remain valid backup/rollback inputs.
+    # New publication still requires every current component in build_manifest.
+    component_names = set(root["components"]) if isinstance(root["components"], dict) else set()
+    core_components = COMPONENTS - {"receipt-fetcher", "receipt-egress"}
+    if component_names not in (core_components, COMPONENTS):
+        raise ReleaseManifestError("components must contain the core services and either both receipt services or neither")
+    components = _object(root["components"], component_names, "components")
+    for name in sorted(component_names):
         _component(components[name], f"components.{name}", legacy=legacy)
     mcp_fields = {"repository", "ref", "commit", "image", "compatibility_sha256"}
     if not legacy:
