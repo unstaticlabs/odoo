@@ -264,12 +264,18 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
         task = self.env["project.task"].create(
             {"name": "Keep history", "project_id": project.id},
         )
-        for user in (self.agent, self.roger, self.prosper):
+        for user in (self.agent, self.roger):
             with self.subTest(user=user.login), self.assertRaisesRegex(
                 AccessError,
                 "Irreversible Actions|AI Agents",
             ):
                 task.with_user(user).unlink()
+            self.assertTrue(task.exists())
+        # Upstream checks task access before recurrence cleanup. Prosper's
+        # native record rule can therefore deny deletion before the USL guard.
+        with self.assertRaises(AccessError):
+            task.with_user(self.prosper).unlink()
+        self.assertTrue(task.exists())
         task.with_user(self.valentin).unlink()
         self.assertFalse(task.exists())
         event = self.env["usl.audit.event"].sudo().search(
