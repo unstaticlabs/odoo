@@ -265,11 +265,11 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
             {"name": "Keep history", "project_id": project.id},
         )
         for user in (self.agent, self.roger, self.prosper):
-            with self.subTest(user=user.login), self.assertRaisesRegex(
-                AccessError,
-                "Irreversible Actions|AI Agents",
-            ):
+            # Native ACLs may reject before the irreversible-action guard.
+            # Both must leave the record intact.
+            with self.subTest(user=user.login), self.assertRaises(AccessError):
                 task.with_user(user).unlink()
+            self.assertTrue(task.exists())
         task.with_user(self.valentin).unlink()
         self.assertFalse(task.exists())
         event = self.env["usl.audit.event"].sudo().search(

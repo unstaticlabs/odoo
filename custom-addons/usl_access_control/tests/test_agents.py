@@ -1,18 +1,22 @@
 import datetime
 import inspect
-from types import SimpleNamespace
+from types import MethodType, SimpleNamespace
 from unittest.mock import patch
 
 from lxml import etree
+from psycopg2 import errors as pgerrors
 
 from odoo import SUPERUSER_ID, Command, api, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.models import get_public_method
+from odoo.http.requestlib import Request, _request_stack
+from odoo.sql_db import db_connect
 from odoo.tests import TransactionCase, tagged
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 
 from ..controllers.json2 import UslAgentJson2Controller
+from ..controllers import json2 as json2_module
 from ..exceptions import AgentAuthenticationError, AgentPolicyAccessError
 from ..models import agent as agent_model_module
 from ..models import agent_feedback as agent_feedback_module
@@ -21,6 +25,7 @@ from ..models.agent import (
     UslAgentCredential,
     UslAgentKeyWizard,
     UslAgentTransferWizard,
+    _AGENT_CREDENTIAL_TOUCH_LOCK_NAMESPACE,
     _agent_key_path_allowed,
 )
 from ..models.agent_policy_tokens import (
@@ -407,27 +412,19 @@ class TestAutonomousAgents(TransactionCase):
         self.assertEqual(task.name, "After JSON-2 write")
 
     def test_json2_preserves_canonical_orm_payload_names(self):
-        write_values = {"name": "Renamed"}
-        self.assertEqual(
-            UslAgentJson2Controller._normalize_orm_payload_kwargs(
-                env=self.env,
-                model_name="project.project",
-                method_name="write",
-                kwargs={"vals": write_values},
-            ),
-            {"vals": write_values},
-        )
-
-        create_values = [{"name": "Created"}]
-        self.assertEqual(
-            UslAgentJson2Controller._normalize_orm_payload_kwargs(
-                env=self.env,
-                model_name="project.project",
-                method_name="create",
-                kwargs={"vals_list": create_values},
-            ),
-            {"vals_list": create_values},
-        )
+        # Real models may override these names. This checks the unchanged
+        # canonical signature; the registry test covers actual overrides.
+        for method_name, method, kwargs in (
+            ("write", lambda records, vals: True, {"vals": {"name": "Renamed"}}),
+            ("create", lambda records, vals_list: records, {"vals_list": [{"name": "Created"}]}),
+        ):
+            with patch.object(json2_module, "get_public_method", return_value=method):
+                self.assertIs(
+                    UslAgentJson2Controller._normalize_orm_payload_kwargs(
+                        env=self.env, model_name="project.project", method_name=method_name, kwargs=kwargs,
+                    ),
+                    kwargs,
+                )
 
     def test_json2_never_overwrites_an_explicit_legacy_payload(self):
         kwargs = {
@@ -453,7 +450,12 @@ class TestAutonomousAgents(TransactionCase):
             model = self.env[model_name]
             for method_name, kwargs in payloads.items():
                 with self.subTest(model=model_name, method=method_name):
-                    method = get_public_method(model, method_name)
+                    try:
+                        method = get_public_method(model, method_name)
+                    except AccessError:
+                        # Private overrides (for example queue.job.create)
+                        # are intentionally outside public JSON-2 dispatch.
+                        continue
                     normalized = UslAgentJson2Controller._normalize_orm_payload_kwargs(
                         env=self.env,
                         model_name=model_name,
@@ -946,6 +948,63 @@ class TestAutonomousAgents(TransactionCase):
         self.env.cr.precommit.run()
         self.assertEqual(task.user_ids, agent.user_id)
 
+    def test_json2_request_environment_preserves_scope_for_html_notifications(self):
+        agent = self._create_agent()
+        agent.with_user(self.owner).write({
+            "delegated_group_ids": [Command.set(self.env.ref("project.group_project_manager").ids)],
+            "read_only_group_ids": [Command.clear()],
+        })
+        project = self.env["project.project"].create({"name": "Request scope project"})
+        task = self.env["project.task"].create({"name": "Request scope task", "project_id": project.id})
+        self.env.flush_all()
+        self.env.cr.precommit.run()
+        before = self.env["bus.bus"].sudo().search_count([])
+        initial_env = self.env(user=agent.user_id, context={})
+        request_state = SimpleNamespace(
+            env=initial_env, db=self.env.cr.dbname, registry=self.env.registry,
+            httprequest=SimpleNamespace(headers={}, remote_addr="127.0.0.1", user_agent=SimpleNamespace(string="test")),
+        )
+        request_state.update_env = MethodType(Request.update_env, request_state)
+        previous_default_env = self.env.transaction.default_env
+        controller = UslAgentJson2Controller()
+        dispatch = controller.web_json_2_rpc.__wrapped__
+        # The separate audit transaction cannot see this test's uncommitted
+        # identities. Check its attribution at the boundary instead.
+        audit_patch = patch.object(controller, "_record_agent_api_call")
+        audit = audit_patch.start()
+        _request_stack.push(request_state)
+        try:
+            self.assertTrue(dispatch(
+                controller, "project.task", "write", ids=task.ids,
+                vals={"description": "<p>Authorized HTML update</p>"},
+            ))
+            self.assertIsNotNone(get_agent_operation_scope(
+                request_state.env.context, agent_user_id=agent.user_id.id,
+            ))
+            self.assertFalse(request_state.env.su)
+            self.assertEqual(audit.call_args.kwargs["outcome"], "succeeded")
+            self.assertEqual(audit.call_args.kwargs["model_name"], "project.task")
+            self.env.flush_all()
+            self.env.cr.precommit.run()
+            self.assertGreater(self.env["bus.bus"].sudo().search_count([]), before)
+            self.assertIn("Authorized HTML update", task.description)
+
+            # Each HTTP request starts without its predecessor's scope.
+            request_state.update_env(context={})
+            with self.assertRaises(AgentPolicyAccessError):
+                dispatch(controller, "bus.bus", "create", vals_list=[{}])
+            self.assertEqual(audit.call_args.kwargs["outcome"], "denied")
+            self.assertNotIn(AGENT_OPERATION_SCOPE_CONTEXT_KEY, request_state.env.context)
+            dispatch(
+                controller, "project.task", "read", ids=task.ids, fields=["name"],
+                context={AGENT_OPERATION_SCOPE_CONTEXT_KEY: {"access": "write"}},
+            )
+            self.assertNotIn(AGENT_OPERATION_SCOPE_CONTEXT_KEY, request_state.env.context)
+        finally:
+            _request_stack.pop()
+            audit_patch.stop()
+            self.env.transaction.default_env = previous_default_env
+
     def test_operation_scope_covers_every_installed_product_family(self):
         agent = self._create_agent()
         families = (
@@ -1119,6 +1178,65 @@ class TestAutonomousAgents(TransactionCase):
                 [("model", "=", "project.task"), ("res_id", "=", task.id)],
             ),
         )
+
+    def test_project_agent_reschedules_activity_through_business_record_authority(self):
+        agent = self._create_agent()
+        project_manager = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write({
+            "delegated_group_ids": [Command.set(project_manager.ids)],
+            "read_only_group_ids": [Command.clear()],
+        })
+        project = self.env["project.project"].create({"name": "Agent reschedule project"})
+        task = self.env["project.task"].create({"name": "Agent reschedule task", "project_id": project.id})
+        other_task = task.copy({"name": "Unrelated activity task"})
+        activity = task.activity_schedule("mail.mail_activity_data_call", user_id=agent.user_id.id)
+        unrelated = other_task.activity_schedule("mail.mail_activity_data_call", user_id=agent.user_id.id)
+        before = unrelated.date_deadline
+        deadline = fields.Date.today() + datetime.timedelta(days=7)
+        self.assertFalse(agent._allows_model_operation("mail.activity", "write"))
+        access = UslAgentJson2Controller._check_agent_call(
+            agent=agent, model_name="project.task", method_name="activity_reschedule", kwargs={},
+        )
+        self.assertEqual(access, "write")
+        context = UslAgentJson2Controller._agent_call_context(
+            context={}, agent=agent, model_name="project.task", method_name="activity_reschedule", access=access,
+        )
+        result = task.with_user(agent.user_id).with_context(context).activity_reschedule(
+            ["mail.mail_activity_data_call"], date_deadline=deadline, new_user_id=self.owner.id,
+        )
+        self.env.flush_all()
+        self.env.cr.precommit.run()
+        self.assertEqual(result.ids, activity.ids)
+        self.assertEqual(activity.date_deadline, deadline)
+        self.assertEqual(activity.user_id, self.owner)
+        self.assertEqual(unrelated.date_deadline, before)
+        self.assertEqual(unrelated.user_id, agent.user_id)
+        with self.assertRaises(AgentPolicyAccessError):
+            activity.with_user(agent.user_id).write({"summary": "Direct technical write remains denied"})
+
+        agent.with_user(self.owner).write({"read_only_group_ids": [Command.set(project_manager.ids)]})
+        with self.assertRaises(AgentPolicyAccessError):
+            task.with_user(agent.user_id).activity_reschedule(
+                ["mail.mail_activity_data_call"], date_deadline=deadline,
+            )
+
+    def test_agent_activity_reschedule_requires_access_to_business_record(self):
+        agent = self._create_agent()
+        project_manager = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write({
+            "delegated_group_ids": [Command.set(project_manager.ids)],
+            "read_only_group_ids": [Command.clear()],
+        })
+        project = self.env["project.project"].with_company(self.other_company).create({
+            "name": "Other company reschedule", "company_id": self.other_company.id,
+        })
+        task = self.env["project.task"].with_company(self.other_company).create({
+            "name": "Other company task", "project_id": project.id,
+        })
+        with self.assertRaises(AccessError):
+            task.with_user(agent.user_id).with_context(allowed_company_ids=self.company.ids).activity_reschedule(
+                ["mail.mail_activity_data_call"], date_deadline=fields.Date.today(),
+            )
 
     def test_project_agent_creates_task_with_followers_and_personal_stage(self):
         agent = self._create_agent()
@@ -1310,8 +1428,8 @@ class TestAutonomousAgents(TransactionCase):
             action_key.removeprefix("rpc:").rsplit(".", 1)[0]
             for action_key in policy.collaboration_actions
         }
-        self.assertEqual(len(policy.collaboration_actions), 283)
-        self.assertEqual(len(models), 79)
+        self.assertEqual(len(policy.collaboration_actions), 287)
+        self.assertEqual(len(models), 80)
         self.assertEqual(
             parsed,
             {
@@ -1338,7 +1456,7 @@ class TestAutonomousAgents(TransactionCase):
             for action_key in policy.write_actions
             if action_key.endswith(".message_notify")
         }
-        self.assertEqual(len(message_notify_actions), 76)
+        self.assertEqual(len(message_notify_actions), 77)
 
     def test_agent_cannot_administer_identities_or_irreversible_actions(self):
         agent = self._create_agent()
@@ -1610,6 +1728,75 @@ class TestAutonomousAgents(TransactionCase):
         finally:
             transaction.default_env = previous_default_env
         self.assertEqual(uid, agent.user_id.id)
+
+    def test_concurrent_agent_authentication_skips_contended_usage_touch(self):
+        agent = self._create_agent()
+        key = self._generate_key(agent)
+        credential = agent.credential_ids
+
+        # The lock must belong to an independent PostgreSQL transaction,
+        # not the registry's same-transaction test cursor.
+        with db_connect(self.env.cr.dbname).cursor() as lock_cr:
+            lock_cr.execute(
+                "SELECT pg_advisory_xact_lock(%s, %s)",
+                [_AGENT_CREDENTIAL_TOUCH_LOCK_NAMESPACE, credential.id],
+            )
+            uid = self.env["res.users.apikeys"]._check_credentials(scope="rpc", key=key)
+
+        credential.invalidate_recordset(["last_used_at"])
+        self.assertEqual(uid, agent.user_id.id)
+        self.assertFalse(credential.last_used_at)
+
+        uid = self.env["res.users.apikeys"]._check_credentials(scope="rpc", key=key)
+        credential.invalidate_recordset(["last_used_at"])
+        self.assertEqual(uid, agent.user_id.id)
+        self.assertTrue(credential.last_used_at)
+
+    def test_agent_usage_touch_preserves_authentication_after_serialization_failure(self):
+        agent = self._create_agent()
+        key = self._generate_key(agent)
+        cursor_type = type(self.env.cr)
+        execute = cursor_type.execute
+
+        def concurrent_update(cursor, query, *args, **kwargs):
+            if isinstance(query, str) and "WITH candidate AS" in query:
+                # A real database error aborts the savepoint. Authentication
+                # and the surrounding transaction must remain usable.
+                execute(cursor, "DO $$ BEGIN RAISE EXCEPTION USING ERRCODE = '40001'; END $$")
+            return execute(cursor, query, *args, **kwargs)
+
+        with patch.object(cursor_type, "execute", concurrent_update):
+            uid = self.env["res.users.apikeys"]._check_credentials(scope="rpc", key=key)
+        self.assertEqual(uid, agent.user_id.id)
+        self.assertFalse(agent.credential_ids.last_used_at)
+        self.env.cr.execute("SELECT 1")
+        self.assertEqual(self.env.cr.fetchone(), (1,))
+
+    def test_agent_usage_touch_is_throttled(self):
+        agent = self._create_agent()
+        self._generate_key(agent)
+        credential = agent.credential_ids
+        now = fields.Datetime.now()
+        self.assertTrue(credential._touch_last_used_at(now))
+        self.assertFalse(credential._touch_last_used_at(now + datetime.timedelta(seconds=30)))
+        self.assertTrue(credential._touch_last_used_at(now + datetime.timedelta(minutes=2)))
+
+    def test_agent_usage_touch_does_not_hide_other_database_errors(self):
+        agent = self._create_agent()
+        key = self._generate_key(agent)
+        credential = agent.credential_ids
+        cursor_type = type(self.env.cr)
+        execute = cursor_type.execute
+
+        def unavailable(cursor, query, *args, **kwargs):
+            if isinstance(query, str) and "WITH candidate AS" in query:
+                raise pgerrors.OperationalError()
+            return execute(cursor, query, *args, **kwargs)
+
+        with self.assertRaises(pgerrors.OperationalError):
+            with patch.object(cursor_type, "execute", unavailable):
+                credential._touch_last_used_at(fields.Datetime.now())
+        self.assertEqual(self.env["res.users.apikeys"]._check_credentials(scope="rpc", key=key), agent.user_id.id)
 
     def test_authenticated_identity_reconciles_authority_only_once(self):
         agent = self._create_agent()
