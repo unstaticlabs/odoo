@@ -17,6 +17,17 @@ from operations.component_build import (
 
 
 class ComponentBuildTests(unittest.TestCase):
+    def test_operations_boundary_scripts_are_packaged_and_hashed(self):
+        root = Path(__file__).resolve().parents[2]
+        files = set(component_files(COMPONENTS["backup-tool"]))
+        dockerfile = (root / "docker/backup.Dockerfile").read_text()
+        ignores = (root / "docker/backup.Dockerfile.dockerignore").read_text().splitlines()
+        for path in ['scripts/odoo/production_quarantine.py', 'scripts/odoo/production_activate.py', 'scripts/odoo/production_side_effect_boundary.py', 'scripts/sign-services-smoke.py']:
+            with self.subTest(path=path):
+                self.assertIn(path, files)
+                self.assertIn("!" + path, ignores)
+                self.assertIn("COPY " + path + " /opt/usl/" + path, dockerfile)
+
     def create_repository(self) -> Path:
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)

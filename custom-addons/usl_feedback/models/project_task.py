@@ -226,7 +226,7 @@ class ProjectTask(models.Model):
                 raise AccessError(_("Use the feedback conversation to create product feedback."))
         if "description" not in values:
             return super().write(values)
-        feedback_tasks = self.filtered("_usl_feedback_is_task")
+        feedback_tasks = self.filtered(lambda task: task._usl_feedback_is_task())
         other_tasks = self - feedback_tasks
         result = True
         if other_tasks:
@@ -313,10 +313,9 @@ class ProjectTask(models.Model):
             flags=re.IGNORECASE | re.DOTALL,
         )
 
-    def _usl_feedback_description_with_identity(self, description, identity=None):
+    def _usl_feedback_snapshot_identity_html(self, identity=None):
         self.ensure_one()
-        narrative = self._usl_feedback_strip_identity_blocks(description)
-        # Existing feedback retains its original snapshot even when maintainers edit prose.
+        # Keep the submission's deployment after the application is upgraded.
         trusted = self._usl_feedback_identity_html(identity)
         if IDENTITY_MARKER in (self.description or ""):
             marker = re.search(
@@ -325,6 +324,12 @@ class ProjectTask(models.Model):
             )
             if marker:
                 trusted = Markup(marker.group(0))
+        return trusted
+
+    def _usl_feedback_description_with_identity(self, description, identity=None):
+        self.ensure_one()
+        narrative = self._usl_feedback_strip_identity_blocks(description)
+        trusted = self._usl_feedback_snapshot_identity_html(identity)
         return Markup("%s%s") % (Markup(narrative), trusted)
 
     def unlink(self):

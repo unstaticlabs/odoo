@@ -24,6 +24,9 @@ MAX_PDF_BYTES = 20 * 1024 * 1024
 AUTO_SCORE = 12
 AUTO_MARGIN = 3
 MIN_PATTERN_CONFIDENCE = 0.60
+# RPC contexts are client-controlled; only in-process workflow code may edit
+# learned evidence and governance state.
+_LINKED_RECEIPT_INTERNAL = object()
 FETCH_FAILURE_CODES = {
     "ambiguous_download",
     "authentication_required",
@@ -258,7 +261,7 @@ class UslMailPdfHost(models.Model):
     def write(self, vals):
         if "hostname" in vals:
             raise UserError(_("A learned host name cannot be changed."))
-        if not self.env.context.get("linked_receipt_internal"):
+        if self.env.context.get("linked_receipt_internal") is not _LINKED_RECEIPT_INTERNAL:
             raise AccessError(
                 _("Use the linked-receipt governance actions to change a host.")
             )
@@ -266,12 +269,12 @@ class UslMailPdfHost(models.Model):
 
     def action_block(self):
         self.check_access("write")
-        self.with_context(linked_receipt_internal=True).write({"state": "blocked"})
+        self.with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write({"state": "blocked"})
 
     def action_activate(self):
         self.check_access("write")
         for host in self:
-            host.with_context(linked_receipt_internal=True).write(
+            host.with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write(
                 {"state": "active" if host.success_count else "provisional"}
             )
 
@@ -337,7 +340,7 @@ class UslMailPdfPattern(models.Model):
     )
 
     def write(self, vals):
-        if not self.env.context.get("linked_receipt_internal"):
+        if self.env.context.get("linked_receipt_internal") is not _LINKED_RECEIPT_INTERNAL:
             raise AccessError(
                 _("Use the linked-receipt governance actions to change a pattern.")
             )
@@ -381,7 +384,7 @@ class UslMailPdfPattern(models.Model):
             # A deliberate employee choice is new evidence, not another
             # automatic retry of the stale matcher.
             values.update({"state": "learning", "consecutive_failure_count": 0})
-        pattern.sudo().with_context(linked_receipt_internal=True).write(values)
+        pattern.sudo().with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write(values)
         return pattern
 
     def _locked(self):
@@ -402,7 +405,7 @@ class UslMailPdfPattern(models.Model):
         except (TypeError, ValueError):
             chain = []
         final = chain[-1] if isinstance(chain, list) and chain else {}
-        self.sudo().with_context(linked_receipt_internal=True).write(
+        self.sudo().with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write(
             {
                 "state": "active",
                 "success_count": self.success_count + 1,
@@ -421,7 +424,7 @@ class UslMailPdfPattern(models.Model):
         self.ensure_one()
         self._locked()
         failures = self.consecutive_failure_count + 1
-        self.sudo().with_context(linked_receipt_internal=True).write(
+        self.sudo().with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write(
             {
                 "failure_count": self.failure_count + 1,
                 "consecutive_failure_count": failures,
@@ -432,12 +435,12 @@ class UslMailPdfPattern(models.Model):
 
     def action_pause(self):
         self.check_access("write")
-        self.with_context(linked_receipt_internal=True).write({"state": "paused"})
+        self.with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write({"state": "paused"})
 
     def action_activate(self):
         self.check_access("write")
         for pattern in self:
-            pattern.with_context(linked_receipt_internal=True).write(
+            pattern.with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write(
                 {
                     "state": "active" if pattern.success_count else "learning",
                     "consecutive_failure_count": 0,
@@ -446,7 +449,7 @@ class UslMailPdfPattern(models.Model):
 
     def action_block(self):
         self.check_access("write")
-        self.with_context(linked_receipt_internal=True).write({"state": "blocked"})
+        self.with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write({"state": "blocked"})
 
 
 class UslMailPdfRetrieval(models.Model):
@@ -951,7 +954,7 @@ class UslMailPdfRetrieval(models.Model):
         if host.state == "blocked":
             raise UserError(_("This receipt host is blocked for the Odoo instance."))
         if pattern.state == "paused":
-            pattern.with_context(linked_receipt_internal=True).write(
+            pattern.with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write(
                 {"state": "learning", "consecutive_failure_count": 0}
             )
         self.sudo().write(
@@ -1135,7 +1138,7 @@ class UslMailPdfRetrieval(models.Model):
         host = self.env["usl.mail.pdf.host"].sudo().search([("hostname", "=", self.starting_host)], limit=1)
         if host:
             host._locked()
-            host.with_context(linked_receipt_internal=True).write(
+            host.with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write(
                 {"failure_count": host.failure_count + 1}
             )
 
@@ -1479,7 +1482,7 @@ class UslMailPdfRetrieval(models.Model):
             host._locked()
             if host.state == "blocked":
                 continue
-            host.with_context(linked_receipt_internal=True).write(
+            host.with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write(
                 {
                     "state": "active",
                     "validated_pattern_id": retrieval.pattern_id.id or False,

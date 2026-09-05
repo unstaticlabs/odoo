@@ -69,7 +69,11 @@ GHCR; digest references—not branch names or `latest`—are deployable identiti
 The runtime release manifest must match the images actually running. Backup
 refuses a mismatched manifest.
 
-Production deployment belongs to protected CI/GitOps. A release workflow must:
+Protected CI/GitOps is the normal deployment path, not the only authorized
+path. An operator may deploy manually or bypass CI when the owner explicitly
+instructs it. Before changing production, confirm that a current qualified
+backup is restorable and that the current GitOps checkout and desired-state
+ledgers describe the intended release. Automated and manual releases must both:
 
 1. freeze user writes;
 2. create and qualify a coordinated backup;
@@ -78,6 +82,10 @@ Production deployment belongs to protected CI/GitOps. A release workflow must:
 5. unfreeze and notify on success;
 6. restore the pre-release snapshot and report clearly on failure;
 7. recreate staging from the successful production recovery point.
+
+The branch rules intentionally require zero approving reviews: qualified
+promotion MRs are expected to merge unattended. SBOMs remain generated build
+metadata and are not an admission or enforcement gate.
 
 ## Backup and recovery
 

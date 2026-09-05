@@ -391,7 +391,16 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
     if not isinstance(paths, dict) or not required_paths <= set(paths):
         raise RuntimeError(f"target paths must include {sorted(required_paths)}")
     for role, definition in paths.items():
-        _exact(definition, {"path", "class", "required", "tier"}, f"paths.{role}")
+        _exact(definition, {"path", "class", "required", "tier"} | ({"files"} if "files" in definition else set()), f"paths.{role}")
+        if "files" in definition:
+            files = definition["files"]
+            if role != "mcp_secrets" or not isinstance(files, dict) or not files:
+                raise RuntimeError(f"paths.{role}.files must map MCP recovery filenames to source paths")
+            for name, source in files.items():
+                if not isinstance(name, str) or Path(name).name != name or name in {".", ".."}:
+                    raise RuntimeError(f"paths.{role}.files contains an invalid filename")
+                if not isinstance(source, str) or not source.startswith("/"):
+                    raise RuntimeError(f"paths.{role}.files source must be absolute")
         if definition["class"] not in {"durable", "cache", "transient"}:
             raise RuntimeError(f"paths.{role}.class is invalid")
         if not isinstance(definition["path"], str) or not definition["path"].startswith("/"):
@@ -461,7 +470,11 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
 
     backup = _exact(root["backup"], {"durable_repository", "cache_repository"}, "backup")
     for key, value in backup.items():
-        if not isinstance(value, str) or not value.startswith(("s3:", "rest:")):
+        local_repository = (
+            root["environment"] == "staging"
+            and value == f"/var/lib/usl-odoo/restic/staging/{key.removesuffix('_repository')}"
+        )
+        if not isinstance(value, str) or not (value.startswith(("s3:", "rest:")) or local_repository):
             raise RuntimeError(f"backup.{key} is not a supported Restic repository")
     if backup["durable_repository"] == backup["cache_repository"]:
         raise RuntimeError("durable and cache repositories must differ")

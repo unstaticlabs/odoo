@@ -23,6 +23,7 @@ from operations.runtime import (
 from operations.stack import (
     _cleanup_adoption_candidate_anchor,
     _validate_mcp_readiness,
+    _mcp_readiness,
     _validate_sign_readiness,
     runtime_command,
 )
@@ -35,6 +36,16 @@ HOST_TARGETS = ROOT / "operations/targets-host"
 
 
 class CommandRunnerSecretTests(unittest.TestCase):
+    def test_read_path_accepts_manifest_paths_from_json(self) -> None:
+        from operations.stack import _read_path
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "manifest.json"
+            path.write_text('{"identity": "candidate"}', encoding="utf-8")
+            self.assertEqual(
+                json.loads(_read_path(None, None, str(path))),
+                {"identity": "candidate"},
+            )
+
     def test_stdin_content_is_absent_from_local_and_ssh_failure_errors(self) -> None:
         secret = "stdin-only-secret-sentinel"
         failed = subprocess.CompletedProcess([], 9, "", f"writer echoed {secret}")
@@ -280,6 +291,35 @@ class RuntimeContractTests(unittest.TestCase):
         self.assertIn("--force-webrtc-ip-handling-policy=disable_non_proxied_udp", app)
         self.assertIn("FETCH_SLOTS = asyncio.Semaphore(2)", app)
         self.assertLess(app.index("page = await context.new_page()"), app.index('context.on("page", capture_popup)'))
+
+    def test_local_staging_repositories_are_scoped_and_production_stays_remote(self):
+        for targets in (TARGETS, HOST_TARGETS):
+            staging = load_target("staging", targets)
+            for key, repository in staging.value["backup"].items():
+                self.assertEqual(repository, f"/var/lib/usl-odoo/restic/staging/{key.removesuffix('_repository')}")
+            production = load_target("production", targets)
+            self.assertTrue(all(value.startswith("s3:") for value in production.value["backup"].values()))
+            for invalid in ("/tmp/restic", "/var/lib/usl-odoo/restic/staging/../production", "relative/repo"):
+                value = copy.deepcopy(staging.value)
+                value["backup"]["durable_repository"] = invalid
+                with self.assertRaisesRegex(RuntimeError, "supported Restic repository"):
+                    validate_target(value)
+            production.value["backup"] = staging.value["backup"]
+            with self.assertRaisesRegex(RuntimeError, "supported Restic repository"):
+                validate_target(production.value)
+
+    def test_loopback_mcp_probe_preserves_public_host(self) -> None:
+        target = load_target("production", HOST_TARGETS)
+        class HostCheckingRunner:
+            def run(self, command, **kwargs):
+                if "Host: odoo-mcp.unstaticlabs.com" not in command:
+                    return subprocess.CompletedProcess(command, 22, "Forbidden", "")
+                return subprocess.CompletedProcess(command, 0, json.dumps({
+                    "schema": "usl-odoo-mcp-readiness/v1", "status": "ready",
+                    "server_version": "1.4.2", "targets": 1,
+                    "oauth": {"status": "ready", "schema_version": 1},
+                }), "")
+        self.assertEqual(_mcp_readiness(target, HostCheckingRunner())["status"], "ready")
 
     def test_mcp_readiness_binds_runtime_and_oauth_schema(self) -> None:
         value = {

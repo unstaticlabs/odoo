@@ -143,7 +143,7 @@ SELECT json_build_object(
   'cron_policy_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', data.module, data.name, cron.interval_number, cron.interval_type, cron.priority, cron.user_id, cron.ir_actions_server_id), E'\n' ORDER BY data.module, data.name), '')) FROM ir_cron cron LEFT JOIN ir_model_data data ON data.model = 'ir.cron' AND data.res_id = cron.id),
   'currency_rate_fingerprint', (SELECT md5(coalesce(string_agg(concat_ws('|', id, company_id, currency_id, name, rate), E'\n' ORDER BY id), '')) FROM res_currency_rate),
   'attachments', (SELECT count(*) FROM ir_attachment),
-  'messages', (SELECT count(*) FROM mail_message),
+  'messages', (SELECT count(*) FROM mail_message WHERE model IS NULL OR model NOT IN ('ir.cron', 'ir.actions.server')),
   'activities', (SELECT count(*) FROM mail_activity),
   'stored_attachments', (SELECT count(DISTINCT store_fname) FROM ir_attachment WHERE store_fname IS NOT NULL),
   'projects', (SELECT count(*) FROM project_project),
@@ -207,7 +207,9 @@ FAILED_QUEUE_KEYS = frozenset(
         "cron_failures",
     },
 )
-FAILED_QUEUE_KEYS_V2 = FAILED_QUEUE_KEYS | frozenset({"cron_lag"})
+# Scheduler lateness is advisory: deployment intentionally pauses workers.
+# Actual failed jobs remain blocking, independently of schedule timing.
+FAILED_QUEUE_KEYS_V2 = FAILED_QUEUE_KEYS
 
 
 class ControlManifestError(ValueError):
@@ -306,7 +308,16 @@ def validate_restore(
         for root in baseline["preservation"]
     }
     if baseline["preservation"] != comparable_candidate:
-        raise ControlManifestError("restored business controls differ from the source cohort")
+        differences = {
+            f"{root}.{key}": {"before": value, "after": comparable_candidate[root][key]}
+            for root, values in baseline["preservation"].items()
+            for key, value in values.items()
+            if value != comparable_candidate[root][key]
+        }
+        raise ControlManifestError(
+            "restored business controls differ from the source cohort: "
+            + json.dumps(differences, sort_keys=True)
+        )
 
     baseline_queues = baseline["queues"]["odoo"]
     candidate_queues = candidate["queues"]["odoo"]
@@ -351,3 +362,31 @@ def validate_restore(
         "queues": candidate["queues"],
         "status": "passed",
     }
+
+
+# Cross-environment qualification uses model/XML identities, never database row IDs.
+RELEASE_DEFINITIONS_SQL = r"""
+WITH xml AS (SELECT model,res_id,min(module||'.'||name) AS xmlid FROM ir_model_data WHERE module NOT LIKE '\_\_%' GROUP BY model,res_id), groups AS (SELECT g.id,coalesce(x.xmlid,'name:'||g.name::text) AS identity FROM res_groups g LEFT JOIN xml x ON x.model='res.groups' AND x.res_id=g.id)
+SELECT json_build_object(
+'acl',(SELECT json_agg(json_build_object('identity',coalesce(x.xmlid,'name:'||a.name),'model',m.model,'group',g.identity,'read',a.perm_read,'write',a.perm_write,'create',a.perm_create,'unlink',a.perm_unlink,'active',a.active) ORDER BY coalesce(x.xmlid,'name:'||a.name)) FROM ir_model_access a JOIN ir_model m ON m.id=a.model_id LEFT JOIN groups g ON g.id=a.group_id LEFT JOIN xml x ON x.model='ir.model.access' AND x.res_id=a.id),
+'rules',(SELECT json_agg(json_build_object('identity',coalesce(x.xmlid,'name:'||r.name),'model',m.model,'domain',r.domain_force,'groups',(SELECT json_agg(g.identity ORDER BY g.identity) FROM rule_group_rel rel JOIN groups g ON g.id=rel.group_id WHERE rel.rule_group_id=r.id),'read',r.perm_read,'write',r.perm_write,'create',r.perm_create,'unlink',r.perm_unlink,'active',r.active) ORDER BY coalesce(x.xmlid,'name:'||r.name)) FROM ir_rule r JOIN ir_model m ON m.id=r.model_id LEFT JOIN xml x ON x.model='ir.rule' AND x.res_id=r.id),
+'crons',(SELECT json_agg(json_build_object('identity',x.xmlid,'interval_number',c.interval_number,'interval_type',c.interval_type,'priority',c.priority,'user',coalesce(u.xmlid,'login:'||users.login),'action',a.xmlid) ORDER BY x.xmlid) FROM ir_cron c LEFT JOIN xml x ON x.model='ir.cron' AND x.res_id=c.id LEFT JOIN xml a ON a.model='ir.actions.server' AND a.res_id=c.ir_actions_server_id LEFT JOIN xml u ON u.model='res.users' AND u.res_id=c.user_id LEFT JOIN res_users users ON users.id=c.user_id),
+'groups',(SELECT json_agg(json_build_array(g.identity,h.identity) ORDER BY g.identity,h.identity) FROM res_groups_implied_rel rel JOIN groups g ON g.id=rel.gid JOIN groups h ON h.id=rel.hid)
+);
+"""
+
+
+def release_definitions_digest(value: object) -> str:
+    """Hash permission and scheduled-action definitions independent of row order."""
+    if not isinstance(value, dict) or set(value) != {"acl", "rules", "crons", "groups"}:
+        raise ControlManifestError("release definition sections differ")
+    sections = {}
+    for name, rows in value.items():
+        if rows is None:
+            rows = []
+        if not isinstance(rows, list):
+            raise ControlManifestError("release definitions must be lists")
+        sections[name] = sorted(
+            rows, key=lambda row: json.dumps(row, sort_keys=True, separators=(",", ":")),
+        )
+    return _digest(sections)

@@ -54,6 +54,9 @@
     "mcp_oauth": {"name": "usl-odoo-production-main-odoo-mcp-oauth", "class": "durable", "tier": "database"}
   },
   "paths": {
+    "mcp_secrets": {"path": "/opt/usl-odoo/secrets", "class": "durable", "required": true, "tier": "local", "files": {"better-auth.secret": "/opt/usl-odoo/secrets/odoo-mcp-better-auth.secret", "credential-encryption-key.secret": "/opt/usl-odoo/secrets/odoo-mcp-credential-encryption-key.secret"}},
+    "renderer_secrets": {"path": "/opt/usl-odoo/secrets/document-renderer", "class": "durable", "required": true, "tier": "local"},
+    "paperless_personal_ai_keys": {"path": "/opt/usl-odoo/secrets/paperless-personal-ai-keys.json", "class": "durable", "required": true, "tier": "local"},
     "sign_secrets": {"path": "/opt/usl-odoo/secrets/sign", "class": "durable", "required": true, "tier": "local"},
     "sign_evidence": {"path": "/srv/usl/sign/evidence", "class": "durable", "required": false, "tier": "local"}
   },

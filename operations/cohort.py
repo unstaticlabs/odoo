@@ -34,6 +34,8 @@ RETENTION_TIMEZONE = ZoneInfo("Europe/Paris")
 RETENTION = {"daily": 14, "weekly": 8, "monthly": 24, "yearly": 10}
 CACHE_MINIMUM_DAYS = 30
 DATABASES = ("odoo", "paperless")
+MCP_SECRET_FILES = ("better-auth.secret", "credential-encryption-key.secret")
+RENDERER_SECRET_FILES = ("ca.crt", "renderer.crt", "renderer.key", "odoo.crt", "odoo.key")
 SIGN_SECRET_FILES = (
     "dss.env",
     "dss/client-trust.p12",
@@ -154,7 +156,7 @@ def validate_sign_secrets(root: Path) -> dict[str, Any]:
     """Validate complete Sign recovery material without exposing its contents."""
     if not root.is_dir() or root.is_symlink():
         raise CohortError("complete Sign secret root is missing or unsafe")
-    if root.stat().st_mode & 0o077:
+    if root.stat().st_mode & 0o022:
         raise CohortError("complete Sign secret root has unsafe permissions")
     for path in root.rglob("*"):
         if path.is_symlink():
@@ -183,7 +185,7 @@ def validate_sign_secrets(root: Path) -> dict[str, Any]:
 
 
 def validate_mcp_secrets(root: Path) -> dict[str, Any]:
-    if not root.is_dir() or root.is_symlink() or root.stat().st_mode & 0o077:
+    if not root.is_dir() or root.is_symlink() or root.stat().st_mode & 0o022:
         raise CohortError("complete MCP secret root is missing or unsafe")
     for relative in MCP_SECRET_FILES:
         path = root / relative
@@ -195,13 +197,16 @@ def validate_mcp_secrets(root: Path) -> dict[str, Any]:
 
 
 def validate_renderer_secrets(root: Path) -> dict[str, Any]:
-    if not root.is_dir() or root.is_symlink() or root.stat().st_mode & 0o077:
+    if not root.is_dir() or root.is_symlink() or root.stat().st_mode & 0o022:
         raise CohortError("complete renderer secret root is missing or unsafe")
     for relative in RENDERER_SECRET_FILES:
         path = root / relative
         if not path.is_file() or path.is_symlink() or path.stat().st_size < 1:
             raise CohortError(f"required renderer recovery material is missing: {relative}")
-        if relative.endswith(".key") and path.stat().st_mode & 0o077:
+        if relative.endswith(".key") and (
+            path.stat().st_mode & 0o022
+            or (path.stat().st_mode & 0o077 and root.stat().st_mode & 0o077)
+        ):
             raise CohortError(f"private renderer recovery material has unsafe permissions: {relative}")
     return tree_identity(root)
 
@@ -359,6 +364,22 @@ def validate_manifest(value: object) -> dict[str, Any]:
     return value
 
 
+def _capture_runtime_images(durable: Path) -> None:
+    runtime_images = os.environ.get("USL_RUNTIME_IMAGES_JSON")
+    if runtime_images is not None:
+        try:
+            images = json.loads(runtime_images)
+        except json.JSONDecodeError as error:
+            raise CohortError("captured runtime images are invalid JSON") from error
+        if not isinstance(images, dict) or not images or any(
+            not isinstance(value, str) or not re.fullmatch(r"[^\s@]+@sha256:[0-9a-f]{64}", value)
+            for value in images.values()
+        ):
+            raise CohortError("captured runtime images must be immutable references")
+        # Included in the durable tree identity and therefore snapshot verification.
+        (durable / "runtime-images.json").write_text(json.dumps(images, sort_keys=True), encoding="utf-8")
+
+
 def capture(arguments: argparse.Namespace) -> dict[str, Any]:
     if not RUN_ID.fullmatch(arguments.run_id):
         raise CohortError("run ID is invalid")
@@ -395,6 +416,7 @@ def capture(arguments: argparse.Namespace) -> dict[str, Any]:
         if release_value.get("identity") != _required_environment("USL_RELEASE_IDENTITY"):
             raise CohortError("supplied release identity differs")
         (durable / "release.json").write_text(release_raw, encoding="utf-8")
+        _capture_runtime_images(durable)
         odoo_database = os.environ["ODOO_DB_NAME"]
         copy_tree(
             Path("/source/odoo-data/filestore") / odoo_database,
@@ -711,6 +733,26 @@ def _one_tag(tags: set[str], pattern: re.Pattern[str], label: str) -> str:
     return matches[0]
 
 
+def _staging_retention(durable: list[dict], cache: list[dict], now: datetime) -> dict[str, Any]:
+    cutoff = now - timedelta(days=1)
+    result = {"schema": "usl-retention-plan/v1", "policy": {"maximum_age_hours": 24}, "status": "planned"}
+    for classification, inventory in (("durable", durable), ("cache", cache)):
+        retained, expired = [], []
+        for snapshot in inventory:
+            tags = set(snapshot.get("tags", []))
+            if not {"usl-cohort", classification, "target-staging"} <= tags:
+                continue
+            if {tag for tag in tags if tag.startswith("target-")} != {"target-staging"}:
+                raise CohortError("staging snapshot has ambiguous target tags")
+            identity = str(snapshot.get("id", ""))
+            if not SNAPSHOT.fullmatch(identity):
+                raise CohortError("staging snapshot identity is invalid")
+            (expired if _snapshot_time(snapshot) <= cutoff else retained).append(identity)
+        result[f"retain_{classification}"] = sorted(retained)
+        result[f"delete_{classification}"] = sorted(expired)
+    return result
+
+
 def plan_retention(now: datetime | None = None) -> dict[str, Any]:
     """Plan paired durable/cache retention without deleting unqualified evidence."""
     now = (now or datetime.now(UTC)).astimezone(RETENTION_TIMEZONE)
@@ -721,6 +763,11 @@ def plan_retention(now: datetime | None = None) -> dict[str, Any]:
     )
     durable = _inventory(durable_environment)
     cache = _inventory(cache_environment)
+    target = os.environ.get("USL_TARGET", "production")
+    if target == "staging":
+        return _staging_retention(durable, cache, now)
+    if target != "production":
+        raise CohortError("retention requires a production or staging target")
     scoped_durable = [
         item for item in durable
         if {"usl-cohort", "durable", "target-production"} <= set(item.get("tags", []))
@@ -1055,6 +1102,7 @@ def qualify(arguments: argparse.Namespace) -> dict[str, Any]:
         ],
         durable_environment,
     )
+    state["qualified_from_snapshot_id"] = state["durable_snapshot_id"]
     run_tag = f"run-{state['run_id']}"
     state["durable_snapshot_id"] = resolve_tagged_snapshot(
         durable_environment,

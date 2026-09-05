@@ -1166,6 +1166,7 @@ services:
 
   test:
     profiles: ["test"]
+    image: ${ODOO_TEST_IMAGE:-usl-odoo-saas-19-3-test:local}
     build:
       context: .
       dockerfile: Dockerfile

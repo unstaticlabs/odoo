@@ -14,3 +14,9 @@ deploy/*
 scripts/*
 !scripts/cohort-runtime
 !scripts/usl-stack
+!scripts/odoo/
+scripts/odoo/*
+!scripts/odoo/production_quarantine.py
+!scripts/odoo/production_activate.py
+!scripts/odoo/production_side_effect_boundary.py
+!scripts/sign-services-smoke.py

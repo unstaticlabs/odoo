@@ -99,6 +99,9 @@ class FeedbackSubmission(models.TransientModel):
         self.ensure_one()
         self._require_internal_user()
         self.check_access("write")
+        # Draft relation fields are RPC-writable. Validate their current targets
+        # before creating a replacement or deleting any elevated attachment.
+        self._validated_attachments()
         if len(self.attachment_ids) >= MAX_ATTACHMENTS:
             raise ValidationError(_("Attach at most 10 files to one feedback item."))
         name = os.path.basename(str(name or "attachment"))[:255]
@@ -142,7 +145,9 @@ class FeedbackSubmission(models.TransientModel):
     def feedback_remove_attachment(self, attachment_id):
         self.ensure_one()
         self._require_internal_user()
-        attachment = self.attachment_ids.filtered(lambda item: item.id == int(attachment_id or 0))
+        self.check_access("write")
+        attachments = self._validated_attachments()
+        attachment = attachments.filtered(lambda item: item.id == int(attachment_id or 0))
         if not attachment:
             raise AccessError(_("This attachment does not belong to your feedback draft."))
         self.write(
@@ -237,6 +242,7 @@ class FeedbackSubmission(models.TransientModel):
 
     def _validated_attachments(self):
         self.ensure_one()
+        self.check_access("read")
         if len(self.attachment_ids) > MAX_ATTACHMENTS:
             raise ValidationError(_("Attach at most 10 files to one feedback item."))
         for attachment in self.attachment_ids.sudo():
@@ -244,6 +250,14 @@ class FeedbackSubmission(models.TransientModel):
                 raise AccessError(_("You can submit only attachments that you uploaded."))
             if attachment.res_model != self._name or attachment.res_id != self.id:
                 raise AccessError(_("An attachment is already linked to another record."))
+        screenshot = self.screenshot_attachment_id
+        if screenshot:
+            if screenshot not in self.attachment_ids:
+                raise AccessError(_("The screenshot must belong to this feedback draft's attachments."))
+            if screenshot.sudo().mimetype not in SCREENSHOT_MIMETYPES:
+                raise ValidationError(_("Screenshots must be JPEG or PNG images."))
+            if screenshot.sudo().file_size > MAX_SCREENSHOT_BYTES:
+                raise ValidationError(_("The screenshot must be 5 MB or smaller."))
         return self.attachment_ids
 
     def feedback_submit_initial(self, message, include_page_context=False):
@@ -260,6 +274,9 @@ class FeedbackSubmission(models.TransientModel):
         attachments = self._validated_attachments()
         project = self.env.ref("usl_feedback.project_product_feedback").sudo()
         stage = self.env.ref("usl_feedback.stage_feedback_new").sudo()
+        release_sha = self._release_sha()
+        identity = self.env["project.task"]._usl_feedback_deployment_identity()
+        identity["release_commit"] = release_sha
         task = (
             self.env["project.task"]
             .with_user(self.env.user)
@@ -269,7 +286,7 @@ class FeedbackSubmission(models.TransientModel):
                     "name": message.splitlines()[0][:120],
                     "description": Markup("<p>%s</p>%s") % (
                         escape(message).replace("\n", Markup("<br>")),
-                        self.env["project.task"]._usl_feedback_identity_html(),
+                        self.env["project.task"]._usl_feedback_identity_html(identity),
                     ),
                     "project_id": project.id,
                     "stage_id": stage.id,
@@ -277,7 +294,7 @@ class FeedbackSubmission(models.TransientModel):
                     "priority": "0",
                     "usl_feedback_reporter_id": self.env.user.id,
                     "usl_feedback_company_id": self.env.company.id,
-                    "usl_feedback_release_sha": self._release_sha(),
+                    "usl_feedback_release_sha": release_sha,
                     "usl_feedback_context_included": False,
                     "usl_feedback_agent_state": "waiting",
                     **context_values,

@@ -20,6 +20,20 @@ expose its credentials, Restic password, restored files, or secret contents in
 logs or evidence. Production Sign secrets are restored only to production.
 Staging and local runtimes keep their own isolated signing identities.
 
+Staging stores encrypted Restic repositories on the VPS at
+`/var/lib/usl-odoo/restic/staging/durable` and
+`/var/lib/usl-odoo/restic/staging/cache`. Backup, verification and restore
+containers mount these persistent paths; snapshot qualification and checkpoint
+receipts remain required. These backups survive container replacement, but not
+loss of the VPS storage. Production backups and production-sourced recovery
+proofs continue to use R2. Existing staging snapshots in R2 are not migrated or
+deleted by this change. Staging snapshots expire after 24 hours in both local
+repositories. `scripts/usl-stack --target staging backup prune --json` applies
+this policy under the same operation lock used by backup and restore. GitOps
+calls it after a successful staging upgrade and reopening, like production's
+deployment retention stage. There is no separate timer: on idle days snapshots
+remain until the next deployment cleanup. Production retention remains unchanged.
+
 ## Backup
 
 The target must reference a validated release manifest whose images exactly
@@ -34,7 +48,7 @@ scripts/usl-stack backup create --target production --json
 
 The command pre-pulls the backup tool, pauses the application writers and Step
 CA, dumps both databases, captures durable and reusable-cache state, restarts
-the writers, uploads both Restic snapshots, verifies their identities, and
+the writers, writes both Restic snapshots to the target repositories, verifies their identities, and
 marks only the verified durable snapshot as recovery-eligible. The JSON result
 contains the full snapshot IDs and timings. Do not use `latest` or abbreviated
 snapshot IDs.
@@ -133,6 +147,16 @@ through `odoo-staging-app` behind the stable gateway, so later runtime
 inspection cannot see two competing Odoo anchors or public aliases. Gateway
 start, alias transfer, or rollback failure leaves maintenance closed and is
 safe to retry after interruption or reboot.
+
+Ordinary generation activation and rollback never pass an unqualified Compose
+`up` or `stop`. They name only the target's application services; the stable
+gateway stays attached with the same container identity and IP. Gateway drift
+is admitted semantically, including the SHA-256 content of its Nginx
+configuration, because Compose's raw service hash changes when an identical
+relative bind mount is rendered from a different immutable checkout path. New
+gateway creation mounts a persistent content-addressed copy, while an existing
+gateway is verified directly even after the launcher's temporary GitOps
+snapshot has been removed.
 
 Admission also records the MCP server version and OAuth-vault schema reported
 by its versioned readiness endpoint. Production and staging require the vault
@@ -290,3 +314,14 @@ Operation events are stored under each target's private runtime directory.
 Secret values are never written to cohort manifests or logs; manifests contain
 only resource identities and digests. Cohort v1 snapshots predate complete Sign
 secret capture and must not be used as complete production recovery points.
+
+
+After a failed candidate, recovery also handles the case where the generation
+never switched: it resumes the existing containers, proves the baseline healthy,
+and archives the failed claim under `aborted-attempts`. The same release inputs
+can then be retried without deleting the failure evidence. Production that has
+crossed activation is repaired forward; this abort path cannot roll it back.
+
+The operations image includes the boundary scripts and `rsync` used to preserve
+staging's OAuth vault during a production-data refresh. The copy verifier is
+exercised as a real subprocess in repository tests.

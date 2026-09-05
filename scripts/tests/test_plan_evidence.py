@@ -35,6 +35,7 @@ def plan() -> dict:
 def smoke() -> dict:
     return {
         "status": "passed",
+        "release_definitions_sha256": "9" * 64,
         "controls": {
             "odoo": {
                 key: 0
@@ -64,6 +65,13 @@ class PlanEvidenceTests(unittest.TestCase):
             health={"status": "passed"},
             smoke=smoke(),
         )
+
+    def test_attestation_requires_semantic_release_definitions(self):
+        value = smoke()
+        value.pop("release_definitions_sha256")
+        with self.assertRaisesRegex(PlanEvidenceError, "release definitions"):
+            sign(plan(), self.private, snapshot="d" * 64,
+                 generation="g-qualified", health={"status": "passed"}, smoke=value)
 
     def test_round_trip_returns_exact_plan(self):
         self.assertEqual(verify(self.evidence(), self.public), plan())
@@ -115,7 +123,7 @@ class PlanEvidenceTests(unittest.TestCase):
 
     def test_attestation_binds_release_owned_controls(self):
         value = self.evidence()
-        value["staging"]["release_controls_sha256"] = "e" * 64
+        value["staging"]["release_definitions_sha256"] = "e" * 64
         with self.assertRaisesRegex(PlanEvidenceError, "signature"):
             verify(value, self.public)
 

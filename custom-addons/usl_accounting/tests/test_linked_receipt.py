@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 from odoo import Command
 from odoo.addons.queue_job.exception import RetryableJobError
+from odoo.addons.queue_job.job import Job
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
 
@@ -12,6 +13,7 @@ from odoo.addons.hr_expense.tests.common import TestExpenseCommon
 
 from ..models.linked_receipt import (
     ReceiptFetchError,
+    _LINKED_RECEIPT_INTERNAL,
     _safe_fetch_failure_message,
     _safe_filename,
     _safe_redirect_evidence,
@@ -467,14 +469,14 @@ class TestLinkedReceipt(TestExpenseCommon):
             host = self.env["usl.mail.pdf.host"].sudo().search(
                 [("hostname", "=", retrieval.starting_host)],
             )
-            host.with_context(linked_receipt_internal=True).write(
+            host.with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write(
                 {"state": "blocked"}
             )
             with self.assertRaises(UserError):
                 employee_retrieval._consume_handoff(
                     expected_generation=retrieval.generation,
                 )
-            host.with_context(linked_receipt_internal=True).write(
+            host.with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write(
                 {"state": "provisional"}
             )
             attachment = self.env["ir.attachment"].sudo().create(
@@ -568,7 +570,7 @@ class TestLinkedReceipt(TestExpenseCommon):
         host = self.env["usl.mail.pdf.host"].sudo().search(
             [("hostname", "=", candidate["hostname"])],
         )
-        host.with_context(linked_receipt_internal=True).write({"state": "active"})
+        host.with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write({"state": "active"})
         other_message = self.env["mail.message"].sudo().create(
             {
                 "subject": retrieval.source_message_id.subject,
@@ -618,7 +620,7 @@ class TestLinkedReceipt(TestExpenseCommon):
             [("hostname", "=", candidate["hostname"])],
         )
         retrieval.pattern_id._register_success({"fetch_mode": "http"})
-        host.with_context(linked_receipt_internal=True).write(
+        host.with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write(
             {"state": "active", "success_count": 1}
         )
 
@@ -637,6 +639,98 @@ class TestLinkedReceipt(TestExpenseCommon):
             )
         with self.assertRaises(AccessError):
             host.with_user(manager).write({"state": "active"})
+
+    def test_manager_cannot_forge_internal_context_to_edit_learning_evidence(self):
+        expense = self._ingest(token="forged-governance-context")
+        retrieval = self.env["usl.mail.pdf.retrieval"].sudo().search(
+            [("expense_id", "=", expense.id)]
+        )
+        candidate = retrieval._extract_candidates(retrieval.source_message_id)[0]
+        retrieval._select_candidate(candidate["fingerprint"], teach=True)
+        manager = self.expense_user_manager
+        manager.group_ids = [
+            Command.link(self.env.ref("account.group_account_manager").id)
+        ]
+        host = self.env["usl.mail.pdf.host"].sudo().search(
+            [("hostname", "=", candidate["hostname"])]
+        )
+        pattern = retrieval.pattern_id
+        for record in (host, pattern):
+            original_count = record.success_count
+            original_state = record.state
+            for forged in (True, 1, "internal"):
+                with self.subTest(model=record._name, context=forged):
+                    with self.assertRaises(AccessError):
+                        record.with_user(manager).with_context(
+                            linked_receipt_internal=forged,
+                        ).write({"success_count": 999, "state": "active"})
+                    self.assertEqual(record.success_count, original_count)
+                    self.assertEqual(record.state, original_state)
+            # A valid workflow must retain the native ACL boundary even if
+            # the in-process caller holds the private identity sentinel.
+            with self.assertRaises(AccessError):
+                record.with_user(self.expense_user_employee).with_context(
+                    linked_receipt_internal=_LINKED_RECEIPT_INTERNAL,
+                ).write({"success_count": 999})
+            record.with_user(manager).action_block()
+            self.assertEqual(record.state, "blocked")
+            record.with_user(manager).action_activate()
+        self.assertEqual(host.state, "provisional")
+        self.assertEqual(pattern.state, "learning")
+
+    def test_queue_job_authority_requires_capability_but_worker_storage_does_not(self):
+        manager = self.expense_user_manager
+        manager.group_ids = [
+            Command.link(self.env.ref("queue_job.group_queue_job_manager").id),
+            Command.unlink(self.env.ref("usl_access_control.group_irreversible_actions").id),
+        ]
+        job = Job(
+            self.env["res.partner"].with_user(self.expense_user_employee).get_base_url,
+        )
+        job.store()
+        record = job.db_record()
+        original_user = record.user_id
+        original_company = record.company_id
+        for values in (
+            {"user_id": manager.id},
+            {"company_id": False},
+        ):
+            for forged in (None, True, "internal"):
+                with self.subTest(values=values, context=forged):
+                    with self.assertRaises(AccessError):
+                        record.with_user(manager).with_context(
+                            _job_edit_sentinel=forged,
+                        ).write(values)
+        self.assertEqual(record.user_id, original_user)
+        self.assertEqual(record.company_id, original_company)
+        # Normal non-authority queue operation and subsequent OCA persistence
+        # must not require an irreversible capability.
+        record.with_user(manager).write({"priority": 25})
+        job.priority = 30
+        job.store()
+        self.assertEqual(record.priority, 30)
+        manager.group_ids = [
+            Command.link(self.env.ref("usl_access_control.group_irreversible_actions").id),
+        ]
+        target_user = self.env.user
+        record.with_user(manager).write({"user_id": target_user.id})
+        self.assertEqual(record.user_id, target_user)
+        self.assertEqual(record.records.env.uid, target_user.id)
+        audit = self.env["usl.audit.event"].sudo().search(
+            [("action_key", "=", "guard:queue_job_authority"),
+             ("actor_id", "=", manager.id), ("event_type", "=", "protected_action")],
+            limit=1,
+        )
+        self.assertTrue(audit)
+        with self.assertRaises(UserError):
+            audit.with_user(manager).write({"action_name": "Altered queue evidence"})
+        manager.group_ids = [
+            Command.unlink(self.env.ref("usl_access_control.group_irreversible_actions").id),
+            Command.link(self.env.ref("usl_access_control.group_ai_agent").id),
+        ]
+        for actor_record in (record.with_user(manager), record.with_user(manager).sudo()):
+            with self.assertRaises(AccessError):
+                actor_record.write({"user_id": self.expense_user_employee.id})
 
     def test_unvalidated_governance_restore_does_not_activate_learning(self):
         expense = self._ingest(token="unvalidated-governance")
@@ -733,7 +827,7 @@ class TestLinkedReceipt(TestExpenseCommon):
         candidate = retrieval._extract_candidates(retrieval.source_message_id)[0]
         retrieval._select_candidate(candidate["fingerprint"], teach=True)
         retrieval.pattern_id._register_success({"fetch_mode": "http"})
-        retrieval.pattern_id.with_context(linked_receipt_internal=True).write(
+        retrieval.pattern_id.with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write(
             {"negative_count": 2}
         )
 

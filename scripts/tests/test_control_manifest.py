@@ -17,6 +17,7 @@ from operations.control_manifest import (
     SCHEMA_V1,
     classify,
     release_digest,
+    release_definitions_digest,
     validate_restore,
 )
 
@@ -61,6 +62,15 @@ def controls_v2() -> dict:
 
 
 class ControlManifestTests(unittest.TestCase):
+    def test_scheduler_delay_is_advisory_but_failed_jobs_still_block(self):
+        before = controls_v2()
+        after = copy.deepcopy(before)
+        after["odoo"]["cron_lag"] = 3
+        validate_restore(before, after)
+        after["odoo"]["cron_failures"] = 1
+        with self.assertRaises(ControlManifestError):
+            validate_restore(before, after)
+
     def test_cron_definition_control_excludes_environment_activation(self):
         expression = ODOO_CONTROL_SQL.split("'cron_policy_fingerprint'", 1)[1].split(
             "'currency_rate_fingerprint'", 1
@@ -167,6 +177,34 @@ class ControlManifestTests(unittest.TestCase):
         after["paperless"]["permission_fingerprint"] = "changed"
         with self.assertRaisesRegex(ControlManifestError, "business controls"):
             validate_restore(before, after)
+
+
+
+
+class SemanticReleaseDefinitionTests(unittest.TestCase):
+    def test_row_order_does_not_change_qualification(self):
+        first = {"acl": [{"identity": "base.access_a", "write": False},
+                         {"identity": "usl.access_b", "write": True}],
+                 "rules": [], "crons": [], "groups": [["base.user", "base.internal"]]}
+        reordered = copy.deepcopy(first)
+        reordered["acl"].reverse()
+        self.assertEqual(release_definitions_digest(first), release_definitions_digest(reordered))
+
+    def test_permission_schedule_and_group_changes_are_detected(self):
+        original = {"acl": [{"identity": "usl.access_a", "write": False}],
+                    "rules": [{"identity": "usl.rule", "groups": ["base.internal"]}],
+                    "crons": [{"identity": "usl.cron", "interval_number": 5}],
+                    "groups": [["base.user", "base.internal"]]}
+        for section, replacement in {
+            "acl": [{"identity": "usl.access_a", "write": True}],
+            "rules": [{"identity": "usl.rule", "groups": ["base.admin"]}],
+            "crons": [{"identity": "usl.cron", "interval_number": 1}],
+            "groups": [["base.user", "base.admin"]],
+        }.items():
+            with self.subTest(section=section):
+                changed = copy.deepcopy(original)
+                changed[section] = replacement
+                self.assertNotEqual(release_definitions_digest(original), release_definitions_digest(changed))
 
 
 if __name__ == "__main__":
