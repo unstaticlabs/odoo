@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import hashlib
 import json
 import subprocess
 import tempfile
@@ -14,29 +16,91 @@ from operations.runtime import load_target
 from operations.stack import (
     BACKUP_WRITER_SERVICE_ROLES,
     VOLUME_LOGICAL_NAMES,
+    build_parser,
+    backup_command,
     _cohort_command,
     _create_generation_resources,
     _apply_generation_cron_policy,
     _active_generation_identity,
+    _adopt_staging_gateway,
     _abort_to_previous_generation,
+    _backup_run_receipt,
+    _backup_quiescence_receipt,
+    _activate_generation,
+    _candidate_compose_identity,
+    _cleanup_inventory,
+    _cleanup_workspaces,
+    _delete_cleanup_resources,
     _generation_overlay,
+    _gateway_semantic_hash,
+    _gateway_service_hash,
+    _independent_mcp_image,
+    _mcp_runtime_authority,
+    _with_mcp_runtime_authority,
+    _with_stable_gateway_config,
+    _wait_legacy_staging_origin,
+    _forward_only_receipt,
     _ensure_image,
     _materialize_command,
+    _materialization_cleanup,
+    _maintenance_receipt,
     _prepare_generation_volume_ownership,
+    _prepare_secret_contract,
+    _prepare_release_candidate,
+    _recover_interrupted_backup_lock,
+    _prepare_receipt,
+    _release_attempt,
+    _release_attempt_claim,
+    _release_boundary_receipt,
+    _release_runtime_evidence,
+    _legacy_staging_baseline,
+    _runtime_baseline_sha256,
+    _runtime_boundary_gates,
+    _runtime_cas_sha256,
+    _require_same_attempt_boundary,
+    _required_maintenance_endpoints,
+    _require_same_preparation,
+    _previous_generation_record,
     _previous_generation_identity,
+    _reconcile_staging_pocketid,
     _release_images,
     _remove_materialization_workspace,
+    _resource_overlay,
+    _restore_legacy_ingress,
     _require_restore_capacity,
     _measure_candidate_bytes,
     _notify_release,
     _rollback_after_failure,
+    _rollback_active_candidate,
+    _start_rollback_identity,
+    _run_candidate_upgrade,
     _restore_unlocked,
     _storage_status,
+    _staging_abort_neutralization,
+    _staging_checkpoint_receipt,
+    _staging_reset_intent_receipt,
+    _staging_reset_deferred_receipt,
+    _validate_backup_quiescence_receipt,
+    _preserve_staging_environment_state,
+    _write_source_backup_environment,
     _write_adopt_generation,
     _validate_materialized_release,
+    _validate_forward_only_receipt,
+    _validate_release_boundary_receipt,
     _validate_runtime_release_images,
+    _probe_staging_gateway_maintenance,
+    _validated_cleanup_resources,
+    _validated_cleanup_containers,
+    _validated_cleanup_network,
+    _validated_cleanup_volume,
+    _validate_recovery_selection,
+    _validate_staging_auth_compose,
+    _validate_gateway_container,
+    cleanup_command,
     generation_volume_names,
+    runtime_command,
     generation_volume_path,
+    release_command,
     runtime_lock,
     with_writers_paused,
 )
@@ -44,6 +108,7 @@ from operations.stack import (
 
 ROOT = Path(__file__).resolve().parents[2]
 TARGETS = ROOT / "operations/targets"
+HOST_TARGETS = ROOT / "operations/targets-host"
 
 
 def manifest(durable: dict, cache: dict) -> dict:
@@ -79,12 +144,1002 @@ def manifest(durable: dict, cache: dict) -> dict:
                 "path": "durable/sign-secrets",
                 "identity": durable,
             },
+            "mcp_secrets": {
+                "class": "durable",
+                "path": "durable/mcp-secrets",
+                "identity": durable,
+            },
+            "renderer_secrets": {
+                "class": "durable",
+                "path": "durable/renderer-secrets",
+                "identity": durable,
+            },
+            "paperless_personal_ai_keys": {
+                "class": "durable",
+                "path": "durable/paperless-secrets",
+                "identity": durable,
+            },
         },
         "cache_snapshot_id": None,
     }
 
 
+def backup_receipt(*, target: str = "staging", run_id: str = "attempt-20260904-staging") -> dict:
+    identity = {"files": 1, "bytes": 1, "sha256": "d" * 64}
+    capture = manifest(identity, identity)
+    capture.update({"target": target, "run_id": run_id})
+    capture["release"]["identity"] = "a" * 64
+    snapshot = "b" * 64
+    cache_snapshot = "c" * 64
+    state = {
+        "schema": cohort.STATE_SCHEMA,
+        "cohort_schema": cohort.SCHEMA,
+        "run_id": run_id,
+        "target": target,
+        "durable_snapshot_id": snapshot,
+        "cache_snapshot_id": cache_snapshot,
+        "status": "uploaded",
+    }
+    qualification = {**state, "status": "qualified"}
+    quiescence = {
+        "schema": "usl-backup-quiescence/v2",
+        "target": target,
+        "run_id": run_id,
+        "baseline_runtime_sha256": "e" * 64,
+        "writer_services": ["odoo", "paperless-webserver", "odoo-mcp", "usl-sign-dss", "usl-sign-step-ca"],
+        "prepared_at": "2026-09-03T23:59:59Z",
+        "stopped_at": "2026-09-04T00:00:00Z",
+        "status": "quiesced",
+    }
+    quiescence["sha256"] = __import__("hashlib").sha256(json.dumps(
+        quiescence, sort_keys=True, separators=(",", ":"),
+    ).encode()).hexdigest()
+    value = {
+        "schema": "usl-backup-run/v2",
+        "run_id": run_id,
+        "capture": capture,
+        "upload": state,
+        "qualification": qualification,
+        "performance": {
+            "capture_pause_seconds": 1.0,
+            "writer_freeze_seconds": None,
+            "writer_freeze_sla_seconds": 120,
+            "writer_freeze_sla_passed": None,
+            "upload_seconds": 1.0,
+            "verification_seconds": 1.0,
+            "total_seconds": 3.0,
+        },
+        "runtime_images": {"odoo": "image@sha256:" + "f" * 64},
+        "writers_quiesced": True,
+        "writer_interval_complete": False,
+        "writers_stopped_at": quiescence["stopped_at"],
+        "writers_resumed_at": None,
+        "quiescence": quiescence,
+        "status": "qualified",
+    }
+    value["sha256"] = __import__("hashlib").sha256(json.dumps(
+        value, sort_keys=True, separators=(",", ":"),
+    ).encode()).hexdigest()
+    return value
+
+
+def staging_runtime_evidence(
+    *,
+    attempt: str = "attempt-20260904-staging",
+    release: str = "a" * 64,
+    snapshot: str = "b" * 64,
+    generation: str = "grelease-staging1",
+    operation_kind: str = "staging-upgrade",
+) -> dict:
+    auth = {
+        "schema": "usl-staging-auth-compose/v1",
+        "paperless_mode": "internal-only",
+        "canonical_environment": True,
+        "odoo_sso_enabled": True,
+        "paperless_internal_url": True,
+        "paperless_loopback_only": True,
+        "paperless_external_route_absent": True,
+        "paperless_oidc_disabled": True,
+        "status": "passed",
+    }
+    pocket = {
+        "schema": "usl-pocket-id-runtime-admission/v1",
+        "paperless_mode": "internal-only",
+        "application_completed": True,
+        "provider_enabled": True,
+        "governed_provider": True,
+        "client_id_matches": True,
+        "database_secret_absent": True,
+        "issuer_matches": True,
+        "base_url_matches": True,
+        "required_group_matches": True,
+        "scopes_match": True,
+        "endpoints_match_issuer": True,
+        "odoo_authorization_accepted": True,
+        "odoo_client_secret_accepted": True,
+        "status": "passed",
+    }
+    preservation = None
+    if operation_kind == "staging-reset-from-production":
+        identity = {"files": 2, "bytes": 144, "sha256": "c" * 64}
+        preservation = {
+            "schema": "usl-staging-environment-state/v1",
+            "mcp_oauth": {"source": identity, "destination": dict(identity)},
+            "status": "preserved",
+        }
+    value = {
+        "schema": "usl-release-runtime-evidence/v1",
+        "target": "staging",
+        "attempt": attempt,
+        "release": release,
+        "snapshot": snapshot,
+        "generation": generation,
+        "operation_kind": operation_kind,
+        "auth_compose_admission": auth,
+        "pocket_id_admission": pocket,
+        "environment_state_preservation": preservation,
+        "status": "validated",
+    }
+    value["sha256"] = __import__("hashlib").sha256(json.dumps(
+        value, sort_keys=True, separators=(",", ":"),
+    ).encode()).hexdigest()
+    return value
+
+
 class CohortContractTests(unittest.TestCase):
+    def setUp(self) -> None:
+        # Most contract fixtures exercise lifecycle behavior without a mounted
+        # GitOps checkout. Tests of the authority reader call the imported
+        # function directly; lifecycle authority wiring is covered explicitly.
+        self.mcp_authority = mock.patch(
+            "operations.stack._mcp_runtime_authority", return_value=None,
+        )
+        self.mcp_authority.start()
+
+    def tearDown(self) -> None:
+        self.mcp_authority.stop()
+
+    def test_legacy_staging_baseline_uses_only_v2_safe_probes(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        legacy = target.value["compose"]["adoption"]["legacy_anchor_service"]
+        services = set(target.value["services"].values())
+        services.remove(target.value["compose"]["anchor_service"])
+        services.add(legacy)
+        runtime = {
+            "generation": "glegacy",
+            "compose": {"anchor_service": legacy},
+            "containers": [
+                {"Service": service, "State": "running", "Health": "healthy"}
+                for service in services
+            ],
+        }
+
+        class Runner:
+            def run(self, command, *, check=True, input_text=None):
+                if command[0] == "curl":
+                    return subprocess.CompletedProcess(command, 0, "200", "")
+                raise AssertionError(command)
+
+        controls = {
+            "database": target.value["databases"]["odoo"]["name"],
+            "companies": 1,
+            "users": 2,
+            "moves": 3,
+            "attachments": 4,
+            "ledger_delta": 0,
+        }
+        with (
+            mock.patch("operations.stack._psql", return_value=json.dumps(controls)),
+            mock.patch("operations.stack._runtime_cas_sha256", return_value="a" * 64),
+        ):
+            value = _legacy_staging_baseline(
+                target,
+                Runner(),
+                runtime,
+                {"schema": "usl-release/v2", "source": {"commit": "b" * 40}},
+            )
+        self.assertEqual(value["status"], "passed")
+        self.assertEqual(value["release_schema"], "usl-release/v2")
+        self.assertEqual(
+            value["endpoints"]["mcp"]["url"],
+            "http://127.0.0.1:19000/healthz",
+        )
+
+    def test_legacy_staging_baseline_rejects_v3(self) -> None:
+        target = load_target("staging", TARGETS)
+        with self.assertRaisesRegex(RuntimeError, "active staging v2"):
+            _legacy_staging_baseline(
+                target,
+                mock.Mock(),
+                {},
+                {"schema": "usl-release/v3"},
+            )
+
+    def test_runtime_boundary_uses_exact_legacy_gate_for_v2(self) -> None:
+        target = mock.Mock()
+        runner = mock.Mock()
+        runtime = {"generation": "glegacy"}
+        baseline = {"schema": "usl-legacy-staging-baseline/v1", "status": "passed"}
+        with (
+            mock.patch("operations.stack._release", return_value=(
+                {"schema": "usl-release/v2"}, "a" * 64, "{}",
+            )),
+            mock.patch(
+                "operations.stack._legacy_staging_baseline", return_value=baseline,
+            ) as legacy,
+            mock.patch("operations.stack._gate") as strict,
+        ):
+            health, smoke = _runtime_boundary_gates(target, runner, TARGETS, runtime)
+        self.assertIs(health, baseline)
+        self.assertIs(smoke, baseline)
+        legacy.assert_called_once_with(
+            target, runner, runtime, {"schema": "usl-release/v2"},
+        )
+        strict.assert_not_called()
+
+    def test_runtime_boundary_keeps_full_candidate_gates_for_v3(self) -> None:
+        target = mock.Mock()
+        runner = mock.Mock()
+        runtime = {"generation": "gcandidate"}
+        with (
+            mock.patch("operations.stack._release", return_value=(
+                {"schema": "usl-release/v3"}, "a" * 64, "{}",
+            )),
+            mock.patch("operations.stack._legacy_staging_baseline") as legacy,
+            mock.patch(
+                "operations.stack._gate",
+                side_effect=[
+                    {"schema": "health", "status": "passed"},
+                    {"schema": "smoke", "status": "passed"},
+                ],
+            ) as strict,
+        ):
+            health, smoke = _runtime_boundary_gates(target, runner, TARGETS, runtime)
+        self.assertEqual(health["schema"], "health")
+        self.assertEqual(smoke["schema"], "smoke")
+        self.assertEqual(strict.call_count, 2)
+        legacy.assert_not_called()
+
+    def test_select_latest_recovery_snapshot_requires_production_scope(self) -> None:
+        with self.assertRaisesRegex(cohort.CohortError, "production durable cohort"):
+            cohort.select_latest_recovery_snapshot([{
+                "id": "a" * 64,
+                "time": "2026-09-04T01:00:00Z",
+                "tags": [
+                    "usl-cohort", "durable", "target-staging", "recovery-eligible",
+                ],
+            }])
+
+    def test_select_latest_recovery_snapshot_rejects_malformed_time(self) -> None:
+        with self.assertRaisesRegex(cohort.CohortError, "invalid timestamp"):
+            cohort.select_latest_recovery_snapshot([{
+                "id": "a" * 64,
+                "time": "later",
+                "tags": [
+                    "usl-cohort", "durable", "target-production", "recovery-eligible",
+                ],
+            }])
+
+    def test_select_latest_recovery_snapshot_rejects_tied_time(self) -> None:
+        snapshots = [
+            {
+                "id": character * 64,
+                "time": "2026-09-04T01:00:00Z",
+                "tags": [
+                    "usl-cohort", "durable", "target-production", "recovery-eligible",
+                ],
+            }
+            for character in ("a", "b")
+        ]
+        with self.assertRaisesRegex(cohort.CohortError, "ambiguous timestamp"):
+            cohort.select_latest_recovery_snapshot(snapshots)
+
+    def test_select_latest_recovery_snapshot_uses_latest_instant(self) -> None:
+        snapshots = [
+            {
+                "id": "a" * 64,
+                "time": "2026-09-04T00:59:59Z",
+                "tags": [
+                    "usl-cohort", "durable", "target-production", "recovery-eligible",
+                ],
+            },
+            {
+                "id": "b" * 64,
+                "time": "2026-09-04T03:00:00+02:00",
+                "tags": [
+                    "usl-cohort", "durable", "target-production", "recovery-eligible",
+                ],
+            },
+        ]
+        self.assertEqual(cohort.select_latest_recovery_snapshot(snapshots), "b" * 64)
+
+    def test_recovery_selection_binds_exact_verified_cohort(self) -> None:
+        snapshot = "a" * 64
+        verified = {
+            "status": "verified",
+            "durable_snapshot_id": snapshot,
+            "target": "production",
+            "cohort_schema": cohort.SCHEMA,
+        }
+        _validate_recovery_selection(snapshot, verified)
+        for key, value in (
+            ("durable_snapshot_id", "b" * 64),
+            ("target", "staging"),
+            ("cohort_schema", cohort.LEGACY_SCHEMA),
+            ("status", "qualified"),
+        ):
+            changed = {**verified, key: value}
+            with self.subTest(key=key), self.assertRaisesRegex(
+                RuntimeError, "verification differs",
+            ):
+                _validate_recovery_selection(snapshot, changed)
+
+    def test_release_prepare_requires_complete_owner_protected_secrets(self) -> None:
+        target = load_target("production", TARGETS)
+        path = target.value["secrets"]["env_file"]
+        secret_text = "\n".join(
+            f"{key}=qualified-{index}"
+            for index, key in enumerate(target.value["secrets"]["allowed_keys"], 1)
+        ) + "\n"
+
+        class SecretRunner:
+            def __init__(self, mode="600", text=secret_text):
+                self.mode = mode
+                self.text = text
+
+            def run(self, command, *, check=True, input_text=None):
+                if command[0] == "readlink":
+                    return subprocess.CompletedProcess(command, 0, path + "\n", "")
+                if command[0] == "stat":
+                    return subprocess.CompletedProcess(command, 0, f"regular file|{self.mode}\n", "")
+                if command[0] == "cat":
+                    return subprocess.CompletedProcess(command, 0, self.text, "")
+                raise AssertionError(command)
+
+        self.assertEqual(_prepare_secret_contract(target, SecretRunner()), path)
+        with self.assertRaisesRegex(RuntimeError, "permissions"):
+            _prepare_secret_contract(target, SecretRunner(mode="640"))
+        with self.assertRaisesRegex(RuntimeError, "incomplete"):
+            _prepare_secret_contract(
+                target,
+                SecretRunner(text=secret_text.splitlines()[0] + "\n"),
+            )
+
+    def test_release_attempt_is_distinct_from_release_identity(self) -> None:
+        self.assertEqual(_release_attempt("attempt-20260904-0001", "a" * 64), "attempt-20260904-0001")
+        with self.assertRaisesRegex(RuntimeError, "distinct"):
+            _release_attempt("a" * 64, "a" * 64)
+        with self.assertRaisesRegex(RuntimeError, "missing or invalid"):
+            _release_attempt("bad", "a" * 64)
+
+    def test_release_attempt_claim_binds_the_complete_operation(self) -> None:
+        target = load_target("production", TARGETS)
+        operation = {
+            "target": "production",
+            "attempt": "attempt-20260904-a1b2c3d4",
+            "source": "production",
+            "candidate_release": "a" * 64,
+            "snapshot": "b" * 64,
+            "generation": "grelease-a1b2c3d4",
+            "gitops_commit": None,
+            "upgrade_plan_sha256": "c" * 64,
+            "prepare_receipt_sha256": "d" * 64,
+            "maintenance_receipt_sha256": "e" * 64,
+            "operation_kind": "production-upgrade",
+            "source_receipt_sha256": "f" * 64,
+            "baseline_runtime_sha256": "1" * 64,
+        }
+        claim = {
+            "schema": "usl-release-attempt/v3",
+            **operation,
+            "baseline_generation": "gprevious-a1b2c3d4",
+            "operation_bundle_sha256": __import__("hashlib").sha256(
+                json.dumps(operation, sort_keys=True, separators=(",", ":")).encode(),
+            ).hexdigest(),
+            "claimed_at": "2026-09-04T12:00:00Z",
+            "status": "claimed",
+        }
+        claim["sha256"] = __import__("hashlib").sha256(
+            json.dumps(claim, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+
+        self.assertEqual(
+            _release_attempt_claim(
+                claim,
+                target=target,
+                attempt=operation["attempt"],
+                release=operation["candidate_release"],
+            ),
+            claim,
+        )
+        changed = dict(claim)
+        changed["snapshot"] = "f" * 64
+        with self.assertRaisesRegex(RuntimeError, "identity differs"):
+            _release_attempt_claim(
+                changed,
+                target=target,
+                attempt=operation["attempt"],
+                release=operation["candidate_release"],
+            )
+        for field, replacement in (
+            ("operation_kind", "staging-upgrade"),
+            ("source_receipt_sha256", "2" * 64),
+            ("baseline_runtime_sha256", "3" * 64),
+        ):
+            changed = json.loads(json.dumps(claim))
+            changed[field] = replacement
+            changed["sha256"] = __import__("hashlib").sha256(json.dumps(
+                {key: item for key, item in changed.items() if key != "sha256"},
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode()).hexdigest()
+            with self.assertRaisesRegex(RuntimeError, "differs"):
+                _release_attempt_claim(
+                    changed,
+                    target=target,
+                    attempt=operation["attempt"],
+                    release=operation["candidate_release"],
+                )
+
+    def test_release_boundary_rejects_a_different_operation_bundle(self) -> None:
+        claim = {
+            "operation_bundle_sha256": "a" * 64,
+            "generation": "grelease-a1b2c3d4",
+            "snapshot": "b" * 64,
+        }
+        boundary = dict(claim)
+        _require_same_attempt_boundary(
+            claim,
+            boundary,
+            generation=claim["generation"],
+            snapshot=claim["snapshot"],
+        )
+        boundary["operation_bundle_sha256"] = "c" * 64
+        with self.assertRaisesRegex(RuntimeError, "operation bundle differs"):
+            _require_same_attempt_boundary(
+                claim,
+                boundary,
+                generation=claim["generation"],
+                snapshot=claim["snapshot"],
+            )
+
+    def test_forward_only_receipt_is_attempt_bound_and_tamper_evident(self) -> None:
+        target = load_target("production", TARGETS)
+        receipt = _forward_only_receipt(
+            target=target,
+            attempt="attempt-20260904-a1b2c3d4",
+            release="a" * 64,
+            snapshot="b" * 64,
+            generation="grelease-a1b2c3d4",
+            operation_bundle_sha256="c" * 64,
+        )
+        self.assertEqual(
+            _validate_forward_only_receipt(
+                receipt,
+                target=target,
+                attempt="attempt-20260904-a1b2c3d4",
+                release="a" * 64,
+                snapshot="b" * 64,
+                generation="grelease-a1b2c3d4",
+                operation_bundle_sha256="c" * 64,
+            ),
+            receipt,
+        )
+        changed = dict(receipt)
+        changed["operation_bundle_sha256"] = "d" * 64
+        with self.assertRaisesRegex(RuntimeError, "identity differs"):
+            _validate_forward_only_receipt(
+                changed,
+                target=target,
+                attempt="attempt-20260904-a1b2c3d4",
+                release="a" * 64,
+                snapshot="b" * 64,
+                generation="grelease-a1b2c3d4",
+                operation_bundle_sha256="c" * 64,
+            )
+
+    def test_quarantine_receipt_binds_attempt_release_and_generation(self) -> None:
+        target = load_target("production", TARGETS)
+        receipt = _release_boundary_receipt(
+            schema="usl-release-quarantine/v2",
+            status="quarantined",
+            target=target,
+            attempt="attempt-20260904-a1b2c3d4",
+            release="a" * 64,
+            snapshot="b" * 64,
+            generation="grelease-a1b2c3d4",
+            health={"status": "passed"},
+            smoke={"status": "passed"},
+            control_validation={"status": "passed"},
+            operation_bundle_sha256="c" * 64,
+        )
+
+        validated = _validate_release_boundary_receipt(
+            receipt,
+            schema="usl-release-quarantine/v2",
+            status="quarantined",
+            target=target,
+            attempt="attempt-20260904-a1b2c3d4",
+            release="a" * 64,
+        )
+
+        self.assertEqual(validated["generation"], "grelease-a1b2c3d4")
+        self.assertEqual(validated["status"], "quarantined")
+
+    def test_quarantine_receipt_rejects_attempt_replay(self) -> None:
+        target = load_target("production", TARGETS)
+        receipt = _release_boundary_receipt(
+            schema="usl-release-quarantine/v2",
+            status="quarantined",
+            target=target,
+            attempt="attempt-20260904-a1b2c3d4",
+            release="a" * 64,
+            snapshot="b" * 64,
+            generation="grelease-a1b2c3d4",
+            health={"status": "passed"},
+            smoke={"status": "passed"},
+            control_validation={"status": "passed"},
+            operation_bundle_sha256="c" * 64,
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "identity differs"):
+            _validate_release_boundary_receipt(
+                receipt,
+                schema="usl-release-quarantine/v1",
+                status="quarantined",
+                target=target,
+                attempt="attempt-20260904-deadbeef",
+                release="a" * 64,
+            )
+
+    def test_legacy_v1_boundary_remains_readable_without_v2_runtime_evidence(self) -> None:
+        target = load_target("production", TARGETS)
+        receipt = {
+            "schema": "usl-release-admission/v1",
+            "target": "production",
+            "attempt": "attempt-20260904-legacy01",
+            "release": "a" * 64,
+            "snapshot": "b" * 64,
+            "generation": "glegacy-boundary",
+            "operation_bundle_sha256": "c" * 64,
+            "health_sha256": "d" * 64,
+            "smoke_sha256": "e" * 64,
+            "control_validation_sha256": "f" * 64,
+            "admitted_at": "2026-09-04T12:00:00Z",
+            "status": "admitted",
+        }
+        receipt["sha256"] = __import__("hashlib").sha256(json.dumps(
+            receipt, sort_keys=True, separators=(",", ":"),
+        ).encode()).hexdigest()
+        self.assertEqual(
+            _validate_release_boundary_receipt(
+                receipt,
+                schema="usl-release-admission/v2",
+                status="admitted",
+                target=target,
+                attempt=receipt["attempt"],
+                release=receipt["release"],
+            ),
+            receipt,
+        )
+
+    def test_staging_v2_boundary_requires_runtime_evidence(self) -> None:
+        target = load_target("staging", TARGETS)
+        receipt = _release_boundary_receipt(
+            schema="usl-release-admission/v2",
+            status="admitted",
+            target=target,
+            attempt="attempt-20260904-staging2",
+            release="a" * 64,
+            snapshot="b" * 64,
+            generation="gstaging-boundary",
+            health={"status": "passed"},
+            smoke={"status": "passed"},
+            control_validation={"status": "passed"},
+            operation_bundle_sha256="c" * 64,
+        )
+        with self.assertRaisesRegex(RuntimeError, "identity differs"):
+            _validate_release_boundary_receipt(
+                receipt,
+                schema="usl-release-admission/v2",
+                status="admitted",
+                target=target,
+                attempt=receipt["attempt"],
+                release=receipt["release"],
+            )
+
+    def test_staging_runtime_evidence_is_exact_and_tamper_evident(self) -> None:
+        target = load_target("staging", TARGETS)
+        evidence = staging_runtime_evidence(operation_kind="staging-reset-from-production")
+        self.assertEqual(
+            _release_runtime_evidence(
+                evidence,
+                target=target,
+                attempt=evidence["attempt"],
+                release=evidence["release"],
+                snapshot=evidence["snapshot"],
+                generation=evidence["generation"],
+                operation_kind=evidence["operation_kind"],
+            ),
+            evidence,
+        )
+        changed = json.loads(json.dumps(evidence))
+        changed["auth_compose_admission"]["odoo_sso_enabled"] = False
+        changed["sha256"] = __import__("hashlib").sha256(json.dumps(
+            {key: item for key, item in changed.items() if key != "sha256"},
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()).hexdigest()
+        with self.assertRaisesRegex(RuntimeError, "authentication evidence differs"):
+            _release_runtime_evidence(
+                changed,
+                target=target,
+                attempt=evidence["attempt"],
+                release=evidence["release"],
+                snapshot=evidence["snapshot"],
+                generation=evidence["generation"],
+                operation_kind=evidence["operation_kind"],
+            )
+
+    def test_staging_reconcile_retry_returns_bound_authentication_evidence(self) -> None:
+        configured = load_target("staging", TARGETS)
+        target = mock.Mock(value=configured.value, project=configured.project, protected=False)
+        target.name = "staging"
+        runner = mock.Mock()
+        target.runner.return_value = runner
+        attempt = "attempt-20260904-staging"
+        release_id = "a" * 64
+        snapshot = "b" * 64
+        generation = "grelease-staging1"
+        checkpoint = {
+            "snapshot": snapshot,
+            "baseline_generation": "gbase",
+            "baseline_runtime_sha256": "c" * 64,
+            "sha256": "d" * 64,
+        }
+        prepare = {
+            "gitops_commit": None,
+            "upgrade_plan_sha256": "f" * 64,
+            "sha256": "1" * 64,
+            "prepared_at": "2026-09-04T00:00:00Z",
+        }
+        maintenance = {
+            "sha256": "2" * 64,
+            "observed_at": "2026-09-04T00:01:00Z",
+        }
+        operation = {
+            "target": "staging",
+            "attempt": attempt,
+            "source": "staging",
+            "candidate_release": release_id,
+            "snapshot": snapshot,
+            "generation": generation,
+            "gitops_commit": prepare["gitops_commit"],
+            "upgrade_plan_sha256": prepare["upgrade_plan_sha256"],
+            "prepare_receipt_sha256": prepare["sha256"],
+            "maintenance_receipt_sha256": maintenance["sha256"],
+            "operation_kind": "staging-upgrade",
+            "source_receipt_sha256": checkpoint["sha256"],
+            "baseline_runtime_sha256": "c" * 64,
+        }
+        bundle = __import__("hashlib").sha256(json.dumps(
+            operation, sort_keys=True, separators=(",", ":"),
+        ).encode()).hexdigest()
+        claim = {
+            "schema": "usl-release-attempt/v3",
+            **operation,
+            "baseline_generation": "gbase",
+            "operation_bundle_sha256": bundle,
+            "claimed_at": "2026-09-04T00:01:01Z",
+            "status": "claimed",
+        }
+        claim["sha256"] = __import__("hashlib").sha256(json.dumps(
+            claim, sort_keys=True, separators=(",", ":"),
+        ).encode()).hexdigest()
+        evidence = staging_runtime_evidence(
+            attempt=attempt,
+            release=release_id,
+            snapshot=snapshot,
+            generation=generation,
+        )
+        admission = _release_boundary_receipt(
+            schema="usl-release-admission/v2",
+            status="admitted",
+            target=target,
+            attempt=attempt,
+            release=release_id,
+            snapshot=snapshot,
+            generation=generation,
+            health={"status": "passed"},
+            smoke={"status": "passed"},
+            control_validation={"status": "passed"},
+            operation_bundle_sha256=bundle,
+            runtime_evidence_sha256=evidence["sha256"],
+        )
+        attempt_path = f"{configured.value['state_directory']}/attempts/{attempt}/claim.json"
+        admission_path = (
+            f"{configured.value['state_directory']}/generations/{generation}/admission.json"
+        )
+
+        def run(command, *, check=True, input_text=None):
+            if command[:1] == ["mkdir"]:
+                return subprocess.CompletedProcess(command, 1, "", "exists")
+            if command[:2] == ["cat", attempt_path]:
+                return subprocess.CompletedProcess(command, 0, json.dumps(claim), "")
+            if command[:2] == ["cat", admission_path]:
+                return subprocess.CompletedProcess(command, 0, json.dumps(admission), "")
+            return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner.run.side_effect = run
+        baseline = {"generation": "gbase", "compose": {}}
+        active = {"generation": generation, "compose": {}}
+        arguments = argparse.Namespace(
+            action="reconcile-staging", target="staging", targets=TARGETS,
+            source=None, checkpoint_receipt=Path("/checkpoint.json"),
+            candidate_release=Path("/release.json"), attempt_id=attempt,
+            prepare_receipt=Path("/prepare.json"),
+            maintenance_receipt=Path("/maintenance.json"),
+            upgrade_plan=Path("/plan.json"), generation=generation,
+            snapshot=None, replace=True, confirm="staging", json=True,
+        )
+        output = __import__("io").StringIO()
+        with (
+            contextlib.redirect_stdout(output),
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack.validate_release", return_value={"identity": release_id}),
+            mock.patch("operations.stack._staging_checkpoint_receipt", return_value=checkpoint),
+            mock.patch("operations.stack.inspect_runtime", side_effect=[baseline, baseline, active]),
+            mock.patch("operations.stack._runtime_cas_sha256", return_value="c" * 64),
+            mock.patch("operations.stack._prepare_receipt", return_value=prepare),
+            mock.patch("operations.stack._maintenance_receipt", return_value=maintenance),
+            mock.patch(
+                "operations.stack._validated_release_upgrade_plan",
+                return_value={"sha256": prepare["upgrade_plan_sha256"]},
+            ),
+            mock.patch(
+                "operations.stack._read_path",
+                side_effect=lambda _target, _runner, path: (
+                    json.dumps(evidence)
+                    if str(path).endswith("runtime-evidence.json") else "{}"
+                ),
+            ),
+        ):
+            self.assertEqual(release_command(arguments), 0)
+        replay = json.loads(output.getvalue())
+        self.assertEqual(replay["auth_compose_admission"], evidence["auth_compose_admission"])
+        self.assertEqual(replay["pocket_id_admission"], evidence["pocket_id_admission"])
+        self.assertEqual(replay["runtime_evidence"]["sha256"], evidence["sha256"])
+
+        tampered = json.loads(json.dumps(evidence))
+        tampered["pocket_id_admission"]["provider_enabled"] = False
+        with (
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack.validate_release", return_value={"identity": release_id}),
+            mock.patch("operations.stack._staging_checkpoint_receipt", return_value=checkpoint),
+            mock.patch("operations.stack.inspect_runtime", side_effect=[baseline, baseline, active]),
+            mock.patch("operations.stack._runtime_cas_sha256", return_value="c" * 64),
+            mock.patch("operations.stack._prepare_receipt", return_value=prepare),
+            mock.patch("operations.stack._maintenance_receipt", return_value=maintenance),
+            mock.patch(
+                "operations.stack._validated_release_upgrade_plan",
+                return_value={"sha256": prepare["upgrade_plan_sha256"]},
+            ),
+            mock.patch(
+                "operations.stack._read_path",
+                side_effect=lambda _target, _runner, path: (
+                    json.dumps(tampered)
+                    if str(path).endswith("runtime-evidence.json") else "{}"
+                ),
+            ),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "authentication evidence differs"):
+                release_command(arguments)
+
+    def test_release_activate_requires_explicit_boundary_receipts(self) -> None:
+        arguments = build_parser().parse_args([
+            "--target", "production", "release", "activate",
+            "--snapshot", "b" * 64,
+            "--candidate-release", "/release.json",
+            "--attempt-id", "attempt-20260904-a1b2c3d4",
+            "--maintenance-receipt", "/maintenance.json",
+            "--quarantine-receipt", "/quarantine.json",
+        ])
+
+        self.assertEqual(arguments.action, "activate")
+        self.assertEqual(arguments.quarantine_receipt, Path("/quarantine.json"))
+    def test_maintenance_receipt_binds_attempt_and_public_503(self) -> None:
+        body = {
+            "schema": "usl-maintenance-admission/v1",
+            "target": "production",
+            "attempt": "attempt-20260904-0001",
+            "observed_at": "2026-09-04T12:00:00Z",
+            "endpoints": {
+                "https://odoo.unstaticlabs.com": {
+                    "status_code": 503,
+                    "body_sha256": "b" * 64,
+                },
+            },
+            "status": "closed",
+        }
+        body["sha256"] = __import__("hashlib").sha256(
+            json.dumps(body, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        self.assertEqual(
+            _maintenance_receipt(
+                body, target="production", attempt="attempt-20260904-0001",
+            ),
+            body,
+        )
+        changed = dict(body)
+        changed["attempt"] = "attempt-other"
+        with self.assertRaisesRegex(RuntimeError, "identity"):
+            _maintenance_receipt(
+                changed, target="production", attempt="attempt-20260904-0001",
+            )
+
+    def test_production_maintenance_covers_every_public_writer(self) -> None:
+        target = load_target("production", TARGETS)
+        required = _required_maintenance_endpoints(target)
+        self.assertEqual(required, {
+            "https://odoo.unstaticlabs.com/web/health",
+            "https://odoo.unstaticlabs.com/websocket",
+            "https://papers.unstaticlabs.com/api/schema/",
+            "https://odoo-mcp.unstaticlabs.com/readyz",
+        })
+        body = {
+            "schema": "usl-maintenance-admission/v1",
+            "target": "production",
+            "attempt": "attempt-20260904-0001",
+            "observed_at": "2026-09-04T12:00:00Z",
+            "endpoints": {
+                endpoint: {"status_code": 503, "body_sha256": "b" * 64}
+                for endpoint in required - {"https://odoo-mcp.unstaticlabs.com/readyz"}
+            },
+            "status": "closed",
+        }
+        body["sha256"] = __import__("hashlib").sha256(
+            json.dumps(body, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        with self.assertRaisesRegex(RuntimeError, "endpoint coverage differs"):
+            _maintenance_receipt(
+                body,
+                target="production",
+                attempt="attempt-20260904-0001",
+                required_endpoints=required,
+            )
+
+    def test_prepare_receipt_is_bound_to_attempt_release_and_render(self) -> None:
+        body = {
+            "schema": "usl-release-prepare/v1",
+            "target": "production",
+            "release": "a" * 64,
+            "attempt": "attempt-20260904-0001",
+            "prepared_at": "2026-09-04T11:59:00Z",
+            "gitops_commit": None,
+            "upgrade_plan_sha256": "f" * 64,
+            "compose_sha256": "c" * 64,
+            "services": ["odoo"],
+            "images": ["ghcr.io/unstaticlabs/odoo@sha256:" + "d" * 64],
+            "capacity": {},
+            "runtime_changed": False,
+            "status": "prepared",
+        }
+        body["sha256"] = __import__("hashlib").sha256(
+            json.dumps(body, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        self.assertEqual(_prepare_receipt(
+            body,
+            target="production",
+            attempt="attempt-20260904-0001",
+            release="a" * 64,
+        ), body)
+        changed = dict(body)
+        changed["compose_sha256"] = "e" * 64
+        with self.assertRaisesRegex(RuntimeError, "digest"):
+            _prepare_receipt(
+                changed,
+                target="production",
+                attempt="attempt-20260904-0001",
+                release="a" * 64,
+            )
+
+    def test_reconcile_rejects_compose_drift_after_preparation(self) -> None:
+        prepared = {
+            "target": "production",
+            "release": "a" * 64,
+            "gitops_commit": "e" * 40,
+            "upgrade_plan_sha256": "f" * 64,
+            "compose_sha256": "b" * 64,
+            "services": ["odoo"],
+            "images": ["image@sha256:" + "c" * 64],
+            "runtime_changed": False,
+            "status": "prepared",
+        }
+        _require_same_preparation(prepared, dict(prepared))
+        changed = dict(prepared)
+        changed["compose_sha256"] = "d" * 64
+        with self.assertRaisesRegex(RuntimeError, "compose_sha256"):
+            _require_same_preparation(changed, prepared)
+        changed = dict(prepared)
+        changed["gitops_commit"] = "f" * 40
+        with self.assertRaisesRegex(RuntimeError, "gitops_commit"):
+            _require_same_preparation(changed, prepared)
+        changed = dict(prepared)
+        changed["upgrade_plan_sha256"] = "a" * 64
+        with self.assertRaisesRegex(RuntimeError, "upgrade_plan_sha256"):
+            _require_same_preparation(changed, prepared)
+
+    def test_release_prepare_renders_candidate_without_touching_runtime(self) -> None:
+        target = load_target("production", TARGETS)
+        independent_mcp = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "d" * 64
+        release = {
+            "identity": "f" * 64,
+            "components": {
+                name: {"digest_reference": f"ghcr.io/unstaticlabs/{name}@sha256:" + "a" * 64}
+                for name in ("distribution", "backup-tool", "paperless", "sign-dss", "receipt-fetcher", "receipt-egress")
+            },
+            "mcp": {"image": "ghcr.io/unstaticlabs/mcp@sha256:" + "b" * 64},
+            "renderer": {"image": "ghcr.io/unstaticlabs/renderer@sha256:" + "c" * 64},
+        }
+        current = {
+            "compose": {
+                "project": target.project,
+                "working_directory": "/release",
+                "environment_file": "/release/production.env",
+                "compose_files": ["/release/compose.yaml"],
+                "profiles": [],
+                "anchor_service": "odoo",
+            },
+            "volumes": {
+                role: {"name": f"volume-{role}", "tier": definition["tier"]}
+                for role, definition in target.value["volumes"].items()
+            },
+        }
+
+        class PrepareRunner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:2] == ["mktemp", "-d"]:
+                    return subprocess.CompletedProcess(command, 0, "/tmp/usl-release-prepare.abc123\n", "")
+                if command[-2:] == ["config", "--services"]:
+                    return subprocess.CompletedProcess(
+                        command,
+                        0,
+                        "odoo\nodoo-upgrade\npaperless-webserver\nodoo-mcp\n",
+                        "",
+                    )
+                if command[-3:] == ["config", "--format", "json"]:
+                    services = {
+                        "odoo": {"image": release["components"]["distribution"]["digest_reference"]},
+                        "odoo-upgrade": {"image": release["components"]["distribution"]["digest_reference"]},
+                        "paperless-webserver": {"image": release["components"]["paperless"]["digest_reference"]},
+                        "odoo-mcp": {"image": independent_mcp},
+                    }
+                    return subprocess.CompletedProcess(command, 0, json.dumps({"services": services}), "")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = PrepareRunner()
+        capacity = {"schema": "usl-storage-capacity/v2", "filesystems": {}, "warning": False}
+        with (
+            mock.patch("operations.stack._prepare_secret_contract"),
+            mock.patch("operations.stack._require_restore_capacity", return_value=capacity),
+            mock.patch("operations.stack._ensure_image"),
+            mock.patch("operations.stack._measure_candidate_bytes", return_value={}),
+            mock.patch("operations.stack._write_remote"),
+            mock.patch("operations.stack._resource_overlay", return_value=None),
+            mock.patch("operations.stack._generation_overlay", return_value="{}"),
+        ):
+            result = _prepare_release_candidate(target, runner, release, current)
+        self.assertEqual(result["status"], "prepared")
+        self.assertFalse(result["runtime_changed"])
+        self.assertNotIn(release["mcp"]["image"], result["images"])
+        flattened = [item for command in runner.commands for item in command]
+        self.assertNotIn("stop", flattened)
+        self.assertNotIn("up", flattened)
+
     def test_storage_status_rejects_running_service_on_legacy_volume(self) -> None:
         target = mock.Mock(
             name="production",
@@ -162,6 +1217,7 @@ class CohortContractTests(unittest.TestCase):
             "state_directory": "/var/lib/usl-odoo/runtime/staging",
             "compose": {"resource_overlay": None},
             "ingress": {},
+            "services": {"odoo": "odoo-staging"},
         })
         runner = mock.Mock()
         runner.run.return_value = subprocess.CompletedProcess(
@@ -325,6 +1381,50 @@ class CohortContractTests(unittest.TestCase):
         ), self.assertRaisesRegex(cohort.CohortError, "no unique cache"):
             cohort.plan_retention(now)
 
+    def test_staging_retention_expires_both_repositories_after_24_hours(self) -> None:
+        now = datetime(2026, 9, 5, 12, tzinfo=UTC)
+        def snapshot(number, kind, age, target="staging"):
+            return {"id": f"{number:064x}", "time": (now - age).isoformat(),
+                    "tags": ["usl-cohort", kind, f"target-{target}"]}
+        durable = [snapshot(1, "durable", timedelta(hours=23)),
+                   snapshot(2, "durable", timedelta(hours=24)),
+                   snapshot(3, "durable", timedelta(days=3), "production")]
+        cache = [snapshot(4, "cache", timedelta(hours=23)),
+                 snapshot(5, "cache", timedelta(days=2)),
+                 snapshot(6, "cache", timedelta(days=3), "production")]
+        with mock.patch.dict(cohort.os.environ, {"USL_TARGET": "staging"}), mock.patch.object(
+            cohort, "restic_environment", return_value={},
+        ), mock.patch.object(cohort, "_inventory", side_effect=[durable, cache]):
+            plan = cohort.plan_retention(now)
+        self.assertEqual(plan["policy"], {"maximum_age_hours": 24})
+        self.assertEqual(plan["retain_durable"], [f"{1:064x}"])
+        self.assertEqual(plan["delete_durable"], [f"{2:064x}"])
+        self.assertEqual(plan["retain_cache"], [f"{4:064x}"])
+        self.assertEqual(plan["delete_cache"], [f"{5:064x}"])
+
+    def test_staging_retention_rejects_ambiguous_targets(self) -> None:
+        snapshot = {"id": "a" * 64, "time": datetime.now(UTC).isoformat(),
+                    "tags": ["usl-cohort", "durable", "target-staging", "target-production"]}
+        with self.assertRaisesRegex(cohort.CohortError, "ambiguous target"):
+            cohort._staging_retention([snapshot], [], datetime.now(UTC))
+
+    def test_staging_prune_acquires_the_operation_lock(self) -> None:
+        target = load_target("staging", TARGETS)
+        runner = mock.Mock()
+        arguments = build_parser().parse_args(["--target", "staging", "backup", "prune", "--json"])
+        release = {"components": {"backup-tool": {"digest_reference": "backup-image"}}}
+        with mock.patch.object(type(target), "runner", return_value=runner), mock.patch("operations.stack.load_target", return_value=target), mock.patch(
+            "operations.stack.inspect_runtime", return_value={"volumes": {}},
+        ), mock.patch("operations.stack._release", return_value=(release, "sha", "raw")), mock.patch(
+            "operations.stack._secret_file",
+        ), mock.patch("operations.stack.runtime_lock") as lock, mock.patch(
+            "operations.stack._run_cohort", return_value={"status": "applied"},
+        ) as run, mock.patch("builtins.print"):
+            self.assertEqual(backup_command(arguments), 0)
+        lock.assert_called_once()
+        self.assertEqual(lock.call_args.args[2], "retention")
+        run.assert_called_once_with(target, runner, "backup-image", "retention-apply", [], volumes={})
+
     def test_previous_generation_identity_rejects_paths_not_derived_from_state(self) -> None:
         target = mock.Mock(value={
             "state_directory": "/var/lib/usl-odoo/runtime/production",
@@ -357,12 +1457,230 @@ class CohortContractTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "manifest path"):
             _previous_generation_identity(target, mock.Mock(), current)
 
+    def test_staging_abort_refuses_legacy_v2_without_exact_compose_identity(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        generation = "g20260903-storage-a"
+        root = f"{target.value['state_directory']}/generations/{generation}"
+        current = {
+            "compose": {
+                "project": target.project,
+                "working_directory": "/gitops/staging",
+                "environment_file": "/runtime/staging.env",
+                "profiles": [],
+                "anchor_service": "odoo-staging",
+                "compose_files": ["/gitops/staging/compose.yaml"],
+            },
+            "active_state": {
+                "generation": "g20260904-v3",
+                "previous": {
+                    "generation": generation,
+                    "volumes": {
+                        role: f"legacy-{role}"
+                        for role in target.value["volumes"]
+                    },
+                    "network": "legacy-network",
+                    "release_manifest": f"{root}/usl-release.json",
+                    "snapshot": "b" * 64,
+                },
+            },
+        }
+
+        class LegacyReleaseRunner:
+            release = {"schema": "usl-release/v2"}
+
+            def run(self, command, *, check=True):
+                if command[:2] == ["test", "-f"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:1] == ["cat"]:
+                    return subprocess.CompletedProcess(
+                        command, 0, json.dumps(self.release), "",
+                    )
+                raise AssertionError(command)
+
+        with self.assertRaisesRegex(RuntimeError, "lacks its exact Compose identity"):
+            _previous_generation_identity(target, LegacyReleaseRunner(), current)
+
+        # The old generation has no receipt socket volume. It must reach the
+        # same historical identity check, not fail today's volume perimeter.
+        current["active_state"]["previous"]["volumes"].pop("receipt_control")
+        with self.assertRaisesRegex(RuntimeError, "lacks its exact Compose identity"):
+            _previous_generation_identity(target, LegacyReleaseRunner(), current)
+
+        receipt_release = LegacyReleaseRunner()
+        receipt_release.release = {
+            "schema": "usl-release/v3",
+            "components": {"receipt-fetcher": {}, "receipt-egress": {}},
+        }
+        with self.assertRaisesRegex(RuntimeError, "rollback receipt sandbox volume is missing"):
+            _previous_generation_identity(target, receipt_release, current)
+
+        malformed = LegacyReleaseRunner()
+        malformed.release = {"schema": "usl-release/v3"}
+        with self.assertRaisesRegex(RuntimeError, "rollback release manifest is invalid"):
+            _previous_generation_identity(target, malformed, current)
+
+    def test_staging_abort_admits_only_the_recorded_legacy_v2_compose_identity(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        generation = "g20260903-storage-a"
+        state_root = target.value["state_directory"]
+        working = f"{state_root}/validation-8973f9ee903"
+        release_path = f"{state_root}/generations/{generation}/usl-release.json"
+        legacy = {
+            "project": target.project,
+            "working_directory": working,
+            "environment_file": target.value["compose"]["adoption"]["candidate"]["environment_file"],
+            "profiles": target.value["compose"]["profiles"],
+            "anchor_service": "odoo",
+            "compose_files": [
+                f"{working}/compose.yaml",
+                f"{working}/compose.resources.json",
+                f"{working}/usl-staging-proxy-generation.json",
+                f"{state_root}/generations/{generation}/compose.resources.json",
+                f"{state_root}/generations/{generation}/compose.generation.json",
+            ],
+        }
+        current = {
+            "compose": {
+                "project": target.project,
+                "working_directory": "/gitops/staging",
+                "environment_file": "/runtime/staging.env",
+                "profiles": target.value["compose"]["profiles"],
+                "anchor_service": "odoo-staging",
+                "compose_files": ["/gitops/staging/compose.yaml"],
+            },
+            "active_state": {
+                "generation": "gcandidate",
+                "previous": {
+                    "generation": generation,
+                    "volumes": {role: f"legacy-{role}" for role in target.value["volumes"]},
+                    "network": "legacy-network",
+                    "release_manifest": release_path,
+                    "snapshot": "b" * 64,
+                    "compose": legacy,
+                },
+            },
+        }
+
+        class LegacyRunner:
+            def run(self, command, *, check=True):
+                if command[:2] in (["test", "-f"], ["test", "-d"]):
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:2] == ["readlink", "-f"]:
+                    return subprocess.CompletedProcess(command, 0, command[-1] + "\n", "")
+                if command[:1] == ["cat"]:
+                    return subprocess.CompletedProcess(command, 0, '{"schema":"usl-release/v2"}', "")
+                if command[-2:] == ["config", "--services"]:
+                    services = set(target.value["services"].values())
+                    services.remove("odoo-staging")
+                    services.add("odoo")
+                    return subprocess.CompletedProcess(command, 0, "\n".join(sorted(services)) + "\n", "")
+                raise AssertionError(command)
+
+        with mock.patch("operations.stack.validate_release", return_value={"schema": "usl-release/v2"}):
+            identity, state = _previous_generation_identity(target, LegacyRunner(), current)
+        self.assertEqual(identity, legacy)
+        self.assertEqual(json.loads(state)["generation"], generation)
+
+        poisoned = json.loads(json.dumps(current))
+        poisoned["active_state"]["previous"]["compose"]["compose_files"][0] = "/tmp/compose.yaml"
+        with self.assertRaisesRegex(RuntimeError, "outside the validation perimeter"):
+            _previous_generation_identity(target, LegacyRunner(), poisoned)
+
+    def test_first_v3_state_records_exact_legacy_compose_identity_for_late_rollback(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        legacy = {
+            "container_id": "runtime-only",
+            "project": target.project,
+            "working_directory": target.value["state_directory"] + "/validation-8973f9ee903",
+            "environment_file": target.value["compose"]["adoption"]["candidate"]["environment_file"],
+            "profiles": target.value["compose"]["profiles"],
+            "anchor_service": "odoo",
+            "compose_files": [target.value["state_directory"] + "/validation-8973f9ee903/compose.yaml"],
+        }
+        current = {
+            "generation": "g20260903-storage-a",
+            "compose": legacy,
+            "active_state": {
+                "network": "legacy-network",
+                "release_manifest": target.value["state_directory"] + "/generations/g20260903-storage-a/usl-release.json",
+                "snapshot": "a" * 64,
+            },
+            "volumes": {
+                role: {"name": f"legacy-{role}"}
+                for role in target.value["volumes"]
+            },
+        }
+        previous = _previous_generation_record(target, current)
+        self.assertEqual(previous["compose"]["anchor_service"], "odoo")
+        self.assertNotIn("container_id", previous["compose"])
+        self.assertEqual(previous["compose"]["compose_files"], legacy["compose_files"])
+
+    def test_post_activation_abort_removes_canonical_anchor_before_legacy_v2_restart(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        current_identity = {
+            "project": target.project,
+            "working_directory": "/gitops/staging",
+            "environment_file": "/runtime/staging.env",
+            "profiles": [],
+            "anchor_service": "odoo-staging",
+            "compose_files": ["/gitops/staging/compose.yaml"],
+        }
+        legacy_identity = {
+            **current_identity,
+            "anchor_service": "odoo",
+            "compose_files": ["/runtime/legacy-v2.json"],
+        }
+        current = {
+            "compose": current_identity,
+            "active_state": {"generation": "gv3"},
+        }
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:2] == ["test", "-f"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:2] == ["docker", "ps"]:
+                    return subprocess.CompletedProcess(command, 0, "canonical-id\n", "")
+                if command[:3] == ["docker", "inspect", "canonical-id"]:
+                    return subprocess.CompletedProcess(
+                        command,
+                        0,
+                        json.dumps({
+                            "com.docker.compose.project": target.project,
+                            "com.docker.compose.service": "odoo-staging",
+                        }),
+                        "",
+                    )
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = Runner()
+        with mock.patch("operations.stack.inspect_runtime", return_value=current), mock.patch(
+            "operations.stack._previous_generation_identity",
+            return_value=(legacy_identity, '{"generation":"legacy"}'),
+        ), mock.patch(
+            "operations.stack._start_rollback_identity",
+        ) as starter, mock.patch(
+            "operations.stack._runtime_boundary_gates",
+            return_value=({"status": "passed"}, {"status": "passed"}),
+        ) as gates:
+            result = _abort_to_previous_generation(target, runner, TARGETS)
+        remove = ["docker", "rm", "--force", "canonical-id"]
+        self.assertIn(remove, runner.commands)
+        # The shared starter keeps the recovered legacy Odoo behind the stable gateway.
+        starter.assert_called_once_with(target, runner, legacy_identity)
+        gates.assert_called_once()
+        self.assertEqual(result["status"], "rolled-back")
+
     def test_release_abort_restores_adopted_runtime_and_proves_it(self) -> None:
         target = mock.Mock()
         target.name = "production"
         target.value = {
                 "state_directory": "/var/lib/usl-odoo/runtime/production",
-                "compose": {"resource_overlay": None},
+                "compose": {"resource_overlay": None, "anchor_service": "odoo"},
                 "volumes": {"odoo_postgres": {}},
                 "services": {"odoo": "odoo", "odoo_db": "db"},
             }
@@ -397,21 +1715,320 @@ class CohortContractTests(unittest.TestCase):
 
             def run(self, command, *, check=True, input_text=None):
                 self.commands.append(command)
+                if command[:2] == ["test", "-f"] and command[-1].endswith(
+                    ("/activation-started.json", "/admission.json"),
+                ):
+                    return subprocess.CompletedProcess(command, 1, "", "")
                 return subprocess.CompletedProcess(command, 0, "", "")
 
         runner = Runner()
         with mock.patch("operations.stack.inspect_runtime", return_value=current), mock.patch(
-            "operations.stack._gate",
-            side_effect=[{"status": "passed"}, {"status": "passed"}],
+            "operations.stack._runtime_boundary_gates",
+            return_value=({"status": "passed"}, {"status": "passed"}),
         ):
             result = _abort_to_previous_generation(target, runner, TARGETS)
         self.assertEqual(result["status"], "rolled-back")
-        up = next(command for command in runner.commands if command[-3:] == ["up", "--detach", "--wait"])
+        up = next(command for command in runner.commands if "up" in command)
         self.assertNotIn(candidate_file, up)
+        self.assertIn("--no-deps", up)
+        self.assertNotIn("gateway", up[up.index("up") + 1:])
         self.assertIn(
             ["rm", "-f", "/var/lib/usl-odoo/runtime/production/active.json"],
             runner.commands,
         )
+
+    def test_release_abort_rejects_an_admitted_generation(self) -> None:
+        target = mock.Mock()
+        target.name = "production"
+        target.value = {"state_directory": "/var/lib/usl-odoo/runtime/production"}
+        current = {"generation": "gcandidate"}
+
+        class Runner:
+            def run(self, command, *, check=True, input_text=None):
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        with (
+            mock.patch("operations.stack.inspect_runtime", return_value=current),
+            self.assertRaisesRegex(RuntimeError, "forward-only boundary"),
+        ):
+            _abort_to_previous_generation(target, Runner(), TARGETS)
+
+    def test_release_abort_recognizes_an_already_restored_admitted_baseline(self) -> None:
+        target = mock.Mock()
+        target.name = "production"
+        target.value = {
+            "state_directory": "/var/lib/usl-odoo/runtime/production",
+            "compose": {"canonical": None},
+        }
+        attempt = "attempt-20260904-a1b2c3d4"
+        baseline = "gprevious-a1b2c3d4"
+        operation = {
+            "target": "production",
+            "attempt": attempt,
+            "source": "production",
+            "candidate_release": "a" * 64,
+            "snapshot": "b" * 64,
+            "generation": "gcandidate-a1b2c3d4",
+            "gitops_commit": None,
+            "upgrade_plan_sha256": "c" * 64,
+            "prepare_receipt_sha256": "d" * 64,
+            "maintenance_receipt_sha256": "e" * 64,
+        }
+        claim = {
+            "schema": "usl-release-attempt/v2",
+            **operation,
+            "baseline_generation": baseline,
+            "operation_bundle_sha256": __import__("hashlib").sha256(
+                json.dumps(operation, sort_keys=True, separators=(",", ":")).encode(),
+            ).hexdigest(),
+            "claimed_at": "2026-09-04T12:00:00Z",
+            "status": "claimed",
+        }
+        claim["sha256"] = __import__("hashlib").sha256(
+            json.dumps(claim, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        marker = {
+            "schema": "usl-maintenance-marker/v1",
+            "target": "production",
+            "attempt": attempt,
+            "enabled_at": "2026-09-04T11:59:00Z",
+        }
+        marker["sha256"] = __import__("hashlib").sha256(
+            json.dumps(marker, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+
+        class Runner:
+            def run(self, command, *, check=True, input_text=None):
+                if command[:2] == ["test", "-f"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[0] == "cat":
+                    value = marker if command[-1].endswith("/maintenance") else claim
+                    return subprocess.CompletedProcess(command, 0, json.dumps(value), "")
+                raise AssertionError(command)
+
+        with (
+            mock.patch(
+                "operations.stack.inspect_runtime",
+                return_value={"generation": baseline},
+            ),
+            mock.patch(
+                "operations.stack._runtime_boundary_gates",
+                return_value=({"status": "passed"}, {"status": "passed"}),
+            ),
+        ):
+            result = _abort_to_previous_generation(
+                target,
+                Runner(),
+                TARGETS,
+                attempt=attempt,
+            )
+        self.assertEqual(result["status"], "already-rolled-back")
+        self.assertEqual(result["generation"], baseline)
+
+    def test_staging_abort_rolls_back_admitted_neutralized_attempt(self) -> None:
+        target = load_target("staging", TARGETS)
+        attempt = "attempt-20260904-staging1"
+        generation = "gcandidate-staging1"
+        snapshot = "b" * 64
+        release = "a" * 64
+        operation = {
+            "target": "staging",
+            "attempt": attempt,
+            "source": "production",
+            "candidate_release": release,
+            "snapshot": snapshot,
+            "generation": generation,
+            "gitops_commit": None,
+            "upgrade_plan_sha256": "c" * 64,
+            "prepare_receipt_sha256": "d" * 64,
+            "maintenance_receipt_sha256": "e" * 64,
+        }
+        claim = {
+            "schema": "usl-release-attempt/v2",
+            **operation,
+            "baseline_generation": "gprevious-staging1",
+            "operation_bundle_sha256": __import__("hashlib").sha256(
+                json.dumps(operation, sort_keys=True, separators=(",", ":")).encode(),
+            ).hexdigest(),
+            "claimed_at": "2026-09-04T12:00:00Z",
+            "status": "claimed",
+        }
+        claim["sha256"] = __import__("hashlib").sha256(
+            json.dumps(claim, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        marker = {
+            "schema": "usl-maintenance-marker/v1",
+            "target": "staging",
+            "attempt": attempt,
+            "enabled_at": "2026-09-04T11:59:00Z",
+        }
+        marker["sha256"] = __import__("hashlib").sha256(
+            json.dumps(marker, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        admission = _release_boundary_receipt(
+            schema="usl-release-admission/v2",
+            status="admitted",
+            target=target,
+            attempt=attempt,
+            release=release,
+            snapshot=snapshot,
+            generation=generation,
+            health={"status": "passed"},
+            smoke={"status": "passed"},
+            control_validation={"status": "passed"},
+            operation_bundle_sha256=claim["operation_bundle_sha256"],
+            runtime_evidence_sha256="9" * 64,
+        )
+        current = {
+            "generation": generation,
+            "compose": {
+                "project": target.project,
+                "working_directory": "/gitops/staging",
+                "environment_file": "/gitops/staging.env",
+                "profiles": [],
+                "anchor_service": target.value["services"]["odoo"],
+                "compose_files": ["/gitops/compose.yaml"],
+            },
+            "active_state": {
+                "snapshot": snapshot,
+                "release_manifest": (
+                    f"{target.value['state_directory']}/generations/{generation}/usl-release.json"
+                ),
+            },
+        }
+
+        class Runner:
+            def run(self, command, *, check=True, input_text=None):
+                path = command[-1]
+                if command[:2] == ["test", "-f"]:
+                    return subprocess.CompletedProcess(command, 1, "", "")
+                if command[0] == "cat" and path.endswith("/maintenance"):
+                    return subprocess.CompletedProcess(command, 0, json.dumps(marker), "")
+                if command[0] == "cat" and path.endswith("/claim.json"):
+                    return subprocess.CompletedProcess(command, 0, json.dumps(claim), "")
+                if command[0] == "cat" and path.endswith("/admission.json"):
+                    return subprocess.CompletedProcess(command, 0, json.dumps(admission), "")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        neutralization = {"schema": "usl-staging-neutralization/v1", "status": "passed"}
+        with (
+            mock.patch("operations.stack.inspect_runtime", return_value=current),
+            mock.patch(
+                "operations.stack._staging_abort_neutralization",
+                return_value=neutralization,
+            ) as prove_neutralization,
+            mock.patch(
+                "operations.stack._previous_generation_identity",
+                return_value=({
+                    "project": target.project,
+                    "working_directory": "/gitops/staging",
+                    "environment_file": "/gitops/staging.env",
+                    "profiles": [],
+                    "anchor_service": target.value["services"]["odoo"],
+                    "compose_files": ["/gitops/previous.yaml"],
+                }, json.dumps({"generation": "gprevious-staging1"})),
+            ),
+            mock.patch(
+                "operations.stack._runtime_boundary_gates",
+                return_value=({"status": "passed"}, {"status": "passed"}),
+            ),
+        ):
+            result = _abort_to_previous_generation(
+                target, Runner(), TARGETS, attempt=attempt,
+            )
+        self.assertEqual(result["status"], "rolled-back")
+        self.assertEqual(result["neutralization"], neutralization)
+        prove_neutralization.assert_called_once_with(target, mock.ANY, current)
+
+        invalid_marker = dict(marker, target="production")
+        class InvalidMarkerRunner(Runner):
+            def run(self, command, *, check=True, input_text=None):
+                if command[0] == "cat" and command[-1].endswith("/maintenance"):
+                    return subprocess.CompletedProcess(command, 0, json.dumps(invalid_marker), "")
+                return super().run(command, check=check, input_text=input_text)
+        with self.assertRaisesRegex(RuntimeError, "maintenance marker is invalid"):
+            _abort_to_previous_generation(
+                target, InvalidMarkerRunner(), TARGETS, attempt=attempt,
+            )
+
+    def test_staging_abort_neutralization_checks_database_and_compose(self) -> None:
+        target = load_target("staging", TARGETS)
+        current = {"compose": {
+            "project": target.project,
+            "working_directory": "/gitops/staging",
+            "environment_file": "/gitops/staging.env",
+            "profiles": [],
+            "anchor_service": target.value["services"]["odoo"],
+            "compose_files": ["/gitops/staging.yaml"],
+        }}
+        rendered = {"services": {
+            target.value["services"]["odoo"]: {"environment": {
+                "USL_DEPLOYMENT_ENV": "staging",
+                "USL_EINVOICE_LIVE_ENABLED": "0",
+                "USL_EREPORTING_LIVE_ENABLED": "0",
+            }},
+            target.value["services"]["paperless"]: {"environment": {
+                "PAPERLESS_EMAIL_TASK_CRON": "disable",
+                "PAPERLESS_EMPTY_TRASH_TASK_CRON": "disable",
+                "PAPERLESS_SHARE_LINK_BUNDLE_CLEANUP_CRON": "disable",
+                "PAPERLESS_WORKFLOW_SCHEDULED_TASK_CRON": "disable",
+            }},
+        }}
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess(
+            [], 0, json.dumps(rendered), "",
+        )
+        database = json.dumps({
+            "database_neutralized": True,
+            "active_crons": 0,
+            "active_fetchmail": 0,
+            "pending_mail": 0,
+        })
+        with mock.patch("operations.stack._psql", return_value=database):
+            result = _staging_abort_neutralization(target, runner, current)
+        self.assertEqual(result["status"], "passed")
+
+        rendered["services"][target.value["services"]["odoo"]]["environment"][
+            "USL_EINVOICE_LIVE_ENABLED"
+        ] = "1"
+        runner.run.return_value = subprocess.CompletedProcess(
+            [], 0, json.dumps(rendered), "",
+        )
+        with (
+            mock.patch("operations.stack._psql", return_value=database),
+            self.assertRaisesRegex(RuntimeError, "einvoice_disabled"),
+        ):
+            _staging_abort_neutralization(target, runner, current)
+
+    def test_release_abort_marks_controller_terminal_only_after_rollback(self) -> None:
+        target = mock.Mock()
+        target.name = "staging"
+        target.value = {"state_directory": "/var/lib/usl-odoo/runtime/staging"}
+        runner = mock.Mock()
+        target.runner.return_value = runner
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "controller-state", "")
+        arguments = argparse.Namespace(
+            target="staging",
+            targets=TARGETS,
+            action="abort",
+            attempt_id="attempt-20260904-staging2",
+            json=True,
+        )
+        aborted = {"schema": "usl-release-run/v1", "status": "aborted"}
+        with (
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack.parse_release_state", return_value={}),
+            mock.patch("operations.stack.abort_release_state", return_value=aborted),
+            mock.patch("operations.stack.runtime_lock", return_value=mock.MagicMock()),
+            mock.patch(
+                "operations.stack._abort_to_previous_generation",
+                side_effect=RuntimeError("rollback failed"),
+            ),
+            mock.patch("operations.stack._write_remote") as write_remote,
+            self.assertRaisesRegex(RuntimeError, "rollback failed"),
+        ):
+            release_command(arguments)
+        write_remote.assert_not_called()
 
     def test_candidate_cron_policy_is_applied_through_noninteractive_odoo_shell(self) -> None:
         policy_path = "/opt/usl/deploy/production.cron-policy.json"
@@ -471,6 +2088,402 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("--interactive", runner.command)
         self.assertIn("odoo", runner.command)
         self.assertIn("base.autovacuum_job", runner.input_text)
+
+    def test_staging_upgrade_uses_approved_pocket_id_runtime_without_regulatory_access(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        candidate = {
+            "environment_file": target.value["compose"]["adoption"]["candidate"]["environment_file"],
+        }
+        release = {
+            "identity": "a" * 64,
+            "components": {
+                "distribution": {
+                    "digest_reference": "ghcr.io/unstaticlabs/usl-odoo@sha256:" + "b" * 64,
+                },
+            },
+        }
+        plan = {
+            "schema": "usl-module-upgrade-plan/v1",
+            "active_release": "c" * 64,
+            "candidate_release": release["identity"],
+            "upgrade_modules": ["usl_pocketid"],
+            "changed_modules": ["usl_pocketid"],
+            "reasons": {"usl_pocketid": ["source_sha256"]},
+        }
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        with mock.patch("operations.stack.validate_upgrade_plan", return_value=plan):
+            _run_candidate_upgrade(
+                target,
+                runner,
+                release,
+                "candidate-network",
+                {"odoo_filestore": "candidate-filestore"},
+                plan,
+                candidate,
+            )
+        command = runner.run.call_args.args[0]
+        self.assertIn(candidate["environment_file"], command)
+        self.assertIn("USL_EINVOICE_LIVE_ENABLED=0", command)
+        self.assertIn("USL_EREPORTING_LIVE_ENABLED=0", command)
+        self.assertIn("USL_POCKET_ID_ENABLED=1", command)
+        shell = command[command.index("-c") + 1]
+        self.assertIn("${POCKET_ID_CLIENT_SECRET:?}", shell)
+        self.assertNotIn("client-secret-value", " ".join(command))
+
+    def test_staging_pocket_id_reconcile_returns_redacted_runtime_evidence(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        candidate = {
+            "environment_file": target.value["compose"]["adoption"]["candidate"]["environment_file"],
+        }
+        release = {
+            "components": {
+                "distribution": {
+                    "digest_reference": "ghcr.io/unstaticlabs/usl-odoo@sha256:" + "b" * 64,
+                },
+            },
+        }
+        checks = {
+            "application_completed": True,
+            "provider_enabled": True,
+            "governed_provider": True,
+            "client_id_matches": True,
+            "database_secret_absent": True,
+            "issuer_matches": True,
+            "base_url_matches": True,
+            "required_group_matches": True,
+            "scopes_match": True,
+            "endpoints_match_issuer": True,
+            "odoo_authorization_accepted": True,
+            "odoo_client_secret_accepted": True,
+            "paperless_authorization_accepted": True,
+            "paperless_client_secret_accepted": True,
+        }
+        evidence = {
+            "schema": "usl-pocket-id-runtime-admission/v1",
+            "status": "passed",
+            "paperless_mode": "oidc",
+            **checks,
+        }
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess(
+            [],
+            0,
+            "USL_POCKET_ID_RUNTIME_ADMISSION=" + json.dumps(evidence) + "\n",
+            "",
+        )
+        result = _reconcile_staging_pocketid(
+            target,
+            runner,
+            release,
+            "candidate-network",
+            {"odoo_filestore": "candidate-filestore"},
+            candidate,
+        )
+        self.assertEqual(result, evidence)
+        self.assertNotIn("client_id", result)
+        self.assertNotIn("client_secret", result)
+        command = runner.run.call_args.args[0]
+        self.assertLess(command.index("USL_POCKET_ID_ENABLED=1"), command.index("--entrypoint"))
+        self.assertNotIn("client-secret-value", " ".join(command))
+        program = runner.run.call_args.kwargs["input_text"]
+        self.assertIn("synthetic_client_probe", program)
+        compile(program, "<staging-oidc-admission>", "exec")
+
+        internal_checks = {
+            key: value for key, value in checks.items()
+            if not key.startswith("paperless_")
+        }
+        internal_evidence = {
+            "schema": "usl-pocket-id-runtime-admission/v1",
+            "status": "passed",
+            "paperless_mode": "internal-only",
+            **internal_checks,
+        }
+        runner.run.return_value = subprocess.CompletedProcess(
+            [], 0,
+            "USL_POCKET_ID_RUNTIME_ADMISSION=" + json.dumps(internal_evidence) + "\n",
+            "",
+        )
+        result = _reconcile_staging_pocketid(
+            target,
+            runner,
+            release,
+            "candidate-network",
+            {"odoo_filestore": "candidate-filestore"},
+            candidate,
+        )
+        self.assertEqual(result, internal_evidence)
+
+    def test_staging_pocket_id_reconcile_rejects_unapproved_environment_and_failed_check(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        release = {
+            "components": {
+                "distribution": {
+                    "digest_reference": "ghcr.io/unstaticlabs/usl-odoo@sha256:" + "b" * 64,
+                },
+            },
+        }
+        runner = mock.Mock()
+        with self.assertRaisesRegex(RuntimeError, "approved runtime file"):
+            _reconcile_staging_pocketid(
+                target,
+                runner,
+                release,
+                "candidate-network",
+                {"odoo_filestore": "candidate-filestore"},
+                {"environment_file": "/tmp/untrusted.env"},
+            )
+
+        evidence = {
+            "schema": "usl-pocket-id-runtime-admission/v1",
+            "status": "passed",
+            "paperless_mode": "oidc",
+            "application_completed": True,
+            "provider_enabled": False,
+            "governed_provider": True,
+            "client_id_matches": True,
+            "database_secret_absent": True,
+            "issuer_matches": True,
+            "base_url_matches": True,
+            "required_group_matches": True,
+            "scopes_match": True,
+            "endpoints_match_issuer": True,
+            "odoo_authorization_accepted": True,
+            "odoo_client_secret_accepted": True,
+            "paperless_authorization_accepted": True,
+            "paperless_client_secret_accepted": True,
+        }
+        runner.run.return_value = subprocess.CompletedProcess(
+            [], 0, "USL_POCKET_ID_RUNTIME_ADMISSION=" + json.dumps(evidence) + "\n", "",
+        )
+        with self.assertRaisesRegex(RuntimeError, "evidence differs"):
+            _reconcile_staging_pocketid(
+                target,
+                runner,
+                release,
+                "candidate-network",
+                {"odoo_filestore": "candidate-filestore"},
+                {
+                    "environment_file": target.value["compose"]["adoption"]["candidate"]["environment_file"],
+                },
+            )
+
+    def test_staging_auth_compose_requires_isolated_clients_when_paperless_is_public(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        candidate = {
+            "working_directory": "/gitops/staging",
+            "compose_files": ["/gitops/staging/compose.yaml"],
+            "environment_file": target.value["compose"]["adoption"]["candidate"][
+                "environment_file"
+            ],
+            "profiles": [],
+            "project": target.project,
+            "anchor_service": target.value["services"]["odoo"],
+        }
+        issuer = "https://auth.unstaticlabs.com"
+        odoo_environment = {
+            "USL_DEPLOYMENT_ENV": "staging",
+            "USL_POCKET_ID_ENABLED": "1",
+            "USL_POCKET_ID_ISSUER": issuer,
+            "USL_POCKET_ID_ODOO_BASE_URL": target.value["endpoints"]["odoo"],
+            "USL_POCKET_ID_CLIENT_ID": "odoo-client",
+            "USL_POCKET_ID_CLIENT_SECRET": "odoo-secret",
+        }
+        paperless_url = "https://documents-staging.unstaticlabs.com"
+        paperless_environment = {
+            "USL_DEPLOYMENT_ENV": "staging",
+            "PAPERLESS_APPS": (
+                "allauth.socialaccount.providers.openid_connect,paperless_personal_ai"
+            ),
+            "PAPERLESS_DISABLE_REGULAR_LOGIN": "true",
+            "PAPERLESS_REDIRECT_LOGIN_TO_SSO": "true",
+            "PAPERLESS_URL": paperless_url,
+            "PAPERLESS_SOCIALACCOUNT_PROVIDERS": json.dumps({
+                "openid_connect": {"APPS": [{
+                    "provider_id": "pocket-id",
+                    "client_id": "paperless-client",
+                    "secret": "paperless-secret",
+                    "settings": {
+                        "server_url": issuer,
+                        "token_auth_method": "client_secret_basic",
+                    },
+                }]},
+            }),
+        }
+        preflight_environment = {
+            "USL_DEPLOYMENT_ENV": "staging",
+            "PAPERLESS_OIDC_ENABLED": "1",
+            "PAPERLESS_DISABLE_REGULAR_LOGIN": "true",
+            "PAPERLESS_PUBLIC_URL": paperless_url,
+            "PAPERLESS_PUBLIC_BASE_URL": paperless_url,
+        }
+        rendered = {"services": {
+            target.value["services"]["odoo"]: {"environment": odoo_environment},
+            "odoo-upgrade": {"environment": odoo_environment},
+            target.value["services"]["paperless"]: {
+                "environment": paperless_environment,
+            },
+            "paperless-preflight": {"environment": preflight_environment},
+        }}
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess(
+            [], 0, json.dumps(rendered), "",
+        )
+        result = _validate_staging_auth_compose(target, runner, candidate)
+        self.assertEqual(result["status"], "passed")
+        self.assertNotIn("odoo-secret", json.dumps(result))
+        self.assertNotIn("paperless-secret", json.dumps(result))
+
+        rendered["services"]["paperless-preflight"]["environment"][
+            "PAPERLESS_OIDC_ENABLED"
+        ] = "0"
+        runner.run.return_value = subprocess.CompletedProcess(
+            [], 0, json.dumps(rendered), "",
+        )
+        with self.assertRaisesRegex(RuntimeError, "paperless_sso_enabled"):
+            _validate_staging_auth_compose(target, runner, candidate)
+
+    def test_staging_auth_compose_accepts_only_private_paperless_without_oidc(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        candidate = {
+            "working_directory": "/gitops/staging",
+            "compose_files": ["/gitops/staging/compose.yaml"],
+            "environment_file": target.value["compose"]["adoption"]["candidate"][
+                "environment_file"
+            ],
+            "profiles": [],
+            "project": target.project,
+            "anchor_service": target.value["services"]["odoo"],
+        }
+        issuer = "https://auth.unstaticlabs.com"
+        odoo_environment = {
+            "USL_DEPLOYMENT_ENV": "staging",
+            "USL_POCKET_ID_ENABLED": "1",
+            "USL_POCKET_ID_ISSUER": issuer,
+            "USL_POCKET_ID_ODOO_BASE_URL": target.value["endpoints"]["odoo"],
+            "USL_POCKET_ID_CLIENT_ID": "odoo-client",
+            "USL_POCKET_ID_CLIENT_SECRET": "odoo-secret",
+        }
+        paperless_url = target.value["endpoints"]["paperless"]
+        rendered = {
+            "networks": {"private": {"name": "usl-staging-private"}},
+            "services": {
+                target.value["services"]["odoo"]: {"environment": odoo_environment},
+                "odoo-upgrade": {"environment": odoo_environment},
+                target.value["services"]["paperless"]: {
+                    "environment": {
+                        "USL_DEPLOYMENT_ENV": "staging",
+                        "PAPERLESS_URL": paperless_url,
+                        "PAPERLESS_APPS": "paperless_personal_ai",
+                    },
+                    "networks": ["private"],
+                    "ports": [{
+                        "host_ip": "127.0.0.1",
+                        "published": "19010",
+                        "target": 8000,
+                    }],
+                },
+                "paperless-preflight": {"environment": {
+                    "USL_DEPLOYMENT_ENV": "staging",
+                    "PAPERLESS_OIDC_ENABLED": "0",
+                    "PAPERLESS_DISABLE_REGULAR_LOGIN": "false",
+                    "PAPERLESS_PUBLIC_URL": paperless_url,
+                    "PAPERLESS_PUBLIC_BASE_URL": "",
+                }},
+            },
+        }
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess(
+            [], 0, json.dumps(rendered), "",
+        )
+        result = _validate_staging_auth_compose(target, runner, candidate)
+        self.assertEqual(result["paperless_mode"], "internal-only")
+        self.assertEqual(result["status"], "passed")
+
+        rendered["services"][target.value["services"]["paperless"]]["ports"][0][
+            "host_ip"
+        ] = "0.0.0.0"
+        runner.run.return_value = subprocess.CompletedProcess(
+            [], 0, json.dumps(rendered), "",
+        )
+        with self.assertRaisesRegex(RuntimeError, "paperless_loopback_only"):
+            _validate_staging_auth_compose(target, runner, candidate)
+
+        rendered["services"][target.value["services"]["paperless"]]["ports"][0][
+            "host_ip"
+        ] = "127.0.0.1"
+        rendered["services"][target.value["services"]["paperless"]]["networks"] = [
+            "cloudflare"
+        ]
+        rendered["networks"]["cloudflare"] = {"name": "cloudflare"}
+        runner.run.return_value = subprocess.CompletedProcess(
+            [], 0, json.dumps(rendered), "",
+        )
+        with self.assertRaisesRegex(RuntimeError, "paperless_loopback_only"):
+            _validate_staging_auth_compose(target, runner, candidate)
+
+    def test_staging_auth_compose_rejects_public_gateway_paperless_route(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        candidate = {
+            "working_directory": "/gitops/staging",
+            "compose_files": ["/gitops/staging/compose.yaml"],
+            "environment_file": target.value["compose"]["adoption"]["candidate"]["environment_file"],
+            "profiles": [],
+            "project": target.project,
+            "anchor_service": target.value["services"]["odoo"],
+        }
+        odoo_environment = {
+            "USL_DEPLOYMENT_ENV": "staging",
+            "USL_POCKET_ID_ENABLED": "1",
+            "USL_POCKET_ID_ISSUER": "https://auth.unstaticlabs.com",
+            "USL_POCKET_ID_ODOO_BASE_URL": target.value["endpoints"]["odoo"],
+            "USL_POCKET_ID_CLIENT_ID": "odoo-client",
+            "USL_POCKET_ID_CLIENT_SECRET": "odoo-secret",
+        }
+        paperless_url = target.value["endpoints"]["paperless"]
+        rendered = {
+            "networks": {
+                "private": {"name": "usl-staging-private"},
+                "external-ingress": {"name": "cloudflare"},
+            },
+            "services": {
+                target.value["services"]["odoo"]: {"environment": odoo_environment},
+                "odoo-upgrade": {"environment": odoo_environment},
+                target.value["services"]["paperless"]: {
+                    "environment": {
+                        "USL_DEPLOYMENT_ENV": "staging",
+                        "PAPERLESS_URL": paperless_url,
+                        "PAPERLESS_APPS": "paperless_personal_ai",
+                    },
+                    "networks": ["private"],
+                    "ports": [{"host_ip": "127.0.0.1", "published": "19010", "target": 8000}],
+                },
+                "paperless-preflight": {"environment": {
+                    "USL_DEPLOYMENT_ENV": "staging",
+                    "PAPERLESS_OIDC_ENABLED": "0",
+                    "PAPERLESS_PUBLIC_URL": paperless_url,
+                    "PAPERLESS_PUBLIC_BASE_URL": "",
+                }},
+                "gateway": {
+                    "image": "nginx@sha256:" + "a" * 64,
+                    "networks": {"external-ingress": {"aliases": ["odoo-staging"]}},
+                    "volumes": [{
+                        "type": "bind", "source": "./gateway.conf",
+                        "target": "/etc/nginx/gateway.conf",
+                    }],
+                },
+            },
+        }
+        runner = mock.Mock()
+        runner.run.side_effect = [
+            subprocess.CompletedProcess([], 0, json.dumps(rendered), ""),
+            subprocess.CompletedProcess(
+                [], 0, "location /papers { proxy_pass http://paperless-webserver:8000; }", "",
+            ),
+        ]
+        with self.assertRaisesRegex(RuntimeError, "paperless_external_route_absent"):
+            _validate_staging_auth_compose(target, runner, candidate)
 
     def _sign_secrets(self, root: Path) -> Path:
         for relative in cohort.SIGN_SECRET_FILES:
@@ -731,13 +2744,70 @@ class CohortContractTests(unittest.TestCase):
             self.assertEqual(cohort.resolve_snapshot_reference({}, original), current)
 
     def test_staging_restore_isolates_production_mcp_oauth_state(self) -> None:
-        self.assertFalse(cohort.should_restore_resource("mcp_oauth", "staging"))
-        self.assertFalse(cohort.should_restore_resource("mcp_oauth", "local"))
-        self.assertTrue(cohort.should_restore_resource("mcp_oauth", "production"))
-        self.assertFalse(cohort.should_restore_resource("sign_secrets", "staging"))
-        self.assertFalse(cohort.should_restore_resource("sign_secrets", "local"))
-        self.assertTrue(cohort.should_restore_resource("sign_secrets", "production"))
+        self.assertFalse(cohort.should_restore_resource("mcp_oauth", "staging", "production"))
+        self.assertFalse(cohort.should_restore_resource("mcp_oauth", "local", "production"))
+        self.assertTrue(cohort.should_restore_resource("mcp_oauth", "production", "production"))
+        self.assertTrue(cohort.should_restore_resource("mcp_oauth", "staging", "staging"))
+        self.assertFalse(cohort.should_restore_resource("sign_secrets", "staging", "production"))
+        self.assertFalse(cohort.should_restore_resource("sign_secrets", "local", "production"))
+        self.assertTrue(cohort.should_restore_resource("sign_secrets", "production", "production"))
+        self.assertTrue(cohort.should_restore_resource("sign_secrets", "staging", "staging"))
         self.assertTrue(cohort.should_restore_resource("paperless_originals", "staging"))
+
+    def test_legacy_v2_materialization_uses_manifest_digest_as_release_identity(self) -> None:
+        identity = {"files": 1, "bytes": 1, "sha256": "d" * 64}
+        value = manifest(identity, identity)
+        value["schema"] = cohort.LEGACY_SCHEMA
+        value["target"] = "staging"
+        value["cache_snapshot_id"] = "c" * 64
+        value["release"].pop("identity", None)
+        value["resources"].pop("mcp_secrets")
+        value["resources"].pop("renderer_secrets")
+        value["resources"].pop("paperless_personal_ai_keys")
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+
+            def restore(snapshot, destination, _environment):
+                destination.mkdir(parents=True)
+                if "durable-snapshot" in destination.name:
+                    cohort_root = destination / "cohort"
+                    (cohort_root / "durable/databases").mkdir(parents=True)
+                    (cohort_root / "manifest.json").write_text(json.dumps(value))
+                    for name in ("odoo", "paperless"):
+                        (cohort_root / f"durable/databases/{name}.dump").write_bytes(b"x")
+                else:
+                    (destination / "payload/cache").mkdir(parents=True)
+                return snapshot
+
+            arguments = argparse.Namespace(
+                root=root,
+                durable_snapshot="b" * 64,
+            )
+            environment = {
+                "RESTIC_REPOSITORY": "s3:test/durable",
+                "RESTIC_PASSWORD": "durable-password-long-enough",
+                "USL_BACKUP_CACHE_REPOSITORY": "s3:test/cache",
+                "USL_BACKUP_CACHE_PASSWORD": "cache-password-long-enough",
+                "USL_TARGET": "staging",
+                "USL_TARGET_ENVIRONMENT": "staging",
+                "ODOO_DB_NAME": "odoo_staging",
+            }
+            embedded = {"schema": "usl-release/v2", "source": {"commit": "a" * 40}}
+            with (
+                mock.patch.dict("os.environ", environment, clear=False),
+                mock.patch("operations.cohort.restore_snapshot", side_effect=restore),
+                mock.patch("operations.cohort.verify_embedded_release", return_value=embedded),
+                mock.patch("operations.cohort.tree_identity", return_value=identity),
+                mock.patch("operations.cohort._copy_contents"),
+                mock.patch("operations.cohort._empty_directory"),
+                mock.patch("operations.cohort._reset_database"),
+                mock.patch("operations.cohort.sha256_file", side_effect=lambda path: value["databases"][path.stem]["sha256"]),
+            ):
+                result = cohort.materialize(arguments)
+        self.assertEqual(result["cohort_schema"], cohort.LEGACY_SCHEMA)
+        self.assertEqual(result["release"]["identity"], "b" * 64)
+        self.assertEqual(result["release"]["commit"], "a" * 40)
 
     def test_container_mounts_every_durable_and_cache_source_read_only(self) -> None:
         target = load_target("production", TARGETS)
@@ -773,7 +2843,7 @@ class CohortContractTests(unittest.TestCase):
             def __init__(self):
                 self.commands = []
 
-            def run(self, command, *, check=True):
+            def run(self, command, *, check=True, input_text=None):
                 self.commands.append(command)
                 return subprocess.CompletedProcess(command, 0, "", "")
 
@@ -802,7 +2872,7 @@ class CohortContractTests(unittest.TestCase):
             def __init__(self):
                 self.commands = []
 
-            def run(self, command, *, check=True):
+            def run(self, command, *, check=True, input_text=None):
                 self.commands.append(command)
                 return subprocess.CompletedProcess(command, 0, "", "")
 
@@ -817,6 +2887,123 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(result["status"], "captured")
         self.assertIn("stop", runner.commands[0])
         self.assertEqual(len(runner.commands), 1)
+
+    def test_checkpoint_persists_pre_stop_intent_before_stop_failure(self) -> None:
+        configured = load_target("staging", TARGETS)
+        runner = mock.Mock()
+
+        def fail_stop(command, *, check=True, input_text=None):
+            if "stop" in command:
+                raise RuntimeError("injected stop failure")
+            return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner.run.side_effect = fail_stop
+        target = mock.Mock(value=configured.value, runner=mock.Mock(return_value=runner))
+        target.name = "staging"
+        runtime = {
+            "compose": {
+                "project": "usl-odoo-staging-main",
+                "working_directory": "/release",
+                "environment_file": "/runtime.env",
+                "compose_files": ["/release/compose.yaml"],
+            },
+            "volumes": {},
+        }
+        release = {
+            "identity": "a" * 64,
+            "source": {"commit": "b" * 40},
+            "components": {"backup-tool": {"digest_reference": "backup@sha256:" + "c" * 64}},
+        }
+        writes = []
+
+        def record_write(_target, _runner, path, content, mode="0600"):
+            writes.append((path, json.loads(content)))
+
+        arguments = argparse.Namespace(
+            target="staging", targets=TARGETS, action="create", release=None,
+            resume=None, run_id="attempt-20260904-stop", leave_quiesced=True,
+            snapshot=None, json=True,
+        )
+        with (
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack.inspect_runtime", return_value=runtime),
+            mock.patch("operations.stack._release", return_value=(release, "d" * 64, "{}")),
+            mock.patch("operations.stack._secret_file"),
+            mock.patch("operations.stack._ensure_image"),
+            mock.patch("operations.stack._validate_runtime_release_images", return_value={"odoo": "image@sha256:" + "e" * 64}),
+            mock.patch("operations.stack.runtime_lock", return_value=contextlib.nullcontext()),
+            mock.patch("operations.stack._record_event"),
+            mock.patch("operations.stack._runtime_cas_sha256", return_value="f" * 64),
+            mock.patch("operations.stack.compose_identity", return_value=runtime["compose"]),
+            mock.patch("operations.stack._write_remote", side_effect=record_write),
+            self.assertRaisesRegex(RuntimeError, "injected stop"),
+        ):
+            backup_command(arguments)
+        self.assertEqual(len(writes), 1)
+        self.assertTrue(writes[0][0].endswith("/prepared.json"))
+        self.assertEqual(writes[0][1]["status"], "prepared")
+
+    def test_checkpoint_persists_quiesced_state_before_capture_and_resumes_on_failure(self) -> None:
+        configured = load_target("staging", TARGETS)
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        target = mock.Mock(value=configured.value, runner=mock.Mock(return_value=runner))
+        target.name = "staging"
+        runtime = {
+            "compose": {
+                "project": "usl-odoo-staging-main",
+                "working_directory": "/release",
+                "environment_file": "/runtime.env",
+                "compose_files": ["/release/compose.yaml"],
+            },
+            "volumes": {},
+        }
+        release = {
+            "identity": "a" * 64,
+            "source": {"commit": "b" * 40},
+            "components": {"backup-tool": {"digest_reference": "backup@sha256:" + "c" * 64}},
+        }
+        events = []
+
+        def record_write(_target, _runner, path, content, mode="0600"):
+            events.append(("write", path, json.loads(content)["status"]))
+
+        def fail_capture(*_args, **_kwargs):
+            events.append(("capture",))
+            raise RuntimeError("injected capture failure")
+
+        arguments = argparse.Namespace(
+            target="staging", targets=TARGETS, action="create", release=None,
+            resume=None, run_id="attempt-20260904-capture", leave_quiesced=True,
+            snapshot=None, json=True,
+        )
+        with (
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack.inspect_runtime", return_value=runtime),
+            mock.patch("operations.stack._release", return_value=(release, "d" * 64, "{}")),
+            mock.patch("operations.stack._secret_file"),
+            mock.patch("operations.stack._ensure_image"),
+            mock.patch("operations.stack._validate_runtime_release_images", return_value={"odoo": "image@sha256:" + "e" * 64}),
+            mock.patch("operations.stack.runtime_lock", return_value=contextlib.nullcontext()),
+            mock.patch("operations.stack._record_event"),
+            mock.patch("operations.stack._runtime_cas_sha256", return_value="f" * 64),
+            mock.patch("operations.stack.compose_identity", return_value=runtime["compose"]),
+            mock.patch("operations.stack._write_remote", side_effect=record_write),
+            mock.patch("operations.stack._run_cohort", side_effect=fail_capture),
+            self.assertRaisesRegex(RuntimeError, "injected capture"),
+        ):
+            backup_command(arguments)
+        self.assertEqual(
+            events,
+            [
+                ("write", "/var/lib/usl-odoo/runtime/staging/backup-runs/attempt-20260904-capture/prepared.json", "prepared"),
+                ("write", "/var/lib/usl-odoo/runtime/staging/backup-runs/attempt-20260904-capture/quiesced.json", "quiesced"),
+                ("capture",),
+            ],
+        )
+        commands = [call.args[0] for call in runner.run.call_args_list]
+        self.assertTrue(any("stop" in command for command in commands))
+        self.assertTrue(any("up" in command and "--no-recreate" in command for command in commands))
 
     def test_backup_image_is_pulled_only_when_missing(self) -> None:
         image = "backup@sha256:" + "a" * 64
@@ -855,7 +3042,204 @@ class CohortContractTests(unittest.TestCase):
             "mcp": {"image": references[6]},
             "renderer": {"image": references[7]},
         }
-        self.assertEqual(_release_images(release), sorted(references))
+        self.assertEqual(_release_images(release), sorted(references[:6] + references[7:]))
+
+    def test_historical_release_does_not_require_or_inject_receipt_images(self) -> None:
+        release = {
+            "components": {
+                name: {"digest_reference": f"{name}@sha256:" + "a" * 64}
+                for name in ("distribution", "backup-tool", "paperless", "sign-dss")
+            },
+            "renderer": {"image": "renderer@sha256:" + "b" * 64},
+        }
+        self.assertEqual(len(_release_images(release)), 5)
+        for available in (None, {"odoo", "usl-receipt-fetcher", "usl-receipt-egress"}):
+            with self.subTest(available=available):
+                overlay = json.loads(_generation_overlay({}, release, available))
+                self.assertIn("odoo", overlay["services"])
+                self.assertNotIn("usl-receipt-fetcher", overlay["services"])
+                self.assertNotIn("usl-receipt-egress", overlay["services"])
+
+    def test_odoo_release_does_not_pin_or_downgrade_independent_mcp(self) -> None:
+        target = load_target("staging", TARGETS)
+        old_mcp = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "a" * 64
+        current_mcp = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "b" * 64
+        release_image = "ghcr.io/unstaticlabs/example@sha256:" + "c" * 64
+        release = {
+            "components": {
+                name: {"digest_reference": release_image}
+                for name in ("distribution", "backup-tool", "paperless", "sign-dss", "receipt-fetcher", "receipt-egress")
+            },
+            "mcp": {"image": old_mcp},
+            "renderer": {"image": release_image},
+        }
+        names = generation_volume_names(target, "g20260904-independent-mcp")
+        overlay = json.loads(_generation_overlay(
+            names,
+            release,
+            {"odoo", "odoo-mcp", "odoo-mcp-oauth-init"},
+            target.value["ingress"],
+        ))
+        self.assertNotIn("odoo-mcp", overlay["services"])
+        self.assertNotIn("odoo-mcp-oauth-init", overlay["services"])
+        self.assertNotIn(old_mcp, _release_images(release))
+        self.assertEqual(
+            _independent_mcp_image(
+                target,
+                {target.value["services"]["mcp"]: current_mcp},
+            ),
+            current_mcp,
+        )
+
+    def test_mcp_runtime_authority_is_bound_to_pinned_gitops_ledger(self) -> None:
+        target = load_target("staging", TARGETS)
+        image = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "b" * 64
+        selected = {
+            "schema": "usl-odoo-mcp-environment-release/v1",
+            "environment": "staging",
+            "commit": "a" * 40,
+            "compatibility_sha256": "c" * 64,
+            "image": image,
+            "oauth_vault_schema": 1,
+            "release_manifest": (
+                "ghcr.io/unstaticlabs/usl-odoo-mcp-release@sha256:" + "d" * 64
+            ),
+        }
+        manifest = {
+            "schema": "usl-odoo-mcp-oci-release/v2",
+            "source": {
+                "repository": "https://github.com/unstaticlabs/odoo-mcp.git",
+                "ref": "refs/heads/main",
+                "commit": selected["commit"],
+            },
+            "image": {"digest_reference": image},
+            "compatibility": {
+                "sha256": selected["compatibility_sha256"],
+                "oauth_vault": {"schema_version": 1},
+            },
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            (root / ".usl-gitops-commit").write_text("e" * 40 + "\n", encoding="ascii")
+            releases = root / "komodo/releases"
+            releases.mkdir(parents=True)
+            # Odoo and MCP advance independently: the Odoo ledger deliberately
+            # contains no MCP authority.
+            (releases / "usl-odoo-staging.json").write_text(
+                json.dumps({"schema": "usl-odoo-environment-release/v1", "environment": "staging"}),
+                encoding="utf-8",
+            )
+            (releases / "usl-odoo-staging-mcp.json").write_text(
+                json.dumps(selected), encoding="utf-8",
+            )
+            manifest_path = releases / "usl-odoo-staging-mcp-manifest.json"
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            environment = {
+                "USL_RELEASE_GITOPS_ROOT": str(root),
+                "USL_RELEASE_GITOPS_COMMIT": "e" * 40,
+            }
+            with mock.patch.dict("operations.stack.os.environ", environment, clear=False):
+                authority = _mcp_runtime_authority(target)
+                self.assertEqual(authority["image"], image)
+                self.assertEqual(authority["gitops_commit"], "e" * 40)
+                manifest["source"]["commit"] = "f" * 40
+                manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+                with self.assertRaisesRegex(RuntimeError, "manifest and ledger differ"):
+                    _mcp_runtime_authority(target)
+
+    def test_mcp_runtime_authority_rejects_uncommissioned_ledger(self) -> None:
+        target = load_target("production", TARGETS)
+        selected = {
+            "schema": "usl-odoo-mcp-environment-release/v1",
+            "environment": "production",
+            "commit": "a" * 40,
+            "compatibility_sha256": None,
+            "image": "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "b" * 64,
+            "oauth_vault_schema": 1,
+            "release_manifest": None,
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            (root / ".usl-gitops-commit").write_text("e" * 40 + "\n", encoding="ascii")
+            releases = root / "komodo/releases"
+            releases.mkdir(parents=True)
+            (releases / "usl-odoo-production-mcp.json").write_text(
+                json.dumps(selected), encoding="utf-8",
+            )
+            environment = {
+                "USL_RELEASE_GITOPS_ROOT": str(root),
+                "USL_RELEASE_GITOPS_COMMIT": "e" * 40,
+            }
+            with mock.patch.dict("operations.stack.os.environ", environment, clear=False):
+                with self.assertRaisesRegex(
+                    RuntimeError, "uncommissioned GitOps MCP cannot be runtime authority",
+                ):
+                    _mcp_runtime_authority(target)
+
+    def test_mcp_authority_override_is_last_after_historical_generation(self) -> None:
+        target = load_target("staging", TARGETS)
+        image = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "b" * 64
+        authority = {"image": image, "sha256": "c" * 64}
+
+        class Runner:
+            def __init__(self):
+                self.writes = {}
+
+            def run(self, command, *, check=True, input_text=None):
+                if command[:2] == ["install", "-d"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:2] == ["python3", "-c"]:
+                    self.writes[command[-2]] = input_text
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if "config" in command and "--services" in command:
+                    return subprocess.CompletedProcess(
+                        command, 0, "odoo\nodoo-mcp\nodoo-mcp-oauth-init\n", "",
+                    )
+                if "config" in command and "--format" in command:
+                    return subprocess.CompletedProcess(command, 0, json.dumps({"services": {
+                        "odoo": {"image": "odoo"},
+                        "odoo-mcp": {"image": image},
+                        "odoo-mcp-oauth-init": {"image": image},
+                    }}), "")
+                raise AssertionError(command)
+
+        historical = "/state/generations/gold/compose.generation.json"
+        identity = {
+            "project": "staging", "working_directory": "/release",
+            "environment_file": "/runtime.env", "profiles": [],
+            "anchor_service": "odoo", "compose_files": ["/release/compose.yaml", historical],
+        }
+        runner = Runner()
+        result = _with_mcp_runtime_authority(target, runner, identity, authority)
+        self.assertEqual(result["compose_files"][-2], historical)
+        self.assertIn("/authorities/mcp-" + "c" * 64, result["compose_files"][-1])
+        value = json.loads(runner.writes[result["compose_files"][-1]])
+        self.assertEqual(value["services"]["odoo-mcp"]["image"], image)
+        self.assertEqual(value["services"]["odoo-mcp-oauth-init"]["image"], image)
+
+    def test_rollback_reapplies_mcp_authority_after_historical_overlay(self) -> None:
+        target = load_target("production", TARGETS)
+        identity = {
+            "project": target.project, "working_directory": "/release",
+            "environment_file": "/runtime.env", "profiles": [],
+            "anchor_service": target.value["compose"]["anchor_service"],
+            "compose_files": ["/release/compose.yaml", "/old/compose.generation.json"],
+        }
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+
+        def apply_authority(_target, _runner, value, _authority):
+            return {**value, "compose_files": [*value["compose_files"], "/authority.json"]}
+
+        with (
+            mock.patch("operations.stack._mcp_runtime_authority", return_value={"image": "x"}),
+            mock.patch(
+                "operations.stack._with_mcp_runtime_authority", side_effect=apply_authority,
+            ),
+        ):
+            _start_rollback_identity(target, runner, identity)
+        command = runner.run.call_args.args[0]
+        self.assertLess(command.index("/old/compose.generation.json"), command.index("/authority.json"))
 
     def test_backup_refuses_runtime_images_outside_selected_release(self) -> None:
         target = load_target("staging", TARGETS)
@@ -1045,9 +3429,473 @@ class CohortContractTests(unittest.TestCase):
             [[
                 "rm",
                 "-rf",
+                "--",
                 target.value["state_directory"] + "/generations/g20260901-a1b2c3d4/work",
             ]],
         )
+
+    def test_materialization_failure_removes_exact_workspace_and_database_containers(self) -> None:
+        target = load_target("staging", TARGETS)
+
+        class RecordingRunner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = RecordingRunner()
+        generation = "g20260901-a1b2c3d4"
+        with self.assertRaisesRegex(RuntimeError, "materialization failed"):
+            with _materialization_cleanup(target, runner, generation) as containers:
+                containers.append("candidate-postgres")
+                raise RuntimeError("materialization failed")
+        self.assertEqual(
+            runner.commands,
+            [
+                ["docker", "rm", "--force", "candidate-postgres"],
+                [
+                    "rm", "-rf", "--",
+                    target.value["state_directory"] + f"/generations/{generation}/work",
+                ],
+            ],
+        )
+
+    def test_source_secret_workspace_is_removed_on_each_database_start_failure(self) -> None:
+        target = load_target("staging", TARGETS)
+        generation = "g20260904-secrets"
+        workspace = f"{target.value['state_directory']}/generations/{generation}/work"
+        for completed_containers, failure in (
+            ([], "first database failed"),
+            (["temporary-odoo-db"], "second database failed"),
+        ):
+            runner = mock.Mock()
+            runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+            with self.assertRaisesRegex(RuntimeError, failure):
+                with _materialization_cleanup(target, runner, generation) as containers:
+                    containers.extend(completed_containers)
+                    raise RuntimeError(failure)
+            commands = [call.args[0] for call in runner.run.call_args_list]
+            self.assertIn(["rm", "-rf", "--", workspace], commands)
+            for container in completed_containers:
+                self.assertIn(["docker", "rm", "--force", container], commands)
+
+    def test_cleanup_accepts_modern_bind_and_safe_legacy_named_database_volumes(self) -> None:
+        target = load_target("staging", TARGETS)
+        generation = "g20260904-a1b2c3d4"
+        names = generation_volume_names(target, generation)
+
+        class InspectRunner:
+            def __init__(self, volume):
+                self.volume = volume
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                if command[:3] == ["docker", "volume", "inspect"]:
+                    return subprocess.CompletedProcess(command, 0, json.dumps(self.volume), "")
+                if command[0] == "find":
+                    return subprocess.CompletedProcess(command, 0, "d\n", "")
+                raise AssertionError(command)
+
+        labels = {
+            "com.unstaticlabs.runtime.project": target.project,
+            "com.unstaticlabs.runtime.target": target.name,
+            "com.unstaticlabs.runtime.generation": generation,
+            "com.unstaticlabs.runtime.role": "odoo_postgres",
+            "com.unstaticlabs.runtime.storage-tier": "database",
+        }
+        database_path = generation_volume_path(target, generation, "odoo_postgres")
+        modern = {
+            "Name": names["odoo_postgres"],
+            "Driver": "local",
+            "Labels": labels,
+            "Options": {"device": database_path, "o": "bind", "type": "none"},
+            "Mountpoint": "/var/lib/docker/volumes/ignored-for-bind/_data",
+        }
+        self.assertEqual(
+            _validated_cleanup_volume(
+                target, InspectRunner(modern), modern["Name"], "/var/lib/docker",
+            )["database_path"],
+            database_path,
+        )
+
+        for options in (None, {}):
+            legacy = {
+                **modern,
+                "Labels": {
+                    key: value for key, value in labels.items()
+                    if not key.endswith("storage-tier")
+                },
+                "Options": options,
+                "Mountpoint": f"/var/lib/docker/volumes/{modern['Name']}/_data",
+            }
+            legacy_runner = InspectRunner(legacy)
+            self.assertIsNone(
+                _validated_cleanup_volume(
+                    target, legacy_runner, legacy["Name"], "/var/lib/docker",
+                )["database_path"],
+            )
+            self.assertFalse(any(command[0] == "find" for command in legacy_runner.commands))
+
+    def test_cleanup_rejects_foreign_mismatched_and_unsafe_named_volumes(self) -> None:
+        target = load_target("staging", TARGETS)
+        generation = "g20260904-a1b2c3d4"
+        name = generation_volume_names(target, generation)["odoo_postgres"]
+        base = {
+            "Name": name,
+            "Driver": "local",
+            "Labels": {
+                "com.unstaticlabs.runtime.project": target.project,
+                "com.unstaticlabs.runtime.target": target.name,
+                "com.unstaticlabs.runtime.generation": generation,
+                "com.unstaticlabs.runtime.role": "odoo_postgres",
+            },
+            "Options": {},
+            "Mountpoint": f"/var/lib/docker/volumes/{name}/_data",
+        }
+
+        class InspectRunner:
+            def __init__(self, volume):
+                self.volume = volume
+
+            def run(self, command, *, check=True):
+                return subprocess.CompletedProcess(command, 0, json.dumps(self.volume), "")
+
+        mutations = (
+            {"Name": "foreign"},
+            {"Driver": "nfs"},
+            {"Labels": {**base["Labels"], "com.unstaticlabs.runtime.project": "foreign"}},
+            {"Labels": {**base["Labels"], "com.unstaticlabs.runtime.target": "production"}},
+            {"Labels": {**base["Labels"], "com.unstaticlabs.runtime.generation": "invalid"}},
+            {"Labels": {**base["Labels"], "com.unstaticlabs.runtime.role": "foreign"}},
+            {"Labels": {**base["Labels"], "com.unstaticlabs.runtime.storage-tier": "bulk"}},
+            {"Options": {"device": "/foreign", "o": "bind", "type": "none"}},
+            {"Mountpoint": "/foreign"},
+        )
+        for mutation in mutations:
+            with self.subTest(mutation=mutation):
+                volume = {**base, **mutation}
+                with self.assertRaises(RuntimeError):
+                    _validated_cleanup_volume(
+                        target, InspectRunner(volume), name, "/var/lib/docker",
+                    )
+
+    def test_cleanup_deletes_only_modern_bind_paths(self) -> None:
+        class RecordingRunner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = RecordingRunner()
+        _delete_cleanup_resources(
+            runner,
+            [],
+            [
+                {
+                    "name": "legacy-named",
+                    "generation": "gstale",
+                    "database_path": None,
+                },
+                {
+                    "name": "modern-bind",
+                    "generation": "gstale",
+                    "database_path": "/srv/db/exact",
+                },
+            ],
+            [],
+            [],
+        )
+        self.assertEqual(
+            runner.commands,
+            [
+                ["docker", "volume", "rm", "legacy-named"],
+                ["docker", "volume", "rm", "modern-bind"],
+                ["find", "/srv/db/exact", "-xdev", "-mindepth", "1", "-delete"],
+                ["rmdir", "--", "/srv/db/exact"],
+            ],
+        )
+
+    def test_cleanup_removes_stopped_owned_candidate_before_its_volume(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        generation = "g20260904t1033-591f7326"
+        volume = generation_volume_names(target, generation)["odoo_filestore"]
+        identifier = "c" * 64
+        overlay = (
+            f"{target.value['state_directory']}/generations/{generation}/"
+            "compose.generation.json"
+        )
+        container = {
+            "Id": identifier,
+            "State": {"Status": "exited"},
+            "Config": {"Labels": {
+                "com.docker.compose.project": target.project,
+                "com.docker.compose.service": "odoo-upgrade",
+                "com.docker.compose.project.config_files": (
+                    "/gitops/staging/compose.yaml," + overlay
+                ),
+            }},
+            "Mounts": [{"Type": "volume", "Name": volume}],
+        }
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                if command[:3] == ["docker", "ps", "-a"]:
+                    return subprocess.CompletedProcess(command, 0, identifier + "\n", "")
+                if command[:2] == ["docker", "inspect"]:
+                    return subprocess.CompletedProcess(command, 0, json.dumps(container), "")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = Runner()
+        volumes = [{
+            "name": volume,
+            "generation": generation,
+            "database_path": None,
+        }]
+        containers = _validated_cleanup_containers(
+            target, runner, volumes, [], set(), set(),
+        )
+        self.assertEqual(containers, [identifier])
+        _delete_cleanup_resources(runner, containers, volumes, [], [])
+        remove = [
+            command for command in runner.commands
+            if command[:2] == ["docker", "rm"]
+            or command[:3] == ["docker", "volume", "rm"]
+        ]
+        self.assertEqual(remove, [
+            ["docker", "rm", "--force", identifier],
+            ["docker", "volume", "rm", volume],
+        ])
+
+        container["Config"]["Labels"]["com.docker.compose.project"] = "foreign"
+        with self.assertRaisesRegex(RuntimeError, "container ownership differs"):
+            _validated_cleanup_containers(
+                target, Runner(), volumes, [], set(), set(),
+            )
+
+        container["Config"]["Labels"]["com.docker.compose.project"] = target.project
+        container["Config"]["Labels"]["com.docker.compose.service"] = "gateway"
+        with self.assertRaisesRegex(RuntimeError, "cleanup refuses the stable gateway"):
+            _validated_cleanup_containers(
+                target, Runner(), volumes, [], set(), set(),
+            )
+
+    def test_cleanup_rejects_bind_options_for_non_database_volumes(self) -> None:
+        target = load_target("staging", TARGETS)
+        generation = "g20260904-a1b2c3d4"
+        name = generation_volume_names(target, generation)["odoo_filestore"]
+        volume = {
+            "Name": name,
+            "Driver": "local",
+            "Labels": {
+                "com.unstaticlabs.runtime.project": target.project,
+                "com.unstaticlabs.runtime.target": target.name,
+                "com.unstaticlabs.runtime.generation": generation,
+                "com.unstaticlabs.runtime.role": "odoo_filestore",
+                "com.unstaticlabs.runtime.storage-tier": "bulk",
+            },
+            "Options": {"device": "/foreign", "o": "bind", "type": "none"},
+            "Mountpoint": f"/var/lib/docker/volumes/{name}/_data",
+        }
+
+        class InspectRunner:
+            def run(self, command, *, check=True):
+                return subprocess.CompletedProcess(command, 0, json.dumps(volume), "")
+
+        with self.assertRaisesRegex(RuntimeError, "managed volume differs"):
+            _validated_cleanup_volume(target, InspectRunner(), name, "/var/lib/docker")
+
+    def test_cleanup_rejects_malformed_network_labels(self) -> None:
+        target = load_target("staging", TARGETS)
+
+        class InspectRunner:
+            def run(self, command, *, check=True):
+                return subprocess.CompletedProcess(
+                    command, 0, json.dumps({"Name": "candidate", "Labels": None}), "",
+                )
+
+        with self.assertRaisesRegex(RuntimeError, "network inspection is invalid"):
+            _validated_cleanup_network(target, InspectRunner(), "candidate")
+
+    def test_cleanup_inventory_protects_active_and_rollback_resources(self) -> None:
+        target = load_target("staging", TARGETS)
+        active = "active-volume"
+        previous = "previous-volume"
+
+        class InventoryRunner:
+            def run(self, command, *, check=True):
+                if command[0] == "cat":
+                    state = {
+                        "network": "active-network",
+                        "previous": {
+                            "generation": "g20260903-rollback",
+                            "volumes": {"odoo_postgres": previous},
+                            "network": "rollback-network",
+                        },
+                    }
+                    return subprocess.CompletedProcess(command, 0, json.dumps(state), "")
+                if command[:3] == ["docker", "volume", "ls"]:
+                    return subprocess.CompletedProcess(
+                        command, 0, f"{active}\n{previous}\nstale-volume\n", "",
+                    )
+                if command[:3] == ["docker", "network", "ls"]:
+                    return subprocess.CompletedProcess(
+                        command, 0,
+                        "active-network\nrollback-network\nstale-network\n", "",
+                    )
+                raise AssertionError(command)
+
+        current = {
+            "generation": "g20260904-active",
+            "volumes": {"odoo_postgres": {"name": active}},
+        }
+        with mock.patch("operations.stack._cleanup_workspaces", return_value=["stale-work"]):
+            inventory = _cleanup_inventory(target, InventoryRunner(), current)
+        self.assertEqual(inventory["delete_volumes"], ["stale-volume"])
+        self.assertEqual(inventory["delete_networks"], ["stale-network"])
+        self.assertEqual(inventory["delete_workspaces"], ["stale-work"])
+        self.assertEqual(
+            inventory["protected_generations"],
+            ["g20260903-rollback", "g20260904-active"],
+        )
+
+    def test_cleanup_workspace_inventory_rejects_symlinks_and_keeps_runs(self) -> None:
+        target = load_target("staging", TARGETS)
+
+        class WorkspaceRunner:
+            def __init__(self, generation_kind="d"):
+                self.generation_kind = generation_kind
+
+            def run(self, command, *, check=True):
+                if command[:2] == ["test", "-L"]:
+                    return subprocess.CompletedProcess(command, 1, "", "")
+                if command[2:6] == ["-mindepth", "0", "-maxdepth", "0"]:
+                    return subprocess.CompletedProcess(command, 0, "d\n", "")
+                if command[2:6] == ["-mindepth", "1", "-maxdepth", "1"]:
+                    return subprocess.CompletedProcess(
+                        command, 0,
+                        f"g20260904-active\td\ng20260903-stale\t{self.generation_kind}\n", "",
+                    )
+                if command[2:6] == ["-mindepth", "2", "-maxdepth", "2"]:
+                    return subprocess.CompletedProcess(
+                        command, 0,
+                        "g20260904-active/work\td\ng20260903-stale/work\td\n", "",
+                    )
+                raise AssertionError(command)
+
+        workspaces = _cleanup_workspaces(
+            target, WorkspaceRunner(), {"g20260904-active"},
+        )
+        self.assertEqual(
+            workspaces,
+            [target.value["state_directory"] + "/generations/g20260903-stale/work"],
+        )
+        with self.assertRaises(RuntimeError):
+            _cleanup_workspaces(target, WorkspaceRunner("l"), set())
+
+    def test_cleanup_apply_recomputes_after_lock_and_prevalidates_everything(self) -> None:
+        configured_target = load_target("staging", TARGETS)
+        generation = "g20260903-stale"
+        names = generation_volume_names(configured_target, generation)
+        candidates = [names["odoo_postgres"], names["paperless_postgres"]]
+        labels = {
+            "com.unstaticlabs.runtime.project": configured_target.project,
+            "com.unstaticlabs.runtime.target": configured_target.name,
+            "com.unstaticlabs.runtime.generation": generation,
+        }
+        volumes = {
+            candidates[0]: {
+                "Name": candidates[0], "Driver": "local", "Options": None,
+                "Mountpoint": f"/var/lib/docker/volumes/{candidates[0]}/_data",
+                "Labels": {**labels, "com.unstaticlabs.runtime.role": "odoo_postgres"},
+            },
+            candidates[1]: {
+                "Name": candidates[1], "Driver": "local", "Options": None,
+                "Mountpoint": f"/var/lib/docker/volumes/{candidates[1]}/_data",
+                "Labels": {
+                    **labels, "com.unstaticlabs.runtime.target": "production",
+                    "com.unstaticlabs.runtime.role": "paperless_postgres",
+                },
+            },
+        }
+
+        class CleanupRunner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                if command[:2] == ["docker", "info"]:
+                    return subprocess.CompletedProcess(command, 0, "/var/lib/docker\n", "")
+                if command[:3] == ["docker", "volume", "inspect"]:
+                    return subprocess.CompletedProcess(
+                        command, 0, json.dumps(volumes[command[3]]), "",
+                    )
+                raise AssertionError(command)
+
+        runner = CleanupRunner()
+        target = mock.Mock(
+            name=configured_target.name,
+            project=configured_target.project,
+            value=configured_target.value,
+        )
+        target.name = configured_target.name
+        target.project = configured_target.project
+        target.value = configured_target.value
+        target.runner.return_value = runner
+        locked = {"value": False}
+
+        class Lock:
+            def __enter__(self):
+                locked["value"] = True
+
+            def __exit__(self, *_args):
+                locked["value"] = False
+
+        current = {"generation": "g20260904-active", "volumes": {}}
+
+        def inspect_after_lock(_target, _runner):
+            self.assertTrue(locked["value"])
+            return current
+
+        def inventory_after_lock(_target, _runner, value):
+            self.assertTrue(locked["value"])
+            self.assertIs(value, current)
+            return {
+                "protected_volumes": [], "protected_networks": [],
+                "protected_generations": ["g20260904-active"],
+                "delete_volumes": candidates,
+                "delete_networks": [], "delete_workspaces": [],
+            }
+
+        with (
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack.runtime_lock", return_value=Lock()),
+            mock.patch("operations.stack.inspect_runtime", side_effect=inspect_after_lock),
+            mock.patch("operations.stack._cleanup_inventory", side_effect=inventory_after_lock),
+            self.assertRaisesRegex(RuntimeError, "candidate identity differs"),
+        ):
+            cleanup_command(argparse.Namespace(
+                target="staging", targets=TARGETS, action="apply", confirm="staging",
+                runtime_only=True, json=True,
+            ))
+        self.assertEqual(
+            [command[3] for command in runner.commands if command[:3] == ["docker", "volume", "inspect"]],
+            candidates,
+        )
+        self.assertFalse(any(
+            command[:3] in (["docker", "volume", "rm"], ["docker", "network", "rm"])
+            or command[:3] == ["rm", "-rf", "--"]
+            for command in runner.commands
+        ))
 
     def test_fresh_odoo_volume_is_prepared_for_the_runtime_user(self) -> None:
         image = "ghcr.io/unstaticlabs/usl-odoo@sha256:" + "a" * 64
@@ -1074,6 +3922,10 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(command[-3:], ["1000:1000", "/var/lib/odoo", "/var/lib/odoo/filestore"])
 
     def test_rollback_failure_preserves_the_activation_error(self) -> None:
+        target = mock.Mock(value={
+            "compose": {"anchor_service": "odoo"},
+            "services": {"odoo": "odoo", "odoo_db": "db"},
+        })
         identity = {
             "project": "safe-project",
             "working_directory": "/release",
@@ -1083,12 +3935,18 @@ class CohortContractTests(unittest.TestCase):
 
         class FailedRunner:
             def run(self, command, *, check=True):
+                if check:
+                    raise RuntimeError("disk full")
                 return subprocess.CompletedProcess(command, 1, "", "disk full")
 
         with self.assertRaisesRegex(RuntimeError, "activation failed \\(original failure\\).*disk full"):
-            _rollback_after_failure(FailedRunner(), identity, RuntimeError("original failure"))
+            _rollback_after_failure(target, FailedRunner(), identity, RuntimeError("original failure"))
 
     def test_rollback_reactivates_the_previous_generation_overlay(self) -> None:
+        target = mock.Mock(value={
+            "compose": {"anchor_service": "odoo"},
+            "services": {"odoo": "odoo", "odoo_db": "db"},
+        })
         identity = {
             "project": "safe-project",
             "working_directory": "/release",
@@ -1108,14 +3966,94 @@ class CohortContractTests(unittest.TestCase):
                 return subprocess.CompletedProcess(command, 0, "", "")
 
         runner = RecordingRunner()
-        _rollback_after_failure(runner, identity, RuntimeError("new generation failed"))
+        _rollback_after_failure(target, runner, identity, RuntimeError("new generation failed"))
         command = runner.commands[0]
         self.assertIn(
             "/runtime/generations/g-previous/compose.generation.json",
             command,
         )
-        self.assertEqual(command[-3:], ["up", "--detach", "--wait"])
+        self.assertIn("--no-deps", command)
+        self.assertEqual(command[-2:], ["db", "odoo"])
+        self.assertNotIn("gateway", command[command.index("up") + 1:])
         self.assertNotIn("--force-recreate", command)
+
+    def test_pre_boundary_failure_restores_active_state_and_previous_runtime(self) -> None:
+        target = mock.Mock(value={
+            "compose": {"adoption": None, "anchor_service": "odoo"},
+            "services": {"odoo": "odoo", "odoo_db": "db"},
+        })
+        current_identity = {
+            "project": "staging",
+            "working_directory": "/release",
+            "environment_file": "/runtime.env",
+            "compose_files": ["/release/compose.yaml", "/runtime/previous.json"],
+        }
+        generation_identity = {
+            **current_identity,
+            "compose_files": ["/release/compose.yaml", "/runtime/candidate.json"],
+        }
+        current = {
+            "active_state": {
+                "generation": "gprevious",
+                "snapshot": "a" * 64,
+                "network": "previous-network",
+            },
+        }
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        active_path = "/runtime/active.json"
+        with (
+            mock.patch("operations.stack._write_remote") as write_remote,
+            mock.patch("operations.stack._cleanup_adoption_candidate_anchor"),
+        ):
+            _rollback_active_candidate(
+                target,
+                runner,
+                current=current,
+                current_identity=current_identity,
+                generation_identity=generation_identity,
+                active_path=active_path,
+                error=RuntimeError("boundary receipt write failed"),
+            )
+        write_remote.assert_called_once()
+        self.assertEqual(write_remote.call_args.args[2], active_path)
+        self.assertEqual(json.loads(write_remote.call_args.args[3]), current["active_state"])
+        commands = [call.args[0] for call in runner.run.call_args_list]
+        candidate_stop = next(command for command in commands if "stop" in command)
+        previous_up = next(command for command in commands if "up" in command)
+        self.assertIn("/runtime/candidate.json", candidate_stop)
+        self.assertNotIn("gateway", candidate_stop[candidate_stop.index("stop") + 1:])
+        self.assertIn("/runtime/previous.json", previous_up)
+        self.assertIn("--no-deps", previous_up)
+        self.assertNotIn("gateway", previous_up[previous_up.index("up") + 1:])
+        self.assertNotIn("--force-recreate", previous_up)
+
+    def test_pre_boundary_failure_removes_uncommitted_active_state_for_adopted_baseline(self) -> None:
+        target = mock.Mock(value={
+            "compose": {"adoption": None, "anchor_service": "odoo"},
+            "services": {"odoo": "odoo", "odoo_db": "db"},
+        })
+        identity = {
+            "project": "staging",
+            "working_directory": "/release",
+            "environment_file": "/runtime.env",
+            "compose_files": ["/release/compose.yaml"],
+        }
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        with mock.patch("operations.stack._cleanup_adoption_candidate_anchor"):
+            _rollback_active_candidate(
+                target,
+                runner,
+                current={"active_state": None},
+                current_identity=identity,
+                generation_identity={**identity, "compose_files": [*identity["compose_files"], "/candidate.json"]},
+                active_path="/runtime/active.json",
+                error=RuntimeError("active state write failed"),
+            )
+        commands = [call.args[0] for call in runner.run.call_args_list]
+        self.assertIn(["rm", "-f", "/runtime/active.json"], commands)
+        self.assertTrue(any("up" in command for command in commands))
 
     def test_runtime_lock_is_released_after_failure(self) -> None:
         target = load_target("local", TARGETS)
@@ -1124,7 +4062,7 @@ class CohortContractTests(unittest.TestCase):
             def __init__(self):
                 self.commands = []
 
-            def run(self, command, *, check=True):
+            def run(self, command, *, check=True, input_text=None):
                 self.commands.append(command)
                 return subprocess.CompletedProcess(command, 0, "", "")
 
@@ -1192,7 +4130,7 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(len(paths), 3)
         self.assertTrue(all(path.startswith("/srv/db/usl-odoo/production/generations/") for path in paths))
 
-    def test_generation_pins_every_release_owned_runtime_image(self) -> None:
+    def test_generation_pins_only_odoo_cohort_runtime_images(self) -> None:
         digest = "sha256:" + "a" * 64
         reference = "ghcr.io/unstaticlabs/example@" + digest
         release = {
@@ -1220,7 +4158,7 @@ class CohortContractTests(unittest.TestCase):
         overlay = json.loads(
             _generation_overlay(names, release, services, target.value["ingress"]),
         )
-        self.assertEqual(set(overlay["services"]), services)
+        self.assertEqual(set(overlay["services"]), services - {"odoo-mcp"})
         self.assertTrue(all(item["image"] == reference for item in overlay["services"].values()))
         self.assertEqual(
             overlay["services"]["odoo"]["environment"],
@@ -1230,6 +4168,1003 @@ class CohortContractTests(unittest.TestCase):
                 "ODOO_DB_FILTER": "^odoo_staging$",
             },
         )
+
+    def test_production_candidate_overlay_quarantines_external_workers(self) -> None:
+        target = load_target("production", TARGETS)
+        digest = "ghcr.io/unstaticlabs/usl-odoo@sha256:" + "a" * 64
+        release = {
+            "components": {
+                "distribution": {"digest_reference": digest},
+                "paperless": {"digest_reference": digest},
+                "sign-dss": {"digest_reference": digest},
+                "receipt-fetcher": {"digest_reference": digest},
+                "receipt-egress": {"digest_reference": digest},
+            },
+            "mcp": {"image": digest},
+            "renderer": {"image": digest},
+        }
+        services = {"odoo", "odoo-upgrade", "paperless-webserver"}
+        overlay = json.loads(_generation_overlay(
+            generation_volume_names(target, "gquarantine"),
+            release,
+            services,
+            target.value["ingress"],
+            service_names=target.value["services"],
+            quarantine=True,
+        ))
+        odoo = overlay["services"]["odoo"]
+        self.assertEqual(odoo["environment"]["ODOO_MAX_CRON_THREADS"], "0")
+        self.assertEqual(odoo["environment"]["ODOO_SMTP_PORT"], "1")
+        self.assertEqual(odoo["environment"]["USL_EINVOICE_LIVE_ENABLED"], "0")
+        self.assertEqual(odoo["labels"]["com.unstaticlabs.runtime.side-effects"], "quarantined")
+        paperless = overlay["services"]["paperless-webserver"]
+        self.assertTrue(all(
+            value == "disable"
+            for name, value in paperless["environment"].items()
+            if name.endswith("_CRON")
+        ))
+
+    def test_production_sign_mounts_follow_the_release_upgrade_service(self) -> None:
+        target = load_target("production", TARGETS)
+        overlay = json.loads(_generation_overlay(
+            generation_volume_names(target, "gsign"),
+            sign_secret_root="/run/generation/sign-secrets",
+            service_names=target.value["services"],
+        ))
+        self.assertIn("odoo-upgrade", overlay["services"])
+        self.assertNotIn("init-db", overlay["services"])
+
+    def test_host_staging_overlays_use_the_canonical_odoo_service(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        resources = json.loads(_resource_overlay(target))
+        self.assertIn("odoo-staging", resources["services"])
+        self.assertNotIn("odoo", resources["services"])
+
+        digest = "ghcr.io/unstaticlabs/usl-odoo@sha256:" + "a" * 64
+        release = {
+            "components": {
+                "distribution": {"digest_reference": digest},
+                "paperless": {"digest_reference": digest},
+                "sign-dss": {"digest_reference": digest},
+                "receipt-fetcher": {"digest_reference": digest},
+                "receipt-egress": {"digest_reference": digest},
+            },
+            "mcp": {"image": digest},
+            "renderer": {"image": digest},
+        }
+        overlay = json.loads(
+            _generation_overlay(
+                generation_volume_names(target, "g20260904-canonical"),
+                release,
+                {"odoo", "odoo-staging"},
+                target.value["ingress"],
+                service_names=target.value["services"],
+            ),
+        )
+        self.assertIn("odoo-staging", overlay["services"])
+        self.assertNotIn("odoo", overlay["services"])
+        self.assertEqual(
+            overlay["services"]["odoo-staging"]["environment"]["ODOO_DB_FILTER"],
+            "^odoo_staging$",
+        )
+
+    def test_production_resource_overlay_service_is_unchanged(self) -> None:
+        target = load_target("production", HOST_TARGETS)
+        resources = json.loads(_resource_overlay(target))
+        self.assertIn("odoo", resources["services"])
+        self.assertNotIn("odoo-staging", resources["services"])
+
+    def test_first_staging_activation_stops_and_rolls_back_the_legacy_identity(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        legacy = {
+            "project": target.project,
+            "working_directory": "/gitops/staging",
+            "environment_file": "/runtime/staging.env",
+            "profiles": [],
+            "anchor_service": "odoo",
+            "compose_files": ["/gitops/staging/compose.yaml", "/runtime/v2.json"],
+        }
+        candidate = {
+            **legacy,
+            "anchor_service": "odoo-staging",
+            "compose_files": ["/gitops/staging/compose.yaml", "/runtime/v3.json"],
+        }
+
+        class FailingCandidateRunner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                if "/runtime/v3.json" in command:
+                    raise RuntimeError("candidate failed")
+                if command[:2] == ["docker", "ps"]:
+                    return subprocess.CompletedProcess(command, 0, "candidate-id\n", "")
+                if command[:3] == ["docker", "inspect", "candidate-id"]:
+                    return subprocess.CompletedProcess(
+                        command,
+                        0,
+                        json.dumps({
+                            "com.docker.compose.project": target.project,
+                            "com.docker.compose.service": "odoo-staging",
+                        }),
+                        "",
+                    )
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = FailingCandidateRunner()
+        with mock.patch("operations.stack._start_rollback_identity") as starter, self.assertRaisesRegex(
+            RuntimeError, "candidate failed",
+        ):
+            with mock.patch("operations.stack._validate_stable_gateway_generation"):
+                _activate_generation(target, runner, legacy, candidate, candidate)
+
+        stop = runner.commands[0]
+        failed_up = runner.commands[1]
+        self.assertEqual(stop[stop.index("stop"):stop.index("stop") + 4], ["stop", "--timeout", "60", "db"])
+        self.assertIn("odoo", stop)
+        self.assertNotIn("odoo-staging", stop)
+        self.assertIn("/runtime/v3.json", failed_up)
+        self.assertIn("--no-deps", failed_up)
+        self.assertNotIn("gateway", failed_up[failed_up.index("up") + 1:])
+        starter.assert_called_once_with(target, runner, legacy)
+        self.assertIn(["docker", "rm", "--force", "candidate-id"], runner.commands)
+
+    def test_first_staging_candidate_uses_only_the_allowlisted_gitops_identity(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        legacy = {
+            "project": target.project,
+            "working_directory": "/var/lib/usl-odoo/runtime/staging/validation-v2",
+            "environment_file": "/var/lib/usl-odoo/runtime/staging/validation-v2/site.env",
+            "profiles": [],
+            "anchor_service": "odoo",
+            "compose_files": [
+                "/var/lib/usl-odoo/runtime/staging/validation-v2/compose.yaml",
+            ],
+        }
+
+        class CandidateRunner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                if command[-2:] == ["config", "--services"]:
+                    services = "".join(
+                        f"{service}\n"
+                        for service in sorted(set(target.value["services"].values()))
+                    )
+                    return subprocess.CompletedProcess(command, 0, services, "")
+                raise AssertionError(command)
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            commit = "c" * 40
+            (root / ".usl-gitops-commit").write_text(commit + "\n")
+            contract = target.value["compose"]["canonical"]
+            working = root / contract["working_directory"]
+            working.mkdir(parents=True)
+            for name in contract["compose_files"]:
+                (working / name).write_text("services: {}\n")
+            environment = root / "staging.env"
+            environment.write_text("SAFE=value\n")
+            contract["environment_file"] = str(environment)
+            runner = CandidateRunner()
+            with mock.patch.dict("os.environ", {
+                "USL_RELEASE_GITOPS_ROOT": str(root),
+                "USL_RELEASE_GITOPS_COMMIT": commit,
+            }), mock.patch(
+                "operations.stack._with_stable_gateway_config",
+                side_effect=lambda _target, _runner, identity: identity,
+            ):
+                candidate = _candidate_compose_identity(target, runner, legacy)
+
+            self.assertEqual(candidate["working_directory"], str(working))
+            self.assertEqual(
+                candidate["compose_files"],
+                [str(working / name) for name in contract["compose_files"]],
+            )
+            self.assertEqual(candidate["gitops_commit"], commit)
+            self.assertNotIn(legacy["compose_files"][0], candidate["compose_files"])
+
+            (root / ".usl-gitops-commit").write_text("d" * 40 + "\n")
+            with (
+                mock.patch.dict(
+                    "os.environ",
+                    {
+                        "USL_RELEASE_GITOPS_ROOT": str(root),
+                        "USL_RELEASE_GITOPS_COMMIT": commit,
+                    },
+                ),
+                self.assertRaisesRegex(RuntimeError, "commit marker differs"),
+            ):
+                _candidate_compose_identity(target, runner, legacy)
+
+    def test_second_staging_activation_uses_only_the_canonical_service(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        current = {
+            "project": target.project,
+            "working_directory": "/gitops/staging",
+            "environment_file": "/runtime/staging.env",
+            "profiles": [],
+            "anchor_service": "odoo-staging",
+            "compose_files": ["/gitops/staging/compose.yaml", "/runtime/v3-active.json"],
+        }
+        candidate = {**current, "compose_files": ["/gitops/staging/compose.yaml", "/runtime/v3-next.json"]}
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+
+        with mock.patch("operations.stack._validate_stable_gateway_generation"):
+            _activate_generation(target, runner, current, current, candidate)
+
+        stop = runner.run.call_args_list[0].args[0]
+        self.assertIn("odoo-staging", stop)
+        self.assertNotIn("odoo", stop)
+        candidate_up = runner.run.call_args_list[1].args[0]
+        self.assertIn("/runtime/v3-next.json", candidate_up)
+        self.assertIn("--no-deps", candidate_up)
+        self.assertNotIn("gateway", candidate_up[candidate_up.index("up") + 1:])
+
+    def test_production_activation_never_reconciles_gateway(self) -> None:
+        target = load_target("production", TARGETS)
+        current = {
+            "project": target.project, "working_directory": "/gitops/production",
+            "environment_file": "/runtime/production.env", "profiles": [],
+            "anchor_service": target.value["compose"]["anchor_service"],
+            "compose_files": ["/gitops/production/compose.yaml", "/runtime/active.json"],
+        }
+        candidate = {**current, "compose_files": ["/gitops/production/compose.yaml"]}
+        generation = {**candidate, "compose_files": [*candidate["compose_files"], "/runtime/next.json"]}
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+
+        with mock.patch("operations.stack._mcp_runtime_authority", return_value=None):
+            _activate_generation(target, runner, current, candidate, generation)
+
+        for call in runner.run.call_args_list:
+            command = call.args[0]
+            if "stop" in command or "up" in command:
+                action = "stop" if "stop" in command else "up"
+                self.assertNotIn("gateway", command[command.index(action) + 1:])
+        candidate_up = runner.run.call_args_list[1].args[0]
+        self.assertIn("--no-deps", candidate_up)
+
+    def test_staging_gateway_drift_fails_before_cohort_mutation(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        identity = {
+            "project": target.project, "working_directory": "/gitops/staging",
+            "environment_file": "/runtime/staging.env", "profiles": [],
+            "anchor_service": target.value["compose"]["anchor_service"],
+            "compose_files": ["/gitops/staging/compose.yaml"],
+        }
+        generation = {**identity, "compose_files": [*identity["compose_files"], "/runtime/next.json"]}
+        runner = mock.Mock()
+        with mock.patch("operations.stack._mcp_runtime_authority", return_value=None), mock.patch(
+            "operations.stack._validate_stable_gateway_generation",
+            side_effect=RuntimeError("gateway drift"),
+        ), self.assertRaisesRegex(RuntimeError, "gateway drift"):
+            _activate_generation(target, runner, identity, identity, generation)
+        runner.run.assert_not_called()
+
+    def test_runtime_start_reconciles_only_the_active_cohort(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        identity = {
+            "project": target.project, "working_directory": "/gitops/staging",
+            "environment_file": "/runtime/staging.env", "profiles": [],
+            "anchor_service": target.value["compose"]["anchor_service"],
+            "compose_files": ["/gitops/staging/compose.yaml", "/runtime/active.json"],
+        }
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        arguments = argparse.Namespace(
+            target="staging", targets=HOST_TARGETS, action="start", json=True,
+        )
+        with mock.patch.object(type(target), "runner", return_value=runner), mock.patch(
+            "operations.stack.load_target", return_value=target,
+        ), mock.patch(
+            "operations.stack.inspect_runtime",
+            side_effect=[{"compose": identity}, {"compose": identity}],
+        ), mock.patch(
+            "operations.stack._active_generation_identity", return_value=identity,
+        ):
+            runtime_command(arguments)
+
+        command = runner.run.call_args.args[0]
+        self.assertIn("--no-deps", command)
+        self.assertNotIn("gateway", command[command.index("up") + 1:])
+
+    def test_runtime_stop_stops_only_the_active_cohort(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        identity = {
+            "project": target.project, "working_directory": "/gitops/staging",
+            "environment_file": "/runtime/staging.env", "profiles": [],
+            "anchor_service": target.value["compose"]["anchor_service"],
+            "compose_files": ["/gitops/staging/compose.yaml", "/runtime/active.json"],
+        }
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        arguments = argparse.Namespace(
+            target="staging", targets=HOST_TARGETS, action="stop", json=True,
+        )
+        with mock.patch.object(type(target), "runner", return_value=runner), mock.patch(
+            "operations.stack.load_target", return_value=target,
+        ), mock.patch(
+            "operations.stack.inspect_runtime",
+            side_effect=[{"compose": identity}, {"compose": identity}],
+        ):
+            runtime_command(arguments)
+
+        command = runner.run.call_args.args[0]
+        self.assertNotIn("gateway", command[command.index("stop") + 1:])
+        self.assertEqual(
+            set(command[command.index("stop") + 1:]),
+            set(target.value["services"].values()),
+        )
+
+    def test_gateway_semantics_ignore_snapshot_path_but_bind_config_content(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+
+        class Runner:
+            def run(self, command, *, check=True, input_text=None):
+                if command[:2] == ["sha256sum", "--"]:
+                    return subprocess.CompletedProcess(command, 0, "c" * 64 + "  " + command[-1], "")
+                source = "/snap/next/gateway.conf" if "/runtime/next.json" in command else "/snap/current/gateway.conf"
+                gateway = {
+                    "image": "nginx@sha256:" + "d" * 64,
+                    "command": ["nginx", "-g", "daemon off;"],
+                    "healthcheck": {"test": ["CMD", "nginx", "-t"]},
+                    "networks": {"cloudflare": {"aliases": ["odoo-staging"]}},
+                    "pids_limit": 64,
+                    "security_opt": ["no-new-privileges:true"],
+                    "volumes": [
+                        {"type": "bind", "source": source, "target": "/etc/nginx/usl-gateway.conf", "read_only": True},
+                        {"type": "bind", "source": "/var/lib/usl-odoo/gateway/staging", "target": "/run/usl-gateway", "read_only": True},
+                    ],
+                }
+                mutations = {
+                    "/runtime/image.json": ("image", "nginx@sha256:" + "e" * 64),
+                    "/runtime/command.json": ("command", ["nginx", "-T"]),
+                    "/runtime/health.json": ("healthcheck", {"test": ["NONE"]}),
+                    "/runtime/network.json": ("networks", {"other": {}}),
+                    "/runtime/resource.json": ("pids_limit", 65),
+                    "/runtime/security.json": ("security_opt", []),
+                }
+                for path, (field, value) in mutations.items():
+                    if path in command:
+                        gateway[field] = value
+                rendered = {"services": {"gateway": gateway}}
+                return subprocess.CompletedProcess(command, 0, json.dumps(rendered), "")
+
+        base = {
+            "project": target.project, "working_directory": "/gitops/staging",
+            "environment_file": "/runtime/staging.env", "profiles": [],
+            "compose_files": ["/gitops/staging/compose.yaml"],
+        }
+        generation = {**base, "compose_files": [*base["compose_files"], "/runtime/next.json"]}
+        runner = Runner()
+        baseline = _gateway_semantic_hash(target, runner, base)
+        self.assertEqual(baseline, _gateway_semantic_hash(target, runner, generation))
+        for name in ("image", "command", "health", "network", "resource", "security"):
+            drift = {**base, "compose_files": [*base["compose_files"], f"/runtime/{name}.json"]}
+            with self.subTest(name=name):
+                self.assertNotEqual(baseline, _gateway_semantic_hash(target, runner, drift))
+
+    def test_candidate_gateway_config_uses_a_persistent_content_address(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        content = "events {}\nhttp {}\n"
+        digest = hashlib.sha256(content.encode()).hexdigest()
+        identity = {
+            "project": target.project, "working_directory": "/gitops/staging",
+            "environment_file": "/runtime/staging.env", "profiles": [],
+            "compose_files": ["/gitops/staging/compose.yaml"],
+        }
+        config_path = f"/var/lib/usl-odoo/gateway/staging/configs/{digest}/gateway.conf"
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, content, "")
+        gateway = {"image": "nginx@sha256:" + "a" * 64, "volumes": []}
+        with mock.patch(
+            "operations.stack._gateway_semantic_contract",
+            side_effect=[
+                ("b" * 64, digest, "/snapshot/gateway.conf", gateway),
+                ("b" * 64, digest, config_path, gateway),
+            ],
+        ), mock.patch("operations.stack._write_remote") as write_remote:
+            stable = _with_stable_gateway_config(target, runner, identity)
+
+        self.assertEqual(
+            stable["compose_files"][-1],
+            f"/var/lib/usl-odoo/gateway/staging/configs/{digest}/compose.gateway.json",
+        )
+        writes = [call.args for call in write_remote.call_args_list]
+        self.assertEqual(writes[0][2:5], (config_path, content, "0444"))
+        overlay = json.loads(writes[1][3])
+        self.assertEqual(overlay["services"]["gateway"]["volumes"][0]["source"], config_path)
+
+    def test_gateway_validation_accepts_historical_paths_only_for_equal_semantics(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        raw_hash = "a" * 64
+        labels = {
+            "com.docker.compose.project": target.project,
+            "com.docker.compose.service": "gateway",
+            "com.docker.compose.project.working_dir": (
+                "/var/lib/usl-odoo/gitops-runs/" + "1" * 40
+                + ".previous/komodo/stacks/prod-odoo-nbg1-2/usl-odoo-staging"
+            ),
+            "com.docker.compose.project.environment_file": "/runtime/staging.env",
+            "com.docker.compose.project.config_files": (
+                "/var/lib/usl-odoo/gitops-runs/" + "1" * 40
+                + ".previous/komodo/stacks/prod-odoo-nbg1-2/usl-odoo-staging/compose.yaml,"
+                "/var/lib/usl-odoo/runtime/staging/generations/gprevious/compose.generation.json"
+            ),
+            "com.docker.compose.config-hash": raw_hash,
+        }
+
+        class Runner:
+            generation_image = "nginx@sha256:" + "d" * 64
+            runtime_config_digest = "c" * 64
+            runtime_health_test = ["CMD", "nginx", "-t"]
+            runtime_memory = 100_663_296
+            cgroup_version = "2"
+
+            def run(self, command, *, check=True, input_text=None):
+                if command[:3] == ["docker", "exec", "gateway-id"]:
+                    return subprocess.CompletedProcess(
+                        command, 0, self.runtime_config_digest + "  runtime-config\n", "",
+                    )
+                if command[:3] == ["docker", "inspect", "gateway-id"]:
+                    value = {
+                        "Config": {
+                            "Labels": labels,
+                            "Image": self.generation_image,
+                            "Cmd": ["nginx", "-g", "daemon off;"],
+                            "Healthcheck": {
+                                "Test": self.runtime_health_test,
+                                "Interval": 10_000_000_000,
+                                "Timeout": 3_000_000_000,
+                                "Retries": 6,
+                            },
+                        },
+                        "State": {"Running": True, "Health": {"Status": "healthy"}},
+                        "HostConfig": {
+                            "ReadonlyRootfs": True,
+                            "RestartPolicy": {"Name": "unless-stopped"},
+                            "NanoCpus": 250_000_000,
+                            "CpuShares": 256,
+                            "Memory": self.runtime_memory,
+                            "MemoryReservation": 16_777_216,
+                            "MemorySwap": 134_217_728,
+                            # Docker accepts this Compose option on cgroup v2,
+                            # then discards it and reports null at runtime.
+                            "MemorySwappiness": None,
+                            "OomScoreAdj": -100,
+                            "PidsLimit": 64,
+                        },
+                        "Mounts": [
+                            {
+                                "Type": "bind", "Source": "/snap/previous/gateway.conf",
+                                "Destination": "/etc/nginx/usl-gateway.conf", "RW": False,
+                            },
+                            {
+                                "Type": "bind", "Source": "/var/lib/usl-odoo/gateway/staging",
+                                "Destination": "/run/usl-gateway", "RW": False,
+                            },
+                        ],
+                    }
+                    return subprocess.CompletedProcess(command, 0, json.dumps(value), "")
+                if command[:2] == ["test", "-f"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command == ["docker", "info", "--format", "{{.CgroupVersion}}"]:
+                    return subprocess.CompletedProcess(
+                        command, 0, self.cgroup_version + "\n", "",
+                    )
+                if command[:3] == ["readlink", "-f", "--"]:
+                    return subprocess.CompletedProcess(command, 0, command[-1] + "\n", "")
+                if "--hash" in command:
+                    return subprocess.CompletedProcess(command, 0, "gateway " + raw_hash + "\n", "")
+                if "--format" in command:
+                    source = "/snap/previous/gateway.conf"
+                    if any("/generations/gnext/" in item for item in command):
+                        source = "/snap/next/gateway.conf"
+                    elif not any("/generations/gprevious/" in item for item in command):
+                        source = "/snap/current/gateway.conf"
+                    image = self.generation_image
+                    if any("/generations/gdrift/" in item for item in command):
+                        image = "nginx@sha256:" + "e" * 64
+                    rendered = {"services": {"gateway": {
+                        "image": image,
+                        "command": ["nginx", "-g", "daemon off;"],
+                        "healthcheck": {
+                            "test": ["CMD", "nginx", "-t"],
+                            "interval": "10s", "timeout": "3s", "retries": 6,
+                        },
+                        "cpus": 0.25,
+                        "cpu_shares": 256,
+                        "mem_limit": "100663296",
+                        "mem_reservation": "16777216",
+                        "memswap_limit": "134217728",
+                        "mem_swappiness": "10",
+                        "oom_score_adj": -100,
+                        "pids_limit": 64,
+                        "networks": {"cloudflare": {"aliases": ["odoo-staging"]}},
+                        "volumes": [{
+                            "type": "bind", "source": source,
+                            "target": "/etc/nginx/usl-gateway.conf", "read_only": True,
+                        }],
+                    }}}
+                    return subprocess.CompletedProcess(command, 0, json.dumps(rendered), "")
+                if command[:2] == ["sha256sum", "--"]:
+                    return subprocess.CompletedProcess(command, 0, "c" * 64 + "  " + command[-1], "")
+                raise AssertionError(command)
+
+        canonical = {
+            "project": target.project,
+            "working_directory": (
+                "/var/lib/usl-odoo/gitops-runs/" + "2" * 40
+                + ".current/komodo/stacks/prod-odoo-nbg1-2/usl-odoo-staging"
+            ),
+            "environment_file": "/runtime/staging.env", "profiles": [],
+            "compose_files": [
+                "/var/lib/usl-odoo/gitops-runs/" + "2" * 40
+                + ".current/komodo/stacks/prod-odoo-nbg1-2/usl-odoo-staging/compose.yaml",
+            ],
+        }
+        generation = {
+            **canonical,
+            "compose_files": [
+                *canonical["compose_files"],
+                "/var/lib/usl-odoo/runtime/staging/generations/gnext/compose.generation.json",
+            ],
+        }
+        networks = {
+            target.value["external_networks"]["ingress"]: {"Aliases": ["odoo-staging"]},
+            target.value["compose"]["default_network"]: {"Aliases": ["gateway"]},
+        }
+        runner = Runner()
+        with mock.patch("operations.stack._container_networks", return_value=networks):
+            _validate_gateway_container(target, runner, "gateway-id", canonical, generation)
+            recorded_files = labels["com.docker.compose.project.config_files"]
+            labels["com.docker.compose.project.config_files"] = (
+                "/var/lib/usl-odoo/gitops-runs/" + "1" * 40
+                + ".previous/komodo/stacks/prod-odoo-nbg1-2/usl-odoo-staging/compose.yaml,"
+                "/tmp/foreign.json"
+            )
+            with self.assertRaisesRegex(RuntimeError, "running gateway Compose identity is invalid"):
+                _validate_gateway_container(target, runner, "gateway-id", canonical, generation)
+            labels["com.docker.compose.project.config_files"] = recorded_files
+            labels["com.docker.compose.config-hash"] = "invalid"
+            with self.assertRaisesRegex(RuntimeError, "running gateway Compose hash is invalid"):
+                _validate_gateway_container(target, runner, "gateway-id", canonical, generation)
+            labels["com.docker.compose.config-hash"] = raw_hash
+            runner.runtime_config_digest = "d" * 64
+            with self.assertRaisesRegex(RuntimeError, "running gateway configuration content differs"):
+                _validate_gateway_container(target, runner, "gateway-id", canonical, generation)
+            runner.runtime_config_digest = "c" * 64
+            runner.runtime_health_test = ["NONE"]
+            with self.assertRaisesRegex(RuntimeError, "running gateway semantic configuration differs"):
+                _validate_gateway_container(target, runner, "gateway-id", canonical, generation)
+            runner.runtime_health_test = ["CMD", "nginx", "-t"]
+            runner.runtime_memory += 1
+            with self.assertRaisesRegex(RuntimeError, "running gateway semantic configuration differs"):
+                _validate_gateway_container(target, runner, "gateway-id", canonical, generation)
+            runner.runtime_memory -= 1
+            runner.cgroup_version = "1"
+            with self.assertRaisesRegex(RuntimeError, "running gateway semantic configuration differs"):
+                _validate_gateway_container(target, runner, "gateway-id", canonical, generation)
+            runner.cgroup_version = "2"
+            drift = {
+                **generation,
+                "compose_files": [
+                    canonical["compose_files"][0],
+                    "/var/lib/usl-odoo/runtime/staging/generations/gdrift/compose.generation.json",
+                ],
+            }
+            with self.assertRaisesRegex(RuntimeError, "generation gateway semantic configuration differs"):
+                _validate_gateway_container(target, runner, "gateway-id", canonical, drift)
+
+    def test_gateway_hash_evidence_and_running_label_fail_closed(self) -> None:
+        identity = {
+            "project": "staging", "working_directory": "/gitops/staging",
+            "environment_file": "/runtime/staging.env", "profiles": [],
+            "compose_files": ["/gitops/staging/compose.yaml"],
+        }
+        for output in ("", "gateway not-a-hash\n", "gateway " + "a" * 64 + "\ngateway " + "a" * 64):
+            runner = mock.Mock()
+            runner.run.return_value = subprocess.CompletedProcess([], 0, output, "")
+            with self.subTest(output=output), self.assertRaisesRegex(RuntimeError, "hash evidence is invalid"):
+                _gateway_service_hash(runner, identity)
+
+    def test_first_v3_gateway_adoption_rolls_back_when_gateway_start_fails(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        legacy = {
+            "container_id": "legacy-id",
+            "project": target.project,
+            "working_directory": "/runtime/legacy",
+            "environment_file": "/runtime/staging.env",
+            "profiles": target.value["compose"]["profiles"],
+            "anchor_service": "odoo",
+            "compose_files": ["/runtime/legacy/compose.yaml"],
+        }
+        candidate = {**legacy, "anchor_service": "odoo-staging"}
+
+        class Runner:
+            detached = False
+            commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:2] == ["test", "-f"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:3] == ["docker", "network", "disconnect"]:
+                    self.detached = True
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:3] == ["docker", "network", "connect"]:
+                    self.detached = False
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:2] == ["docker", "start"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if "up" in command and command[-1] == "gateway":
+                    raise RuntimeError("gateway start failed")
+                raise AssertionError(command)
+
+        runner = Runner()
+        networks = lambda _runner, container: {
+            target.value["compose"]["default_network"]: {"Aliases": ["odoo-staging-app"]},
+            **({target.value["external_networks"]["ingress"]: {"Aliases": [
+                f"{target.project}-odoo-1", "odoo", "odoo-staging",
+            ]}} if not runner.detached else {}),
+        }
+        owners = lambda _runner, _network, _alias: [] if runner.detached else ["legacy-id"]
+        with mock.patch("operations.stack.inspect_runtime", return_value={"compose": legacy, "generation": "glegacy"}), mock.patch(
+            "operations.stack._candidate_compose_identity", return_value=candidate,
+        ), mock.patch(
+            "operations.stack._validated_legacy_compose_identity",
+        ), mock.patch(
+            "operations.stack._container_identifier", return_value="legacy-id",
+        ), mock.patch("operations.stack._container_networks", side_effect=networks), mock.patch(
+            "operations.stack._network_alias_owners", side_effect=owners,
+        ), mock.patch(
+            "operations.stack._wait_legacy_staging_origin",
+            return_value={"status": "running", "running": True, "health": "healthy"},
+        ), mock.patch("operations.stack._gateway_container", return_value=None), self.assertRaisesRegex(
+            RuntimeError, "gateway start failed",
+        ):
+            _adopt_staging_gateway(target, runner)
+        self.assertFalse(runner.detached)
+
+    def test_first_v3_gateway_adoption_is_retryable_after_alias_transfer(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        ingress = target.value["external_networks"]["ingress"]
+        default = target.value["compose"]["default_network"]
+        legacy = {
+            "container_id": "legacy-id", "project": target.project,
+            "working_directory": "/runtime/legacy",
+            "environment_file": "/runtime/staging.env",
+            "profiles": target.value["compose"]["profiles"],
+            "anchor_service": "odoo", "compose_files": ["/runtime/legacy.yaml"],
+        }
+        candidate = {**legacy, "anchor_service": "odoo-staging"}
+
+        class Runner:
+            detached = True
+            gateway = False
+            commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:2] == ["test", "-f"] or command[:3] == ["docker", "exec", "gateway-id"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if "up" in command and command[-1] == "gateway":
+                    self.gateway = True
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:2] == ["docker", "restart"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                raise AssertionError(command)
+
+        runner = Runner()
+        def networks(_runner, container):
+            if container == "legacy-id":
+                return {default: {"Aliases": ["odoo-staging-app"]}}
+            return {ingress: {"Aliases": ["odoo-staging"]}, default: {"Aliases": ["gateway"]}}
+
+        def owners(_runner, _network, _alias):
+            return ["gateway-id"] if runner.gateway else []
+
+        with mock.patch("operations.stack.inspect_runtime", return_value={"compose": legacy, "generation": "glegacy"}), mock.patch(
+            "operations.stack._candidate_compose_identity", return_value=candidate,
+        ), mock.patch(
+            "operations.stack._validated_legacy_compose_identity",
+        ), mock.patch(
+            "operations.stack._container_identifier", return_value="legacy-id",
+        ), mock.patch("operations.stack._container_networks", side_effect=networks), mock.patch(
+            "operations.stack._network_alias_owners", side_effect=owners,
+        ), mock.patch("operations.stack._gateway_container", side_effect=lambda *_: "gateway-id" if runner.gateway else None), mock.patch(
+            "operations.stack._validate_gateway_container",
+        ), mock.patch(
+            "operations.stack._wait_legacy_staging_origin",
+            return_value={"status": "running", "running": True, "health": "healthy"},
+        ), mock.patch(
+            "operations.stack._probe_staging_gateway_maintenance",
+            return_value={"schema": "usl-staging-gateway-maintenance/v1", "status": "passed", "http_status": 503, "websocket_status": 503},
+        ):
+            first = _adopt_staging_gateway(target, runner)
+            second = _adopt_staging_gateway(target, runner)
+        self.assertEqual(
+            set(first),
+            {"schema", "status", "adoption", "http_status", "websocket_status"},
+        )
+        self.assertEqual(first["adoption"], "already-adopted")
+        self.assertEqual(second["adoption"], "already-adopted")
+        self.assertEqual(
+            sum(command[:2] == ["docker", "restart"] for command in runner.commands),
+            1,
+        )
+
+    def test_first_v3_gateway_adoption_restarts_only_detached_legacy_origin(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        ingress = target.value["external_networks"]["ingress"]
+        default = target.value["compose"]["default_network"]
+        legacy = {
+            "container_id": "legacy-id", "project": target.project,
+            "working_directory": "/runtime/legacy",
+            "environment_file": "/runtime/staging.env",
+            "profiles": target.value["compose"]["profiles"],
+            "anchor_service": "odoo", "compose_files": ["/runtime/legacy.yaml"],
+        }
+        candidate = {**legacy, "anchor_service": "odoo-staging"}
+
+        class Runner:
+            detached = False
+            gateway = False
+            commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:2] == ["test", "-f"] or command[:3] == ["docker", "exec", "gateway-id"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:3] == ["docker", "network", "disconnect"]:
+                    self.detached = True
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if "up" in command and command[-1] == "gateway":
+                    self.gateway = True
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:2] == ["docker", "restart"]:
+                    self.assert_detached_at_restart = self.detached
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                raise AssertionError(command)
+
+        runner = Runner()
+
+        def networks(_runner, container):
+            if container == "legacy-id":
+                return {
+                    default: {"Aliases": ["odoo-staging-app"]},
+                    **({ingress: {"Aliases": [
+                        f"{target.project}-odoo-1", "odoo", "odoo-staging",
+                    ]}} if not runner.detached else {}),
+                }
+            return {ingress: {"Aliases": ["odoo-staging"]}, default: {"Aliases": ["gateway"]}}
+
+        with mock.patch("operations.stack.inspect_runtime", return_value={"compose": legacy, "generation": "glegacy"}), mock.patch(
+            "operations.stack._candidate_compose_identity", return_value=candidate,
+        ), mock.patch(
+            "operations.stack._validated_legacy_compose_identity",
+        ), mock.patch(
+            "operations.stack._container_identifier", return_value="legacy-id",
+        ), mock.patch("operations.stack._container_networks", side_effect=networks), mock.patch(
+            "operations.stack._network_alias_owners", side_effect=lambda *_: ["gateway-id"] if runner.gateway else ["legacy-id"],
+        ), mock.patch(
+            "operations.stack._gateway_container", side_effect=lambda *_: "gateway-id" if runner.gateway else None,
+        ), mock.patch(
+            "operations.stack._validate_gateway_container",
+        ), mock.patch(
+            "operations.stack._wait_legacy_staging_origin",
+            return_value={"status": "running", "running": True, "health": "healthy"},
+        ), mock.patch(
+            "operations.stack._probe_staging_gateway_maintenance",
+            return_value={"schema": "usl-staging-gateway-maintenance/v1", "status": "passed", "http_status": 503, "websocket_status": 503},
+        ):
+            result = _adopt_staging_gateway(target, runner)
+
+        self.assertEqual(result["adoption"], "adopted")
+        self.assertTrue(runner.assert_detached_at_restart)
+        restart = next(command for command in runner.commands if command[:2] == ["docker", "restart"])
+        self.assertEqual(restart, ["docker", "restart", "--time", "30", "legacy-id"])
+
+    def test_legacy_origin_waits_past_restart_until_healthy(self) -> None:
+        states = [
+            {"Status": "running", "Running": True, "Health": {"Status": "starting"}},
+            {"Status": "running", "Running": True, "Health": {"Status": "healthy"}},
+        ]
+
+        class Runner:
+            def run(self, command, *, check=True, input_text=None):
+                return subprocess.CompletedProcess(command, 0, json.dumps(states.pop(0)), "")
+
+        with mock.patch("operations.stack.time.sleep") as sleep:
+            result = _wait_legacy_staging_origin(Runner(), "legacy-id")
+        self.assertEqual(result["health"], "healthy")
+        sleep.assert_called_once_with(2.0)
+
+    def test_legacy_origin_health_wait_is_bounded_and_rejects_terminal_state(self) -> None:
+        class Runner:
+            state = {"Status": "running", "Running": True, "Health": {"Status": "starting"}}
+
+            def run(self, command, *, check=True, input_text=None):
+                return subprocess.CompletedProcess(command, 0, json.dumps(self.state), "")
+
+        runner = Runner()
+        with (
+            mock.patch("operations.stack.time.monotonic", side_effect=[0.0, 121.0]),
+            mock.patch("operations.stack.time.sleep"),
+            self.assertRaisesRegex(RuntimeError, "did not become healthy within 120 seconds"),
+        ):
+            _wait_legacy_staging_origin(runner, "legacy-id")
+        runner.state = {"Status": "exited", "Running": False, "Health": {"Status": "unhealthy"}}
+        with self.assertRaisesRegex(RuntimeError, "entered a terminal state"):
+            _wait_legacy_staging_origin(runner, "legacy-id")
+
+    def test_failed_legacy_health_keeps_admitted_maintenance_gateway(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        candidate = {
+            "project": target.project, "working_directory": "/gitops/staging",
+            "environment_file": "/runtime/staging.env", "profiles": [],
+            "anchor_service": "odoo-staging", "compose_files": ["/gitops/compose.yaml"],
+        }
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:2] == ["docker", "start"]:
+                    return subprocess.CompletedProcess(command, 0, "legacy-id\n", "")
+                raise AssertionError(command)
+
+        runner = Runner()
+        with (
+            mock.patch("operations.stack._gateway_container", return_value="gateway-id"),
+            mock.patch(
+                "operations.stack._wait_legacy_staging_origin",
+                side_effect=RuntimeError("health timeout"),
+            ),
+            mock.patch("operations.stack._validate_gateway_container") as validate_gateway,
+            mock.patch("operations.stack._network_alias_owners", return_value=["gateway-id"]),
+            mock.patch(
+                "operations.stack._probe_staging_gateway_maintenance",
+                return_value={"status": "passed"},
+            ) as maintenance,
+            self.assertRaisesRegex(RuntimeError, "maintenance gateway remains active"),
+        ):
+            _restore_legacy_ingress(target, runner, candidate, "legacy-id", ["odoo-staging"])
+        validate_gateway.assert_called_once_with(target, runner, "gateway-id", candidate)
+        maintenance.assert_called_once_with(target, runner)
+        self.assertFalse(any("rm" in command and "gateway" in command for command in runner.commands))
+
+    def test_first_v3_gateway_adoption_stops_on_alias_transfer_failure(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        ingress = target.value["external_networks"]["ingress"]
+        default = target.value["compose"]["default_network"]
+        legacy = {
+            "container_id": "legacy-id", "project": target.project,
+            "working_directory": "/runtime/legacy", "environment_file": "/runtime/staging.env",
+            "profiles": target.value["compose"]["profiles"], "anchor_service": "odoo",
+            "compose_files": ["/runtime/legacy.yaml"],
+        }
+
+        class Runner:
+            commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:2] == ["test", "-f"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                if command[:3] == ["docker", "network", "disconnect"]:
+                    raise RuntimeError("alias transfer failed")
+                raise AssertionError(command)
+
+        runner = Runner()
+        with mock.patch("operations.stack.inspect_runtime", return_value={"compose": legacy, "generation": "glegacy"}), mock.patch(
+            "operations.stack._candidate_compose_identity", return_value={**legacy, "anchor_service": "odoo-staging"},
+        ), mock.patch(
+            "operations.stack._validated_legacy_compose_identity",
+        ), mock.patch(
+            "operations.stack._container_identifier", return_value="legacy-id",
+        ), mock.patch("operations.stack._container_networks", return_value={
+            default: {"Aliases": ["odoo-staging-app"]},
+            ingress: {"Aliases": [f"{target.project}-odoo-1", "odoo", "odoo-staging"]},
+        }), mock.patch(
+            "operations.stack._network_alias_owners", return_value=["legacy-id"],
+        ), self.assertRaisesRegex(RuntimeError, "alias transfer failed"):
+            _adopt_staging_gateway(target, runner)
+        self.assertFalse(any("gateway" == command[-1] for command in runner.commands))
+
+    def test_gateway_maintenance_probe_requires_http_and_websocket_503(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+
+        class Runner:
+            responses = [
+                subprocess.CompletedProcess([], 0, "HTTP/1.1 503 Service Unavailable\nretry-after: 60\n", ""),
+                subprocess.CompletedProcess([], 0, 'HTTP/1.1 503 Service Unavailable\n\n{"error":"maintenance"}\n', ""),
+            ]
+
+            commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                return self.responses.pop(0)
+
+        runner = Runner()
+        evidence = _probe_staging_gateway_maintenance(target, runner)
+        self.assertEqual(
+            set(evidence),
+            {"schema", "status", "http_status", "websocket_status"},
+        )
+        self.assertEqual(evidence["status"], "passed")
+        self.assertEqual(evidence["http_status"], 503)
+        self.assertEqual(evidence["websocket_status"], 503)
+        self.assertIn(
+            "Origin: https://odoo-staging.unstaticlabs.com",
+            runner.commands[1],
+        )
+
+    def test_gateway_maintenance_probe_waits_for_public_alias_propagation(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+
+        class Runner:
+            responses = [
+                subprocess.CompletedProcess([], 0, "HTTP/1.1 200 OK\n\n", ""),
+                subprocess.CompletedProcess([], 0, "HTTP/1.1 400 Bad Request\n\n", ""),
+                subprocess.CompletedProcess([], 0, "HTTP/1.1 503 Service Unavailable\nRetry-After: 60\n", ""),
+                subprocess.CompletedProcess([], 0, 'HTTP/1.1 503 Service Unavailable\n\n{"error":"maintenance"}\n', ""),
+            ]
+
+            def run(self, command, *, check=True, input_text=None):
+                return self.responses.pop(0)
+
+        with mock.patch("operations.stack.time.sleep") as sleep:
+            evidence = _probe_staging_gateway_maintenance(target, Runner())
+        self.assertEqual(evidence["status"], "passed")
+        sleep.assert_called_once_with(2)
+
+    def test_legacy_rollback_starts_behind_the_stable_gateway(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        legacy = {
+            "project": target.project, "working_directory": "/runtime/legacy",
+            "environment_file": "/runtime/staging.env", "profiles": [],
+            "anchor_service": "odoo", "compose_files": ["/runtime/legacy.yaml"],
+        }
+
+        class Runner:
+            commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:2] == ["docker", "ps"]:
+                    return subprocess.CompletedProcess(command, 0, "legacy-id\n", "")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = Runner()
+        with mock.patch("operations.stack._gateway_container", return_value="gateway-id"), mock.patch(
+            "operations.stack._candidate_compose_identity", return_value={**legacy, "anchor_service": "odoo-staging"},
+        ), mock.patch(
+            "operations.stack._validate_gateway_container",
+        ), mock.patch(
+            "operations.stack._network_alias_owners", return_value=["gateway-id"],
+        ), mock.patch(
+            "operations.stack._container_networks", return_value={
+                target.value["compose"]["default_network"]: {"Aliases": ["odoo-staging-app"]},
+                target.value["external_networks"]["ingress"]: {"Aliases": ["odoo-staging"]},
+            },
+        ), mock.patch("operations.stack._wait_compose_services"):
+            _start_rollback_identity(target, runner, legacy)
+        create = next(command for command in runner.commands if "create" in command)
+        start = next(command for command in runner.commands if "start" in command)
+        self.assertIn("--force-recreate", create)
+        self.assertIn(["docker", "network", "disconnect", "cloudflare", "legacy-id"], runner.commands)
+        self.assertNotIn("gateway", create[create.index("create") + 1:])
+        self.assertIn("odoo", start)
+        self.assertFalse(any("up" in command for command in runner.commands))
 
     def test_production_generation_activates_restored_sign_secrets(self) -> None:
         target = load_target("production", TARGETS)
@@ -1262,6 +5197,7 @@ class CohortContractTests(unittest.TestCase):
             "g20260901-a1b2c3d4",
             "recovery-network",
             names,
+            "/run/usl/source-backup.env",
         )
         joined = " ".join(command)
         self.assertIn(source.value["backup"]["durable_repository"], joined)
@@ -1270,6 +5206,761 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("/sign-secrets:/target/sign-secrets", joined)
         self.assertIn("USL_RESTORE_GENERATION_CONFIRMED=g20260901-a1b2c3d4", joined)
         self.assertIn("USL_TARGET_ENVIRONMENT=staging", joined)
+        self.assertIn("--env-file /run/usl/source-backup.env", joined)
+
+    def test_staging_backup_and_restore_share_persistent_local_repositories(self) -> None:
+        staging = load_target("staging", TARGETS)
+        production = load_target("production", TARGETS)
+        names = generation_volume_names(staging, "g20260901-a1b2c3d4")
+        backup = _cohort_command(staging, "backup-image", "push", [])
+        restore = _materialize_command(
+            staging, staging, "backup-image", "b" * 64,
+            "g20260901-a1b2c3d4", "recovery-network", names, "/run/source.env",
+        )
+        production_restore = _materialize_command(
+            production, staging, "backup-image", "b" * 64,
+            "g20260901-a1b2c3d4", "recovery-network", names, "/run/source.env",
+        )
+        for repository in staging.value["backup"].values():
+            for command in (backup, restore):
+                self.assertIn(f"{repository}:{repository}", command)
+                self.assertLess(command.index(f"{repository}:{repository}"), command.index("backup-image"))
+            self.assertNotIn(f"{repository}:{repository}", production_restore)
+        self.assertIn("--durable-snapshot", restore)
+        self.assertIn("b" * 64, restore)
+
+    def test_backup_v2_receipt_binds_exact_quiesced_staging_cohort(self) -> None:
+        target = load_target("staging", TARGETS)
+        value = backup_receipt()
+        self.assertEqual(
+            _backup_run_receipt(
+                value,
+                target="staging",
+                run_id=value["run_id"],
+                require_quiesced=True,
+                expected_writer_services=[
+                    target.value["services"][role]
+                    for role in BACKUP_WRITER_SERVICE_ROLES
+                ],
+            )["sha256"],
+            value["sha256"],
+        )
+        for mutation, message in (
+            (("quiescence", "writer_services"), "quiescence"),
+            (("qualification", "durable_snapshot_id"), "cohort identity"),
+        ):
+            changed = json.loads(json.dumps(value))
+            parent = changed
+            for key in mutation[:-1]:
+                parent = parent[key]
+            parent[mutation[-1]] = [] if mutation[-1] == "writer_services" else "9" * 64
+            if mutation[0] == "quiescence":
+                changed["quiescence"]["sha256"] = __import__("hashlib").sha256(json.dumps(
+                    {key: item for key, item in changed["quiescence"].items() if key != "sha256"},
+                    sort_keys=True, separators=(",", ":"),
+                ).encode()).hexdigest()
+            changed["sha256"] = __import__("hashlib").sha256(json.dumps(
+                {key: item for key, item in changed.items() if key != "sha256"},
+                sort_keys=True, separators=(",", ":"),
+            ).encode()).hexdigest()
+            with self.assertRaisesRegex(RuntimeError, message):
+                _backup_run_receipt(
+                    changed,
+                    target="staging",
+                    run_id=value["run_id"],
+                    require_quiesced=True,
+                    expected_writer_services=[
+                        target.value["services"][role]
+                        for role in BACKUP_WRITER_SERVICE_ROLES
+                    ],
+                )
+
+    def test_staging_checkpoint_receipt_rejects_tamper(self) -> None:
+        target = load_target("staging", TARGETS)
+        value = {
+            "schema": "usl-staging-checkpoint/v1",
+            "target": "staging",
+            "attempt": "attempt-20260904-staging",
+            "candidate_release": "a" * 64,
+            "snapshot": "b" * 64,
+            "cache_snapshot": "c" * 64,
+            "baseline_generation": None,
+            "baseline_release": "d" * 64,
+            "baseline_runtime_sha256": "e" * 64,
+            "upgrade_plan_sha256": "f" * 64,
+            "prepare_receipt_sha256": "1" * 64,
+            "maintenance_receipt_sha256": "2" * 64,
+            "resources_sha256": "3" * 64,
+            "controls_sha256": "4" * 64,
+            "checkpointed_at": "2026-09-04T00:01:00Z",
+            "status": "checkpointed",
+        }
+        value["sha256"] = __import__("hashlib").sha256(json.dumps(
+            value, sort_keys=True, separators=(",", ":"),
+        ).encode()).hexdigest()
+        self.assertEqual(
+            _staging_checkpoint_receipt(
+                value, target=target, attempt=value["attempt"], release="a" * 64,
+            )["snapshot"],
+            "b" * 64,
+        )
+        changed = dict(value, baseline_runtime_sha256="9" * 64)
+        with self.assertRaisesRegex(RuntimeError, "digest differs"):
+            _staging_checkpoint_receipt(
+                changed, target=target, attempt=value["attempt"], release="a" * 64,
+            )
+
+    def test_staging_reset_drift_returns_typed_no_touch_receipt(self) -> None:
+        target = load_target("staging", TARGETS)
+        intent = {
+            "sha256": "a" * 64,
+            "staging_baseline_generation": "gbase",
+            "staging_baseline_release": "b" * 64,
+            "staging_baseline_runtime_sha256": "c" * 64,
+        }
+        receipt = _staging_reset_deferred_receipt(
+            target=target,
+            admission={
+                "attempt": "attempt-20260904-production",
+                "release": "d" * 64,
+            },
+            intent=intent,
+            observed={"generation": "gnewer"},
+            observed_release="e" * 64,
+            observed_runtime_sha256="f" * 64,
+        )
+        self.assertEqual(receipt["schema"], "usl-staging-reset-deferred/v1")
+        self.assertEqual(receipt["status"], "deferred")
+        self.assertEqual(receipt["reason"], "staging-advanced")
+        self.assertEqual(receipt["baseline"]["runtime_sha256"], "c" * 64)
+        self.assertEqual(receipt["observed"]["runtime_sha256"], "f" * 64)
+        self.assertEqual(receipt["sha256"], __import__("hashlib").sha256(json.dumps(
+            {key: value for key, value in receipt.items() if key != "sha256"},
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()).hexdigest())
+
+    def test_runtime_baseline_cas_binds_volumes_and_compose(self) -> None:
+        runtime = {
+            "generation": "gbase",
+            "active_state": {"generation": "gbase", "network": "network-a"},
+            "volumes": {"odoo_postgres": {"name": "db-a", "path": "/data/a"}},
+            "compose": {"project": "staging", "compose_files": ["compose.yaml"]},
+        }
+        original = _runtime_baseline_sha256(runtime)
+        changed = json.loads(json.dumps(runtime))
+        changed["volumes"]["odoo_postgres"]["name"] = "db-b"
+        self.assertNotEqual(original, _runtime_baseline_sha256(changed))
+        changed = json.loads(json.dumps(runtime))
+        changed["compose"]["compose_files"].append("different.json")
+        self.assertNotEqual(original, _runtime_baseline_sha256(changed))
+
+    def test_source_backup_secrets_use_stdin_and_never_argv(self) -> None:
+        secret_values = {
+            "AWS_ACCESS_KEY_ID": "access-secret",
+            "AWS_SECRET_ACCESS_KEY": "private-secret",
+            "RESTIC_PASSWORD": "durable-secret",
+            "USL_BACKUP_CACHE_PASSWORD": "cache-secret",
+        }
+        raw = "".join(f"{key}={value}\n" for key, value in secret_values.items())
+        source = mock.Mock(value={
+            "secrets": {"env_file": "/prod/operations.env", "allowed_keys": list(secret_values)},
+        })
+        source_runner = mock.Mock()
+        source_runner.run.return_value = subprocess.CompletedProcess([], 0, raw, "")
+        target_runner = mock.Mock()
+        target_runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        _write_source_backup_environment(
+            source, source_runner, mock.Mock(), target_runner, "/run/source.env",
+        )
+        command = target_runner.run.call_args.args[0]
+        input_text = target_runner.run.call_args.kwargs["input_text"]
+        self.assertFalse(any(value in " ".join(command) for value in secret_values.values()))
+        self.assertTrue(all(value in input_text for value in secret_values.values()))
+
+    def test_ordinary_staging_never_accepts_production_source(self) -> None:
+        arguments = argparse.Namespace(
+            target="staging", targets=TARGETS, action="reconcile-staging",
+            source="production", checkpoint_receipt=None, candidate_release=None,
+        )
+        with self.assertRaisesRegex(RuntimeError, "must preserve staging data"):
+            release_command(arguments)
+        arguments.action = "reconcile"
+        arguments.source = None
+        with self.assertRaisesRegex(RuntimeError, "reconcile-staging"):
+            release_command(arguments)
+
+    def test_staging_reset_intent_response_loss_replays_exact_existing_receipt(self) -> None:
+        configured = load_target("staging", TARGETS)
+        runner = mock.Mock()
+        target = mock.Mock(value=configured.value, runner=mock.Mock(return_value=runner))
+        target.name = "staging"
+        production_release = {"identity": "a" * 64}
+        production_prepare = {
+            "gitops_commit": "b" * 40,
+            "sha256": "c" * 64,
+            "upgrade_plan_sha256": "d" * 64,
+        }
+        existing = {
+            "schema": "usl-staging-reset-intent/v1",
+            "staging_target": "staging",
+            "staging_baseline_generation": "gbase",
+            "staging_baseline_release": "e" * 64,
+            "staging_baseline_runtime_sha256": "f" * 64,
+            "production_attempt": "attempt-20260904-prod",
+            "production_release": "a" * 64,
+            "gitops_commit": "b" * 40,
+            "production_prepare_receipt_sha256": "c" * 64,
+            "production_upgrade_plan_sha256": "d" * 64,
+            "created_at": "2026-09-04T00:00:00Z",
+            "status": "planned",
+        }
+        existing["sha256"] = __import__("hashlib").sha256(json.dumps(
+            existing, sort_keys=True, separators=(",", ":"),
+        ).encode()).hexdigest()
+
+        def run(command, *, check=True, input_text=None):
+            if command[:1] == ["cat"]:
+                return subprocess.CompletedProcess(command, 0, json.dumps(existing), "")
+            return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner.run.side_effect = run
+        arguments = argparse.Namespace(
+            action="staging-reset-intent", target="staging", targets=TARGETS,
+            candidate_release=Path("/release.json"),
+            prepare_receipt=Path("/prepare.json"),
+            attempt_id="attempt-20260904-prod", output=Path("/intent.json"), json=True,
+        )
+        with (
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack._read_path", return_value="{}"),
+            mock.patch("operations.stack.validate_release", return_value=production_release),
+            mock.patch("operations.stack._prepare_receipt", return_value=production_prepare),
+            mock.patch(
+                "operations.stack.inspect_runtime",
+                return_value={"generation": "gbase", "compose": {}},
+            ),
+            mock.patch(
+                "operations.stack._release",
+                return_value=({"identity": "e" * 64}, "1" * 64, "{}"),
+            ),
+            mock.patch("operations.stack._runtime_cas_sha256", return_value="f" * 64),
+            mock.patch("operations.stack._write_remote") as write_remote,
+        ):
+            self.assertEqual(release_command(arguments), 0)
+        write_remote.assert_not_called()
+
+        mismatched = json.loads(json.dumps(existing))
+        mismatched["staging_baseline_release"] = "9" * 64
+        mismatched["sha256"] = __import__("hashlib").sha256(json.dumps(
+            {key: item for key, item in mismatched.items() if key != "sha256"},
+            sort_keys=True, separators=(",", ":"),
+        ).encode()).hexdigest()
+        runner.run.side_effect = lambda command, **kwargs: subprocess.CompletedProcess(
+            command, 0, json.dumps(mismatched) if command[:1] == ["cat"] else "", "",
+        )
+        with (
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack._read_path", return_value="{}"),
+            mock.patch("operations.stack.validate_release", return_value=production_release),
+            mock.patch("operations.stack._prepare_receipt", return_value=production_prepare),
+            mock.patch("operations.stack.inspect_runtime", return_value={"generation": "gbase", "compose": {}}),
+            mock.patch("operations.stack._release", return_value=({"identity": "e" * 64}, "1" * 64, "{}")),
+            mock.patch("operations.stack._runtime_cas_sha256", return_value="f" * 64),
+            self.assertRaisesRegex(RuntimeError, "existing staging reset intent differs"),
+        ):
+            release_command(arguments)
+
+    def test_prepared_quiescence_receipt_can_recover_the_exact_writer_set(self) -> None:
+        target = load_target("staging", TARGETS)
+        services = [
+            target.value["services"][role]
+            for role in BACKUP_WRITER_SERVICE_ROLES
+        ]
+        receipt = _backup_quiescence_receipt(
+            target="staging",
+            run_id="attempt-20260904-crash",
+            baseline="a" * 64,
+            services=services,
+            status="prepared",
+            prepared_at="2026-09-04T00:00:00Z",
+            stopped_at=None,
+        )
+        self.assertEqual(
+            _validate_backup_quiescence_receipt(
+                receipt,
+                target="staging",
+                run_id="attempt-20260904-crash",
+                services=services,
+            )["status"],
+            "prepared",
+        )
+        changed = json.loads(json.dumps(receipt))
+        changed["writer_services"] = list(reversed(services))
+        changed["sha256"] = __import__("hashlib").sha256(json.dumps(
+            {key: item for key, item in changed.items() if key != "sha256"},
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()).hexdigest()
+        with self.assertRaisesRegex(RuntimeError, "identity differs"):
+            _validate_backup_quiescence_receipt(
+                changed,
+                target="staging",
+                run_id="attempt-20260904-crash",
+                services=services,
+            )
+        reversed_time = _backup_quiescence_receipt(
+            target="staging",
+            run_id="attempt-20260904-crash",
+            baseline="a" * 64,
+            services=services,
+            status="quiesced",
+            prepared_at="2026-09-04T00:00:01Z",
+            stopped_at="2026-09-04T00:00:00Z",
+        )
+        with self.assertRaisesRegex(RuntimeError, "phase order"):
+            _validate_backup_quiescence_receipt(
+                reversed_time,
+                target="staging",
+                run_id="attempt-20260904-crash",
+                services=services,
+            )
+
+    def test_resume_staging_accepts_pre_stop_receipt_after_runner_crash(self) -> None:
+        configured = load_target("staging", TARGETS)
+        services = [
+            configured.value["services"][role]
+            for role in BACKUP_WRITER_SERVICE_ROLES
+        ]
+        receipt = _backup_quiescence_receipt(
+            target="staging",
+            run_id="attempt-20260904-crash",
+            baseline="a" * 64,
+            services=services,
+            status="prepared",
+            prepared_at="2026-09-04T00:00:00Z",
+            stopped_at=None,
+        )
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:1] == ["cat"] and command[-1].endswith("/operation.lock/owner.json"):
+                    return subprocess.CompletedProcess(command, 1, "", "")
+                if command[:2] == ["test", "-d"] and command[-1].endswith("/operation.lock"):
+                    return subprocess.CompletedProcess(command, 1, "", "")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = Runner()
+        target = mock.Mock(value=configured.value, runner=mock.Mock(return_value=runner))
+        target.name = "staging"
+        runtime = {
+            "compose": {
+                "project": "usl-odoo-staging-main",
+                "working_directory": "/release",
+                "environment_file": "/runtime.env",
+                "compose_files": ["/release/compose.yaml"],
+            },
+        }
+        arguments = argparse.Namespace(
+            action="resume-staging",
+            target="staging",
+            targets=TARGETS,
+            attempt_id=receipt["run_id"],
+            backup_receipt=None,
+            quiescence_receipt=Path("/runtime/prepared.json"),
+            json=True,
+        )
+        with (
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack._read_path", return_value=json.dumps(receipt)),
+            mock.patch("operations.stack.inspect_runtime", return_value=runtime),
+            mock.patch("operations.stack._runtime_cas_sha256", return_value="a" * 64),
+        ):
+            self.assertEqual(release_command(arguments), 0)
+        recovery = next(command for command in runner.commands if "up" in command)
+        self.assertIn("--no-recreate", recovery)
+        self.assertEqual(recovery[-len(services):], services)
+
+    def test_release_cli_exposes_crash_recovery_quiescence_receipt(self) -> None:
+        arguments = build_parser().parse_args([
+            "release",
+            "resume-staging",
+            "--target",
+            "staging",
+            "--attempt-id",
+            "attempt-20260904-crash",
+            "--quiescence-receipt",
+            "/runtime/prepared.json",
+        ])
+        self.assertEqual(arguments.action, "resume-staging")
+        self.assertEqual(arguments.quiescence_receipt, Path("/runtime/prepared.json"))
+
+    def test_resume_staging_rejects_pre_stop_receipt_after_baseline_change(self) -> None:
+        configured = load_target("staging", TARGETS)
+        services = [
+            configured.value["services"][role]
+            for role in BACKUP_WRITER_SERVICE_ROLES
+        ]
+        receipt = _backup_quiescence_receipt(
+            target="staging",
+            run_id="attempt-20260904-crash",
+            baseline="a" * 64,
+            services=services,
+            status="prepared",
+            prepared_at="2026-09-04T00:00:00Z",
+            stopped_at=None,
+        )
+        runner = mock.Mock()
+        def no_existing_lock(command, *, check=True, input_text=None):
+            if command[:1] == ["cat"] and command[-1].endswith("/operation.lock/owner.json"):
+                return subprocess.CompletedProcess(command, 1, "", "")
+            if command[:2] == ["test", "-d"] and command[-1].endswith("/operation.lock"):
+                return subprocess.CompletedProcess(command, 1, "", "")
+            return subprocess.CompletedProcess(command, 0, "", "")
+        runner.run.side_effect = no_existing_lock
+        target = mock.Mock(value=configured.value, runner=mock.Mock(return_value=runner))
+        target.name = "staging"
+        arguments = argparse.Namespace(
+            action="resume-staging",
+            target="staging",
+            targets=TARGETS,
+            attempt_id=receipt["run_id"],
+            backup_receipt=None,
+            quiescence_receipt=Path("/runtime/prepared.json"),
+            json=True,
+        )
+        with (
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack._read_path", return_value=json.dumps(receipt)),
+            mock.patch("operations.stack.inspect_runtime", return_value={"compose": {}}),
+            mock.patch("operations.stack._runtime_cas_sha256", return_value="b" * 64),
+            self.assertRaisesRegex(RuntimeError, "baseline differs"),
+        ):
+            release_command(arguments)
+        self.assertFalse(any("up" in call.args[0] for call in runner.run.call_args_list))
+
+    def test_crash_recovery_refuses_a_different_operation_lock_owner(self) -> None:
+        target = load_target("staging", TARGETS)
+        run_id = "attempt-20260904-crash"
+        services = [target.value["services"][role] for role in BACKUP_WRITER_SERVICE_ROLES]
+        receipt = _backup_quiescence_receipt(
+            target="staging", run_id=run_id, baseline="a" * 64,
+            services=services, status="prepared",
+            prepared_at="2026-09-04T00:00:00Z", stopped_at=None,
+        )
+        owner = {
+            "schema": "usl-operation-lock/v1",
+            "target": "staging",
+            "operation": "backup",
+            "run_id": "attempt-20260904-other",
+            "started_at": "2026-09-04T00:00:00Z",
+        }
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, json.dumps(owner), "")
+        with self.assertRaisesRegex(RuntimeError, "another operation"):
+            _recover_interrupted_backup_lock(
+                target, runner, run_id=run_id, quiescence=receipt,
+            )
+        self.assertFalse(any(call.args[0][:1] == ["rm"] for call in runner.run.call_args_list))
+
+    def test_crash_recovery_refuses_an_unproven_matching_lock(self) -> None:
+        target = load_target("staging", TARGETS)
+        run_id = "attempt-20260904-crash"
+        services = [target.value["services"][role] for role in BACKUP_WRITER_SERVICE_ROLES]
+        receipt = _backup_quiescence_receipt(
+            target="staging", run_id=run_id, baseline="a" * 64,
+            services=services, status="prepared",
+            prepared_at="2026-09-04T00:00:00Z", stopped_at=None,
+        )
+        owner = {
+            "schema": "usl-operation-lock/v1",
+            "target": "staging",
+            "operation": "backup",
+            "run_id": run_id,
+            "started_at": "2026-09-04T00:00:00Z",
+        }
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[-1].endswith("/operation.lock/owner.json"):
+                    return subprocess.CompletedProcess(command, 0, json.dumps(owner), "")
+                if command[:1] == ["cat"]:
+                    return subprocess.CompletedProcess(command, 1, "", "")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = Runner()
+        with self.assertRaisesRegex(RuntimeError, "unproven"):
+            _recover_interrupted_backup_lock(
+                target, runner, run_id=run_id, quiescence=receipt,
+            )
+        self.assertFalse(any(command[:1] == ["rm"] for command in runner.commands))
+
+    def test_crash_recovery_removes_only_exact_proven_backup_lock(self) -> None:
+        target = load_target("staging", TARGETS)
+        run_id = "attempt-20260904-crash"
+        services = [target.value["services"][role] for role in BACKUP_WRITER_SERVICE_ROLES]
+        receipt = _backup_quiescence_receipt(
+            target="staging", run_id=run_id, baseline="a" * 64,
+            services=services, status="prepared",
+            prepared_at="2026-09-04T00:00:00Z", stopped_at=None,
+        )
+        owner = {
+            "schema": "usl-operation-lock/v1",
+            "target": "staging",
+            "operation": "backup",
+            "run_id": run_id,
+            "started_at": "2026-09-04T00:00:00Z",
+        }
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[-1].endswith("/operation.lock/owner.json") and command[0] == "cat":
+                    return subprocess.CompletedProcess(command, 0, json.dumps(owner), "")
+                if command[-1].endswith("/quiesced.json") and command[0] == "cat":
+                    return subprocess.CompletedProcess(command, 1, "", "")
+                if command[-1].endswith("/prepared.json") and command[0] == "cat":
+                    return subprocess.CompletedProcess(command, 0, json.dumps(receipt), "")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = Runner()
+        self.assertTrue(_recover_interrupted_backup_lock(
+            target, runner, run_id=run_id, quiescence=receipt,
+        ))
+        lock = target.value["state_directory"] + "/operation.lock"
+        self.assertIn(["rm", "-f", lock + "/owner.json"], runner.commands)
+        self.assertIn(["rmdir", lock], runner.commands)
+
+    def test_generation_resource_failure_removes_every_partial_resource(self) -> None:
+        target = load_target("staging", TARGETS)
+        generation = "g20260904-partial"
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+                self.creates = 0
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:3] == ["docker", "volume", "inspect"]:
+                    return subprocess.CompletedProcess(command, 1, "", "")
+                if command[:3] == ["docker", "volume", "create"]:
+                    self.creates += 1
+                    if self.creates == 2:
+                        raise RuntimeError("injected volume creation failure")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = Runner()
+        with self.assertRaisesRegex(RuntimeError, "injected volume"):
+            _create_generation_resources(target, runner, generation)
+        created = [
+            command[-1]
+            for command in runner.commands
+            if command[:3] == ["docker", "volume", "create"]
+        ]
+        removed = [
+            command[-1]
+            for command in runner.commands
+            if command[:3] == ["docker", "volume", "rm"]
+        ]
+        self.assertEqual(removed, created[:1])
+
+    def test_generation_network_failure_removes_all_new_volumes_and_paths(self) -> None:
+        target = load_target("staging", TARGETS)
+        generation = "g20260904-network"
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:3] in (
+                    ["docker", "volume", "inspect"],
+                    ["docker", "network", "inspect"],
+                ):
+                    return subprocess.CompletedProcess(command, 1, "", "")
+                if command[:3] == ["docker", "network", "create"]:
+                    raise RuntimeError("injected network creation failure")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = Runner()
+        with self.assertRaisesRegex(RuntimeError, "injected network"):
+            _create_generation_resources(target, runner, generation)
+        created = {
+            command[-1]
+            for command in runner.commands
+            if command[:3] == ["docker", "volume", "create"]
+        }
+        removed = {
+            command[-1]
+            for command in runner.commands
+            if command[:3] == ["docker", "volume", "rm"]
+        }
+        self.assertEqual(removed, created)
+        self.assertTrue(any(command[:2] == ["rmdir", "--"] for command in runner.commands))
+
+    def test_runtime_cas_binds_rendered_compose_and_release_manifest(self) -> None:
+        target = mock.Mock()
+        runtime = {
+            "compose": {
+                "project": "staging",
+                "working_directory": "/release",
+                "environment_file": "/runtime.env",
+                "compose_files": ["/release/compose.yaml"],
+            },
+        }
+        release = {"identity": "a" * 64}
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess(
+            [], 0, json.dumps({"services": {"odoo": {"image": "first"}}}), "",
+        )
+        with mock.patch(
+            "operations.stack._release",
+            return_value=(release, "b" * 64, "{}"),
+        ), mock.patch("operations.stack._mcp_runtime_authority", return_value=None):
+            first = _runtime_cas_sha256(target, runner, runtime)
+            runner.run.return_value = subprocess.CompletedProcess(
+                [], 0, json.dumps({"services": {"odoo": {"image": "second"}}}), "",
+            )
+            second = _runtime_cas_sha256(target, runner, runtime)
+        self.assertNotEqual(first, second)
+
+    def test_runtime_cas_rejects_running_mcp_outside_gitops_authority(self) -> None:
+        target = load_target("staging", TARGETS)
+        image = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "a" * 64
+        authority = {"image": image, "sha256": "b" * 64}
+        runtime = {
+            "compose": {
+                "project": "staging", "working_directory": "/release",
+                "environment_file": "/runtime.env", "profiles": [],
+                "anchor_service": "odoo", "compose_files": ["/release/compose.yaml"],
+            },
+            "containers": [{
+                "Service": target.value["services"]["mcp"],
+                "ID": "mcp-container", "State": "running",
+            }],
+        }
+        release = {"identity": "c" * 64}
+        runner = mock.Mock()
+
+        def run(command, **_kwargs):
+            if command[:3] == ["docker", "inspect", "mcp-container"]:
+                return subprocess.CompletedProcess(command, 0, image + "\n", "")
+            return subprocess.CompletedProcess(
+                command, 0, json.dumps({"services": {"odoo-mcp": {"image": image}}}), "",
+            )
+
+        runner.run.side_effect = run
+        with (
+            mock.patch("operations.stack._release", return_value=(release, "d" * 64, "{}")),
+            mock.patch("operations.stack._mcp_runtime_authority", return_value=authority),
+            mock.patch(
+                "operations.stack._with_mcp_runtime_authority",
+                side_effect=lambda _target, _runner, identity, _authority: identity,
+            ),
+        ):
+            self.assertRegex(_runtime_cas_sha256(target, runner, runtime), r"[0-9a-f]{64}")
+            authority["image"] = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "e" * 64
+            with self.assertRaisesRegex(RuntimeError, "differs from GitOps authority"):
+                _runtime_cas_sha256(target, runner, runtime)
+
+    def test_staging_oauth_copy_resumes_mcp_after_copy_failure(self) -> None:
+        target = load_target("staging", TARGETS)
+        current = {
+            "compose": {
+                "project": "staging",
+                "working_directory": "/release",
+                "environment_file": "/runtime.env",
+                "compose_files": ["/release/compose.yaml"],
+            },
+            "volumes": {"mcp_oauth": {"name": "old-oauth"}},
+        }
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:3] == ["docker", "volume", "inspect"]:
+                    name = command[3]
+                    return subprocess.CompletedProcess(
+                        command,
+                        0,
+                        json.dumps({"Mountpoint": f"/volumes/{name}"}),
+                        "",
+                    )
+                if command and command[0] == "python3":
+                    return subprocess.CompletedProcess(
+                        command,
+                        0,
+                        json.dumps({"files": 1, "bytes": 10, "sha256": "a" * 64}),
+                        "",
+                    )
+                if command and command[0] == "rsync" and "-aHAXS" in command:
+                    raise RuntimeError("injected OAuth copy failure")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = Runner()
+        with self.assertRaisesRegex(RuntimeError, "injected OAuth"):
+            _preserve_staging_environment_state(
+                target, runner, current, {"mcp_oauth": "new-oauth"},
+            )
+        self.assertTrue(any("stop" in command for command in runner.commands))
+        resume = next(command for command in runner.commands if "up" in command)
+        self.assertIn("--no-recreate", resume)
+        self.assertEqual(resume[-1], target.value["services"]["mcp"])
+
+    def test_staging_oauth_copy_binds_identical_source_and_destination_trees(self) -> None:
+        target = load_target("staging", TARGETS)
+        current = {
+            "compose": {
+                "project": "staging",
+                "working_directory": "/release",
+                "environment_file": "/runtime.env",
+                "compose_files": ["/release/compose.yaml"],
+            },
+            "volumes": {"mcp_oauth": {"name": "old-oauth"}},
+        }
+        identity = {"files": 3, "bytes": 144, "sha256": "a" * 64}
+
+        class Runner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True, input_text=None):
+                self.commands.append(command)
+                if command[:3] == ["docker", "volume", "inspect"]:
+                    return subprocess.CompletedProcess(
+                        command,
+                        0,
+                        json.dumps({"Mountpoint": f"/volumes/{command[3]}"}),
+                        "",
+                    )
+                if command and command[0] == "python3":
+                    return subprocess.CompletedProcess(command, 0, json.dumps(identity), "")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = Runner()
+        result = _preserve_staging_environment_state(
+            target, runner, current, {"mcp_oauth": "new-oauth"},
+        )
+        self.assertEqual(result["status"], "preserved")
+        self.assertEqual(result["mcp_oauth"]["source"], identity)
+        self.assertEqual(result["mcp_oauth"]["destination"], identity)
+        self.assertFalse(any("production" in " ".join(command) for command in runner.commands))
 
 
 if __name__ == "__main__":
