@@ -32,7 +32,12 @@ PY
 test -n "$modules"
 
 "${compose[@]}" up -d --wait db
-"${compose[@]}" --profile test build test
+if [[ "${USL_USE_PREBUILT_TEST_IMAGE:-0}" == "1" ]]; then
+  test -n "${ODOO_TEST_IMAGE:-}"
+  docker image inspect "$ODOO_TEST_IMAGE" >/dev/null
+else
+  "${compose[@]}" --profile test build test
+fi
 
 odoo_run() {
   "${compose[@]}" --profile test run --rm -T \

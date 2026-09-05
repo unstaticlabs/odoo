@@ -57,3 +57,8 @@ def affected_modules(paths: Iterable[str], inventory: dict[str, Any]) -> list[st
                 changed.add(dependent)
                 queue.append(dependent)
     return sorted(changed)
+
+
+def all_modules(inventory: dict[str, Any]) -> list[str]:
+    """Return every shipped owned module for exhaustive qualification."""
+    return sorted(validate_inventory(inventory)["modules"])
