@@ -20,6 +20,20 @@ expose its credentials, Restic password, restored files, or secret contents in
 logs or evidence. Production Sign secrets are restored only to production.
 Staging and local runtimes keep their own isolated signing identities.
 
+Staging stores encrypted Restic repositories on the VPS at
+`/var/lib/usl-odoo/restic/staging/durable` and
+`/var/lib/usl-odoo/restic/staging/cache`. Backup, verification and restore
+containers mount these persistent paths; snapshot qualification and checkpoint
+receipts remain required. These backups survive container replacement, but not
+loss of the VPS storage. Production backups and production-sourced recovery
+proofs continue to use R2. Existing staging snapshots in R2 are not migrated or
+deleted by this change. Staging snapshots expire after 24 hours in both local
+repositories. `scripts/usl-stack --target staging backup prune --json` applies
+this policy under the same operation lock used by backup and restore. GitOps
+calls it after a successful staging upgrade and reopening, like production's
+deployment retention stage. There is no separate timer: on idle days snapshots
+remain until the next deployment cleanup. Production retention remains unchanged.
+
 ## Backup
 
 The target must reference a validated release manifest whose images exactly
@@ -34,7 +48,7 @@ scripts/usl-stack backup create --target production --json
 
 The command pre-pulls the backup tool, pauses the application writers and Step
 CA, dumps both databases, captures durable and reusable-cache state, restarts
-the writers, uploads both Restic snapshots, verifies their identities, and
+the writers, writes both Restic snapshots to the target repositories, verifies their identities, and
 marks only the verified durable snapshot as recovery-eligible. The JSON result
 contains the full snapshot IDs and timings. Do not use `latest` or abbreviated
 snapshot IDs.

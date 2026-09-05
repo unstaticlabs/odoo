@@ -458,7 +458,11 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
 
     backup = _exact(root["backup"], {"durable_repository", "cache_repository"}, "backup")
     for key, value in backup.items():
-        if not isinstance(value, str) or not value.startswith(("s3:", "rest:")):
+        local_repository = (
+            root["environment"] == "staging"
+            and value == f"/var/lib/usl-odoo/restic/staging/{key.removesuffix('_repository')}"
+        )
+        if not isinstance(value, str) or not (value.startswith(("s3:", "rest:")) or local_repository):
             raise RuntimeError(f"backup.{key} is not a supported Restic repository")
     if backup["durable_repository"] == backup["cache_repository"]:
         raise RuntimeError("durable and cache repositories must differ")
