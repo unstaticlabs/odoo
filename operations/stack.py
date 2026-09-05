@@ -52,12 +52,10 @@ from operations.module_release import (
     validate_upgrade_plan,
 )
 from operations.plan_evidence import (
-    PROMOTION_SCHEMA,
     PlanEvidenceError,
     promote as promote_upgrade_plan,
     sign as sign_upgrade_plan,
     verify as verify_upgrade_plan,
-    verify_promotion as verify_upgrade_plan_promotion,
 )
 from operations.runtime import (
     RuntimeError,
@@ -2417,20 +2415,29 @@ def _require_same_preparation(current: dict, receipt: dict) -> None:
             raise RuntimeError(f"release preparation changed after maintenance: {field}")
 
 
+def _staging_release_definitions_sha256(plan_evidence: dict | None) -> str | None:
+    """Return the staging-qualified release definitions digest carried by a plan.
+
+    Only staging-signed evidence and its production promotion envelope carry
+    staging evidence. A plan that production derives from its own baseline
+    carries none, so there is nothing to compare.
+    """
+    if plan_evidence is None:
+        return None
+    staging_evidence = plan_evidence.get("staging_evidence", plan_evidence)
+    staging = staging_evidence.get("staging") if isinstance(staging_evidence, dict) else None
+    if not isinstance(staging, dict):
+        return None
+    value = staging.get("release_definitions_sha256")
+    if not isinstance(value, str) or not value:
+        raise RuntimeError("staging evidence lacks its release definitions digest")
+    return value
+
+
 def _validated_release_upgrade_plan(target, value: object, release: dict) -> dict:
     if not isinstance(value, dict):
         raise PlanEvidenceError("upgrade plan must be a JSON object")
-    if target.value["environment"] == "production":
-        if value.get("schema") != PROMOTION_SCHEMA:
-            raise PlanEvidenceError(
-                "production requires a staging-signed production promotion",
-            )
-        plan = verify_upgrade_plan_promotion(
-            value,
-            Path(target.value["plan_signing"]["public_key"]),
-            release,
-        )
-    elif value.get("schema") == "usl-staging-upgrade-plan-evidence/v2":
+    if target.value["environment"] == "staging" and value.get("schema") == "usl-staging-upgrade-plan-evidence/v2":
         plan = verify_upgrade_plan(
             value,
             Path(target.value["plan_signing"]["public_key"]),
@@ -6138,7 +6145,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         snapshot_release = materialize_state["release"]
         candidate_differs = snapshot_release["manifest_sha256"] != release_sha
         if candidate_differs and upgrade_plan is None:
-            raise RuntimeError("cross-release restore requires the staging-qualified upgrade plan")
+            raise RuntimeError("cross-release restore requires a candidate-bound upgrade plan")
         preservation_baseline = None
         if candidate_differs:
             preservation_baseline = upgrade_preservation.capture(
@@ -6305,14 +6312,9 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     try:
         health = _gate(health_command, target, arguments.targets)
         smoke = _gate(smoke_command, target, arguments.targets)
-        expected_release_definitions_sha256 = None
-        if signed_plan_evidence is not None:
-            staging_evidence = signed_plan_evidence.get(
-                "staging_evidence", signed_plan_evidence,
-            )
-            expected_release_definitions_sha256 = staging_evidence["staging"][
-                "release_definitions_sha256"
-            ]
+        expected_release_definitions_sha256 = _staging_release_definitions_sha256(
+            signed_plan_evidence,
+        )
         preservation_proof = None
         compared_controls = smoke["controls"]
         if preservation_baseline is not None:
@@ -9731,7 +9733,7 @@ def release_command(arguments: argparse.Namespace) -> int:
                     Path(target.value["plan_signing"]["public_key"]),
                 )
             except (json.JSONDecodeError, ReleaseManifestError, PlanEvidenceError) as error:
-                raise RuntimeError("production plan promotion is invalid") from error
+                raise RuntimeError(f"production plan promotion is invalid: {error}") from error
             output = arguments.output or arguments.upgrade_plan
             _write_remote(
                 target,

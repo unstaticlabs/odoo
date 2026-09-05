@@ -88,6 +88,12 @@ def _release_equivalence(release: dict[str, Any]) -> dict[str, Any]:
             "ollama",
         )
     }
+    # The branch commit and its enclosing metadata digest change on promotion.
+    # Core content, dependency and policy hashes remain deployment inputs.
+    body["foundation"] = {
+        key: value for key, value in release["foundation"].items()
+        if key not in {"odoo_core_commit", "digest"}
+    }
     return {
         "deployable_inputs_sha256": _digest(body),
         "module_inventory_sha256": release["modules"]["sha256"],
