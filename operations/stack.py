@@ -1222,6 +1222,17 @@ def _prepare_secret_contract(target, runner) -> str:
     return path
 
 
+def _local_restic_mounts(target) -> list[str]:
+    # Restic reads and writes through its own container, not the host launcher.
+    # Restore also needs write access for repository locks.
+    return [
+        argument
+        for repository in target.value["backup"].values()
+        if repository.startswith("/")
+        for argument in ("--volume", f"{repository}:{repository}")
+    ]
+
+
 def _cohort_command(
     target,
     image: str,
@@ -1244,6 +1255,7 @@ def _cohort_command(
         f"RESTIC_REPOSITORY={target.value['backup']['durable_repository']}",
         "--env",
         f"USL_BACKUP_CACHE_REPOSITORY={target.value['backup']['cache_repository']}",
+        *_local_restic_mounts(target),
         "--volume",
         f"{target.value['state_directory']}:/cohort",
         "--volume",
@@ -3583,6 +3595,7 @@ def _materialize_command(
         f"RESTIC_REPOSITORY={source.value['backup']['durable_repository']}",
         "--env",
         f"USL_BACKUP_CACHE_REPOSITORY={source.value['backup']['cache_repository']}",
+        *_local_restic_mounts(source),
         "--env",
         f"USL_TARGET={target.name}",
         "--env",

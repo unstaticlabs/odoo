@@ -5116,6 +5116,27 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("USL_TARGET_ENVIRONMENT=staging", joined)
         self.assertIn("--env-file /run/usl/source-backup.env", joined)
 
+    def test_staging_backup_and_restore_share_persistent_local_repositories(self) -> None:
+        staging = load_target("staging", TARGETS)
+        production = load_target("production", TARGETS)
+        names = generation_volume_names(staging, "g20260901-a1b2c3d4")
+        backup = _cohort_command(staging, "backup-image", "push", [])
+        restore = _materialize_command(
+            staging, staging, "backup-image", "b" * 64,
+            "g20260901-a1b2c3d4", "recovery-network", names, "/run/source.env",
+        )
+        production_restore = _materialize_command(
+            production, staging, "backup-image", "b" * 64,
+            "g20260901-a1b2c3d4", "recovery-network", names, "/run/source.env",
+        )
+        for repository in staging.value["backup"].values():
+            for command in (backup, restore):
+                self.assertIn(f"{repository}:{repository}", command)
+                self.assertLess(command.index(f"{repository}:{repository}"), command.index("backup-image"))
+            self.assertNotIn(f"{repository}:{repository}", production_restore)
+        self.assertIn("--durable-snapshot", restore)
+        self.assertIn("b" * 64, restore)
+
     def test_backup_v2_receipt_binds_exact_quiesced_staging_cohort(self) -> None:
         target = load_target("staging", TARGETS)
         value = backup_receipt()

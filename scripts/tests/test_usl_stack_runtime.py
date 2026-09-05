@@ -262,6 +262,22 @@ class ComposeAnchorRunner(FakeRunner):
 
 
 class RuntimeContractTests(unittest.TestCase):
+    def test_local_staging_repositories_are_scoped_and_production_stays_remote(self):
+        for targets in (TARGETS, HOST_TARGETS):
+            staging = load_target("staging", targets)
+            for key, repository in staging.value["backup"].items():
+                self.assertEqual(repository, f"/var/lib/usl-odoo/restic/staging/{key.removesuffix('_repository')}")
+            production = load_target("production", targets)
+            self.assertTrue(all(value.startswith("s3:") for value in production.value["backup"].values()))
+            for invalid in ("/tmp/restic", "/var/lib/usl-odoo/restic/staging/../production", "relative/repo"):
+                value = copy.deepcopy(staging.value)
+                value["backup"]["durable_repository"] = invalid
+                with self.assertRaisesRegex(RuntimeError, "supported Restic repository"):
+                    validate_target(value)
+            production.value["backup"] = staging.value["backup"]
+            with self.assertRaisesRegex(RuntimeError, "supported Restic repository"):
+                validate_target(production.value)
+
     def test_mcp_readiness_binds_runtime_and_oauth_schema(self) -> None:
         value = {
             "schema": "usl-odoo-mcp-readiness/v1",
