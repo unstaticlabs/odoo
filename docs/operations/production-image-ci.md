@@ -1,7 +1,11 @@
 # Production image CI
 
-The `Distribution release` workflow builds the immutable artifacts consumed by
-future deployment workflows. It does not alter a runtime.
+The `Distribution release` reusable workflow builds the immutable artifacts
+consumed by future deployment workflows. It is called only after the exact
+protected-branch push has passed `USL qualification`; an explicit
+`recovery-*` tag may also be dispatched manually. It does not alter a runtime.
+The caller passes the exact source ref, source commit, qualification evidence
+digest and qualification run ID, so publication has no polling admission job.
 
 ## Content-addressed builds
 
@@ -19,6 +23,9 @@ cache, publishes the content tag, records its digest, SBOM and provenance, and
 adds a GitHub attestation. A source-only operations change therefore rebuilds
 only the backup tool; unchanged product images normally resolve in about one
 minute.
+
+The SBOM is retained as build metadata. It is not evaluated as a release gate,
+and this distribution has no SBOM-enforcement requirement.
 
 Odoo MCP and the document renderer remain separately owned images. The
 Distribution workflow verifies their pinned commits, compatibility metadata,
@@ -50,7 +57,9 @@ lookup aids, not deployable identities.
 
 ## Permissions
 
-The workflow uses the repository `GITHUB_TOKEN` with job-scoped permissions:
+The calling qualification job grants the repository `GITHUB_TOKEN` the write
+permissions that a reusable workflow cannot elevate for itself. The called
+workflow then narrows those permissions per job:
 
 - `contents: read` for source;
 - `packages: read` when verifying external MCP and renderer images;
@@ -91,9 +100,30 @@ A later protected deployment workflow consumes the release artifact and uses
 2. freeze access and deploy the exact image cohort;
 3. run required Odoo module upgrades;
 4. run health and business smoke gates;
-5. unfreeze on success or restore the pre-release snapshot on failure;
-6. recreate staging from the accepted production backup.
+5. reopen after admission; recover the previous generation on pre-activation
+   failure, and repair forward once production activation has started;
+6. after production admission, create and qualify a new production backup;
+7. reset staging from that exact post-admission backup only when its
+   pre-production staging intent still matches the complete staging runtime.
+
+Ordinary staging releases use a staging checkpoint and upgrade the existing
+staging state. They never restore a production backup. A scheduled run with no
+production release change performs the production backup and an independent
+disposable restore proof, but leaves persistent staging unchanged.
 
 Build caching and runtime backup caching are separate: OCI layers stay in
 GHCR, while OCR, previews, Tantivy, and vectors use the reusable Restic cache
 repository described in [Backup and recovery](backup-and-recovery.md).
+
+
+Production qualification compares ACLs, record rules, group implications and
+cron definitions using stable model/XML identities. Database row IDs are used
+only for preserving the same database's business state. Signed staging plan
+evidence uses `usl-staging-upgrade-plan-evidence/v2`; a v1 attestation must be
+refreshed before production promotion.
+
+Activation restores the production Pocket ID provider from its running service
+environment and verifies the authorization callback and client credentials.
+A healthy HTTP endpoint alone does not prove that users can authenticate.
+Late scheduled jobs remain visible as warnings while workers catch up; actual
+cron failures and changes to enabled-job policy still block admission.

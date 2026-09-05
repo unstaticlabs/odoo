@@ -14,7 +14,10 @@ if ! command -v openssl >/dev/null 2>&1; then
 fi
 
 mkdir -p "$fetcher_dir" "$odoo_dir"
-chmod 700 "$secret_root" "$fetcher_dir" "$odoo_dir"
+chmod 700 "$secret_root"
+# The private host parent protects the files; mounted leaf directories must be
+# traversable by the non-root application and browser users.
+chmod 755 "$fetcher_dir" "$odoo_dir"
 
 required=(
     "$ca_key" "$ca_cert"

@@ -51,7 +51,7 @@ class CronPolicyRuntimeTests(unittest.TestCase):
             active=active,
             invalid_identity_count=0,
         )
-        self.assertEqual(len(result["installed_xmlids"]), 55)
+        self.assertEqual(set(result["installed_xmlids"]), set(value["crons"]))
 
     def test_managed_runtime_requires_exact_active_set(self):
         result = validate_runtime(
