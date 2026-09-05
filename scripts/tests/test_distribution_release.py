@@ -24,11 +24,15 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         for workflow in (ROOT / ".github/workflows").glob("*.yml"):
             for line in workflow.read_text(encoding="utf-8").splitlines():
                 if re.match(r"\s*uses:\s*", line):
-                    self.assertRegex(
-                        line,
-                        r"uses:\s+[^@\s]+@[0-9a-f]{40}(?:\s+#.*)?$",
-                        str(workflow),
-                    )
+                    target = line.split("uses:", 1)[1].strip()
+                    if target.startswith("./"):
+                        self.assertRegex(target, r"^\./\.github/workflows/.+\.yml$")
+                    else:
+                        self.assertRegex(
+                            line,
+                            r"uses:\s+[^@\s]+@[0-9a-f]{40}(?:\s+#.*)?$",
+                            str(workflow),
+                        )
 
     def test_release_components_are_content_addressed(self) -> None:
         components = resolve()["components"]
@@ -90,18 +94,19 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         self.assertNotIn("push-to-registry", renderer_attestation)
 
     def test_release_is_only_published_from_permanent_release_branches(self) -> None:
-        self.assertIn("- 19-usl-staging", self.workflow)
-        self.assertIn("- 19-usl", self.workflow)
-        self.assertNotIn("- codex/chore-post-migration-continuous-operations", self.workflow)
+        qualification = (ROOT / ".github/workflows/qualification.yml").read_text(encoding="utf-8")
+        self.assertIn("workflow_call:", self.workflow)
+        self.assertNotIn("\n  push:", self.workflow)
+        self.assertIn("uses: ./.github/workflows/product-image.yml", qualification)
+        self.assertIn("if: github.event_name == 'push'", qualification)
         self.assertIn("usl-odoo-release", self.workflow)
         self.assertIn("actions/attest@", self.workflow)
 
     def test_release_requires_exact_successful_qualification_or_recovery_tag(self) -> None:
-        self.assertIn('.name == "USL qualification"', self.workflow)
-        self.assertIn('.head_sha == env.GITHUB_SHA', self.workflow)
-        self.assertIn('if [ "$conclusion" = success ]', self.workflow)
-        self.assertIn("for attempt in $(seq 1 240)", self.workflow)
-        self.assertIn("timeout-minutes: 45", self.workflow)
+        self.assertIn('test "$SOURCE_COMMIT" = "$GITHUB_SHA"', self.workflow)
+        self.assertIn("QUALIFICATION_EVIDENCE_SHA256", self.workflow)
+        self.assertNotIn("for attempt in", self.workflow)
+        self.assertNotIn("  admission:", self.workflow)
         self.assertIn("workflow_dispatch:refs/tags/recovery-*", self.workflow)
         self.assertIn('test "$RECOVERY_REF" = "${GITHUB_REF#refs/tags/}"', self.workflow)
 
@@ -115,13 +120,16 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         self.assertIn("branches: [19-usl, 19-usl-staging]", qualification)
         self.assertIn("name: USL qualification", qualification)
         self.assertIn("scripts/ci-product-database", qualification)
-        self.assertIn("test \"$DATABASE\" = success", qualification)
+        self.assertIn("scripts/qualification-test-plan --all", qualification)
+        self.assertIn("USL_USE_PREBUILT_TEST_IMAGE=1", qualification)
+        self.assertIn("type=gha,scope=usl-odoo-test", qualification)
         self.assertGreaterEqual(qualification.count("scripts/sync-oca-addons"), 2)
-        database_job = qualification.split("  database:\n", 1)[1].split("\n  accounting:\n", 1)[0]
-        self.assertIn('git fetch --no-tags --depth=1 origin "$BASE_SHA"', database_job)
-        self.assertNotIn("fetch-depth: 0", database_job)
+        database_job = qualification.split("  database:\n", 1)[1].split("\n  result:\n", 1)[0]
+        self.assertIn("github.event_name == 'push'", database_job)
+        self.assertIn("github.event.pull_request.base.ref == '19-usl'", database_job)
+        self.assertNotIn("merge_group", database_job)
 
-    def test_production_promotion_is_a_signed_event_bound_check(self) -> None:
+    def test_production_promotion_reuses_only_exact_pr_tree_evidence(self) -> None:
         qualification = (ROOT / ".github/workflows/qualification.yml").read_text(
             encoding="utf-8",
         )
@@ -131,16 +139,23 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         )
         self.assertIn("EXPECTED_REPOSITORY: ${{ github.repository }}", qualification)
         self.assertIn("name: USL production promotion", qualification)
-        self.assertIn("subject-path: production-promotion.json", qualification)
-        self.assertIn("gh attestation verify production-promotion.json", qualification)
-        self.assertIn('--source-ref "$GITHUB_REF"', qualification)
-        self.assertIn('--source-digest "$GITHUB_SHA"', qualification)
+        self.assertNotIn("production-promotion-evidence:", qualification)
+        self.assertNotIn("gh attestation verify", qualification)
+        self.assertIn("production-qualification-$PR_NUMBER-$PR_HEAD_SHA", qualification)
         self.assertIn("commits/$GITHUB_SHA/pulls?per_page=100", qualification)
-        self.assertIn("--production-merge-group-tree \"$GITHUB_SHA\"", qualification)
-        self.assertGreaterEqual(
-            qualification.count('git merge-base --is-ancestor "$source_tree" "$GITHUB_SHA"'),
-            2,
-        )
+        self.assertIn('merge_tree="$(git rev-parse "$GITHUB_SHA^{tree}")"', qualification)
+        self.assertIn("scripts/qualification-evidence verify-merge-group", qualification)
+
+    def test_compatibility_consolidates_all_host_side_checks(self) -> None:
+        qualification = (ROOT / ".github/workflows/qualification.yml").read_text(encoding="utf-8")
+        for obsolete in ("  changes:\n", "  static:\n", "  accounting:\n", "  security:\n", "  ui:\n"):
+            self.assertNotIn(obsolete, qualification)
+        compatibility = qualification.split("  compatibility:\n", 1)[1].split("\n  database:\n", 1)[0]
+        self.assertIn("python3 -m unittest discover", compatibility)
+        self.assertIn("make product-migration-source-boundary", compatibility)
+        self.assertIn("make action-risk-inventory", compatibility)
+        self.assertIn("scripts/check-github-governance", compatibility)
+        self.assertIn("ElementTree", compatibility)
 
     def test_affected_frontend_suites_run_on_desktop_and_mobile(self) -> None:
         database_gate = (ROOT / "scripts/ci-product-database").read_text(

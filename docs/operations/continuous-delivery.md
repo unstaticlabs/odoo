@@ -9,6 +9,15 @@ Feature work reaches staging through a pull request and merge queue. Production
 accepts only `19-usl-staging` or an `urgent/**` pull request. An urgent change is
 also mirrored back to staging so the two lines cannot silently diverge.
 
+Both branch rules intentionally require zero approving reviews. Qualification
+checks and merge queues are machine admission boundaries, and qualified
+promotion pull requests are expected to merge unattended. Protected CI/GitOps
+is the default execution path, not an exclusive authority: when the owner
+explicitly instructs it, an operator may deploy manually or bypass CI. Before a
+manual production change, the operator must verify a current qualified,
+restorable backup and confirm that the current GitOps checkout and desired-state
+ledgers describe the exact intended release.
+
 ## Release contract
 
 The `Distribution release` workflow publishes `usl-release/v3` as an immutable
@@ -20,6 +29,8 @@ MCP commit and image remain qualification evidence; they do not permanently
 lock an environment to that MCP build. A separately released MCP may advance
 when its declared modules, methods, actions, Agent identity schema, Odoo series
 and major version all fit the support contract in the admitted Odoo release.
+SBOM subjects are retained as passive build evidence; no release decision or
+admission gate depends on SBOM enforcement.
 
 Every installable product module records its version, dependencies, source
 digest and stored-model digest. Release construction fails for missing
@@ -47,12 +58,22 @@ key and rejects unsigned, modified, cross-release, wrong-branch, or unequal
 promotion inputs. The bridge changes only the plan's candidate identity; it
 cannot change its active release, installed modules, upgrade closure, or reasons.
 
-Qualification derives its test plan from the same owned-module dependency
-graph. A changed module runs its suite and the suites of owned modules that
-depend on it. A core, OCA, Python-constraint or other foundation change runs
-every shipped product-module suite. Documentation-only changes still perform
-the clean install, repeated upgrade and runtime-boundary checks, but do not
-invent unrelated module tests.
+Qualification has one consolidated host-side compatibility job and one
+event-gated database job. Staging pull requests and merge-queue commits run no
+database qualification. A push merged into `19-usl-staging` installs every
+module, upgrades every module twice, and derives focused module tests plus
+reverse dependencies from the exact before/head comparison. A production pull
+request installs and repeatedly upgrades the complete product and runs every
+shipped module suite. Its small qualification artifact binds the source and
+base commits to the qualified Git tree. The production merge queue runs no
+database a second time: it accepts only the associated PR artifact whose
+qualified tree exactly equals the merge-group tree. A changed base or content
+therefore requires fresh PR qualification.
+
+The database image is built once with Buildx's GitHub Actions layer cache and
+loaded into the same runner. `ci-product-database` consumes that exact image;
+its local-build fallback remains available for developer runs. Test outcomes
+are never reused between different commits.
 
 `usl-release/v2` remains readable for historical recovery verification. The
 first transition to v3 is deliberately conservative: because v2 contains no
@@ -453,25 +474,29 @@ verified, and the database and bulk devices are distinct.
 ## Activation boundary
 
 The workflows and GitOps procedures are intentionally shipped disabled first.
-The desired GitHub branch protection is versioned in two payloads. The common
-`USL Distribution` ruleset protects both permanent branches and requires the
-aggregate qualification. The additional `USL Production Admission` ruleset
-targets only `19-usl`; it separately requires the source-policy and Odoo–MCP
-compatibility jobs, the signed `USL production promotion` check, and a
-successful `staging-release` deployment for the exact candidate commit. The
-source policy accepts a production pull request only when it comes from
-`unstaticlabs/odoo:19-usl-staging` or an `unstaticlabs/odoo:urgent/**` branch;
-a fork cannot pass by reusing one of those branch names.
+The desired GitHub branch protection is versioned in two payloads. `USL
+Distribution — Staging` targets only `19-usl-staging`, requires the aggregate
+qualification, and batches qualified changes through its merge queue. `USL
+Distribution — Production` targets only `19-usl`, permits one merge-queue entry
+at a time, and separately requires the `USL source policy`, `USL compatibility`
+and `USL production promotion` checks. Both rulesets require
+zero approving reviews by design. There is no required-deployment-environment
+gate. The source policy accepts a production pull request only when it comes
+from `unstaticlabs/odoo:19-usl-staging` or an
+`unstaticlabs/odoo:urgent/**` branch; a fork cannot pass by reusing one of those
+branch names.
 
-For a production pull request, the promotion check records and attests the
-pull-request number, source repository and branch, source tree, and exact tree
-that passed qualification. GitHub's merge-group event does not carry the
-original pull-request source fields, so the merge-queue run resolves the pull
-request through the GitHub commit API and rejects an absent or ambiguous
-result. It also proves that the source tree is an ancestor of the tested merge
-tree, then attests and independently verifies evidence binding the same source
-identity to the exact production merge-group tree. Queue production pull
-requests separately: a grouped or ambiguous production promotion fails closed.
+For a production pull request, `USL qualification` retains a small digest-bound
+artifact containing the pull-request number, source and base commits, exact
+qualified Git tree, database mode and child results. The promotion check
+validates that artifact in the same run. GitHub's merge-group event does not
+carry the original pull-request source fields, so the merge-queue run resolves
+exactly one associated PR through the GitHub commit API, downloads the latest
+successful artifact named for that PR and source head, and requires its
+qualified tree to equal the merge-group tree. Missing, stale, wrong-source,
+wrong-base or tree-mismatched evidence fails closed and requires fresh PR
+qualification. The old within-run evidence attestation round trip is removed;
+release artifact and component signatures remain enforced at GitOps intake.
 
 A repository administrator applies the rulesets after both
 permanent branches and the `staging-release` environment exist:
@@ -479,20 +504,20 @@ permanent branches and the `staging-release` environment exist:
 ```bash
 GH_CONFIG_DIR=/path/to/authorized/gh \
   gh api --method PUT \
-  repos/unstaticlabs/odoo/rulesets/21452332 \
+  repos/unstaticlabs/odoo/rulesets/22231715 \
   --input operations/contracts/github-usl-distribution-ruleset.json
 
 GH_CONFIG_DIR=/path/to/authorized/gh \
-  gh api --method POST \
-  repos/unstaticlabs/odoo/rulesets \
+  gh api --method PUT \
+  repos/unstaticlabs/odoo/rulesets/21452332 \
   --input operations/contracts/github-usl-production-ruleset.json
 ```
 
-If `USL Production Admission` already exists, look up its ID and use `PUT` on
-`repos/unstaticlabs/odoo/rulesets/<id>` instead of creating a duplicate. The
-payloads preserve merge commits, resolved conversations and the all-green
-merge queue while preventing an untested staging commit from reaching
-production.
+If either ruleset does not yet exist, use `POST` on
+`repos/unstaticlabs/odoo/rulesets` for that payload instead of inventing a
+duplicate name. The payloads preserve merge commits, resolved conversations,
+zero-review unattended operation and the all-green merge queues while
+preventing an untested staging commit from reaching production.
 
 Enable them only after the GitHub/GitLab protection and credentials are in
 place, the fixed Komodo launcher is installed, and all of these drills pass:
