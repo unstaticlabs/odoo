@@ -48,6 +48,7 @@ Only `custom-addons/` is part of the normal USL add-ons path.
 | `usl_documents_accounting` | Authorized Accounting evidence links and exact-version archive controls. |
 | `usl_documents_b2c` | Authorized B2C document links and smart buttons. |
 | `usl_expense_batch` | Optional expense grouping, shared context, review and native workflow integration. |
+| `usl_feedback` | Shared conversational product feedback, private local page previews, bounded assistant processing and reporter-confirmed Project workflow. |
 | `usl_home` | Personal launcher, durable destinations and bounded attention summaries. |
 | `usl_locale` | European date conventions and company-aware presentation. |
 | `usl_platform_billing` | Platform sessions, payouts, generated native Accounting documents and settlement. |

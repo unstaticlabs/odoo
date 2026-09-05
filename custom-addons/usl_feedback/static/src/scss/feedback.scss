@@ -1,0 +1,390 @@
+.o-usl-FeedbackButton {
+    white-space: nowrap;
+}
+
+.o-usl-FeedbackPanel {
+    min-height: 0;
+    height: 100%;
+    background: $o-view-background-color;
+
+    .min-w-0 {
+        min-width: 0;
+    }
+
+    .min-h-0 {
+        min-height: 0;
+    }
+
+    .text-pre-wrap {
+        white-space: pre-wrap;
+    }
+
+    .o-usl-FeedbackPanel-screenshot img {
+        max-height: 180px;
+        object-fit: cover;
+        object-position: top;
+    }
+
+    .o-usl-FeedbackPanel-header {
+        position: relative;
+        min-height: 96px;
+        padding: map-get($spacers, 2);
+        gap: map-get($spacers, 2);
+        flex-wrap: wrap;
+        align-content: center;
+        background: $o-view-background-color;
+
+        .o-usl-FeedbackPanel-brand {
+            width: 36px;
+            height: 36px;
+            font-size: $o-font-size-base;
+        }
+
+        .o-usl-FeedbackPanel-identity {
+            flex: 1 1 calc(100% - 7rem);
+            padding-inline-end: 4rem;
+        }
+
+        .o-usl-FeedbackPanel-title {
+            color: $o-main-headings-color;
+            font-size: $font-size-lg;
+            line-height: 1.25;
+            font-weight: 600;
+        }
+
+        .o-usl-FeedbackPanel-current {
+            min-width: 0;
+            max-width: 100%;
+            margin-top: 2px;
+            color: $o-gray-700;
+            font-size: $o-font-size-base-smaller;
+            line-height: 1.35;
+            text-decoration: none;
+
+            .badge {
+                max-width: 6rem;
+            }
+
+            &:hover {
+                color: $o-brand-primary;
+            }
+        }
+
+        .o-usl-FeedbackPanel-headerNav {
+            flex: 1 0 100%;
+            justify-content: flex-start;
+            gap: map-get($spacers, 1);
+            padding-inline-start: 2.75rem;
+
+            > .btn-light {
+                min-height: 34px;
+                padding-inline: map-get($spacers, 2);
+                background: $o-view-background-color;
+                font-size: $o-font-size-base-smaller;
+
+                &:hover,
+                &.active {
+                    border-color: rgba($o-brand-primary, 0.35) !important;
+                    background: rgba($o-brand-primary, 0.06);
+                    color: $o-brand-primary;
+                }
+            }
+
+            > .btn-link,
+            .o-dropdown > .btn-link {
+                width: 32px;
+                min-height: 34px;
+                padding-inline: map-get($spacers, 1);
+            }
+
+            .o-usl-FeedbackPanel-fold,
+            .o-usl-FeedbackPanel-close {
+                position: absolute;
+                top: map-get($spacers, 2);
+            }
+
+            .o-usl-FeedbackPanel-fold {
+                inset-inline-end: 2.25rem;
+            }
+
+            .o-usl-FeedbackPanel-close {
+                inset-inline-end: map-get($spacers, 1);
+            }
+        }
+    }
+
+    .o-usl-FeedbackPanel-journey {
+        min-height: 56px;
+        justify-content: center;
+        border-bottom: 1px solid $o-gray-200;
+        background: $o-view-background-color;
+        color: $o-gray-600;
+        font-size: $o-font-size-base-smaller;
+
+        .o-usl-FeedbackPanel-journeyStep {
+            flex: 0 0 auto;
+
+            &.active {
+                color: $o-brand-primary;
+                font-weight: 600;
+            }
+
+            &.complete {
+                color: $o-main-text-color;
+            }
+        }
+
+        .o-usl-FeedbackPanel-journeyMarker {
+            width: 24px;
+            height: 24px;
+            background: $o-gray-200;
+            color: $o-gray-700;
+            font-weight: 600;
+        }
+
+        .active .o-usl-FeedbackPanel-journeyMarker,
+        .complete .o-usl-FeedbackPanel-journeyMarker {
+            background: $o-brand-primary;
+            color: $o-white;
+        }
+
+        .o-usl-FeedbackPanel-journeyLine {
+            flex: 1 1 2rem;
+            min-width: map-get($spacers, 1);
+            max-width: 2.5rem;
+            height: 1px;
+            margin-inline: map-get($spacers, 1);
+            background: $o-gray-300;
+        }
+    }
+
+    .o-usl-FeedbackPanel-agentAvatar {
+        width: 28px;
+        height: 28px;
+    }
+
+    .o-usl-FeedbackPanel-agentBubble {
+        width: fit-content;
+        max-width: calc(100% - 36px);
+    }
+
+    .o-usl-FeedbackPanel-feedbackItem {
+        color: inherit;
+
+        &:focus-visible {
+            position: relative;
+            z-index: 1;
+        }
+    }
+
+    .o-usl-FeedbackPanel-readyBar {
+        padding: map-get($spacers, 2) !important;
+        background-color: $o-view-background-color;
+
+        .o-usl-FeedbackPanel-draftCard {
+            border: 1px solid rgba($o-success, 0.28);
+            background: $o-view-background-color;
+            padding: map-get($spacers, 3) !important;
+        }
+
+        .o-usl-FeedbackPanel-readyLabel {
+            color: $o-success;
+        }
+
+        .o-usl-FeedbackPanel-draftContent {
+            max-height: 9rem;
+            overflow: auto;
+            scrollbar-width: thin;
+
+            h3 {
+                font-size: $h5-font-size;
+                line-height: 1.3;
+            }
+
+            p {
+                max-width: 65ch;
+                color: $o-gray-800;
+                font-size: $o-font-size-base;
+                line-height: 1.4;
+            }
+        }
+
+        footer {
+            margin-top: map-get($spacers, 3) !important;
+            padding-top: map-get($spacers, 2) !important;
+
+            .btn {
+                min-height: 36px;
+                padding-inline: map-get($spacers, 2);
+            }
+        }
+    }
+
+    .o-usl-FeedbackPanel-sentBar {
+        background-color: rgba(var(--o-success-rgb, 25, 135, 84), 0.05);
+    }
+
+    .o-usl-FeedbackPanel-withdrawnBar {
+        background-color: $o-gray-100;
+    }
+
+    .o-usl-FeedbackPanel-typing {
+        display: inline-flex;
+        gap: 2px;
+        vertical-align: middle;
+
+        i {
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: o-usl-feedback-typing 1.2s ease-in-out infinite;
+
+            &:nth-child(2) {
+                animation-delay: 0.15s;
+            }
+
+            &:nth-child(3) {
+                animation-delay: 0.3s;
+            }
+        }
+    }
+}
+
+.o-usl-FeedbackChatter {
+    min-height: 0;
+
+    .o-mail-Thread {
+        min-height: 0;
+    }
+
+    > .o-mail-Composer {
+        &.o-disabled {
+            opacity: 0.72;
+        }
+    }
+
+    .o-usl-FeedbackPanel-readyBar {
+        flex: 0 0 auto;
+        height: auto;
+        max-height: 48vh;
+        overflow: auto;
+    }
+
+    .o-mail-Thread {
+        padding-inline: map-get($spacers, 2);
+    }
+
+    > .o-mail-Composer {
+        margin: map-get($spacers, 1) map-get($spacers, 2) map-get($spacers, 2);
+        border: 1px solid $o-gray-300;
+        border-radius: $border-radius-lg;
+        padding: map-get($spacers, 2) !important;
+        background: $o-view-background-color;
+    }
+}
+
+@keyframes o-usl-feedback-typing {
+    0%,
+    60%,
+    100% {
+        opacity: 0.35;
+        transform: translateY(0);
+    }
+
+    30% {
+        opacity: 1;
+        transform: translateY(-2px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .o-usl-FeedbackPanel-typing i {
+        animation: none;
+        opacity: 0.7;
+    }
+}
+
+.o-usl-FeedbackChatBubble-button {
+    width: $o-mail-ChatBubble-sizeBig;
+    height: $o-mail-ChatBubble-sizeBig;
+}
+
+.o-usl-FeedbackChatBubble:hover .o-mail-ChatBubble-close {
+    display: inline-flex;
+}
+
+.o-usl-FeedbackChatWindow.o-mobile .o-usl-FeedbackPanel {
+    padding-bottom: env(safe-area-inset-bottom);
+
+    .o-usl-FeedbackPanel-draft {
+        min-height: 0;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .o-usl-FeedbackButton {
+        margin-inline-start: 0 !important;
+    }
+
+    .o-usl-FeedbackPanel-header {
+        min-height: 96px;
+
+        .o-usl-FeedbackPanel-brand {
+            width: 36px;
+            height: 36px;
+        }
+
+        .o-usl-FeedbackPanel-identity {
+            flex: 1 1 calc(100% - 6rem);
+        }
+
+        .o-usl-FeedbackPanel-title {
+            font-size: $font-size-lg;
+        }
+
+        .o-usl-FeedbackPanel-headerNav {
+            flex: 1 0 100%;
+            justify-content: flex-start;
+
+            > .btn-light {
+                min-height: 34px;
+                padding-inline: map-get($spacers, 2);
+            }
+
+            > .btn-link,
+            .o-dropdown > .btn-link {
+                min-height: 34px;
+            }
+        }
+    }
+
+    .o-usl-FeedbackPanel-journey {
+        min-height: 64px;
+        padding-inline: map-get($spacers, 2) !important;
+
+        .o-usl-FeedbackPanel-journeyMarker {
+            width: 24px;
+            height: 24px;
+        }
+
+        .o-usl-FeedbackPanel-journeyLine {
+            margin-inline: map-get($spacers, 1);
+        }
+    }
+
+    .o-usl-FeedbackPanel-readyBar {
+        padding: map-get($spacers, 2) !important;
+
+        .o-usl-FeedbackPanel-draftCard {
+            padding: map-get($spacers, 3) !important;
+        }
+
+        .o-usl-FeedbackPanel-draftCard footer {
+            .btn {
+                flex: 1 1 50%;
+                white-space: nowrap;
+            }
+        }
+    }
+}
