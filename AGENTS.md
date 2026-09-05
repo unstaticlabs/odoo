@@ -35,8 +35,6 @@ and its upgrade cost is documented.
   manifests, source bindings, or finalization behavior change.
 - Preserve foreign Docker projects and persistent resources. Delete only
   resources whose ownership and scope are proven.
-- Production deployment belongs to CI. Do not deploy production manually.
-
 ## Product references
 
 - Feature and module map: `docs/product/fork-overview.md`
