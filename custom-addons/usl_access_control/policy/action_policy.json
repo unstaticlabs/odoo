@@ -60,7 +60,7 @@
         "rpc:account.bank.ingestion.upload.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:account.bank.statement.confirm.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:account.bank.statement.reopen.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
-        "rpc:account.move.configure_draft_vendor_bill": "7f76345583ddcd7f504e0c32e702f43cdb48951138124fc1424cd248bef52b14",
+        "rpc:account.move.configure_draft_vendor_bill": "47cc3f54c0f77a096a85d37e1259e18ab126f278f3432657bc0815ca35d0d615",
         "rpc:mail.message.write": "fc11a242b86c0eae073f6f1310134d67b4487bb1522f7182d6398b4d870acd7b",
         "server_action:account.accountant_reset_to_draft_entries_action": "1a42c67d313bbba788c090e04c913a4b1a4007a58ebe429d972067d1d4df9edd",
         "server_action:account.action_account_confirm_payments": "f054db04ccd7bddbc80da432b0cf2545f5103032ea073ef03921dc3e64f667bd",
@@ -186362,6 +186362,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "e5a0ac9eeeaadcd74670bbf81f517d2b9eab17ec43b04385321b055d2504495e",
+  "qualified_policy_digest": "630ae8b117e57c5934e94eb29c6fc241f1c780992032c330e8aa285777476634",
   "schema": "usl-action-risk-policy-v1"
 }
