@@ -1372,6 +1372,22 @@ class CohortContractTests(unittest.TestCase):
         self.assertNotIn("ODOO_API_KEY", values)
         self.assertEqual(evidence["status"], "passed")
 
+    def test_recovery_sign_uses_restored_credentials_and_generated_configuration(self):
+        from operations.stack import _start_recovery_proof_runtime, _recovery_proof_names
+        target = load_target("production", TARGETS)
+        names = _recovery_proof_names(target, "daily-fixture")
+        images = {name: "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "a" * 64 for name in target.value["services"].values()}
+        release = {"components": {key: {"digest_reference": "fixture@sha256:" + "a" * 64}
+            for key in ("distribution", "paperless", "sign-dss")}, "renderer": {"image": "fixture"}}
+        env = {key: "/generated/" + key for key in
+            ("odoo", "dss", "paperless", "mcp", "personal-ai", "better-auth", "credential-encryption-key")}
+        with mock.patch("operations.stack._run_recovery_proof_container", return_value="fixture") as start:
+            _start_recovery_proof_runtime(target, mock.Mock(), "daily-fixture", "/proof",
+                names, release, images, env)
+        sign = next(call for call in start.call_args_list if call.args[3] == "sign")
+        self.assertTrue(sign.kwargs["env_file"][0].endswith("/sign-secrets/dss.env"))
+        self.assertEqual(sign.kwargs["env_file"][1], env["dss"])
+
     def test_recovery_quarantine_uses_its_disposable_environment_only(self):
         from operations.stack import _run_production_boundary_script
         target = load_target("production", TARGETS)

@@ -7487,7 +7487,7 @@ def _start_recovery_proof_runtime(
     )
     started["sign"] = _run_recovery_proof_container(
         runner, proof_id, names, "sign", release["components"]["sign-dss"]["digest_reference"],
-        alias="usl-sign-dss", env_file=f"{secrets}/dss.env",
+        alias="usl-sign-dss", env_file=[f"{secrets}/dss.env", env["dss"]],
         environment={
             "USL_DSS_PORT": "8443", "USL_DSS_LOTL_URL": "", "USL_DSS_OJ_URL": "",
             "USL_DSS_TSA_URL": "",
