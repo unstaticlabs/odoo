@@ -1372,12 +1372,12 @@ class CohortContractTests(unittest.TestCase):
         self.assertNotIn("ODOO_API_KEY", values)
         self.assertEqual(evidence["status"], "passed")
 
-    def test_recovery_accepts_native_odoo_filestore_names_but_rejects_traversal(self):
+    def test_recovery_accepts_relative_filestore_names_but_rejects_traversal(self):
         from operations.stack import _recovery_proof_durable_state, _recovery_proof_names
         target = load_target("production", TARGETS)
         names = _recovery_proof_names(target, "daily-fixture")
         for sample, expected in (("ab/" + "a" * 40, "durable sample is missing"),
-                ("../outside", "sample path is unsafe"), ("ab/" + "a" * 38, "sample path is unsafe")):
+                ("../outside", "sample path is unsafe"), ("attachment name.pdf", "durable sample is missing")):
             runner = mock.Mock()
             runner.run.return_value = subprocess.CompletedProcess([], 1, "", "")
             with self.subTest(sample=sample), mock.patch("operations.stack._recovery_proof_query",
@@ -1385,6 +1385,27 @@ class CohortContractTests(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, expected):
                     _recovery_proof_durable_state(target, runner, names,
                         {"components": {"paperless": {"digest_reference": "fixture"}}}, {}, "/proof", {})
+
+    def test_recovery_file_probe_checks_containment_and_content(self):
+        from operations.stack import RECOVERY_FILE_SAMPLE_SCRIPT
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "filestore"
+            root.mkdir()
+            stored = root / "ordinary attachment.pdf"
+            stored.write_bytes(b"preserved content")
+            outside = Path(directory) / "outside"
+            outside.write_bytes(b"outside content")
+            escaped = root / "link"
+            escaped.symlink_to(outside)
+            def probe(path):
+                return subprocess.run([__import__("sys").executable, "-c",
+                    RECOVERY_FILE_SAMPLE_SCRIPT, str(path), str(root)], capture_output=True, text=True)
+            valid = probe(stored)
+            self.assertEqual(valid.returncode, 0)
+            self.assertEqual(valid.stdout.strip(), "1:" + hashlib.sha256(b"preserved content").hexdigest())
+            for path in (outside, escaped, root / "missing"):
+                with self.subTest(path=path):
+                    self.assertNotEqual(probe(path).returncode, 0)
 
     def test_recovery_exited_service_fails_without_readiness_retries(self):
         from operations.stack import (_recovery_proof_runtime_health_once,

@@ -7767,6 +7767,27 @@ def _recovery_proof_isolation(runner, names: dict) -> str:
     ).encode()).hexdigest()
 
 
+RECOVERY_FILE_SAMPLE_SCRIPT = """
+import hashlib
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[2]).resolve(strict=True)
+path = Path(sys.argv[1]).resolve(strict=True)
+path.relative_to(root)
+files = [path] if path.is_file() else sorted(p for p in path.rglob('*') if p.is_file())
+if not files:
+    raise ValueError('no readable sample files')
+for candidate in files:
+    candidate.resolve(strict=True).relative_to(root)
+digest = hashlib.sha256()
+with files[0].open('rb') as stream:
+    for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+        digest.update(chunk)
+print(f'{len(files)}:{digest.hexdigest()}')
+"""
+
+
 def _recovery_proof_durable_state(
     target, runner, names: dict, release: dict, backup: dict, proof_root: str,
     images: dict[str, str],
@@ -7785,7 +7806,7 @@ def _recovery_proof_durable_state(
         "SELECT json_build_object('documents', (SELECT count(*) FROM documents_document))::text",
     )
     sample = str(odoo.get("sample", ""))
-    if sample and not re.fullmatch(r"[0-9a-f]{2}/[0-9a-f]{40}", sample):
+    if sample and (Path(sample).is_absolute() or ".." in Path(sample).parts or "\0" in sample):
         raise RuntimeError("recovery proof Odoo filestore sample path is unsafe")
     file_checks = {
         "odoo_filestore": (
@@ -7810,11 +7831,11 @@ def _recovery_proof_durable_state(
     for role, path in file_checks.items():
         result = runner.run([
             "docker", "run", "--rm", "--network", "none",
-            "--volume", f"{volume_for[role]}:/sample:ro", "--entrypoint", "/bin/sh",
-            release["components"]["paperless"]["digest_reference"], "-ec",
-            'p="$1"; [ -e "$p" ]; n=$(find "$p" -type f 2>/dev/null | sort | head -n 1); '
-            '[ -n "$n" ]; c=$(find "$p" -type f 2>/dev/null | wc -l | tr -d " "); '
-            'printf "%s:" "$c"; sha256sum "$n" | cut -d" " -f1', "proof", path,
+            "--volume", f"{volume_for[role]}:/sample:ro", "--entrypoint", "python",
+            release["components"]["paperless"]["digest_reference"], "-c",
+            RECOVERY_FILE_SAMPLE_SCRIPT, path,
+            f"/sample/filestore/{target.value['databases']['odoo']['name']}"
+            if role == "odoo_filestore" and sample else "/sample",
         ], check=False)
         if result.returncode:
             raise RuntimeError(f"recovery proof durable sample is missing: {role}")
