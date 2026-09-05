@@ -13,6 +13,7 @@ from operations.component_build import (
     component_digest,
     component_files,
     resolve,
+    source_date_epoch,
 )
 
 
@@ -72,6 +73,32 @@ class ComponentBuildTests(unittest.TestCase):
         self.assertEqual(set(payload["components"]), set(COMPONENTS))
         for value in payload["components"].values():
             self.assertRegex(value["tag"], r"^content-[0-9a-f]{64}$")
+
+    def test_source_date_epoch_is_the_head_commit_time(self) -> None:
+        root = Path(__file__).resolve().parents[2]
+        expected = subprocess.run(
+            ("git", "log", "-1", "--format=%ct"),
+            cwd=root, check=True, capture_output=True, text=True,
+        ).stdout.strip()
+        self.assertEqual(source_date_epoch(root), int(expected))
+        for value in resolve(root)["components"].values():
+            self.assertEqual(value["source_date_epoch"], int(expected))
+
+    def test_source_date_epoch_is_absent_without_a_commit(self) -> None:
+        root = self.create_repository()
+        self.assertIsNone(source_date_epoch(root))
+
+    def test_source_date_epoch_does_not_change_the_input_digest(self) -> None:
+        root = self.create_repository()
+        component = Component("test", "ghcr.io/usl/test", "Dockerfile", None, ("Dockerfile", "source.txt"))
+        before = component_digest(component, root)
+        subprocess.run(
+            ("git", "-c", "user.name=t", "-c", "user.email=t@example.com",
+             "commit", "-q", "-m", "fixture"),
+            cwd=root, check=True,
+        )
+        self.assertIsNotNone(source_date_epoch(root))
+        self.assertEqual(component_digest(component, root), before)
 
     def test_every_component_owns_its_dockerignore_contract(self) -> None:
         root = Path(__file__).resolve().parents[2]
