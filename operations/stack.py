@@ -5881,19 +5881,60 @@ message_domain = [
 ]
 message = env["mail.message"].sudo().search(message_domain, limit=1)
 status = "already_posted"
-if not message:
-    items = Markup("").join(
-        Markup("<li>%s</li>") % escape(item)
-        for item in notes["changes"]
+TYPE_ORDER = ("feat", "fix", "perf", "refactor", "docs", "chore", "ci", "build", "test")
+TYPE_LABELS = {
+    "feat": "New features", "fix": "Fixes", "perf": "Performance",
+    "refactor": "Internal changes", "docs": "Documentation", "chore": "Maintenance",
+    "ci": "Continuous integration", "build": "Build", "test": "Tests",
+    "other": "Other changes",
+}
+GROUPING_THRESHOLD = 5
+
+
+def render_change(change):
+    # A change is one merged pull request: ``type(scope): title (#number)``.
+    label = change["type"]
+    if change.get("scope"):
+        label += "(%s)" % change["scope"]
+    return Markup('<li>%s: %s (<a href="%s">#%s</a>)</li>') % (
+        escape(label),
+        escape(change["title"]),
+        escape(change["url"]),
+        escape(change["number"]),
     )
+
+
+def render_changes(notes):
+    if notes["schema"] == "usl-release-notes/v1":
+        return Markup("<ul>%s</ul>") % Markup("").join(
+            Markup("<li>%s</li>") % escape(item) for item in notes["changes"]
+        )
+    changes = notes["changes"]
+    if len(changes) <= GROUPING_THRESHOLD:
+        return Markup("<ul>%s</ul>") % Markup("").join(
+            render_change(change) for change in changes
+        )
+    rendered = Markup("")
+    for kind in TYPE_ORDER + ("other",):
+        group = [change for change in changes if change["type"] == kind]
+        if not group:
+            continue
+        rendered += Markup("<p><strong>%s</strong></p><ul>%s</ul>") % (
+            escape(TYPE_LABELS[kind]),
+            Markup("").join(render_change(change) for change in group),
+        )
+    return rendered
+
+
+if not message:
     action = Markup("")
     if notes.get("action_required"):
         action = Markup("<p><strong>Action required:</strong> %s</p>") % escape(
             notes["action_required"]
         )
     body = (
-        Markup("<h3>%s</h3><p>%s</p><ul>%s</ul>%s")
-        % (escape(notes["title"]), escape(notes["summary"]), items, action)
+        Markup("<h3>%s</h3><p>%s</p>%s%s")
+        % (escape(notes["title"]), escape(notes["summary"]), render_changes(notes), action)
         + Markup(
             "<p>Deployed %s · release <code>%s</code></p>"
         )

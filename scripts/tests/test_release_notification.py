@@ -231,5 +231,86 @@ class ReleaseNotificationProgramTests(unittest.TestCase):
         self.assertEqual(database.committed, {})
 
 
+def change(number: int, kind: str, scope, title: str) -> dict:
+    return {
+        "type": kind,
+        "scope": scope,
+        "title": title,
+        "number": number,
+        "url": f"https://github.com/unstaticlabs/odoo/pull/{number}",
+        "author": "elio-usl",
+    }
+
+
+class ReleaseChangelogRenderingTests(unittest.TestCase):
+    def notes(self, changes: list[dict], action_required=None) -> dict:
+        return {
+            "schema": "usl-release-notes/v2",
+            "title": "USL Distribution release 2026-09-05",
+            "summary": f"{len(changes)} changes since the previous release, in release.",
+            "changes": changes,
+            "action_required": action_required,
+        }
+
+    def test_short_changelog_is_one_flat_list_with_pull_request_links(self) -> None:
+        database = _Database()
+        result = run_program(
+            database,
+            self.notes([
+                change(111, "fix", "release", "compare definitions <script>x</script>"),
+                change(44, "other", None, "Contributors can understand a pull request"),
+            ]),
+            evidence_url="https://github.com/unstaticlabs/odoo/actions/runs/1",
+        )
+        body = str(database.committed[result["message_id"]]["body"])
+        self.assertIn("<h3>USL Distribution release 2026-09-05</h3>", body)
+        self.assertIn(
+            '<li>fix(release): compare definitions &lt;script&gt;x&lt;/script&gt; '
+            '(<a href="https://github.com/unstaticlabs/odoo/pull/111">#111</a>)</li>',
+            body,
+        )
+        self.assertIn(
+            '<li>other: Contributors can understand a pull request '
+            '(<a href="https://github.com/unstaticlabs/odoo/pull/44">#44</a>)</li>',
+            body,
+        )
+        self.assertNotIn("<script>", body)
+        self.assertNotIn("<strong>Fixes</strong>", body)
+        self.assertNotIn("<table", body)
+        self.assertEqual(body.count("<ul>"), 1)
+        self.assertLess(body.index("</ul>"), body.index("Deployed 2026-09-05 22:00:00"))
+        self.assertIn("release <code>aaaaaaaaaaaa</code>", body)
+        self.assertIn('<a href="https://github.com/unstaticlabs/odoo/actions/runs/1">technical evidence</a>', body)
+
+    def test_long_changelog_is_grouped_by_type_in_order(self) -> None:
+        database = _Database()
+        changes = [
+            change(1, "chore", "ci", "tidy"),
+            change(2, "fix", "release", "keep"),
+            change(3, "fix", "access", "record"),
+            change(4, "feat", "home", "welcome"),
+            change(5, "docs", None, "explain"),
+            change(6, "other", None, "Free text"),
+        ]
+        result = run_program(database, self.notes(changes, action_required="Rotate the keys"))
+        body = str(database.committed[result["message_id"]]["body"])
+        headings = [
+            body.index(f"<p><strong>{label}</strong></p><ul>")
+            for label in ("New features", "Fixes", "Documentation", "Maintenance", "Other changes")
+        ]
+        self.assertEqual(headings, sorted(headings))
+        self.assertNotIn("<strong>Performance</strong>", body)
+        self.assertEqual(body.count("<li>"), 6)
+        self.assertLess(body.index("#2</a>"), body.index("#3</a>"))
+        self.assertIn("<p><strong>Action required:</strong> Rotate the keys</p>", body)
+        self.assertNotIn("<table", body)
+
+    def test_v1_notes_still_render_as_plain_items(self) -> None:
+        database = _Database()
+        result = run_program(database, NOTES_V1)
+        body = str(database.committed[result["message_id"]]["body"])
+        self.assertIn("<ul><li>Improved recovery &lt;b&gt;bold&lt;/b&gt;.</li></ul>", body)
+
+
 if __name__ == "__main__":
     unittest.main()

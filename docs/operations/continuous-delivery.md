@@ -181,10 +181,36 @@ transaction back at exit. The program commits after `message_post`, reads the
 message again in a fresh transaction, and fails when the message is not
 stored. Before the commit step existed, the launcher recorded message ids that
 never existed in the database.
-Before promoting a user-visible release, update
-`operations/release-notes.json` in the reviewed release PR. The v3 builder
-rejects missing, empty, oversized, or structurally unknown notes and binds the
-accepted content into the signed release identity.
+### Changelog source
+
+The release notes are a changelog of the pull requests merged since the
+previous release. The `Distribution release` workflow runs
+`scripts/release-notes` before `scripts/release-manifest`. The generator:
+
+1. Lists the commits in the pushed range `github.event.before..github.sha`
+   with `gh api` and the workflow token. A push to `19-usl` is a production
+   release; a push to `19-usl-staging` is a staging release. Without a usable
+   `before` (first push, force push, manual dispatch) it uses the last 20
+   commits.
+2. Asks GitHub for the pull requests associated with those commits. It keeps
+   merged pull requests of this repository and drops the promotion pull
+   request (`19-usl-staging` into `19-usl`). The pull requests that the
+   promotion carries stay, because their commits are part of the range.
+3. Writes `usl-release-notes/v2` notes: a dated title, a one-sentence
+   summary with the changed scopes, one object per pull request (`type`,
+   `scope`, `title`, `number`, `url`, `author`) ordered by Conventional
+   Commit type, and `action_required` from the title of a pull request
+   labelled `action-required`.
+
+When no pull request was merged, or when GitHub is unreachable, the generator
+writes the reviewed `operations/release-notes.json` (`usl-release-notes/v1`)
+instead and says so in the job log. The v3 builder accepts both schemas,
+rejects missing, empty, oversized, or structurally unknown notes, and binds
+the accepted content into the signed release identity. OdooBot renders a v2
+changelog as one list item per pull request, `type(scope): title` with a
+link to the pull request, grouped under a small bold heading per type when
+the release has more than five changes. The message uses no table so that it
+stays readable on a phone.
 
 The operations image includes a pinned Docker client and Compose plugin, so the
 fixed host launcher does not depend on whatever client happens to be installed

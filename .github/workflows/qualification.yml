@@ -314,6 +314,7 @@ jobs:
       contents: read
       id-token: write
       packages: write
+      pull-requests: read
     uses: ./.github/workflows/product-image.yml
     with:
       source_ref: ${{ github.ref }}
