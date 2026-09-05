@@ -100,6 +100,16 @@ class ComponentBuildTests(unittest.TestCase):
         self.assertIsNotNone(source_date_epoch(root))
         self.assertEqual(component_digest(component, root), before)
 
+    def test_provenance_args_follow_the_copy_layers(self) -> None:
+        root = Path(__file__).resolve().parents[2]
+        for component in COMPONENTS.values():
+            dockerfile = (root / component.dockerfile).read_text(encoding="utf-8")
+            declaration = dockerfile.find("ARG USL_COMPONENT_INPUT_SHA256")
+            if declaration < 0:
+                continue
+            with self.subTest(dockerfile=component.dockerfile):
+                self.assertGreater(declaration, dockerfile.rfind("\nCOPY "))
+
     def test_every_component_owns_its_dockerignore_contract(self) -> None:
         root = Path(__file__).resolve().parents[2]
         for component in COMPONENTS.values():

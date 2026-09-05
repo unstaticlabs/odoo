@@ -8,12 +8,6 @@ FROM ${RESTIC_IMAGE} AS restic
 FROM ${DOCKER_CLI_IMAGE} AS docker-cli
 FROM ${POSTGRES_IMAGE} AS runtime
 
-ARG USL_COMPONENT_INPUT_SHA256=unverified
-
-LABEL org.opencontainers.image.title="USL Odoo Backup Tool" \
-      com.unstaticlabs.odoo.component-input-sha256="${USL_COMPONENT_INPUT_SHA256}" \
-      com.unstaticlabs.odoo.runtime="backup"
-
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     RESTIC_CACHE_DIR=/cache
@@ -37,6 +31,14 @@ COPY compose.resources.production.json compose.resources.staging.json /opt/usl/
 COPY deploy/production.cron-policy.json /opt/usl/deploy/production.cron-policy.json
 COPY --chmod=755 scripts/cohort-runtime /usr/local/bin/usl-cohort-runtime
 COPY --chmod=755 scripts/usl-stack /usr/local/bin/usl-stack
+
+# Provenance identity. It is declared after the package and copy layers so
+# that a new input digest changes only the image config, not those layers.
+ARG USL_COMPONENT_INPUT_SHA256=unverified
+
+LABEL org.opencontainers.image.title="USL Odoo Backup Tool" \
+      com.unstaticlabs.odoo.component-input-sha256="${USL_COMPONENT_INPUT_SHA256}" \
+      com.unstaticlabs.odoo.runtime="backup"
 
 ENV PYTHONPATH=/opt/usl
 
