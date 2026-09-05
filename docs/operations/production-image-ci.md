@@ -100,7 +100,8 @@ A later protected deployment workflow consumes the release artifact and uses
 2. freeze access and deploy the exact image cohort;
 3. run required Odoo module upgrades;
 4. run health and business smoke gates;
-5. unfreeze on success or restore the pre-release snapshot on failure;
+5. reopen after admission; recover the previous generation on pre-activation
+   failure, and repair forward once production activation has started;
 6. after production admission, create and qualify a new production backup;
 7. reset staging from that exact post-admission backup only when its
    pre-production staging intent still matches the complete staging runtime.
@@ -113,3 +114,16 @@ disposable restore proof, but leaves persistent staging unchanged.
 Build caching and runtime backup caching are separate: OCI layers stay in
 GHCR, while OCR, previews, Tantivy, and vectors use the reusable Restic cache
 repository described in [Backup and recovery](backup-and-recovery.md).
+
+
+Production qualification compares ACLs, record rules, group implications and
+cron definitions using stable model/XML identities. Database row IDs are used
+only for preserving the same database's business state. Signed staging plan
+evidence uses `usl-staging-upgrade-plan-evidence/v2`; a v1 attestation must be
+refreshed before production promotion.
+
+Activation restores the production Pocket ID provider from its running service
+environment and verifies the authorization callback and client credentials.
+A healthy HTTP endpoint alone does not prove that users can authenticate.
+Late scheduled jobs remain visible as warnings while workers catch up; actual
+cron failures and changes to enabled-job policy still block admission.

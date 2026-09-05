@@ -16,6 +16,7 @@ from operations import cohort
 from operations.runtime import load_target
 from operations.stack import (
     BACKUP_WRITER_SERVICE_ROLES,
+    _compose_services,
     VOLUME_LOGICAL_NAMES,
     build_parser,
     backup_command,
@@ -184,7 +185,7 @@ def backup_receipt(*, target: str = "staging", run_id: str = "attempt-20260904-s
         "cache_snapshot_id": cache_snapshot,
         "status": "uploaded",
     }
-    qualification = {**state, "status": "qualified"}
+    qualification = {**state, "status": "qualified", "qualified_from_snapshot_id": snapshot, "durable_snapshot_id": "f" * 64}
     quiescence = {
         "schema": "usl-backup-quiescence/v2",
         "target": target,
@@ -291,6 +292,20 @@ def staging_runtime_evidence(
 
 
 class CohortContractTests(unittest.TestCase):
+    def test_production_reconcile_requires_stopped_writer_receipt(self):
+        arguments = build_parser().parse_args([
+            "--targets", str(ROOT / "operations/targets-host"),
+            "--target", "production", "release", "reconcile",
+            "--backup-receipt", "/receipt.json", "--snapshot", "a" * 64,
+        ])
+        with mock.patch("operations.stack._read_path", return_value="{}"), \
+             mock.patch("operations.stack._backup_run_receipt", side_effect=ValueError("receipt reached")) as validate:
+            with self.assertRaisesRegex(ValueError, "receipt reached"):
+                release_command(arguments)
+        self.assertTrue(validate.call_args.kwargs["require_quiesced"])
+        self.assertIn("odoo", validate.call_args.kwargs["expected_writer_services"])
+        self.assertEqual(validate.call_args.kwargs["target"], "production")
+
     def setUp(self) -> None:
         # Most contract fixtures exercise lifecycle behavior without a mounted
         # GitOps checkout. Tests of the authority reader call the imported
@@ -299,6 +314,12 @@ class CohortContractTests(unittest.TestCase):
             "operations.stack._mcp_runtime_authority", return_value=None,
         )
         self.mcp_authority.start()
+        # Lifecycle fixtures isolate Compose discovery; its service selection has
+        # separate tests using real command output below.
+        selection = mock.patch("operations.stack._compose_services",
+            side_effect=lambda target, identity, runner=None: _compose_services(target, identity))
+        selection.start()
+        self.addCleanup(selection.stop)
 
     def tearDown(self) -> None:
         self.mcp_authority.stop()
@@ -1080,7 +1101,7 @@ class CohortContractTests(unittest.TestCase):
             "identity": "f" * 64,
             "components": {
                 name: {"digest_reference": f"ghcr.io/unstaticlabs/{name}@sha256:" + "a" * 64}
-                for name in ("distribution", "backup-tool", "paperless", "sign-dss")
+                for name in ("distribution", "backup-tool", "paperless", "sign-dss", "receipt-fetcher", "receipt-egress")
             },
             "mcp": {"image": "ghcr.io/unstaticlabs/mcp@sha256:" + "b" * 64},
             "renderer": {"image": "ghcr.io/unstaticlabs/renderer@sha256:" + "c" * 64},
@@ -1794,12 +1815,17 @@ class CohortContractTests(unittest.TestCase):
                 if command[0] == "cat":
                     value = marker if command[-1].endswith("/maintenance") else claim
                     return subprocess.CompletedProcess(command, 0, json.dumps(value), "")
+                if command[:2] == ["docker", "compose"]:
+                    assert "--no-recreate" in command and "--force-recreate" not in command
+                    return subprocess.CompletedProcess(command, 0, "", "")
                 raise AssertionError(command)
 
         with (
+            mock.patch("operations.stack._compose_services", return_value=["odoo"]),
+            mock.patch("operations.stack.compose_command", side_effect=lambda identity, args: ["docker", "compose", *args]),
             mock.patch(
                 "operations.stack.inspect_runtime",
-                return_value={"generation": baseline},
+                return_value={"generation": baseline, "compose": {}},
             ),
             mock.patch(
                 "operations.stack._runtime_boundary_gates",
@@ -2119,6 +2145,7 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("USL_POCKET_ID_ENABLED=1", command)
         shell = command[command.index("-c") + 1]
         self.assertIn("${POCKET_ID_CLIENT_SECRET:?}", shell)
+        self.assertIn('exec /usr/local/bin/odoo-entrypoint "$@"', shell)
         self.assertNotIn("client-secret-value", " ".join(command))
 
     def test_staging_pocket_id_reconcile_returns_redacted_runtime_evidence(self) -> None:
@@ -2573,6 +2600,44 @@ class CohortContractTests(unittest.TestCase):
             with self.assertRaisesRegex(cohort.CohortError, "provisioner.jwk"):
                 cohort.validate_sign_secrets(root)
 
+    def test_recovery_secret_validators_check_required_material(self) -> None:
+        for validator, names in (
+            (cohort.validate_mcp_secrets, cohort.MCP_SECRET_FILES),
+            (cohort.validate_renderer_secrets, cohort.RENDERER_SECRET_FILES),
+        ):
+            with self.subTest(validator=validator.__name__), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                for name in names:
+                    path = root / name
+                    path.write_text("x" * 64)
+                    path.chmod(0o600)
+                validator(root)
+                (root / names[-1]).unlink()
+                with self.assertRaises(cohort.CohortError):
+                    validator(root)
+
+    def test_renderer_readable_bind_keys_require_private_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name in cohort.RENDERER_SECRET_FILES:
+                path = root / name
+                path.write_text("fixture")
+                path.chmod(0o444)
+            root.chmod(0o700)
+            cohort.validate_renderer_secrets(root)
+            root.chmod(0o755)
+            with self.assertRaises(cohort.CohortError):
+                cohort.validate_renderer_secrets(root)
+
+    def test_sign_parent_may_be_traversable_while_private_material_stays_private(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = self._sign_secrets(Path(temporary) / "sign")
+            root.chmod(0o755)
+            self.assertGreater(cohort.validate_sign_secrets(root)["files"], 1)
+            root.chmod(0o777)
+            with self.assertRaisesRegex(cohort.CohortError, "unsafe permissions"):
+                cohort.validate_sign_secrets(root)
+
     def test_complete_sign_secret_validation_rejects_unsafe_permissions(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = self._sign_secrets(Path(temporary) / "sign")
@@ -2799,6 +2864,16 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(result["release"]["identity"], "b" * 64)
         self.assertEqual(result["release"]["commit"], "a" * 40)
 
+    def test_host_production_backup_includes_individually_mounted_keys(self) -> None:
+        target = load_target("production", TARGETS.parent / "targets-host")
+        command = _cohort_command(target, "backup-image", "capture", [])
+        mounts = [command[i + 1] for i, value in enumerate(command[:-1]) if value == "--volume"]
+        self.assertIn("/opt/usl-odoo/secrets/odoo-mcp-better-auth.secret:/source/mcp-secrets/better-auth.secret:ro", mounts)
+        self.assertIn("/opt/usl-odoo/secrets/odoo-mcp-credential-encryption-key.secret:/source/mcp-secrets/credential-encryption-key.secret:ro", mounts)
+        self.assertIn("/opt/usl-odoo/secrets/document-renderer:/source/renderer-secrets:ro", mounts)
+        self.assertIn("/opt/usl-odoo/secrets/paperless-personal-ai-keys.json:/source/paperless-personal-ai-keys.json:ro", mounts)
+        self.assertNotIn("/opt/usl-odoo/secrets:/source/mcp-secrets:ro", mounts)
+
     def test_container_mounts_every_durable_and_cache_source_read_only(self) -> None:
         target = load_target("production", TARGETS)
         command = _cohort_command(target, "backup@sha256:" + "a" * 64, "capture", [])
@@ -3018,7 +3093,7 @@ class CohortContractTests(unittest.TestCase):
     def test_restore_prepulls_every_release_image_once(self) -> None:
         references = [
             f"ghcr.io/unstaticlabs/image-{index}@sha256:{str(index) * 64}"
-            for index in range(1, 7)
+            for index in range(1, 9)
         ]
         release = {
             "components": {
@@ -3026,11 +3101,13 @@ class CohortContractTests(unittest.TestCase):
                 "distribution": {"digest_reference": references[1]},
                 "paperless": {"digest_reference": references[2]},
                 "sign-dss": {"digest_reference": references[3]},
+                "receipt-fetcher": {"digest_reference": references[4]},
+                "receipt-egress": {"digest_reference": references[5]},
             },
-            "mcp": {"image": references[4]},
-            "renderer": {"image": references[5]},
+            "mcp": {"image": references[6]},
+            "renderer": {"image": references[7]},
         }
-        self.assertEqual(_release_images(release), sorted(references[:4] + references[5:]))
+        self.assertEqual(_release_images(release), sorted(references[:6] + references[7:]))
 
     def test_odoo_release_does_not_pin_or_downgrade_independent_mcp(self) -> None:
         target = load_target("staging", TARGETS)
@@ -3040,7 +3117,7 @@ class CohortContractTests(unittest.TestCase):
         release = {
             "components": {
                 name: {"digest_reference": release_image}
-                for name in ("distribution", "backup-tool", "paperless", "sign-dss")
+                for name in ("distribution", "backup-tool", "paperless", "sign-dss", "receipt-fetcher", "receipt-egress")
             },
             "mcp": {"image": old_mcp},
             "renderer": {"image": release_image},
@@ -3248,6 +3325,8 @@ class CohortContractTests(unittest.TestCase):
                 "distribution": {"digest_reference": reference},
                 "paperless": {"digest_reference": reference},
                 "sign-dss": {"digest_reference": reference},
+                "receipt-fetcher": {"digest_reference": reference},
+                "receipt-egress": {"digest_reference": reference},
             },
             "mcp": {"image": reference},
             "renderer": {"image": reference},
@@ -3255,7 +3334,9 @@ class CohortContractTests(unittest.TestCase):
         runtime = {
             "containers": [
                 {"Service": target.value["services"][key], "ID": key, "State": "running"}
-                for key in ("odoo", "paperless", "sign", "mcp", "renderer")
+                for key in (
+                    "odoo", "paperless", "sign", "receipt_fetcher", "receipt_egress", "mcp", "renderer"
+                )
             ],
         }
 
@@ -3279,6 +3360,8 @@ class CohortContractTests(unittest.TestCase):
                 "distribution": {"digest_reference": reference},
                 "paperless": {"digest_reference": reference},
                 "sign-dss": {"digest_reference": reference},
+                "receipt-fetcher": {"digest_reference": reference},
+                "receipt-egress": {"digest_reference": reference},
             },
             "mcp": {"image": reference},
             "renderer": {"image": reference},
@@ -3286,7 +3369,9 @@ class CohortContractTests(unittest.TestCase):
         runtime = {
             "containers": [
                 {"Service": target.value["services"][key], "ID": key, "State": "running"}
-                for key in ("odoo", "paperless", "sign", "mcp", "renderer")
+                for key in (
+                    "odoo", "paperless", "sign", "receipt_fetcher", "receipt_egress", "mcp", "renderer"
+                )
             ],
         }
 
@@ -3758,6 +3843,46 @@ class CohortContractTests(unittest.TestCase):
             ["g20260903-rollback", "g20260904-active"],
         )
 
+    def test_cleanup_preserves_generation_still_used_by_running_sidecar(self) -> None:
+        from operations.stack import generation_volume_names
+        target = load_target("staging", TARGETS)
+        generation = "g20260905-sidecar"
+        volume = generation_volume_names(target, generation)["odoo_postgres"]
+        network = f"{target.project}-{generation}-recovery"
+        labels = {"com.docker.compose.project.config_files":
+                  f"{target.value['state_directory']}/generations/{generation}/compose.generation.json"}
+
+        class Runner:
+            def run(self, command, **kwargs):
+                if command[0] == "cat":
+                    return subprocess.CompletedProcess(command, 1, "", "")
+                if command[:2] == ["docker", "inspect"]:
+                    return subprocess.CompletedProcess(command, 0, json.dumps(labels), "")
+                if command[:3] == ["docker", "volume", "ls"]:
+                    return subprocess.CompletedProcess(command, 0, volume + "\nstale\n", "")
+                if command[:3] == ["docker", "network", "ls"]:
+                    return subprocess.CompletedProcess(command, 0, network + "\nstale-network\n", "")
+                raise AssertionError(command)
+
+        current = {"generation": "g20260903-baseline", "volumes": {},
+                   "containers": [{"ID": "sidecar", "State": "running"}]}
+        with mock.patch("operations.stack._cleanup_workspaces", return_value=[]) as workspaces:
+            inventory = _cleanup_inventory(target, Runner(), current)
+        self.assertEqual(inventory["delete_volumes"], ["stale"])
+        self.assertEqual(inventory["delete_networks"], ["stale-network"])
+        self.assertIn(generation, workspaces.call_args.args[2])
+
+    def test_recovery_evidence_may_use_its_own_storage_subdirectory(self) -> None:
+        from operations.stack import _recovery_proof_root
+        target = load_target("production", TARGETS.parent / "targets-host")
+        root = Path("/var/lib/usl-odoo/recovery-proofs")
+        self.assertEqual(_recovery_proof_root(target, root, "proof-20260905-test"),
+                         str(root / "proof-20260905-test"))
+        for forbidden in ("/var/lib/usl-odoo", "/var/lib", target.value["state_directory"],
+                          target.value["paths"]["sign_secrets"]["path"]):
+            with self.subTest(path=forbidden), self.assertRaises(RuntimeError):
+                _recovery_proof_root(target, Path(forbidden), "proof-20260905-test")
+
     def test_cleanup_workspace_inventory_rejects_symlinks_and_keeps_runs(self) -> None:
         target = load_target("staging", TARGETS)
 
@@ -3966,8 +4091,53 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("--no-deps", command)
         self.assertEqual(command[-2:], ["db", "odoo"])
         self.assertNotIn("gateway", command[command.index("up") + 1:])
-        self.assertNotIn("--force-recreate", command)
+        self.assertIn("--force-recreate", command)
 
+    def test_abort_rewrites_previous_overlay_with_gitops_identity(self) -> None:
+        digest = "sha256:" + "a" * 64
+        reference = "ghcr.io/unstaticlabs/example@" + digest
+        release = {
+            "components": {
+                name: {"digest_reference": reference}
+                for name in ("distribution", "paperless", "sign-dss", "receipt-fetcher", "receipt-egress")
+            },
+            "mcp": {"image": reference}, "renderer": {"image": reference},
+            "source": {"commit": "c" * 40},
+        }
+        target = mock.Mock(
+            name="staging",
+            value={
+                "state_directory": "/var/lib/runtime", "environment": "staging",
+                "compose": {"adoption": None, "anchor_service": "odoo-staging"},
+                "services": {"odoo": "odoo-staging"},
+                "ingress": {"proxy_mode": True, "list_db": False, "dbfilter": "^odoo_staging$"},
+            },
+        )
+        identity = {"project": "safe", "working_directory": "/release", "environment_file": "/env", "compose_files": ["/release/compose.yaml"]}
+        previous = {"generation": "gprevious", "volumes": {"odoo_postgres": "db"}, "release_manifest": "/var/lib/runtime/generations/gprevious/usl-release.json"}
+        raw = json.dumps(release, indent=2) + "\n"
+        writes = []
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        with mock.patch("operations.stack.inspect_runtime", return_value={"compose": identity}), mock.patch(
+            "operations.stack._previous_generation_identity", return_value=(identity, json.dumps(previous)),
+        ), mock.patch("operations.stack._read_path", return_value=raw), mock.patch(
+            "operations.stack.validate_release", return_value=release,
+        ), mock.patch("operations.stack._write_remote", side_effect=lambda *_args: writes.append(_args)), mock.patch(
+            "operations.stack._runtime_boundary_gates", return_value=({"status": "passed"}, {"status": "passed"}),
+        ):
+            _abort_to_previous_generation(target, runner, TARGETS, "b" * 40)
+        overlay = json.loads(writes[0][3])
+        environment = overlay["services"]["odoo-staging"]["environment"]
+        self.assertEqual(environment["USL_GITOPS_COMMIT"], "b" * 40)
+        self.assertEqual(environment["USL_RELEASE_MANIFEST_SHA256"], hashlib.sha256(
+            json.dumps(release, separators=(",", ":"), sort_keys=True).encode(),
+        ).hexdigest())
+        with mock.patch("operations.stack.inspect_runtime", return_value={"compose": identity}), mock.patch(
+            "operations.stack._previous_generation_identity", return_value=(identity, json.dumps(previous)),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "abort GitOps commit is invalid"):
+                _abort_to_previous_generation(target, runner, TARGETS, "invalid")
     def test_pre_boundary_failure_restores_active_state_and_previous_runtime(self) -> None:
         target = mock.Mock(value={
             "compose": {"adoption": None, "anchor_service": "odoo"},
@@ -4017,7 +4187,7 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("/runtime/previous.json", previous_up)
         self.assertIn("--no-deps", previous_up)
         self.assertNotIn("gateway", previous_up[previous_up.index("up") + 1:])
-        self.assertNotIn("--force-recreate", previous_up)
+        self.assertIn("--force-recreate", previous_up)
 
     def test_pre_boundary_failure_removes_uncommitted_active_state_for_adopted_baseline(self) -> None:
         target = mock.Mock(value={
@@ -4074,6 +4244,19 @@ class CohortContractTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "protected restore"):
             _restore_unlocked(arguments)
 
+    def test_activation_rejects_a_malformed_supplied_gitops_commit(self) -> None:
+        target = mock.Mock(protected=False, value={"transport": "ssh"})
+        target.runner.return_value = mock.Mock()
+        arguments = argparse.Namespace(
+            source="staging", target="staging", targets=TARGETS, replace=False, confirm=None,
+            target_release=None, release=None, gitops_commit="not-a-commit",
+        )
+        with mock.patch("operations.stack.load_target", return_value=target), mock.patch(
+            "operations.stack._secret_file",
+        ), mock.patch("operations.stack._release", return_value=({}, "a" * 64, "{}")):
+            with self.assertRaisesRegex(RuntimeError, "GitOps commit is invalid"):
+                _restore_unlocked(arguments)
+
     def test_generation_uses_unique_exact_volume_names(self) -> None:
         target = load_target("staging", TARGETS)
         names = generation_volume_names(target, "g20260901-a1b2c3d4")
@@ -4129,6 +4312,8 @@ class CohortContractTests(unittest.TestCase):
                 "distribution": {"digest_reference": reference},
                 "paperless": {"digest_reference": reference},
                 "sign-dss": {"digest_reference": reference},
+                "receipt-fetcher": {"digest_reference": reference},
+                "receipt-egress": {"digest_reference": reference},
             },
             "mcp": {"image": reference},
             "renderer": {"image": reference},
@@ -4139,6 +4324,8 @@ class CohortContractTests(unittest.TestCase):
             "odoo",
             "paperless-webserver",
             "usl-sign-dss",
+            "usl-receipt-fetcher",
+            "usl-receipt-egress",
             "odoo-mcp",
             "usl-document-renderer",
         }
@@ -4155,6 +4342,32 @@ class CohortContractTests(unittest.TestCase):
                 "ODOO_DB_FILTER": "^odoo_staging$",
             },
         )
+        mapped = json.loads(
+            _generation_overlay(
+                names,
+                release,
+                {"odoo-staging"},
+                target.value["ingress"],
+                service_names={"odoo": "odoo-staging"},
+                deployment_identity={
+                    "USL_DEPLOYMENT_ENV": "staging",
+                    "USL_RELEASE_COMMIT": "a" * 40,
+                    "USL_GITOPS_COMMIT": "b" * 40,
+                    "USL_DEPLOYMENT_GENERATION": "g20260901-a1b2c3d4",
+                    "USL_RELEASE_MANIFEST_SHA256": "c" * 64,
+                },
+            ),
+        )
+        self.assertEqual(set(mapped["services"]), {"odoo-staging"})
+        self.assertEqual(mapped["services"]["odoo-staging"]["environment"]["USL_GITOPS_COMMIT"], "b" * 40)
+        unknown = json.loads(
+            _generation_overlay(
+                names, release, {"odoo-staging"}, target.value["ingress"],
+                service_names={"odoo": "odoo-staging"},
+                deployment_identity={"USL_GITOPS_COMMIT": "Unknown"},
+            ),
+        )
+        self.assertEqual(unknown["services"]["odoo-staging"]["environment"]["USL_GITOPS_COMMIT"], "Unknown")
 
     def test_production_candidate_overlay_quarantines_external_workers(self) -> None:
         target = load_target("production", TARGETS)
@@ -4164,6 +4377,8 @@ class CohortContractTests(unittest.TestCase):
                 "distribution": {"digest_reference": digest},
                 "paperless": {"digest_reference": digest},
                 "sign-dss": {"digest_reference": digest},
+                "receipt-fetcher": {"digest_reference": digest},
+                "receipt-egress": {"digest_reference": digest},
             },
             "mcp": {"image": digest},
             "renderer": {"image": digest},
@@ -4211,6 +4426,8 @@ class CohortContractTests(unittest.TestCase):
                 "distribution": {"digest_reference": digest},
                 "paperless": {"digest_reference": digest},
                 "sign-dss": {"digest_reference": digest},
+                "receipt-fetcher": {"digest_reference": digest},
+                "receipt-egress": {"digest_reference": digest},
             },
             "mcp": {"image": digest},
             "renderer": {"image": digest},
@@ -4284,7 +4501,7 @@ class CohortContractTests(unittest.TestCase):
 
         stop = runner.commands[0]
         failed_up = runner.commands[1]
-        self.assertEqual(stop[-14:-10], ["stop", "--timeout", "60", "db"])
+        self.assertEqual(stop[stop.index("stop"):stop.index("stop") + 4], ["stop", "--timeout", "60", "db"])
         self.assertIn("odoo", stop)
         self.assertNotIn("odoo-staging", stop)
         self.assertIn("/runtime/v3.json", failed_up)
@@ -5230,7 +5447,7 @@ class CohortContractTests(unittest.TestCase):
         )
         for mutation, message in (
             (("quiescence", "writer_services"), "quiescence"),
-            (("qualification", "durable_snapshot_id"), "cohort identity"),
+            (("qualification", "qualified_from_snapshot_id"), "cohort identity"),
         ):
             changed = json.loads(json.dumps(value))
             parent = changed
@@ -5854,7 +6071,10 @@ class CohortContractTests(unittest.TestCase):
                 side_effect=lambda _target, _runner, identity, _authority: identity,
             ),
         ):
-            self.assertRegex(_runtime_cas_sha256(target, runner, runtime), r"[0-9a-f]{64}")
+            running_identity = _runtime_cas_sha256(target, runner, runtime)
+            self.assertRegex(running_identity, r"[0-9a-f]{64}")
+            runtime["containers"][0]["State"] = "exited"
+            self.assertEqual(_runtime_cas_sha256(target, runner, runtime), running_identity)
             authority_reader.assert_called_with(target)
             authority["image"] = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "e" * 64
             with self.assertRaisesRegex(RuntimeError, "differs from GitOps authority"):
@@ -5942,6 +6162,16 @@ class CohortContractTests(unittest.TestCase):
             target, runner, current, {"mcp_oauth": "new-oauth"},
         )
         self.assertEqual(result["status"], "preserved")
+        # Execute the generated verifier: mocks alone cannot detect invalid Python.
+        program = next(command[2] for command in runner.commands if command[0] == "python3")
+        with tempfile.TemporaryDirectory() as directory:
+            (Path(directory) / "oauth.sqlite").write_bytes(b"vault-fixture")
+            verified = subprocess.run(
+                ["python3", "-c", program, directory],
+                capture_output=True, text=True, check=True,
+            )
+            self.assertEqual(json.loads(verified.stdout)["files"], 1)
+            self.assertEqual(json.loads(verified.stdout)["bytes"], 13)
         self.assertEqual(result["mcp_oauth"]["source"], identity)
         self.assertEqual(result["mcp_oauth"]["destination"], identity)
         self.assertFalse(any("production" in " ".join(command) for command in runner.commands))

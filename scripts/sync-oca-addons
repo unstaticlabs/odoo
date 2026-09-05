@@ -106,6 +106,7 @@ sync_repo "server-auth" "https://github.com/OCA/server-auth.git" "19.0" "f51fe1b
 sync_repo "reporting-engine" "https://github.com/OCA/reporting-engine.git" "19.0" "6692523980cbc57d414935311d7f7bf1c834edc6"
 sync_repo "account-financial-tools" "https://github.com/OCA/account-financial-tools.git" "19.0" "3b3b3cf0974d5452734090e5a0421e762089de75"
 sync_repo "sign" "https://github.com/OCA/sign.git" "19.0" "3b768318bc5eaccb79535337478f49d59d17d0b1"
+sync_repo "queue" "https://github.com/OCA/queue.git" "19.0" "bb246855e122d3d6f6420289afd9257c49d08138"
 
 link_module "server-auth" "auth_oidc"
 link_module "server-ux" "date_range"
@@ -126,6 +127,7 @@ link_module "account-financial-reporting" "account_tax_balance"
 link_module "account-financial-reporting" "partner_statement"
 link_module "account-financial-tools" "account_asset_management"
 link_module "sign" "sign_oca"
+link_module "queue" "queue_job"
 
 apply_saas_patch "reporting-engine" "report_xlsx-content-disposition.patch"
 apply_saas_patch "reporting-engine" "report_xlsx_helper-content-disposition.patch"
@@ -144,6 +146,7 @@ apply_saas_patch "bank-statement-import" "bank_statement_import-sanitize-import.
 apply_saas_patch "bank-statement-import" "bank_statement_import-partner-bank-fields.patch"
 apply_saas_patch "bank-statement-import" "bank_statement_import-binary-api.patch"
 apply_saas_patch "bank-statement-import-ofx" "bank_statement_import_ofx-partner-bank-fields.patch"
+apply_saas_patch "queue" "queue_job-concurrency-errors.patch"
 
 adapt_saas_manifest "server-auth" "auth_oidc"
 adapt_saas_manifest "server-ux" "date_range"
@@ -164,6 +167,7 @@ adapt_saas_manifest "account-financial-reporting" "account_tax_balance"
 adapt_saas_manifest "account-financial-reporting" "partner_statement"
 adapt_saas_manifest "account-financial-tools" "account_asset_management"
 adapt_saas_manifest "sign" "sign_oca"
+adapt_saas_manifest "queue" "queue_job"
 
 # MIS was superseded by the canonical interactive Accounting reports. Remove a
 # link left by an older checkout so it cannot return as a competing runtime.

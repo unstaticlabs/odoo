@@ -22,9 +22,9 @@ activation_fingerprint = params.get_str("usl.production.activation_candidate_fin
 quarantined_fingerprint = params.get_str("usl.production.quarantined_candidate_fingerprint")
 if quarantined_fingerprint != fingerprint:
     raise RuntimeError("The production candidate was not quarantined under this identity.")
-if admitted_fingerprint and admitted_fingerprint != fingerprint:
-    raise RuntimeError("The database already has a production admission fingerprint.")
 already_activated = not params.get_bool("database.is_neutralized")
+if already_activated and admitted_fingerprint and admitted_fingerprint != fingerprint:
+    raise RuntimeError("The database already has a production admission fingerprint.")
 if already_activated and activation_fingerprint != fingerprint:
     raise RuntimeError("The database is active under another or missing activation identity.")
 
@@ -38,7 +38,7 @@ if mail_servers:
     raise RuntimeError(f"Database mail servers remain before activation: {mail_servers.ids}")
 if "fetchmail.server" in env.registry:  # noqa: F821
     active_fetchmail = env["fetchmail.server"].sudo().search([("active", "=", True)])  # noqa: F821
-    if active_fetchmail:
+    if active_fetchmail and not already_activated:
         raise RuntimeError(f"Incoming mail servers remain active: {active_fetchmail.ids}")
     try:
         quarantined_fetchmail_ids = json.loads(
@@ -68,7 +68,8 @@ neutralize_views = env["ir.ui.view"].sudo().search([  # noqa: F821
 if not already_activated:
     params.set_bool("database.is_neutralized", False)
     params.set_str("usl.production.activation_candidate_fingerprint", fingerprint)
-    params.set_str("usl.production.quarantined_fetchmail_ids", "[]")
+    # Preserve the approved inbound-mail identity for idempotent activation retries.
+    params.set_str("usl.production.admitted_candidate_fingerprint", "")
     if neutralize_views:
         neutralize_views.write({"active": False})
 env.registry.clear_cache("stable")  # noqa: F821

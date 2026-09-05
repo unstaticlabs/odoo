@@ -328,6 +328,8 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         "paperless_tika",
         "mcp",
         "renderer",
+        "receipt_fetcher",
+        "receipt_egress",
         "sign",
         "sign_ca",
     }
@@ -371,6 +373,7 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         "paperless_broker",
         "paperless_export",
         "mcp_oauth",
+        "receipt_control",
     }
     if not isinstance(volumes, dict) or not required_volumes <= set(volumes):
         raise RuntimeError(f"target volumes must include {sorted(required_volumes)}")
@@ -388,7 +391,16 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
     if not isinstance(paths, dict) or not required_paths <= set(paths):
         raise RuntimeError(f"target paths must include {sorted(required_paths)}")
     for role, definition in paths.items():
-        _exact(definition, {"path", "class", "required", "tier"}, f"paths.{role}")
+        _exact(definition, {"path", "class", "required", "tier"} | ({"files"} if "files" in definition else set()), f"paths.{role}")
+        if "files" in definition:
+            files = definition["files"]
+            if role != "mcp_secrets" or not isinstance(files, dict) or not files:
+                raise RuntimeError(f"paths.{role}.files must map MCP recovery filenames to source paths")
+            for name, source in files.items():
+                if not isinstance(name, str) or Path(name).name != name or name in {".", ".."}:
+                    raise RuntimeError(f"paths.{role}.files contains an invalid filename")
+                if not isinstance(source, str) or not source.startswith("/"):
+                    raise RuntimeError(f"paths.{role}.files source must be absolute")
         if definition["class"] not in {"durable", "cache", "transient"}:
             raise RuntimeError(f"paths.{role}.class is invalid")
         if not isinstance(definition["path"], str) or not definition["path"].startswith("/"):
@@ -706,7 +718,12 @@ def read_active_state(target: Target, runner: Runner) -> dict[str, Any] | None:
         raise RuntimeError("active generation state belongs to another target")
     if not TARGET_NAME.fullmatch(str(state["generation"])):
         raise RuntimeError("active generation name is invalid")
-    if set(state["volumes"]) != set(target.value["volumes"]):
+    recorded_roles = set(state["volumes"])
+    target_roles = set(target.value["volumes"])
+    if recorded_roles - target_roles or any(
+        target.value["volumes"][role]["class"] != "transient"
+        for role in target_roles - recorded_roles
+    ):
         raise RuntimeError("active generation volume perimeter differs")
     if not isinstance(state["network"], str) or not state["network"]:
         raise RuntimeError("active generation network is invalid")
@@ -746,7 +763,7 @@ def effective_volumes(target: Target, runner: Runner) -> tuple[dict[str, dict[st
         for role, name in state["volumes"].items()
         if isinstance(name, str) and name
     }
-    if set(volumes) != set(target.value["volumes"]):
+    if set(volumes) != set(state["volumes"]):
         raise RuntimeError("active generation contains an invalid volume name")
     return volumes, state["generation"]
 

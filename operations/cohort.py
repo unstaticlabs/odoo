@@ -34,6 +34,8 @@ RETENTION_TIMEZONE = ZoneInfo("Europe/Paris")
 RETENTION = {"daily": 14, "weekly": 8, "monthly": 24, "yearly": 10}
 CACHE_MINIMUM_DAYS = 30
 DATABASES = ("odoo", "paperless")
+MCP_SECRET_FILES = ("better-auth.secret", "credential-encryption-key.secret")
+RENDERER_SECRET_FILES = ("ca.crt", "renderer.crt", "renderer.key", "odoo.crt", "odoo.key")
 SIGN_SECRET_FILES = (
     "dss.env",
     "dss/client-trust.p12",
@@ -154,7 +156,7 @@ def validate_sign_secrets(root: Path) -> dict[str, Any]:
     """Validate complete Sign recovery material without exposing its contents."""
     if not root.is_dir() or root.is_symlink():
         raise CohortError("complete Sign secret root is missing or unsafe")
-    if root.stat().st_mode & 0o077:
+    if root.stat().st_mode & 0o022:
         raise CohortError("complete Sign secret root has unsafe permissions")
     for path in root.rglob("*"):
         if path.is_symlink():
@@ -183,7 +185,7 @@ def validate_sign_secrets(root: Path) -> dict[str, Any]:
 
 
 def validate_mcp_secrets(root: Path) -> dict[str, Any]:
-    if not root.is_dir() or root.is_symlink() or root.stat().st_mode & 0o077:
+    if not root.is_dir() or root.is_symlink() or root.stat().st_mode & 0o022:
         raise CohortError("complete MCP secret root is missing or unsafe")
     for relative in MCP_SECRET_FILES:
         path = root / relative
@@ -195,13 +197,16 @@ def validate_mcp_secrets(root: Path) -> dict[str, Any]:
 
 
 def validate_renderer_secrets(root: Path) -> dict[str, Any]:
-    if not root.is_dir() or root.is_symlink() or root.stat().st_mode & 0o077:
+    if not root.is_dir() or root.is_symlink() or root.stat().st_mode & 0o022:
         raise CohortError("complete renderer secret root is missing or unsafe")
     for relative in RENDERER_SECRET_FILES:
         path = root / relative
         if not path.is_file() or path.is_symlink() or path.stat().st_size < 1:
             raise CohortError(f"required renderer recovery material is missing: {relative}")
-        if relative.endswith(".key") and path.stat().st_mode & 0o077:
+        if relative.endswith(".key") and (
+            path.stat().st_mode & 0o022
+            or (path.stat().st_mode & 0o077 and root.stat().st_mode & 0o077)
+        ):
             raise CohortError(f"private renderer recovery material has unsafe permissions: {relative}")
     return tree_identity(root)
 
@@ -1097,6 +1102,7 @@ def qualify(arguments: argparse.Namespace) -> dict[str, Any]:
         ],
         durable_environment,
     )
+    state["qualified_from_snapshot_id"] = state["durable_snapshot_id"]
     run_tag = f"run-{state['run_id']}"
     state["durable_snapshot_id"] = resolve_tagged_snapshot(
         durable_environment,

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="queue_job_channel_receipt_fetch" model="queue.job.channel">
+        <field name="name">receipt_fetch</field>
+        <field name="parent_id" ref="queue_job.channel_root"/>
+    </record>
+
+    <record id="queue_job_function_linked_receipt_fetch" model="queue.job.function">
+        <field name="model_id" ref="model_usl_mail_pdf_retrieval"/>
+        <field name="method">_job_fetch_receipt</field>
+        <field name="channel_id" ref="queue_job_channel_receipt_fetch"/>
+        <field name="retry_pattern" eval="{1: 60, 2: 300, 3: 900}"/>
+        <field name="allow_commit" eval="True"/>
+        <field name="on_fail_method">_job_fetch_receipt_failed</field>
+        <field name="related_action" eval="{'enable': False}"/>
+    </record>
+</odoo>

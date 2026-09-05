@@ -77,6 +77,11 @@ COMPONENTS = {
                 "operations/contracts/**",
                 "scripts/cohort-runtime",
                 "scripts/usl-stack",
+                "scripts/odoo/production_quarantine.py",
+                "scripts/odoo/production_activate.py",
+                "scripts/odoo/production_side_effect_boundary.py",
+                "scripts/sign-services-smoke.py",
+                "scripts/generate-receipt-fetcher-certs",
             ),
         ),
         Component(
@@ -95,6 +100,20 @@ COMPONENTS = {
                 "services/usl-sign-dss/**",
                 "addons/web/static/fonts/sign/NotoSans-Reg.ttf",
             ),
+        ),
+        Component(
+            "receipt-fetcher",
+            "ghcr.io/unstaticlabs/usl-receipt-fetcher",
+            "services/usl-receipt-fetcher/Dockerfile",
+            None,
+            ("services/usl-receipt-fetcher/**",),
+        ),
+        Component(
+            "receipt-egress",
+            "ghcr.io/unstaticlabs/usl-receipt-egress",
+            "services/usl-receipt-egress/Dockerfile",
+            None,
+            ("services/usl-receipt-egress/**",),
         ),
     )
 }

@@ -10,6 +10,7 @@ docutils==0.23 ; python_version >= '3.11'
 freezegun==1.2.1 ; python_version >= '3.11' and python_version < '3.13'
 freezegun==1.5.5 ; python_version >= '3.13'
 geoip2==2.9.0
+httpx==0.28.1  # Linked-receipt mTLS client over an isolated Unix socket
 gevent==24.2.1 ; sys_platform != 'win32' and python_version >= '3.12' and python_version < '3.13'  # (Noble)
 gevent==24.11.1 ; sys_platform != 'win32' and python_version >= '3.13'  # (Trixie)
 greenlet==3.0.3 ; sys_platform != 'win32' and python_version >= '3.12' and python_version < '3.13' # (Noble)
@@ -26,6 +27,7 @@ MarkupSafe==2.1.5 ; python_version >= '3.12'  # (Noble) Mostly to have a wheel p
 markdown-it-py==4.2.0 ; python_version >= '3.12'  # Render the built-in USL user guide
 num2words==0.5.14 ; python_version >= '3.12'
 ofxparse==0.21
+openupgradelib==3.13.7  # OCA queue_job migration helpers; exact release pin
 openpyxl==3.1.5 ; python_version >= '3.12'
 opentimestamps==0.4.5 ; python_version >= '3.12'  # Daily Sign manifest Bitcoin proofs; exact protocol pin
 passlib==1.7.4 # min version = 1.7.2 (Focal with security backports)

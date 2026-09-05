@@ -136,6 +136,10 @@
       "classification": "protected"
     },
     {
+      "action_key": "guard:queue_job_authority",
+      "classification": "protected"
+    },
+    {
       "action_key": "rpc:account.account.reconcile.unlink",
       "action_name": "permanently delete account.account.reconcile",
       "classification": "protected",
@@ -1272,7 +1276,6 @@
     },
     {
       "action_key": "rpc:project.project.unlink",
-      "action_name": "permanently delete project.project",
       "classification": "protected",
       "enforcement": {
         "kind": "model_operation",
@@ -1292,7 +1295,6 @@
     },
     {
       "action_key": "rpc:project.task.type.unlink",
-      "action_name": "permanently delete project.task.type",
       "classification": "protected",
       "enforcement": {
         "kind": "model_operation",
@@ -1302,7 +1304,6 @@
     },
     {
       "action_key": "rpc:project.task.unlink",
-      "action_name": "permanently delete project.task",
       "classification": "protected",
       "enforcement": {
         "kind": "model_operation",
@@ -1319,6 +1320,64 @@
         "model": "purchase.order",
         "operation": "unlink"
       }
+    },
+    {
+      "action_key": "rpc:queue.job.channel.create",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "queue.job.channel",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:queue.job.channel.unlink",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "queue.job.channel",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:queue.job.channel.write",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "queue.job.channel",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:queue.job.function.create",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "queue.job.function",
+        "operation": "create"
+      }
+    },
+    {
+      "action_key": "rpc:queue.job.function.unlink",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "queue.job.function",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:queue.job.function.write",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "queue.job.function",
+        "operation": "write"
+      }
+    },
+    {
+      "action_key": "rpc:queue.job.write",
+      "classification": "protected"
     },
     {
       "action_key": "rpc:quotation.document.unlink",
@@ -1786,6 +1845,42 @@
       }
     },
     {
+      "action_key": "rpc:usl.feedback.agent.run.unlink",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.feedback.agent.run",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.mail.pdf.host.unlink",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.mail.pdf.host",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.mail.pdf.pattern.unlink",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.mail.pdf.pattern",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.mail.pdf.retrieval.unlink",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.mail.pdf.retrieval",
+        "operation": "unlink"
+      }
+    },
+    {
       "action_key": "rpc:usl.oidc.identity.create",
       "action_name": "create usl.oidc.identity",
       "classification": "protected",
@@ -1976,8 +2071,8 @@
       "classification": "protected"
     }
   ],
-  "qualified_policy_digest": "630ae8b117e57c5934e94eb29c6fc241f1c780992032c330e8aa285777476634",
-  "runtime_policy_sha256": "a5d2b651970ecf3416f3f5084f0588a739fc3b5bfd2b471eb8f5adf46f9bfaa8",
+  "qualified_policy_digest": "316272035736eef93d7fdb28a6f134e783038164f6128d738138d0b12aa63d3d",
+  "runtime_policy_sha256": "627ce68d965e4a8d2e3d98328024568bb2f9dc3296c1ba6077fcf99e9fac6c2d",
   "schema": "usl-action-risk-protected-runtime-v2",
   "server_actions": [
     {
@@ -2393,6 +2488,10 @@
       "classification": "operational"
     },
     {
+      "action_key": "server_action:queue_job.ir_cron_autovacuum_queue_jobs_ir_actions_server",
+      "classification": "operational"
+    },
+    {
       "action_key": "server_action:rebuild_account_migration.ir_cron_rebuild_currency_rate_provider_ir_actions_server",
       "classification": "operational"
     },
@@ -2578,6 +2677,10 @@
     },
     {
       "action_key": "server_action:usl_documents_accounting.ir_cron_archive_bank_statement_evidence_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_feedback.ir_cron_feedback_agent_ir_actions_server",
       "classification": "operational"
     },
     {

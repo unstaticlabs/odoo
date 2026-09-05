@@ -23,6 +23,7 @@ from operations.runtime import (
 from operations.stack import (
     _cleanup_adoption_candidate_anchor,
     _validate_mcp_readiness,
+    _mcp_readiness,
     _validate_sign_readiness,
     runtime_command,
 )
@@ -35,6 +36,16 @@ HOST_TARGETS = ROOT / "operations/targets-host"
 
 
 class CommandRunnerSecretTests(unittest.TestCase):
+    def test_read_path_accepts_manifest_paths_from_json(self) -> None:
+        from operations.stack import _read_path
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "manifest.json"
+            path.write_text('{"identity": "candidate"}', encoding="utf-8")
+            self.assertEqual(
+                json.loads(_read_path(None, None, str(path))),
+                {"identity": "candidate"},
+            )
+
     def test_stdin_content_is_absent_from_local_and_ssh_failure_errors(self) -> None:
         secret = "stdin-only-secret-sentinel"
         failed = subprocess.CompletedProcess([], 9, "", f"writer echoed {secret}")
@@ -262,6 +273,25 @@ class ComposeAnchorRunner(FakeRunner):
 
 
 class RuntimeContractTests(unittest.TestCase):
+    def test_receipt_fetcher_keeps_chromium_sandbox_and_non_root_tmpfs(self) -> None:
+        compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+        fetcher = compose.split("  usl-receipt-fetcher:", 1)[1].split("\n  odoo:", 1)[0]
+        self.assertIn("read_only: true", fetcher)
+        self.assertIn('cap_drop: ["ALL"]', fetcher)
+        self.assertIn('cap_add: ["SYS_CHROOT"]', fetcher)
+        self.assertIn("no-new-privileges:true", fetcher)
+        self.assertIn("seccomp=services/usl-receipt-fetcher/seccomp_profile.json", fetcher)
+        self.assertIn("uid=1001,gid=1001", fetcher)
+        self.assertIn("noexec,nosuid,nodev", fetcher)
+        self.assertNotIn("- default", fetcher)
+        dockerfile = (ROOT / "services/usl-receipt-fetcher/Dockerfile").read_text(encoding="utf-8")
+        self.assertIn("USER pwuser", dockerfile)
+        app = (ROOT / "services/usl-receipt-fetcher/app.py").read_text(encoding="utf-8")
+        self.assertIn("chromium_sandbox=True", app)
+        self.assertIn("--force-webrtc-ip-handling-policy=disable_non_proxied_udp", app)
+        self.assertIn("FETCH_SLOTS = asyncio.Semaphore(2)", app)
+        self.assertLess(app.index("page = await context.new_page()"), app.index('context.on("page", capture_popup)'))
+
     def test_local_staging_repositories_are_scoped_and_production_stays_remote(self):
         for targets in (TARGETS, HOST_TARGETS):
             staging = load_target("staging", targets)
@@ -277,6 +307,19 @@ class RuntimeContractTests(unittest.TestCase):
             production.value["backup"] = staging.value["backup"]
             with self.assertRaisesRegex(RuntimeError, "supported Restic repository"):
                 validate_target(production.value)
+
+    def test_loopback_mcp_probe_preserves_public_host(self) -> None:
+        target = load_target("production", HOST_TARGETS)
+        class HostCheckingRunner:
+            def run(self, command, **kwargs):
+                if "Host: odoo-mcp.unstaticlabs.com" not in command:
+                    return subprocess.CompletedProcess(command, 22, "Forbidden", "")
+                return subprocess.CompletedProcess(command, 0, json.dumps({
+                    "schema": "usl-odoo-mcp-readiness/v1", "status": "ready",
+                    "server_version": "1.4.2", "targets": 1,
+                    "oauth": {"status": "ready", "schema_version": 1},
+                }), "")
+        self.assertEqual(_mcp_readiness(target, HostCheckingRunner())["status"], "ready")
 
     def test_mcp_readiness_binds_runtime_and_oauth_schema(self) -> None:
         value = {
