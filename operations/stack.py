@@ -5864,25 +5864,7 @@ def _apply_generation_cron_policy(target, runner, release, network, volumes) -> 
     raise RuntimeError("candidate cron policy returned no evidence")
 
 
-def _notify_release(target, runner, release_id: str) -> dict:
-    """Post one persistent OdooBot note in the distribution update channel."""
-    if target.value["environment"] != "production":
-        raise RuntimeError("release notifications are production-only")
-    if not re.fullmatch(r"[0-9a-f]{64}", release_id):
-        raise RuntimeError("release notification identity is invalid")
-    runtime = inspect_runtime(target, runner)
-    release, _release_sha, _release_raw = _release(target, runner, None)
-    if release.get("identity") != release_id:
-        raise RuntimeError("release notification does not match the active release")
-    active = runtime.get("active_state")
-    if active is not None and active.get("release_manifest"):
-        active_release = json.loads(_read_path(target, runner, active["release_manifest"]))
-        if active_release.get("identity") != release_id:
-            raise RuntimeError("active generation differs from the release notification")
-    network = target.value["compose"]["default_network"]
-    volumes = runtime["volumes"]
-    database = target.value["databases"]["odoo"]
-    program = """
+RELEASE_NOTIFICATION_PROGRAM = """
 import json
 from markupsafe import Markup, escape
 from odoo import fields
@@ -5892,11 +5874,12 @@ evidence_url = env.context.get("usl_release_notification_evidence_url")
 channel = env.ref("usl_home.channel_distribution_updates").sudo()
 odoobot = env.ref("base.partner_root").sudo()
 external_message_id = "<usl-release-%s@unstaticlabs.com>" % release_id
-message = env["mail.message"].sudo().search([
+message_domain = [
     ("model", "=", channel._name),
     ("res_id", "=", channel.id),
     ("message_id", "=", external_message_id),
-], limit=1)
+]
+message = env["mail.message"].sudo().search(message_domain, limit=1)
 status = "already_posted"
 if not message:
     items = Markup("").join(
@@ -5929,6 +5912,16 @@ if not message:
         message_type="comment",
         subtype_xmlid="mail.mt_comment",
     )
+    posted_id = message.id
+    # ``odoo shell`` rolls the transaction back at exit. Commit, then prove
+    # in a fresh transaction that the message is stored before reporting it.
+    env.cr.commit()
+    env.invalidate_all()
+    message = env["mail.message"].sudo().search(message_domain, limit=1)
+    if not message or message.id != posted_id:
+        raise RuntimeError(
+            "release notification %s was not stored after commit" % posted_id
+        )
     status = "posted"
 print("USL_RELEASE_NOTIFICATION_RESULT=" + json.dumps({
     "channel": "usl_home.channel_distribution_updates",
@@ -5937,6 +5930,27 @@ print("USL_RELEASE_NOTIFICATION_RESULT=" + json.dumps({
     "status": status,
 }, sort_keys=True))
 """
+
+
+def _notify_release(target, runner, release_id: str) -> dict:
+    """Post one persistent OdooBot note in the distribution update channel."""
+    if target.value["environment"] != "production":
+        raise RuntimeError("release notifications are production-only")
+    if not re.fullmatch(r"[0-9a-f]{64}", release_id):
+        raise RuntimeError("release notification identity is invalid")
+    runtime = inspect_runtime(target, runner)
+    release, _release_sha, _release_raw = _release(target, runner, None)
+    if release.get("identity") != release_id:
+        raise RuntimeError("release notification does not match the active release")
+    active = runtime.get("active_state")
+    if active is not None and active.get("release_manifest"):
+        active_release = json.loads(_read_path(target, runner, active["release_manifest"]))
+        if active_release.get("identity") != release_id:
+            raise RuntimeError("active generation differs from the release notification")
+    network = target.value["compose"]["default_network"]
+    volumes = runtime["volumes"]
+    database = target.value["databases"]["odoo"]
+    program = RELEASE_NOTIFICATION_PROGRAM
     result = runner.run(
         [
             "docker", "run", "--rm", "--interactive", "--network", network,

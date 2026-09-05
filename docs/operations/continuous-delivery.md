@@ -175,6 +175,12 @@ portal and public identities are excluded. The post is persistent, links to
 technical evidence, and is idempotent for the release identity; it is not a
 transient browser popup. Notification failure is retryable operational
 evidence and never rolls back a healthy release.
+
+The notification program runs through `odoo shell`, which rolls its
+transaction back at exit. The program commits after `message_post`, reads the
+message again in a fresh transaction, and fails when the message is not
+stored. Before the commit step existed, the launcher recorded message ids that
+never existed in the database.
 Before promoting a user-visible release, update
 `operations/release-notes.json` in the reviewed release PR. The v3 builder
 rejects missing, empty, oversized, or structurally unknown notes and binds the
