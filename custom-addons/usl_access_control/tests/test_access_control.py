@@ -10,6 +10,7 @@ from odoo.service.model import call_kw
 from odoo.tests import tagged
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
+from odoo.addons.usl_access_control.models.action_policy import load_agent_readonly_policy
 
 
 @tagged("post_install", "-at_install", "usl_access_control")
@@ -155,6 +156,17 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
         )
         with self.assertRaises(TypeError):
             policy.model_operation_guards["project.task", "unlink"] = None
+
+    def test_reconciliation_selection_and_matching_require_agent_write_scope(self):
+        policy = load_agent_readonly_policy()
+        self.assertEqual(
+            policy.access_for("account.move.line", "action_reconcile_manually"),
+            "write",
+        )
+        self.assertEqual(
+            policy.access_for("account.bank.statement.line", "reconcile_bank_line"),
+            "write",
+        )
 
     def test_document_detail_keeps_model_rpc_contract(self):
         with self.assertRaisesRegex(ValidationError, "no longer exists"):

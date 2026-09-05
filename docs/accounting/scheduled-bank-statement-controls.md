@@ -65,6 +65,25 @@ counterparts and categorizing a partner remain normal accounting work. An
 Accounting Manager can reopen with a mandatory reason; the prior snapshot and
 evidence remain immutable.
 
+Reset to Draft and both native/OCA Undo Match actions preserve certification.
+They may change posting state or recreate journal items, but must preserve the
+bank-origin fingerprint: statement/move identity, journal/company, date, amount,
+bank reference, provider provenance and liquidity account/date/balance. These
+operations run inside a savepoint with an opaque permission scoped to their
+own moves. A changed fingerprint rolls back the entire operation, even if an
+internal caller catches the error. Cancellation, deletion and direct evidence
+edits still require reopening. Native permissions, lock/hash checks and active
+foreign-currency settlement controls remain in force.
+
+Certification records the bank checkpoint, not a permanent posted-state lock.
+An entry reset for bookkeeping correction must still be reposted normally;
+the certified source snapshot and certification history are not rewritten.
+
+General Reconciliation stores the initial selection once per user/workspace
+when launched. Later requests use the saved selection, including an empty
+selection after Start over. Launch defaults retained by an older browser tab
+cannot replace the saved selection during Confirm match.
+
 ## Existing data and OCA boundary
 
 The operational module does not rewrite historical statements or infer matches

@@ -33,3 +33,4 @@ access_linked_receipt_host_manager,linked receipt host manager,model_usl_mail_pd
 access_linked_receipt_pattern_manager,linked receipt pattern manager,model_usl_mail_pdf_pattern,account.group_account_manager,1,1,0,0
 access_linked_receipt_wizard,linked receipt wizard,model_usl_mail_pdf_candidate_wizard,base.group_user,1,1,1,1
 access_linked_receipt_wizard_line,linked receipt wizard line,model_usl_mail_pdf_candidate_wizard_line,base.group_user,1,1,1,1
+access_bank_ingestion_period,correct bank export period,model_account_bank_ingestion_period,account.group_account_user,1,1,1,1

@@ -149,13 +149,13 @@ def derive_upgrade_plan(
             reasons[name].append("newly-owned-installed-module")
             continue
         if current["source_sha256"] != wanted["source_sha256"]:
-            if current["version"] == wanted["version"]:
-                raise ModuleReleaseError(f"changed module {name} has no version bump")
+            # An explicit Odoo module update reloads changed code, fields and
+            # data even at the same version. Plan from content; a version bump
+            # is needed to select versioned migration scripts, not every edit.
             changed.add(name)
             reasons[name].append("source-changed")
         if current["stored_model_sha256"] != wanted["stored_model_sha256"]:
-            if current["version"] == wanted["version"]:
-                raise ModuleReleaseError(f"stored model changed without versioned upgrade path: {name}")
+            changed.add(name)
             reasons[name].append("stored-model-changed")
     # New product modules must be installed; existing optional modules that an
     # environment deliberately left uninstalled remain untouched.
