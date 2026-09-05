@@ -21,6 +21,8 @@
     "paperless_tika": "paperless-tika",
     "mcp": "odoo-mcp",
     "renderer": "usl-document-renderer",
+    "receipt_fetcher": "usl-receipt-fetcher",
+    "receipt_egress": "usl-receipt-egress",
     "sign": "usl-sign-dss",
     "sign_ca": "usl-sign-step-ca"
   },
@@ -53,7 +55,8 @@
     "paperless_trash": {"name": "usl-odoo-staging-main_paperless-trash", "class": "durable", "tier": "bulk"},
     "paperless_consume": {"name": "usl-odoo-staging-main_paperless-consume", "class": "durable", "tier": "bulk"},
     "paperless_export": {"name": "usl-odoo-staging-main_paperless-export", "class": "transient", "tier": "bulk"},
-    "mcp_oauth": {"name": "usl-odoo-staging-main_odoo-mcp-oauth-data", "class": "durable", "tier": "database"}
+    "mcp_oauth": {"name": "usl-odoo-staging-main_odoo-mcp-oauth-data", "class": "durable", "tier": "database"},
+    "receipt_control": {"name": "usl-odoo-staging-main_receipt-control", "class": "transient", "tier": "local"}
   },
   "paths": {
     "sign_secrets": {"path": "/opt/usl-odoo/staging/secrets/sign", "class": "durable", "required": true, "tier": "local"},

@@ -18,7 +18,14 @@ from operations.module_release import build_inventory, validate_inventory
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = "usl-release/v3"
 LEGACY_SCHEMA = "usl-release/v2"
-COMPONENTS = {"distribution", "backup-tool", "paperless", "sign-dss"}
+COMPONENTS = {
+    "backup-tool",
+    "distribution",
+    "paperless",
+    "receipt-egress",
+    "receipt-fetcher",
+    "sign-dss",
+}
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 COMMIT = re.compile(r"[0-9a-f]{40}\Z")
 DIGEST = re.compile(r"sha256:[0-9a-f]{64}\Z")

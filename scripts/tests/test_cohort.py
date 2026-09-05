@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import subprocess
 import tempfile
@@ -841,7 +842,7 @@ class CohortContractTests(unittest.TestCase):
     def test_restore_prepulls_every_release_image_once(self) -> None:
         references = [
             f"ghcr.io/unstaticlabs/image-{index}@sha256:{str(index) * 64}"
-            for index in range(1, 7)
+            for index in range(1, 9)
         ]
         release = {
             "components": {
@@ -849,9 +850,11 @@ class CohortContractTests(unittest.TestCase):
                 "distribution": {"digest_reference": references[1]},
                 "paperless": {"digest_reference": references[2]},
                 "sign-dss": {"digest_reference": references[3]},
+                "receipt-fetcher": {"digest_reference": references[4]},
+                "receipt-egress": {"digest_reference": references[5]},
             },
-            "mcp": {"image": references[4]},
-            "renderer": {"image": references[5]},
+            "mcp": {"image": references[6]},
+            "renderer": {"image": references[7]},
         }
         self.assertEqual(_release_images(release), sorted(references))
 
@@ -863,6 +866,8 @@ class CohortContractTests(unittest.TestCase):
                 "distribution": {"digest_reference": reference},
                 "paperless": {"digest_reference": reference},
                 "sign-dss": {"digest_reference": reference},
+                "receipt-fetcher": {"digest_reference": reference},
+                "receipt-egress": {"digest_reference": reference},
             },
             "mcp": {"image": reference},
             "renderer": {"image": reference},
@@ -870,7 +875,9 @@ class CohortContractTests(unittest.TestCase):
         runtime = {
             "containers": [
                 {"Service": target.value["services"][key], "ID": key, "State": "running"}
-                for key in ("odoo", "paperless", "sign", "mcp", "renderer")
+                for key in (
+                    "odoo", "paperless", "sign", "receipt_fetcher", "receipt_egress", "mcp", "renderer"
+                )
             ],
         }
 
@@ -894,6 +901,8 @@ class CohortContractTests(unittest.TestCase):
                 "distribution": {"digest_reference": reference},
                 "paperless": {"digest_reference": reference},
                 "sign-dss": {"digest_reference": reference},
+                "receipt-fetcher": {"digest_reference": reference},
+                "receipt-egress": {"digest_reference": reference},
             },
             "mcp": {"image": reference},
             "renderer": {"image": reference},
@@ -901,7 +910,9 @@ class CohortContractTests(unittest.TestCase):
         runtime = {
             "containers": [
                 {"Service": target.value["services"][key], "ID": key, "State": "running"}
-                for key in ("odoo", "paperless", "sign", "mcp", "renderer")
+                for key in (
+                    "odoo", "paperless", "sign", "receipt_fetcher", "receipt_egress", "mcp", "renderer"
+                )
             ],
         }
 
@@ -1107,6 +1118,51 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(command[-3:], ["up", "--detach", "--wait"])
         self.assertNotIn("--force-recreate", command)
 
+    def test_abort_rewrites_previous_overlay_with_gitops_identity(self) -> None:
+        digest = "sha256:" + "a" * 64
+        reference = "ghcr.io/unstaticlabs/example@" + digest
+        release = {
+            "components": {
+                name: {"digest_reference": reference}
+                for name in ("distribution", "paperless", "sign-dss", "receipt-fetcher", "receipt-egress")
+            },
+            "mcp": {"image": reference}, "renderer": {"image": reference},
+            "source": {"commit": "c" * 40},
+        }
+        target = mock.Mock(
+            name="staging",
+            value={
+                "state_directory": "/var/lib/runtime", "environment": "staging",
+                "services": {"odoo": "odoo-staging"},
+                "ingress": {"proxy_mode": True, "list_db": False, "dbfilter": "^odoo_staging$"},
+            },
+        )
+        identity = {"project": "safe", "working_directory": "/release", "environment_file": "/env", "compose_files": ["/release/compose.yaml"]}
+        previous = {"generation": "gprevious", "volumes": {"odoo_postgres": "db"}, "release_manifest": "/var/lib/runtime/generations/gprevious/usl-release.json"}
+        raw = json.dumps(release, indent=2) + "\n"
+        writes = []
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        with mock.patch("operations.stack.inspect_runtime", return_value={"compose": identity}), mock.patch(
+            "operations.stack._previous_generation_identity", return_value=(identity, json.dumps(previous)),
+        ), mock.patch("operations.stack._read_path", return_value=raw), mock.patch(
+            "operations.stack.validate_release", return_value=release,
+        ), mock.patch("operations.stack._write_remote", side_effect=lambda *_args: writes.append(_args)), mock.patch(
+            "operations.stack._gate", return_value={"status": "passed"},
+        ):
+            _abort_to_previous_generation(target, runner, TARGETS, "b" * 40)
+        overlay = json.loads(writes[0][3])
+        environment = overlay["services"]["odoo-staging"]["environment"]
+        self.assertEqual(environment["USL_GITOPS_COMMIT"], "b" * 40)
+        self.assertEqual(environment["USL_RELEASE_MANIFEST_SHA256"], hashlib.sha256(
+            json.dumps(release, separators=(",", ":"), sort_keys=True).encode(),
+        ).hexdigest())
+        with mock.patch("operations.stack.inspect_runtime", return_value={"compose": identity}), mock.patch(
+            "operations.stack._previous_generation_identity", return_value=(identity, json.dumps(previous)),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "abort GitOps commit is invalid"):
+                _abort_to_previous_generation(target, runner, TARGETS, "invalid")
+
     def test_runtime_lock_is_released_after_failure(self) -> None:
         target = load_target("local", TARGETS)
 
@@ -1134,6 +1190,19 @@ class CohortContractTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(RuntimeError, "protected restore"):
             _restore_unlocked(arguments)
+
+    def test_activation_rejects_a_malformed_supplied_gitops_commit(self) -> None:
+        target = mock.Mock(protected=False, value={"transport": "ssh"})
+        target.runner.return_value = mock.Mock()
+        arguments = argparse.Namespace(
+            source="staging", target="staging", targets=TARGETS, replace=False, confirm=None,
+            target_release=None, release=None, gitops_commit="not-a-commit",
+        )
+        with mock.patch("operations.stack.load_target", return_value=target), mock.patch(
+            "operations.stack._secret_file",
+        ), mock.patch("operations.stack._release", return_value=({}, "a" * 64, "{}")):
+            with self.assertRaisesRegex(RuntimeError, "GitOps commit is invalid"):
+                _restore_unlocked(arguments)
 
     def test_generation_uses_unique_exact_volume_names(self) -> None:
         target = load_target("staging", TARGETS)
@@ -1190,6 +1259,8 @@ class CohortContractTests(unittest.TestCase):
                 "distribution": {"digest_reference": reference},
                 "paperless": {"digest_reference": reference},
                 "sign-dss": {"digest_reference": reference},
+                "receipt-fetcher": {"digest_reference": reference},
+                "receipt-egress": {"digest_reference": reference},
             },
             "mcp": {"image": reference},
             "renderer": {"image": reference},
@@ -1200,6 +1271,8 @@ class CohortContractTests(unittest.TestCase):
             "odoo",
             "paperless-webserver",
             "usl-sign-dss",
+            "usl-receipt-fetcher",
+            "usl-receipt-egress",
             "odoo-mcp",
             "usl-document-renderer",
         }
@@ -1216,6 +1289,32 @@ class CohortContractTests(unittest.TestCase):
                 "ODOO_DB_FILTER": "^odoo_staging$",
             },
         )
+        mapped = json.loads(
+            _generation_overlay(
+                names,
+                release,
+                {"odoo-staging"},
+                target.value["ingress"],
+                service_names={"odoo": "odoo-staging"},
+                deployment_identity={
+                    "USL_DEPLOYMENT_ENV": "staging",
+                    "USL_RELEASE_COMMIT": "a" * 40,
+                    "USL_GITOPS_COMMIT": "b" * 40,
+                    "USL_DEPLOYMENT_GENERATION": "g20260901-a1b2c3d4",
+                    "USL_RELEASE_MANIFEST_SHA256": "c" * 64,
+                },
+            ),
+        )
+        self.assertEqual(set(mapped["services"]), {"odoo-staging"})
+        self.assertEqual(mapped["services"]["odoo-staging"]["environment"]["USL_GITOPS_COMMIT"], "b" * 40)
+        unknown = json.loads(
+            _generation_overlay(
+                names, release, {"odoo-staging"}, target.value["ingress"],
+                service_names={"odoo": "odoo-staging"},
+                deployment_identity={"USL_GITOPS_COMMIT": "Unknown"},
+            ),
+        )
+        self.assertEqual(unknown["services"]["odoo-staging"]["environment"]["USL_GITOPS_COMMIT"], "Unknown")
 
     def test_production_generation_activates_restored_sign_secrets(self) -> None:
         target = load_target("production", TARGETS)

@@ -258,6 +258,57 @@ jobs:
             printf -- '- Job time: `%ss`\n' "$elapsed"
           } >> "$GITHUB_STEP_SUMMARY"
           echo "digest=$digest" >> "$GITHUB_OUTPUT"
+      - name: Qualify isolated receipt component
+        if: matrix.name == 'receipt-fetcher' || matrix.name == 'receipt-egress'
+        env:
+          IMAGE: ${{ matrix.image }}
+          TAG: ${{ matrix.tag }}
+          COMPONENT: ${{ matrix.name }}
+        run: |
+          docker pull "$IMAGE:$TAG"
+          if [ "$COMPONENT" = receipt-egress ]; then
+            docker run --rm "$IMAGE:$TAG" --version
+            exit 0
+          fi
+          docker run --rm \
+            --entrypoint python \
+            --volume "$GITHUB_WORKSPACE/services/usl-receipt-fetcher/test_app.py:/app/test_app.py:ro" \
+            "$IMAGE:$TAG" -m unittest -v /app/test_app.py
+          docker run --rm \
+            --read-only \
+            --cap-drop ALL \
+            --cap-add SYS_CHROOT \
+            --security-opt no-new-privileges:true \
+            --security-opt "seccomp=$GITHUB_WORKSPACE/services/usl-receipt-fetcher/seccomp_profile.json" \
+            --pids-limit 256 \
+            --memory 768m \
+            --shm-size 256m \
+            --tmpfs /tmp/receipt-fetcher:rw,noexec,nosuid,nodev,size=128m,mode=1777 \
+            --entrypoint python \
+            "$IMAGE:$TAG" -c \
+            'import asyncio
+          from playwright.async_api import async_playwright
+          async def main():
+              async with async_playwright() as p:
+                  browser = await p.chromium.launch(chromium_sandbox=True)
+                  page = await browser.new_page()
+                  await page.set_content("""<title>sandbox-ready</title>
+                      <button id="download">Download PDF</button>
+                      <script>
+                        document.querySelector("#download").onclick = () => {
+                          const a = document.createElement("a");
+                          a.href = "data:application/pdf,%25PDF-1.4%20fixture";
+                          a.download = "receipt.pdf";
+                          a.click();
+                        };
+                      </script>""")
+                  assert await page.title() == "sandbox-ready"
+                  async with page.expect_download() as pending:
+                      await page.locator("#download").click()
+                  download = await pending.value
+                  assert download.suggested_filename == "receipt.pdf"
+                  await browser.close()
+          asyncio.run(main())'
       - name: Attest component image
         if: steps.existing.outputs.exists != 'true'
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
