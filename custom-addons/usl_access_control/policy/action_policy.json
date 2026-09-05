@@ -3889,7 +3889,6 @@
         "rpc:account.bank.statement.line.name_search",
         "rpc:account.bank.statement.line.read",
         "rpc:account.bank.statement.line.read_progress_bar",
-        "rpc:account.bank.statement.line.reconcile_bank_line",
         "rpc:account.bank.statement.line.save",
         "rpc:account.bank.statement.line.search",
         "rpc:account.bank.statement.line.search_count",
@@ -5240,7 +5239,6 @@
         "rpc:account.move.line.action_rebuild_open_matching_number",
         "rpc:account.move.line.action_rebuild_open_source",
         "rpc:account.move.line.action_rebuild_unreconcile",
-        "rpc:account.move.line.action_reconcile_manually",
         "rpc:account.move.line.action_register_payment",
         "rpc:account.move.line.action_unarchive",
         "rpc:account.move.line.action_unreconcile_match_entries",
@@ -10276,7 +10274,6 @@
         "rpc:account.bank.statement.line.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
         "rpc:account.bank.statement.line.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
         "rpc:account.bank.statement.line.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
-        "rpc:account.bank.statement.line.reconcile_bank_line": "b17b2a0383181534416e2fb74b4d9a1c4521d8bb9000598fc77b1df6cbeaeaf1",
         "rpc:account.bank.statement.line.save": "f45487646416721b52519c584db80a15dc7d7f9bff62b6dcccfd83fce701db70",
         "rpc:account.bank.statement.line.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
         "rpc:account.bank.statement.line.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
@@ -11627,7 +11624,6 @@
         "rpc:account.move.line.action_rebuild_open_matching_number": "880f11218046c98a5259b88786931c1e11102720dcb8b9ba7e7470dc0ce4f761",
         "rpc:account.move.line.action_rebuild_open_source": "6588cda1de57ea5b0cfc249eb8c4bff201255a06afad6b31c5a439d98c7f27c6",
         "rpc:account.move.line.action_rebuild_unreconcile": "1d57f7b4897052a9840039bba1b3e2bdcc50773eda2277b1179044abaf781db7",
-        "rpc:account.move.line.action_reconcile_manually": "208db5769ab4134d806e12e2f8786073ccd5c48abca6be3e5644fa1bca67c933",
         "rpc:account.move.line.action_register_payment": "73ddd7ff6a6b3593970e4a2c01bfd5fe7a39a5dda11bced9a2ca3ef0183fdf8d",
         "rpc:account.move.line.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:account.move.line.action_unreconcile_match_entries": "0b47113f959a653e132f72576d6956256a038c86544d95d7d23e99787ed468f4",
@@ -74439,7 +74435,7 @@
         "rpc:account.bank.statement.line.action_checked": "c09b8a45f8000a220db0d245464161453f84aa1203ae40ecd803e79a02d977c7",
         "rpc:account.bank.statement.line.action_rebuild_apply_partner_suggestion": "e74f6668c889fd6824b2e4be5efc4c3db285938ca5a032645911e4f01b4b7628",
         "rpc:account.bank.statement.line.action_to_check": "b7ff02f5c491b63735e874eb3e397cf56da568b5656a0bc8c4c325315f28ba83",
-        "rpc:account.bank.statement.line.action_undo_reconciliation": "afa1762dff0162b251b2c3ed547052bde1cbf3eb0eb87cbda4872c843b317b2f",
+        "rpc:account.bank.statement.line.action_undo_reconciliation": "ca68d21ead8f09612c9dd8e8b692f77f59e06b7bf082b8460e0940858eccc21c",
         "rpc:account.bank.statement.line.add_multiple_lines": "073a977e931123e9e371a109d2f54207561115b78d1a6840cde00083bc31be60",
         "rpc:account.bank.statement.line.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:account.bank.statement.line.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
@@ -74450,7 +74446,7 @@
         "rpc:account.bank.statement.line.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
         "rpc:account.bank.statement.line.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
         "rpc:account.bank.statement.line.unlink": "1afab8152675c8071f4fd011bdc15ca4960d37b3a0476399cfce2e5eed506bf2",
-        "rpc:account.bank.statement.line.unreconcile_bank_line": "de57b69e293b74e044845e50b7462f6a312e4adf149361ece1c83af2121edce6",
+        "rpc:account.bank.statement.line.unreconcile_bank_line": "05c86450c89ef04f0bb55268443be5a05b7685fab01453890141d458dd2a39ce",
         "rpc:account.bank.statement.line.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
         "rpc:account.bank.statement.line.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
         "rpc:account.bank.statement.line.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
@@ -75108,7 +75104,7 @@
         "rpc:account.move.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:account.move.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:account.move.button_cancel": "2d8724206503d8eaf76eac59749bf8235a36417fd9f4a4ffdc55ddd39e383474",
-        "rpc:account.move.button_draft": "c416a8d6c05de86200a0aa9debe23362a906c5eee5c12613fc00bc7b37885615",
+        "rpc:account.move.button_draft": "e4f1dbd8bff25513657178f7fa5b595b94ebc09ef386a0b7f6674bc16397905e",
         "rpc:account.move.button_hash": "107cfff450641178675c3b338e39d666a946e76d91d95f4a79277da7eeb2fc08",
         "rpc:account.move.copy": "dbc746d23629ed204a9d5642329570e13f68c19dcb50029e0b26d398d1b8d62c",
         "rpc:account.move.copy_data": "2e2d79d2c1b74dad6afeba9307727c2a30b4465ec5ca21a6f6254f27b0586458",
@@ -75124,14 +75120,14 @@
         "rpc:account.move.js_use_payment_rate_outstanding_line": "f7f53efd2bd35b105ed38252a1d95c5db430a1445bff378c94fb090bb7b2de12",
         "rpc:account.move.line.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:account.move.line.copy_data": "4c10895fa8b644748b9a3788d5fcf02b462fbe0f0c28c37c11d19f663b268f4e",
-        "rpc:account.move.line.create": "a116569eff4ebd70d2aa0a5fe4af071d97f398eec6bb1042e26af7b0125abca2",
+        "rpc:account.move.line.create": "12540edb3bcda9b836e6c6a41b4cfee315c2eaf44b4d1047f5badf56ca43f2de",
         "rpc:account.move.line.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:account.move.line.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:account.move.line.get_views": "4b9ad8be957def3a911800195202aa38e3558467d8e8404ba1c94486403da2c7",
         "rpc:account.move.line.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
         "rpc:account.move.line.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
         "rpc:account.move.line.reconcile": "0f038fc524d0ebf237958220fed6e415dbb6f948444a4f92662fd4af6b39f528",
-        "rpc:account.move.line.unlink": "f4e8ca488e56488866240508cc6ab2d1b70daec79a50e753c0c3a1282a990189",
+        "rpc:account.move.line.unlink": "b311b83215bf28d1e49cc148da7b1c17d871a1444ffb6cff569a5be36e4e3c7b",
         "rpc:account.move.line.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
         "rpc:account.move.line.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
         "rpc:account.move.line.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
@@ -75139,7 +75135,7 @@
         "rpc:account.move.line.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:account.move.line.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:account.move.line.web_search_read": "d448bc7377b0ef7737c803e83eafa1b09feccdbc7435f0bcd67ac4f3158df5c4",
-        "rpc:account.move.line.write": "68671d5efc01670952e4dfdc9b1b4923eec9348581f12e612fdb9c7efc0d916f",
+        "rpc:account.move.line.write": "bac676abd1a803bb47cb2d13f61a97cd35b4e7122a2cda2b9d8d9c1b86dc3af6",
         "rpc:account.move.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:account.move.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:account.move.message_new": "075669be35666dd58b3f9ab6422109ba51045c03b50c803e403647daede27f69",
@@ -75242,7 +75238,7 @@
         "rpc:account.move.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:account.move.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:account.move.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:account.move.write": "9f0d5375fc1fbf1c12959a6a6941a8e052dacd5fda7ec198098e882d189431dd",
+        "rpc:account.move.write": "517932bfd49ca3855e9fad58b1b576933d62392357c4f442b74c59f6293d740f",
         "rpc:account.partial.reconcile.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:account.partial.reconcile.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
         "rpc:account.partial.reconcile.create": "ff7a7b62c64e3aa391a0cc3508c0cb83bd810017b4f49883f0e04a6308b8992b",
@@ -144701,17 +144697,17 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.exception.action_resolve:sudo:2": "ae1b9d54673b6ed03786587e28582a21c8db1ce3e63efd0dc8843904862bfc23",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.exception.create:orm_create:1": "8a22409ce1c99244327249cd7adbd7b0ec9ded3d782d7cd71558e1e039e1224d",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.exception.write:orm_write:1": "8e3331c3194821c8064441de958605c2657adea08d024ed2b976b50ea04a30f5",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.line._write_reconciliation_metadata:orm_write:1": "a3d2dff0ee334e104ead3b63f039d4aa9370d8ac27e4d4c34546d2da160a73d3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.line._write_reconciliation_metadata:orm_write:1": "3e38a315e7842fcd0e689ecef59a62ba6ad1c1f4437194366ccecb25312717c9",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.line.create:orm_create:1": "ea5f9cfedc3fb42befc4623a947ec2b0784b38405cc325bef0860e2f93ce9f71",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.line.unlink:orm_unlink:1": "2dd3f250c70ffd7e3dc7dc2fff2f25663b7a9ff5abaf60c74ed97f40f531e27a",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.line.write:orm_write:1": "6cba95240143a37f387ffd96f848cd3d25576fa68ce52fd7146c1dff700cc848",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.unlink:orm_unlink:1": "1a633ffc29cd43d32f68026413442e25f9af81e058c19373db6e8c1e573ec3c2",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.write:orm_write:1": "33aad2bd575df5eb863f68941859e2234ddaeddc75c82bbd00f88d7dac7635cc",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.line.create:orm_create:1": "79e2c351d99cd4ea82f6a175e50a89702347ffdbc2839aec96f1babe0bf7b10a",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.line.unlink:orm_unlink:1": "8612c88d96c3f12d994b33690675226a53afed6aba9da3ab4da2cec61dc7ad01",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.line.write:orm_write:1": "05360629ffcdfb6a37c63cd0c5cadf18492dbf3f32395d1ef3f96080178d9793",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.line.create:orm_create:1": "84871782f476b84c46be12da1ee8f69a8f9be16e4c124b6d60d7ae9181c8bb67",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.line.unlink:orm_unlink:1": "9c275371cf7215a1130f7833389054ff7da13c1f3c2cd48fa05bfd7c099a162d",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.line.write:orm_write:1": "def13d3e10ce5c96cd5b7a22cd5a75926646f128bddf9dd7e843f494ca46af58",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.unlink:orm_unlink:1": "28690d1852b7a48584d62d923fc9f1c9520b65366a274dbde6eb32fea72456a9",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.write:orm_write:1": "de10c9768b8e326314577fe71436a928c53948a80e58c14c6a55b7caee358e5a",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.write:orm_write:1": "7305b7be90d30bdba01c313ee93fa6e65c73bed0e862cd9c91e3e9668df08f23",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_refresh_bank_match_candidates:orm_create:1": "f23ced9433def45ad1622d23f83db37de0c0096696d7af6c9fbffc00ddf6a081",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_refresh_bank_match_candidates:orm_write:1": "961f7e997c4ca190aaa2f2d6aedba86b3b2cbba32e59cb1b23afbb46b37d24a4",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_refresh_bank_match_candidates:orm_write:2": "cf4cbd218d95d70da7708c7cd6919320b28917f2a17fa878d9ab36209d5d7534",
@@ -193547,6 +193543,30 @@
       "reviewed_digests": {
         "rpc:queue.job.activity_reschedule": "c04a657349fd7b3ec1e05cbc7e05862c1967ab5409c713cb5814bf07a0e298f7"
       }
+    },
+    {
+      "action_keys": [
+        "rpc:account.bank.statement.line.reconcile_bank_line",
+        "rpc:account.move.line.action_reconcile_manually"
+      ],
+      "classification": "recoverable",
+      "consequence": "Persists per-user reconciliation selection or changes bank matching; neither action is read-only.",
+      "domain": "accounting",
+      "evidence_id": "recoverable-perform-reverse-v1",
+      "id": "recoverable.accounting.certified-reconciliation",
+      "overrides": {
+        "rpc:account.bank.statement.line.reconcile_bank_line": {
+          "reversal_action": "rpc:account.bank.statement.line.unreconcile_bank_line"
+        },
+        "rpc:account.move.line.action_reconcile_manually": {
+          "reversal_action": "rpc:account.account.reconcile.write"
+        }
+      },
+      "rationale": "Restore saved selection through workspace write using the prior JSON value; undo a bank match through the native supported action. Native ACLs and record rules remain enforced, and certified bank facts are checked atomically.",
+      "reviewed_digests": {
+        "rpc:account.bank.statement.line.reconcile_bank_line": "55bc01dccbed227072da5a6e3cf3f2e041487e948274a950ca61b5d4286593b8",
+        "rpc:account.move.line.action_reconcile_manually": "ea93eea2d68becf0aebbbc085b9010b1c532939933ba261e75fa2937327e743f"
+      }
     }
   ],
   "evidence_families": {
@@ -193674,6 +193694,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "9562e87e0e345e2b0d73f602f6a7d41247e011d1a855dc8c17930d056a57b33c",
+  "qualified_policy_digest": "b61ea131320881d054c758d54469653eca4c86098565d9d2c4eb9506d4724d66",
   "schema": "usl-action-risk-policy-v1"
 }

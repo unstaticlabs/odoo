@@ -288,7 +288,7 @@
     "rpc:usl.tese.profile.message_subscribe",
     "rpc:usl.tese.profile.message_unsubscribe"
   ],
-  "qualified_policy_digest": "9562e87e0e345e2b0d73f602f6a7d41247e011d1a855dc8c17930d056a57b33c",
+  "qualified_policy_digest": "b61ea131320881d054c758d54469653eca4c86098565d9d2c4eb9506d4724d66",
   "read_only_actions": [
     "rpc:_unknown.check_field_access",
     "rpc:_unknown.export_data",
@@ -12663,7 +12663,7 @@
     "rpc:wizard.open.tax.balances.search_count",
     "rpc:wizard.open.tax.balances.search_read"
   ],
-  "runtime_policy_sha256": "e8229aaf427ec2f75ac727e768af916a6320a9a749e1145b20e34b5ecc3818d8",
+  "runtime_policy_sha256": "d00cc4169230808f0e554a8c789ca3a1a0e6868521d0fabf64173d7e84f2aeb5",
   "schema": "usl-agent-access-runtime-v2",
   "write_actions": [
     "rpc:_unknown.copy",
@@ -13277,6 +13277,7 @@
     "rpc:account.bank.statement.line.get_views",
     "rpc:account.bank.statement.line.name_create",
     "rpc:account.bank.statement.line.onchange",
+    "rpc:account.bank.statement.line.reconcile_bank_line",
     "rpc:account.bank.statement.line.unlink",
     "rpc:account.bank.statement.line.unreconcile_bank_line",
     "rpc:account.bank.statement.line.update_field_translations",
@@ -13966,6 +13967,7 @@
     "rpc:account.move.js_assign_outstanding_line",
     "rpc:account.move.js_settle_outstanding_line",
     "rpc:account.move.js_use_payment_rate_outstanding_line",
+    "rpc:account.move.line.action_reconcile_manually",
     "rpc:account.move.line.copy",
     "rpc:account.move.line.copy_data",
     "rpc:account.move.line.create",

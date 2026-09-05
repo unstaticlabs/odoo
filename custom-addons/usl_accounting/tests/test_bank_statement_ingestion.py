@@ -1319,6 +1319,179 @@ class TestBankStatementIngestion(TransactionCase):
                 {"amount": bank_line.amount + 1},
             )
 
+    def test_certified_bookkeeping_reset_and_both_undo_entrypoints(self):
+        _ingestion, statement = self._process_complete_month()
+        self._confirm_and_certify(statement, 1000, 1200)
+        history = statement.certification_ids.ids
+        category = self.env["account.account"].create({
+            "name": "Synthetic bank categorization",
+            "code": "CERTQA",
+            "account_type": "expense",
+            "company_ids": [Command.set(self.company.ids)],
+        })
+        manager = new_test_user(
+            self.env, login="certified-bookkeeper",
+            groups="account.group_account_manager",
+            company_id=self.company.id,
+            company_ids=[Command.set(self.company.ids)],
+        )
+        for bank_line in statement.line_ids:
+            bank_line = bank_line.with_user(manager)
+            before = bank_line._certified_reconciliation_fingerprint()
+            bank_line.move_id.button_draft()
+            self.assertEqual(bank_line.move_id.state, "draft")
+            self.assertEqual(bank_line._certified_reconciliation_fingerprint(), before)
+            bank_line.move_id.action_post()
+            _liquidity, suspense, _other = bank_line._seek_for_lines()
+            suspense.account_id = category
+            self.assertTrue(bank_line.is_reconciled)
+            bank_line.action_undo_reconciliation()
+            self.assertFalse(bank_line.is_reconciled)
+            self.assertEqual(bank_line._certified_reconciliation_fingerprint(), before)
+            _liquidity, suspense, _other = bank_line._seek_for_lines()
+            suspense.account_id = category
+            self.assertTrue(bank_line.is_reconciled)
+            bank_line.unreconcile_bank_line()
+            self.assertFalse(bank_line.is_reconciled)
+            self.assertEqual(bank_line._certified_reconciliation_fingerprint(), before)
+        self.assertEqual(statement.certification_state, "certified")
+        self.assertEqual(statement.certification_ids.ids, history)
+
+    def test_certified_bookkeeping_still_protects_evidence_and_hashes(self):
+        _ingestion, statement = self._process_complete_month()
+        self._confirm_and_certify(statement, 1000, 1200)
+        bank_line = statement.line_ids[0]
+        move = bank_line.move_id
+        for operation in (
+            lambda: move.button_cancel(),
+            lambda: move.write({"state": "cancel"}),
+            lambda: move.unlink(),
+            lambda: bank_line.write({"amount": bank_line.amount + 1}),
+            lambda: bank_line.write({"date": bank_line.date + dt.timedelta(days=1)}),
+            lambda: bank_line.unlink(),
+        ):
+            with self.assertRaises(UserError), self.env.cr.savepoint():
+                operation()
+        move.inalterable_hash = "synthetic-certified-hash"
+        with self.assertRaisesRegex(UserError, "locked journal entry"):
+            move.button_draft()
+        self.assertEqual(move.state, "posted")
+
+    def test_certified_bookkeeping_rolls_back_failed_invariant(self):
+        _ingestion, statement = self._process_complete_month()
+        self._confirm_and_certify(statement, 1000, 1200)
+        bank_line = statement.line_ids.filtered(lambda line: line.amount > 0)[:1]
+        before = bank_line._certified_reconciliation_fingerprint()
+        with self.assertRaisesRegex(UserError, "certified bank-statement facts"):
+            with bank_line._preserve_certified_bank_facts() as scoped:
+                liquidity, _suspense, _other = scoped._seek_for_lines()
+                liquidity.with_context(
+                    check_move_validity=False,
+                    skip_account_move_synchronization=True,
+                ).write({"debit": liquidity.debit + 1})
+        self.assertEqual(bank_line._certified_reconciliation_fingerprint(), before)
+
+    def test_certified_bookkeeping_permission_is_not_rpc_forgeable_or_transferable(self):
+        _ingestion, statement = self._process_complete_month()
+        self._confirm_and_certify(statement, 1000, 1200)
+        first, second = statement.line_ids[:2]
+        liquidity, _suspense, _other = first._seek_for_lines()
+        with self.assertRaises(UserError):
+            liquidity.with_context(
+                usl_certified_reconciliation_token=True,
+                usl_certified_reconciliation_moves=first.move_id.ids,
+            ).write({"balance": liquidity.balance})
+        with first._preserve_certified_bank_facts() as scoped:
+            other_liquidity, _suspense, _other = second.with_env(scoped.env)._seek_for_lines()
+            with self.assertRaises(UserError):
+                other_liquidity.write({"balance": other_liquidity.balance})
+
+    def test_general_reconciliation_selection_survives_rpc_defaults(self):
+        _ingestion, statement = self._process_complete_month()
+        source = statement.line_ids[0].move_id.line_ids.filtered(
+            lambda line: line.account_id == self.journal.suspense_account_id,
+        )
+        source.account_id.reconcile = True
+        counterpart_move = self.env["account.move"].create({
+            "journal_id": self.journal.id,
+            "date": source.date,
+            "line_ids": [Command.create({
+                "account_id": source.account_id.id,
+                "currency_id": source.currency_id.id,
+                "amount_currency": -source.amount_currency,
+                "debit": source.credit,
+                "credit": source.debit,
+            }), Command.create({
+                "account_id": self.journal.default_account_id.id,
+                "currency_id": source.currency_id.id,
+                "amount_currency": source.amount_currency,
+                "debit": source.debit,
+                "credit": source.credit,
+            })],
+        })
+        counterpart_move.action_post()
+        counterpart = counterpart_move.line_ids.filtered(
+            lambda line: line.account_id == source.account_id,
+        )
+        action = source.action_reconcile_manually()
+        self.assertNotIn("default_account_move_lines", action["context"])
+        workspace = self.env["account.account.reconcile"].search(action["domain"])
+        self.assertEqual(workspace.reconcile_data_info["counterparts"], source.ids)
+        saved_response = workspace.web_save({
+            "reconcile_data_info": workspace._recompute_data({
+                "data": [], "counterparts": (source + counterpart).ids,
+            }),
+        }, {"selected_count": {}})
+        self.assertEqual(saved_response[0]["selected_count"], 2)
+        self.env.flush_all()
+        other_user = new_test_user(
+            self.env, login="other-reconciliation-user",
+            groups="account.group_account_manager",
+            company_id=self.company.id,
+            company_ids=[Command.set(self.company.ids)],
+        )
+        self.env.invalidate_all()
+        self.assertEqual(
+            workspace.with_user(other_user).reconcile_data_info["counterparts"], [],
+        )
+        # Simulate a fresh request from an old tab retaining its launch default.
+        self.env.invalidate_all()
+        workspace = workspace.with_context(default_account_move_lines=source.ids)
+        self.assertEqual(set(workspace.reconcile_data_info["counterparts"]),
+                         set((source + counterpart).ids))
+        workspace.clean_reconcile()
+        self.env.flush_all()
+        self.env.invalidate_all()
+        self.assertEqual(workspace.reconcile_data_info["counterparts"], [])
+        # A deliberate new launch replaces old saved state exactly once.
+        (source + counterpart).action_reconcile_manually()
+        self.env.invalidate_all()
+        self.assertEqual(workspace.selected_count, 2)
+        workspace.reconcile()
+        self.assertTrue(source.reconciled)
+        self.assertTrue(counterpart.reconciled)
+
+    def test_certified_bookkeeping_respects_user_and_company_access(self):
+        _ingestion, statement = self._process_complete_month()
+        self._confirm_and_certify(statement, 1000, 1200)
+        other_company = self.env["res.company"].create({"name": "Certification other company"})
+        for name, company, groups in (
+            ("certified-readonly", self.company, "account.group_account_readonly"),
+            ("certified-other-company", other_company, "account.group_account_manager"),
+        ):
+            user = new_test_user(
+                self.env, login=name, groups=groups,
+                company_id=company.id, company_ids=[Command.set(company.ids)],
+            )
+            bank_line = statement.line_ids[0].with_user(user).with_context(
+                allowed_company_ids=company.ids,
+            )
+            for operation in (lambda: bank_line.move_id.button_draft(),
+                              bank_line.action_undo_reconciliation,
+                              bank_line.unreconcile_bank_line):
+                with self.assertRaises(AccessError), self.env.cr.savepoint():
+                    operation()
+
     def test_balance_mismatch_is_saved_and_blocks_certification(self):
         _ingestion, statement = self._process_complete_month()
         self.env["account.bank.statement.confirm"].create(
