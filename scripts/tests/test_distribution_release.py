@@ -4,6 +4,7 @@ import json
 import os
 import re
 import subprocess
+import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -175,7 +176,40 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         self.assertIn("*.test.js", database_gate)
         self.assertIn("WebSuite.test_unit_desktop", database_gate)
         self.assertIn("MobileWebSuite.test_unit_mobile", database_gate)
-        self.assertIn('--update="$module"', database_gate)
+        self.assertIn('--update="web,$frontend_module_list"', database_gate)
+
+    def test_frontend_gate_rejects_empty_or_partial_execution(self) -> None:
+        script = (ROOT / "scripts/ci-product-database").read_text()
+        block = script.split("  IFS=',' read -r -a affected_modules", 1)[1]
+        block = "IFS=',' read -r -a affected_modules" + block.split(
+            "\nfi\n\nUSL_PRODUCT_BOUNDARY", 1,
+        )[0]
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for module in ("alpha", "beta"):
+                tests = root / "custom-addons" / module / "static/tests"
+                tests.mkdir(parents=True)
+                (tests / "sample.test.js").write_text("// fixture\n")
+            stub = root / "compose.sh"
+            stub.write_text(
+                'printf "%s\\n" "$*" >> "$CALLS"\n'
+                'for ((i=0; i<SUCCESSES; i++)); do '
+                'echo "[HOOT] Test suite succeeded"; done\n'
+            )
+            for count in (0, 1, 2):
+                with self.subTest(successful_viewports=count):
+                    calls = root / f"calls-{count}"
+                    result = subprocess.run(
+                        ["bash", "-c", 'set -euo pipefail\ncompose=(bash "$STUB")\n'
+                         'test_modules=alpha,beta\ndatabase=test\n' + block],
+                        env={**os.environ, "ROOT": str(root), "STUB": str(stub),
+                             "CALLS": str(calls), "SUCCESSES": str(count), "TMPDIR": str(root)},
+                        capture_output=True, text=True,
+                    )
+                    self.assertEqual(result.returncode == 0, count == 2, result.stdout + result.stderr)
+                    commands = calls.read_text().splitlines()
+                    self.assertEqual(len(commands), 1)
+                    self.assertIn("--update=web,alpha,beta", commands[0])
 
     def test_mcp_checkout_uses_the_exact_release_commit(self) -> None:
         self.assertIn(
