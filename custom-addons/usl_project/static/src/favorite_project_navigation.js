@@ -1,4 +1,5 @@
 import { registry } from "@web/core/registry";
+import { rpcBus } from "@web/core/network/rpc";
 import { useService } from "@web/core/utils/hooks";
 
 import { projectIsFavoriteField } from "@project/components/project_is_favorite/project_is_favorite_field";
@@ -16,6 +17,30 @@ const FAVORITE_MENU_FIELDS = new Set([
     "company_id",
     "privacy_visibility",
 ]);
+
+const FAVORITE_MENU_MUTATION_METHODS = new Set([
+    "action_archive",
+    "action_unarchive",
+    "action_create_template_from_project",
+    "action_undo_convert_to_template",
+    "create_template_from_project_undo_callback",
+]);
+
+registry.category("services").add("uslProjectFavoriteMenuRefresh", {
+    dependencies: ["menu"],
+    start(_env, { menu }) {
+        rpcBus.addEventListener("RPC:RESPONSE", ({ detail }) => {
+            const { model, method } = detail.data.params;
+            if (
+                !detail.error &&
+                model === "project.project" &&
+                FAVORITE_MENU_MUTATION_METHODS.has(method)
+            ) {
+                menu.reload();
+            }
+        });
+    },
+});
 
 class UslProjectIsFavoriteField extends projectIsFavoriteField.component {
     setup() {

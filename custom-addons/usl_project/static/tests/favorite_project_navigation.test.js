@@ -6,9 +6,12 @@ import { registry } from "@web/core/registry";
 import {
     clickSave,
     contains,
+    getService,
     mockService,
     mountView,
     onRpc,
+    toggleActionMenu,
+    toggleMenuItem,
 } from "@web/../tests/web_test_helpers";
 import {
     defineProjectModels,
@@ -142,11 +145,13 @@ test("archiving a project refreshes a favorite that must leave the menu", async 
         allow_recurring_tasks: false,
     }));
     onRpc("has_group", () => true);
-    onRpc("project.project", "web_save", () => expect.step("web_save"));
+    onRpc("project.project", "action_archive", () => expect.step("action_archive"));
+    onRpc("project.project", "action_unarchive", () => expect.step("action_unarchive"));
     await mountView({
         resModel: "project.project",
         resId: 1,
         type: "form",
+        actionMenus: {},
         arch: `
             <form js_class="project_project_form">
                 <field name="name"/>
@@ -156,10 +161,41 @@ test("archiving a project refreshes a favorite that must leave the menu", async 
         `,
     });
 
-    await contains("div[name=active] input").click();
-    await clickSave();
+    await toggleActionMenu();
+    await toggleMenuItem("Archive");
+    await contains(".modal-footer .btn-primary").click();
+    await toggleActionMenu();
+    expect(`.o-dropdown--menu span:contains(Unarchive)`).toHaveCount(1);
 
-    expect.verifySteps(["web_save", "menu_reload"]);
+    await toggleMenuItem("UnArchive");
+
+    expect.verifySteps([
+        "action_archive",
+        "menu_reload",
+        "action_unarchive",
+        "menu_reload",
+    ]);
+});
+
+test("converting a project to a template refreshes a favorite that must leave the menu", async () => {
+    onRpc("project.project", "action_create_template_from_project", () =>
+        expect.step("action_create_template_from_project")
+    );
+    await mountView({
+        resModel: "project.project",
+        type: "kanban",
+        arch: `
+            <kanban>
+                <template>
+                    <t t-name="card"><field name="name"/></t>
+                </template>
+            </kanban>
+        `,
+    });
+
+    await getService("orm").call("project.project", "action_create_template_from_project", [[1]]);
+
+    expect.verifySteps(["action_create_template_from_project", "menu_reload"]);
 });
 
 test("the favorite client action opens the exact project", async () => {

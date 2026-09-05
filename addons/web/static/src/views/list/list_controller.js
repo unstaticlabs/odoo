@@ -7,7 +7,6 @@ import {
     useSubEnv,
 } from "@web/owl2/utils";
 import { _t } from "@web/core/l10n/translation";
-import { router } from "@web/core/browser/router";
 import { evaluateExpr, evaluateBooleanExpr } from "@web/core/py_js/py";
 import { user } from "@web/core/user";
 import { useService } from "@web/core/utils/hooks";
@@ -219,7 +218,7 @@ export class ListController extends Component {
             activeFields,
             openGroupsByDefault: rawExpand ? evaluateExpr(rawExpand, this.props.context) : false,
         };
-        const routeOffset = Number(router.current.offset);
+        const routeOffset = Number(this.props.urlState?.offset);
         if (
             Number.isSafeInteger(routeOffset) &&
             routeOffset >= 0 &&

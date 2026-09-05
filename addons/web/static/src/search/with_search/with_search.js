@@ -41,6 +41,7 @@ export class WithSearch extends Component {
         searchMenuTypes: { type: Array, element: String, optional: true },
         canOrderByCount: { type: Boolean, optional: true },
         defaultGroupBy: { type: Array, element: String, optional: true },
+        urlState: { type: Object, optional: true },
         updateActionState: { type: Function, optional: true },
     };
 

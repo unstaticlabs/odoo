@@ -18,6 +18,7 @@ import {
     mountWithCleanup,
 } from "@web/../tests/web_test_helpers";
 import { SearchBar } from "@web/search/search_bar/search_bar";
+import { router } from "@web/core/browser/router";
 import { Domain } from "@web/core/domain";
 import { redirect } from "@web/core/utils/urls";
 import { browser } from "@web/core/browser/browser";
@@ -46,9 +47,17 @@ const SHARE_KEY = "Share\nALT + SHIFT + H";
 const { ResCompany, ResPartner, ResUsers } = webModels;
 defineModels({ MockPurchaseOrders, ResCompany, ResPartner, ResUsers });
 
+function mountSearchFromCurrentRoute(props) {
+    const { domain, groupBy, orderBy } = router.current;
+    return mountWithSearch(SearchBar, {
+        ...props,
+        urlState: { domain, groupBy, orderBy },
+    });
+}
+
 test("URL with single filter creates filter with domain", async () => {
     redirect("?domain=" + encodeURIComponent('[["state", "=", "sent"]]'));
-    const searchBar = await mountWithSearch(SearchBar, { resModel: "mock.purchase.order" });
+    const searchBar = await mountSearchFromCurrentRoute({ resModel: "mock.purchase.order" });
 
     expect(`.o_searchview .o_searchview_facet`).toHaveCount(1);
     expect(searchBar.env.searchModel.domain).toEqual([["state", "=", "sent"]]);
@@ -65,7 +74,7 @@ test("URL with single filter creates filter with domain", async () => {
 test("URL filter values containing percent signs are decoded once", async () => {
     const domain = '[["state", "=", "50% complete"]]';
     redirect("?domain=" + encodeURIComponent(domain));
-    const searchBar = await mountWithSearch(SearchBar, { resModel: "mock.purchase.order" });
+    const searchBar = await mountSearchFromCurrentRoute({ resModel: "mock.purchase.order" });
 
     expect(searchBar.env.searchModel.domain).toEqual([["state", "=", "50% complete"]]);
     expect(searchBar.env.searchModel.generateQueryString()).toBe(
@@ -76,7 +85,7 @@ test("URL filter values containing percent signs are decoded once", async () => 
 test("URL with multiple filters creates shared filter", async () => {
     const domain = '["&", ["state", "=", "sent"], ["partner_id", "ilike", "me"]]';
     redirect("?domain=" + encodeURIComponent(domain));
-    const searchBar = await mountWithSearch(SearchBar, { resModel: "mock.purchase.order" });
+    const searchBar = await mountSearchFromCurrentRoute({ resModel: "mock.purchase.order" });
     expect(`.o_searchview .o_searchview_facet`).toHaveCount(1); // Only show 1 "shared filter"
     expect(searchBar.env.searchModel.domain).toEqual([
         "&",
@@ -92,7 +101,7 @@ test("URL with multiple filters creates shared filter", async () => {
 
 test("URL with single existing groupBy activates it", async () => {
     redirect("?groupBy=" + encodeURIComponent('["partner_id"]'));
-    const searchBar = await mountWithSearch(SearchBar, {
+    const searchBar = await mountSearchFromCurrentRoute({
         resModel: "mock.purchase.order",
         searchMenuTypes: ["groupBy"],
         searchViewId: false,
@@ -103,7 +112,7 @@ test("URL with single existing groupBy activates it", async () => {
 
 test("URL with multiple groupBy (incl. custom), creates and activates single groupBy", async () => {
     redirect("?groupBy=" + encodeURIComponent('["state", "partner_id"]'));
-    const searchBar = await mountWithSearch(SearchBar, {
+    const searchBar = await mountSearchFromCurrentRoute({
         resModel: "mock.purchase.order",
         searchMenuTypes: ["groupBy"],
         searchViewId: false,
@@ -118,7 +127,7 @@ test("URL with multiple groupBy (incl. custom), creates and activates single gro
 
 test("URL groupBy with sub-items activated", async () => {
     redirect("?groupBy=" + encodeURIComponent('["date_order:year"]'));
-    const searchBar = await mountWithSearch(SearchBar, {
+    const searchBar = await mountSearchFromCurrentRoute({
         resModel: "mock.purchase.order",
         searchMenuTypes: ["groupBy"],
         searchViewId: false,
@@ -130,7 +139,7 @@ test("URL with groupBy and orderBy activates ordered groupBy", async () => {
     const encodedgroupBy = encodeURIComponent('["partner_id"]');
     const encodedorderBy = encodeURIComponent('[{"name":"__count", "asc": false}]');
     redirect("?groupBy=" + encodedgroupBy + "&orderBy=" + encodedorderBy);
-    const searchBar = await mountWithSearch(SearchBar, {
+    const searchBar = await mountSearchFromCurrentRoute({
         resModel: "mock.purchase.order",
         searchMenuTypes: ["groupBy"],
         searchViewId: false,
@@ -147,7 +156,7 @@ test("URL with filter + groupBy + orderBy activates filters", async () => {
     const url = "?domain=" + domain + "&groupBy=" + groupBy + "&orderBy=" + orderBy;
     redirect(url);
 
-    const searchBar = await mountWithSearch(SearchBar, {
+    const searchBar = await mountSearchFromCurrentRoute({
         resModel: "mock.purchase.order",
         searchMenuTypes: ["groupBy"],
         searchViewId: false,
@@ -176,7 +185,7 @@ test("Bad URL with 1 faulty part still gets applied", async () => {
     const url = "?domain=" + domain + "&groupBy=" + groupBy + "&orderBy=" + orderBy;
     redirect(url);
 
-    const searchBar = await mountWithSearch(SearchBar, {
+    const searchBar = await mountSearchFromCurrentRoute({
         resModel: "mock.purchase.order",
         searchMenuTypes: ["groupBy"],
         searchViewId: false,
@@ -199,7 +208,7 @@ test("Bad URL reverts to default filters", async () => {
 
     redirect("?domain=" + encodeURIComponent('[["state", "=",]]'));
 
-    const searchBar = await mountWithSearch(SearchBar, {
+    const searchBar = await mountSearchFromCurrentRoute({
         resModel: "mock.purchase.order",
         searchMenuTypes: ["filter", "groupBy"],
         searchViewId: false,
@@ -220,7 +229,7 @@ test("Bad URL reverts to default filters", async () => {
 test("Good URL does not apply default filters", async () => {
     redirect("?domain=" + encodeURIComponent('[["state", "=", "sent"]]'));
 
-    const searchBar = await mountWithSearch(SearchBar, {
+    const searchBar = await mountSearchFromCurrentRoute({
         resModel: "mock.purchase.order",
         searchViewId: false,
         searchViewArch: `
@@ -235,6 +244,17 @@ test("Good URL does not apply default filters", async () => {
 
     // Ensure domain does NOT include the default filter's domain
     expect(searchBar.env.searchModel.domain).toEqual([["state", "=", "sent"]]);
+});
+
+test("a view ignores portable state owned by another browser action", async () => {
+    redirect("?domain=" + encodeURIComponent('[["state", "=", "sent"]]'));
+
+    const searchBar = await mountWithSearch(SearchBar, {
+        resModel: "mock.purchase.order",
+    });
+
+    expect(`.o_searchview .o_searchview_facet`).toHaveCount(0);
+    expect(searchBar.env.searchModel.domain).toEqual([]);
 });
 
 // TODO JESC Fix this after owl refactor
@@ -304,6 +324,7 @@ test("URL with single filter triggers RPC and filters record list", async () => 
     await mountView({
         type: "list",
         resModel: "mock.purchase.order",
+        urlState: { domain: router.current.domain },
         arch: `<list> <field name="state"/> </list>`,
     });
 

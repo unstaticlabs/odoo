@@ -25,6 +25,7 @@ import { router } from "@web/core/browser/router";
 import { registry } from "@web/core/registry";
 import { SearchModel } from "@web/search/search_model";
 import { redirect } from "@web/core/utils/urls";
+import { SelectCreateDialog } from "@web/views/view_dialogs/select_create_dialog";
 import { WebClient } from "@web/webclient/webclient";
 
 describe.current.tags("desktop");
@@ -197,6 +198,23 @@ beforeEach(() => {
     });
     redirect("/odoo");
 });
+
+async function openFilteredPagedActionA() {
+    await getService("action").doAction(10);
+    await editSearch("p");
+    await validateSearch();
+    await contains(`th.o_column_sortable[data-name="foo"]`).click();
+    await contains(".o_pager_next").click();
+    await animationFrame();
+    router.pushState({ groupBy: JSON.stringify(["foo"]) });
+    await animationFrame();
+
+    const url = new URL(browser.location.href);
+    expect(url.searchParams.get("domain")).toInclude("ilike");
+    expect(url.searchParams.get("groupBy")).toBe('["foo"]');
+    expect(url.searchParams.get("orderBy")).toBe('[{"name":"foo","asc":true}]');
+    expect(url.searchParams.get("offset")).toBe("2");
+}
 
 test(`basic action as App`, async () => {
     await mountWithCleanup(WebClient);
@@ -797,6 +815,66 @@ test(`list pagination updates the URL and restores with browser history`, async 
         message: "changing the filter resets the page in the route",
     });
     expect(queryAllTexts(".o_data_cell[name=foo]")).toEqual(["yop"]);
+});
+
+test(`portable state from a filtered page does not seed a different action`, async () => {
+    await mountWithCleanup(WebClient);
+    await openFilteredPagedActionA();
+
+    await getService("action").doAction(3);
+    await animationFrame();
+
+    expect(queryAllTexts(".o_facet_value")).toEqual([]);
+    expect(queryAllTexts(".o_data_cell[name=foo]")).toEqual(["yop", "blip", "gnap", "plop", "zoup"]);
+    const url = new URL(browser.location.href);
+    expect(url.pathname.endsWith("/action-3")).toBe(true);
+    for (const key of ["domain", "groupBy", "orderBy", "offset"]) {
+        expect(url.searchParams.has(key)).toBe(false);
+    }
+});
+
+test(`portable state from a filtered page does not seed a target-new action`, async () => {
+    await mountWithCleanup(WebClient);
+    await openFilteredPagedActionA();
+    const sourceUrl = browser.location.href;
+
+    await getService("action").doAction({
+        type: "ir.actions.act_window",
+        name: "Choose a partner",
+        res_model: "partner",
+        views: [[2, "list"]],
+        target: "new",
+        limit: 2,
+    });
+    await animationFrame();
+
+    expect(".modal .o_searchview_facet").toHaveCount(0);
+    expect(queryAllTexts(".modal .o_data_cell[name=foo]")).toEqual(["yop", "blip"]);
+    expect(browser.location.href).toBe(sourceUrl, {
+        message: "the dialog neither consumes nor replaces its opener's URL state",
+    });
+});
+
+test(`portable state from a filtered page does not seed a list selection dialog`, async () => {
+    await mountWithCleanup(WebClient);
+    await openFilteredPagedActionA();
+
+    getService("dialog").add(SelectCreateDialog, {
+        noCreate: true,
+        multiSelect: true,
+        resModel: "partner",
+        onSelected() {},
+    });
+    await animationFrame();
+
+    expect(".modal .o_searchview_facet").toHaveCount(0);
+    expect(queryAllTexts(".modal .o_data_cell[name=foo]")).toEqual([
+        "yop",
+        "blip",
+        "gnap",
+        "plop",
+        "zoup",
+    ]);
 });
 
 test(`a hostile route cannot override the action page size or request an unbounded offset`, async () => {

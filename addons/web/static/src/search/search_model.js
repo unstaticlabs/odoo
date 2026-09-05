@@ -11,7 +11,6 @@ import { user } from "@web/core/user";
 import { sortBy } from "@web/core/utils/arrays";
 import { useService } from "@web/core/utils/hooks";
 import { deepCopy } from "@web/core/utils/objects";
-import { router } from "@web/core/browser/router";
 import { SearchArchParser } from "./search_arch_parser";
 import {
     constructDateDomain,
@@ -342,8 +341,11 @@ export class SearchModel extends EventBus {
             this._createGroupOfDynamicFilters(dynamicFilters);
         }
 
-        // Activate filters if necessary (from url or saved filters)
-        const { domain: urlDomain, groupBy: urlGroupBy, orderBy: urlOrderBy } = router.current;
+        // Activate filters if necessary (from the state bound to this action or saved filters).
+        // Reading the global router here can leak the outgoing action's search into a newly
+        // mounting action or dialog, before the action service has updated the route.
+        const { domain: urlDomain, groupBy: urlGroupBy, orderBy: urlOrderBy } =
+            config.urlState || {};
         let useUrl = urlDomain || urlGroupBy || urlOrderBy;
         if (useUrl) {
             useUrl = this._tryApplySharedFilters(urlDomain, urlGroupBy, urlOrderBy); // Returns False if no filters could be activated
