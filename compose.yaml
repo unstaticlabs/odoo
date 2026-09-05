@@ -63,7 +63,7 @@ services:
       POSTGRES_IMAGE: ${POSTGRES_IMAGE:-postgres:16-bookworm}
       PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.0.5-usl.9}
       PAPERLESS_BASE_IMAGE: ${PAPERLESS_BASE_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx@sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b}
-      OLLAMA_IMAGE: ${OLLAMA_IMAGE:-ollama/ollama:0.32.5@sha256:4dea9fb511947e24a84237bb636b0203abcb2ff0d3fbc7b4ff865deb91362131}
+      OLLAMA_IMAGE: ${OLLAMA_IMAGE:-ollama/ollama:0.33.2@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2}
       USL_OLLAMA_RUNTIME: ${USL_OLLAMA_RUNTIME:-container}
       PAPERLESS_AI_ENABLED: ${PAPERLESS_AI_ENABLED:-true}
       PAPERLESS_USL_DEFER_SEMANTIC_INDEX: ${PAPERLESS_USL_DEFER_SEMANTIC_INDEX:-false}
@@ -72,7 +72,7 @@ services:
       PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE: ${PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE:-512}
       PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE: ${PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE:-32}
       PAPERLESS_POSTGRES_IMAGE: ${PAPERLESS_POSTGRES_IMAGE:-postgres:16-bookworm}
-      PAPERLESS_BROKER_IMAGE: ${PAPERLESS_BROKER_IMAGE:-valkey/valkey:9.1.1-alpine}
+      PAPERLESS_BROKER_IMAGE: ${PAPERLESS_BROKER_IMAGE:-valkey/valkey:9.1.2-alpine}
       PAPERLESS_GOTENBERG_IMAGE: ${PAPERLESS_GOTENBERG_IMAGE:-gotenberg/gotenberg:8.36@sha256:87c16b9f364279d321bc9772d31fa58aa6abe036423c270698bd636c3a8e9466}
       PAPERLESS_TIKA_IMAGE: ${PAPERLESS_TIKA_IMAGE:-apache/tika:3.3.1.0-full}
       PAPERLESS_DB_PASSWORD: ${PAPERLESS_DB_PASSWORD:-paperless-change-me-dev-only}
@@ -216,7 +216,7 @@ services:
 
   paperless-broker:
     profiles: ["paperless"]
-    image: ${PAPERLESS_BROKER_IMAGE:-valkey/valkey:9.1.1-alpine}
+    image: ${PAPERLESS_BROKER_IMAGE:-valkey/valkey:9.1.2-alpine}
     restart: unless-stopped
     command: ["valkey-server", "--save", "60", "1", "--loglevel", "warning"]
     healthcheck:
@@ -229,7 +229,7 @@ services:
 
   paperless-ollama:
     profiles: ["paperless"]
-    image: ${OLLAMA_IMAGE:-ollama/ollama:0.32.5@sha256:4dea9fb511947e24a84237bb636b0203abcb2ff0d3fbc7b4ff865deb91362131}
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.33.2@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2}
     restart: unless-stopped
     environment:
       OLLAMA_HOST: 0.0.0.0:11434
@@ -245,7 +245,7 @@ services:
 
   paperless-model-preflight:
     profiles: ["paperless"]
-    image: ${OLLAMA_IMAGE:-ollama/ollama:0.32.5@sha256:4dea9fb511947e24a84237bb636b0203abcb2ff0d3fbc7b4ff865deb91362131}
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.33.2@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2}
     restart: "no"
     depends_on:
       paperless-model-init:
@@ -260,7 +260,7 @@ services:
 
   paperless-model-init:
     profiles: ["paperless"]
-    image: ${OLLAMA_IMAGE:-ollama/ollama:0.32.5@sha256:4dea9fb511947e24a84237bb636b0203abcb2ff0d3fbc7b4ff865deb91362131}
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.33.2@sha256:020e4134285e2ef4d8fd801234176de3b4faadc992a3eb06c8e66a2f9d4c4ba2}
     restart: "no"
     depends_on:
       paperless-ollama:
