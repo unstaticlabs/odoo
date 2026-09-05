@@ -108,7 +108,9 @@ class TestLinkedReceiptHandoffHttp(TestExpenseCommon, HttpCase):
 
     def test_manager_and_unknown_id_are_indistinguishable(self):
         self._authenticate(self.expense_user_manager)
-        with patch.dict(
+        # The shared frontend layout generates a fresh CSRF token per request.
+        # Hold only that nonce constant when comparing the complete responses.
+        with patch("odoo.http.requestlib.Request.csrf_token", return_value="fixed-test-csrf"), patch.dict(
             "os.environ",
             {"USL_LINKED_PDF_DOWNLOAD_ENABLED": "1"},
         ):
