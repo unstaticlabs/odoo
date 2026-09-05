@@ -8306,7 +8306,9 @@ def _recovery_proof_command_locked(
         ]).stdout.split()[0]
         if not all(re.fullmatch(r"[0-9a-f]{64}", item) for item in (restored_dss, restored_odoo)):
             raise RuntimeError("recovery proof restored Sign environment digest is invalid")
-        runtime_environment["environment_sha256"]["dss"] = restored_dss
+        runtime_environment["environment_sha256"]["dss"] = hashlib.sha256(
+            f"{runtime_environment['environment_sha256']['dss']}:{restored_dss}".encode(),
+        ).hexdigest()
         runtime_environment["environment_sha256"]["odoo"] = hashlib.sha256(
             f"{runtime_environment['environment_sha256']['odoo']}:{restored_odoo}".encode(),
         ).hexdigest()
