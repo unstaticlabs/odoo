@@ -30,6 +30,7 @@
         "data/document_invoice_binding.xml",
         "wizard/expense_bank_match_wizard_views.xml",
         "wizard/bank_statement_review_wizard_views.xml",
+        "wizard/bank_ingestion_period_views.xml",
         "views/bank_statement_ingestion_views.xml",
         "views/linked_receipt_views.xml",
         "views/linked_receipt_handoff_templates.xml",
@@ -53,6 +54,7 @@
             "usl_accounting/static/tests/payment_suggestions.test.js",
         ],
         "web.assets_tests": [
+            "usl_accounting/static/tests/tours/bank_period_tour.js",
             "usl_accounting/static/tests/tours/immediate_settlement_tour.js",
             "usl_accounting/static/tests/tours/linked_receipt_tour.js",
         ],

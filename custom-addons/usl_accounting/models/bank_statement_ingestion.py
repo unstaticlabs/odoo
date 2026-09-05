@@ -6,6 +6,7 @@ import logging
 import mimetypes
 import re
 import socket
+import unicodedata
 import urllib.parse
 import urllib.request
 import zipfile
@@ -604,6 +605,19 @@ class AccountBankIngestion(models.Model):
     def _period_from_text(self, value):
         matches = re.findall(r"(\d{2})[/-](\d{2})[/-](\d{4})", value or "")
         if len(matches) < 2:
+            normalized = "".join(
+                char for char in unicodedata.normalize("NFKD", (value or "").casefold())
+                if not unicodedata.combining(char)
+            )
+            months = "janvier fevrier mars avril mai juin juillet aout septembre octobre novembre decembre".split()
+            periods = re.findall(r"\b(" + "|".join(months) + r")\s+(\d{4})\b", normalized)
+            if not matches and len(periods) == 1:
+                month, year = periods[0]
+                try:
+                    start = dt.date(int(year), months.index(month) + 1, 1)
+                    return start, _month_end(start)
+                except ValueError:
+                    pass
             return False, False
         try:
             dates = [
@@ -613,6 +627,45 @@ class AccountBankIngestion(models.Model):
         except ValueError:
             return False, False
         return min(dates), max(dates)
+
+    def action_correct_period(self):
+        self.ensure_one()
+        if not is_accounting_operator(self.env.user):
+            raise AccessError(_("Only an accountant can correct a bank export period."))
+        self.check_access("read")
+        if self.state not in ("attention", "failed"):
+            raise UserError(_("Only an export needing attention can be corrected."))
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Correct statement period"),
+            "res_model": "account.bank.ingestion.period",
+            "view_mode": "form",
+            "target": "new",
+            "context": {"default_ingestion_id": self.id,
+                        "default_period_start": self.period_start,
+                        "default_period_end": self.period_end},
+        }
+
+    def _verified_file_periods(self, pdf=None):
+        self.ensure_one()
+        verified = self.file_ids.filtered(
+            lambda source: source.classification == "ofx"
+            and source.processing_state in ("processed", "duplicate")
+            and source.statement_id
+        )
+        periods = {(source.period_start, source.period_end) for source in verified}
+        pdfs = pdf if pdf is not None else self.file_ids.filtered(lambda source: source.classification == "pdf")
+        for candidate in pdfs:
+            accepted = self.env["account.bank.ingestion.file"].search([
+                ("sha256", "=", candidate.sha256),
+                ("evidence_status", "=", "accepted"),
+                ("ingestion_id.config_id", "=", self.config_id.id),
+                ("company_id", "=", self.company_id.id),
+            ])
+            for source in accepted:
+                if source.statement_id.accepted_evidence_id == source:
+                    periods.add((source.statement_id.period_start, source.statement_id.period_end))
+        return periods
 
     def action_process_now(self):
         if not is_accounting_operator(self.env.user):
@@ -1525,6 +1578,14 @@ class AccountBankIngestionFile(models.Model):
         period_end = _month_end(max(dates))
         if period_start != max(dates).replace(day=1):
             raise UserError(_("One OFX file must cover a single calendar month."))
+        raw_statement = ofx.accounts[0].statement
+        header_start = fields.Date.to_date(getattr(raw_statement, "start_date", None))
+        header_end = fields.Date.to_date(getattr(raw_statement, "end_date", None))
+        if header_start or header_end:
+            if (not header_start or not header_end
+                    or header_start != period_start or header_end != period_end):
+                raise UserError(_("The OFX coverage must match its single calendar month."))
+            period_start, period_end = header_start, header_end
         if period_start < config.automatic_start_date.replace(day=1):
             raise UserError(
                 _("This export predates the configured ingestion cut-over."),
@@ -2139,14 +2200,23 @@ class AccountBankIngestionFile(models.Model):
                 integrity_error,
             )
             return
-        period_start = self.ingestion_id.period_start
-        period_end = self.ingestion_id.period_end
+        periods = self.ingestion_id._verified_file_periods(pdf=self)
+        if len(periods) > 1:
+            raise UserError(_("The retained bank files disagree on the statement period."))
+        if periods:
+            period_start, period_end = periods.pop()
+            self.ingestion_id.write({"period_start": period_start, "period_end": period_end})
+        else:
+            period_start = self.ingestion_id.period_start
+            period_end = self.ingestion_id.period_end
+            if not period_start or not period_end:
+                period_start, period_end = self.ingestion_id._period_from_text(self.ingestion_id.subject)
         if not period_start or not period_end:
             self.write(
                 {
                     "processing_state": "failed",
                     "processing_detail": _(
-                        "The statement period could not be determined from the email subject.",
+                        "The retained files and email do not establish a statement period.",
                     ),
                     "evidence_status": "candidate",
                 },
@@ -2154,7 +2224,7 @@ class AccountBankIngestionFile(models.Model):
             self._ensure_exception(
                 "evidence",
                 _("Confirm the PDF statement period"),
-                _("Set an unambiguous period on the received export, then retry."),
+                _("Use Correct period on the received export after checking the bank statement."),
             )
             return
         values = {
@@ -2170,6 +2240,18 @@ class AccountBankIngestionFile(models.Model):
         if self.evidence_status != "accepted":
             values["evidence_status"] = "candidate"
         self.write(values)
+        period_exception_names = {
+            "Confirm the PDF statement period", _("Confirm the PDF statement period"),
+        }
+        self.exception_ids.filtered(
+            lambda item: item.state == "open" and item.kind == "evidence"
+            and item.name in period_exception_names
+        ).with_context(bank_exception_internal=True).write({
+            "state": "resolved", "resolution": "corrected_source",
+            "resolution_reason": _("The retained PDF now has an established statement period."),
+            "resolved_by_id": self.env.user.id,
+            "resolved_at": fields.Datetime.now(),
+        })
         statement = self.env["account.bank.statement"].search(
             [
                 ("ingestion_config_id", "=", self.ingestion_id.config_id.id),
@@ -2218,7 +2300,7 @@ class AccountBankIngestionFile(models.Model):
                     "evidence",
                     _("Bank statement PDF period does not match"),
                     _(
-                        "The PDF period inferred from the email does not match the OFX month. Review the source before accepting evidence.",
+                        "The PDF period does not match the OFX month. Review the source before accepting evidence.",
                     ),
                     statement=imported_statements,
                 )

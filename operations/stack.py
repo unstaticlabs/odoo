@@ -17,6 +17,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from operations import upgrade_preservation
 from operations.oidc_admission import CLIENT_PROBE_SCRIPT
 from operations.control_manifest import (
     RELEASE_DEFINITIONS_SQL,
@@ -2393,7 +2394,7 @@ def _runtime_cas_sha256(target, runner, runtime: dict) -> str:
         if mcp_runtime_image != mcp_authority["image"]:
             raise RuntimeError("runtime CAS MCP image differs from GitOps authority")
     body = {
-        "runtime_sha256": _runtime_baseline_sha256(runtime),
+        "runtime_sha256": _runtime_baseline_sha256({**runtime, "compose": identity}),
         "release": release["identity"],
         "release_manifest_sha256": release_sha256,
         "mcp_authority_sha256": None if mcp_authority is None else mcp_authority["sha256"],
@@ -3534,6 +3535,21 @@ def health_command(arguments: argparse.Namespace) -> int:
     return 0 if not failures else 2
 
 
+def _active_cron_policy(target, runner):
+    """Validate a generation against the policy shipped with that generation."""
+    declared = target.value["cron_policy"]
+    if declared["mode"] == "unmanaged":
+        return None
+    release, _, _ = _release(target, runner, None)
+    image = release["components"]["backup-tool"]["digest_reference"]
+    _ensure_image(runner, image)
+    raw = runner.run([
+        "docker", "run", "--rm", "--network", "none", "--read-only",
+        "--entrypoint", "cat", image, declared["path"],
+    ]).stdout
+    return parse_cron_policy(raw)
+
+
 def smoke_command(arguments: argparse.Namespace) -> int:
     target = load_target(arguments.target, arguments.targets)
     runner = target.runner()
@@ -3578,11 +3594,7 @@ def smoke_command(arguments: argparse.Namespace) -> int:
     failures = []
     cron_target = target.value["cron_policy"]
     try:
-        cron_policy = (
-            None
-            if cron_target["mode"] == "unmanaged"
-            else parse_cron_policy(_read_path(target, runner, Path(cron_target["path"])))
-        )
+        cron_policy = _active_cron_policy(target, runner)
         cron_status = validate_cron_runtime(
             cron_policy,
             mode=cron_target["mode"],
@@ -4157,7 +4169,7 @@ def _neutralize_generation(target, runner, release: dict, generation: str, netwo
 
 def _run_production_boundary_script(
     target, runner, release: dict, network: str, volumes: dict[str, str],
-    script: str, fingerprint: str, prefix: str,
+    script: str, fingerprint: str, prefix: str, *, environment_file: str | None = None,
 ) -> dict:
     if target.value["environment"] != "production":
         raise RuntimeError("production boundary scripts are production-only")
@@ -4165,8 +4177,10 @@ def _run_production_boundary_script(
     result = runner.run(
         [
             "docker", "run", "--rm", "--interactive", "--network", network,
-            "--env-file", target.value["compose"]["canonical"]["environment_file"],
-            "--env-file", target.value["secrets"]["env_file"],
+            *(["--env-file", environment_file] if environment_file is not None else [
+                "--env-file", target.value["compose"]["canonical"]["environment_file"],
+                "--env-file", target.value["secrets"]["env_file"],
+            ]),
             "--env", f"ODOO_DB_HOST={database['service']}",
             "--env", "ODOO_DB_PORT=5432",
             "--env", f"ODOO_DB_USER={database['user']}",
@@ -5410,6 +5424,9 @@ def _run_candidate_upgrade(
         f"--update={','.join(modules)}",
         "--stop-after-init", "--no-http", "--max-cron-threads=0",
     ]
+    new_modules = sorted(set(modules) - set(plan["installed_modules"]))
+    if new_modules:
+        arguments.append(f"--init={','.join(new_modules)}")
     if target.value["environment"] == "staging":
         if candidate_identity is None:
             raise RuntimeError("staging upgrade requires the approved runtime identity")
@@ -5744,6 +5761,7 @@ if not all(checks.values()):
     raise RuntimeError("Pocket ID runtime admission failed: " + ", ".join(
         key for key, value in checks.items() if not value
     ))
+env.cr.commit()
 print("USL_POCKET_ID_RUNTIME_ADMISSION=" + json.dumps(evidence, sort_keys=True))
 '''
     program = CLIENT_PROBE_SCRIPT + program
@@ -5887,15 +5905,15 @@ if not message:
         Markup("<h3>%s</h3><p>%s</p><ul>%s</ul>%s")
         % (escape(notes["title"]), escape(notes["summary"]), items, action)
         + Markup(
-            "<p>Deployed %s · release <code>%s</code> · "
-            '<a href="%s">technical evidence</a></p>'
+            "<p>Deployed %s · release <code>%s</code></p>"
         )
         % (
             escape(fields.Datetime.now()),
             escape(release_id[:12]),
-            escape(evidence_url),
         )
     )
+    if evidence_url:
+        body += Markup('<p><a href="%s">technical evidence</a></p>') % escape(evidence_url)
     message = channel.message_post(
         author_id=odoobot.id,
         body=body,
@@ -5934,7 +5952,7 @@ print("USL_RELEASE_NOTIFICATION_RESULT=" + json.dumps({
             + ", usl_release_notification_notes="
             + repr(json.dumps(release["release_notes"], sort_keys=True))
             + ", usl_release_notification_evidence_url="
-            + repr(release["build"]["workflow_url"])
+            + repr(release["build"].get("workflow_url"))
             + "))\n"
             + program
         ),
@@ -6121,6 +6139,16 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         candidate_differs = snapshot_release["manifest_sha256"] != release_sha
         if candidate_differs and upgrade_plan is None:
             raise RuntimeError("cross-release restore requires the staging-qualified upgrade plan")
+        preservation_baseline = None
+        if candidate_differs:
+            preservation_baseline = upgrade_preservation.capture(
+                lambda query: json.dumps(_recovery_proof_query(
+                    target, target_runner, database_containers[0], "odoo", query,
+                )),
+            )
+            _write_remote(target, target_runner,
+                f"{generation_root}/upgrade-preservation-baseline.json",
+                json.dumps(preservation_baseline, sort_keys=True) + "\n")
         if upgrade_plan is not None:
             snapshot_identity = snapshot_release.get("identity", snapshot_release["manifest_sha256"])
             if upgrade_plan["active_release"] != snapshot_identity:
@@ -6285,12 +6313,28 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             expected_release_definitions_sha256 = staging_evidence["staging"][
                 "release_definitions_sha256"
             ]
+        preservation_proof = None
+        compared_controls = smoke["controls"]
+        if preservation_baseline is not None:
+            execute = lambda query: _psql(target, target_runner, generation_identity, "odoo", query)
+            preservation_proof = upgrade_preservation.verify(preservation_baseline, execute)
+            compared_controls = {
+                **smoke["controls"],
+                "odoo": json.loads(execute(upgrade_preservation.scoped_controls_sql(
+                    ODOO_CONTROL_SQL, preservation_baseline["scope"],
+                ))),
+            }
         try:
             control_validation = validate_restore(
                 materialize_state["controls"],
-                smoke["controls"],
+                compared_controls,
                 require_unchanged_release=not candidate_differs,
             )
+            if preservation_proof is not None:
+                control_validation["upgrade_preservation"] = preservation_proof
+                control_validation["raw_candidate_controls_sha256"] = hashlib.sha256(
+                    json.dumps(smoke["controls"], sort_keys=True, separators=(",", ":")).encode(),
+                ).hexdigest()
         except ControlManifestError as error:
             raise RuntimeError(str(error)) from error
         if expected_release_definitions_sha256 is not None and (
@@ -6708,7 +6752,8 @@ def _validate_recovery_proof_receipt(value: object, proof_id: str) -> dict:
         or durable.get("paperless", {}).get("status") != "passed"
         or not isinstance(durable.get("paperless", {}).get("document_records"), int)
         or durable.get("paperless", {}).get("document_records") < 1
-        or durable.get("mcp_oauth", {}).get("schema_version") != 1
+        or not isinstance(durable.get("mcp_oauth", {}).get("schema_version"), int)
+        or durable["mcp_oauth"]["schema_version"] < 1
         or set(samples) != sample_roles
         or any(
             not isinstance(sample, dict)
@@ -7298,17 +7343,17 @@ def _recovery_proof_environment(
     }
     selected["mcp"].update({
         "MCP_HOST": "0.0.0.0", "MCP_PORT": "3000",
-        "MCP_PUBLIC_ORIGIN": "http://odoo-mcp:3000",
+        "MCP_PUBLIC_ORIGIN": target.value["endpoints"]["mcp"],
         "MCP_ALLOWED_HOSTS": "odoo-mcp", "MCP_HEALTHCHECK_HOST": "odoo-mcp",
-        "MCP_ALLOWED_ORIGINS": "http://odoo-mcp:3000",
-        "MCP_ALLOW_LOCAL_HTTP_ODOO": "true",
-        "ODOO_PUBLIC_ORIGIN": "http://odoo:8069",
+        "MCP_ALLOWED_ORIGINS": target.value["endpoints"]["mcp"],
+        "MCP_ALLOW_LOCAL_HTTP_ODOO": "false",
+        "ODOO_PUBLIC_ORIGIN": target.value["endpoints"]["odoo"],
         "ODOO_INTERNAL_ORIGIN": "http://odoo:8069",
         "ODOO_DATABASE": target.value["databases"]["odoo"]["name"],
         "MCP_OAUTH_ENABLED": "true", "MCP_OAUTH_DATABASE": "/data/oauth.sqlite",
         "BETTER_AUTH_SECRET_FILE": "/run/secrets/better-auth.secret",
         "MCP_CREDENTIAL_ENCRYPTION_KEY_FILE": "/run/secrets/credential-encryption-key.secret",
-        "MCP_OAUTH_TRUSTED_ORIGINS": "http://odoo-mcp:3000",
+        "MCP_OAUTH_TRUSTED_ORIGINS": target.value["endpoints"]["mcp"],
     })
     selected["dss"] = {
         key: str(value)
@@ -7417,6 +7462,7 @@ def _start_recovery_proof_runtime(
     secrets = f"{proof_root}/generations/{generation}/sign-secrets"
     renderer_secrets = f"{proof_root}/generations/{generation}/renderer-secrets"
     volumes = names["volumes"]
+    _prepare_generation_volume_ownership(runner, release, volumes)
     started: dict[str, str] = {}
     started["paperless_broker"] = _run_recovery_proof_container(
         runner, proof_id, names, "paperless_broker",
@@ -7443,7 +7489,7 @@ def _start_recovery_proof_runtime(
     )
     started["sign"] = _run_recovery_proof_container(
         runner, proof_id, names, "sign", release["components"]["sign-dss"]["digest_reference"],
-        alias="usl-sign-dss", env_file=f"{secrets}/dss.env",
+        alias="usl-sign-dss", env_file=[f"{secrets}/dss.env", env["dss"]],
         environment={
             "USL_DSS_PORT": "8443", "USL_DSS_LOTL_URL": "", "USL_DSS_OJ_URL": "",
             "USL_DSS_TSA_URL": "",
@@ -7522,14 +7568,21 @@ def _start_recovery_proof_runtime(
     }
 
 
+class RecoveryProofServiceExited(RuntimeError):
+    """A disposable service stopped and cannot become ready without repair."""
+
+
 def _recovery_proof_runtime_health_once(target, runner, names: dict, release: dict) -> tuple[dict, dict]:
     checks: dict[str, bool] = {}
     for role in RECOVERY_PROOF_RUNTIME_ROLES:
         state = runner.run([
             "docker", "inspect", names["containers"][role],
-            "--format", "{{.State.Running}}",
+            "--format", "{{.State.Status}}",
         ], check=False)
-        checks[f"{role}_running"] = state.returncode == 0 and state.stdout.strip() == "true"
+        status = state.stdout.strip()
+        if state.returncode == 0 and status in {"exited", "dead"}:
+            raise RecoveryProofServiceExited(f"recovery proof service {role} stopped: {status}")
+        checks[f"{role}_running"] = state.returncode == 0 and status == "running"
     commands = {
         "odoo_http": [
             "python", "-c",
@@ -7670,11 +7723,13 @@ def _recovery_proof_runtime_health(
         _require_recovery_proof_deadline(started, deadline_at)
         try:
             return _recovery_proof_runtime_health_once(target, runner, names, release)
+        except RecoveryProofServiceExited:
+            raise
         except RuntimeError as error:
             last_error = error
             if attempt < 59:
                 time.sleep(5)
-    raise RuntimeError("recovery proof runtime did not become ready") from last_error
+    raise RuntimeError(f"recovery proof runtime did not become ready: {last_error}") from last_error
 
 
 def _recovery_proof_isolation(runner, names: dict) -> str:
@@ -7713,6 +7768,27 @@ def _recovery_proof_isolation(runner, names: dict) -> str:
     ).encode()).hexdigest()
 
 
+RECOVERY_FILE_SAMPLE_SCRIPT = """
+import hashlib
+import sys
+from pathlib import Path
+
+root = Path(sys.argv[2]).resolve(strict=True)
+path = Path(sys.argv[1]).resolve(strict=True)
+path.relative_to(root)
+files = [path] if path.is_file() else sorted(p for p in path.rglob('*') if p.is_file())
+if not files:
+    raise ValueError('no readable sample files')
+for candidate in files:
+    candidate.resolve(strict=True).relative_to(root)
+digest = hashlib.sha256()
+with files[0].open('rb') as stream:
+    for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+        digest.update(chunk)
+print(f'{len(files)}:{digest.hexdigest()}')
+"""
+
+
 def _recovery_proof_durable_state(
     target, runner, names: dict, release: dict, backup: dict, proof_root: str,
     images: dict[str, str],
@@ -7731,7 +7807,7 @@ def _recovery_proof_durable_state(
         "SELECT json_build_object('documents', (SELECT count(*) FROM documents_document))::text",
     )
     sample = str(odoo.get("sample", ""))
-    if sample and not re.fullmatch(r"[0-9a-f]{2}/[0-9a-f]{38}", sample):
+    if sample and (Path(sample).is_absolute() or ".." in Path(sample).parts or "\0" in sample):
         raise RuntimeError("recovery proof Odoo filestore sample path is unsafe")
     file_checks = {
         "odoo_filestore": (
@@ -7756,11 +7832,11 @@ def _recovery_proof_durable_state(
     for role, path in file_checks.items():
         result = runner.run([
             "docker", "run", "--rm", "--network", "none",
-            "--volume", f"{volume_for[role]}:/sample:ro", "--entrypoint", "/bin/sh",
-            release["components"]["paperless"]["digest_reference"], "-ec",
-            'p="$1"; [ -e "$p" ]; n=$(find "$p" -type f 2>/dev/null | sort | head -n 1); '
-            '[ -n "$n" ]; c=$(find "$p" -type f 2>/dev/null | wc -l | tr -d " "); '
-            'printf "%s:" "$c"; sha256sum "$n" | cut -d" " -f1', "proof", path,
+            "--volume", f"{volume_for[role]}:/sample:ro", "--entrypoint", "python",
+            release["components"]["paperless"]["digest_reference"], "-c",
+            RECOVERY_FILE_SAMPLE_SCRIPT, path,
+            f"/sample/filestore/{target.value['databases']['odoo']['name']}"
+            if role == "odoo_filestore" and sample else "/sample",
         ], check=False)
         if result.returncode:
             raise RuntimeError(f"recovery proof durable sample is missing: {role}")
@@ -8252,7 +8328,9 @@ def _recovery_proof_command_locked(
         ]).stdout.split()[0]
         if not all(re.fullmatch(r"[0-9a-f]{64}", item) for item in (restored_dss, restored_odoo)):
             raise RuntimeError("recovery proof restored Sign environment digest is invalid")
-        runtime_environment["environment_sha256"]["dss"] = restored_dss
+        runtime_environment["environment_sha256"]["dss"] = hashlib.sha256(
+            f"{runtime_environment['environment_sha256']['dss']}:{restored_dss}".encode(),
+        ).hexdigest()
         runtime_environment["environment_sha256"]["odoo"] = hashlib.sha256(
             f"{runtime_environment['environment_sha256']['odoo']}:{restored_odoo}".encode(),
         ).hexdigest()
