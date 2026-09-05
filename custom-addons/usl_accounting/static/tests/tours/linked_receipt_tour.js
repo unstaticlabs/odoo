@@ -3,8 +3,13 @@ import { registry } from "@web/core/registry";
 registry.category("web_tour.tours").add("usl_linked_receipt_historical_scan", {
     steps: () => [
         {
+            content: "Open the expense cog menu",
+            trigger: ".o_form_view .o_cp_action_menus .o-dropdown",
+            run: "click",
+        },
+        {
             content: "Scan the historical email as the expense owner",
-            trigger: "button[name='action_scan_existing_receipt_emails']",
+            trigger: ".o-dropdown--menu .dropdown-item:contains('Scan existing emails for receipts')",
             run: "click",
             expectUnloadPage: true,
         },

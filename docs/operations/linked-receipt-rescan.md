@@ -1,8 +1,8 @@
 # Scan historical expense emails
 
 Enabling linked receipt downloads does not replay existing emails. For a draft
-expense without receipt evidence, use **Scan existing emails for receipts** on
-the expense form. For a batch, select expenses in the list and use the action
+expense without receipt evidence, open the form's cog menu and choose
+**Scan existing emails for receipts**. For a batch, select expenses in the list and use the action
 with the same name.
 
 The action requires write access and either expense ownership or the Accounting
