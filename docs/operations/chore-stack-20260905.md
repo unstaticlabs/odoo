@@ -40,7 +40,7 @@ own methods are private; inherited public methods still require exact review.
 ## Local qualification results
 
 - Exact Python 3.12 test-image build passed.
-- Repository tests: 444 passed checks, including one host-specific skipped test.
+- Repository tests: 444 tests run, with one host-specific skip.
 - Clean product installation and two successive module upgrades passed.
 - Upgrade of a restored earlier local QA database passed. This was a database
   fixture upgrade, not a production backup/filestore recovery rehearsal.
@@ -51,7 +51,20 @@ own methods are private; inherited public methods still require exact review.
   are skipped; separate USL tests cover missing and partial deferral schemas.
 - Product/migration source boundary passed.
 
-The runtime action review covers 295 added/changed exact actions and 20 removed
-actions. Applying and resealing that reviewed policy is still pending explicit
-authorization required by the automated permission reviewer. No merge or PR
-closure is justified until the refreshed source and runtime policy checks pass.
+The owner explicitly authorized the reviewed security-policy update on
+September 5. It covers 295 added/changed exact actions and 20 removed actions.
+The new qualified surface contains 54,894 actions. Each changed action records
+its inspected consequence and authority boundary; unknown future changes still
+require review.
+
+The operational classification of inherited CII write/unlink helpers applies
+only to the abstract, nonpersistent `account.edi.cii` builder. It does not change
+the protected deletion rules for persistent business models. Private import
+helpers distinguish dictionary updates from persisted partner, invoice and
+attachment changes. Removed UBL sinks chiefly moved to the shared EDI importer.
+
+PDP response sending is operational external delivery, not recoverable by
+editing a transient wizard. The project portal task route is also operational
+because it generates attachment access tokens; its new constant-time project
+token check tightens access. These replace inaccurate prior classifications
+without removing the underlying provider or record-access controls.
