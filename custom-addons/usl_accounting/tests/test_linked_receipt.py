@@ -118,6 +118,66 @@ class TestLinkedReceipt(TestExpenseCommon):
         self.assertIn("{id}", serialized)
         self.assertFalse(retrieval.selected_fingerprint)
 
+    def _historical_expense(self, **values):
+        with patch.dict("os.environ", {"USL_LINKED_PDF_DOWNLOAD_ENABLED": "0"}):
+            return self.env["mail.thread"].message_process("hr.expense", self._email(**values))
+
+    def test_historical_scan_is_idempotent_and_preserves_expense(self):
+        expense = self._historical_expense(token="historical-scan")
+        before = (expense.state, expense.total_amount, expense.company_id)
+        with patch.dict("os.environ", {"USL_LINKED_PDF_DOWNLOAD_ENABLED": "1"}):
+            expense.with_user(self.expense_user_employee).action_scan_existing_receipt_emails()
+            expense.with_user(self.expense_user_employee).action_scan_existing_receipt_emails()
+        retrievals = self.env["usl.mail.pdf.retrieval"].sudo().search([("expense_id", "=", expense.id)])
+        self.assertEqual(len(retrievals), 1)
+        self.assertEqual(retrievals.state, "selection_required")
+        self.assertEqual((expense.state, expense.total_amount, expense.company_id), before)
+
+    def test_historical_scan_skips_receipts_and_non_drafts(self):
+        attached = self._historical_expense(token="historical-attached", attachment=True)
+        refused = self._historical_expense(token="historical-refused")
+        refused.state = "refused"
+        with patch.dict("os.environ", {"USL_LINKED_PDF_DOWNLOAD_ENABLED": "1"}):
+            (attached | refused).with_user(self.expense_user_employee).action_scan_existing_receipt_emails()
+        self.assertFalse(self.env["usl.mail.pdf.retrieval"].sudo().search([
+            ("expense_id", "in", (attached | refused).ids),
+        ]))
+
+    def test_historical_scan_checks_authority_and_feature_gate(self):
+        expense = self._historical_expense(token="historical-authority")
+        with patch.dict("os.environ", {"USL_LINKED_PDF_DOWNLOAD_ENABLED": "0"}):
+            with self.assertRaises(UserError):
+                expense.with_user(self.expense_user_employee).action_scan_existing_receipt_emails()
+        with patch.dict("os.environ", {"USL_LINKED_PDF_DOWNLOAD_ENABLED": "1"}):
+            with self.assertRaises(AccessError):
+                expense.with_user(self.expense_user_manager_2).action_scan_existing_receipt_emails()
+
+    def test_historical_scan_skips_chatter_receipt_and_empty_email(self):
+        attached = self._historical_expense(token="historical-chatter")
+        attached.message_post(attachments=[("receipt.pdf", b"%PDF-1.4\nreceipt\n%%EOF\n")])
+        empty = self._historical_expense(token="historical-empty")
+        empty.message_ids.filtered(lambda message: message.message_type == "email").body = "No links here."
+        with patch.dict("os.environ", {"USL_LINKED_PDF_DOWNLOAD_ENABLED": "1"}):
+            action = (attached | empty).with_user(self.expense_user_employee).action_scan_existing_receipt_emails()
+        self.assertEqual(action["params"]["type"], "info")
+        self.assertFalse(self.env["usl.mail.pdf.retrieval"].sudo().search([
+            ("expense_id", "in", (attached | empty).ids),
+        ]))
+
+    def test_historical_scan_rejects_other_company_record(self):
+        expense = self._historical_expense(token="historical-company")
+        other_company = self.env["res.company"].create({"name": "Receipt scan other company"})
+        other_user = self.env["res.users"].sudo().create({
+            "name": "Other company receipt manager", "login": "other-company-receipt-manager",
+            "company_id": other_company.id, "company_ids": [Command.set(other_company.ids)],
+            "group_ids": [Command.set(self.env.ref("account.group_account_manager").ids)],
+        })
+        with patch.dict("os.environ", {"USL_LINKED_PDF_DOWNLOAD_ENABLED": "1"}):
+            with self.assertRaises(AccessError):
+                expense.with_user(other_user).with_context(
+                    allowed_company_ids=other_company.ids,
+                ).action_scan_existing_receipt_emails()
+
     def test_user_choice_teaches_positive_and_bounded_negative_examples(self):
         expense = self._ingest(
             extra_link='<a href="https://files.example.com/invoice.pdf?signature=other-secret">Invoice PDF</a>',

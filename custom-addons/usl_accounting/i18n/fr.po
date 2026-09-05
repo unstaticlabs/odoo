@@ -6242,3 +6242,20 @@ msgid ""
 msgstr ""
 "Le rapprochement bancaire a tenté de modifier les données certifiées du "
 "relevé bancaire. Aucune modification n’a été enregistrée."
+
+#. module: usl_accounting
+#: model:ir.actions.server,name:usl_accounting.action_scan_existing_receipt_emails
+msgid "Scan existing emails for receipts"
+msgstr "Rechercher des justificatifs dans les e-mails existants"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+msgid "Receipt email scan complete"
+msgstr "Recherche de justificatifs terminée"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+msgid "Found receipt links for %(count)s expenses. Existing requests and expenses with receipts were skipped."
+msgstr "Des liens vers des justificatifs ont été trouvés pour %(count)s notes de frais. Les demandes existantes et les notes de frais avec justificatif ont été ignorées."

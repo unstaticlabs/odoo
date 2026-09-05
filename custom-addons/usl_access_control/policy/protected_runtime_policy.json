@@ -2071,8 +2071,8 @@
       "classification": "protected"
     }
   ],
-  "qualified_policy_digest": "2f4ef9b8842c84ec003246bb5a18b0b81741fd0725c9a31046b38e474bae66a9",
-  "runtime_policy_sha256": "bd6251c05df39edba9df1415e082139def83d6e6beac4fc159e78ed41146792a",
+  "qualified_policy_digest": "2b38fcc5b4994470aa2ddfbdfe9779b93b9e83dac826ec23441f28d1c3e0346c",
+  "runtime_policy_sha256": "27a48b337676fd482e35c18a8e34fa63c1ae5ef40b1a5406ec251758bb5fbb65",
   "schema": "usl-action-risk-protected-runtime-v2",
   "server_actions": [
     {
@@ -2642,6 +2642,10 @@
     {
       "action_key": "server_action:usl_access_control.ir_cron_usl_agent_authority_reconcile_ir_actions_server",
       "classification": "protected"
+    },
+    {
+      "action_key": "server_action:usl_accounting.action_scan_existing_receipt_emails",
+      "classification": "operational"
     },
     {
       "action_key": "server_action:usl_accounting.ir_cron_bank_export_expected_activities_ir_actions_server",
