@@ -10,6 +10,11 @@
     "profiles": ["document-renderer", "mcp", "paperless", "sign"],
     "default_network": "usl-odoo-staging-main_default",
     "resource_overlay": "compose.resources.staging.json",
+    "canonical": {
+      "working_directory": "komodo/stacks/prod-odoo-nbg1-2/usl-odoo-staging",
+      "compose_files": ["compose.yaml", "compose.resources.json"],
+      "environment_file": "/opt/usl-odoo/staging/staging.env"
+    },
     "adoption": {
       "schema": "usl-compose-adoption/v1",
       "legacy_anchor_service": "odoo",
@@ -34,6 +39,8 @@
     "paperless_tika": "paperless-tika",
     "mcp": "odoo-mcp",
     "renderer": "usl-document-renderer",
+    "receipt_fetcher": "usl-receipt-fetcher",
+    "receipt_egress": "usl-receipt-egress",
     "sign": "usl-sign-dss",
     "sign_ca": "usl-sign-step-ca"
   },
@@ -47,6 +54,7 @@
     "local": {"path": "/var/lib/usl-odoo", "reserve_bytes": 2147483648}
   }},
   "volumes": {
+    "receipt_control": {"name": "usl-odoo-staging-main_receipt-control", "class": "transient", "tier": "local"},
     "odoo_postgres": {"name": "usl-odoo-staging-main_postgres-data", "class": "transient", "tier": "database"},
     "odoo_filestore": {"name": "usl-odoo-staging-main_odoo-data", "class": "durable", "tier": "bulk"},
     "paperless_postgres": {"name": "usl-odoo-staging-main_paperless-postgres-data", "class": "transient", "tier": "database"},
@@ -68,8 +76,8 @@
   "ingress": {"proxy_mode": true, "list_db": false, "dbfilter": "^odoo_staging$", "websocket": true},
   "ollama": {"mode": "external", "container": "ollama", "network": "ollama", "url": "http://ollama:11434", "model": "bge-m3:latest", "manifest_sha256": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab", "dimension": 1024},
   "backup": {
-    "durable_repository": "s3:https://dac5c03754f31ec46fbf248dccc54831.eu.r2.cloudflarestorage.com/usl-backups/odoo-staging/continuous-durable",
-    "cache_repository": "s3:https://dac5c03754f31ec46fbf248dccc54831.eu.r2.cloudflarestorage.com/usl-backups/odoo-staging/continuous-cache"
+    "durable_repository": "/var/lib/usl-odoo/restic/staging/durable",
+    "cache_repository": "/var/lib/usl-odoo/restic/staging/cache"
   },
   "release_manifest": "/opt/usl-odoo/staging/current/usl-release.json",
   "plan_signing": {"private_key": "/opt/usl-odoo/staging/secrets/upgrade-plan-signing.key", "public_key": "/opt/usl-odoo/staging/secrets/upgrade-plan-signing.pub"},

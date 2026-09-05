@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import json
 import re
+import select
 import shlex
 import subprocess
+import time
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol
@@ -61,6 +64,40 @@ class Runner(Protocol):
 @dataclass
 class CommandRunner:
     prefix: tuple[str, ...] = ()
+    deadline_monotonic: float | None = None
+
+    @contextmanager
+    def advisory_lock(self, path: str, timeout: float = 30.0):
+        command = [
+            "flock", "--nonblock", path, "sh", "-c", "printf 'locked\\n'; cat >/dev/null",
+        ]
+        invocation = [*self.prefix, *command]
+        if self.prefix and self.prefix[0] == "ssh":
+            invocation = [self.prefix[0], self.prefix[1], "--", shlex.join(command)]
+        process = subprocess.Popen(
+            invocation, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE, text=True,
+        )
+        readable, _, _ = select.select([process.stdout], [], [], timeout)
+        if not readable:
+            process.terminate()
+            process.wait(timeout=10)
+            raise RuntimeError(f"advisory lock acquisition timed out: {path}")
+        ready = process.stdout.readline().strip() if process.stdout is not None else ""
+        if ready != "locked":
+            stderr = process.stderr.read().strip() if process.stderr is not None else ""
+            process.wait()
+            raise RuntimeError(f"another operation owns advisory lock: {path}: {stderr}")
+        try:
+            yield
+        finally:
+            if process.stdin is not None:
+                process.stdin.close()
+            try:
+                process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                process.terminate()
+                process.wait(timeout=10)
 
     def run(
         self,
@@ -72,15 +109,27 @@ class CommandRunner:
         invocation = [*self.prefix, *command]
         if self.prefix and self.prefix[0] == "ssh":
             invocation = [self.prefix[0], self.prefix[1], "--", shlex.join(command)]
-        process = subprocess.run(
-            invocation,
-            check=False,
-            capture_output=True,
-            text=True,
-            input=input_text,
-        )
+        timeout = None
+        if self.deadline_monotonic is not None:
+            timeout = self.deadline_monotonic - time.monotonic()
+            if timeout <= 0:
+                raise RuntimeError("command refused: operation deadline expired")
+        try:
+            process = subprocess.run(
+                invocation,
+                check=False,
+                capture_output=True,
+                text=True,
+                input=input_text,
+                timeout=timeout,
+            )
+        except subprocess.TimeoutExpired as error:
+            raise RuntimeError("command exceeded the operation deadline") from error
         if check and process.returncode:
-            detail = (process.stderr or process.stdout).strip()
+            detail = (
+                "subprocess output redacted because standard input was sensitive"
+                if input_text is not None else (process.stderr or process.stdout).strip()
+            )
             raise RuntimeError(f"command failed ({' '.join(command)}): {detail}")
         return process
 
@@ -173,6 +222,8 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
     }
     if isinstance(root["compose"], dict) and "adoption" in root["compose"]:
         compose_fields.add("adoption")
+    if isinstance(root["compose"], dict) and "canonical" in root["compose"]:
+        compose_fields.add("canonical")
     compose = _exact(root["compose"], compose_fields, "compose")
     if not TARGET_NAME.fullmatch(str(compose["project"])):
         raise RuntimeError("compose.project is invalid")
@@ -192,6 +243,37 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         or not resource_overlay.endswith(".json")
     ):
         raise RuntimeError("compose.resource_overlay must be a safe relative JSON path")
+    canonical = compose.get("canonical")
+    if canonical is not None:
+        canonical = _exact(
+            canonical,
+            {"working_directory", "compose_files", "environment_file"},
+            "compose.canonical",
+        )
+        working = canonical["working_directory"]
+        if (
+            not isinstance(working, str)
+            or not working
+            or working.startswith("/")
+            or ".." in Path(working).parts
+        ):
+            raise RuntimeError("compose.canonical.working_directory must be relative")
+        files = canonical["compose_files"]
+        if (
+            not isinstance(files, list)
+            or not files
+            or not all(
+                isinstance(item, str)
+                and bool(item)
+                and not item.startswith("/")
+                and ".." not in Path(item).parts
+                for item in files
+            )
+        ):
+            raise RuntimeError("compose.canonical.compose_files must be safe relative paths")
+        environment_file = canonical["environment_file"]
+        if not isinstance(environment_file, str) or not environment_file.startswith("/"):
+            raise RuntimeError("compose.canonical.environment_file must be absolute")
     adoption = compose.get("adoption")
     if adoption is not None:
         if root["name"] != "staging" or root["environment"] != "staging":
@@ -246,6 +328,8 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         "paperless_tika",
         "mcp",
         "renderer",
+        "receipt_fetcher",
+        "receipt_egress",
         "sign",
         "sign_ca",
     }
@@ -289,6 +373,7 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         "paperless_broker",
         "paperless_export",
         "mcp_oauth",
+        "receipt_control",
     }
     if not isinstance(volumes, dict) or not required_volumes <= set(volumes):
         raise RuntimeError(f"target volumes must include {sorted(required_volumes)}")
@@ -306,7 +391,16 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
     if not isinstance(paths, dict) or not required_paths <= set(paths):
         raise RuntimeError(f"target paths must include {sorted(required_paths)}")
     for role, definition in paths.items():
-        _exact(definition, {"path", "class", "required", "tier"}, f"paths.{role}")
+        _exact(definition, {"path", "class", "required", "tier"} | ({"files"} if "files" in definition else set()), f"paths.{role}")
+        if "files" in definition:
+            files = definition["files"]
+            if role != "mcp_secrets" or not isinstance(files, dict) or not files:
+                raise RuntimeError(f"paths.{role}.files must map MCP recovery filenames to source paths")
+            for name, source in files.items():
+                if not isinstance(name, str) or Path(name).name != name or name in {".", ".."}:
+                    raise RuntimeError(f"paths.{role}.files contains an invalid filename")
+                if not isinstance(source, str) or not source.startswith("/"):
+                    raise RuntimeError(f"paths.{role}.files source must be absolute")
         if definition["class"] not in {"durable", "cache", "transient"}:
             raise RuntimeError(f"paths.{role}.class is invalid")
         if not isinstance(definition["path"], str) or not definition["path"].startswith("/"):
@@ -376,7 +470,11 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
 
     backup = _exact(root["backup"], {"durable_repository", "cache_repository"}, "backup")
     for key, value in backup.items():
-        if not isinstance(value, str) or not value.startswith(("s3:", "rest:")):
+        local_repository = (
+            root["environment"] == "staging"
+            and value == f"/var/lib/usl-odoo/restic/staging/{key.removesuffix('_repository')}"
+        )
+        if not isinstance(value, str) or not (value.startswith(("s3:", "rest:")) or local_repository):
             raise RuntimeError(f"backup.{key} is not a supported Restic repository")
     if backup["durable_repository"] == backup["cache_repository"]:
         raise RuntimeError("durable and cache repositories must differ")
@@ -620,7 +718,12 @@ def read_active_state(target: Target, runner: Runner) -> dict[str, Any] | None:
         raise RuntimeError("active generation state belongs to another target")
     if not TARGET_NAME.fullmatch(str(state["generation"])):
         raise RuntimeError("active generation name is invalid")
-    if set(state["volumes"]) != set(target.value["volumes"]):
+    recorded_roles = set(state["volumes"])
+    target_roles = set(target.value["volumes"])
+    if recorded_roles - target_roles or any(
+        target.value["volumes"][role]["class"] != "transient"
+        for role in target_roles - recorded_roles
+    ):
         raise RuntimeError("active generation volume perimeter differs")
     if not isinstance(state["network"], str) or not state["network"]:
         raise RuntimeError("active generation network is invalid")
@@ -660,7 +763,7 @@ def effective_volumes(target: Target, runner: Runner) -> tuple[dict[str, dict[st
         for role, name in state["volumes"].items()
         if isinstance(name, str) and name
     }
-    if set(volumes) != set(target.value["volumes"]):
+    if set(volumes) != set(state["volumes"]):
         raise RuntimeError("active generation contains an invalid volume name")
     return volumes, state["generation"]
 

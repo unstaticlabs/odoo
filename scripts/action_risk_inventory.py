@@ -75,12 +75,16 @@ ACTION_PREFIXES = (
 )
 AGENT_COLLABORATION_METHODS = frozenset(
     {
+        "action_done_schedule_next",
+        "action_feedback",
+        "action_feedback_schedule_next",
         "activity_schedule",
         "mcp_create_download_grant",
         "mcp_revoke_download_grant",
         "message_post",
         "message_subscribe",
         "message_unsubscribe",
+        "submit_mcp_feedback",
     },
 )
 AGENT_READONLY_GENERIC_METHODS = frozenset(
@@ -132,6 +136,7 @@ PRODUCT_MODULES = frozenset(
         "usl_documents_accounting",
         "usl_documents_b2c",
         "usl_expense_batch",
+        "usl_feedback",
         "usl_home",
         "usl_locale",
         "usl_platform_billing",

@@ -28,7 +28,7 @@ production-admission work.
 | Historical commerce evidence and native future sales/inventory foundations | `usl_b2c`, `usl_documents_b2c` | **B2C**, **Sales**, **Inventory** | Variants, locations, traceability, UoM and Landed Costs available; physical opening inventory and advanced automation remain |
 | French-first terminology, European dates and company-aware presentation | `usl_locale` | All affected backend views | Operational |
 | French electronic-invoice reception for UBL, CII and Factur-X | `rebuild_account_migration`, native Accounting/localization | **Vendors > Incoming E-Invoices** | Ready but inactive pending approved-platform production onboarding |
-| Agent-authenticated Odoo automation endpoint and tool contract | separately built `odoo-mcp` image pinned by the release | **My Agents** and the MCP service endpoint | MCP operational; governed Agent identities are qualified for coordinated release |
+| Agent-authenticated Odoo automation endpoint and tool contract | separately built `odoo-mcp` image admitted by its environment GitOps ledger | **My Agents** and the MCP service endpoint | MCP operational; governed Agent identities are qualified for compatibility, while MCP advances independently |
 
 Detailed behavior belongs in the relevant product, Accounting, user and
 operations documents rather than in this inventory.
@@ -48,6 +48,7 @@ Only `custom-addons/` is part of the normal USL add-ons path.
 | `usl_documents_accounting` | Authorized Accounting evidence links and exact-version archive controls. |
 | `usl_documents_b2c` | Authorized B2C document links and smart buttons. |
 | `usl_expense_batch` | Optional expense grouping, shared context, review and native workflow integration. |
+| `usl_feedback` | Shared conversational product feedback, private local page previews, bounded assistant processing and reporter-confirmed Project workflow. |
 | `usl_home` | Personal launcher, durable destinations and bounded attention summaries. |
 | `usl_locale` | European date conventions and company-aware presentation. |
 | `usl_platform_billing` | Platform sessions, payouts, generated native Accounting documents and settlement. |
@@ -94,12 +95,13 @@ architecture decision, upgrade analysis and regression evidence.
 ## Runtime and release cohort
 
 Odoo, PostgreSQL, Paperless, its broker and archive state, the document
-renderer, Sign services and the separately built MCP image form one coordinated
-release and recovery cohort. The shared MsgVault-owned Ollama service is an
-external dependency: releases record and validate the required BGE model,
-manifest and embedding dimension without managing or restoring that service.
-A release records exact source commits, image digests, modules, configuration
-identity and backup identity. Tags alone are not deployment authority.
+renderer, Sign services, isolated receipt-fetcher and receipt-egress images,
+and the separately built MCP image form one coordinated release and recovery
+cohort. The shared MsgVault-owned Ollama service is an external dependency:
+releases record and validate the required BGE model, manifest and embedding
+dimension without managing or restoring that service. A release records exact
+source commits, image digests, modules, configuration identity and backup
+identity. Tags alone are not deployment authority.
 
 Production changes use the procedures in
 [`docs/operations/production.md`](../operations/production.md). Live mail,

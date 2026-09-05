@@ -23,6 +23,12 @@ from operations.release_controller import (
 
 
 class ReleaseControllerTests(unittest.TestCase):
+    def test_release_parser_accepts_optional_gitops_commit(self):
+        arguments = stack.build_parser().parse_args(
+            ["--target", "staging", "release", "reconcile", "--gitops-commit", "a" * 40],
+        )
+        self.assertEqual(arguments.gitops_commit, "a" * 40)
+
     def handlers(self, fail=None, calls=None):
         calls = calls if calls is not None else []
 
@@ -159,7 +165,9 @@ class ReleaseControllerTests(unittest.TestCase):
                 action="abort",
                 target="production",
                 targets=Path("targets"),
+                attempt_id="attempt-20260904-a1b2c3d4",
                 json=True,
+                gitops_commit="a" * 40,
             )
             written = {}
             with patch.object(stack, "load_target", return_value=target), patch.object(

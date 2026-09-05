@@ -2,20 +2,39 @@
 """Validate a protected-branch pull request or merge-group source."""
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from operations.source_policy import SourcePolicyError, validate
+from operations.source_policy import SourcePolicyError, validate, validate_merge_group
 
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--event", required=True)
 parser.add_argument("--base", required=True)
 parser.add_argument("--head")
+parser.add_argument("--head-repository")
+parser.add_argument("--expected-repository")
+parser.add_argument("--pull-requests", type=Path)
 arguments = parser.parse_args()
 try:
-    validate(event=arguments.event, base=arguments.base, head=arguments.head)
+    if arguments.event == "merge_group":
+        if arguments.pull_requests is None or not arguments.expected_repository:
+            raise SourcePolicyError("merge groups require pull-request and repository evidence")
+        validate_merge_group(
+            base=arguments.base,
+            pull_requests=json.loads(arguments.pull_requests.read_text(encoding="utf-8")),
+            expected_repository=arguments.expected_repository,
+        )
+    else:
+        validate(
+            event=arguments.event,
+            base=arguments.base,
+            head=arguments.head,
+            head_repository=arguments.head_repository,
+            expected_repository=arguments.expected_repository,
+        )
 except SourcePolicyError as error:
     parser.error(str(error))

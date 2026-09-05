@@ -22,6 +22,7 @@ activation or domain-specific response:
 - [Electronic-invoice activation](activate-french-electronic-invoicing.md)
 - [Document renderer](document-renderer-runbook.md)
 - [Paperless and Documents](paperless-documents-runbook.md)
+- [Linked expense receipts](linked-receipt-runbook.md)
 - [Sign](sign-runbook.md)
 - [Odoo MCP](odoo-mcp.md)
 - [Personal Gemini](personal-gemini-runbook.md)

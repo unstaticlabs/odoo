@@ -9,7 +9,12 @@
     "anchor_service": "odoo",
     "profiles": ["document-renderer", "mcp", "paperless", "sign"],
     "default_network": "usl-odoo-production-main_default",
-    "resource_overlay": "compose.resources.production.json"
+    "resource_overlay": "compose.resources.production.json",
+    "canonical": {
+      "working_directory": "komodo/stacks/prod-odoo-nbg1-2/usl-odoo-production",
+      "compose_files": ["compose.yaml", "compose.resources.json"],
+      "environment_file": "/opt/usl-odoo/production.env"
+    }
   },
   "services": {
     "odoo": "odoo",
@@ -21,6 +26,8 @@
     "paperless_tika": "paperless-tika",
     "mcp": "odoo-mcp",
     "renderer": "usl-document-renderer",
+    "receipt_fetcher": "usl-receipt-fetcher",
+    "receipt_egress": "usl-receipt-egress",
     "sign": "usl-sign-dss",
     "sign_ca": "usl-sign-step-ca"
   },
@@ -34,6 +41,7 @@
     "local": {"path": "/var/lib/usl-odoo", "reserve_bytes": 2147483648}
   }},
   "volumes": {
+    "receipt_control": {"name": "usl-odoo-production-main_receipt-control", "class": "transient", "tier": "local"},
     "odoo_postgres": {"name": "usl-odoo-production-main-postgres", "class": "transient", "tier": "database"},
     "odoo_filestore": {"name": "usl-odoo-production-main-odoo-data", "class": "durable", "tier": "bulk"},
     "paperless_postgres": {"name": "usl-odoo-production-main-paperless-postgres", "class": "transient", "tier": "database"},
@@ -46,6 +54,9 @@
     "mcp_oauth": {"name": "usl-odoo-production-main-odoo-mcp-oauth", "class": "durable", "tier": "database"}
   },
   "paths": {
+    "mcp_secrets": {"path": "/opt/usl-odoo/secrets", "class": "durable", "required": true, "tier": "local", "files": {"better-auth.secret": "/opt/usl-odoo/secrets/odoo-mcp-better-auth.secret", "credential-encryption-key.secret": "/opt/usl-odoo/secrets/odoo-mcp-credential-encryption-key.secret"}},
+    "renderer_secrets": {"path": "/opt/usl-odoo/secrets/document-renderer", "class": "durable", "required": true, "tier": "local"},
+    "paperless_personal_ai_keys": {"path": "/opt/usl-odoo/secrets/paperless-personal-ai-keys.json", "class": "durable", "required": true, "tier": "local"},
     "sign_secrets": {"path": "/opt/usl-odoo/secrets/sign", "class": "durable", "required": true, "tier": "local"},
     "sign_evidence": {"path": "/srv/usl/sign/evidence", "class": "durable", "required": false, "tier": "local"}
   },

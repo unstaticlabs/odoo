@@ -15,6 +15,7 @@
     "vies"
   ],
   "crons": {
+    "usl_feedback.ir_cron_feedback_agent": {"gate": "always", "reason": "Process user-requested product feedback conversations through the configured assistant."},
     "account.ir_cron_account_move_send": {"gate": "smtp", "reason": "Send explicitly scheduled accounting documents through the admitted Resend transport."},
     "account.ir_cron_auto_post_draft_entry": {"gate": "always", "reason": "Post scheduled journal entries on their configured accounting date."},
     "account_asset_management.ir_cron_assets_generator": {"gate": "always", "reason": "Generate configured asset and depreciation entries."},

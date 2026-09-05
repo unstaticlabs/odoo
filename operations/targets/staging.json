@@ -21,6 +21,8 @@
     "paperless_tika": "paperless-tika",
     "mcp": "odoo-mcp",
     "renderer": "usl-document-renderer",
+    "receipt_fetcher": "usl-receipt-fetcher",
+    "receipt_egress": "usl-receipt-egress",
     "sign": "usl-sign-dss",
     "sign_ca": "usl-sign-step-ca"
   },
@@ -53,7 +55,8 @@
     "paperless_trash": {"name": "usl-odoo-staging-main_paperless-trash", "class": "durable", "tier": "bulk"},
     "paperless_consume": {"name": "usl-odoo-staging-main_paperless-consume", "class": "durable", "tier": "bulk"},
     "paperless_export": {"name": "usl-odoo-staging-main_paperless-export", "class": "transient", "tier": "bulk"},
-    "mcp_oauth": {"name": "usl-odoo-staging-main_odoo-mcp-oauth-data", "class": "durable", "tier": "database"}
+    "mcp_oauth": {"name": "usl-odoo-staging-main_odoo-mcp-oauth-data", "class": "durable", "tier": "database"},
+    "receipt_control": {"name": "usl-odoo-staging-main_receipt-control", "class": "transient", "tier": "local"}
   },
   "paths": {
     "sign_secrets": {"path": "/opt/usl-odoo/staging/secrets/sign", "class": "durable", "required": true, "tier": "local"},
@@ -91,8 +94,8 @@
     "dimension": 1024
   },
   "backup": {
-    "durable_repository": "s3:https://dac5c03754f31ec46fbf248dccc54831.eu.r2.cloudflarestorage.com/usl-backups/odoo-staging/continuous-durable",
-    "cache_repository": "s3:https://dac5c03754f31ec46fbf248dccc54831.eu.r2.cloudflarestorage.com/usl-backups/odoo-staging/continuous-cache"
+    "durable_repository": "/var/lib/usl-odoo/restic/staging/durable",
+    "cache_repository": "/var/lib/usl-odoo/restic/staging/cache"
   },
   "release_manifest": "/opt/usl-odoo/staging/current/usl-release.json",
   "plan_signing": {"private_key": "/opt/usl-odoo/staging/secrets/upgrade-plan-signing.key", "public_key": "/opt/usl-odoo/staging/secrets/upgrade-plan-signing.pub"},
