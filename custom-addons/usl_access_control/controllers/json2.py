@@ -68,6 +68,11 @@ class UslAgentJson2Controller(WebJson2Controller):
                 method_name=__method__,
                 access=access,
             )
+            # HTML collaboration and deferred ORM work also use request.env,
+            # not only the recordset context passed to the public method.
+            # Keep the authorized scope through precommit without sudoing the
+            # request or bypassing any root/non-sudo operation checks.
+            request.update_env(context=call_context)
             result = super().web_json_2_rpc(
                 __model__,
                 __method__,
