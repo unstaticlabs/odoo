@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   source-policy:
-    name: USL source policy
+    name: ${{ (github.event.pull_request.base.ref == '19-usl' || github.event.merge_group.base_ref == 'refs/heads/19-usl') && 'USL source policy' || 'USL source policy not applicable' }}
     outputs:
       pr_number: ${{ steps.source.outputs.pr_number }}
       pr_head_sha: ${{ steps.source.outputs.pr_head_sha }}
@@ -201,7 +201,7 @@ jobs:
           retention-days: 30
 
   production-promotion:
-    name: USL production promotion
+    name: ${{ (github.event.pull_request.base.ref == '19-usl' || github.event.merge_group.base_ref == 'refs/heads/19-usl') && 'USL production promotion' || 'USL production promotion not applicable' }}
     if: >-
       always() &&
       (

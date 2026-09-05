@@ -149,7 +149,8 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
             qualification,
         )
         self.assertIn("EXPECTED_REPOSITORY: ${{ github.repository }}", qualification)
-        self.assertIn("name: USL production promotion", qualification)
+        self.assertIn("&& 'USL production promotion' || 'USL production promotion not applicable'", qualification)
+        self.assertIn("&& 'USL source policy' || 'USL source policy not applicable'", qualification)
         self.assertNotIn("production-promotion-evidence:", qualification)
         self.assertNotIn("gh attestation verify", qualification)
         self.assertIn("production-qualification-$PR_NUMBER-$PR_HEAD_SHA", qualification)

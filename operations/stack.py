@@ -52,12 +52,10 @@ from operations.module_release import (
     validate_upgrade_plan,
 )
 from operations.plan_evidence import (
-    PROMOTION_SCHEMA,
     PlanEvidenceError,
     promote as promote_upgrade_plan,
     sign as sign_upgrade_plan,
     verify as verify_upgrade_plan,
-    verify_promotion as verify_upgrade_plan_promotion,
 )
 from operations.runtime import (
     RuntimeError,
@@ -2420,17 +2418,7 @@ def _require_same_preparation(current: dict, receipt: dict) -> None:
 def _validated_release_upgrade_plan(target, value: object, release: dict) -> dict:
     if not isinstance(value, dict):
         raise PlanEvidenceError("upgrade plan must be a JSON object")
-    if target.value["environment"] == "production":
-        if value.get("schema") != PROMOTION_SCHEMA:
-            raise PlanEvidenceError(
-                "production requires a staging-signed production promotion",
-            )
-        plan = verify_upgrade_plan_promotion(
-            value,
-            Path(target.value["plan_signing"]["public_key"]),
-            release,
-        )
-    elif value.get("schema") == "usl-staging-upgrade-plan-evidence/v2":
+    if target.value["environment"] == "staging" and value.get("schema") == "usl-staging-upgrade-plan-evidence/v2":
         plan = verify_upgrade_plan(
             value,
             Path(target.value["plan_signing"]["public_key"]),
@@ -6138,7 +6126,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         snapshot_release = materialize_state["release"]
         candidate_differs = snapshot_release["manifest_sha256"] != release_sha
         if candidate_differs and upgrade_plan is None:
-            raise RuntimeError("cross-release restore requires the staging-qualified upgrade plan")
+            raise RuntimeError("cross-release restore requires a candidate-bound upgrade plan")
         preservation_baseline = None
         if candidate_differs:
             preservation_baseline = upgrade_preservation.capture(
@@ -9731,7 +9719,7 @@ def release_command(arguments: argparse.Namespace) -> int:
                     Path(target.value["plan_signing"]["public_key"]),
                 )
             except (json.JSONDecodeError, ReleaseManifestError, PlanEvidenceError) as error:
-                raise RuntimeError("production plan promotion is invalid") from error
+                raise RuntimeError(f"production plan promotion is invalid: {error}") from error
             output = arguments.output or arguments.upgrade_plan
             _write_remote(
                 target,
