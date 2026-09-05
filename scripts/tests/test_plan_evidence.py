@@ -145,6 +145,11 @@ class PlanEvidenceTests(unittest.TestCase):
         value = copy.deepcopy(staging)
         value["source"]["ref"] = "refs/heads/19-usl"
         value["source"]["commit"] = "e" * 40
+        value["foundation"]["odoo_core_commit"] = "e" * 40
+        value["foundation"]["digest"] = hashlib.sha256(json.dumps(
+            {key: item for key, item in value["foundation"].items() if key != "digest"},
+            sort_keys=True, separators=(",", ":"),
+        ).encode()).hexdigest()
         value["identity"] = hashlib.sha256(
             json.dumps(
                 {key: item for key, item in value.items() if key != "identity"},

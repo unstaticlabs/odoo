@@ -9731,7 +9731,7 @@ def release_command(arguments: argparse.Namespace) -> int:
                     Path(target.value["plan_signing"]["public_key"]),
                 )
             except (json.JSONDecodeError, ReleaseManifestError, PlanEvidenceError) as error:
-                raise RuntimeError("production plan promotion is invalid") from error
+                raise RuntimeError(f"production plan promotion is invalid: {error}") from error
             output = arguments.output or arguments.upgrade_plan
             _write_remote(
                 target,
