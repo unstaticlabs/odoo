@@ -57,6 +57,61 @@ ATTRIBUTE_SEQUENCE = (
     "Pattern", "Pack",
 )
 
+# The specification records what each channel recorded. Where one channel named
+# an attribute and another did not, it carries this placeholder so that every
+# variant of a product answers the same attributes, which is what Odoo's matrix
+# requires. Resolving it is interpretation, so it happens here rather than in
+# the evidence.
+UNRECORDED = "Not specified"
+
+# Where a channel never recorded an attribute whose product has exactly one real
+# value, the placeholder can only mean that value, and the two variants are the
+# same thing sold through two channels. Where the product has several, the
+# placeholder is a question, and the answer is reviewed and recorded here.
+REVIEWED_UNRECORDED = {
+    ("cap-denim", "Secondary colour"): "White",
+}
+
+
+def resolve_unrecorded(products):
+    """Return the catalog with every unrecorded attribute resolved."""
+    resolved = []
+    for product in products:
+        real = {}
+        for variant in product["variants"]:
+            for name, value in variant["attributes"].items():
+                if value != UNRECORDED:
+                    real.setdefault(name, set()).add(value)
+        replacement = {}
+        for name, values in real.items():
+            reviewed = REVIEWED_UNRECORDED.get((product["key"], name))
+            if reviewed is not None:
+                replacement[name] = reviewed
+            elif len(values) == 1:
+                replacement[name] = next(iter(values))
+        merged = {}
+        for variant in product["variants"]:
+            attributes = {
+                name: replacement.get(name, value) if value == UNRECORDED else value
+                for name, value in variant["attributes"].items()
+            }
+            unresolved = sorted(
+                name for name, value in attributes.items() if value == UNRECORDED
+            )
+            if unresolved:
+                raise UserError(
+                    f"{product['key']} leaves {', '.join(unresolved)} unrecorded with "
+                    f"no single value to mean and no reviewed answer.",
+                )
+            key = tuple(sorted(attributes.items()))
+            if key in merged:
+                # Two channels described the same variant; keep both aliases.
+                merged[key]["aliases"] = merged[key]["aliases"] + variant["aliases"]
+            else:
+                merged[key] = {"attributes": attributes, "aliases": list(variant["aliases"])}
+        resolved.append({**product, "variants": list(merged.values())})
+    return resolved
+
 
 def _attribute_key(name):
     """Return the identity of an attribute name across spelling and case."""
@@ -318,7 +373,7 @@ class UslB2cCatalogMaterializer(models.AbstractModel):
     def materialize(self, apply=True):
         """Create the reviewed catalog and map every source line to a variant."""
         company = self._company()
-        products = private_evidence.catalog_specification()
+        products = resolve_unrecorded(private_evidence.catalog_specification())
         report = {
             "products": 0, "variants": 0, "aliases": 0, "boms": 0,
             "reused_products": 0, "lines_mapped": 0,

@@ -67,3 +67,66 @@ class TestReviewedCatalog(BaseCase):
                     variant["aliases"],
                     f"{product['key']} has a variant nothing was ever sold as",
                 )
+
+
+@tagged("post_install", "-at_install")
+class TestUnrecordedAttributes(BaseCase):
+    """A product must never reach Odoo carrying an unallocated attribute."""
+
+    def resolve(self, products):
+        from odoo.addons.usl_b2c_restore.models.catalog import resolve_unrecorded
+
+        return resolve_unrecorded(products)
+
+    def product(self, key, variants):
+        return {"key": key, "name": key, "fulfilment_mode": "printful",
+                "variants": [{"attributes": a, "aliases": list(s)} for a, s in variants]}
+
+    def test_one_real_value_is_what_the_placeholder_meant(self):
+        """Two channels described the same thing; only one named it."""
+        resolved = self.resolve([self.product("towel", [
+            ({"Colour": "White", "Size": '30"'}, ["etsy:1"]),
+            ({"Colour": "Not specified", "Size": "Not specified"}, ["medusa:1"]),
+        ])])
+        self.assertEqual(len(resolved[0]["variants"]), 1)
+        variant = resolved[0]["variants"][0]
+        self.assertEqual(variant["attributes"], {"Colour": "White", "Size": '30"'})
+        self.assertEqual(sorted(variant["aliases"]), ["etsy:1", "medusa:1"])
+
+    def test_a_reviewed_answer_resolves_what_evidence_cannot(self):
+        resolved = self.resolve([self.product("cap-denim", [
+            ({"Secondary colour": "Blue"}, ["a"]),
+            ({"Secondary colour": "White"}, ["b"]),
+            ({"Secondary colour": "Not specified"}, ["c"]),
+        ])])
+        colours = {v["attributes"]["Secondary colour"] for v in resolved[0]["variants"]}
+        self.assertEqual(colours, {"Blue", "White"})
+        white = next(v for v in resolved[0]["variants"]
+                     if v["attributes"]["Secondary colour"] == "White")
+        self.assertEqual(sorted(white["aliases"]), ["b", "c"])
+
+    def test_an_unanswerable_placeholder_stops_the_run(self):
+        """Guessing between several real values would invent history."""
+        with self.assertRaisesRegex(Exception, "unrecorded"):
+            self.resolve([self.product("mug", [
+                ({"Colour": "Red"}, ["a"]),
+                ({"Colour": "Blue"}, ["b"]),
+                ({"Colour": "Not specified"}, ["c"]),
+            ])])
+
+    def test_the_reviewed_catalog_resolves_completely(self):
+        from odoo.addons.usl_b2c_restore import private_evidence
+
+        if not private_evidence.available("catalog-specification-2026-09-06.json"):
+            self.skipTest("The pinned catalog specification is not mounted here.")
+        products = private_evidence.catalog_specification()
+        resolved = self.resolve(products)
+        for product in resolved:
+            for variant in product["variants"]:
+                self.assertNotIn(
+                    "Not specified", variant["attributes"].values(),
+                    f"{product['key']} still carries an unallocated attribute",
+                )
+        before = sum(len(v["aliases"]) for p in products for v in p["variants"])
+        after = sum(len(v["aliases"]) for p in resolved for v in p["variants"])
+        self.assertEqual(before, after, "resolution dropped a source identity")

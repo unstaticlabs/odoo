@@ -49,10 +49,16 @@ EXPECTED_NATIVE_COUNTS = {
 # alone are insufficient here: a provider payload could drift while preserving
 # the number of records. These digests intentionally belong to migration code,
 # not the delivered product module.
+#
+# The alias and line digests name the variant each one resolves to, so they
+# moved when the catalog stopped creating a variant for an attribute a channel
+# never recorded. Their counts did not, and the five other fingerprints did not
+# either: the same 184 aliases and 457 lines, pointing at the products they
+# should have pointed at all along.
 EXPECTED_SOURCE_FINGERPRINTS = {
     "aliases": {
         "count": 184,
-        "digest": "e04af55a2d689b6ebb00021da841887df59f4cdf64b29e3ae9fbf7065a375f1a",
+        "digest": "b69c6594b1891f161183f24615c87bd2df3d46f272e5e6fdfe8b05ce96ce7bc0",
     },
     "evidence": {
         "count": 2893,
@@ -64,7 +70,7 @@ EXPECTED_SOURCE_FINGERPRINTS = {
     },
     "lines": {
         "count": 457,
-        "digest": "fba53fc38f1e314c15b6d1288fae950e410c7619e79fe5f052115514b74da997",
+        "digest": "194f0d60a023d29df35f9147af54b8183d4ab66c5353694e2db2bf05a9368bb2",
     },
     "order_sources": {
         "count": 614,
