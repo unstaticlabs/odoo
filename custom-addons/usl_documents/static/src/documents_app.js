@@ -230,6 +230,7 @@ export class DocumentsWorkspaceView extends Component {
     };
     static props = {
         ...standardActionServiceProps,
+        urlState: { type: Object, optional: true },
         context: { type: Object, optional: true },
         domain: { type: Array, optional: true },
         groupBy: { type: Array, optional: true },
@@ -3369,7 +3370,10 @@ export class DocumentsWorkspaceView extends Component {
 export class DocumentsWorkspace extends Component {
     static template = "usl_documents.DocumentsWorkspace";
     static components = { WithSearch, DocumentsWorkspaceView };
-    static props = { ...standardActionServiceProps };
+    static props = {
+        ...standardActionServiceProps,
+        urlState: { type: Object, optional: true },
+    };
 
     setup() {
         // Client actions do not pass through ``View.setup()``, while
@@ -3417,6 +3421,9 @@ export class DocumentsWorkspace extends Component {
                   }
                 : { searchViewId: false, loadIrFilters: true }),
             context: this.props.action.context || {},
+            // Only restore search state assigned to this action, never the
+            // outgoing action's global route while this workspace mounts.
+            urlState: this.props.urlState || {},
             domain: [],
             dynamicFilters,
             searchMenuTypes: ["filter", "groupBy", "favorite"],
