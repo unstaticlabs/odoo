@@ -1,0 +1,255 @@
+#!/usr/bin/env bash
+# Run a B2C reconstruction stage against a deployed Odoo database.
+#
+# The ordinary runner writes to a disposable database inside its own Compose
+# project. This one writes to a database that is serving users, so it is a
+# separate entry point rather than a flag: a deployed run is a different act,
+# and it should not be reachable by forgetting to unset something.
+#
+# Everything about the target is derived from one running container, the stack
+# anchor, because the parts that matter are generation-scoped and change on
+# every deploy. Naming them by hand is how a run ends up writing attachments
+# into a volume nobody reads.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+cd "$ROOT"
+source "$ROOT/scripts/lib/migration-addons.sh"
+source "$ROOT/migration/internal/lib/b2c-stages.sh"
+
+usage() {
+    cat >&2 <<'USAGE'
+Usage: migration/internal/b2c-restore-deployed <stage>
+
+Stages: install | import | catalog | native-history-dry-run | native-history
+        reclassify-marketing | validate | finalize
+
+Required environment:
+  B2C_DEPLOYED_ANCHOR      running container of the deployed stack, for example
+                           usl-odoo-staging-main-odoo-staging-1
+  ODOO_DEV_DB              the deployed database to write to
+  B2C_TARGET_CONFIRM       must repeat ODOO_DEV_DB exactly
+  B2C_BACKUP_RECEIPT       qualified usl-backup-run receipt for that database
+  USL_ONLINE_DUMP_DIR      frozen source package
+  USL_MIGRATION_SOURCE_SHA256
+  ODOO_IMAGE               image to run the stage with
+
+Optional:
+  B2C_MAX_BACKUP_AGE_MINUTES  default 120
+  B2C_SOURCE_DB_HOST/PORT/USER/PASSWORD/DATABASE  frozen source database
+  USL_B2C_MARKETING_COST_MODE default dry_run
+
+The parser test and every database-dropping helper are deliberately absent.
+USAGE
+    exit 2
+}
+
+stage="${1:-}"
+[[ -n "$stage" ]] || usage
+
+# Refuse the dangerous stage names before resolving anything else, so the
+# answer never depends on how much of the environment happened to be set.
+case "$stage" in
+    all|test)
+        echo "Refusing '$stage' against a deployed database: run one reviewed stage at a time." >&2
+        exit 2
+        ;;
+    install|import|catalog|native-history|native-history-dry-run|reclassify-marketing|validate|finalize)
+        ;;
+    *)
+        usage
+        ;;
+esac
+
+anchor="${B2C_DEPLOYED_ANCHOR:?B2C_DEPLOYED_ANCHOR must name the deployed stack anchor container}"
+target_database="${ODOO_DEV_DB:?ODOO_DEV_DB must name the deployed database}"
+confirm="${B2C_TARGET_CONFIRM:?B2C_TARGET_CONFIRM must repeat the deployed database name}"
+backup_receipt="${B2C_BACKUP_RECEIPT:?B2C_BACKUP_RECEIPT must point at a qualified backup receipt}"
+source_dump_dir="${USL_ONLINE_DUMP_DIR:?USL_ONLINE_DUMP_DIR must point at the frozen source package}"
+expected_sha256="${USL_MIGRATION_SOURCE_SHA256:?USL_MIGRATION_SOURCE_SHA256 must pin the source dump}"
+odoo_image="${ODOO_IMAGE:?ODOO_IMAGE must pin the image to run the stage with}"
+max_backup_age="${B2C_MAX_BACKUP_AGE_MINUTES:-120}"
+
+if [[ "$confirm" != "$target_database" ]]; then
+    echo "B2C_TARGET_CONFIRM does not repeat ODOO_DEV_DB. Refusing." >&2
+    exit 2
+fi
+
+case "$target_database" in
+    ""|*[!A-Za-z0-9_]*)
+        echo "Refusing an unsafe deployed database name: $target_database" >&2
+        exit 2
+        ;;
+    odoo_online_source_saas_19_3|odoo_saas_19_3_validation_exact|odoo_saas_19_3_validation_native)
+        echo "Refusing protected B2C target $target_database." >&2
+        exit 2
+        ;;
+esac
+
+# ---------------------------------------------------------------- the anchor
+
+anchor_state="$(docker inspect "$anchor" --format '{{.State.Running}}' 2>/dev/null || true)"
+if [[ "$anchor_state" != "true" ]]; then
+    echo "$anchor is not a running container. Refusing." >&2
+    exit 2
+fi
+
+anchor_env() {
+    docker inspect "$anchor" --format \
+        "{{range .Config.Env}}{{println .}}{{end}}" \
+        | sed -n "s/^$1=//p" | head -1
+}
+
+stack_network="$(
+    docker inspect "$anchor" --format \
+        '{{range $name, $_ := .NetworkSettings.Networks}}{{println $name}}{{end}}' \
+        | grep -- '_default$' | head -1
+)"
+if [[ -z "$stack_network" ]]; then
+    echo "$anchor is on no Compose default network. Refusing." >&2
+    exit 2
+fi
+
+filestore_volume="$(
+    docker inspect "$anchor" --format \
+        '{{range .Mounts}}{{if eq .Destination "/var/lib/odoo"}}{{println .Name}}{{end}}{{end}}' \
+        | head -1
+)"
+if [[ -z "$filestore_volume" ]]; then
+    echo "$anchor has no named volume at /var/lib/odoo. Refusing." >&2
+    exit 2
+fi
+
+target_db_host="$(anchor_env ODOO_DB_HOST)"
+target_db_port="$(anchor_env ODOO_DB_PORT)"
+target_db_user="$(anchor_env ODOO_DB_USER)"
+target_db_password="$(anchor_env ODOO_DB_PASSWORD)"
+: "${target_db_host:=db}" "${target_db_port:=5432}" "${target_db_user:=odoo}"
+if [[ -z "$target_db_password" ]]; then
+    echo "$anchor carries no ODOO_DB_PASSWORD. Refusing." >&2
+    exit 2
+fi
+
+# ------------------------------------------------------------- the evidence
+
+if [[ ! -f "$source_dump_dir/dump.sql" || ! -d "$source_dump_dir/filestore" ]]; then
+    echo "Source dump or filestore is missing under $source_dump_dir." >&2
+    exit 2
+fi
+source_dump_dir="$(cd "$source_dump_dir" && pwd -P)"
+source_sha256="$(shasum -a 256 "$source_dump_dir/dump.sql" | awk '{print $1}')"
+if [[ "$source_sha256" != "$expected_sha256" ]]; then
+    echo "B2C source dump SHA-256 changed: $source_sha256" >&2
+    exit 2
+fi
+source_snapshot="source-${source_sha256:0:12}"
+
+supplemental_dir="$source_dump_dir/supplemental/b2c"
+medusa_items_name="medusa-sold-items-2026-08-05.csv"
+medusa_items_sha256="e8308c402a63d4c4fd7ee066c8a59daeba7b00cd66f421221191cec50418550a"
+if [[ ! -f "$supplemental_dir/$medusa_items_name" ]]; then
+    echo "Required supplemental B2C evidence is missing: $supplemental_dir/$medusa_items_name" >&2
+    exit 2
+fi
+actual_sha256="$(shasum -a 256 "$supplemental_dir/$medusa_items_name" | awk '{print $1}')"
+if [[ "$actual_sha256" != "$medusa_items_sha256" ]]; then
+    echo "Medusa sold-items SHA-256 changed: $actual_sha256" >&2
+    exit 2
+fi
+
+# ---------------------------------------------------------------- the backup
+
+python3 "$ROOT/migration/internal/verify_backup_receipt.py" \
+    --receipt "$backup_receipt" \
+    --database "$target_database" \
+    --max-age-minutes "$max_backup_age"
+
+# ----------------------------------------------------------------- the stage
+
+mkdir -p "$ROOT/artifacts/b2c-restore"
+
+deployed_run() {
+    docker run --rm --network "$stack_network" \
+        --volume "$filestore_volume:/var/lib/odoo" \
+        --volume "$ROOT/custom-addons:/mnt/custom-addons:ro" \
+        --volume "$ROOT/oca-addons:/mnt/oca-addons:ro" \
+        --volume "$ROOT/migration/accounting_restore/addons:/mnt/accounting-migration-addons:ro" \
+        --volume "$ROOT/migration/identity_restore/addons:/mnt/identity-migration-addons:ro" \
+        --volume "$ROOT/migration/product_restore/addons:/mnt/product-migration-addons:ro" \
+        --volume "$ROOT/migration/b2c_restore/addons:/mnt/b2c-migration-addons:ro" \
+        --volume "$ROOT/migration/hr_restore/addons:/mnt/hr-migration-addons:ro" \
+        --volume "$ROOT/migration/project_restore/addons:/mnt/project-migration-addons:ro" \
+        --volume "$ROOT/migration/tese_restore/addons:/mnt/tese-migration-addons:ro" \
+        --volume "$ROOT/migration/platform_billing_restore/addons:/mnt/platform-billing-migration-addons:ro" \
+        --volume "$ROOT/migration/collaboration_restore/addons:/mnt/collaboration-migration-addons:ro" \
+        --volume "$source_dump_dir:/mnt/accounting-source:ro" \
+        --volume "$ROOT/artifacts/b2c-restore:/mnt/b2c-evidence" \
+        --volume "$ROOT/docs/users:/mnt/user-docs:ro" \
+        -e ODOO_DB_HOST="$target_db_host" \
+        -e ODOO_DB_PORT="$target_db_port" \
+        -e ODOO_DB_USER="$target_db_user" \
+        -e ODOO_DB_PASSWORD="$target_db_password" \
+        -e ODOO_INIT_DB="$target_database" \
+        -e "ODOO_DB_FILTER=^${target_database}\$" \
+        -e ODOO_MAX_CRON_THREADS=0 \
+        -e USL_EINVOICE_LIVE_ENABLED=0 \
+        -e USL_EREPORTING_LIVE_ENABLED=0 \
+        -e USL_USER_DOCS_PATH=/mnt/user-docs \
+        -e B2C_EVIDENCE_DIR=/mnt/b2c-evidence \
+        -e B2C_SUPPLEMENTAL_EVIDENCE_DIR=/mnt/accounting-source/supplemental/b2c \
+        "$@"
+}
+
+run_stage_script() {
+    local script_path="$1" history_mode="$2"
+    deployed_run -i \
+        -e B2C_SOURCE_DB_HOST="${B2C_SOURCE_DB_HOST:-accounting-source-db}" \
+        -e B2C_SOURCE_DB_PORT="${B2C_SOURCE_DB_PORT:-5432}" \
+        -e B2C_SOURCE_DB_USER="${B2C_SOURCE_DB_USER:-odoo}" \
+        -e B2C_SOURCE_DB_PASSWORD="${B2C_SOURCE_DB_PASSWORD:-odoo}" \
+        -e B2C_SOURCE_DATABASE="${B2C_SOURCE_DATABASE:-odoo_online_source_saas_19_3}" \
+        -e B2C_SOURCE_SNAPSHOT="$source_snapshot" \
+        -e B2C_REQUIRE_FINAL_RELATIONSHIPS="${B2C_REQUIRE_FINAL_RELATIONSHIPS:-0}" \
+        -e USL_B2C_NATIVE_HISTORY_MODE="${history_mode:-dry_run}" \
+        -e USL_B2C_MARKETING_COST_MODE="${USL_B2C_MARKETING_COST_MODE:-dry_run}" \
+        "$odoo_image" \
+        odoo shell --config=/etc/odoo/odoo.conf \
+        --addons-path="$USL_MIGRATION_ADDONS_PATH" \
+        --database="$target_database" --shell-interface=python \
+        < "$script_path"
+}
+
+install_module() {
+    local operation="--init=usl_b2c_restore" installed
+    installed="$(
+        deployed_run --entrypoint psql \
+            -e PGPASSWORD="$target_db_password" \
+            "$odoo_image" \
+            -h "$target_db_host" -p "$target_db_port" -U "$target_db_user" \
+            -d "$target_database" -Atc \
+            "SELECT 1 FROM ir_module_module WHERE name='usl_b2c_restore' AND state IN ('installed', 'to upgrade')" \
+            2>/dev/null || true
+    )"
+    if [[ "$installed" == 1 ]]; then
+        operation="--update=usl_b2c_restore"
+    fi
+    deployed_run "$odoo_image" \
+        odoo --config=/etc/odoo/odoo.conf \
+        --addons-path="$USL_MIGRATION_ADDONS_PATH" \
+        --database="$target_database" \
+        "$operation" --without-demo=true --stop-after-init
+}
+
+printf 'B2C %s against deployed database %s (%s, network %s, filestore %s)\n' \
+    "$stage" "$target_database" "$anchor" "$stack_network" "$filestore_volume" >&2
+
+case "$stage" in
+    install)
+        install_module
+        ;;
+    *)
+        run_stage_script \
+            "$(usl_b2c_stage_script "$stage")" \
+            "$(usl_b2c_stage_history_mode "$stage")"
+        ;;
+esac

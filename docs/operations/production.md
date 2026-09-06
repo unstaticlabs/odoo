@@ -1,8 +1,8 @@
 # Production operations
 
-The VPS database is authoritative. Never recreate it from the frozen Odoo
-Online export. Production changes arrive through immutable releases; persistent
-data moves only through the coordinated backup and recovery contract.
+The VPS database is authoritative. Production has its own continuous path now:
+code arrives through qualified releases, and the data moves forward in place,
+against a verified backup.
 
 ## Runtime topology
 
