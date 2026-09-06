@@ -64114,7 +64114,8 @@
         "rpc:wiz.account.asset.report.web_save_multi",
         "rpc:wiz.account.asset.report.web_search_read",
         "rpc:wiz.account.asset.report.write",
-        "rpc:wiz.asset.move.reverse.reverse_move"
+        "rpc:wiz.asset.move.reverse.reverse_move",
+        "rpc:hr.expense.action_rebuild_waive_receipt"
       ],
       "classification": "recoverable",
       "consequence": "Changes ordinary business or transient state through a supported Odoo/OCA workflow.",
@@ -70470,6 +70471,9 @@
         "rpc:hr.expense.action_post": {
           "reversal_action": "rpc:hr.expense.write"
         },
+        "rpc:hr.expense.action_rebuild_waive_receipt": {
+          "reversal_action": "rpc:hr.expense.write"
+        },
         "rpc:hr.expense.action_refresh_bank_match_candidates": {
           "reversal_action": "rpc:hr.expense.write"
         },
@@ -76123,12 +76127,13 @@
         "rpc:hr.employee.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:hr.expense.action_approve": "1c5ac92f4e60de5d22469b23fbadc8bf0d27d8d1d48a2e6e9af434993b0205ed",
         "rpc:hr.expense.action_post": "966aac07eb839e4dd47962cfdaac11f44154e4fdabd630e9a0ada9037004bcde",
+        "rpc:hr.expense.action_rebuild_waive_receipt": "da2b3d997a5eb94fb5947570ea799df3641a40047ca6d020b505f4ab4e34d795",
         "rpc:hr.expense.action_refresh_bank_match_candidates": "52ba6d0bd98f5a482ae99e7e69a58fd06866a8019c2a075b22ed369f8075bbab",
         "rpc:hr.expense.create": "b741d12b85d25cc1916d9916f8980d577bbc11ed05c9b9cedc13c6845cc92b99",
         "rpc:hr.expense.get_view": "829ead50476916a75b5a15b02576065008a75e42e189f8bf5a708413c61a6762",
         "rpc:hr.expense.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:hr.expense.unlink": "396221741fb0ae97c15e29174299a517f985d8f5ebdb97a9a8deb266bf4d40df",
-        "rpc:hr.expense.write": "24fe9d153cb509f5076d808d4c40bf659594982bb4dced8ca1eec309dfe4c592",
+        "rpc:hr.expense.write": "2fbe81b0bea1ed7d211f00751e127618563832804a615147d50de10b3329cd8e",
         "rpc:hr.job.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:hr.version.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:iap.account.action_buy_credits": "88264d92a75439cf8c8f447a696781c521b6317b3d0b90ff44893b2683ed0a10",
@@ -136641,7 +136646,9 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._foreign_settlement_reconcile:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._foreign_settlement_reconcile:orm_write:2",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._foreign_settlement_verify:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._foreign_settlement_verify:orm_write:2"
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._foreign_settlement_verify:orm_write:2",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.action_rebuild_waive_receipt:message_send:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.action_rebuild_waive_receipt:orm_write:1"
       ],
       "classification": "system_internal",
       "consequence": "Runs only as an internal helper, detected sink, or scheduler-owned job rather than an ordinary actor entry point.",
@@ -141497,6 +141504,12 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:account.statement.import._prepare_create_attachment:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.action_rebuild_waive_receipt:message_send:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:hr.expense.action_rebuild_waive_receipt"
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.action_rebuild_waive_receipt:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:hr.expense.action_rebuild_waive_receipt"
+        },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.create:orm_create:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:hr.expense.create"
         },
@@ -144610,9 +144623,11 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:account.statement.import._import_file:orm_write:1": "6d4925c0ebe82bd7eb42d4e257bf0c37f6495c55d473b8939ccc047402b24e27",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:account.statement.import._import_file:orm_write:2": "474a737b911dbb55602e9428173edf3784bb590542f3a049e352a743787a49a1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:account.statement.import._prepare_create_attachment:orm_write:1": "793947e593fa57e605048cc9c96f996848e88d67929317b7616ac324f8960e0d",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.action_rebuild_waive_receipt:message_send:1": "9e4d6b8f83e0831a61e5bde02c89af61f8eeb8b9d1547c2ad01070a4b047e9f7",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.action_rebuild_waive_receipt:orm_write:1": "16368d067f983870d11aa53120ca2a73b21f6fb26b5b4b629b63d379bcf1d7b9",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.create:orm_create:1": "498fe1fd65cabccc7c2917466e03112c0e91b98f46a881dff353723cc1424349",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.unlink:orm_unlink:1": "6aa4ea04342b7aa9cae1c1a42610ba0f6d25385950c1f8c2a82955b91c24bd25",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.write:orm_write:1": "4830c3057cb7c0fa5a612d45f7e9e54b319530a5716fa669e80b3f63a59ed9bf",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.write:orm_write:1": "3002c731d03b596ff8c6650243bfe1c715fd85a59a1bf861fb2eae89343662f5",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_create:1": "8759eef40cfcebacb088638ef2eede0ed81645423e7647349bfcf1ad6f1f9464",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_create:2": "ef2c78ea3fd4210bf69c20a81861375a75af963ecc8137a73ad6c229f621aacb",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:account.reconcile.model.action_rebuild_approve_proposal:message_send:1": "f63f09130910acaf32747578d3f4c6f78db969f2196a87058dc9c810059812ac",
@@ -173076,7 +173091,8 @@
         "ui:usl_documents_accounting.view_bank_statement_review_documents:button:object:action_open_statement_pdf_upload:1",
         "ui:usl_documents_accounting.view_rebuild_account_closing_documents:button:object:action_open_documents_workspace:1",
         "ui:usl_documents_accounting.view_rebuild_account_declaration_documents:button:object:action_open_documents_workspace:1",
-        "ui:usl_expense_batch.view_account_move_form_expense_batch:button:object:action_open_expense_batch:1"
+        "ui:usl_expense_batch.view_account_move_form_expense_batch:button:object:action_open_expense_batch:1",
+        "ui:rebuild_account_migration.view_rebuild_accounting_expense_form_guidance:button:object:action_rebuild_waive_receipt:1"
       ],
       "classification": "transport",
       "consequence": "Exposes another exact reviewed action without a direct mutation or external-effect sink of its own.",
@@ -175146,6 +175162,11 @@
             "rpc:hr.expense.action_pay"
           ]
         },
+        "ui:rebuild_account_migration.view_rebuild_accounting_expense_form_guidance:button:object:action_rebuild_waive_receipt:1": {
+          "targets": [
+            "rpc:hr.expense.action_rebuild_waive_receipt"
+          ]
+        },
         "ui:rebuild_account_migration.view_rebuild_accounting_home_bank_checkpoint:button:object:action_open_bank_checkpoint:1": {
           "targets": [
             "rpc:rebuild.account.overview.action_open_bank_checkpoint"
@@ -176131,6 +176152,7 @@
         "ui:rebuild_account_migration.view_rebuild_account_tax_report_line_list:button:object:action_open_journal_items:1": "4f52abac1c737291c83595f1d78d90710bea909f96a5164dd05bfbb2ba75413a",
         "ui:rebuild_account_migration.view_rebuild_account_trial_balance_line_list:button:object:action_open_journal_items:1": "be731b3d9f01a0df2c5fc384ec0588ae5192e3442b3cdf1e6190caa199bbcff0",
         "ui:rebuild_account_migration.view_rebuild_accounting_expense_form_guidance:button:object:action_pay:1": "46302dcd270aa01f264ea0ebf27bae876c0c84700e3250282d780f781e0bc6c8",
+        "ui:rebuild_account_migration.view_rebuild_accounting_expense_form_guidance:button:object:action_rebuild_waive_receipt:1": "c4fafbf7836fda5d1188ff81d168bf3fddb0e1c78dfc614a109df058e19e52c3",
         "ui:rebuild_account_migration.view_rebuild_accounting_home_bank_checkpoint:button:object:action_open_bank_checkpoint:1": "f9d4c4c47dc763a3970c7480174fdd745a10204070801167c05958d74a782bb3",
         "ui:rebuild_account_migration.view_rebuild_accounting_home_form:button:object:action_open_bank_matching:1": "360553ac7beba6311194e6cc38dba8e8b7bb609dbf439432675377b7ed34f342",
         "ui:rebuild_account_migration.view_rebuild_accounting_home_form:button:object:action_open_bank_matching:2": "e4b667d2d19443664754f5150f8b68a87db61966838923e82025f4f40d675595",
@@ -194101,6 +194123,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "cc40b12a3a22d2f4cf50d5c896453518cb1a33f3d4ba46b704147c311a1defad",
+  "qualified_policy_digest": "28e7c1cd9fa609119a17854f5cb4465aedfa41301351837333ccbf64132114b8",
   "schema": "usl-action-risk-policy-v1"
 }

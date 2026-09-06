@@ -2,6 +2,7 @@ from lxml import etree
 
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.fields import Domain
 
 from odoo.addons.account_statement_import_qif.wizards.account_statement_import_qif import (
     AccountStatementImport as QifAccountStatementImport,
@@ -22,11 +23,32 @@ class HrExpense(models.Model):
         selection=[
             ("received", "Attached"),
             ("missing", "Missing"),
+            ("waived", "Waived"),
             ("not_required", "Not required"),
         ],
         compute="_compute_rebuild_expense_guidance",
         search="_search_rebuild_receipt_state",
         string="Receipt",
+    )
+    rebuild_receipt_waiver_reason = fields.Text(
+        string="Why no receipt can be provided",
+        copy=False,
+        tracking=True,
+        help=(
+            "Documented decision to continue without a receipt. Clearing this "
+            "text withdraws the decision and the receipt is required again."
+        ),
+    )
+    rebuild_receipt_waived_by_id = fields.Many2one(
+        "res.users",
+        string="Receipt waived by",
+        readonly=True,
+        copy=False,
+    )
+    rebuild_receipt_waived_at = fields.Datetime(
+        string="Receipt waived on",
+        readonly=True,
+        copy=False,
     )
     rebuild_next_step = fields.Selection(
         selection=[
@@ -49,6 +71,7 @@ class HrExpense(models.Model):
         "product_id",
         "product_id.rebuild_receipt_required",
         "message_main_attachment_id",
+        "rebuild_receipt_waived_at",
         "payment_mode",
     )
     def _compute_rebuild_expense_guidance(self):
@@ -58,27 +81,27 @@ class HrExpense(models.Model):
                 not expense.product_id
                 or expense.product_id.rebuild_receipt_required
             )
+            waived = bool(expense.rebuild_receipt_waived_at)
             if has_receipt:
                 expense.rebuild_receipt_state = "received"
+            elif receipt_required and waived:
+                expense.rebuild_receipt_state = "waived"
             elif receipt_required:
                 expense.rebuild_receipt_state = "missing"
             else:
                 expense.rebuild_receipt_state = "not_required"
+            receipt_missing = receipt_required and not has_receipt and not waived
             if expense.state == "draft":
                 if not expense.product_id:
                     expense.rebuild_next_step = "category"
-                elif receipt_required and not has_receipt:
+                elif receipt_missing:
                     expense.rebuild_next_step = "receipt"
                 else:
                     expense.rebuild_next_step = "submit"
             elif expense.state == "submitted":
-                expense.rebuild_next_step = (
-                    "receipt" if receipt_required and not has_receipt else "approve"
-                )
+                expense.rebuild_next_step = "receipt" if receipt_missing else "approve"
             elif expense.state == "approved":
-                expense.rebuild_next_step = (
-                    "receipt" if receipt_required and not has_receipt else "post"
-                )
+                expense.rebuild_next_step = "receipt" if receipt_missing else "post"
             elif expense.state == "posted" and expense.payment_mode == "own_account":
                 expense.rebuild_next_step = "payment"
             elif expense.state == "in_payment":
@@ -93,43 +116,21 @@ class HrExpense(models.Model):
         if operator not in ("=", "!=") or value not in (
             "received",
             "missing",
+            "waived",
             "not_required",
         ):
             raise NotImplementedError
-        if value == "not_required":
-            domain = [
-                ("message_main_attachment_id", "=", False),
-                ("product_id.rebuild_receipt_required", "=", False),
-            ]
-            if operator == "!=":
-                return [
-                    "|",
-                    ("message_main_attachment_id", "!=", False),
-                    ("product_id.rebuild_receipt_required", "=", True),
-                ]
-            return domain
-        if value == "missing":
-            domain = [
-                ("message_main_attachment_id", "=", False),
-                ("product_id.rebuild_receipt_required", "=", True),
-            ]
-            if operator == "!=":
-                return [
-                    "|",
-                    ("message_main_attachment_id", "!=", False),
-                    ("product_id.rebuild_receipt_required", "=", False),
-                ]
-            return domain
-        has_receipt = value == "received"
-        if operator == "!=":
-            has_receipt = not has_receipt
-        return [
-            (
-                "message_main_attachment_id",
-                "!=" if has_receipt else "=",
-                False,
-            ),
-        ]
+        no_receipt = Domain("message_main_attachment_id", "=", False)
+        required = Domain("product_id.rebuild_receipt_required", "=", True)
+        waived = Domain("rebuild_receipt_waived_at", "!=", False)
+        states = {
+            "received": Domain("message_main_attachment_id", "!=", False),
+            "missing": no_receipt & required & ~waived,
+            "waived": no_receipt & required & waived,
+            "not_required": no_receipt & ~required,
+        }
+        domain = states[value]
+        return list(~domain if operator == "!=" else domain)
 
     def _can_be_autovalidated(self):
         self.ensure_one()
@@ -147,15 +148,80 @@ class HrExpense(models.Model):
             lambda expense: (
                 expense.product_id.rebuild_receipt_required
                 and not expense.message_main_attachment_id
+                and not expense.rebuild_receipt_waived_at
             ),
         )
         if missing:
             raise UserError(
                 _(
-                    "Attach a receipt before continuing with: %s",
-                    ", ".join(missing.mapped("name")),
+                    "Attach a receipt before continuing with: %(expenses)s. "
+                    "If no receipt can be obtained, explain why in the Receipt "
+                    "section of the expense and confirm continuing without one.",
+                    expenses=", ".join(missing.mapped("name")),
                 ),
             )
+
+    def action_rebuild_waive_receipt(self):
+        """Record the explicit decision to continue without a receipt.
+
+        The decision is a documented exception, not a policy change: the
+        category still requires receipts, the expense keeps the written
+        reason, who confirmed it and when, and the chatter carries the same
+        facts for reviewers and hygiene follow-up.
+        """
+        self.check_access("write")
+        if getattr(self.env.user, "usl_is_ai_agent", False):
+            raise AccessError(
+                _(
+                    "Continuing without a receipt is a documented decision that "
+                    "a person must record. Ask the employee or an Expense "
+                    "Manager to confirm it.",
+                ),
+            )
+        for expense in self:
+            if expense.message_main_attachment_id:
+                raise UserError(
+                    _("%s already has a receipt attached.", expense.name),
+                )
+            if expense.product_id and not expense.product_id.rebuild_receipt_required:
+                raise UserError(
+                    _("The category of %s does not require a receipt.", expense.name),
+                )
+            reason = (expense.rebuild_receipt_waiver_reason or "").strip()
+            if not reason:
+                raise UserError(
+                    _(
+                        "Explain why no receipt can be provided for %s before "
+                        "confirming the decision.",
+                        expense.name,
+                    ),
+                )
+            expense.write(
+                {
+                    "rebuild_receipt_waiver_reason": reason,
+                    "rebuild_receipt_waived_by_id": self.env.user.id,
+                    "rebuild_receipt_waived_at": fields.Datetime.now(),
+                },
+            )
+            expense.message_post(
+                body=_(
+                    "Decision recorded: this expense continues without a "
+                    "receipt. Reason: %s",
+                    reason,
+                ),
+                message_type="comment",
+                subtype_xmlid="mail.mt_note",
+            )
+        return True
+
+    def _is_batch_receipt_required(self):
+        if self.rebuild_receipt_waived_at:
+            return False
+        return super()._is_batch_receipt_required()
+
+    @api.depends("rebuild_receipt_waived_at")
+    def _compute_batch_attachment_status(self):
+        super()._compute_batch_attachment_status()
 
     def action_submit(self):
         self._check_rebuild_required_receipt()
@@ -206,6 +272,16 @@ class HrExpense(models.Model):
 
     def write(self, vals):
         self._check_rebuild_reviewer_expense_mutation()
+        if "rebuild_receipt_waiver_reason" in vals and not (
+            vals["rebuild_receipt_waiver_reason"] or ""
+        ).strip():
+            # Withdrawing the written reason withdraws the decision.
+            vals = {
+                **vals,
+                "rebuild_receipt_waiver_reason": False,
+                "rebuild_receipt_waived_by_id": False,
+                "rebuild_receipt_waived_at": False,
+            }
         return super().write(vals)
 
     def unlink(self):
