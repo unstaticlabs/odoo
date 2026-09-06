@@ -100,6 +100,12 @@ msgstr ""
 " %s"
 
 #. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/favorite_project_navigation.js:0
+msgid "The Projects menu could not be refreshed. Reload the page to see your latest favorites."
+msgstr "Le menu Projets n’a pas pu être actualisé. Rechargez la page pour afficher vos favoris à jour."
+
+#. module: usl_project
 #: model:ir.model.fields,help:usl_project.field_project_task__display_name
 msgid ""
 "Use these keywords in the title to set new tasks:\n"
