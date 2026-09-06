@@ -5,6 +5,8 @@ from . import (
     res_company,
     tese_diagnostic,
     tese_payslip,
+    tese_payslip_preparation,
+    tese_payslip_settlement,
     tese_profile,
     tese_settings_revision,
     documents,

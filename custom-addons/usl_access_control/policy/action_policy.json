@@ -161602,33 +161602,33 @@
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_diagnostic.py:usl.tese.diagnostic.issue.action_run_diagnostics:orm_write:2",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_diagnostic.py:usl.tese.diagnostic.issue.action_run_diagnostics:sudo:1",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_diagnostic.py:usl.tese.diagnostic.issue.action_run_diagnostics:sudo:2",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._applicable_hr_versions:sudo:1",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip._applicable_hr_versions:sudo:1",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._apply_revised_settings:message_send:1",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._apply_revised_settings:orm_write:1",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._apply_revised_settings:orm_write:2",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._create_settlement_bridge:orm_create:1",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._create_settlement_bridge:orm_create:2",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._create_settlement_bridge:orm_create:3",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._create_settlement_bridge:orm_create:4",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._payroll_move_line_commands:orm_create:1",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._reconcile_candidate:orm_write:1",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._reconcile_candidate:orm_write:2",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._reconcile_candidate:orm_write:3",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._suggest_pay_period:sudo:1",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._suggest_pay_period:sudo:2",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._create_settlement_bridge:orm_create:1",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._create_settlement_bridge:orm_create:2",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._create_settlement_bridge:orm_create:3",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._create_settlement_bridge:orm_create:4",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip._payroll_move_line_commands:orm_create:1",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._reconcile_candidate:orm_write:1",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._reconcile_candidate:orm_write:2",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._reconcile_candidate:orm_write:3",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip._suggest_pay_period:sudo:1",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip._suggest_pay_period:sudo:2",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_cancel:orm_write:1",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_create_draft_entry:orm_create:1",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_create_draft_entry:orm_write:1",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_create_draft_entry:orm_write:2",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_create_draft_entry:sudo:1",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_create_draft_entry:orm_create:1",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_create_draft_entry:orm_write:1",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_create_draft_entry:orm_write:2",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_create_draft_entry:sudo:1",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_finalize:orm_write:1",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_post:orm_write:1",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_prepare:orm_create:1",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_prepare:orm_write:1",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_prepare:orm_write:2",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_prepare:orm_write:3",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_prepare:sudo:1",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_refresh_candidates:orm_write:1",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_post:orm_write:1",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_prepare:orm_create:1",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_prepare:orm_write:1",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_prepare:orm_write:2",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_prepare:orm_write:3",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_prepare:sudo:1",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip.action_refresh_candidates:orm_write:1",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_reset_to_prepared:orm_write:1",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.create:orm_create:1",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.line.create:orm_create:1",
@@ -162298,9 +162298,6 @@
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_diagnostic.py:usl.tese.diagnostic.issue.action_run_diagnostics:sudo:2": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.diagnostic.issue.action_run_diagnostics"
         },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._applicable_hr_versions:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._apply_revised_settings:message_send:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -162310,74 +162307,11 @@
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._apply_revised_settings:orm_write:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._create_settlement_bridge:orm_create:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._create_settlement_bridge:orm_create:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._create_settlement_bridge:orm_create:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._create_settlement_bridge:orm_create:4": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._payroll_move_line_commands:orm_create:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._reconcile_candidate:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._reconcile_candidate:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._reconcile_candidate:orm_write:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._suggest_pay_period:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._suggest_pay_period:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_cancel:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_cancel"
         },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_create_draft_entry:orm_create:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_create_draft_entry"
-        },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_create_draft_entry:orm_write:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_create_draft_entry"
-        },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_create_draft_entry:orm_write:2": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_create_draft_entry"
-        },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_create_draft_entry:sudo:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_create_draft_entry"
-        },
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_finalize:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_finalize"
-        },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_post:orm_write:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_post"
-        },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_prepare:orm_create:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_prepare"
-        },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_prepare:orm_write:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_prepare"
-        },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_prepare:orm_write:2": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_prepare"
-        },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_prepare:orm_write:3": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_prepare"
-        },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_prepare:sudo:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_prepare"
-        },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_refresh_candidates:orm_write:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_refresh_candidates"
         },
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_reset_to_prepared:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_reset_to_prepared"
@@ -162399,6 +162333,72 @@
         },
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.write:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.write"
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip._applicable_hr_versions:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip._payroll_move_line_commands:orm_create:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip._suggest_pay_period:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip._suggest_pay_period:sudo:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_create_draft_entry:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_create_draft_entry"
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_create_draft_entry:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_create_draft_entry"
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_create_draft_entry:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_create_draft_entry"
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_create_draft_entry:sudo:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_create_draft_entry"
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_post:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_post"
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_prepare:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_prepare"
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_prepare:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_prepare"
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_prepare:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_prepare"
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_prepare:orm_write:3": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_prepare"
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_prepare:sudo:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_prepare"
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._create_settlement_bridge:orm_create:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._create_settlement_bridge:orm_create:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._create_settlement_bridge:orm_create:3": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._create_settlement_bridge:orm_create:4": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._reconcile_candidate:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._reconcile_candidate:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._reconcile_candidate:orm_write:3": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip.action_refresh_candidates:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_refresh_candidates"
         },
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_profile.py:usl.tese.profile._compute_payslip_count:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
@@ -162664,33 +162664,11 @@
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_diagnostic.py:usl.tese.diagnostic.issue.action_run_diagnostics:orm_write:2": "f9ba96c593a5f15f318400f12992229bb472715c5627f6eb93f814db5ddf2a68",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_diagnostic.py:usl.tese.diagnostic.issue.action_run_diagnostics:sudo:1": "2c57fb8a5c6dee567b86c08de55841cc206e066e1393eed6222703300516d80a",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_diagnostic.py:usl.tese.diagnostic.issue.action_run_diagnostics:sudo:2": "c86c112b49bae94e9e66e8c30b5bc18a95e077db5489ef126e382a29755f2e44",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._applicable_hr_versions:sudo:1": "3e42592a579cf1b54ec28848c77e1c772436d9f17759cdabee73d6cc9be1d5b1",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._apply_revised_settings:message_send:1": "18c5e40b464d880995d1085983cc749bac76c0896390e28b5b487b7b821f715d",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._apply_revised_settings:orm_write:1": "5c4a4cc26cad7a04ec812c2709cdaba2dd005ed4427f03a8ae0cf3856df7b730",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._apply_revised_settings:orm_write:2": "9f37b356c624df03108d5e7a406fd74760db7dfa646e0247283d488a6fe662a0",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._create_settlement_bridge:orm_create:1": "c776de9f9218cc3b362aab490d27af81a1e35505d023b7ab128d6df100eee8b9",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._create_settlement_bridge:orm_create:2": "c5524a3f7458466217bedf6e07b52e0dd1f1e9ea12c8d74585150e9984c7d71c",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._create_settlement_bridge:orm_create:3": "7bd3b4c9cd67d005928c106ef25fbb509dff7f8a3c54ea6efdac178a7294e209",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._create_settlement_bridge:orm_create:4": "f81769a5cd7cb8000c06a66325ab7d120caa758a32ca6977fc87d604138117d4",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._payroll_move_line_commands:orm_create:1": "a2896bdf0d31fa1ad702bc7c02611affe3c0ef20c6bc94c74e43bf997ca6dab8",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._reconcile_candidate:orm_write:1": "a430b956d8e2df103726aa3a282f80560a8376e80d01c6110759590d83877eaf",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._reconcile_candidate:orm_write:2": "28becf0398866633ba17a1b0d3c1aead32efcbeef19b5ff725035ca265945e63",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._reconcile_candidate:orm_write:3": "0d4cc8de8bd98e2ba3f6f624805e0b667657c782292fc45d411e450e1f6b7bea",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._suggest_pay_period:sudo:1": "81a03dadfa9859da485f562f22b924a9d0562d6ad1fe10525caf9341c8e29a87",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._suggest_pay_period:sudo:2": "0cd2767b6d48e69e4eb3ed46509865579b3b5c9c9996e61610040f4db03d53e4",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_cancel:orm_write:1": "90c58a5c3075ca9064f668f2ef6bbfd328e5dc8ad0e9d5fa184e54634f2980b0",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_create_draft_entry:orm_create:1": "9a6230ee5e0ef08301a0967f99bbb29399cc5d2d5ca541c797ce75016e58e350",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_create_draft_entry:orm_write:1": "f289fc7f90b47d4dc4435796ae149ef496ea31c8d206e7da80185b96d92697fa",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_create_draft_entry:orm_write:2": "fb67854b7e969c86ce967c4f22200651120bec22c45c344a84407ee573a30ebe",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_create_draft_entry:sudo:1": "8e49d48cd07d7f0f387e3e0469b950f6c00506d857feebf49b94b48363224ac9",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_finalize:orm_write:1": "30d54cce3f4b5ea00b16c4844b050c89bc1034e2816dbcbd03bdecec9b7aa943",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_post:orm_write:1": "444a15f6720b837d9f24bcea6756e57068fb249414cdeb11e08754fc656d2cf9",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_prepare:orm_create:1": "21d8839af9f6b0f90d3cbc87326aa76ff6a7fffcb4ccb22297dee4dedf142b1d",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_prepare:orm_write:1": "281566dd169f9d6ef45d0c33ca5664bb8a6cfd33ddc3d1fe3f98d909598d8344",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_prepare:orm_write:2": "64fc8d42a97b4b1fc7ad8bddd8ee0048e41a1f17826a45a5e548d0d378fac535",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_prepare:orm_write:3": "308b6ef29d6915b42bfe6fc1630a43e5e1e2b2a3af260c9660c31916f0a0f279",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_prepare:sudo:1": "214f7a2dc6690fc3db77a9ed4f287940e5ca176a8c96c51007a4d12e7e6689f8",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_refresh_candidates:orm_write:1": "fb72d84c9667a80e767d0571da23149ee39b0572df73d8397916688f61c7f31a",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_reset_to_prepared:orm_write:1": "1bf326d6b48ba2a8dd167af170844c95828059e76a961981d51aee8d5a51d73f",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.create:orm_create:1": "c789a06658ec968c5f6b682cca7d10a39970f06a3aee4d1d456671f6c599a6cb",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.line.create:orm_create:1": "0b0d8a8ad62fc9dc13a881d9861dded8c46302fd23109e264cf538cd72aa476e",
@@ -162698,6 +162676,28 @@
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.line.write:orm_write:1": "d55661b3742e7c342448f118fe9dce52706440e5e95c7c89d389857f0ea55b38",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.unlink:orm_unlink:1": "46eb36c35ee8aea05ed68ede2d9a8ad286ac7acbbb8de04c1b6c9de68e0e0756",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.write:orm_write:1": "1ca85d27f60bdf84c439ca401bb854786ffcec2a0d7cd83f1bb03244f75c30d3",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip._applicable_hr_versions:sudo:1": "3e42592a579cf1b54ec28848c77e1c772436d9f17759cdabee73d6cc9be1d5b1",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip._payroll_move_line_commands:orm_create:1": "a2896bdf0d31fa1ad702bc7c02611affe3c0ef20c6bc94c74e43bf997ca6dab8",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip._suggest_pay_period:sudo:1": "81a03dadfa9859da485f562f22b924a9d0562d6ad1fe10525caf9341c8e29a87",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip._suggest_pay_period:sudo:2": "0cd2767b6d48e69e4eb3ed46509865579b3b5c9c9996e61610040f4db03d53e4",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_create_draft_entry:orm_create:1": "9a6230ee5e0ef08301a0967f99bbb29399cc5d2d5ca541c797ce75016e58e350",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_create_draft_entry:orm_write:1": "f289fc7f90b47d4dc4435796ae149ef496ea31c8d206e7da80185b96d92697fa",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_create_draft_entry:orm_write:2": "fb67854b7e969c86ce967c4f22200651120bec22c45c344a84407ee573a30ebe",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_create_draft_entry:sudo:1": "8e49d48cd07d7f0f387e3e0469b950f6c00506d857feebf49b94b48363224ac9",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_post:orm_write:1": "444a15f6720b837d9f24bcea6756e57068fb249414cdeb11e08754fc656d2cf9",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_prepare:orm_create:1": "21d8839af9f6b0f90d3cbc87326aa76ff6a7fffcb4ccb22297dee4dedf142b1d",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_prepare:orm_write:1": "281566dd169f9d6ef45d0c33ca5664bb8a6cfd33ddc3d1fe3f98d909598d8344",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_prepare:orm_write:2": "64fc8d42a97b4b1fc7ad8bddd8ee0048e41a1f17826a45a5e548d0d378fac535",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_prepare:orm_write:3": "308b6ef29d6915b42bfe6fc1630a43e5e1e2b2a3af260c9660c31916f0a0f279",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_preparation.py:usl.tese.payslip.action_prepare:sudo:1": "214f7a2dc6690fc3db77a9ed4f287940e5ca176a8c96c51007a4d12e7e6689f8",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._create_settlement_bridge:orm_create:1": "c776de9f9218cc3b362aab490d27af81a1e35505d023b7ab128d6df100eee8b9",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._create_settlement_bridge:orm_create:2": "c5524a3f7458466217bedf6e07b52e0dd1f1e9ea12c8d74585150e9984c7d71c",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._create_settlement_bridge:orm_create:3": "7bd3b4c9cd67d005928c106ef25fbb509dff7f8a3c54ea6efdac178a7294e209",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._create_settlement_bridge:orm_create:4": "f81769a5cd7cb8000c06a66325ab7d120caa758a32ca6977fc87d604138117d4",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._reconcile_candidate:orm_write:1": "a430b956d8e2df103726aa3a282f80560a8376e80d01c6110759590d83877eaf",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._reconcile_candidate:orm_write:2": "28becf0398866633ba17a1b0d3c1aead32efcbeef19b5ff725035ca265945e63",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._reconcile_candidate:orm_write:3": "0d4cc8de8bd98e2ba3f6f624805e0b667657c782292fc45d411e450e1f6b7bea",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip.action_refresh_candidates:orm_write:1": "fb72d84c9667a80e767d0571da23149ee39b0572df73d8397916688f61c7f31a",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_profile.py:usl.tese.profile._compute_payslip_count:sudo:1": "2dd9dd759cc7dca7b53c3e52cc3e5bcc26f21ddda9f1cbc39e72b8ebbc1e4198",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_profile.py:usl.tese.profile.action_load_french_defaults:orm_create:1": "55d960823e2a30bcf86aac183ffa4a897569c5cb9d9f9a0cf5ff195e1a0246c4",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_profile.py:usl.tese.profile.create:orm_create:1": "a4ec9ab6e4f21ed6363f25c0f120ecc2f5169fc5513fae7d625003d7e4415bf4",
