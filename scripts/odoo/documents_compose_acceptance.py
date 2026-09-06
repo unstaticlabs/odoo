@@ -33,7 +33,7 @@ def wait_for_operation(operation, timeout=180):
             return operation
         time.sleep(2)
     raise AssertionError(
-        f"Paperless operation {operation.id} did not finish within {timeout}s"
+        f"Paperless operation {operation.id} did not finish within {timeout}s",
     )
 
 
@@ -116,7 +116,7 @@ bill = env["account.move"].search(
     limit=1,
 )
 partner = env["res.partner"].search(
-    [("ref", "=", "USL-DOCS-QA-SUPPLIER")], limit=1
+    [("ref", "=", "USL-DOCS-QA-SUPPLIER")], limit=1,
 )
 check(bool(bill and partner), "synthetic bill and partner fixtures")
 
@@ -126,7 +126,7 @@ text = (
 ).encode()
 checksum = hashlib.sha256(text).hexdigest()
 attachment_count = env["ir.attachment"].search_count(
-    [("res_model", "=", bill._name), ("res_id", "=", bill.id)]
+    [("res_model", "=", bill._name), ("res_id", "=", bill.id)],
 )
 result = documents.upload_from_odoo(
     f"acceptance-{marker}.txt",
@@ -150,7 +150,7 @@ check(
 )
 check(
     env["ir.attachment"].search_count(
-        [("res_model", "=", bill._name), ("res_id", "=", bill.id)]
+        [("res_model", "=", bill._name), ("res_id", "=", bill.id)],
     )
     == attachment_count,
     "Paperless upload did not duplicate binary in Odoo",
@@ -165,7 +165,7 @@ bill_link = env["usl.document.link"].search(
 )
 check(bool(bill_link), "durable vendor-bill relationship created")
 linked_version = document.version_ids.filtered(
-    lambda version: version.paperless_version_id == bill_link.version_id
+    lambda version: version.paperless_version_id == bill_link.version_id,
 )[:1]
 if not linked_version or linked_version.checksum != checksum:
     # Repair a synthetic acceptance fixture linked by an implementation that
@@ -234,7 +234,7 @@ second_link = document.link_to_record(partner._name, partner.id)
 check(bool(second_link), "one archive root linked to a second business record")
 check(
     env["usl.document.link"].search_count(
-        [("document_id", "=", document.id), ("active", "=", True)]
+        [("document_id", "=", document.id), ("active", "=", True)],
     )
     >= 2,
     "one archived binary has multiple Odoo relationships",
@@ -247,7 +247,7 @@ check(
             ("res_model", "=", partner._name),
             ("res_id", "=", partner.id),
             ("active", "=", True),
-        ]
+        ],
     )
     and bool(document.exists()),
     "unlink removed only one relationship, not the archive",
@@ -366,7 +366,7 @@ if replacement_checksum not in document.version_ids.mapped("checksum"):
     )
     check(replacement_result["state"] == "processing", "replacement queued as version")
     replacement_operation = env["usl.document.operation"].browse(
-        replacement_result["operation_id"]
+        replacement_result["operation_id"],
     )
     wait_for_operation(replacement_operation)
     check(replacement_operation.state == "archived", "replacement version archived")
@@ -376,7 +376,7 @@ document.invalidate_recordset()
 check(len(document.version_ids) >= 2, "structured version history synchronized")
 check(
     env["usl.document.link"].search_count(
-        [("document_id", "=", document.id), ("active", "=", True)]
+        [("document_id", "=", document.id), ("active", "=", True)],
     )
     >= 1,
     "business relationship stable across version replacement",
@@ -467,7 +467,7 @@ check(
 )
 
 matching_tag = env["usl.paperless.tag"].search(
-    [("name", "=", "Needs follow-up")], limit=1
+    [("name", "=", "Needs follow-up")], limit=1,
 )
 check(bool(matching_tag), "plain-language matching rule fixture exists")
 probe_title = f"Matching rule probe {marker}"
@@ -527,7 +527,7 @@ legal = (
     "Synthetic retained contract evidence for restore validation.\n"
 ).encode()
 legal_document = documents.search(
-    [("name", "=", f"Legal contract {marker}")], limit=1
+    [("name", "=", f"Legal contract {marker}")], limit=1,
 )
 if not legal_document:
     legal_task_id = client.upload_multipart(
@@ -560,29 +560,29 @@ else:
 contract_type = client.ensure_document_type("Contract")
 documents.sync_from_paperless(full=True)
 legal_document = documents.search(
-    [("paperless_id", "=", legal_paperless_id)], limit=1
+    [("paperless_id", "=", legal_paperless_id)], limit=1,
 )
 contract_type_cache = env["usl.paperless.document.type"].search(
-    [("paperless_id", "=", contract_type["id"])], limit=1
+    [("paperless_id", "=", contract_type["id"])], limit=1,
 )
 contracts_tag = env["usl.paperless.tag"].search(
-    [("name", "=", "Contracts & legal")], limit=1
+    [("name", "=", "Contracts & legal")], limit=1,
 )
 legal_document.update_archive_metadata(
     {
         "name": f"Legal contract {marker}",
         "document_type_id": contract_type_cache.id,
         "tag_ids": contracts_tag.ids,
-    }
+    },
 )
 legal_document.with_context(usl_documents_policy_write=True).write(
     {
         "company_id": env.company.id,
         "review_state": "classified",
-    }
+    },
 )
 project = env["project.project"].search(
-    [("name", "=", "Atlas Website Rollout")], limit=1
+    [("name", "=", "Atlas Website Rollout")], limit=1,
 )
 legal_document.link_to_record(project._name, project.id)
 legal_document.action_sync_permissions()
@@ -615,7 +615,7 @@ check(
 )
 
 restricted = env["res.users"].search(
-    [("login", "=", "documents-restricted")], limit=1
+    [("login", "=", "documents-restricted")], limit=1,
 )
 check(bool(restricted), "restricted multi-company user fixture")
 try:
@@ -656,7 +656,7 @@ print(
         "paperless_id": document.paperless_id,
         "version_count": len(document.version_ids),
         "relationship_count": env["usl.document.link"].search_count(
-            [("document_id", "=", document.id), ("active", "=", True)]
+            [("document_id", "=", document.id), ("active", "=", True)],
         ),
         "integrity_ok": manifest["integrity_ok"],
     },

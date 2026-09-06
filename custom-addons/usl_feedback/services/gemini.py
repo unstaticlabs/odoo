@@ -265,8 +265,7 @@ class GeminiClient:
 
     def test_mcp_interaction(self, *, model, mcp_url, mcp_headers):
         response = self._request(
-            "POST", INTERACTIONS_ENDPOINT, read_timeout=60, json=
-            {
+            "POST", INTERACTIONS_ENDPOINT, read_timeout=60, json={
                 "model": model,
                 "background": False,
                 "store": False,

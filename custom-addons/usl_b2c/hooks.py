@@ -1,6 +1,5 @@
 from odoo import SUPERUSER_ID, api
 
-
 INVENTORY_FOUNDATION_SETTINGS = {
     "group_product_variant": True,
     "group_stock_multi_locations": True,

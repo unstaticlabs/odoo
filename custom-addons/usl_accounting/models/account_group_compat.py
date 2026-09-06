@@ -8,11 +8,10 @@ the distribution boundary until OCA adopts the native account hierarchy.
 
 import csv
 
-from odoo import api, fields, models, _
+from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 from odoo.fields import Domain
 from odoo.tools import SQL, file_open
-
 
 FRENCH_GROUPS_CSV = "usl_accounting/data/account_group_fr_compat.csv"
 
@@ -71,7 +70,7 @@ class AccountGroup(models.Model):
         companies = companies.sudo().mapped("root_id").filtered(
             lambda company: (
                 company.account_fiscal_country_id or company.country_id
-            ).code == "FR"
+            ).code == "FR",
         )
         if not companies:
             return self.browse()
@@ -177,7 +176,7 @@ class AccountGroup(models.Model):
         )
         if self.env.cr.fetchall():
             raise ValidationError(
-                _("Account Groups with the same granularity can't overlap")
+                _("Account Groups with the same granularity can't overlap"),
             )
 
     def _sanitize_vals(self, vals):
@@ -208,7 +207,7 @@ class AccountGroup(models.Model):
     def unlink(self):
         for group in self:
             self.search([("parent_id", "=", group.id)]).write(
-                {"parent_id": group.parent_id.id}
+                {"parent_id": group.parent_id.id},
             )
         return super().unlink()
 
@@ -244,7 +243,7 @@ class AccountGroup(models.Model):
              RETURNING child.id
                 """,
                 tuple(company_ids),
-            )
+            ),
         )
         if self.env.cr.fetchall():
             self.invalidate_model(["parent_id"])
@@ -284,8 +283,8 @@ class AccountAccount(models.Model):
                     """,
                     values=values,
                     company_id=self.env.company.root_id.id,
-                )
-            )
+                ),
+            ),
         )
         for account in accounts_with_code:
             account.group_id = group_by_code.get(account.code)

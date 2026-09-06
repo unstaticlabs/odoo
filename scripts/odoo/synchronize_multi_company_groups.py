@@ -6,7 +6,6 @@ import json
 
 from odoo import Command
 
-
 group = env.ref("base.group_multi_company")
 users = env["res.users"].sudo().with_context(active_test=False).search([
     ("active", "=", True),

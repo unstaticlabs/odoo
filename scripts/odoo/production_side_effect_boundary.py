@@ -8,7 +8,6 @@ import os
 
 from odoo.tools import config
 
-
 mode = os.environ.get("USL_PRODUCTION_SIDE_EFFECT_MODE", "staged")
 if mode not in {"staged", "admitted"}:
     raise RuntimeError("Unsupported production side-effect boundary mode.")
@@ -25,8 +24,8 @@ if live_ereporting and not live_einvoice:
 if mode == "staged" and (live_einvoice or live_ereporting):
     errors.append("regulatory live access is enabled during staging")
 if mode == "admitted" and (
-    live_einvoice and cron_gates.get("pdp_reception") is not True
-    or live_ereporting and cron_gates.get("pdp_ereporting") is not True
+    (live_einvoice and cron_gates.get("pdp_reception") is not True)
+    or (live_ereporting and cron_gates.get("pdp_ereporting") is not True)
 ):
     errors.append("regulatory live access exceeds production cron gates")
 

@@ -4,16 +4,16 @@ import hashlib
 import io
 import re
 
-from odoo import api, fields, models, _
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools import html2plaintext
-from odoo.tools.misc import formatLang, format_amount, format_date
+from odoo.tools.misc import format_amount, format_date, formatLang
 from odoo.tools.pdf import OdooPdfFileReader
 
 PROVENANCE_PATTERN = re.compile(
     r"Template invoice\.v1@(?P<revision>[^;]+); "
     r"payload sha256:(?P<digest>[0-9a-f]{64}); "
-    r"engine usl-document-renderer/(?P<version>[0-9.]+)"
+    r"engine usl-document-renderer/(?P<version>[0-9.]+)",
 )
 
 
@@ -78,8 +78,8 @@ class AccountMove(models.Model):
             raise UserError(
                 _(
                     "The invoice recipient needs a name and complete postal address "
-                    "before an official invoice can be generated."
-                )
+                    "before an official invoice can be generated.",
+                ),
             )
         if partner.vat:
             address_lines.append(document_env._("VAT: %s", partner.vat))
@@ -89,8 +89,8 @@ class AccountMove(models.Model):
                 raise UserError(
                     _(
                         "Set the French customer SIREN or SIRET before generating "
-                        "an official invoice."
-                    )
+                        "an official invoice.",
+                    ),
                 )
             address_lines.append(document_env._("SIREN: %s", registry[:9]))
         return {"name": partner.name, "address_lines": address_lines}
@@ -105,8 +105,8 @@ class AccountMove(models.Model):
                 self.invoice_line_ids.filtered(
                     lambda line: line.display_type
                     not in {"line_section", "line_subsection", "line_note"}
-                    and line.product_id
-                ).product_id.mapped("type")
+                    and line.product_id,
+                ).product_id.mapped("type"),
             )
             has_services = "service" in product_types
             has_goods = bool(product_types - {"service"})
@@ -114,8 +114,8 @@ class AccountMove(models.Model):
             raise UserError(
                 _(
                     "Classify invoice lines with service or goods products/taxes "
-                    "before generating a French official invoice."
-                )
+                    "before generating a French official invoice.",
+                ),
             )
         if locale == "fr_FR":
             return (
@@ -140,7 +140,7 @@ class AccountMove(models.Model):
         if supply_date:
             label = "Date de livraison / prestation" if locale == "fr_FR" else "Supply date"
             metadata.append(
-                f"{label}: {format_date(self.env, supply_date, lang_code=locale)}"
+                f"{label}: {format_date(self.env, supply_date, lang_code=locale)}",
             )
         if self.invoice_origin:
             label = "Commande" if locale == "fr_FR" else "Purchase order"
@@ -155,11 +155,11 @@ class AccountMove(models.Model):
         if shipping and shipping not in {self.partner_id, self.commercial_partner_id}:
             if not shipping.street or not shipping.zip or not shipping.city:
                 raise UserError(
-                    _("The distinct delivery address must be complete before rendering.")
+                    _("The distinct delivery address must be complete before rendering."),
                 )
             label = "Livraison" if locale == "fr_FR" else "Delivery"
             metadata.append(
-                f"{label}: {', '.join(self._usl_invoice_address_lines(shipping))}"
+                f"{label}: {', '.join(self._usl_invoice_address_lines(shipping))}",
             )
         return metadata
 
@@ -172,11 +172,11 @@ class AccountMove(models.Model):
                 raise UserError(
                     _(
                         "Configure the late-payment penalty wording in Document Templates "
-                        "settings before generating a French invoice."
-                    )
+                        "settings before generating a French invoice.",
+                    ),
                 )
             fee = self.company_id.currency_id.format(
-                self.company_id.usl_invoice_recovery_fee
+                self.company_id.usl_invoice_recovery_fee,
             )
             if locale == "fr_FR":
                 mentions.extend(
@@ -190,7 +190,7 @@ class AccountMove(models.Model):
                             "de retard de paiement : %s.",
                             fee,
                         ),
-                    ]
+                    ],
                 )
             else:
                 mentions.extend(
@@ -200,15 +200,15 @@ class AccountMove(models.Model):
                             self.company_id.usl_invoice_late_penalty_text,
                         ),
                         document_env._(
-                            "Fixed recovery-cost indemnity for late payment: %s.", fee
+                            "Fixed recovery-cost indemnity for late payment: %s.", fee,
                         ),
-                    ]
+                    ],
                 )
             if not self.invoice_payment_term_id.note:
                 mentions.append(
                     "Pas d’escompte pour paiement anticipé."
                     if locale == "fr_FR"
-                    else "No discount for early payment."
+                    else "No discount for early payment.",
                 )
             if any(
                 line.product_id.type == "service"
@@ -221,7 +221,7 @@ class AccountMove(models.Model):
                 mentions.append(
                     "Option pour le paiement de la taxe d’après les débits."
                     if locale == "fr_FR"
-                    else "VAT payment option on debits."
+                    else "VAT payment option on debits.",
                 )
         for value in (
             self.fiscal_position_id.note,
@@ -238,7 +238,7 @@ class AccountMove(models.Model):
                     document_env._("Pro forma document - not an accounting invoice.")
                     if locale == "en_US"
                     else document_env._(
-                        "Document pro forma - ne constitue pas une facture comptable."
+                        "Document pro forma - ne constitue pas une facture comptable.",
                     )
                 ),
             )
@@ -269,15 +269,15 @@ class AccountMove(models.Model):
                             term["date"],
                             lang_code=locale,
                         ),
-                    )
+                    ),
                 )
         if self.payment_reference:
             parts.append(
-                document_env._("Payment reference: %s", self.payment_reference)
+                document_env._("Payment reference: %s", self.payment_reference),
             )
         if self.partner_bank_id:
             parts.append(
-                document_env._("Bank account: %s", self.partner_bank_id.acc_number)
+                document_env._("Bank account: %s", self.partner_bank_id.acc_number),
             )
         return "\n".join(part for part in parts if part)
 
@@ -302,7 +302,7 @@ class AccountMove(models.Model):
                 "sha256": digest,
                 "mime_type": mimetype,
                 "data": base64.b64encode(content).decode(),
-            }
+            },
         ]
 
     def _usl_document_render_payload(self, _report, template, data, locale):
@@ -314,12 +314,12 @@ class AccountMove(models.Model):
             raise UserError(_("Invoices can only use invoice.v1."))
         if not self.is_sale_document():
             raise UserError(
-                _("Vendor originals and non-customer accounting documents remain source passthrough.")
+                _("Vendor originals and non-customer accounting documents remain source passthrough."),
             )
         proforma = bool(data.get("proforma") or data.get("proforma_invoice"))
         if not proforma and self.state != "posted":
             raise UserError(
-                _("Post the invoice or use Pro Forma before generating this document.")
+                _("Post the invoice or use Pro Forma before generating this document."),
             )
         if not proforma and not self.invoice_date:
             raise UserError(_("Set the invoice date before generating the official invoice."))
@@ -339,7 +339,7 @@ class AccountMove(models.Model):
                         "discount": "",
                         "taxes": "",
                         "total": "",
-                    }
+                    },
                 )
                 continue
             document_lines.append(
@@ -365,7 +365,7 @@ class AccountMove(models.Model):
                         self.currency_id,
                         lang_code=locale,
                     ),
-                }
+                },
             )
         if not any(line["kind"] == "line" for line in document_lines):
             raise UserError(_("The invoice needs at least one printable invoice line."))
@@ -378,7 +378,7 @@ class AccountMove(models.Model):
                     self.currency_id,
                     lang_code=locale,
                 ),
-            }
+            },
         ]
         for subtotal in (self.tax_totals or {}).get("subtotals", []):
             for tax_group in subtotal.get("tax_groups", []):
@@ -391,7 +391,7 @@ class AccountMove(models.Model):
                             self.currency_id,
                             lang_code=locale,
                         ),
-                    }
+                    },
                 )
         totals.append(
             {
@@ -402,7 +402,7 @@ class AccountMove(models.Model):
                     self.currency_id,
                     lang_code=locale,
                 ),
-            }
+            },
         )
         if self.amount_residual != self.amount_total:
             totals.append(
@@ -414,7 +414,7 @@ class AccountMove(models.Model):
                         self.currency_id,
                         lang_code=locale,
                     ),
-                }
+                },
             )
         qr_digest, qr_assets = self._usl_invoice_qr_asset()
         date = self.invoice_date or fields.Date.context_today(self)
@@ -440,7 +440,7 @@ class AccountMove(models.Model):
                 else ""
             ),
             "metadata": localized_move._usl_invoice_metadata(
-                locale, proforma=proforma
+                locale, proforma=proforma,
             ),
             "customer": customer,
             "lines": document_lines,
@@ -475,14 +475,14 @@ class AccountMoveSend(models.AbstractModel):
         values.update(
             {
                 "usl_document_template_id": self.env.ref(
-                    "usl_document_templates.template_invoice_v1"
+                    "usl_document_templates.template_invoice_v1",
                 ).id,
                 "usl_document_template_revision": match.group("revision"),
                 "usl_document_payload_sha256": match.group("digest"),
                 "usl_document_renderer_version": match.group("version"),
                 "usl_document_company_id": invoice.company_id.id,
                 "usl_document_rendered_at": fields.Datetime.now(),
-            }
+            },
         )
 
     @api.model

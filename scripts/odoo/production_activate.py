@@ -7,7 +7,6 @@ import json
 import os
 import re
 
-
 fingerprint = os.environ.get("USL_PRODUCTION_ACTIVATION_CONFIRM", "")
 if not re.fullmatch(r"[0-9a-f]{64}", fingerprint):
     raise RuntimeError("Production activation requires the exact candidate fingerprint.")

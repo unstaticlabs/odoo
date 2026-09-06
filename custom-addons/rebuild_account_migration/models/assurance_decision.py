@@ -114,7 +114,7 @@ class RebuildAccountAssuranceDecision(models.Model):
                     or vals.get("state", "draft") != "draft"
                 ):
                     raise AccessError(
-                        "Accountant reviewers may create draft declaration-review decisions only for an allowed company."
+                        "Accountant reviewers may create draft declaration-review decisions only for an allowed company.",
                     )
                 vals["reviewer_user_id"] = self.env.user.id
                 vals["reviewed_at"] = fields.Datetime.now()
@@ -142,10 +142,10 @@ class RebuildAccountAssuranceDecision(models.Model):
                 lambda decision: decision.gate != "declaration_review"
                 or not decision.declaration_id
                 or decision.required_authority not in {"accountant", "joint"}
-                or decision.reviewer_user_id != self.env.user
+                or decision.reviewer_user_id != self.env.user,
             ):
                 raise AccessError(
-                    "Accountant reviewers may edit only the content of their draft declaration-review decisions."
+                    "Accountant reviewers may edit only the content of their draft declaration-review decisions.",
                 )
         return super().write(vals)
 
@@ -185,7 +185,7 @@ class RebuildAccountAssuranceDecision(models.Model):
                 }
             ):
                 raise AccessError(
-                    "Accountant reviewers may record declaration-review decisions only for an allowed company."
+                    "Accountant reviewers may record declaration-review decisions only for an allowed company.",
                 )
             if not decision.decision_summary or decision.decision_summary == "Pending review.":
                 message = (
@@ -246,7 +246,7 @@ class RebuildAccountAssuranceDecision(models.Model):
     def action_supersede(self):
         if self._is_scoped_accountant_reviewer():
             raise AccessError(
-                "Only an Accounting Manager may supersede a recorded assurance decision."
+                "Only an Accounting Manager may supersede a recorded assurance decision.",
             )
         closings = self.filtered(
             lambda decision: (

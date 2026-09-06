@@ -1,6 +1,6 @@
+import re
 from collections import defaultdict
 from datetime import timedelta
-import re
 
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError

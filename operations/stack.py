@@ -10,54 +10,77 @@ import json
 import os
 import re
 import sys
-import time
 import textwrap
+import time
 from contextlib import contextmanager, redirect_stdout
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from urllib.parse import urlsplit
 
 from operations import upgrade_preservation
-from operations.oidc_admission import CLIENT_PROBE_SCRIPT
-from operations.control_manifest import (
-    RELEASE_DEFINITIONS_SQL,
-    release_definitions_digest,
-    ODOO_CONTROL_SQL,
-    PAPERLESS_CONTROL_SQL,
-    ControlManifestError,
-    validate_restore,
-)
 from operations.cohort import (
     SCHEMA as RECOVERY_COHORT_SCHEMA,
+)
+from operations.cohort import (
     STATE_SCHEMA as RECOVERY_STATE_SCHEMA,
+)
+from operations.cohort import (
     CohortError as RecoveryCohortError,
+)
+from operations.cohort import (
     select_latest_recovery_snapshot,
+)
+from operations.cohort import (
     validate_manifest as validate_cohort_manifest,
+)
+from operations.control_manifest import (
+    ODOO_CONTROL_SQL,
+    PAPERLESS_CONTROL_SQL,
+    RELEASE_DEFINITIONS_SQL,
+    ControlManifestError,
+    release_definitions_digest,
+    validate_restore,
 )
 from operations.cron_policy import (
     INVENTORY_SQL as CRON_INVENTORY_SQL,
+)
+from operations.cron_policy import (
     CronPolicyError,
-    parse as parse_cron_policy,
     render_odoo_apply_script,
+)
+from operations.cron_policy import (
+    parse as parse_cron_policy,
+)
+from operations.cron_policy import (
     validate_runtime as validate_cron_runtime,
 )
-from operations.release_controller import (
-    ReleaseControllerError,
-    abort as abort_release_state,
-    parse as parse_release_state,
-)
-from operations.release_manifest import ReleaseManifestError, validate as validate_release
 from operations.module_release import (
     ModuleReleaseError,
     derive_legacy_upgrade_plan,
     derive_upgrade_plan,
     validate_upgrade_plan,
 )
+from operations.oidc_admission import CLIENT_PROBE_SCRIPT
 from operations.plan_evidence import (
     PlanEvidenceError,
+)
+from operations.plan_evidence import (
     sign as sign_upgrade_plan,
+)
+from operations.plan_evidence import (
     verify as verify_upgrade_plan,
 )
+from operations.release_controller import (
+    ReleaseControllerError,
+)
+from operations.release_controller import (
+    abort as abort_release_state,
+)
+from operations.release_controller import (
+    parse as parse_release_state,
+)
+from operations.release_manifest import ReleaseManifestError
+from operations.release_manifest import validate as validate_release
 from operations.runtime import (
     RuntimeError,
     Target,
@@ -68,7 +91,6 @@ from operations.runtime import (
     read_active_state,
     validate_secret_text,
 )
-
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_TARGETS = ROOT / "operations/targets"
@@ -430,9 +452,9 @@ def _gateway_labeled_identity(target, runner, labels: dict, canonical_identity: 
             for path in config_files
         )
         or env_files != canonical_identity["environment_file"].split(",")
-        or working_directory != canonical_working
+        or (working_directory != canonical_working
         and running_prefix != canonical_prefix
-        and not snapshot_prefix.fullmatch(running_prefix)
+        and not snapshot_prefix.fullmatch(running_prefix))
     ):
         raise RuntimeError("running gateway Compose identity is invalid")
     return {
@@ -521,8 +543,8 @@ def _validate_gateway_container(
     if (
         inspected["Config"].get("Image") != canonical_gateway.get("image")
         or inspected["Config"].get("Cmd") != canonical_gateway.get("command")
-        or canonical_gateway.get("entrypoint") is not None
-        and inspected["Config"].get("Entrypoint") != canonical_gateway["entrypoint"]
+        or (canonical_gateway.get("entrypoint") is not None
+        and inspected["Config"].get("Entrypoint") != canonical_gateway["entrypoint"])
         or not health_matches
         or host.get("ReadonlyRootfs") is not True
         or (host.get("RestartPolicy") or {}).get("Name") != "unless-stopped"
@@ -1525,29 +1547,28 @@ def _mcp_runtime_authority(target) -> dict | None:
     manifest_relative = f"komodo/releases/usl-odoo-{environment}-mcp-manifest.json"
     if release_manifest is None:
         raise RuntimeError("uncommissioned GitOps MCP cannot be runtime authority")
-    else:
-        if (
-            not re.fullmatch(
-                r"ghcr\.io/unstaticlabs/usl-odoo-mcp-release@sha256:[0-9a-f]{64}",
-                str(release_manifest),
-            )
-            or not re.fullmatch(r"[0-9a-f]{64}", str(compatibility_sha256))
-        ):
-            raise RuntimeError("GitOps MCP release identity is invalid")
-        manifest = _load_gitops_json(root, manifest_relative)
-        source = manifest.get("source") or {}
-        image = manifest.get("image") or {}
-        compatibility = manifest.get("compatibility") or {}
-        if (
-            manifest.get("schema") != "usl-odoo-mcp-oci-release/v2"
-            or source.get("repository") != "https://github.com/unstaticlabs/odoo-mcp.git"
-            or source.get("ref") != "refs/heads/main"
-            or source.get("commit") != selected["commit"]
-            or image.get("digest_reference") != selected["image"]
-            or compatibility.get("sha256") != compatibility_sha256
-            or (compatibility.get("oauth_vault") or {}).get("schema_version") != 1
-        ):
-            raise RuntimeError("GitOps MCP manifest and ledger differ")
+    if (
+        not re.fullmatch(
+            r"ghcr\.io/unstaticlabs/usl-odoo-mcp-release@sha256:[0-9a-f]{64}",
+            str(release_manifest),
+        )
+        or not re.fullmatch(r"[0-9a-f]{64}", str(compatibility_sha256))
+    ):
+        raise RuntimeError("GitOps MCP release identity is invalid")
+    manifest = _load_gitops_json(root, manifest_relative)
+    source = manifest.get("source") or {}
+    image = manifest.get("image") or {}
+    compatibility = manifest.get("compatibility") or {}
+    if (
+        manifest.get("schema") != "usl-odoo-mcp-oci-release/v2"
+        or source.get("repository") != "https://github.com/unstaticlabs/odoo-mcp.git"
+        or source.get("ref") != "refs/heads/main"
+        or source.get("commit") != selected["commit"]
+        or image.get("digest_reference") != selected["image"]
+        or compatibility.get("sha256") != compatibility_sha256
+        or (compatibility.get("oauth_vault") or {}).get("schema_version") != 1
+    ):
+        raise RuntimeError("GitOps MCP manifest and ledger differ")
     authority = {**selected, "gitops_commit": gitops_commit}
     authority["sha256"] = hashlib.sha256(json.dumps(
         authority, sort_keys=True, separators=(",", ":"),
@@ -2002,10 +2023,10 @@ def _prepare_receipt(value: object, *, target: str, attempt: str, release: str) 
         or value["runtime_changed"] is not False
         or value["status"] != "prepared"
         or not re.fullmatch(r"[0-9a-f]{64}", str(value["compose_sha256"]))
-        or value["gitops_commit"] is not None
-        and not re.fullmatch(r"[0-9a-f]{40}", str(value["gitops_commit"]))
-        or value["upgrade_plan_sha256"] is not None
-        and not re.fullmatch(r"[0-9a-f]{64}", str(value["upgrade_plan_sha256"]))
+        or (value["gitops_commit"] is not None
+        and not re.fullmatch(r"[0-9a-f]{40}", str(value["gitops_commit"])))
+        or (value["upgrade_plan_sha256"] is not None
+        and not re.fullmatch(r"[0-9a-f]{64}", str(value["upgrade_plan_sha256"])))
     ):
         raise RuntimeError("release prepare receipt identity differs")
     try:
@@ -2122,8 +2143,8 @@ def _backup_run_receipt(
             or not re.fullmatch(r"[0-9a-f]{64}", str(quiescence["baseline_runtime_sha256"]))
             or not isinstance(quiescence["writer_services"], list)
             or not quiescence["writer_services"]
-            or expected_writer_services is not None
-            and quiescence["writer_services"] != expected_writer_services
+            or (expected_writer_services is not None
+            and quiescence["writer_services"] != expected_writer_services)
             or quiescence["stopped_at"] != value["writers_stopped_at"]
         ):
             raise RuntimeError("backup quiescence receipt is invalid")
@@ -2188,8 +2209,8 @@ def _validate_backup_quiescence_receipt(
         or value["writer_services"] != services
         or value["status"] not in {"prepared", "quiesced", "resumed"}
         or not re.fullmatch(r"[0-9a-f]{64}", str(value["baseline_runtime_sha256"]))
-        or value["status"] == "prepared" and value["stopped_at"] is not None
-        or value["status"] != "prepared" and not isinstance(value["stopped_at"], str)
+        or (value["status"] == "prepared" and value["stopped_at"] is not None)
+        or (value["status"] != "prepared" and not isinstance(value["stopped_at"], str))
     ):
         raise RuntimeError("backup quiescence receipt identity differs")
     timestamps = {}
@@ -2251,8 +2272,8 @@ def _staging_checkpoint_receipt(
                 "maintenance_receipt_sha256", "resources_sha256", "controls_sha256",
             )
         )
-        or value["baseline_generation"] is not None
-        and not GENERATION_NAME.fullmatch(str(value["baseline_generation"]))
+        or (value["baseline_generation"] is not None
+        and not GENERATION_NAME.fullmatch(str(value["baseline_generation"])))
     ):
         raise RuntimeError("staging checkpoint receipt identity differs")
     try:
@@ -2297,8 +2318,8 @@ def _staging_reset_intent_receipt(value: object, *, target, admission: dict) -> 
         or not re.fullmatch(
             r"[0-9a-f]{64}", str(value["production_upgrade_plan_sha256"]),
         )
-        or value["staging_baseline_generation"] is not None
-        and not GENERATION_NAME.fullmatch(str(value["staging_baseline_generation"]))
+        or (value["staging_baseline_generation"] is not None
+        and not GENERATION_NAME.fullmatch(str(value["staging_baseline_generation"])))
     ):
         raise RuntimeError("staging reset intent identity differs")
     try:
@@ -2891,6 +2912,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     or captured.get("release", {}).get("manifest_sha256") != release_sha
                 ):
                     raise RuntimeError("resumed backup capture identity differs")
+
             def resume_failed_quiescence() -> None:
                 if not leave_quiesced or not writer_services:
                     return
@@ -4285,14 +4307,14 @@ def _release_attempt_claim(value: object, *, target, attempt: str, release: str)
             else value["gitops_commit"] is not None
         )
         or not re.fullmatch(r"[a-z][a-z0-9-]{1,31}", str(value["source"]))
-        or value["schema"] == "usl-release-attempt/v3"
+        or (value["schema"] == "usl-release-attempt/v3"
         and (
             value["operation_kind"] not in {
                 "production-upgrade", "staging-upgrade", "staging-reset-from-production",
             }
             or not re.fullmatch(r"[0-9a-f]{64}", str(value["source_receipt_sha256"]))
             or not re.fullmatch(r"[0-9a-f]{64}", str(value["baseline_runtime_sha256"]))
-        )
+        ))
         or not all(
             re.fullmatch(r"[0-9a-f]{64}", str(value[field]))
             for field in (
@@ -4303,8 +4325,8 @@ def _release_attempt_claim(value: object, *, target, attempt: str, release: str)
         or value["operation_bundle_sha256"] != hashlib.sha256(
             json.dumps(operation, sort_keys=True, separators=(",", ":")).encode(),
         ).hexdigest()
-        or value["baseline_generation"] is not None
-        and not re.fullmatch(r"g[a-zA-Z0-9._-]{1,31}", str(value["baseline_generation"]))
+        or (value["baseline_generation"] is not None
+        and not re.fullmatch(r"g[a-zA-Z0-9._-]{1,31}", str(value["baseline_generation"])))
     ):
         raise RuntimeError("release attempt claim identity differs")
     try:
@@ -4491,12 +4513,12 @@ def _validate_release_boundary_receipt(
         or not re.fullmatch(r"g[a-zA-Z0-9._-]{1,31}", str(value["generation"]))
         or not re.fullmatch(r"[0-9a-f]{64}", str(value["snapshot"]))
         or not re.fullmatch(r"[0-9a-f]{64}", str(value["operation_bundle_sha256"]))
-        or actual_schema == f"{expected_kind}/v2"
+        or (actual_schema == f"{expected_kind}/v2"
         and (
             not re.fullmatch(r"[0-9a-f]{64}", str(value["runtime_evidence_sha256"]))
             if target.value["environment"] == "staging"
             else value["runtime_evidence_sha256"] is not None
-        )
+        ))
     ):
         raise RuntimeError("release boundary receipt identity differs")
     digest = hashlib.sha256(
@@ -5489,10 +5511,10 @@ def _validate_staging_auth_compose(target, runner, candidate_identity: dict) -> 
     base_url = target.value["endpoints"]["odoo"].rstrip("/")
     paperless_url = str(paperless.get("PAPERLESS_URL", "")).rstrip("/")
     paperless_public_url = str(
-        paperless_preflight.get("PAPERLESS_PUBLIC_URL", "")
+        paperless_preflight.get("PAPERLESS_PUBLIC_URL", ""),
     ).rstrip("/")
     paperless_public_base = str(
-        paperless_preflight.get("PAPERLESS_PUBLIC_BASE_URL", "")
+        paperless_preflight.get("PAPERLESS_PUBLIC_BASE_URL", ""),
     ).rstrip("/")
     configured_paperless_urls = [
         value for value in (paperless_url, paperless_public_url, paperless_public_base) if value
@@ -5529,7 +5551,7 @@ def _validate_staging_auth_compose(target, runner, candidate_identity: dict) -> 
         except (KeyError, TypeError, json.JSONDecodeError) as error:
             raise RuntimeError("rendered public Paperless OIDC contract is invalid") from error
         provider_server = str(
-            (provider.get("settings") or {}).get("server_url", "")
+            (provider.get("settings") or {}).get("server_url", ""),
         ).rstrip("/")
         checks.update({
             "paperless_https_url": (
@@ -5570,7 +5592,7 @@ def _validate_staging_auth_compose(target, runner, candidate_identity: dict) -> 
         for service_name, service in services.items():
             service_networks = service.get("networks") or []
             service_network_names = set(
-                service_networks if isinstance(service_networks, list) else service_networks
+                service_networks if isinstance(service_networks, list) else service_networks,
             )
             resolved_service_networks = {
                 str((rendered_networks.get(name) or {}).get("name", name))
@@ -6939,7 +6961,7 @@ def _validate_recovery_proof_state(value: object, proof_id: str) -> dict:
         or not re.fullmatch(r"[0-9a-f]{64}", str(state["release_identity"]))
         or not re.fullmatch(r"[0-9a-f]{64}", str(state["release_manifest_sha256"]))
         or not re.fullmatch(r"[0-9a-f]{64}", str(state["runtime_sha256"]))
-        or state["backup"] is not None and not isinstance(state["backup"], dict)
+        or (state["backup"] is not None and not isinstance(state["backup"], dict))
     ):
         raise RuntimeError("recovery proof state is invalid")
     started = _recovery_proof_timestamp(state["started_at"], "state.started_at")
@@ -7321,7 +7343,7 @@ def _recovery_proof_environment(
         key: str(value)
         for key, value in services[target.value["services"]["odoo"]].get("environment", {}).items()
         if key in allow["odoo"]
-        or key.startswith("USL_SIGN_") and not key.endswith("PASSWORD")
+        or (key.startswith("USL_SIGN_") and not key.endswith("PASSWORD"))
         or key.startswith("USL_DOCUMENT_RENDERER_")
     }
     selected["odoo"].update({
@@ -7399,7 +7421,7 @@ def _recovery_proof_environment(
     selected["dss"] = {
         key: str(value)
         for key, value in services[target.value["services"]["sign"]].get("environment", {}).items()
-        if key in allow["dss"] or key.startswith("USL_DSS_") and not key.endswith("_URL")
+        if key in allow["dss"] or (key.startswith("USL_DSS_") and not key.endswith("_URL"))
     }
     selected["dss"].update({
         "USL_DSS_PORT": "8443", "USL_DSS_LOTL_URL": "", "USL_DSS_OJ_URL": "",
@@ -7945,9 +7967,9 @@ def _recovery_proof_durable_state(
 
 def _require_recovery_proof_deadline(started: float, deadline_at: str | None = None) -> float:
     elapsed = time.monotonic() - started
-    if elapsed >= RECOVERY_PROOF_MAX_SECONDS or deadline_at is not None and (
+    if elapsed >= RECOVERY_PROOF_MAX_SECONDS or (deadline_at is not None and (
         datetime.now(UTC) >= _recovery_proof_timestamp(deadline_at, "deadline_at")
-    ):
+    )):
         raise RuntimeError("recovery proof exceeded its 1800-second hard deadline")
     return round(elapsed, 3)
 
@@ -8149,7 +8171,7 @@ def _recovery_proof_command_locked(
             state.get("source") != "production"
             or state.get("release_identity") != release["identity"]
             or state.get("release_manifest_sha256") != release_sha
-            or not backup_interrupted and state.get("runtime_sha256") != observed_runtime_sha
+            or (not backup_interrupted and state.get("runtime_sha256") != observed_runtime_sha)
         ):
             raise RuntimeError("recovery proof retry baseline differs")
         runtime_sha = state["runtime_sha256"]
@@ -8192,6 +8214,7 @@ def _recovery_proof_command_locked(
             runtime_sha, started_at, started_monotonic,
         )
         raise
+
     def write_state(phase: str, backup_receipt: dict | None) -> dict:
         elapsed = _require_recovery_proof_deadline(started_monotonic, deadline_at)
         return _write_recovery_proof_evidence(

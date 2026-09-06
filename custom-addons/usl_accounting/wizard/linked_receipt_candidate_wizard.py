@@ -25,7 +25,7 @@ class UslMailPdfCandidateWizard(models.TransientModel):
         candidates = retrieval._extract_candidates(retrieval.source_message_id)
         if not candidates:
             raise UserError(
-                _("No receipt link remains in the source email. Attach the receipt manually.")
+                _("No receipt link remains in the source email. Attach the receipt manually."),
             )
         return [
             (

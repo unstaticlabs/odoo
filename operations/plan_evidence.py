@@ -16,7 +16,6 @@ from typing import Any
 from operations.control_manifest import ControlManifestError, classify
 from operations.module_release import validate_upgrade_plan
 
-
 SCHEMA = "usl-staging-upgrade-plan-evidence/v2"
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 GENERATION = re.compile(r"g[a-zA-Z0-9._-]{1,31}\Z")
@@ -162,7 +161,7 @@ def verify(value: object, public_key: Path) -> dict[str, Any]:
     staging = value.get("staging")
     if not isinstance(staging, dict) or set(staging) != {
         "target", "snapshot", "generation", "candidate_release", "health_sha256",
-        "smoke_sha256", "release_definitions_sha256", "status"
+        "smoke_sha256", "release_definitions_sha256", "status",
     }:
         raise PlanEvidenceError("staging qualification evidence fields differ")
     if staging.get("target") != "staging" or staging.get("status") != "passed":

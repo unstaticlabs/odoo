@@ -1,6 +1,6 @@
 from lxml import html
 
-from odoo import api, fields, models, _
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 
@@ -134,7 +134,7 @@ class UslDocumentLetter(models.Model):
                     "company_id": company.id,
                     "prefix": "LET/%(year)s/",
                     "padding": 5,
-                }
+                },
             )
         return sequence
 
@@ -147,11 +147,11 @@ class UslDocumentLetter(models.Model):
                     raise UserError(
                         _(
                             "Official-letter lifecycle fields are managed by the "
-                            "correspondence workflow."
-                        )
+                            "correspondence workflow.",
+                        ),
                     )
             company = self.env["res.company"].browse(
-                values.get("company_id") or self.env.company.id
+                values.get("company_id") or self.env.company.id,
             )
             values.setdefault(
                 "reference",
@@ -176,7 +176,7 @@ class UslDocumentLetter(models.Model):
             elif tag in {"h2", "h3"}:
                 if text:
                     blocks.append(
-                        {"type": "heading", "level": int(tag[1]), "text": text}
+                        {"type": "heading", "level": int(tag[1]), "text": text},
                     )
             elif tag in {"ul", "ol"}:
                 items = [
@@ -189,7 +189,7 @@ class UslDocumentLetter(models.Model):
                         {
                             "type": "bullet_list" if tag == "ul" else "numbered_list",
                             "items": items,
-                        }
+                        },
                     )
             elif tag == "table":
                 parsed_rows = []
@@ -211,7 +211,7 @@ class UslDocumentLetter(models.Model):
                             "type": "table",
                             "headers": header,
                             "rows": parsed_rows,
-                        }
+                        },
                     )
             elif text:
                 raise ValidationError(
@@ -219,7 +219,7 @@ class UslDocumentLetter(models.Model):
                         "The letter body contains an unsupported %(tag)s block. "
                         "Use paragraphs, headings, lists, or tables.",
                         tag=tag or self.env._("unknown"),
-                    )
+                    ),
                 )
 
         for child in root:
@@ -236,8 +236,8 @@ class UslDocumentLetter(models.Model):
             raise ValidationError(
                 _(
                     "The recipient needs a name and complete postal address before "
-                    "an official letter can be finalized."
-                )
+                    "an official letter can be finalized.",
+                ),
             )
         address_lines = [
             line
@@ -286,7 +286,7 @@ class UslDocumentLetter(models.Model):
                 document_env._("Please accept our sincere regards.")
                 if snapshot["locale"] == "en_US"
                 else document_env._(
-                    "Nous vous prions d’agréer l’expression de nos salutations distinguées."
+                    "Nous vous prions d’agréer l’expression de nos salutations distinguées.",
                 )
             ),
             "signatory_name": snapshot["signatory_name"],
@@ -314,12 +314,12 @@ class UslDocumentLetter(models.Model):
             letter.check_access("write")
             if not letter.company_id.usl_document_renderer_enabled:
                 letter.company_id._usl_document_raise_configuration_error(
-                    _("The governed document renderer is disabled for this company.")
+                    _("The governed document renderer is disabled for this company."),
                 )
             snapshot = letter._current_snapshot()
             locale = snapshot["locale"]
             company_payload, assets = letter.company_id._usl_document_renderer_company_payload(
-                locale
+                locale,
             )
             try:
                 rendered = self.env["usl.document.renderer"].render(
@@ -345,7 +345,7 @@ class UslDocumentLetter(models.Model):
                     "usl_document_renderer_version": rendered["renderer_version"],
                     "usl_document_company_id": letter.company_id.id,
                     "usl_document_rendered_at": fields.Datetime.now(),
-                }
+                },
             )
             letter.with_context(usl_document_letter_system_transition=True).write(
                 {
@@ -353,7 +353,7 @@ class UslDocumentLetter(models.Model):
                     "finalized_at": fields.Datetime.now(),
                     "finalized_snapshot": snapshot,
                     "finalized_attachment_id": attachment.id,
-                }
+                },
             )
             letter.message_post(
                 body=_("Official version %(version)s finalized.", version=letter.version),
@@ -366,7 +366,7 @@ class UslDocumentLetter(models.Model):
             if letter.state != "finalized":
                 raise UserError(_("Only a finalized letter can be marked as sent."))
             letter.with_context(usl_document_letter_system_transition=True).write(
-                {"state": "sent", "sent_at": fields.Datetime.now()}
+                {"state": "sent", "sent_at": fields.Datetime.now()},
             )
         return True
 
@@ -375,7 +375,7 @@ class UslDocumentLetter(models.Model):
             if letter.state not in {"draft", "finalized"}:
                 raise UserError(_("Only a draft or finalized letter can be cancelled."))
             letter.with_context(usl_document_letter_system_transition=True).write(
-                {"state": "cancelled"}
+                {"state": "cancelled"},
             )
         return True
 
@@ -384,7 +384,7 @@ class UslDocumentLetter(models.Model):
         if self.state not in {"finalized", "sent"}:
             raise UserError(_("Only a finalized or sent letter can be corrected."))
         corrected = self.with_context(
-            usl_document_letter_system_transition=True
+            usl_document_letter_system_transition=True,
         ).copy(
             {
                 "version": self.version + 1,
@@ -394,7 +394,7 @@ class UslDocumentLetter(models.Model):
                 "sent_at": False,
                 "finalized_attachment_id": False,
                 "finalized_snapshot": False,
-            }
+            },
         )
         return {
             "type": "ir.actions.act_window",
@@ -421,8 +421,8 @@ class UslDocumentLetter(models.Model):
             raise UserError(
                 _(
                     "Official-letter lifecycle fields are managed by the "
-                    "correspondence workflow."
-                )
+                    "correspondence workflow.",
+                ),
             )
         protected = {
             "company_id",
@@ -438,7 +438,7 @@ class UslDocumentLetter(models.Model):
         for letter in self:
             if letter.state != "draft" and protected.intersection(values):
                 raise UserError(
-                    _("Finalized official content is immutable. Create a correction instead.")
+                    _("Finalized official content is immutable. Create a correction instead."),
                 )
             if "state" in values:
                 allowed = {

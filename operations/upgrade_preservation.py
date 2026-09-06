@@ -1,5 +1,6 @@
 """Prove existing records survive upgrades while allowing newly created records."""
 from __future__ import annotations
+
 import hashlib
 import json
 import re
@@ -34,7 +35,7 @@ def fingerprint_sql(scope: dict) -> str:
     sections = []
     for table, key in TABLES.items():
         item = scope[table]
-        columns = ','.join("'"+c+"'" for c in item['columns'])
+        columns = ','.join("'" + c + "'" for c in item['columns'])
         # Preserve the original column set: adding a column is a schema change,
         # not a rewrite of the existing business values.
         row = f"(SELECT jsonb_object_agg(c.key, c.value ORDER BY c.key) FROM jsonb_each(to_jsonb(r)) c WHERE c.key = ANY(ARRAY[{columns}]))"
@@ -73,7 +74,7 @@ def capture(execute) -> dict:
 
 
 def verify(before: dict, execute) -> dict:
-    if not isinstance(before, dict) or set(before) != {'schema','scope','fingerprints'} or before['schema'] != SCHEMA:
+    if not isinstance(before, dict) or set(before) != {'schema', 'scope', 'fingerprints'} or before['schema'] != SCHEMA:
         raise ValueError('upgrade preservation evidence fields differ')
     scope = validate_scope(before['scope'])
     # A removed column is not silently converted to NULL by the projection.
@@ -86,5 +87,5 @@ def verify(before: dict, execute) -> dict:
     changed = [table for table in TABLES if before['fingerprints'][table] != after[table]]
     if changed:
         raise ValueError('upgrade changed or removed existing records: ' + ', '.join(changed))
-    digest = hashlib.sha256(json.dumps(before, sort_keys=True, separators=(',',':')).encode()).hexdigest()
+    digest = hashlib.sha256(json.dumps(before, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
     return {'schema': SCHEMA, 'status': 'preserved', 'baseline_sha256': digest, 'scope': scope, 'fingerprints': after}

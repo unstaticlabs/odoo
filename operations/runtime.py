@@ -14,8 +14,8 @@ from pathlib import Path
 from typing import Any, Protocol
 from urllib.parse import urlsplit
 
-from operations.release_manifest import ReleaseManifestError, validate as validate_release
-
+from operations.release_manifest import ReleaseManifestError
+from operations.release_manifest import validate as validate_release
 
 SCHEMA = "usl-runtime/v1"
 TARGET_NAME = re.compile(r"[a-z][a-z0-9-]{1,31}\Z")
@@ -563,6 +563,7 @@ def _json_lines(output: str) -> list[dict[str, Any]]:
 
 def compose_identity(target: Target, runner: Runner) -> dict[str, Any]:
     anchor = target.value["compose"]["anchor_service"]
+
     def service_containers(service: str) -> list[str]:
         process = runner.run(
             [
@@ -730,7 +731,7 @@ def read_active_state(target: Target, runner: Runner) -> dict[str, Any] | None:
     if not SHA256.fullmatch(str(state["snapshot"])):
         raise RuntimeError("active generation snapshot is invalid")
     if not isinstance(state["release_manifest"], str) or not state["release_manifest"].startswith(
-        target.value["state_directory"] + "/generations/"
+        target.value["state_directory"] + "/generations/",
     ):
         raise RuntimeError("active generation release manifest is invalid")
     return state

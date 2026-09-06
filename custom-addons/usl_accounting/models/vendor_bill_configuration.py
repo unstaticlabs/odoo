@@ -4,7 +4,6 @@ from collections.abc import Mapping, Sequence
 from odoo import Command, _, api, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
-
 HEADER_FIELDS = {
     "partner_id",
     "invoice_date",

@@ -1,7 +1,7 @@
 import io
 import zipfile
 
-from odoo import fields, models, _
+from odoo import _, fields, models
 from odoo.exceptions import UserError
 
 
@@ -97,7 +97,7 @@ class ResConfigSettings(models.TransientModel):
         return {
             "invoice.v1": {
                 "qualification_label": document_env._(
-                    "SYNTHETIC QUALIFICATION SAMPLE - NOT A REAL DOCUMENT"
+                    "SYNTHETIC QUALIFICATION SAMPLE - NOT A REAL DOCUMENT",
                 ),
                 "kind": "invoice",
                 "number": "PREVIEW/2026/0001",
@@ -115,13 +115,13 @@ class ResConfigSettings(models.TransientModel):
                 "lines": [
                     {
                         "description": document_env._(
-                            "Professional services - preview data"
+                            "Professional services - preview data",
                         ),
                         "quantity": "1",
                         "unit_price": "1 000,00 €",
                         "taxes": "20 %",
                         "total": "1 000,00 €",
-                    }
+                    },
                 ],
                 "totals": [
                     {"label": document_env._("Subtotal"), "amount": "1 000,00 €"},
@@ -129,17 +129,17 @@ class ResConfigSettings(models.TransientModel):
                     {"label": document_env._("Total"), "amount": "1 200,00 €"},
                 ],
                 "payment_terms": document_env._(
-                    "Synthetic preview - not an invoice."
+                    "Synthetic preview - not an invoice.",
                 ),
                 "legal_mentions": [
                     document_env._(
-                        "Preview document - no legal or accounting value."
-                    )
+                        "Preview document - no legal or accounting value.",
+                    ),
                 ],
             },
             "accounting_statement.v2": {
                 "qualification_label": document_env._(
-                    "SYNTHETIC QUALIFICATION SAMPLE - NOT A REAL DOCUMENT"
+                    "SYNTHETIC QUALIFICATION SAMPLE - NOT A REAL DOCUMENT",
                 ),
                 "title": document_env._("Income statement preview"),
                 "reference": "PREVIEW-ACCOUNTING",
@@ -172,12 +172,12 @@ class ResConfigSettings(models.TransientModel):
                     ],
                 }],
                 "basis_note": document_env._(
-                    "Synthetic preview - not an accounting statement."
+                    "Synthetic preview - not an accounting statement.",
                 ),
             },
             "official_letter.v1": {
                 "qualification_label": document_env._(
-                    "SYNTHETIC QUALIFICATION SAMPLE - NOT A REAL DOCUMENT"
+                    "SYNTHETIC QUALIFICATION SAMPLE - NOT A REAL DOCUMENT",
                 ),
                 "reference": "PREVIEW-LETTER",
                 "date": today,
@@ -194,7 +194,7 @@ class ResConfigSettings(models.TransientModel):
                     {
                         "type": "paragraph",
                         "text": document_env._(
-                            "This synthetic document previews the official correspondence layout."
+                            "This synthetic document previews the official correspondence layout.",
                         ),
                     },
                     {
@@ -218,12 +218,12 @@ class ResConfigSettings(models.TransientModel):
             },
             "sign_completion.v1": {
                 "qualification_label": document_env._(
-                    "SYNTHETIC QUALIFICATION SAMPLE - NOT A REAL DOCUMENT"
+                    "SYNTHETIC QUALIFICATION SAMPLE - NOT A REAL DOCUMENT",
                 ),
                 "reference": "PREVIEW-SIGN",
                 "completed_at": today,
                 "summary": document_env._(
-                    "Synthetic completion evidence for layout review only; no signature is represented."
+                    "Synthetic completion evidence for layout review only; no signature is represented.",
                 ),
                 "signers": [
                     {
@@ -231,7 +231,7 @@ class ResConfigSettings(models.TransientModel):
                         "role": document_env._("Signatory"),
                         "signed_at": today,
                         "status": document_env._("Completed"),
-                    }
+                    },
                 ],
                 "evidence": [
                     {"label": "SHA-256", "value": "0" * 64},
@@ -241,7 +241,7 @@ class ResConfigSettings(models.TransientModel):
                     },
                 ],
                 "disclaimer": document_env._(
-                    "Preview only. The production certificate is generated from retained signing evidence."
+                    "Preview only. The production certificate is generated from retained signing evidence.",
                 ),
             },
         }
@@ -251,7 +251,7 @@ class ResConfigSettings(models.TransientModel):
         company = self.company_id
         if not company.usl_document_identity_ready:
             company._usl_document_raise_configuration_error(
-                company.usl_document_identity_message
+                company.usl_document_identity_message,
             )
         locale = "fr_FR" if (company.partner_id.lang or "").startswith("fr") else "en_US"
         company_payload, assets = company._usl_document_renderer_company_payload(locale)
@@ -259,7 +259,7 @@ class ResConfigSettings(models.TransientModel):
         output = io.BytesIO()
         with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as archive:
             for template in self.env["usl.document.template"].search(
-                [("active", "=", True)], order="key"
+                [("active", "=", True)], order="key",
             ):
                 if template.key not in documents:
                     continue
@@ -282,7 +282,7 @@ class ResConfigSettings(models.TransientModel):
                 "res_model": "res.company",
                 "res_id": company.id,
                 "description": _("Synthetic preview pack - no legal value"),
-            }
+            },
         )
         return {
             "type": "ir.actions.act_url",

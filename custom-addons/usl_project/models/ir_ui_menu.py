@@ -1,6 +1,5 @@
 from odoo import models
 
-
 FAVORITE_PROJECT_MENU_LIMIT = 12
 
 
