@@ -61,13 +61,12 @@ the backup snapshot records, and the preparation receipt must carry the same
 plan `sha256`. User-facing release notes may describe the branch-specific
 release and do not affect the qualified runtime tree.
 
-`release plan --promote` still exists on a staging target, but the GitOps
-launcher does not call it for a production rollout. It compares the deployable
-content of the staging and production releases: component images, module
-inventory, MCP contract, renderer, Ollama contract, and the foundation Odoo
-series, core, OCA, Python-constraints and security-policy hashes. It ignores
-the foundation `odoo_core_commit` and `digest` fields because they change on
-every production merge while the deployed content stays the same.
+The staging-signed production plan promotion no longer exists. The
+`release plan --promote` command and the
+`usl-production-upgrade-plan-promotion/v1` envelope were removed after the
+first native production rollout on 2026-09-06. Staging signs its plan only for
+its own admission. The GitOps daily controller compares the `19-usl` and
+`19-usl-staging` branches before it requests a production release.
 
 Qualification has one consolidated host-side compatibility job and one
 event-gated database job. Staging pull requests and merge-queue commits run no
@@ -216,9 +215,10 @@ The operations image includes a pinned Docker client and Compose plugin, so the
 fixed host launcher does not depend on whatever client happens to be installed
 inside another application image.
 
-## Coordinated rollout of the production planner
+## Rollout of the production planner
 
-A native production rollout needs two paired changes:
+The native production planner rolled out on 2026-09-06 with release
+`0c453b55`. A native production rollout needs two parts:
 
 - an operations image that contains commit `ba3e6a44d` of this repository.
   It accepts a `usl-module-upgrade-plan/v1` plan on a production target.
@@ -226,14 +226,8 @@ A native production rollout needs two paired changes:
   It derives the production plan with `release plan` and passes that plan to
   `release prepare` and `release reconcile`.
 
-Do not deploy one side alone. An operations image without `ba3e6a44d` rejects
-the derived plan with `production requires a staging-signed production
-promotion`. An operations image with `ba3e6a44d` rejects the old promotion
-envelope with `upgrade plan fields differ`.
-
-The signed release `0ad80a6` predates `ba3e6a44d`. Its operations image cannot
-deploy natively through the new launcher. Publish a release that contains
-`ba3e6a44d` before you run a native production rollout.
+An operations image with this change rejects an old promotion envelope with
+`upgrade plan fields differ`. No supported launcher sends that envelope.
 
 ## Restore and admission
 
@@ -383,10 +377,8 @@ classes:
 
 - business-history controls must remain exactly equal through restore and
   upgrade, including posted Accounting and reconciliation fingerprints;
-- release-owned access controls may change; when the supplied plan carries
-  staging-signed evidence, production must match the release-definitions
-  digest signed after the staging upgrade. A plan that production derives
-  itself carries no such digest;
+- release-owned access controls may change. A plan that production derives
+  itself carries no staging digest to compare;
 - known pending queues may drain while writers are stopped, but may not grow,
   and every failed queue or cron count must remain zero.
 

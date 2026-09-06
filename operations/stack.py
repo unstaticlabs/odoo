@@ -53,7 +53,6 @@ from operations.module_release import (
 )
 from operations.plan_evidence import (
     PlanEvidenceError,
-    promote as promote_upgrade_plan,
     sign as sign_upgrade_plan,
     verify as verify_upgrade_plan,
 )
@@ -2413,25 +2412,6 @@ def _require_same_preparation(current: dict, receipt: dict) -> None:
     ):
         if current.get(field) != receipt.get(field):
             raise RuntimeError(f"release preparation changed after maintenance: {field}")
-
-
-def _staging_release_definitions_sha256(plan_evidence: dict | None) -> str | None:
-    """Return the staging-qualified release definitions digest carried by a plan.
-
-    Only staging-signed evidence and its production promotion envelope carry
-    staging evidence. A plan that production derives from its own baseline
-    carries none, so there is nothing to compare.
-    """
-    if plan_evidence is None:
-        return None
-    staging_evidence = plan_evidence.get("staging_evidence", plan_evidence)
-    staging = staging_evidence.get("staging") if isinstance(staging_evidence, dict) else None
-    if not isinstance(staging, dict):
-        return None
-    value = staging.get("release_definitions_sha256")
-    if not isinstance(value, str) or not value:
-        raise RuntimeError("staging evidence lacks its release definitions digest")
-    return value
 
 
 def _validated_release_upgrade_plan(target, value: object, release: dict) -> dict:
@@ -6083,7 +6063,6 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             required_endpoints=_required_maintenance_endpoints(target),
         )
     upgrade_plan = None
-    signed_plan_evidence = None
     cron_policy_application = None
     environment_state_preservation = None
     pocketid_admission = None
@@ -6091,8 +6070,6 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         try:
             plan_value = json.loads(_read_path(target, target_runner, arguments.upgrade_plan))
             upgrade_plan = _validated_release_upgrade_plan(target, plan_value, release)
-            if target.value["environment"] == "production":
-                signed_plan_evidence = plan_value
         except (json.JSONDecodeError, ModuleReleaseError, PlanEvidenceError) as error:
             raise RuntimeError("upgrade plan is invalid") from error
     tool_image = _operations_image(release)
@@ -6367,9 +6344,6 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     try:
         health = _gate(health_command, target, arguments.targets)
         smoke = _gate(smoke_command, target, arguments.targets)
-        expected_release_definitions_sha256 = _staging_release_definitions_sha256(
-            signed_plan_evidence,
-        )
         preservation_proof = None
         compared_controls = smoke["controls"]
         if preservation_baseline is not None:
@@ -6394,10 +6368,6 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
                 ).hexdigest()
         except ControlManifestError as error:
             raise RuntimeError(str(error)) from error
-        if expected_release_definitions_sha256 is not None and (
-            smoke.get("release_definitions_sha256") != expected_release_definitions_sha256
-        ):
-            raise RuntimeError("production release definitions differ from staging qualification")
         production_activation = None
         if target.value["environment"] == "production" and attempt is None:
             # The candidate databases now run on the canonical Compose network.
@@ -9765,46 +9735,6 @@ def release_command(arguments: argparse.Namespace) -> int:
         print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
         return 0
     if arguments.action == "plan":
-        if arguments.promote:
-            if target.value["environment"] != "staging":
-                raise RuntimeError("only staging may sign a production plan promotion")
-            if not arguments.upgrade_plan or not arguments.staging_release or not arguments.candidate_release:
-                raise RuntimeError(
-                    "plan promotion requires staging evidence and both release manifests",
-                )
-            try:
-                evidence = json.loads(_read_path(target, runner, arguments.upgrade_plan))
-                staging_release = validate_release(json.loads(
-                    _read_path(target, runner, arguments.staging_release),
-                ))
-                production_release = validate_release(json.loads(
-                    _read_path(target, runner, arguments.candidate_release),
-                ))
-                promoted = promote_upgrade_plan(
-                    evidence,
-                    staging_release,
-                    production_release,
-                    Path(target.value["plan_signing"]["private_key"]),
-                    Path(target.value["plan_signing"]["public_key"]),
-                )
-            except (json.JSONDecodeError, ReleaseManifestError, PlanEvidenceError) as error:
-                raise RuntimeError(f"production plan promotion is invalid: {error}") from error
-            output = arguments.output or arguments.upgrade_plan
-            _write_remote(
-                target,
-                runner,
-                str(output),
-                json.dumps(promoted, indent=2, sort_keys=True) + "\n",
-                "0644",
-            )
-            print(json.dumps({
-                "schema": promoted["schema"],
-                "path": str(output),
-                "staging_release": staging_release["identity"],
-                "production_release": production_release["identity"],
-                "status": "signed",
-            }, indent=None if arguments.json else 2, sort_keys=True))
-            return 0
         if arguments.attest:
             if target.value["environment"] != "staging":
                 raise RuntimeError("only staging may attest an upgrade plan")
@@ -10356,8 +10286,6 @@ def build_parser() -> argparse.ArgumentParser:
     release.add_argument("--candidate-release", type=Path)
     release.add_argument("--upgrade-plan", type=Path)
     release.add_argument("--attest", action="store_true")
-    release.add_argument("--promote", action="store_true")
-    release.add_argument("--staging-release", type=Path)
     release.add_argument("--snapshot")
     release.add_argument("--generation")
     release.add_argument("--output", type=Path)
