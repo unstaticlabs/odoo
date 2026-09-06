@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# Keep the integration branch from falling behind production.
+#
+# Production advances on its own in two ways: an urgent/** pull request merges
+# straight into 19-usl, and every staging promotion adds a merge commit that
+# exists only on 19-usl. Both leave 19-usl-staging behind. This opens the
+# back-merge pull request that restores the shared ancestry.
+set -euo pipefail
+
+production=19-usl
+staging=19-usl-staging
+
+git fetch --quiet origin "$production" "$staging"
+
+if git merge-base --is-ancestor "origin/$production" "origin/$staging"; then
+  echo "staging already contains production; no back-merge required"
+  exit 0
+fi
+
+echo "staging is $(git rev-list --count "origin/$staging..origin/$production") commit(s) behind production:"
+git log --oneline "origin/$staging..origin/$production"
+
+if ! git merge-tree --write-tree "origin/$staging" "origin/$production" >/dev/null; then
+  echo "::error::production does not merge cleanly into staging; resolve the back-merge by hand"
+  exit 1
+fi
+
+number="$(gh pr list --repo "$GITHUB_REPOSITORY" --base "$staging" --head "$production" \
+  --state open --json number --jq '.[0].number // empty')"
+
+if [ -z "$number" ]; then
+  url="$(gh pr create --repo "$GITHUB_REPOSITORY" --base "$staging" --head "$production" \
+    --title "chore(release): back-merge production into staging" \
+    --body "Production is ahead of the integration branch. Merging it back restores the
+shared ancestry so \`19-usl-staging\` is never behind \`19-usl\`.
+
+Opened automatically; it carries no change of its own. The merge commit adds
+production's tip as a second parent, which is what stops the two lines from
+diverging again.")"
+  echo "opened $url"
+  number="${url##*/}"
+else
+  echo "back-merge pull request #$number is already open"
+fi
+
+# The head commit is production's tip, which qualification already ran on when
+# it was pushed to 19-usl, so the queue admits it without a fresh build.
+gh pr merge "$number" --repo "$GITHUB_REPOSITORY" --auto --merge
