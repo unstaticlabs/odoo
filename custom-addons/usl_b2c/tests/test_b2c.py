@@ -334,6 +334,22 @@ class TestB2cFoundation(TransactionCase):
         )
 
     def test_zero_stock_allocation_placeholder_is_archived(self):
+        # The migration identifies its subject by internal reference, so the
+        # replay has to own that reference. A database restored from production
+        # already carries the real products, so release those codes for this
+        # transaction: the test proves the migration, not the host data.
+        self.env["product.product"].with_context(active_test=False).search(
+            [
+                (
+                    "default_code",
+                    "in",
+                    [
+                        "PADLOCK_MASTER_9120EUR_ASSORTED_UNALLOCATED",
+                        "GBC-ML-9120-QCOLNOP",
+                    ],
+                ),
+            ],
+        ).write({"default_code": False})
         placeholder = self.env["product.product"].create(
             {
                 "name": "Master locks awaiting colour allocation",
