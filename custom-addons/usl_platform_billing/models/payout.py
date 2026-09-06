@@ -84,8 +84,10 @@ class UslPlatformBillingPayout(models.Model):
         copy=False,
         tracking=True,
         help=(
-            "Bank-created payouts value their generated documents from the actual "
-            "company-currency bank amount. Other payouts use Odoo's reference rate."
+            "Effective Bank Rate uses a receipt already in company currency "
+            "(for example USD paid into a EUR account). A foreign-currency "
+            "bank account (USD paid into USD) uses Odoo Reference Rate, with "
+            "any exchange difference recorded on reconciliation."
         ),
     )
     bank_rate_company_amount = fields.Monetary(
@@ -265,7 +267,7 @@ class UslPlatformBillingPayout(models.Model):
     def _compute_platform_amounts(self):
         for payout in self:
             rate = payout.commission_rate_snapshot or 0.0
-            if not payout.platform_currency_id or not 0.0 < rate < 100.0:
+            if not payout.platform_currency_id or not 0.0 <= rate < 100.0:
                 payout.gross_platform_amount = 0.0
                 payout.commission_platform_amount = 0.0
                 continue
@@ -333,8 +335,9 @@ class UslPlatformBillingPayout(models.Model):
         if self.bank_currency_id != self.company_currency_id:
             errors.append(
                 _(
-                    "Effective bank-rate valuation requires a bank transaction "
-                    "in the company currency.",
+                    "Effective Bank Rate requires receipts in the company currency. "
+                    "For a foreign-currency bank account (for example USD to USD), "
+                    "use Odoo Reference Rate; reconciliation records any exchange difference.",
                 ),
             )
         if not self.bank_allocation_ids:
@@ -537,8 +540,8 @@ class UslPlatformBillingPayout(models.Model):
                 and payout.platform_currency_id != payout.platform_id.currency_id
             ):
                 errors.append(_("The payout currency differs from the platform currency."))
-            if not 0.0 < payout.commission_rate_snapshot < 100.0:
-                errors.append(_("The commission snapshot must be between 0% and 100%."))
+            if not 0.0 <= payout.commission_rate_snapshot < 100.0:
+                errors.append(_("The commission snapshot must be at least 0% and below 100%."))
             if payout.net_platform_amount <= 0:
                 errors.append(_("The platform net amount must be positive."))
             errors.extend(payout._bank_rate_validation_errors())
@@ -586,16 +589,14 @@ class UslPlatformBillingPayout(models.Model):
                 )
             if payout.net_platform_amount < 0:
                 raise ValidationError(_("The platform net amount cannot be negative."))
-            if payout.commission_rate_snapshot and not (
-                0.0 < payout.commission_rate_snapshot < 100.0
-            ):
+            if not 0.0 <= payout.commission_rate_snapshot < 100.0:
                 raise ValidationError(
-                    _("The commission snapshot must be between 0% and 100%."),
+                    _("The commission snapshot must be at least 0% and below 100%."),
                 )
             complete = bool(
                 payout.platform_id
                 and payout.platform_currency_id
-                and 0.0 < payout.commission_rate_snapshot < 100.0
+                and 0.0 <= payout.commission_rate_snapshot < 100.0
                 and payout.net_platform_amount > 0,
             )
             if payout.state != "draft" and not complete:
@@ -730,9 +731,12 @@ class UslPlatformBillingPayout(models.Model):
                 )
             )
 
-        if not document_is_settled(
-            self.customer_invoice_id,
-        ) or not document_is_settled(self.vendor_bill_id):
+        if not document_is_settled(self.customer_invoice_id):
+            return False
+        bill_required = bool(self.vendor_bill_id) or not self.platform_currency_id.is_zero(
+            self.commission_platform_amount,
+        )
+        if bill_required and not document_is_settled(self.vendor_bill_id):
             return False
         compensation = self.compensation_move_id
         if not compensation:

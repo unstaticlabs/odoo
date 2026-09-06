@@ -1086,11 +1086,9 @@ msgstr "Taux effectif"
 #. odoo-python
 #: code:addons/usl_platform_billing/models/payout.py:0
 msgid ""
-"Effective bank-rate valuation requires a bank transaction in the company "
-"currency."
+"Effective Bank Rate requires receipts in the company currency. For a foreign-currency bank account (for example USD to USD), use Odoo Reference Rate; reconciliation records any exchange difference."
 msgstr ""
-"La valorisation au taux bancaire effectif nécessite une transaction bancaire"
-" dans la devise de la société."
+"Le taux bancaire effectif nécessite un encaissement dans la devise de la société. Pour un compte bancaire en devise étrangère (par exemple USD vers USD), utilisez le taux de référence Odoo ; le rapprochement comptabilise l’éventuel écart de change."
 
 #. module: usl_platform_billing
 #. odoo-python
@@ -2608,15 +2606,26 @@ msgstr ""
 #. module: usl_platform_billing
 #. odoo-python
 #: code:addons/usl_platform_billing/models/platform.py:0
-msgid "The commission rate must be strictly between 0% and 100%."
+msgid "The commission rate must be at least 0% and below 100%."
 msgstr ""
-"Le taux de commission doit être strictement compris entre 0 % et 100 %."
+"Le taux de commission doit être supérieur ou égal à 0 % et inférieur à 100 %."
 
 #. module: usl_platform_billing
 #. odoo-python
 #: code:addons/usl_platform_billing/models/payout.py:0
-msgid "The commission snapshot must be between 0% and 100%."
-msgstr "Le taux de commission figé doit être compris entre 0 % et 100 %."
+msgid "The commission snapshot must be at least 0% and below 100%."
+msgstr "Le taux de commission figé doit être supérieur ou égal à 0 % et inférieur à 100 %."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/models/session.py:0
+msgid "%(platform)s: set the country on %(partner)s and review its fiscal position before generating documents. Tax location cannot be inferred from the payout currency."
+msgstr "%(platform)s : renseignez le pays de %(partner)s et vérifiez sa position fiscale avant de générer les documents. La devise du versement ne permet pas de déterminer la localisation fiscale."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_payout__currency_valuation_method
+msgid "Effective Bank Rate uses a receipt already in company currency (for example USD paid into a EUR account). A foreign-currency bank account (USD paid into USD) uses Odoo Reference Rate, with any exchange difference recorded on reconciliation."
+msgstr "Le taux bancaire effectif utilise un encaissement dans la devise de la société (par exemple USD vers un compte EUR). Un compte bancaire en devise étrangère (USD vers USD) utilise le taux de référence Odoo ; l’éventuel écart de change est comptabilisé lors du rapprochement."
 
 #. module: usl_platform_billing
 #. odoo-python

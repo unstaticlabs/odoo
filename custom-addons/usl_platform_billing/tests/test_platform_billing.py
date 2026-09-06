@@ -33,6 +33,7 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
             },
         )
         cls.platform_partner = cls.partner_a
+        cls.platform_partner.country_id = cls.env.ref("base.us")
         cls.platform = cls.env["usl.platform.billing.platform"].create(
             {
                 "name": "CreatorHub",
@@ -481,6 +482,129 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
             mute_logger("odoo.sql_db"),
         ):
             self._payout(session, reference=payout.platform_reference)
+
+    def test_zero_and_rounded_zero_commission_do_not_create_bills(self):
+        for grouping in ("monthly", "per_payout"):
+            for rate in (0.0, 0.0001):
+                with self.subTest(grouping=grouping, rate=rate):
+                    self.platform.write({"commission_rate": rate, "vendor_bill_grouping_mode": grouping})
+                    session = self._session(name=f"Zero commission {grouping} {rate}")
+                    payout = self._payout(session, reference=f"zero-{grouping}-{rate}")
+                    self._generate_and_post(session)
+                    self.assertEqual(payout.gross_platform_amount, 80)
+                    self.assertFalse(payout.commission_platform_amount)
+                    self.assertFalse(payout.vendor_bill_id)
+                    self.assertFalse(payout.compensation_move_id)
+                    self.assertEqual(session.generated_move_ids, payout.customer_invoice_id)
+                    bank = self._bank_line(80, label=f"zero receipt {grouping} {rate}")
+                    self._allocation(payout, bank)
+                    session.action_reconcile_bank()
+                    self.assertTrue(bank.is_reconciled)
+                    self.assertEqual(payout.state, "paid")
+                    self.assertEqual(session.state, "paid")
+
+    def test_prefill_preserves_explicit_zero_snapshot(self):
+        session = self._session()
+        payout = self._payout(session)
+        payout.commission_rate_snapshot = 0
+        session.action_prefill()
+        self.assertEqual(payout.commission_rate_snapshot, 0)
+        self.assertEqual(payout.gross_platform_amount, payout.net_platform_amount)
+
+    def test_monthly_bill_excludes_zero_commission_payouts(self):
+        session = self._session()
+        zero = self._payout(session, reference="mixed-zero")
+        zero.commission_rate_snapshot = 0
+        charged = self._payout(session, reference="mixed-charged")
+        self._generate_and_post(session)
+        self.assertFalse(zero.vendor_bill_id)
+        self.assertFalse(zero.compensation_move_id)
+        self.assertEqual(charged.vendor_bill_id.amount_total, 20)
+        self.assertEqual(charged.vendor_bill_id.platform_billing_payout_ids, charged)
+
+    def test_foreign_bank_import_defaults_to_reference_rate(self):
+        foreign = self.env["res.currency"].create({"name": "WFX", "symbol": "W", "rounding": 0.01})
+        journal = self.company_data["default_journal_bank"].copy({"name": "Synthetic USD bank", "code": "WFX", "currency_id": foreign.id})
+        platform = self.platform.copy({"name": "Synthetic USD platform", "currency_id": foreign.id, "bank_journal_id": journal.id, "bank_label_pattern": "WFX {ref}"})
+        session = self._session()
+        session.bank_currency_id = foreign
+        bank = self._bank_line(80, journal=journal, label="WFX receipt-001")
+        wizard = self._bank_wizard(session, mode="create")
+        wizard.candidate_ids.filtered(lambda row: row.bank_statement_line_id == bank).selected = True
+        wizard.action_create_payouts()
+        payout = session.payout_ids
+        self.assertEqual(payout.platform_id, platform)
+        self.assertEqual(payout.currency_valuation_method, "reference")
+        payout.net_platform_amount = 80
+        self.assertFalse(payout._bank_rate_validation_errors())
+        payout._workflow_write({"currency_valuation_method": "bank"})
+        self.assertIn("use Odoo Reference Rate", " ".join(payout._bank_rate_validation_errors()))
+
+    def test_tax_country_required_before_generation(self):
+        session = self._session()
+        self._payout(session)
+        self.platform_partner.country_id = False
+        with self.assertRaisesRegex(UserError, "country"):
+            session.action_check()
+        self.assertFalse(session.generated_move_ids)
+        self.platform_partner.country_id = self.env.ref("base.us")
+        session.action_check()
+        self.platform_partner.country_id = False
+        with self.assertRaisesRegex(UserError, "country"):
+            session.action_generate_documents()
+        self.assertFalse(session.generated_move_ids)
+
+    def test_bank_wizard_onchange_roundtrip_preserves_candidate_links(self):
+        session = self._session()
+        unused_bank = self._bank_line(91.80, label="Unselected synthetic receipt")
+        bank = self._bank_line(43.73, label="Synthetic Remitly receipt")
+        wizard = self._bank_wizard(session, mode="create").with_user(self.operator)
+        with Form(wizard) as form:
+            form.candidate_scope = "recommended"
+            form.candidate_scope = "all"
+            for index in range(len(form.candidate_ids)):
+                with form.candidate_ids.edit(index) as candidate_form:
+                    candidate_form.selected = candidate_form.bank_statement_line_id == bank
+        self.assertTrue(wizard.candidate_ids)
+        self.assertTrue(all(wizard.candidate_ids.mapped("bank_statement_line_id")))
+        candidate = wizard.candidate_ids.filtered(lambda line: line.bank_statement_line_id == bank)
+        self.assertTrue(candidate.selected)
+        wizard.action_create_payouts()
+        self.assertEqual(session.payout_ids.bank_allocation_ids.bank_statement_line_id, bank)
+        self.assertFalse(unused_bank.is_reconciled)
+        with self.assertRaises(AccessError):
+            session.payout_ids.with_user(self.operator).unlink()
+        self.manager.group_ids += self.env.ref("usl_access_control.group_irreversible_actions")
+        session.payout_ids.with_user(self.manager).unlink()
+        replacement = self._bank_wizard(session, mode="create").with_user(self.operator)
+        with Form(replacement) as form:
+            form.candidate_scope = "recommended"
+            form.candidate_scope = "all"
+            for index in range(len(form.candidate_ids)):
+                with form.candidate_ids.edit(index) as candidate_form:
+                    candidate_form.selected = candidate_form.bank_statement_line_id == bank
+        replacement.action_create_payouts()
+        self.assertEqual(len(session.payout_ids), 1)
+        self.assertEqual(session.payout_ids.bank_allocation_ids.bank_statement_line_id, bank)
+
+    def test_exchange_carryover_account_follows_actual_balance(self):
+        session = self._session()
+        payout = self._payout(session)
+        self._generate_and_post(session)
+        line = payout.customer_invoice_id.line_ids.filtered(lambda item: item.account_id.account_type == "asset_receivable")
+        expense = self.company.expense_currency_exchange_account_id
+        income = self.company.income_currency_exchange_account_id
+        expense.rebuild_entry_direction_policy = "debit"
+        income.rebuild_entry_direction_policy = "credit"
+        for amount, wrong_account, expected in ((10, income, expense), (-10, expense, income)):
+            values = line.with_context(exchange_account_per_move={line.move_id: wrong_account.id})._prepare_exchange_difference_move_vals([{"amount_residual": amount}])
+            counterpart = values["move_values"]["line_ids"][1][2]
+            self.assertEqual(counterpart["account_id"], expected.id)
+            self.assertEqual(counterpart["debit"] - counterpart["credit"], amount)
+            move = self.env["account.move"].create(values["move_values"])
+            move.action_post()
+            self.assertEqual(move.state, "posted")
+            self.assertEqual(sum(move.line_ids.mapped("balance")), 0)
 
     def test_effective_accounts_are_visible_and_checked_before_generation(self):
         self.assertEqual(
