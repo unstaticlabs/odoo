@@ -666,7 +666,12 @@ patch(MessagingMenu.prototype, {
                 try {
                     const screenshot = await captureFeedbackPagePreview();
                     this.feedbackChatWindow.completeCapture(captureId, screenshot);
-                } catch {
+                } catch (error) {
+                    // Never log the exception, DOM, URLs or image data. These bounded
+                    // categories still distinguish browser failures from provider errors.
+                    const name = ["SecurityError", "EncodingError", "InvalidStateError", "TimeoutError"].includes(error?.name)
+                        ? error.name : "CaptureError";
+                    console.warn("Feedback page preview failed", name);
                     this.feedbackChatWindow.failCapture(captureId);
                 }
             }, 0);

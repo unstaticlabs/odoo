@@ -214,12 +214,21 @@ function canvasToBlob(canvas, options = {}) {
 function createImage(url) {
     return new Promise((resolve, reject) => {
         const img = new Image();
-        img.onload = () => {
-            img.decode().then(() => {
-                requestAnimationFrame(() => resolve(img));
-            });
+        const timer = setTimeout(() => {
+            img.onload = img.onerror = null;
+            reject(new DOMException("Preview image decoding timed out.", "TimeoutError"));
+        }, 15000);
+        const fail = () => {
+            clearTimeout(timer);
+            reject(new DOMException("Preview image decoding failed.", "EncodingError"));
         };
-        img.onerror = reject;
+        img.onload = () => {
+            (img.decode ? img.decode() : Promise.resolve()).then(() => {
+                clearTimeout(timer);
+                requestAnimationFrame(() => resolve(img));
+            }, fail);
+        };
+        img.onerror = fail;
         img.crossOrigin = "anonymous";
         img.decoding = "async";
         img.src = url;
@@ -231,12 +240,14 @@ async function svgToDataURL(svg) {
         .then(encodeURIComponent)
         .then((html) => `data:image/svg+xml;charset=utf-8,${html}`);
 }
-async function nodeToDataURL(node, width, height) {
+async function nodeToDataURL(node, width, height, options = {}) {
     const xmlns = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(xmlns, "svg");
     const foreignObject = document.createElementNS(xmlns, "foreignObject");
-    svg.setAttribute("width", `${width}`);
-    svg.setAttribute("height", `${height}`);
+    // Bound the intermediate raster as well as the destination canvas. Keep the
+    // original viewBox so a wide desktop is scaled, not reflowed or cropped.
+    svg.setAttribute("width", `${options.canvasWidth || width}`);
+    svg.setAttribute("height", `${options.canvasHeight || height}`);
     svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
     foreignObject.setAttribute("width", "100%");
     foreignObject.setAttribute("height", "100%");
@@ -419,7 +430,12 @@ async function resourceToDataURL(resourceUrl, contentType, options) {
 async function cloneCanvasElement(canvas) {
     let dataURL;
     try {
-        dataURL = canvas.toDataURL();
+        const scale = Math.min(1, 1920 / Math.max(canvas.width, canvas.height));
+        const bounded = document.createElement("canvas");
+        bounded.width = Math.max(1, Math.round(canvas.width * scale));
+        bounded.height = Math.max(1, Math.round(canvas.height * scale));
+        bounded.getContext("2d").drawImage(canvas, 0, 0, bounded.width, bounded.height);
+        dataURL = bounded.toDataURL();
     } catch {
         return canvas.cloneNode(false);
     }
@@ -433,8 +449,9 @@ async function cloneVideoElement(video, options) {
         try {
             const canvas = document.createElement("canvas");
             const ctx = canvas.getContext("2d");
-            canvas.width = video.clientWidth;
-            canvas.height = video.clientHeight;
+            const scale = Math.min(1, 1920 / Math.max(video.clientWidth, video.clientHeight, 1));
+            canvas.width = Math.max(1, Math.round(video.clientWidth * scale));
+            canvas.height = Math.max(1, Math.round(video.clientHeight * scale));
             ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
             const dataURL = canvas.toDataURL();
             return createImage(dataURL);
@@ -962,7 +979,7 @@ async function toSvg(node, options = {}) {
     await embedWebFonts(clonedNode, options);
     await embedImages(clonedNode, options);
     applyStyle(clonedNode, options);
-    const datauri = await nodeToDataURL(clonedNode, width, height);
+    const datauri = await nodeToDataURL(clonedNode, width, height, options);
     return datauri;
 }
 async function toCanvas(node, options = {}) {

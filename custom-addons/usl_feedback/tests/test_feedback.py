@@ -886,7 +886,11 @@ class TestProductFeedback(TransactionCase):
             "priority": 2,
         }
         responses = [
+            interaction_response("source-one", {"evidence": "Public source checked"}),
+            interaction_response("mcp-one", {"evidence": "No duplicate"}),
             interaction_response("interaction-one", clarification, input_tokens=120, output_tokens=42),
+            interaction_response("source-two", {"evidence": "Public source checked"}),
+            interaction_response("mcp-two", {"evidence": "No duplicate"}),
             interaction_response("interaction-two", ready, input_tokens=80, output_tokens=31),
         ]
         with patch(
@@ -901,11 +905,18 @@ class TestProductFeedback(TransactionCase):
                 subtype_xmlid="mail.mt_comment",
             )
             self.env["usl.feedback.agent.run"].sudo()._process_task(task)
-        second_payload = create_interaction.call_args_list[1].args[0]
-        self.assertEqual(second_payload["previous_interaction_id"], "interaction-one")
+        second_payload = create_interaction.call_args_list[5].args[0]
+        self.assertNotIn("previous_interaction_id", second_payload)
         self.assertEqual(second_payload["input"][0]["type"], "text")
         self.assertNotIn("role", second_payload["input"][0])
-        first_payload = create_interaction.call_args_list[0].args[0]
+        first_payload = create_interaction.call_args_list[2].args[0]
+        self.assertEqual(first_payload["tools"], [])
+        self.assertIn("Public source checked", json.dumps(first_payload))
+        self.assertIn("No duplicate", json.dumps(first_payload))
+        for invocation in create_interaction.call_args_list:
+            types = {tool["type"] for tool in invocation.args[0]["tools"]}
+            self.assertLessEqual(len(types), 1)
+        self.assertEqual(create_interaction.call_args_list[1].args[0]["generation_config"], GeminiClient.mcp_generation_config())
         self.assertEqual([item["type"] for item in first_payload["input"]], ["text"])
         self.assertIn("Ask one question per turn.", first_payload["system_instruction"])
         self.assertIn("Do not greet, praise, apologize, add filler", first_payload["system_instruction"])
@@ -1174,7 +1185,8 @@ class TestProductFeedback(TransactionCase):
             self.env["usl.feedback.agent.run"].sudo()._process_task(task)
 
         interaction_payload = create_interaction.call_args.args[0]
-        self.assertEqual(interaction_payload["tools"], [{"type": "url_context"}])
+        self.assertEqual(interaction_payload["tools"], [])
+        self.assertEqual(create_interaction.call_args_list[0].args[0]["tools"], [{"type": "url_context"}])
         self.assertNotIn("Projects MCP", interaction_payload["system_instruction"])
         self.assertNotIn("X-Odoo-Api-Key", json.dumps(interaction_payload))
         self.assertEqual(task.usl_feedback_agent_state, "ready")
@@ -1470,6 +1482,7 @@ class TestProductFeedback(TransactionCase):
         settings = self.env["res.config.settings"].create(
             {
                 "feedback_gemini_model": "gemini-3.7-flash",
+                "feedback_paid_tier_confirmed": True,
                 "feedback_mcp_url": "http://localhost:3000/mcp/projects",
                 "feedback_gemini_api_key_input": "gemini-secret",
                 "feedback_mcp_api_key_input": "odoo-secret",
@@ -1488,6 +1501,10 @@ class TestProductFeedback(TransactionCase):
                 "read_only_verified": True,
             },
         )
+        response["steps"][:0] = [
+            {"type": "mcp_server_tool_call", "id": "read-1", "name": "odoo_projects:odoo_search_records"},
+            {"type": "mcp_server_tool_result", "call_id": "read-1", "name": "odoo_projects:odoo_search_records"},
+        ]
         with (
             patch(
                 "odoo.addons.usl_feedback.models.res_config_settings.requests.post",
@@ -1495,8 +1512,9 @@ class TestProductFeedback(TransactionCase):
             patch(
                 "odoo.addons.usl_feedback.services.gemini.GeminiClient.test_model",
             ),
+            patch.object(GeminiClient, "test_generation"),
             patch(
-                "odoo.addons.usl_feedback.services.gemini.GeminiClient.create_interaction",
+                "odoo.addons.usl_feedback.services.gemini.GeminiClient._request",
                 return_value=response,
             ) as create_interaction,
         ):
@@ -1504,7 +1522,7 @@ class TestProductFeedback(TransactionCase):
             result = fresh.action_test_feedback_agent()
         self.assertEqual(result["params"]["type"], "success")
         self.assertEqual(fresh.feedback_connection_status, "ready")
-        payload = create_interaction.call_args.args[0]
+        payload = create_interaction.call_args.kwargs["json"]
         self.assertEqual(payload["tools"][0]["url"], "http://localhost:3000/mcp/projects")
         self.assertEqual(
             payload["tools"][0]["headers"]["X-Odoo-Api-Key"], "odoo-secret",
@@ -1599,6 +1617,7 @@ class TestProductFeedback(TransactionCase):
         settings = self.env["res.config.settings"].create(
             {
                 "feedback_gemini_model": "gemini-3.7-flash",
+                "feedback_paid_tier_confirmed": True,
                 "feedback_gemini_api_key_input": "gemini-secret",
             },
         )
@@ -1611,6 +1630,7 @@ class TestProductFeedback(TransactionCase):
             patch(
                 "odoo.addons.usl_feedback.services.gemini.GeminiClient.test_model",
             ) as test_model,
+            patch.object(GeminiClient, "test_generation") as test_generation,
             patch(
                 "odoo.addons.usl_feedback.services.gemini.GeminiClient.test_mcp_interaction",
             ) as test_mcp,
@@ -1626,6 +1646,7 @@ class TestProductFeedback(TransactionCase):
         )
         mcp_initialize.assert_not_called()
         test_mcp.assert_not_called()
+        test_generation.assert_called_once_with("gemini-3.7-flash")
 
         self.env["ir.config_parameter"].sudo().set_bool(
             "usl_feedback.gemini_enabled", True,
@@ -1679,6 +1700,116 @@ class TestProductFeedback(TransactionCase):
         )
         self.assertEqual(queued.request_message_id.id, second_message.id)
 
+    def test_manual_images_are_bounded_scoped_and_follow_the_message_cutoff(self):
+        task, _ = self._submit()
+        other, _ = self._submit(message="A different report")
+        run = self.env["usl.feedback.agent.run"].sudo().search([("task_id", "=", task.id)], limit=1)
+        images = self.env["ir.attachment"].sudo().create([
+            {"name": name, "raw": data, "mimetype": mime, "res_model": "project.task", "res_id": target.id}
+            for name, data, mime, target in [
+                ("manual.png", b"manual image", "image/png", task),
+                ("foreign.png", b"foreign image", "image/png", other),
+                ("note.txt", b"not an image", "text/plain", task),
+            ]
+        ])
+        message = task.message_post(body="Image evidence", attachment_ids=images.ids, message_type="comment")
+        self.assertFalse(run._preview_images())
+        run.cutoff_message_id = message.id
+        # message_post normally reparents attachments. Restore the forged foreign link
+        # to test that assistant selection never follows it across task boundaries.
+        images[1].write({"res_id": other.id})
+        self.assertEqual(run._preview_images(), images[0])
+        with patch.object(GeminiClient, "describe_image", return_value="Synthetic evidence") as describe:
+            self.assertEqual(run._preview_analysis({"api_key": "test"}), "Synthetic evidence")
+        describe.assert_called_once_with(image_bytes=b"manual image", mime_type="image/png")
+        run.previous_interaction_id = "previous-draft"
+        run.request_message_id = message
+        self.assertEqual(run._preview_images(), images[0])
+
+    def test_interactions_errors_are_diagnostic_without_echoing_secrets(self):
+        session = MagicMock()
+        response = session.request.return_value
+        response.status_code = 400
+        response.json.return_value = {"error": {
+            "code": "invalid_request", "message": "MCP tools cannot be used with other tool types",
+        }}
+        with self.assertRaises(GeminiError) as raised:
+            GeminiClient(api_key="secret", session=session).create_interaction({})
+        self.assertIn("Incompatible Gemini tool combination", str(raised.exception))
+        response.json.return_value = {"error": {
+            "code": "invalid_request", "message": "secret https://private.invalid/?key=secret",
+        }}
+        with self.assertRaises(GeminiError) as raised:
+            GeminiClient(api_key="secret", session=session).create_interaction({})
+        self.assertEqual(str(raised.exception), "HTTP 400 (invalid_request)")
+        self.assertFalse(raised.exception.retryable)
+
+    def test_connection_verifies_tool_execution_not_just_model_claims(self):
+        response = interaction_response("diagnostic", {})
+        response["steps"][-1]["content"][0]["text"] = (
+            '```json\n{"project_id":19,"project_name":"Odoo Product Feedback",'
+            '"read_only_verified":true}\n```'
+        )
+        client = GeminiClient(api_key="test")
+        arguments = {"model": "gemini-3.7-flash", "mcp_url": "https://example.com/mcp/projects", "mcp_headers": {}}
+        with patch.object(client, "_request", return_value=response):
+            with self.assertRaises(GeminiError):
+                client.test_mcp_interaction(**arguments)
+            response["steps"][:0] = [
+                {"type": "mcp_server_tool_call", "id": "read", "name": "odoo_projects:odoo_search_records"},
+                {"type": "mcp_server_tool_result", "call_id": "read", "name": "odoo_projects:odoo_search_records"},
+            ]
+            self.assertTrue(client.test_mcp_interaction(**arguments)["read_only_verified"])
+            response["steps"][1]["is_error"] = True
+            with self.assertRaises(GeminiError):
+                client.test_mcp_interaction(**arguments)
+            response["steps"][1].pop("is_error")
+            response["steps"][1]["name"] = "odoo_projects:odoo_read_records"
+            with self.assertRaises(GeminiError):
+                client.test_mcp_interaction(**arguments)
+            for step in response["steps"][:2]:
+                step["name"] = "odoo_projects:odoo_search_models"
+            with self.assertRaises(GeminiError):
+                client.test_mcp_interaction(**arguments)
+
+    def test_json_parser_accepts_one_fence_but_not_prose_or_arrays(self):
+        self.assertEqual(GeminiClient.json_result('```json\n{"status":"ready"}\n```'), {"status": "ready"})
+        for text in ('[]', 'Here is JSON: {"status":"ready"}', '```json\n{}\n``` trailing'):
+            with self.assertRaises(ValueError):
+                GeminiClient.json_result(text)
+
+    def test_async_lookup_phases_preserve_identity_and_clear_temporary_evidence(self):
+        task, _ = self._submit()
+        run = self.env["usl.feedback.agent.run"].sudo().search([("task_id", "=", task.id)], limit=1)
+        config = {"api_key": "secret", "model": "gemini-3.7-flash", "mcp_key": "mcp-secret", "mcp_url": "https://example.com/mcp/projects"}
+        with (
+            patch.object(type(run), "_configuration", return_value=config),
+            patch.object(GeminiClient, "create_interaction", side_effect=[
+                {"id": "source", "status": "in_progress"},
+                {"id": "mcp", "status": "in_progress"},
+                {"id": "draft", "status": "in_progress"},
+            ]) as create,
+            patch.object(GeminiClient, "get_interaction", side_effect=[
+                {"id": "source", "status": "completed", "output_text": "Public facts"},
+                {"id": "mcp", "status": "completed", "output_text": "No duplicate. mcp-secret"},
+                interaction_response("draft", run._local_result()),
+            ]),
+        ):
+            run._submit()
+            self.assertEqual(run.provider_phase, "source")
+            run._poll()
+            self.assertEqual(run.provider_phase, "mcp")
+            run._poll()
+            self.assertEqual(run.provider_phase, "draft")
+            draft = create.call_args.args[0]
+            self.assertEqual(draft["tools"], [])
+            self.assertIn("Public facts", json.dumps(draft))
+            self.assertNotIn("mcp-secret", json.dumps(draft))
+            self.assertIn(RELEASE_SHA, json.dumps(draft))
+            run._poll()
+        self.assertEqual(run.state, "completed")
+        self.assertFalse(run.provider_context)
+
     def test_claimed_agent_run_is_not_processed_twice(self):
         task, _payload = self._submit(message="Only one worker may process this turn.")
         run = self.env["usl.feedback.agent.run"].sudo().search(
@@ -1694,3 +1825,30 @@ class TestProductFeedback(TransactionCase):
             self.assertFalse(run._process_one())
         create_interaction.assert_not_called()
         self.assertEqual(run.state, "queued")
+
+    def test_neutralized_settings_never_call_provider(self):
+        self.env['ir.config_parameter'].sudo().set_str('database.is_neutralized', 'True')
+        settings = self.env['res.config.settings'].create({'feedback_gemini_api_key_input': 'saved-secret'})
+        with patch.object(GeminiClient, '_request') as request:
+            result = settings.action_test_feedback_agent()
+        request.assert_not_called()
+        self.assertEqual(result['params']['type'], 'warning')
+
+    def test_invalid_request_falls_back_once_and_withdrawal_discards_lookup(self):
+        task, _ = self._submit()
+        run = self.env['usl.feedback.agent.run'].sudo().search([('task_id', '=', task.id)], limit=1)
+        with patch.object(type(run), '_complete_with_fallback', return_value=True) as fallback:
+            run._handle_error(GeminiError('http_400', 'Request format rejected'))
+        fallback.assert_called_once()
+        run.write({'provider_phase': 'mcp', 'provider_context': 'Temporary synthetic evidence'})
+        task.with_user(self.reporter).feedback_withdraw()
+        self.assertFalse(run.provider_context)
+
+    def test_poll_rate_limit_preserves_the_existing_provider_interaction(self):
+        task, _ = self._submit()
+        run = self.env['usl.feedback.agent.run'].sudo().search([('task_id', '=', task.id)], limit=1)
+        run.write({'state': 'submitted', 'external_interaction_id': 'existing', 'attempts': 1})
+        run._handle_error(GeminiError('http_429', 'Rate limited', retryable=True, status_code=429))
+        self.assertEqual(run.state, 'submitted')
+        self.assertEqual(run.external_interaction_id, 'existing')
+        self.assertTrue(run.next_poll_at)
