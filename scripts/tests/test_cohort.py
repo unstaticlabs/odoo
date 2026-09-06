@@ -30,6 +30,7 @@ from operations.stack import (
     _backup_quiescence_receipt,
     _activate_generation,
     _candidate_compose_identity,
+    _cleanup_captures,
     _cleanup_inventory,
     _cleanup_workspaces,
     _delete_cleanup_resources,
@@ -94,6 +95,7 @@ from operations.stack import (
     _validate_release_boundary_receipt,
     _validate_runtime_release_images,
     _probe_staging_gateway_maintenance,
+    _validated_cleanup_captures,
     _validated_cleanup_resources,
     _validated_cleanup_containers,
     _validated_cleanup_network,
@@ -1564,11 +1566,27 @@ class CohortContractTests(unittest.TestCase):
             "operations.stack._secret_file",
         ), mock.patch("operations.stack.runtime_lock") as lock, mock.patch(
             "operations.stack._run_cohort", return_value={"status": "applied"},
-        ) as run, mock.patch("builtins.print"):
+        ) as run, mock.patch(
+            "operations.stack._cleanup_captures",
+            return_value={
+                "protected_captures": ["intent-" + "a" * 48],
+                "delete_captures": ["intent-" + "b" * 48],
+            },
+        ), mock.patch(
+            "operations.stack._validated_cleanup_captures",
+            return_value=[target.value["state_directory"] + "/intent-" + "b" * 48],
+        ), mock.patch("builtins.print") as printed:
             self.assertEqual(backup_command(arguments), 0)
         lock.assert_called_once()
         self.assertEqual(lock.call_args.args[2], "retention")
         run.assert_called_once_with(target, runner, "backup-image", "retention-apply", [], volumes={})
+        runner.run.assert_called_once_with(
+            ["rm", "-rf", "--", target.value["state_directory"] + "/intent-" + "b" * 48],
+        )
+        result = json.loads(printed.call_args.args[0])
+        self.assertEqual(result["status"], "applied")
+        self.assertEqual(result["delete_captures"], ["intent-" + "b" * 48])
+        self.assertEqual(result["protected_captures"], ["intent-" + "a" * 48])
 
     def test_previous_generation_identity_rejects_paths_not_derived_from_state(self) -> None:
         target = mock.Mock(value={
@@ -4089,9 +4107,20 @@ class CohortContractTests(unittest.TestCase):
             "generation": "g20260904-active",
             "volumes": {"odoo_postgres": {"name": active}},
         }
-        with mock.patch("operations.stack._cleanup_workspaces", return_value=["stale-work"]):
+        captures = {"protected_captures": ["intent-" + "a" * 48], "delete_captures": []}
+        with mock.patch(
+            "operations.stack._cleanup_workspaces", return_value=["stale-work"],
+        ), mock.patch(
+            "operations.stack._cleanup_captures", return_value=captures,
+        ) as capture_inventory:
             inventory = _cleanup_inventory(target, InventoryRunner(), current)
         self.assertEqual(inventory["delete_volumes"], ["stale-volume"])
+        self.assertEqual(inventory["protected_captures"], ["intent-" + "a" * 48])
+        self.assertEqual(inventory["delete_captures"], [])
+        self.assertEqual(
+            capture_inventory.call_args.args[2],
+            {"g20260903-rollback", "g20260904-active"},
+        )
         self.assertEqual(inventory["delete_networks"], ["stale-network"])
         self.assertEqual(inventory["delete_workspaces"], ["stale-work"])
         self.assertEqual(
@@ -4122,7 +4151,12 @@ class CohortContractTests(unittest.TestCase):
 
         current = {"generation": "g20260903-baseline", "volumes": {},
                    "containers": [{"ID": "sidecar", "State": "running"}]}
-        with mock.patch("operations.stack._cleanup_workspaces", return_value=[]) as workspaces:
+        with mock.patch(
+            "operations.stack._cleanup_workspaces", return_value=[],
+        ) as workspaces, mock.patch(
+            "operations.stack._cleanup_captures",
+            return_value={"protected_captures": [], "delete_captures": []},
+        ):
             inventory = _cleanup_inventory(target, Runner(), current)
         self.assertEqual(inventory["delete_volumes"], ["stale"])
         self.assertEqual(inventory["delete_networks"], ["stale-network"])
@@ -4172,6 +4206,258 @@ class CohortContractTests(unittest.TestCase):
         )
         with self.assertRaises(RuntimeError):
             _cleanup_workspaces(target, WorkspaceRunner("l"), set())
+
+    def _capture_state_root(self, target, entries: dict, files: dict):
+        """Build a fake host runner over one state directory tree.
+
+        ``entries`` maps ``relative path -> find %y kind``; ``files`` maps
+        ``relative path -> text``.  Deleted paths are recorded in ``removed``.
+        """
+        import fnmatch
+
+        root = target.value["state_directory"]
+
+        class CaptureRunner:
+            def __init__(self):
+                self.removed = []
+
+            def run(self, command, *, check=True, **_kwargs):
+                if command[:2] == ["test", "-L"]:
+                    return subprocess.CompletedProcess(command, 1, "", "")
+                if command[:3] == ["test", "!", "-e"]:
+                    relative = command[3].removeprefix(root + "/")
+                    exists = command[3] == root or relative in entries
+                    return subprocess.CompletedProcess(command, 1 if exists else 0, "", "")
+                if command[0] == "cat":
+                    relative = command[1].removeprefix(root + "/")
+                    if relative in files:
+                        return subprocess.CompletedProcess(command, 0, files[relative], "")
+                    return subprocess.CompletedProcess(command, 1, "", "not found")
+                if command[0] == "find":
+                    base = command[1]
+                    relative_base = base.removeprefix(root + "/")
+                    if command[2:6] == ["-mindepth", "0", "-maxdepth", "0"]:
+                        kind = entries.get(relative_base)
+                        if kind is None:
+                            return subprocess.CompletedProcess(command, 1, "", "missing")
+                        return subprocess.CompletedProcess(command, 0, kind + "\n", "")
+                    if command[2:6] == ["-mindepth", "1", "-maxdepth", "1"]:
+                        if base != root and relative_base not in entries:
+                            return subprocess.CompletedProcess(command, 1, "", "missing")
+                        prefix = "" if base == root else relative_base + "/"
+                        pattern = command[7] if command[6] == "-name" else "*"
+                        lines = [
+                            f"{item.removeprefix(prefix)}\t{kind}"
+                            for item, kind in sorted(entries.items())
+                            if item.startswith(prefix)
+                            and "/" not in item.removeprefix(prefix)
+                            and fnmatch.fnmatch(item.removeprefix(prefix), pattern)
+                        ]
+                        return subprocess.CompletedProcess(command, 0, "".join(f"{line}\n" for line in lines), "")
+                if command[:3] == ["rm", "-rf", "--"]:
+                    self.removed.append(command[3])
+                    return subprocess.CompletedProcess(command, 0, "", "")
+                raise AssertionError(command)
+
+        return CaptureRunner()
+
+    def _capture_files(self, target, run_id: str, *, created_at: str, status: str = "qualified") -> dict:
+        identity = {"files": 1, "bytes": 1, "sha256": "f" * 64}
+        value = manifest(identity, identity)
+        value.update({"run_id": run_id, "target": target.name, "created_at": created_at})
+        state = {
+            "schema": cohort.STATE_SCHEMA,
+            "cohort_schema": cohort.SCHEMA,
+            "run_id": run_id,
+            "target": target.name,
+            "durable_snapshot_id": "1" * 64,
+            "cache_snapshot_id": "2" * 64,
+            "qualified_from_snapshot_id": "3" * 64,
+            "status": status,
+        }
+        return {
+            f"{run_id}/manifest.json": json.dumps(value),
+            f"{run_id}/state.json": json.dumps(state),
+        }
+
+    def _attempt_claim(self, attempt: str, generation: str) -> str:
+        operation = {
+            "target": "production",
+            "attempt": attempt,
+            "source": "production",
+            "candidate_release": "a" * 64,
+            "snapshot": "b" * 64,
+            "generation": generation,
+            "gitops_commit": None,
+            "upgrade_plan_sha256": "c" * 64,
+            "prepare_receipt_sha256": "d" * 64,
+            "maintenance_receipt_sha256": "e" * 64,
+            "operation_kind": "production-upgrade",
+            "source_receipt_sha256": "f" * 64,
+            "baseline_runtime_sha256": "1" * 64,
+        }
+        claim = {
+            "schema": "usl-release-attempt/v3",
+            **operation,
+            "baseline_generation": "gbaseline",
+            "operation_bundle_sha256": hashlib.sha256(
+                json.dumps(operation, sort_keys=True, separators=(",", ":")).encode(),
+            ).hexdigest(),
+            "claimed_at": "2026-09-04T12:00:00Z",
+            "status": "claimed",
+        }
+        claim["sha256"] = hashlib.sha256(
+            json.dumps(claim, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        return json.dumps(claim)
+
+    def test_capture_retention_keeps_protected_generations_and_unfinished_attempts(self) -> None:
+        target = load_target("production", TARGETS)
+        active, previous, old, orphan, running, pending = (
+            "intent-" + digit * 48 for digit in "123456"
+        )
+        entries = {
+            "generations": "d", "attempts": "d", "backup-runs": "d", "runs": "d",
+            "active.json": "f", "operation.lock": "d",
+            "proof-daily-0123456789abcdef": "d",
+            f".release-pre-{active}.partial": "d",
+            f"attempts/{active}/claim.json": "f",
+            f"attempts/{previous}/claim.json": "f",
+            f"attempts/{old}/claim.json": "f",
+            f"attempts/{running}/claim.json": "f",
+            "runs/release-" + "a" * 64 + ".json": "f",
+            "runs/release-" + "b" * 64 + ".json": "f",
+            f"runs/release-pre-{active}.jsonl": "f",
+        }
+        files = {
+            f"attempts/{active}/claim.json": self._attempt_claim(active, "gactive"),
+            f"attempts/{previous}/claim.json": self._attempt_claim(previous, "gprevious"),
+            f"attempts/{old}/claim.json": self._attempt_claim(old, "gold"),
+            f"attempts/{running}/claim.json": self._attempt_claim(running, "gnext"),
+            "runs/release-" + "a" * 64 + ".json": json.dumps(
+                {"attempt": running, "status": "running"},
+            ),
+            "runs/release-" + "b" * 64 + ".json": json.dumps(
+                {"attempt": old, "status": "admitted"},
+            ),
+        }
+        captures = {
+            f"release-pre-{active}": "2026-09-05T01:00:00Z",
+            f"release-candidate-{active}": "2026-09-05T01:10:00Z",
+            f"release-admitted-{active}": "2026-09-05T01:20:00Z",
+            f"release-admitted-{previous}": "2026-09-04T01:20:00Z",
+            f"release-pre-{old}": "2026-09-03T01:00:00Z",
+            f"release-admitted-{old}": "2026-09-03T01:20:00Z",
+            f"release-pre-{orphan}": "2026-09-02T01:00:00Z",
+            f"release-pre-{running}": "2026-09-06T01:00:00Z",
+        }
+        for run_id, created_at in captures.items():
+            entries[run_id] = "d"
+            files.update(self._capture_files(target, run_id, created_at=created_at))
+        entries[f"release-pre-{pending}"] = "d"
+        files.update(self._capture_files(
+            target, f"release-pre-{pending}", created_at="2026-09-01T01:00:00Z", status="uploaded",
+        ))
+        runner = self._capture_state_root(target, entries, files)
+
+        result = _cleanup_captures(target, runner, {"gactive", "gprevious"})
+
+        self.assertEqual(
+            result["delete_captures"],
+            sorted([f"release-admitted-{old}", f"release-pre-{old}", f"release-pre-{orphan}"]),
+        )
+        self.assertEqual(
+            result["protected_captures"],
+            sorted([
+                f"release-pre-{active}", f"release-candidate-{active}",
+                f"release-admitted-{active}", f"release-admitted-{previous}",
+                f"release-pre-{running}", f"release-pre-{pending}",
+            ]),
+        )
+        paths = _validated_cleanup_captures(target, runner, result)
+        self.assertEqual(
+            paths,
+            [f"{target.value['state_directory']}/{run_id}" for run_id in result["delete_captures"]],
+        )
+        _delete_cleanup_resources(runner, [], [], [], [], paths)
+        self.assertEqual(runner.removed, paths)
+
+    def test_capture_retention_keeps_newest_staging_captures(self) -> None:
+        target = load_target("staging", TARGETS)
+        first, second, third, unqualified, resumable = (
+            "intent-" + digit * 48 for digit in "abcde"
+        )
+        entries = {
+            "generations": "d", "runs": "d", "backup-runs": "d",
+            "runs/release-" + "a" * 64 + ".json": "f",
+        }
+        files = {
+            "runs/release-" + "a" * 64 + ".json": json.dumps(
+                {"attempt": resumable, "status": "failed"},
+            ),
+        }
+        for run_id, created_at in (
+            (first, "2026-09-01T01:00:00Z"),
+            (second, "2026-09-02T01:00:00Z"),
+            (third, "2026-09-03T01:00:00Z"),
+            (resumable, "2026-08-30T01:00:00Z"),
+        ):
+            entries[run_id] = "d"
+            files.update(self._capture_files(target, run_id, created_at=created_at))
+        entries[unqualified] = "d"
+        files[f"{unqualified}/manifest.json"] = "{}"
+        runner = self._capture_state_root(target, entries, files)
+
+        result = _cleanup_captures(target, runner, set())
+
+        self.assertEqual(result["delete_captures"], [first])
+        self.assertEqual(
+            result["protected_captures"], sorted([second, third, unqualified, resumable]),
+        )
+
+    def test_capture_retention_ignores_unmanaged_entries_and_rejects_symlinks(self) -> None:
+        target = load_target("production", TARGETS)
+        attempt = "intent-" + "a" * 48
+        entries = {"generations": "d", "attempts": "d", "intent-" + "b" * 48: "d", "release-pre-x": "d"}
+        files = {}
+        runner = self._capture_state_root(target, entries, files)
+        self.assertEqual(
+            _cleanup_captures(target, runner, set()),
+            {"protected_captures": [], "delete_captures": []},
+        )
+        entries[f"release-pre-{attempt}"] = "l"
+        with self.assertRaisesRegex(RuntimeError, "not a directory"):
+            _cleanup_captures(target, runner, set())
+        entries[f"release-pre-{attempt}"] = "d"
+        entries["runs"] = "d"
+        entries["runs/release-" + "c" * 64 + ".json"] = "f"
+        files["runs/release-" + "c" * 64 + ".json"] = "not json"
+        files.update(self._capture_files(target, f"release-pre-{attempt}", created_at="2026-09-01T00:00:00Z"))
+        with self.assertRaisesRegex(RuntimeError, "release run state is invalid"):
+            _cleanup_captures(target, runner, set())
+
+    def test_validated_cleanup_captures_rechecks_paths_before_deletion(self) -> None:
+        target = load_target("production", TARGETS)
+        attempt = "intent-" + "a" * 48
+        run_id = f"release-admitted-{attempt}"
+        entries = {run_id: "d"}
+        files = self._capture_files(target, run_id, created_at="2026-09-01T00:00:00Z")
+        runner = self._capture_state_root(target, entries, files)
+        self.assertEqual(
+            _validated_cleanup_captures(target, runner, {"delete_captures": [run_id]}),
+            [f"{target.value['state_directory']}/{run_id}"],
+        )
+        for invalid in ("../attempts", "generations", "release-admitted-intent-x", "proof-daily-0123"):
+            with self.subTest(run_id=invalid), self.assertRaisesRegex(RuntimeError, "identity is invalid"):
+                _validated_cleanup_captures(target, runner, {"delete_captures": [invalid]})
+        entries[run_id] = "l"
+        with self.assertRaisesRegex(RuntimeError, "became invalid"):
+            _validated_cleanup_captures(target, runner, {"delete_captures": [run_id]})
+        entries[run_id] = "d"
+        files.update(self._capture_files(target, run_id, created_at="2026-09-01T00:00:00Z", status="uploaded"))
+        with self.assertRaisesRegex(RuntimeError, "not qualified"):
+            _validated_cleanup_captures(target, runner, {"delete_captures": [run_id]})
+        self.assertEqual(runner.removed, [])
 
     def test_cleanup_apply_recomputes_after_lock_and_prevalidates_everything(self) -> None:
         configured_target = load_target("staging", TARGETS)

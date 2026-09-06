@@ -33,6 +33,8 @@ this policy under the same operation lock used by backup and restore. GitOps
 calls it after a successful staging upgrade and reopening, like production's
 deployment retention stage. There is no separate timer: on idle days snapshots
 remain until the next deployment cleanup. Production retention remains unchanged.
+`backup prune` also deletes stale local capture directories. See
+[Local capture retention](#local-capture-retention).
 
 ## Backup
 
@@ -296,6 +298,40 @@ The automated release controller runs runtime-only cleanup before retrying an
 interrupted candidate, then applies full backup retention only after production
 has reopened and staging has been refreshed. Both mutations are serialized by
 the target lock; pruning cannot overlap backup or deployment.
+
+### Local capture retention
+
+Each backup run writes a local capture directory to
+`/var/lib/usl-odoo/runtime/<environment>/<run_id>/`. The directory holds the
+database dumps, the durable tree, the reusable cache, `manifest.json`, and
+`state.json`. One capture is about 900 MB. Restic holds the recovery copy. The
+local directory is only the upload workspace.
+
+`cleanup plan` lists the captures that retention deletes in `delete_captures`.
+It lists the captures that retention keeps in `protected_captures`.
+`cleanup apply` deletes the listed directories. On staging, `backup prune`
+reports and deletes the same sets. The production `retention` release stage
+runs `cleanup apply`. The staging stage runs `backup prune`.
+
+Retention keeps a capture when one of these conditions is true:
+
+- `state.json` does not report the status `qualified`. The cohort tool writes
+  `qualified` only after it restored and verified both snapshots from the
+  repositories.
+- The attempt of the capture has a release run in `runs/release-*.json` with
+  the status `running` or `failed`. A failed run can resume, and the resumed
+  upload needs the capture.
+- On production, the attempt claimed the active generation or the previous
+  generation. The claim is `attempts/<attempt>/claim.json`.
+- On staging, the capture is one of the two newest qualified captures.
+
+Retention manages only the run names that the release launcher creates:
+`release-pre-<attempt>`, `release-candidate-<attempt>`, and
+`release-admitted-<attempt>` on production, and `<attempt>` on staging.
+`<attempt>` is `intent-` followed by 48 hexadecimal characters. Retention never
+lists or deletes other entries of the state directory. Before it deletes a
+directory, `cleanup apply` checks again that the path is a directory, not a
+symlink, and that the capture is still `qualified`.
 
 ## Service-level objective
 
