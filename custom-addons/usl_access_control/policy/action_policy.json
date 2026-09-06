@@ -136487,39 +136487,39 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement.create:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement.write:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement.write:orm_write:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._apply_payment_rate_to_document:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._apply_payment_rate_to_document:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._apply_payment_rate_to_document:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._apply_payment_rate_to_document:orm_write:2",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:2",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:message_send:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:message_send:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:message_send:3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_create:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:10",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:11",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:12",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:13",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:14",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:15",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:16",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:17",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:18",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:4",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:5",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:6",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:7",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:8",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:9",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_foreign_settlement_context:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_foreign_settlement_context:orm_write:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_foreign_settlement_context:orm_write:3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_immediate_settlement_eligibility:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_payment_rate_settlement_eligibility:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_payment_rate_settlement_eligibility:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:message_send:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:message_send:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:message_send:3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_create:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:10",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:11",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:12",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:13",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:14",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:15",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:16",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:17",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:18",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:4",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:5",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:6",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:7",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:8",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:9",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_foreign_settlement_context:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_foreign_settlement_context:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_foreign_settlement_context:orm_write:3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_immediate_settlement_eligibility:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_payment_rate_settlement_eligibility:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_payment_rate_settlement_eligibility:orm_write:2",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._unlink_immediate_settlement_adjustment:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.button_cancel:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.button_draft:orm_write:1",
@@ -142499,6 +142499,96 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement.write:orm_write:2": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.immediate.settlement.write"
         },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._apply_payment_rate_to_document:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._apply_payment_rate_to_document:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:message_send:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:message_send:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:message_send:3": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_create:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:10": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:11": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:12": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:13": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:14": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:15": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:16": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:17": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:18": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:3": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:4": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:5": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:6": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:7": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:8": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:9": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_foreign_settlement_context:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_foreign_settlement_context:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_foreign_settlement_context:orm_write:3": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_immediate_settlement_eligibility:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_payment_rate_settlement_eligibility:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_payment_rate_settlement_eligibility:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line._has_internal_settlement_token:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -142520,12 +142610,6 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.write:orm_write:2": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.bank.statement.line.write"
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._apply_payment_rate_to_document:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._apply_payment_rate_to_document:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -142533,90 +142617,6 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:message_send:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:message_send:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:message_send:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_create:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:10": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:11": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:12": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:13": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:14": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:15": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:16": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:17": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:18": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:4": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:5": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:6": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:7": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:8": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:9": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_foreign_settlement_context:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_foreign_settlement_context:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_foreign_settlement_context:orm_write:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_immediate_settlement_eligibility:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_payment_rate_settlement_eligibility:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_payment_rate_settlement_eligibility:orm_write:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._unlink_immediate_settlement_adjustment:orm_write:1": {
@@ -144922,6 +144922,36 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement.create:orm_write:1": "d9eacae9ae9ba7d155e6cbe51207cf3dd104b91552678e38db9a644aeaca28de",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement.write:orm_write:1": "cb20cfdae2ff60d9243b98ab4287387e41448ad7c43df0e9de33e8c3b1b00fe1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement.write:orm_write:2": "ba9614909d35d4330eb6ee19bc185ac09fb2ef48b7adcc11c4c5824ac00e9ab2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._apply_payment_rate_to_document:orm_write:1": "61633b882d8ddee58c1c890a08984f0e982936cde2fbaa288dc98bce64e6de1b",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._apply_payment_rate_to_document:orm_write:2": "2801942aa1928eded22a23cd5acecb9efa066d248cb0c25a421a8445b0091bbf",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:message_send:1": "9e93b1186038af2678b0facbf7b98f9547c4509fc0721573c3e7d68e7f6ab9e7",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:message_send:2": "df0c5ef2cd9c9ae3cdf406d9c1e4b8e626d51895d828d8f980516d1c210a9f8e",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:message_send:3": "4f9efeee8e1895de51b2fb17a82a1b6ebe2d1504ded08d65548cbab899bb743a",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_create:1": "3ca4ede9604e4d23cf0bfcc797ccbd7d8fa995737e7282d0451dae82545cb1d0",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:1": "2977e1e7ebc82b3ab4008717a30783dab820b0725f01117e22a0745d33072e00",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:10": "41437c3dc7dcf91dcc05b4fccbd3229a5bbdaad9a81d60d396b97e4df213f4a6",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:11": "079f65342d1d24b97c487e40af8c4ba1870889a54e3619c6f3c2a385122f8471",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:12": "ba2c66231a08b8a055094d5dc968a5733563b34c7fd4dfcb573f9ad683f15eb3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:13": "871d0264379aaa8ad92a965abfe158f60af6c1f11efda7b16d9574724eaaa918",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:14": "00909c26f7b39ba44f6ac9d912e7c14fe26de1d009b8d297a261c11f01e1a540",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:15": "c72ab1e3f1e97591fead89afc1cf709241a792b1ba73ff5942265466f356f476",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:16": "48f125e3a1e4278b2f823250c81e213a58f0651b421351b7144d74a86379790e",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:17": "fa2fa6b673ee593365d7042646440006e8d66ed8ee2554cf2e09bf48f2f33182",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:18": "3cd96ed8f7318fcbe9b4da363b335f74f4a7377dfd10e0c12bb6b9011cecf1af",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:2": "00b84ac95581d8b382368301efa4763a16f687c9276ffff9a4ccea8a7e71d382",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:3": "5ee90136404010953634420c990600323c494272da70adc1b0bbfae4e03de22c",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:4": "929271671634860cb5c8121b08ae4edd353fe4430b353d221b762d5b978a2cfe",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:5": "a9ab7b73d32dff56121862ce1c6564140932fa1be4063bbebcdfd660bedc97c2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:6": "ad521029415f926be699914c6ad1d1404807b210ed5371d7ed8320a8230d8005",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:7": "e7f8b966f2e15bbdb85d191dce8690aa0eeaa8d02c01c66c82080b12aff1f8a8",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:8": "74a1731021905b69d1f2ea0d842dc4b3670c36561ffca0985689457bc8177c7b",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:9": "bf1edb95a0d3b99db344ee9538705b9327579101f9f2a1d0629126cd1e5dd7c6",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_foreign_settlement_context:orm_write:1": "0e908cd19b37549110df8992f68efdbefbd2183558ac76fed3b2c0731d863826",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_foreign_settlement_context:orm_write:2": "718a3739cf41d9aff34a7fc8b2a189aa0d307ad6b93dd7ec7945ee5378d1fd89",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_foreign_settlement_context:orm_write:3": "1201f71f09a5d42edd2b280c673f4e129f67482582f98511e3f21e389827afcf",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_immediate_settlement_eligibility:orm_write:1": "c6e92a1894e8b9eeae5610df307ae3d7c0b5243191160ebe4df56f9059bf58f8",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_payment_rate_settlement_eligibility:orm_write:1": "618321943ff24377996274262ffa402beb05c264263db51d0cdebd133c693af0",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_payment_rate_settlement_eligibility:orm_write:2": "64dd7d0fbd866b1333aa32271d21b982b5ac6b5dcc064c9d269e2570e7a00ef8",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line._has_internal_settlement_token:orm_write:1": "c14a88264c8387fa299c60544bfe397532597ec0fb58f88da3101cb436982282",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.action_undo_reconciliation:orm_write:1": "a51c6cf567d3e095e61642df4aebf0fe2bb9b0dae7031d99240176e2e6bc92fd",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.create:orm_create:1": "b5b0a5644e5a673c4d669ab9926fae9051df462e2d7c918ba1947b2877c3c143",
@@ -144929,39 +144959,9 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.unreconcile_bank_line:orm_write:1": "337e668b15fbff485fd3c97a22fa4da9ea7e726165b90f1164e521a40de7946d",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.write:orm_write:1": "077fd7822367968dac849f066bebfe59ac02b7a0c15be76bdb35907fe3ec62ca",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.write:orm_write:2": "b5437c82dd911bc25b124f2873a8f3a3a039268bf8b81f33ae1cfa35bb417a61",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._apply_payment_rate_to_document:orm_write:1": "61633b882d8ddee58c1c890a08984f0e982936cde2fbaa288dc98bce64e6de1b",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._apply_payment_rate_to_document:orm_write:2": "2801942aa1928eded22a23cd5acecb9efa066d248cb0c25a421a8445b0091bbf",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:1": "f34f2a34aaeab49f1bde7d59b4c4471f229bb08c86c70011a627712cf731bc21",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:2": "147225cc51868706b3c0f204e3bafe378d1a11b0c7e02eac7a433a6cc0fe814b",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:3": "93dd7f7668943b2efe904bc5f4947cb2fdf8eab5b9daa36f350db4e8a5a6801c",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:message_send:1": "9e93b1186038af2678b0facbf7b98f9547c4509fc0721573c3e7d68e7f6ab9e7",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:message_send:2": "df0c5ef2cd9c9ae3cdf406d9c1e4b8e626d51895d828d8f980516d1c210a9f8e",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:message_send:3": "4f9efeee8e1895de51b2fb17a82a1b6ebe2d1504ded08d65548cbab899bb743a",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_create:1": "3ca4ede9604e4d23cf0bfcc797ccbd7d8fa995737e7282d0451dae82545cb1d0",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:1": "2977e1e7ebc82b3ab4008717a30783dab820b0725f01117e22a0745d33072e00",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:10": "41437c3dc7dcf91dcc05b4fccbd3229a5bbdaad9a81d60d396b97e4df213f4a6",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:11": "079f65342d1d24b97c487e40af8c4ba1870889a54e3619c6f3c2a385122f8471",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:12": "ba2c66231a08b8a055094d5dc968a5733563b34c7fd4dfcb573f9ad683f15eb3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:13": "871d0264379aaa8ad92a965abfe158f60af6c1f11efda7b16d9574724eaaa918",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:14": "00909c26f7b39ba44f6ac9d912e7c14fe26de1d009b8d297a261c11f01e1a540",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:15": "c72ab1e3f1e97591fead89afc1cf709241a792b1ba73ff5942265466f356f476",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:16": "48f125e3a1e4278b2f823250c81e213a58f0651b421351b7144d74a86379790e",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:17": "fa2fa6b673ee593365d7042646440006e8d66ed8ee2554cf2e09bf48f2f33182",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:18": "3cd96ed8f7318fcbe9b4da363b335f74f4a7377dfd10e0c12bb6b9011cecf1af",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:2": "00b84ac95581d8b382368301efa4763a16f687c9276ffff9a4ccea8a7e71d382",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:3": "5ee90136404010953634420c990600323c494272da70adc1b0bbfae4e03de22c",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:4": "929271671634860cb5c8121b08ae4edd353fe4430b353d221b762d5b978a2cfe",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:5": "a9ab7b73d32dff56121862ce1c6564140932fa1be4063bbebcdfd660bedc97c2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:6": "ad521029415f926be699914c6ad1d1404807b210ed5371d7ed8320a8230d8005",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:7": "e7f8b966f2e15bbdb85d191dce8690aa0eeaa8d02c01c66c82080b12aff1f8a8",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:8": "74a1731021905b69d1f2ea0d842dc4b3670c36561ffca0985689457bc8177c7b",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:9": "bf1edb95a0d3b99db344ee9538705b9327579101f9f2a1d0629126cd1e5dd7c6",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_foreign_settlement_context:orm_write:1": "0e908cd19b37549110df8992f68efdbefbd2183558ac76fed3b2c0731d863826",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_foreign_settlement_context:orm_write:2": "718a3739cf41d9aff34a7fc8b2a189aa0d307ad6b93dd7ec7945ee5378d1fd89",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_foreign_settlement_context:orm_write:3": "1201f71f09a5d42edd2b280c673f4e129f67482582f98511e3f21e389827afcf",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_immediate_settlement_eligibility:orm_write:1": "c6e92a1894e8b9eeae5610df307ae3d7c0b5243191160ebe4df56f9059bf58f8",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_payment_rate_settlement_eligibility:orm_write:1": "618321943ff24377996274262ffa402beb05c264263db51d0cdebd133c693af0",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_payment_rate_settlement_eligibility:orm_write:2": "64dd7d0fbd866b1333aa32271d21b982b5ac6b5dcc064c9d269e2570e7a00ef8",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._unlink_immediate_settlement_adjustment:orm_write:1": "9dd72d5b5332609ceeb24e260d1b43c3070221d1e680808dd586a06a13a70c2c",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.button_cancel:orm_write:1": "e2fa3eb8b2203e4105ea927e7497cc65d2030c18453e18b8040f6ecbb8e42cbd",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.button_draft:orm_write:1": "9ffcadf0f8193e2557c95e65a51fb6725d034ce1b898c1b66dc7c1ce9123d620",
@@ -185399,7 +185399,7 @@
         "rpc:usl.mail.pdf.retrieval.web_search_read",
         "rpc:usl.mail.pdf.retrieval.write",
         "server_action:queue_job.ir_cron_autovacuum_queue_jobs_ir_actions_server",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense.action_review_linked_receipt:orm_create:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense.action_review_linked_receipt:orm_create:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.host.action_activate:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.host.action_block:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.host.create:orm_create:1",
@@ -185783,9 +185783,6 @@
         "server_action:queue_job.ir_cron_autovacuum_queue_jobs_ir_actions_server": {
           "rationale": "Fixed maintenance removes only old done/cancelled derived queue records by channel retention; does not delete attached business evidence."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense.action_review_linked_receipt:orm_create:1": {
-          "rationale": "Exact public workflow sink is subject to the enclosing reviewed method and native CRUD; configuration/authority changes are separately guarded at semantic/central Base boundaries."
-        },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.host.action_activate:orm_write:1": {
           "rationale": "Exact public workflow sink is subject to the enclosing reviewed method and native CRUD; configuration/authority changes are separately guarded at semantic/central Base boundaries."
         },
@@ -185829,6 +185826,9 @@
           "rationale": "Exact public workflow sink is subject to the enclosing reviewed method and native CRUD; configuration/authority changes are separately guarded at semantic/central Base boundaries."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:sudo:3": {
+          "rationale": "Exact public workflow sink is subject to the enclosing reviewed method and native CRUD; configuration/authority changes are separately guarded at semantic/central Base boundaries."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense.action_review_linked_receipt:orm_create:1": {
           "rationale": "Exact public workflow sink is subject to the enclosing reviewed method and native CRUD; configuration/authority changes are separately guarded at semantic/central Base boundaries."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/queue_job.py:queue.job.write:orm_write:1": {
@@ -185957,7 +185957,6 @@
         "rpc:usl.mail.pdf.retrieval.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:usl.mail.pdf.retrieval.write": "010ab28dd1877e9843e54acd846e0ab610a1d9b9dd59117f5f93494efba41b4f",
         "server_action:queue_job.ir_cron_autovacuum_queue_jobs_ir_actions_server": "25bdd6d32bce5db355e01618c26625843a55d92d06b5f6ce3bfa99689dcc67e2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense.action_review_linked_receipt:orm_create:1": "b36fbc255e2b8ea00b41ecc4cf7831831e0c8a0a9d783a8af3f838a2739947e5",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.host.action_activate:orm_write:1": "9a7096b03a3620141887886c8a2465812cc4e2069686985fc41b927358fff44f",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.host.action_block:orm_write:1": "2f792a5bed7f57cb51dde62b0637e15dd1a6d47415ccd5f50fa74985c77f6a42",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.host.create:orm_create:1": "11ecc581045f30b5480393303ddbcfe287ae6f82a07cb8a3234f63e81c483715",
@@ -185973,6 +185972,7 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:sudo:1": "b649f976703c9bd67a0ab6efd69259e3ef96d365cca3ec01a494ef8a548806c1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:sudo:2": "50ed0d5ef9dc7987fe8265fd0dce0b049830de6d7a8c7611f416c51a654dd50d",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:sudo:3": "f00d10f1d0277772011fd34c7238f4a0374e86b254949365a9cbdd576215b2b7",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense.action_review_linked_receipt:orm_create:1": "b36fbc255e2b8ea00b41ecc4cf7831831e0c8a0a9d783a8af3f838a2739947e5",
         "sink:usl_accounting:custom-addons/usl_accounting/models/queue_job.py:queue.job.write:orm_write:1": "88ab2425c7a4d0569bb64a6f61f7e61c93a96274da48b3d7d662a287ca7a2223"
       }
     },
@@ -189220,10 +189220,10 @@
     {
       "action_keys": [
         "sink:base_sparse_field:addons/base_sparse_field/models/models.py:ir.model.fields.write:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense._compute_linked_receipt_status:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense._latest_linked_receipt:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense._message_post_after_hook:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense._message_post_after_hook:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._compute_linked_receipt_status:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._latest_linked_receipt:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._message_post_after_hook:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._message_post_after_hook:sudo:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.host._get_or_create:orm_create:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.host._get_or_create:sudo:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.host._get_or_create:sudo:2",
@@ -189253,49 +189253,49 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._extract_candidates:sudo:2",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._extract_candidates:sudo:3",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._feature_enabled:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._fetcher_request:external_call:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._fetcher_request:external_call:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._fetcher_request:external_call:3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._fetcher_request:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_attempt_number:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:message_send:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_create:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:10",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:11",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:12",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:13",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:14",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:15",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:4",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:5",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:6",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:7",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:8",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:9",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:4",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:5",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:6",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt_failed:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt_failed:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_generation:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._persist_job_state:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._persist_job_state:orm_write:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._persist_job_state:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._persist_job_state:sudo:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._persist_terminal_failure:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._persist_terminal_failure:orm_write:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._persist_terminal_failure:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._register_terminal_failure:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._register_terminal_failure:orm_write:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._register_terminal_failure:orm_write:3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._register_terminal_failure:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._register_terminal_failure:sudo:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._fetcher_request:external_call:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._fetcher_request:external_call:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._fetcher_request:external_call:3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._fetcher_request:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_attempt_number:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:message_send:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_create:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:10",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:11",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:12",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:13",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:14",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:15",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:4",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:5",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:6",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:7",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:8",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:9",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:4",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:5",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:6",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt_failed:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt_failed:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_generation:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._persist_job_state:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._persist_job_state:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._persist_job_state:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._persist_job_state:sudo:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._persist_terminal_failure:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._persist_terminal_failure:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._persist_terminal_failure:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._register_terminal_failure:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._register_terminal_failure:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._register_terminal_failure:orm_write:3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._register_terminal_failure:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._register_terminal_failure:sudo:2",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._select_candidate:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._select_candidate:orm_write:2",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._select_candidate:sudo:1",
@@ -189313,22 +189313,6 @@
         "sink:base_sparse_field:addons/base_sparse_field/models/models.py:ir.model.fields.write:orm_write:1": {
           "rationale": "This super-write sink only delegates from the sparse-field rename/storage rejection override to the already protected ir.model.fields.write authority implementation; it adds no new bypass or field mutation route.",
           "reachability_proof": "This super-write sink only delegates from the sparse-field rename/storage rejection override to the already protected ir.model.fields.write authority implementation; it adds no new bypass or field mutation route."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense._compute_linked_receipt_status:sudo:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense._latest_linked_receipt:sudo:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense._message_post_after_hook:orm_write:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense._message_post_after_hook:sudo:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.host._get_or_create:orm_create:1": {
           "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
@@ -189446,178 +189430,6 @@
           "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._fetcher_request:external_call:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._fetcher_request:external_call:2": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._fetcher_request:external_call:3": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._fetcher_request:sudo:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_attempt_number:sudo:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:message_send:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_create:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:10": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:11": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:12": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:13": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:14": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:15": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:2": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:3": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:4": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:5": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:6": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:7": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:8": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:9": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:2": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:3": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:4": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:5": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:6": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt_failed:orm_write:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt_failed:sudo:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_generation:sudo:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._persist_job_state:orm_write:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._persist_job_state:orm_write:2": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._persist_job_state:sudo:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._persist_job_state:sudo:2": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._persist_terminal_failure:orm_write:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._persist_terminal_failure:orm_write:2": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._persist_terminal_failure:sudo:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._register_terminal_failure:orm_write:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._register_terminal_failure:orm_write:2": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._register_terminal_failure:orm_write:3": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._register_terminal_failure:sudo:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._register_terminal_failure:sudo:2": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._select_candidate:orm_write:1": {
           "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
@@ -189645,15 +189457,199 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._supersede_for_expense:sudo:1": {
           "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._compute_linked_receipt_status:sudo:1": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._latest_linked_receipt:sudo:1": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._message_post_after_hook:orm_write:1": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._message_post_after_hook:sudo:1": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._fetcher_request:external_call:1": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._fetcher_request:external_call:2": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._fetcher_request:external_call:3": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._fetcher_request:sudo:1": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_attempt_number:sudo:1": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:message_send:1": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_create:1": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:1": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:10": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:11": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:12": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:13": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:14": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:15": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:2": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:3": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:4": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:5": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:6": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:7": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:8": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:9": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:1": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:2": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:3": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:4": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:5": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:6": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt_failed:orm_write:1": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt_failed:sudo:1": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_generation:sudo:1": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._persist_job_state:orm_write:1": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._persist_job_state:orm_write:2": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._persist_job_state:sudo:1": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._persist_job_state:sudo:2": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._persist_terminal_failure:orm_write:1": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._persist_terminal_failure:orm_write:2": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._persist_terminal_failure:sudo:1": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._register_terminal_failure:orm_write:1": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._register_terminal_failure:orm_write:2": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._register_terminal_failure:orm_write:3": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._register_terminal_failure:sudo:1": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._register_terminal_failure:sudo:2": {
+          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         }
       },
       "rationale": "Reviewed receipt and queue workflow; see docs/operations/receipt-action-risk-review.md and exact per-action rationale.",
       "reviewed_digests": {
         "sink:base_sparse_field:addons/base_sparse_field/models/models.py:ir.model.fields.write:orm_write:1": "305cfec0c43b002fa6bd7750b4ff6ddc95acbd01ffe1775c10f6e1dc9026e8a7",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense._compute_linked_receipt_status:sudo:1": "27301a6f5a3060c38f7d2a956fa6bed617d9196babdf5e6a2c010fcc8cb80e32",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense._latest_linked_receipt:sudo:1": "e1ff9a3f613eaa67167957d417c1ea3e68de596236c82d97f707c12432bb9d30",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense._message_post_after_hook:orm_write:1": "1dc1c01c36d70b9f9e5f70531d5299e8ae91a472dcb4b249b1b284441993d787",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense._message_post_after_hook:sudo:1": "299589f7326a27ec19251c2c6905249bed5c63cc9950a6f471b21c125f9bc06c",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.host._get_or_create:orm_create:1": "407a93ed60d2b90920273d9a8d1dd424ba9915af9a5eb5839c503430bc2fae8a",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.host._get_or_create:sudo:1": "e19481681c5dc7568a5a8bdcc25b79b30bcd16d058481f866cc584f38e7b31c7",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.host._get_or_create:sudo:2": "b1191d72eeb5eb8fe3dc6482d9205f4bd9ea29ebeb098ca85a3e895aa7824859",
@@ -189683,56 +189679,60 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._extract_candidates:sudo:2": "6ee0152e75f25806c69db067af7cbb1d5a3d1f37230fd306914b400ed4b611af",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._extract_candidates:sudo:3": "d053503face19d0a5a99ebd460236d37de71e0ea7aaa783950e7d27971f07d55",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._feature_enabled:sudo:1": "932d7fbcfd5669224c6754c226f0f9abbd6ac97a81a6d5d36548625da3dfeff0",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._fetcher_request:external_call:1": "593e4516c5d46f69394e402a096b92c1ff3997597dabde77806d8d5c84b81a5e",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._fetcher_request:external_call:2": "f4023579b8d5f8da7add1e1029969c3d5e937e6f1244cea0df1e02f969abd96d",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._fetcher_request:external_call:3": "46d53bcaaab5a3237306578d31c66723ba8a531789bee363b40f6f9a2a6de188",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._fetcher_request:sudo:1": "240c716becfefc74642d14c605482b6c681bd3f6cfc712e8f29c79ba57bee8ef",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_attempt_number:sudo:1": "622b20a1c12b2dfcb6059a0af161bdace0b64b7d1308cd04a54e6586647de6bb",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:message_send:1": "99b3bdbb41cdec35ffc37a9b7bee16a29122a31d2582ac917d4c995c2fbff33f",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_create:1": "c5b01ceb422a3c538752729412789f446668aea068c6f61c1b5bb1f83a9b6a5c",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:1": "3ce46f9756cd4c4a94488d59b1119db42eb43cbedd5aad1ab02adaa56a1a4344",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:10": "c58526b9f2d764eed796935cd761b1027187791caa31d2c6e4affaeb51a379f6",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:11": "e540e1296223e0f3ba0edc3f2d1ecd98908a343557a619296d27b25ad8308baf",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:12": "be0d92daa574a9b96ba472117bec62f793af9757af17756f3485acac2bff62fc",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:13": "7caf1ab3be6bc50ba2ba7c6c7d5a26b8eff00fc2605a3ae42b0d07d2788e5b57",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:14": "7dba7dd6774e07cb10a6a404125fd749d1725b9499b25198f34e3d007a879865",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:15": "6c00811be006d00d5c4035a149f2b4d7af7e17e058657106fc11e78a9a6fa7ec",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:2": "55be980158f821d7d6c3718f05d10e94e71677b9301640c3dcf343388b4a81eb",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:3": "9be5e19e7bc86e80899e4f5638bb557cff430a93de5d023117d4d333d1a6bcdf",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:4": "74be841b48a44eece6134596598c76ccada64178a4d9e20772afc8581987aacd",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:5": "7b698c16787c1df6597fb5cde495cae61fe6d999378bc0ef47771ed9602cf9d1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:6": "c9ef30093ec7c6b7be47a699eb0baa4830b9352d314c4d7f8880f5450cb47ccf",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:7": "d4552487f5a0fd37253a12e8a60dd51db2c72cc95d21fd79aa5973bf233a4a6a",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:8": "3bec019702e5f4fdb066c8deba08963eb60e5e0b9ea4372979e3db52caf4755c",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:9": "c1e8bda5047562d1369e9a75853d40279b745a9637382400e4ccd0f2a5275878",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:1": "98e2f65d9e6bebad5c41af2c81ef97c8973680f29d8b081e15919d4e81d3b3e8",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:2": "fb377bf0c47cccbe012eca345e6f70e8d7766ce7af31ff90a9e8228bad2b641e",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:3": "364270aa9492844c0203e8cefab95a0c32bcea7feee083e40f219ad4c11b8416",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:4": "84b3a2ce5ada0e9ade12bfaef14b848c3be61fe9350cba765c80f3d9a1ab6b6c",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:5": "3325d6dabe2a78651d73b681b4395cae4b204dc78d70fd0b28ace5055ecc35d7",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:6": "bcace4bef37c863a49c7843f49cdbd5ed2922596be56429d9b9ab1e2c1021653",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt_failed:orm_write:1": "db59beb24ac87fcbfefa2ace06f400536ec8ef17eaee4acc3cc50e55976cbd34",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_fetch_receipt_failed:sudo:1": "5fa8e2e9cb2fe155281846b5217b58520ba6ab535c7b6415fbfd21375e65f2ee",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._job_generation:sudo:1": "1bef749720d973c32dcd4171d9d95641badea1637f53a35690eaaa65e336dc1f",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._persist_job_state:orm_write:1": "12b2789c41e4d2562e174ba97667e1d0660a635c51725278f2203cfcb6352dcf",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._persist_job_state:orm_write:2": "0ce8314a94a3272a52963778bc8cf143ef218637028cac9763aa4ae416b26c88",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._persist_job_state:sudo:1": "a3fa90b8b2e9002dac41c0d1bede80755303c6bda5cedbc4170a15f034848e37",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._persist_job_state:sudo:2": "9d137cd46063fba949d6cfb95d369cbd67f12970afb3650fcbd13f9948638fb5",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._persist_terminal_failure:orm_write:1": "62cc795704f07231e16c84ae80c1322af522903dba8d91ac1411cb2dfb8712cb",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._persist_terminal_failure:orm_write:2": "e610be240ec243dbd7f2055abe951168a8dec4d26aba2139262bd79cea80d393",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._persist_terminal_failure:sudo:1": "04b8b18ce44174fc3e3467e5f3fc604fc88adb2a33c6c09fbf704fe4ed7ea080",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._register_terminal_failure:orm_write:1": "239e4740cb33518745b803e7d7e0a75ced0ae5aad9b2c8a4bc3040e5e50c91df",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._register_terminal_failure:orm_write:2": "a76bf97e5f958128aca2cbb0850115d553e516feabb70f4004882eed76bf39e1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._register_terminal_failure:orm_write:3": "ec2931f5c7995880f33e527184f2a2770d548865f04fdff88fdf262f715c23b6",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._register_terminal_failure:sudo:1": "4467733b1eb5c0dddf69e93c106efc3824880f22ab26736fd7cb318ad3ace6e1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._register_terminal_failure:sudo:2": "a92b23dca3766d96e549d5ebb4cf69a568b0c394b146c74b679f7f996222d892",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._select_candidate:orm_write:1": "4b10eaa13d75baf370959a9f32799437ce2c3bdd8f589cc139c00ab934f34b46",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._select_candidate:orm_write:2": "be2ea5cdf3482017e80e9bf9e7eae4688808a155ecad0c4fb9a57a8392399cb6",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._select_candidate:sudo:1": "caca32bd891b7ba5c716516781e6ce779a1ed72669a7937c38198562aa5c2415",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._select_candidate:sudo:2": "2995a9e1799a6d0cb7dd1116e8609a8a362f924af3491fd24a3596944523eefb",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._select_candidate:sudo:3": "59fd35ec5c4ab88b2d7d572f643485cddd010f8eb670c96dce502afe7b6d2b31",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._supersede_for_expense:orm_write:1": "23e505b1d23735f9dbac8db3a2f404f05a0afda42920c2e1c7aa9ac7307e31ef",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._supersede_for_expense:sudo:1": "b8f2f822460b5bba0507a993d76a7f5a4bc97278c4f8a1d60be08c701474140e"
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._supersede_for_expense:sudo:1": "b8f2f822460b5bba0507a993d76a7f5a4bc97278c4f8a1d60be08c701474140e",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._compute_linked_receipt_status:sudo:1": "27301a6f5a3060c38f7d2a956fa6bed617d9196babdf5e6a2c010fcc8cb80e32",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._latest_linked_receipt:sudo:1": "e1ff9a3f613eaa67167957d417c1ea3e68de596236c82d97f707c12432bb9d30",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._message_post_after_hook:orm_write:1": "1dc1c01c36d70b9f9e5f70531d5299e8ae91a472dcb4b249b1b284441993d787",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._message_post_after_hook:sudo:1": "299589f7326a27ec19251c2c6905249bed5c63cc9950a6f471b21c125f9bc06c",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._fetcher_request:external_call:1": "593e4516c5d46f69394e402a096b92c1ff3997597dabde77806d8d5c84b81a5e",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._fetcher_request:external_call:2": "f4023579b8d5f8da7add1e1029969c3d5e937e6f1244cea0df1e02f969abd96d",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._fetcher_request:external_call:3": "46d53bcaaab5a3237306578d31c66723ba8a531789bee363b40f6f9a2a6de188",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._fetcher_request:sudo:1": "240c716becfefc74642d14c605482b6c681bd3f6cfc712e8f29c79ba57bee8ef",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_attempt_number:sudo:1": "622b20a1c12b2dfcb6059a0af161bdace0b64b7d1308cd04a54e6586647de6bb",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:message_send:1": "99b3bdbb41cdec35ffc37a9b7bee16a29122a31d2582ac917d4c995c2fbff33f",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_create:1": "c5b01ceb422a3c538752729412789f446668aea068c6f61c1b5bb1f83a9b6a5c",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:1": "3ce46f9756cd4c4a94488d59b1119db42eb43cbedd5aad1ab02adaa56a1a4344",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:10": "c58526b9f2d764eed796935cd761b1027187791caa31d2c6e4affaeb51a379f6",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:11": "e540e1296223e0f3ba0edc3f2d1ecd98908a343557a619296d27b25ad8308baf",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:12": "be0d92daa574a9b96ba472117bec62f793af9757af17756f3485acac2bff62fc",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:13": "7caf1ab3be6bc50ba2ba7c6c7d5a26b8eff00fc2605a3ae42b0d07d2788e5b57",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:14": "7dba7dd6774e07cb10a6a404125fd749d1725b9499b25198f34e3d007a879865",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:15": "6c00811be006d00d5c4035a149f2b4d7af7e17e058657106fc11e78a9a6fa7ec",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:2": "55be980158f821d7d6c3718f05d10e94e71677b9301640c3dcf343388b4a81eb",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:3": "9be5e19e7bc86e80899e4f5638bb557cff430a93de5d023117d4d333d1a6bcdf",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:4": "74be841b48a44eece6134596598c76ccada64178a4d9e20772afc8581987aacd",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:5": "7b698c16787c1df6597fb5cde495cae61fe6d999378bc0ef47771ed9602cf9d1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:6": "c9ef30093ec7c6b7be47a699eb0baa4830b9352d314c4d7f8880f5450cb47ccf",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:7": "d4552487f5a0fd37253a12e8a60dd51db2c72cc95d21fd79aa5973bf233a4a6a",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:8": "3bec019702e5f4fdb066c8deba08963eb60e5e0b9ea4372979e3db52caf4755c",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:9": "c1e8bda5047562d1369e9a75853d40279b745a9637382400e4ccd0f2a5275878",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:1": "98e2f65d9e6bebad5c41af2c81ef97c8973680f29d8b081e15919d4e81d3b3e8",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:2": "fb377bf0c47cccbe012eca345e6f70e8d7766ce7af31ff90a9e8228bad2b641e",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:3": "364270aa9492844c0203e8cefab95a0c32bcea7feee083e40f219ad4c11b8416",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:4": "84b3a2ce5ada0e9ade12bfaef14b848c3be61fe9350cba765c80f3d9a1ab6b6c",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:5": "3325d6dabe2a78651d73b681b4395cae4b204dc78d70fd0b28ace5055ecc35d7",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:6": "bcace4bef37c863a49c7843f49cdbd5ed2922596be56429d9b9ab1e2c1021653",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt_failed:orm_write:1": "db59beb24ac87fcbfefa2ace06f400536ec8ef17eaee4acc3cc50e55976cbd34",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt_failed:sudo:1": "5fa8e2e9cb2fe155281846b5217b58520ba6ab535c7b6415fbfd21375e65f2ee",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_generation:sudo:1": "1bef749720d973c32dcd4171d9d95641badea1637f53a35690eaaa65e336dc1f",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._persist_job_state:orm_write:1": "12b2789c41e4d2562e174ba97667e1d0660a635c51725278f2203cfcb6352dcf",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._persist_job_state:orm_write:2": "0ce8314a94a3272a52963778bc8cf143ef218637028cac9763aa4ae416b26c88",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._persist_job_state:sudo:1": "a3fa90b8b2e9002dac41c0d1bede80755303c6bda5cedbc4170a15f034848e37",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._persist_job_state:sudo:2": "9d137cd46063fba949d6cfb95d369cbd67f12970afb3650fcbd13f9948638fb5",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._persist_terminal_failure:orm_write:1": "62cc795704f07231e16c84ae80c1322af522903dba8d91ac1411cb2dfb8712cb",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._persist_terminal_failure:orm_write:2": "e610be240ec243dbd7f2055abe951168a8dec4d26aba2139262bd79cea80d393",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._persist_terminal_failure:sudo:1": "04b8b18ce44174fc3e3467e5f3fc604fc88adb2a33c6c09fbf704fe4ed7ea080",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._register_terminal_failure:orm_write:1": "239e4740cb33518745b803e7d7e0a75ced0ae5aad9b2c8a4bc3040e5e50c91df",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._register_terminal_failure:orm_write:2": "a76bf97e5f958128aca2cbb0850115d553e516feabb70f4004882eed76bf39e1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._register_terminal_failure:orm_write:3": "ec2931f5c7995880f33e527184f2a2770d548865f04fdff88fdf262f715c23b6",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._register_terminal_failure:sudo:1": "4467733b1eb5c0dddf69e93c106efc3824880f22ab26736fd7cb318ad3ace6e1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._register_terminal_failure:sudo:2": "a92b23dca3766d96e549d5ebb4cf69a568b0c394b146c74b679f7f996222d892"
       }
     },
     {
@@ -193796,8 +193796,8 @@
       "action_keys": [
         "rpc:hr.expense.action_scan_existing_receipt_emails",
         "server_action:usl_accounting.action_scan_existing_receipt_emails",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense.action_scan_existing_receipt_emails:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense.action_scan_existing_receipt_emails:sudo:2"
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense.action_scan_existing_receipt_emails:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense.action_scan_existing_receipt_emails:sudo:2"
       ],
       "classification": "operational",
       "consequence": "Creates one receipt-discovery request for eligible missing-receipt draft or approved expenses; recognized candidates may enter the existing download queue.",
@@ -193808,8 +193808,8 @@
       "reviewed_digests": {
         "rpc:hr.expense.action_scan_existing_receipt_emails": "4111532ba09eb6ea96a3a598170cf1c88a18d4003ff66066d98c78cd3370976d",
         "server_action:usl_accounting.action_scan_existing_receipt_emails": "2535eba137f4c558e15e0b6b4abdaca6628878687117f7e34bcd4f1190f5d5e3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense.action_scan_existing_receipt_emails:sudo:1": "a73c2f8c543a87d11aa469cd96a0fd025a547da0099cfb39023f0638770c1617",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense.action_scan_existing_receipt_emails:sudo:2": "8fef44fe6b962721ae66966566b5256a49bd5cc81f02a6d44dda7fdcabe64417"
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense.action_scan_existing_receipt_emails:sudo:1": "a73c2f8c543a87d11aa469cd96a0fd025a547da0099cfb39023f0638770c1617",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense.action_scan_existing_receipt_emails:sudo:2": "8fef44fe6b962721ae66966566b5256a49bd5cc81f02a6d44dda7fdcabe64417"
       }
     },
     {
