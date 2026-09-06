@@ -257,288 +257,9 @@ class UslDocumentOperation(models.Model):
                 continue
             status = str(task.get("status") or "").lower()
             if status in ("success", "successful"):
-                related_ids = task.get("related_document_ids") or []
-                paperless_id = (
-                    related_ids[0]
-                    if related_ids
-                    else task.get("related_document")
-                    or task.get("result")
-                )
-                if isinstance(paperless_id, str) and paperless_id.isdigit():
-                    paperless_id = int(paperless_id)
-                if not paperless_id and operation.target_document_id:
-                    paperless_id = operation.target_document_id.paperless_id
-                if not paperless_id:
-                    continue
-                if operation.target_document_id:
-                    # The supported update-version task returns the newly
-                    # consumed child document ID. Child versions are not exposed
-                    # as root resources by /api/documents/{id}/, so refresh the
-                    # root from the endpoint that created this task.
-                    paperless_id = operation.target_document_id.paperless_id
-                archive_context = getattr(operation, "context_json", False) or {}
-                missing = operation._missing_related_record(archive_context)
-                client = self.env["usl.document"]._paperless()
-                try:
-                    payload = client.get_document(paperless_id)
-                except PaperlessNotFound:
-                    operation.sudo().write(
-                        {
-                            "state": "failed",
-                            "error_message": _(
-                                "Paperless finished processing, but the archived "
-                                "file is not accessible. Check its archive owner and "
-                                "permissions, then retry.",
-                            ),
-                        },
-                    )
-                    continue
-                metadata_catalog = None
-                if (
-                    isinstance(payload.get("correspondent"), int)
-                    or isinstance(payload.get("document_type"), int)
-                    or any(
-                        isinstance(tag, int) for tag in (payload.get("tags") or [])
-                    )
-                ):
-                    metadata_catalog = client.metadata_catalog()
-                values = self.env["usl.document"]._paperless_values(
-                    payload,
-                    source=operation.source,
-                    metadata_catalog=metadata_catalog,
-                )
-                document_cache = self.env["usl.document"].sudo()
-                document = operation.target_document_id.sudo() or document_cache.search(
-                    [("paperless_id", "=", paperless_id)], limit=1,
-                )
-                if document and not operation.target_document_id:
-                    known_metadata_hashes = set(
-                        document.version_ids.filtered(
-                            lambda item: (
-                                item.checksum == operation.checksum
-                                and item.metadata_hash
-                            ),
-                        ).mapped("metadata_hash"),
-                    )
-                    if (
-                        document.checksum == operation.checksum
-                        and document.metadata_hash
-                    ):
-                        known_metadata_hashes.add(document.metadata_hash)
-                    if (
-                        known_metadata_hashes
-                        and operation.metadata_hash not in known_metadata_hashes
-                    ):
-                        operation.sudo().write(
-                            {
-                                "state": "duplicate",
-                                "document_id": document.id,
-                                "error_message": _(
-                                    "Paperless matched identical content to an "
-                                    "archive document with a different "
-                                    "classification fingerprint. Review the "
-                                    "classification before linking it.",
-                                ),
-                            },
-                        )
-                        continue
-                if document:
-                    values.pop("source", None)
-                    # A replacement operation carries the checksum of the new
-                    # version. The cache follows Paperless's current version;
-                    # every historical checksum, including the received
-                    # original, remains on usl.document.version.
-                    if not operation.target_document_id:
-                        values["checksum"] = operation.checksum
-                    values["metadata_hash"] = operation.metadata_hash
-                    document.with_context(usl_documents_cache_write=True).write(values)
-                else:
-                    original_created_at = (
-                        operation.original_created_at or operation.create_date
-                    )
-                    original_modified_at = (
-                        operation.original_modified_at or original_created_at
-                    )
-                    values.update(
-                        {
-                            "company_id": operation.company_id.id,
-                            "confidentiality": operation.confidentiality,
-                            "accounting_evidence": bool(
-                                getattr(operation, "accounting_evidence", False),
-                            ),
-                            "access_scope": (
-                                getattr(operation, "access_scope", False)
-                                or "company"
-                            ),
-                            "intake_role": (
-                                getattr(operation, "document_role", False)
-                                or "background"
-                            ),
-                            "review_state": "classified",
-                            "submitted_by_id": operation.user_id.id,
-                            "submitted_at": original_created_at,
-                            "original_created_at": original_created_at,
-                            "original_modified_at": original_modified_at,
-                            "checksum": operation.checksum,
-                            "metadata_hash": operation.metadata_hash,
-                        },
-                    )
-                    document = document_cache.create(values)
-                document._merge_original_timestamps(
-                    operation.original_created_at or operation.create_date,
-                    operation.original_modified_at
-                    or operation.original_created_at
-                    or operation.create_date,
-                )
-                document._synchronize_versions(payload.get("versions") or [])
-                current_version = document.version_ids.filtered("is_current")
-                if current_version:
-                    current_version.sudo().write(
-                        {
-                            "submitted_by_id": operation.user_id.id,
-                            "submitted_at": (
-                                operation.original_created_at
-                                or operation.create_date
-                            ),
-                            "original_created_at": (
-                                operation.original_created_at
-                                or operation.create_date
-                            ),
-                            "original_modified_at": (
-                                operation.original_modified_at
-                                or operation.original_created_at
-                                or operation.create_date
-                            ),
-                            "source": operation.source,
-                            "metadata_hash": operation.metadata_hash,
-                        },
-                    )
-                if missing:
-                    error_message = operation._source_record_missing_message(missing)
-                    orphan_context = {
-                        **archive_context,
-                        "related_records": [],
-                    }
-                    if orphan_context:
-                        document._apply_archive_context(
-                            orphan_context,
-                            submitted_by=operation.user_id,
-                            access_user=operation._archive_context_access_user(),
-                        )
-                    if document.permission_sync_state != "synchronized":
-                        document.with_user(
-                            self.env.ref("base.user_root"),
-                        ).action_sync_permissions()
-                    document.sudo().with_context(
-                        usl_documents_cache_write=True,
-                    ).write(
-                        {
-                            "review_state": "needs_attention",
-                            "last_error": error_message,
-                        },
-                    )
-                    operation.sudo().write(
-                        {
-                            "state": "archived",
-                            "document_id": document.id,
-                            "error_message": False,
-                            "review_reason": "missing_source",
-                        },
-                    )
-                    continue
-                if archive_context:
-                    document._apply_archive_context(
-                        archive_context,
-                        submitted_by=operation.user_id,
-                        access_user=operation._archive_context_access_user(),
-                    )
-                elif operation.res_model and operation.res_id:
-                    record = (
-                        self.env[operation.res_model]
-                        .with_user(operation._archive_context_access_user())
-                        .with_context(
-                            allowed_company_ids=operation.company_id.ids,
-                        )
-                        .browse(operation.res_id)
-                        .exists()
-                    )
-                    if not record:
-                        raise UserError(_("The source Odoo record no longer exists."))
-                    record.check_access("read")
-                    document.sudo().with_context(
-                        usl_documents_linked_by_id=operation.user_id.id,
-                        usl_documents_defer_access_sync=True,
-                    ).link_to_record(operation.res_model, operation.res_id)
-                    document._recompute_linked_record_access(sync_permissions=True)
-                if document.permission_sync_state != "synchronized":
-                    document.with_user(
-                        self.env.ref("base.user_root"),
-                    ).action_sync_permissions()
-                operation.sudo().write({
-                    "state": "archived",
-                    "document_id": document.id,
-                    "error_message": False,
-                })
+                operation._poll_succeeded_task(task)
             elif status in ("failure", "failed"):
-                existing = self.env["usl.document"]
-                if operation.checksum and operation.metadata_hash:
-                    existing, matching_version = self.env[
-                        "usl.document"
-                    ]._find_archive_fingerprint(
-                        operation.checksum,
-                        operation.metadata_hash,
-                        company=operation.company_id,
-                        availability_state="available",
-                    )
-                    archive_context = operation.context_json or {}
-                    if existing and (archive_context or not operation.res_model):
-                        if matching_version:
-                            archive_context = {
-                                **archive_context,
-                                "related_records": [
-                                    {
-                                        **target,
-                                        "version_id": (
-                                            matching_version.paperless_version_id
-                                        ),
-                                    }
-                                    for target in archive_context.get(
-                                        "related_records",
-                                    )
-                                    or []
-                                ],
-                            }
-                        if archive_context:
-                            existing._apply_archive_context(
-                                archive_context,
-                                submitted_by=operation.user_id,
-                                access_user=(
-                                    operation._archive_context_access_user()
-                                ),
-                            )
-                        operation.sudo().write(
-                            {
-                                "state": "archived",
-                                "document_id": existing.id,
-                                "error_message": False,
-                            },
-                        )
-                        continue
-                result_data = task.get("result_data")
-                operation.sudo().write({
-                    "state": "failed",
-                    "error_message": (
-                        (
-                            result_data.get("message")
-                            or result_data.get("error_message")
-                        )
-                        if isinstance(result_data, dict)
-                        else result_data
-                    )
-                    or task.get("result")
-                    or task.get("message")
-                    or _("Paperless processing failed."),
-                })
+                operation._poll_failed_task(task)
             elif operation._processing_is_stale():
                 operation._fail_stale_processing()
         return {
@@ -564,6 +285,322 @@ class UslDocumentOperation(models.Model):
             }
             for operation in self
         }
+
+    def _poll_task_paperless_id(self, task):
+        """Return the Paperless document a successful task produced, or None."""
+        self.ensure_one()
+        related_ids = task.get("related_document_ids") or []
+        paperless_id = (
+            related_ids[0]
+            if related_ids
+            else task.get("related_document")
+            or task.get("result")
+        )
+        if isinstance(paperless_id, str) and paperless_id.isdigit():
+            paperless_id = int(paperless_id)
+        if not paperless_id and self.target_document_id:
+            paperless_id = self.target_document_id.paperless_id
+        if not paperless_id:
+            return None
+        if self.target_document_id:
+            # The supported update-version task returns the newly
+            # consumed child document ID. Child versions are not exposed
+            # as root resources by /api/documents/{id}/, so refresh the
+            # root from the endpoint that created this task.
+            paperless_id = self.target_document_id.paperless_id
+        return paperless_id
+
+    def _poll_succeeded_task(self, task):
+        """Mirror the archived document of a successful Paperless task."""
+        self.ensure_one()
+        operation = self
+        paperless_id = operation._poll_task_paperless_id(task)
+        if not paperless_id:
+            return
+        archive_context = getattr(operation, "context_json", False) or {}
+        missing = operation._missing_related_record(archive_context)
+        client = self.env["usl.document"]._paperless()
+        try:
+            payload = client.get_document(paperless_id)
+        except PaperlessNotFound:
+            operation.sudo().write(
+                {
+                    "state": "failed",
+                    "error_message": _(
+                        "Paperless finished processing, but the archived "
+                        "file is not accessible. Check its archive owner and "
+                        "permissions, then retry.",
+                    ),
+                },
+            )
+            return
+        document = operation._poll_cache_document(client, payload, paperless_id)
+        if document is None:
+            return
+        operation._poll_bind_versions(document, payload)
+        if missing:
+            operation._poll_flag_missing_source(document, archive_context, missing)
+            return
+        if archive_context:
+            document._apply_archive_context(
+                archive_context,
+                submitted_by=operation.user_id,
+                access_user=operation._archive_context_access_user(),
+            )
+        elif operation.res_model and operation.res_id:
+            record = (
+                self.env[operation.res_model]
+                .with_user(operation._archive_context_access_user())
+                .with_context(
+                    allowed_company_ids=operation.company_id.ids,
+                )
+                .browse(operation.res_id)
+                .exists()
+            )
+            if not record:
+                raise UserError(_("The source Odoo record no longer exists."))
+            record.check_access("read")
+            document.sudo().with_context(
+                usl_documents_linked_by_id=operation.user_id.id,
+                usl_documents_defer_access_sync=True,
+            ).link_to_record(operation.res_model, operation.res_id)
+            document._recompute_linked_record_access(sync_permissions=True)
+        if document.permission_sync_state != "synchronized":
+            document.with_user(
+                self.env.ref("base.user_root"),
+            ).action_sync_permissions()
+        operation.sudo().write({
+            "state": "archived",
+            "document_id": document.id,
+            "error_message": False,
+        })
+
+    def _poll_cache_document(self, client, payload, paperless_id):
+        """Write the Paperless payload into the cached document of this operation.
+
+        Return None after marking the operation as a duplicate when Paperless
+        matched identical content with a different classification fingerprint.
+        """
+        self.ensure_one()
+        operation = self
+        metadata_catalog = None
+        if self.env["usl.document"]._needs_metadata_catalog([payload]):
+            metadata_catalog = client.metadata_catalog()
+        values = self.env["usl.document"]._paperless_values(
+            payload,
+            source=operation.source,
+            metadata_catalog=metadata_catalog,
+        )
+        document_cache = self.env["usl.document"].sudo()
+        document = operation.target_document_id.sudo() or document_cache.search(
+            [("paperless_id", "=", paperless_id)], limit=1,
+        )
+        if document and not operation.target_document_id:
+            known_metadata_hashes = set(
+                document.version_ids.filtered(
+                    lambda item: (
+                        item.checksum == operation.checksum
+                        and item.metadata_hash
+                    ),
+                ).mapped("metadata_hash"),
+            )
+            if (
+                document.checksum == operation.checksum
+                and document.metadata_hash
+            ):
+                known_metadata_hashes.add(document.metadata_hash)
+            if (
+                known_metadata_hashes
+                and operation.metadata_hash not in known_metadata_hashes
+            ):
+                operation.sudo().write(
+                    {
+                        "state": "duplicate",
+                        "document_id": document.id,
+                        "error_message": _(
+                            "Paperless matched identical content to an "
+                            "archive document with a different "
+                            "classification fingerprint. Review the "
+                            "classification before linking it.",
+                        ),
+                    },
+                )
+                return None
+        if document:
+            values.pop("source", None)
+            # A replacement operation carries the checksum of the new
+            # version. The cache follows Paperless's current version;
+            # every historical checksum, including the received
+            # original, remains on usl.document.version.
+            if not operation.target_document_id:
+                values["checksum"] = operation.checksum
+            values["metadata_hash"] = operation.metadata_hash
+            document.with_context(usl_documents_cache_write=True).write(values)
+            return document
+        original_created_at = (
+            operation.original_created_at or operation.create_date
+        )
+        original_modified_at = (
+            operation.original_modified_at or original_created_at
+        )
+        values.update(
+            {
+                "company_id": operation.company_id.id,
+                "confidentiality": operation.confidentiality,
+                "accounting_evidence": bool(
+                    getattr(operation, "accounting_evidence", False),
+                ),
+                "access_scope": (
+                    getattr(operation, "access_scope", False)
+                    or "company"
+                ),
+                "intake_role": (
+                    getattr(operation, "document_role", False)
+                    or "background"
+                ),
+                "review_state": "classified",
+                "submitted_by_id": operation.user_id.id,
+                "submitted_at": original_created_at,
+                "original_created_at": original_created_at,
+                "original_modified_at": original_modified_at,
+                "checksum": operation.checksum,
+                "metadata_hash": operation.metadata_hash,
+            },
+        )
+        return document_cache.create(values)
+
+    def _poll_bind_versions(self, document, payload):
+        """Align original timestamps and the current version with this operation."""
+        self.ensure_one()
+        operation = self
+        document._merge_original_timestamps(
+            operation.original_created_at or operation.create_date,
+            operation.original_modified_at
+            or operation.original_created_at
+            or operation.create_date,
+        )
+        document._synchronize_versions(payload.get("versions") or [])
+        current_version = document.version_ids.filtered("is_current")
+        if current_version:
+            current_version.sudo().write(
+                {
+                    "submitted_by_id": operation.user_id.id,
+                    "submitted_at": (
+                        operation.original_created_at
+                        or operation.create_date
+                    ),
+                    "original_created_at": (
+                        operation.original_created_at
+                        or operation.create_date
+                    ),
+                    "original_modified_at": (
+                        operation.original_modified_at
+                        or operation.original_created_at
+                        or operation.create_date
+                    ),
+                    "source": operation.source,
+                    "metadata_hash": operation.metadata_hash,
+                },
+            )
+
+    def _poll_flag_missing_source(self, document, archive_context, missing):
+        """Archive the document for review when its source record disappeared."""
+        self.ensure_one()
+        operation = self
+        error_message = operation._source_record_missing_message(missing)
+        orphan_context = {
+            **archive_context,
+            "related_records": [],
+        }
+        if orphan_context:
+            document._apply_archive_context(
+                orphan_context,
+                submitted_by=operation.user_id,
+                access_user=operation._archive_context_access_user(),
+            )
+        if document.permission_sync_state != "synchronized":
+            document.with_user(
+                self.env.ref("base.user_root"),
+            ).action_sync_permissions()
+        document.sudo().with_context(
+            usl_documents_cache_write=True,
+        ).write(
+            {
+                "review_state": "needs_attention",
+                "last_error": error_message,
+            },
+        )
+        operation.sudo().write(
+            {
+                "state": "archived",
+                "document_id": document.id,
+                "error_message": False,
+                "review_reason": "missing_source",
+            },
+        )
+
+    def _poll_failed_task(self, task):
+        """Reuse an identical archive or record the failure of a Paperless task."""
+        self.ensure_one()
+        operation = self
+        if operation.checksum and operation.metadata_hash:
+            existing, matching_version = self.env[
+                "usl.document"
+            ]._find_archive_fingerprint(
+                operation.checksum,
+                operation.metadata_hash,
+                company=operation.company_id,
+                availability_state="available",
+            )
+            archive_context = operation.context_json or {}
+            if existing and (archive_context or not operation.res_model):
+                if matching_version:
+                    archive_context = {
+                        **archive_context,
+                        "related_records": [
+                            {
+                                **target,
+                                "version_id": (
+                                    matching_version.paperless_version_id
+                                ),
+                            }
+                            for target in archive_context.get(
+                                "related_records",
+                            )
+                            or []
+                        ],
+                    }
+                if archive_context:
+                    existing._apply_archive_context(
+                        archive_context,
+                        submitted_by=operation.user_id,
+                        access_user=(
+                            operation._archive_context_access_user()
+                        ),
+                    )
+                operation.sudo().write(
+                    {
+                        "state": "archived",
+                        "document_id": existing.id,
+                        "error_message": False,
+                    },
+                )
+                return
+        result_data = task.get("result_data")
+        operation.sudo().write({
+            "state": "failed",
+            "error_message": (
+                (
+                    result_data.get("message")
+                    or result_data.get("error_message")
+                )
+                if isinstance(result_data, dict)
+                else result_data
+            )
+            or task.get("result")
+            or task.get("message")
+            or _("Paperless processing failed."),
+        })
 
     @api.model
     def cron_poll_operations(self):

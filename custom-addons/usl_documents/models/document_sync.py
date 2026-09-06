@@ -376,6 +376,78 @@ class UslDocument(models.Model):
         # datetime representation is second-granular; truncating here can omit
         # a document completed later in the same second as the sync starts.
         now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+        page, modified_after, checkpoint = self._sync_open_checkpoint(params, full, now)
+
+        seen = set()
+        trashed_ids = set()
+        touched = self.browse()
+        pages_processed = 0
+        complete = False
+        metadata_catalog = None
+        try:
+            client.compatibility()
+            self._sync_metadata_catalogs(client)
+            metadata_records = self._paperless_metadata_records()
+            while True:
+                payload = client.list_documents(
+                    page=page,
+                    page_size=100,
+                    modified_after=modified_after,
+                    modified_before=checkpoint,
+                )
+                results = payload.get("results", [])
+                if metadata_catalog is None and self._needs_metadata_catalog(results):
+                    metadata_catalog = client.metadata_catalog()
+                touched |= self._sync_active_documents(
+                    results, metadata_catalog, metadata_records,
+                )
+                seen.update(int(item["id"]) for item in results)
+                pages_processed += 1
+                if not payload.get("next"):
+                    complete = True
+                    break
+                page += 1
+                if limit_pages and pages_processed >= int(limit_pages):
+                    params.set_str("usl_documents.sync_cursor_page", str(page))
+                    break
+
+            if complete:
+                trashed_documents, trashed_ids = self._sync_trashed_documents(
+                    client, params, metadata_catalog, metadata_records,
+                )
+                touched |= trashed_documents
+            if full and complete:
+                touched |= self._sync_confirm_missing_documents(
+                    client, seen, trashed_ids, metadata_catalog, metadata_records,
+                )
+            if touched:
+                touched.filtered(
+                    lambda item: (
+                        item.availability_state != "trashed"
+                        and item.permission_sync_state != "synchronized"
+                    ),
+                ).with_user(self.env.ref("base.user_root")).action_sync_permissions()
+            if complete:
+                self._sync_close_checkpoint(params, checkpoint)
+            return {
+                "synchronized": len(seen),
+                "trashed": len(trashed_ids),
+                "pages": pages_processed,
+                "complete": complete,
+                "next_page": page if not complete else None,
+                "checkpoint": checkpoint,
+            }
+        except PaperlessError as error:
+            params.set_str("usl_documents.sync_status", "failed")
+            params.set_str("usl_documents.sync_error", str(error))
+            params.set_str("usl_documents.last_sync_error", now)
+            if not full:
+                params.set_str("usl_documents.sync_cursor_page", str(page))
+            raise
+
+    @api.model
+    def _sync_open_checkpoint(self, params, full, now):
+        """Resume or start a synchronization window and mark it as running."""
         cursor_mode = params.get_str("usl_documents.sync_mode")
         resuming = bool(
             not full
@@ -400,285 +472,251 @@ class UslDocument(models.Model):
         params.set_str("usl_documents.sync_mode", "full" if full else "incremental")
         params.set_str("usl_documents.sync_checkpoint", checkpoint)
         params.set_str("usl_documents.sync_modified_after", modified_after or "")
+        return page, modified_after, checkpoint
 
-        seen = set()
-        trashed_ids = set()
+    @api.model
+    def _sync_close_checkpoint(self, params, checkpoint):
+        """Record a completed synchronization and clear the resume cursor."""
+        params.set_str("usl_documents.last_sync", checkpoint)
+        params.set_str("usl_documents.sync_cursor_page", "")
+        params.set_str("usl_documents.sync_checkpoint", "")
+        params.set_str("usl_documents.sync_modified_after", "")
+        params.set_str("usl_documents.sync_mode", "")
+        params.set_str("usl_documents.sync_status", "healthy")
+        params.set_str("usl_documents.last_sync_error", "")
+
+    @api.model
+    def _needs_metadata_catalog(self, items):
+        """Return whether Paperless returned metadata as bare identifiers."""
+        return any(
+            isinstance(item.get("correspondent"), int)
+            or isinstance(item.get("document_type"), int)
+            or any(isinstance(tag, int) for tag in (item.get("tags") or []))
+            for item in items
+        )
+
+    @api.model
+    def _sync_active_documents(self, results, metadata_catalog, metadata_records):
+        """Refresh the cache for one page of active Paperless documents."""
         touched = self.browse()
-        pages_processed = 0
-        complete = False
-        metadata_catalog = None
-        metadata_records = None
-        try:
-            client.compatibility()
-            self._sync_metadata_catalogs(client)
-            metadata_records = self._paperless_metadata_records()
-            while True:
-                payload = client.list_documents(
-                    page=page,
-                    page_size=100,
-                    modified_after=modified_after,
-                    modified_before=checkpoint,
-                )
-                results = payload.get("results", [])
-                if metadata_catalog is None and any(
-                    isinstance(item.get("correspondent"), int)
-                    or isinstance(item.get("document_type"), int)
-                    or any(isinstance(tag, int) for tag in (item.get("tags") or []))
-                    for item in results
-                ):
-                    metadata_catalog = client.metadata_catalog()
-                documents_by_paperless_id = {
-                    document.paperless_id: document
-                    for document in self.sudo().search(
-                        [
-                            (
-                                "paperless_id",
-                                "in",
-                                [int(item["id"]) for item in results],
-                            ),
-                        ],
-                    )
-                }
-                for item in results:
-                    paperless_id = int(item["id"])
-                    seen.add(paperless_id)
-                    document = documents_by_paperless_id.get(paperless_id)
-                    values = self._paperless_values(
-                        item,
-                        metadata_catalog=metadata_catalog,
-                        metadata_records=metadata_records,
-                    )
-                    # A document returned by the active endpoint has left
-                    # Paperless Trash. Clear the previous deletion event even
-                    # when it was restored directly in Paperless; otherwise a
-                    # later Trash event could be falsely attributed to the
-                    # Odoo user who performed the earlier one.
-                    values.update(
-                        {
-                            "trashed_at": False,
-                            "trashed_by_id": False,
-                            "trashed_by_label": False,
-                            "retention_until": False,
-                            "deletion_approved_by_id": False,
-                            "deletion_approved_at": False,
-                            "deletion_reason": False,
-                        },
-                    )
-                    if document:
-                        # Odoo-origin provenance is authoritative and must survive
-                        # refreshes of the Paperless metadata cache.
-                        values.pop("source", None)
-                        document.with_context(
-                            usl_documents_cache_write=True,
-                            skip_permission_invalidation=True,
-                        ).write(values)
-                    else:
-                        document = self.sudo().create(values)
-                        documents_by_paperless_id[paperless_id] = document
-                    if document.source == "paperless":
-                        document._merge_original_timestamps(
-                            document.paperless_created,
-                            document.paperless_modified,
-                        )
-                    document._synchronize_versions(item.get("versions") or [])
-                    touched |= document
-                pages_processed += 1
-                if not payload.get("next"):
-                    complete = True
-                    break
-                page += 1
-                if limit_pages and pages_processed >= int(limit_pages):
-                    params.set_str("usl_documents.sync_cursor_page", str(page))
-                    break
-
-            if complete:
-                retention_days = max(
-                    0,
-                    params.get_int(
-                        "usl_documents.paperless_trash_retention_days",
-                        30,
+        documents_by_paperless_id = {
+            document.paperless_id: document
+            for document in self.sudo().search(
+                [
+                    (
+                        "paperless_id",
+                        "in",
+                        [int(item["id"]) for item in results],
                     ),
-                )
-                trashed_items = list(client.list_trashed_documents())
-                trashed_documents_by_paperless_id = {
-                    document.paperless_id: document
-                    for document in self.sudo().search(
-                        [
-                            (
-                                "paperless_id",
-                                "in",
-                                [int(item["id"]) for item in trashed_items],
-                            ),
-                        ],
-                    )
-                }
-                for item in trashed_items:
-                    paperless_id = int(item["id"])
-                    trashed_ids.add(paperless_id)
-                    document = trashed_documents_by_paperless_id.get(paperless_id)
-                    values = self._paperless_values(
-                        item,
-                        metadata_catalog=metadata_catalog,
-                        metadata_records=metadata_records,
-                    )
-                    values["availability_state"] = "trashed"
-                    values["last_error"] = False
-                    values.update(
-                        {
-                            "permission_sync_state": "pending",
-                            "permission_sync_error": False,
-                            "permission_checked_at": False,
-                        },
-                    )
-                    trashed_at = self._paperless_datetime(item.get("deleted_at"))
-                    values["trashed_at"] = trashed_at
-                    if (
-                        not document
-                        or (
-                            not document.trashed_by_id
-                            and not document.trashed_by_label
-                        )
-                    ):
-                        values["trashed_by_label"] = _(
-                            "Moved in Paperless (user not provided by its API)",
-                        )
-                    values["retention_until"] = (
-                        fields.Datetime.to_datetime(trashed_at)
-                        + timedelta(days=retention_days)
-                        if trashed_at
-                        else False
-                    )
-                    if document and (
-                        document.accounting_evidence
-                        or document.confidentiality == "hr"
-                    ):
-                        values["retention_hold"] = True
-                    if document:
-                        values.pop("source", None)
-                        document.with_context(
-                            usl_documents_cache_write=True,
-                        ).write(values)
-                    else:
-                        document = self.sudo().create(values)
-                        trashed_documents_by_paperless_id[paperless_id] = document
-                        document.with_context(
-                            usl_documents_cache_write=True,
-                        ).write({"availability_state": "trashed"})
-                    if document.source == "paperless":
-                        document._merge_original_timestamps(
-                            document.paperless_created,
-                            document.paperless_modified,
-                        )
-                    document._synchronize_versions(item.get("versions") or [])
-                    touched |= document
-
-            if full and complete:
-                omitted_available = self.sudo().search(
-                    [
-                        ("paperless_id", "not in", list(seen | trashed_ids)),
-                        ("availability_state", "=", "available"),
-                    ],
-                )
-                confirmed_missing = omitted_available
-                # Paperless's list/search index is eventually consistent just
-                # after consumption. An Odoo-origin document has already been
-                # confirmed by its asynchronous task and direct document API;
-                # do not downgrade it to missing (and thereby defeat local
-                # checksum reuse) solely because one full-list response lags.
-                # A direct supported-API lookup distinguishes that race from a
-                # genuinely removed archive object.
-                for document in omitted_available.filtered(
-                    lambda item: item.source != "paperless",
-                ):
-                    try:
-                        item = client.get_document(document.paperless_id)
-                    except PaperlessNotFound:
-                        continue
-                    confirmed_missing -= document
-                    seen.add(document.paperless_id)
-                    if metadata_catalog is None and (
-                        isinstance(item.get("correspondent"), int)
-                        or isinstance(item.get("document_type"), int)
-                        or any(
-                            isinstance(tag, int)
-                            for tag in (item.get("tags") or [])
-                        )
-                    ):
-                        metadata_catalog = client.metadata_catalog()
-                    values = self._paperless_values(
-                        item,
-                        metadata_catalog=metadata_catalog,
-                        metadata_records=metadata_records,
-                    )
-                    values.pop("source", None)
-                    document.with_context(
-                        usl_documents_cache_write=True,
-                        skip_permission_invalidation=True,
-                    ).write(values)
-                    document._synchronize_versions(item.get("versions") or [])
-                    touched |= document
-                confirmed_missing.with_context(
+                ],
+            )
+        }
+        for item in results:
+            paperless_id = int(item["id"])
+            document = documents_by_paperless_id.get(paperless_id)
+            values = self._paperless_values(
+                item,
+                metadata_catalog=metadata_catalog,
+                metadata_records=metadata_records,
+            )
+            # A document returned by the active endpoint has left
+            # Paperless Trash. Clear the previous deletion event even
+            # when it was restored directly in Paperless; otherwise a
+            # later Trash event could be falsely attributed to the
+            # Odoo user who performed the earlier one.
+            values.update(
+                {
+                    "trashed_at": False,
+                    "trashed_by_id": False,
+                    "trashed_by_label": False,
+                    "retention_until": False,
+                    "deletion_approved_by_id": False,
+                    "deletion_approved_at": False,
+                    "deletion_reason": False,
+                },
+            )
+            if document:
+                # Odoo-origin provenance is authoritative and must survive
+                # refreshes of the Paperless metadata cache.
+                values.pop("source", None)
+                document.with_context(
                     usl_documents_cache_write=True,
-                ).write(
-                    {
-                        "availability_state": "missing",
-                        "last_error": _(
-                            "Document was not returned by a full Paperless reconciliation.",
-                        ),
-                        "permission_sync_state": "pending",
-                        "permission_sync_error": False,
-                        "permission_checked_at": False,
-                    },
+                    skip_permission_invalidation=True,
+                ).write(values)
+            else:
+                document = self.sudo().create(values)
+                documents_by_paperless_id[paperless_id] = document
+            if document.source == "paperless":
+                document._merge_original_timestamps(
+                    document.paperless_created,
+                    document.paperless_modified,
                 )
-                self.sudo().search(
-                    [
-                        ("paperless_id", "not in", list(seen | trashed_ids)),
-                        ("availability_state", "=", "trashed"),
-                    ],
-                ).with_context(usl_documents_cache_write=True).write(
-                    {
-                        "availability_state": "permanently_deleted",
-                        "permanently_deleted_at": fields.Datetime.now(),
-                        "last_error": _(
-                            "Paperless no longer returns this previously trashed "
-                            "archive item. Its Odoo tombstone and audit history "
-                            "were retained.",
-                        ),
-                        "permission_sync_state": "pending",
-                        "permission_sync_error": False,
-                        "permission_checked_at": False,
-                    },
-                )
-            if touched:
-                touched.filtered(
-                    lambda item: (
-                        item.availability_state != "trashed"
-                        and item.permission_sync_state != "synchronized"
+            document._synchronize_versions(item.get("versions") or [])
+            touched |= document
+        return touched
+
+    @api.model
+    def _sync_trashed_documents(self, client, params, metadata_catalog, metadata_records):
+        """Mirror Paperless Trash and return the touched documents and their ids."""
+        retention_days = max(
+            0,
+            params.get_int(
+                "usl_documents.paperless_trash_retention_days",
+                30,
+            ),
+        )
+        touched = self.browse()
+        trashed_ids = set()
+        trashed_items = list(client.list_trashed_documents())
+        trashed_documents_by_paperless_id = {
+            document.paperless_id: document
+            for document in self.sudo().search(
+                [
+                    (
+                        "paperless_id",
+                        "in",
+                        [int(item["id"]) for item in trashed_items],
                     ),
-                ).with_user(self.env.ref("base.user_root")).action_sync_permissions()
-            if complete:
-                params.set_str("usl_documents.last_sync", checkpoint)
-                params.set_str("usl_documents.sync_cursor_page", "")
-                params.set_str("usl_documents.sync_checkpoint", "")
-                params.set_str("usl_documents.sync_modified_after", "")
-                params.set_str("usl_documents.sync_mode", "")
-                params.set_str("usl_documents.sync_status", "healthy")
-                params.set_str("usl_documents.last_sync_error", "")
-            return {
-                "synchronized": len(seen),
-                "trashed": len(trashed_ids),
-                "pages": pages_processed,
-                "complete": complete,
-                "next_page": page if not complete else None,
-                "checkpoint": checkpoint,
-            }
-        except PaperlessError as error:
-            params.set_str("usl_documents.sync_status", "failed")
-            params.set_str("usl_documents.sync_error", str(error))
-            params.set_str("usl_documents.last_sync_error", now)
-            if not full:
-                params.set_str("usl_documents.sync_cursor_page", str(page))
-            raise
+                ],
+            )
+        }
+        for item in trashed_items:
+            paperless_id = int(item["id"])
+            trashed_ids.add(paperless_id)
+            document = trashed_documents_by_paperless_id.get(paperless_id)
+            values = self._paperless_values(
+                item,
+                metadata_catalog=metadata_catalog,
+                metadata_records=metadata_records,
+            )
+            values["availability_state"] = "trashed"
+            values["last_error"] = False
+            values.update(
+                {
+                    "permission_sync_state": "pending",
+                    "permission_sync_error": False,
+                    "permission_checked_at": False,
+                },
+            )
+            trashed_at = self._paperless_datetime(item.get("deleted_at"))
+            values["trashed_at"] = trashed_at
+            if (
+                not document
+                or (
+                    not document.trashed_by_id
+                    and not document.trashed_by_label
+                )
+            ):
+                values["trashed_by_label"] = _(
+                    "Moved in Paperless (user not provided by its API)",
+                )
+            values["retention_until"] = (
+                fields.Datetime.to_datetime(trashed_at)
+                + timedelta(days=retention_days)
+                if trashed_at
+                else False
+            )
+            if document and (
+                document.accounting_evidence
+                or document.confidentiality == "hr"
+            ):
+                values["retention_hold"] = True
+            if document:
+                values.pop("source", None)
+                document.with_context(
+                    usl_documents_cache_write=True,
+                ).write(values)
+            else:
+                document = self.sudo().create(values)
+                trashed_documents_by_paperless_id[paperless_id] = document
+                document.with_context(
+                    usl_documents_cache_write=True,
+                ).write({"availability_state": "trashed"})
+            if document.source == "paperless":
+                document._merge_original_timestamps(
+                    document.paperless_created,
+                    document.paperless_modified,
+                )
+            document._synchronize_versions(item.get("versions") or [])
+            touched |= document
+        return touched, trashed_ids
+
+    @api.model
+    def _sync_confirm_missing_documents(
+        self, client, seen, trashed_ids, metadata_catalog, metadata_records,
+    ):
+        """After a full listing, downgrade documents Paperless no longer returns."""
+        touched = self.browse()
+        omitted_available = self.sudo().search(
+            [
+                ("paperless_id", "not in", list(seen | trashed_ids)),
+                ("availability_state", "=", "available"),
+            ],
+        )
+        confirmed_missing = omitted_available
+        # Paperless's list/search index is eventually consistent just
+        # after consumption. An Odoo-origin document has already been
+        # confirmed by its asynchronous task and direct document API;
+        # do not downgrade it to missing (and thereby defeat local
+        # checksum reuse) solely because one full-list response lags.
+        # A direct supported-API lookup distinguishes that race from a
+        # genuinely removed archive object.
+        for document in omitted_available.filtered(
+            lambda item: item.source != "paperless",
+        ):
+            try:
+                item = client.get_document(document.paperless_id)
+            except PaperlessNotFound:
+                continue
+            confirmed_missing -= document
+            seen.add(document.paperless_id)
+            if metadata_catalog is None and self._needs_metadata_catalog([item]):
+                metadata_catalog = client.metadata_catalog()
+            values = self._paperless_values(
+                item,
+                metadata_catalog=metadata_catalog,
+                metadata_records=metadata_records,
+            )
+            values.pop("source", None)
+            document.with_context(
+                usl_documents_cache_write=True,
+                skip_permission_invalidation=True,
+            ).write(values)
+            document._synchronize_versions(item.get("versions") or [])
+            touched |= document
+        confirmed_missing.with_context(
+            usl_documents_cache_write=True,
+        ).write(
+            {
+                "availability_state": "missing",
+                "last_error": _(
+                    "Document was not returned by a full Paperless reconciliation.",
+                ),
+                "permission_sync_state": "pending",
+                "permission_sync_error": False,
+                "permission_checked_at": False,
+            },
+        )
+        self.sudo().search(
+            [
+                ("paperless_id", "not in", list(seen | trashed_ids)),
+                ("availability_state", "=", "trashed"),
+            ],
+        ).with_context(usl_documents_cache_write=True).write(
+            {
+                "availability_state": "permanently_deleted",
+                "permanently_deleted_at": fields.Datetime.now(),
+                "last_error": _(
+                    "Paperless no longer returns this previously trashed "
+                    "archive item. Its Odoo tombstone and audit history "
+                    "were retained.",
+                ),
+                "permission_sync_state": "pending",
+                "permission_sync_error": False,
+                "permission_checked_at": False,
+            },
+        )
+        return touched
 
     @api.model
     def cron_sync_from_paperless(self):
