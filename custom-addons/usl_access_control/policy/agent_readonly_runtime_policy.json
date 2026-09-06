@@ -288,7 +288,7 @@
     "rpc:usl.tese.profile.message_subscribe",
     "rpc:usl.tese.profile.message_unsubscribe"
   ],
-  "qualified_policy_digest": "649ce7ca6be500e331e0c0a918f0a50c2bf480fc51e9ab45f8066826547829fb",
+  "qualified_policy_digest": "4f2be73df1c0b2bc39d250fc80c0d221ebacd2523bb6edf31ff1b894b48ed26a",
   "read_only_actions": [
     "rpc:_unknown.check_field_access",
     "rpc:_unknown.export_data",
@@ -12679,7 +12679,7 @@
     "rpc:wizard.open.tax.balances.search_count",
     "rpc:wizard.open.tax.balances.search_read"
   ],
-  "runtime_policy_sha256": "5f6f2340976b19d33f14444dc44f4b46ac5d46a1fe4c0c74c2176e91efdbba1c",
+  "runtime_policy_sha256": "9836908fdd91a41e209d09fa6febdd372443095a903df14fd1717902a1f1238d",
   "schema": "usl-agent-access-runtime-v2",
   "write_actions": [
     "rpc:_unknown.copy",
@@ -16515,6 +16515,7 @@
     "rpc:hr.expense.action_retry_linked_receipt",
     "rpc:hr.expense.action_return_from_batch",
     "rpc:hr.expense.action_review_linked_receipt",
+    "rpc:hr.expense.action_scan_existing_receipt_emails",
     "rpc:hr.expense.action_split_wizard",
     "rpc:hr.expense.activity_reschedule",
     "rpc:hr.expense.activity_send_mail",
@@ -18290,7 +18291,6 @@
     "rpc:ir.ui.menu.get_view",
     "rpc:ir.ui.menu.get_views",
     "rpc:ir.ui.menu.load_menus",
-    "rpc:ir.ui.menu.load_web_menus",
     "rpc:ir.ui.menu.name_create",
     "rpc:ir.ui.menu.onchange",
     "rpc:ir.ui.menu.update_field_translations",

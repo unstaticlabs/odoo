@@ -1635,7 +1635,7 @@ test("Documents search domains stay namespaced away from tag dialogs", async () 
     });
 
     await mountWithCleanup(DocumentsWorkspace, {
-        props: { action: action() },
+        props: { action: action(), urlState: { domain: documentDomain } },
     });
     await animationFrame();
 
@@ -1645,6 +1645,21 @@ test("Documents search domains stay namespaced away from tag dialogs", async () 
         JSON.parse(canonicalUrl.searchParams.get("usl_filters")).nativeSearch
             .domain
     ).toBe(documentDomain);
+});
+
+test.tags("desktop");
+test("Documents ignores an outgoing action's global search domain", async () => {
+    const url = new URL(browser.location.href);
+    url.searchParams.set("domain", '[("unrelated_field", "=", "outgoing")]');
+    browser.history.replaceState({}, "", url.toString());
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        expect(kwargs.search_domain).toEqual([]);
+        return emptyWorkspace;
+    });
+    await mountWithCleanup(DocumentsWorkspace, {
+        props: { action: action() },
+    });
+    await animationFrame();
 });
 
 test.tags("desktop");

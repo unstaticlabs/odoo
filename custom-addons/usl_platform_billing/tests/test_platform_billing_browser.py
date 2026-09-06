@@ -15,6 +15,7 @@ class TestPlatformBillingBrowser(AccountTestInvoicingCommon, HttpCase):
         super().setUpClass()
         cls.company = cls.company_data["company"]
         cls.currency = cls.company.currency_id
+        cls.partner_a.country_id = cls.env.ref("base.us")
         cls.env.user.group_ids += cls.env.ref(
             "usl_platform_billing.group_platform_billing_manager",
         )

@@ -63,7 +63,12 @@ delayed-settlement FX.
 
 ## Controls
 
-- Commission is strictly between 0% and 100%.
+- Commission is at least 0% and below 100%. At 0%, gross equals net.
+  A currency-rounded zero commission creates neither a vendor bill nor a
+  compensation entry, including within a mixed monthly bill group.
+- Document generation requires country information on the effective customer
+  and supplier partners. Review their fiscal positions; currency is not proof
+  of tax location. Native Odoo remains responsible for determining taxes.
 - Non-empty platform references are unique per company/platform.
 - A payout may have several bank allocations, and a bank transaction may serve
   several payouts. A newly imported draft temporarily keeps a zero platform

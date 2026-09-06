@@ -127,14 +127,40 @@ feedback, the selected page preview on the first turn, and a release-pinned
 public source link of the form
 `https://github.com/unstaticlabs/odoo/tree/<release-sha>`. Gemini may use URL
 context and, when configured, the HTTPS endpoint ending exactly in
-`/mcp/projects`.
+`/mcp/projects`. These are separate background phases: public URL lookup,
+optional read-only MCP lookup, then tool-free structured drafting. URL context
+and MCP must never share an interaction. MCP uses an explicit validated
+allowlist of model discovery, description, search and read tools. Final drafting
+uses the bounded conversation and both lookup summaries, not a tool-enabled
+interaction's unconstrained answer. The original deployment snapshot is unchanged.
 Prompt and tool content are treated as untrusted. Structured output is
 validated before a narrow privileged update changes the same task. Audit runs
 retain identifiers, timestamps, model, hashes, token counts and safe error
-codes—not prompts, keys, screenshots, provider reasoning or raw responses.
+codes—not prompts, keys, screenshots, provider reasoning or raw tool responses.
+Active runs temporarily retain at most 12,000 characters of final lookup evidence
+in a service-only field; known credentials are redacted and that field is cleared
+on completion, failure, withdrawal or supersession. Lookup phases have a five-minute
+overall polling deadline. Provider request-format errors and malformed final JSON
+use the existing bounded tool-free fallback, not repeated identical HTTP 400 requests.
+
+Visual analysis also accepts up to three JPEG/PNG images explicitly attached to
+this task's eligible conversation messages (10 MiB per manual image). It respects
+the run's message cutoff, includes new reply images on subsequent turns, and never
+follows a foreign task's attachment. Other files remain available on the task;
+they are not interpreted by the image-analysis pass. Image failure does not erase
+the report or attachment.
+
+The Settings check exercises structured generation and, when configured, an actual
+Gemini-to-MCP read. It verifies matching read-call/result trace entries as well as
+the project result; a model's unsupported claim of success is insufficient. A
+single JSON code fence and harmless extra diagnostic keys are tolerated. Each
+failure names its stage and a bounded safe code, never raw provider prose or URLs.
+Neutralized databases cannot perform external checks.
 
 Failures leave the partial card in Inbox. Transient provider failures retry
-with a bounded delay. If the background interaction still fails, one bounded,
+with a bounded delay. Normal background polling is spaced by ten seconds;
+rate-limited polling retains the existing interaction rather than submitting a
+duplicate. If the background interaction still fails, one bounded,
 non-stored Gemini 3.5 Flash-Lite request completes the turn from the full
 sanitized chatter without URL or MCP tools. Incomplete or slightly malformed
 structured output becomes a clarification question instead of a dead-end
@@ -253,6 +279,21 @@ Afterward verify the seven governed stages, company-neutral cards with retained
 source company, inactive legacy rules, secret-status indicators, read-only
 service denial, one synthetic conversation and a repeated identical update.
 Keep both regulatory live flags at `0` during qualification.
+
+Version `saas~19.3.2.0.16` adds the assistant run phase and temporary lookup-evidence
+fields. Existing runs default to the final-draft phase; completed cards and their
+deployment descriptions are not rewritten. Upgrade with `-u usl_feedback` and
+repeat the upgrade. Finish or withdraw active lookup runs before reverting to
+older code, which cannot interpret their intermediate responses. There is no
+automatic retry of historical failed feedback: retry the existing card after
+deployment to preserve its identity and conversation.
+
+Wide-page capture now limits both the SVG raster and the final JPEG to 1920 pixels,
+preserves the original viewport layout through the SVG viewBox, and bounds embedded
+canvas/video rasters. Decoder failures reject promptly; a 15-second image-load
+deadline prevents a hung decode. Console diagnostics contain only a fixed error
+category, never DOM, image data, URLs or exception text. Qualification includes
+a real 5120×1440 browser with 50,000-pixel overflow and a 20,000-pixel canvas.
 
 For provider trouble, remove the Gemini key to use fixed local replies, or
 disable the assistant; saved Inbox cards remain available and no schema

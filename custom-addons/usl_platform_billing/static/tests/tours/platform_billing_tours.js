@@ -278,6 +278,24 @@ registry.category("web_tour.tours").add("usl_platform_billing_bank_create_journe
             trigger: ".modal .o_field_widget[name='candidate_scope']",
         },
         {
+            content: "Regenerate candidates through Suggested only",
+            trigger: ".modal .o_field_widget[name='candidate_scope'] .o_select_menu_toggler",
+            run: "click",
+        },
+        {
+            trigger: ".o_field_selection_menu .dropdown-item:contains('Suggested only')",
+            run: "click",
+        },
+        {
+            content: "Restore unmatched candidates before importing",
+            trigger: ".modal:not(:has(.o_data_row)) .o_field_widget[name='candidate_scope'] .o_select_menu_toggler",
+            run: "click",
+        },
+        {
+            trigger: ".o_field_selection_menu .dropdown-item:contains('All open')",
+            run: "click",
+        },
+        {
             content: "The matching transaction is available",
             trigger:
                 ".modal .o_data_row:has(td[name='bank_label']:contains('Unrecognised browser platform receipt')) [name='selected'] button",

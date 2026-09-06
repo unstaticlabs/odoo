@@ -46,17 +46,28 @@ The plan is applied by a one-shot Odoo command. The normal Compose definition
 does not contain a permanent `--update` list.
 
 After the candidate passes staging health and read-only control checks,
-staging signs that exact plan with a dedicated Ed25519 key. A production merge
-creates a different release identity because its source ref and commit differ.
-Staging therefore signs a second promotion envelope that preserves the original
-staging signature and binds both release identities to the same distribution
-input, immutable component images, module inventory, foundation, MCP contract,
-renderer, and Ollama contract. User-facing release notes may describe the
-branch-specific promotion and do not affect the qualified runtime tree.
-Production holds only the public
-key and rejects unsigned, modified, cross-release, wrong-branch, or unequal
-promotion inputs. The bridge changes only the plan's candidate identity; it
-cannot change its active release, installed modules, upgrade closure, or reasons.
+staging signs its exact plan with a dedicated Ed25519 key. Only a staging
+target verifies that `usl-staging-upgrade-plan-evidence/v2` envelope.
+
+Production does not consume a staging-signed plan. A production merge creates
+a different release identity because its source ref and commit differ, so
+production derives its own plan with `release plan` from its active release
+manifest and the product modules installed in its database. The plan schema
+is `usl-module-upgrade-plan/v1`. Production accepts the plan when its `sha256`
+matches its content and its `candidate_release` equals the candidate identity.
+A modified plan or a plan for another candidate fails closed. Materialization
+binds the plan again: the plan's `active_release` must equal the release that
+the backup snapshot records, and the preparation receipt must carry the same
+plan `sha256`. User-facing release notes may describe the branch-specific
+release and do not affect the qualified runtime tree.
+
+`release plan --promote` still exists on a staging target, but the GitOps
+launcher does not call it for a production rollout. It compares the deployable
+content of the staging and production releases: component images, module
+inventory, MCP contract, renderer, Ollama contract, and the foundation Odoo
+series, core, OCA, Python-constraints and security-policy hashes. It ignores
+the foundation `odoo_core_commit` and `digest` fields because they change on
+every production merge while the deployed content stays the same.
 
 Qualification has one consolidated host-side compatibility job and one
 event-gated database job. Staging pull requests and merge-queue commits run no
@@ -117,16 +128,11 @@ scripts/usl-stack --target staging release resume-staging \
   --quiescence-receipt \
   /var/lib/usl-odoo/runtime/staging/backup-runs/<unique-attempt-id>/quiesced.json
 
-scripts/usl-stack --target staging release plan --promote \
-  --upgrade-plan /path/to/signed-staging-plan.json \
-  --staging-release /path/to/staging-release.json \
-  --candidate-release /path/to/production-release.json \
-  --output /path/to/production-promotion.json
-
+# Production plans from its own active release; see the first command above.
 scripts/usl-stack --target production release prepare \
   --attempt-id <unique-attempt-id> \
   --candidate-release /path/to/production-release.json \
-  --upgrade-plan /path/to/production-promotion.json
+  --upgrade-plan /path/to/upgrade-plan.json
 
 scripts/usl-stack --target production release status
 scripts/usl-stack --target production release abort --attempt-id <attempt>
@@ -169,14 +175,65 @@ portal and public identities are excluded. The post is persistent, links to
 technical evidence, and is idempotent for the release identity; it is not a
 transient browser popup. Notification failure is retryable operational
 evidence and never rolls back a healthy release.
-Before promoting a user-visible release, update
-`operations/release-notes.json` in the reviewed release PR. The v3 builder
-rejects missing, empty, oversized, or structurally unknown notes and binds the
-accepted content into the signed release identity.
+
+The notification program runs through `odoo shell`, which rolls its
+transaction back at exit. The program commits after `message_post`, reads the
+message again in a fresh transaction, and fails when the message is not
+stored. Before the commit step existed, the launcher recorded message ids that
+never existed in the database.
+### Changelog source
+
+The release notes are a changelog of the pull requests merged since the
+previous release. The `Distribution release` workflow runs
+`scripts/release-notes` before `scripts/release-manifest`. The generator:
+
+1. Lists the commits in the pushed range `github.event.before..github.sha`
+   with `gh api` and the workflow token. A push to `19-usl` is a production
+   release; a push to `19-usl-staging` is a staging release. Without a usable
+   `before` (first push, force push, manual dispatch) it uses the last 20
+   commits.
+2. Asks GitHub for the pull requests associated with those commits. It keeps
+   merged pull requests of this repository and drops the promotion pull
+   request (`19-usl-staging` into `19-usl`). The pull requests that the
+   promotion carries stay, because their commits are part of the range.
+3. Writes `usl-release-notes/v2` notes: a dated title, a one-sentence
+   summary with the changed scopes, one object per pull request (`type`,
+   `scope`, `title`, `number`, `url`, `author`) ordered by Conventional
+   Commit type, and `action_required` from the title of a pull request
+   labelled `action-required`.
+
+When no pull request was merged, or when GitHub is unreachable, the generator
+writes the reviewed `operations/release-notes.json` (`usl-release-notes/v1`)
+instead and says so in the job log. The v3 builder accepts both schemas,
+rejects missing, empty, oversized, or structurally unknown notes, and binds
+the accepted content into the signed release identity. OdooBot renders a v2
+changelog as one list item per pull request, `type(scope): title` with a
+link to the pull request, grouped under a small bold heading per type when
+the release has more than five changes. The message uses no table so that it
+stays readable on a phone.
 
 The operations image includes a pinned Docker client and Compose plugin, so the
 fixed host launcher does not depend on whatever client happens to be installed
 inside another application image.
+
+## Coordinated rollout of the production planner
+
+A native production rollout needs two paired changes:
+
+- an operations image that contains commit `ba3e6a44d` of this repository.
+  It accepts a `usl-module-upgrade-plan/v1` plan on a production target.
+- the GitOps launcher from merge request !299 of `unstaticlabs/infra/gitops`.
+  It derives the production plan with `release plan` and passes that plan to
+  `release prepare` and `release reconcile`.
+
+Do not deploy one side alone. An operations image without `ba3e6a44d` rejects
+the derived plan with `production requires a staging-signed production
+promotion`. An operations image with `ba3e6a44d` rejects the old promotion
+envelope with `upgrade plan fields differ`.
+
+The signed release `0ad80a6` predates `ba3e6a44d`. Its operations image cannot
+deploy natively through the new launcher. Publish a release that contains
+`ba3e6a44d` before you run a native production rollout.
 
 ## Restore and admission
 
@@ -247,9 +304,10 @@ Sign PKI or MCP OAuth grants.
 
 `release prepare` is the mandatory pre-downtime gate. It validates the target
 secret contract, storage paths and external networks, pulls every immutable
-Odoo-cohort image, measures candidate capacity, verifies the signed plan, and
-renders the exact target Compose topology with release images, resource limits,
-generation volumes, Sign mounts, and production quarantine settings. The MCP
+Odoo-cohort image, measures candidate capacity, validates the plan checksum
+and its candidate binding, and renders the exact target Compose topology with
+release images, resource limits, generation volumes, Sign mounts, and
+production quarantine settings. The MCP
 image remains the immutable digest from the environment's independently
 admitted GitOps MCP ledger; an Odoo prepare, restore, activation, rollback, or
 recovery proof must not replace it with the historical tested MCP identity in
@@ -275,9 +333,9 @@ digested `usl-maintenance-admission/v1` receipt for the same target and attempt,
 with exact 503 coverage of Odoo HTTP and WebSocket plus every public Paperless
 and MCP writer ingress affected by the release,
 then consumes the attempt exactly once. Its immutable attempt claim binds the
-source snapshot, candidate release, exact signed upgrade plan, archived GitOps
-commit and Compose render, preparation and maintenance receipts, baseline, and
-new generation into one operation-bundle digest. Quarantine and admission
+source snapshot, candidate release, exact checksum-bound upgrade plan, archived
+GitOps commit and Compose render, preparation and maintenance receipts,
+baseline, and new generation into one operation-bundle digest. Quarantine and admission
 receipts must carry that same digest; mixing evidence from retries or concurrent
 promotions fails closed. In production reconciliation stops at an immutable
 `usl-release-quarantine/v2` receipt. The controller must complete every
@@ -325,8 +383,10 @@ classes:
 
 - business-history controls must remain exactly equal through restore and
   upgrade, including posted Accounting and reconciliation fingerprints;
-- release-owned access controls may change, but production must match the
-  exact digest signed after the staging upgrade;
+- release-owned access controls may change; when the supplied plan carries
+  staging-signed evidence, production must match the release-definitions
+  digest signed after the staging upgrade. A plan that production derives
+  itself carries no such digest;
 - known pending queues may drain while writers are stopped, but may not grow,
   and every failed queue or cron count must remain zero.
 
@@ -485,6 +545,15 @@ gate. The source policy accepts a production pull request only when it comes
 from `unstaticlabs/odoo:19-usl-staging` or an
 `unstaticlabs/odoo:urgent/**` branch; a fork cannot pass by reusing one of those
 branch names.
+
+The `USL source policy` and `USL production promotion` jobs run only for a
+pull request or merge group whose base is `19-usl`. On a staging pull request,
+a staging merge group or an urgent mirror run, the workflow skips both jobs and
+names them `USL source policy not applicable` and
+`USL production promotion not applicable`. A skipped job under a different name
+never satisfies a production required check. GitHub therefore waits for the
+actual production qualification of a commit before it admits that commit to
+the production merge queue, even when staging already ran on the same commit.
 
 For a production pull request, `USL qualification` retains a small digest-bound
 artifact containing the pull-request number, source and base commits, exact

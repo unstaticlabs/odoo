@@ -470,10 +470,6 @@ class UslPlatformBillingSession(models.Model):
                 payout_values = {}
                 if not payout.platform_currency_id and payout.platform_id:
                     payout_values["platform_currency_id"] = payout.platform_id.currency_id.id
-                if not payout.commission_rate_snapshot and payout.platform_id:
-                    payout_values["commission_rate_snapshot"] = (
-                        payout.platform_id.commission_rate
-                    )
                 if payout_values:
                     payout.write(payout_values)
         return True
@@ -495,6 +491,14 @@ class UslPlatformBillingSession(models.Model):
                 ),
             )
         for platform in self.payout_ids.platform_id:
+            for partner in platform.customer_partner | platform.supplier_partner:
+                if not (partner.country_id or partner.commercial_partner_id.country_id):
+                    errors.append(_(
+                        "%(platform)s: set the country on %(partner)s and review its "
+                        "fiscal position before generating documents. Tax location "
+                        "cannot be inferred from the payout currency.",
+                        platform=platform.display_name, partner=partner.display_name,
+                    ))
             missing = []
             for field_name in (
                 "partner_id",
@@ -675,10 +679,15 @@ class UslPlatformBillingSession(models.Model):
                     invoice_currency_rate=invoice_rate,
                 ),
             )
+            commission_payouts = invoice_payouts.filtered(
+                lambda payout: not payout.platform_currency_id.is_zero(
+                    payout.commission_platform_amount,
+                )
+            )
             if platform.vendor_bill_grouping_mode == "monthly":
-                bill_groups = [invoice_payouts]
+                bill_groups = [commission_payouts] if commission_payouts else []
             else:
-                bill_groups = list(invoice_payouts)
+                bill_groups = list(commission_payouts)
             bills = self.env["account.move"]
             for bill_payouts in bill_groups:
                 bill_lines = [

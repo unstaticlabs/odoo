@@ -2430,3 +2430,38 @@ msgstr "Retour produit : Question"
 #: model:project.tags,name:usl_feedback.tag_feedback_ux
 msgid "Feedback: UX"
 msgstr "Retour produit : UX"
+
+#. module: usl_feedback
+#: code:addons/usl_feedback/models/res_config_settings.py:0
+msgid "Gemini model access"
+msgstr "Accès aux modèles Gemini"
+
+#. module: usl_feedback
+#: code:addons/usl_feedback/models/res_config_settings.py:0
+msgid "Gemini structured reply"
+msgstr "Réponse structurée de Gemini"
+
+#. module: usl_feedback
+#: code:addons/usl_feedback/models/res_config_settings.py:0
+msgid "Projects MCP access"
+msgstr "Accès au MCP Projets"
+
+#. module: usl_feedback
+#: code:addons/usl_feedback/models/res_config_settings.py:0
+msgid "Gemini Projects MCP lookup"
+msgstr "Recherche de Gemini via le MCP Projets"
+
+#. module: usl_feedback
+#: code:addons/usl_feedback/models/res_config_settings.py:0
+msgid "%(stage)s: %(reason)s"
+msgstr "%(stage)s : %(reason)s"
+
+#. module: usl_feedback
+#: code:addons/usl_feedback/models/res_config_settings.py:0
+msgid "External feedback checks are disabled on a neutralized database."
+msgstr "Les vérifications externes de l’assistant sont désactivées sur une base neutralisée."
+
+#. module: usl_feedback
+#: code:addons/usl_feedback/models/res_config_settings.py:0
+msgid "The Projects MCP endpoint could not be reached. Check its URL and service status."
+msgstr "Le MCP Projets est inaccessible. Vérifiez son URL et l’état du service."

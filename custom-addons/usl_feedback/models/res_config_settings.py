@@ -145,12 +145,20 @@ class ResConfigSettings(models.TransientModel):
             return self._feedback_notification(
                 _("Connection test failed"), _("Select a Gemini model first."), "danger",
             )
+        if params.get_bool("database.is_neutralized"):
+            detail = _("External feedback checks are disabled on a neutralized database.")
+            self._set_feedback_connection_status("error", detail)
+            return self._feedback_notification(_("Connection test failed"), detail, "warning")
         try:
             client = GeminiClient(api_key=api_key)
+            stage = _("Gemini model access")
             client.test_model(self.feedback_gemini_model)
             client.test_model(VISION_MODEL)
+            stage = _("Gemini structured reply")
+            client.test_generation(self.feedback_gemini_model)
             mcp_enabled = bool(mcp_key and mcp_url)
             if mcp_enabled:
+                stage = _("Projects MCP access")
                 mcp_url = GeminiClient.validate_mcp_url(mcp_url)
                 response = requests.post(
                     mcp_url,
@@ -175,6 +183,7 @@ class ResConfigSettings(models.TransientModel):
                     allow_redirects=False,
                 )
                 response.raise_for_status()
+                stage = _("Gemini Projects MCP lookup")
                 client.test_mcp_interaction(
                     model=self.feedback_gemini_model,
                     mcp_url=mcp_url,
@@ -185,10 +194,11 @@ class ResConfigSettings(models.TransientModel):
                     },
                 )
         except (GeminiError, ValueError, requests.RequestException) as error:
-            detail = _(
-                "Connection test failed: %(reason)s",
-                reason=str(error),
+            # requests errors can include a credential-bearing URL or response body.
+            detail = str(error) if isinstance(error, (GeminiError, ValueError)) else _(
+                "The Projects MCP endpoint could not be reached. Check its URL and service status."
             )
+            detail = _("%(stage)s: %(reason)s", stage=stage, reason=detail)
             self._set_feedback_connection_status("error", detail)
             return self._feedback_notification(
                 _("Connection test failed"), detail, "danger",

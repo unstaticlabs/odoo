@@ -51,6 +51,18 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         self.assertIn("type=gha,scope=${{ matrix.name }}", self.workflow)
         self.assertNotIn("cache-to: type=gha", self.workflow)
 
+    def test_workflow_exports_layers_with_the_commit_timestamp(self) -> None:
+        self.assertIn(
+            "outputs: type=image,push=true,rewrite-timestamp=true",
+            self.workflow,
+        )
+        self.assertIn(
+            "SOURCE_DATE_EPOCH=${{ matrix.source_date_epoch }}",
+            self.workflow,
+        )
+        self.assertIn("all(type == \"number\")", self.workflow)
+        self.assertNotIn("push: true", self.workflow)
+
     def test_existing_content_image_skips_build_and_attestation(self) -> None:
         self.assertGreaterEqual(
             self.workflow.count("if: steps.existing.outputs.exists != 'true'"),
@@ -73,12 +85,30 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         self.assertIn("deploy/document-renderer/release.json", self.workflow)
         self.assertIn("OLLAMA_MANIFEST_SHA256", self.workflow)
         self.assertIn("scripts/release-manifest create", self.workflow)
-        self.assertIn("--release-notes operations/release-notes.json", self.workflow)
+        self.assertIn("--release-notes usl-release-notes.json", self.workflow)
         notes = json.loads(
             (ROOT / "operations/release-notes.json").read_text(encoding="utf-8")
         )
         self.assertEqual(notes["schema"], "usl-release-notes/v1")
         self.assertTrue(notes["changes"])
+
+    def test_release_notes_come_from_merged_pull_requests(self) -> None:
+        notes_step = self.workflow.index("name: Build release notes from merged pull requests")
+        manifest_step = self.workflow.index("name: Create release manifest from published components")
+        self.assertLess(notes_step, manifest_step)
+        step = self.workflow[notes_step:manifest_step]
+        self.assertIn("GH_TOKEN: ${{ github.token }}", step)
+        self.assertIn("RELEASE_BEFORE_SHA: ${{ github.event.before }}", step)
+        self.assertIn("scripts/release-notes", step)
+        self.assertIn('--before "$RELEASE_BEFORE_SHA"', step)
+        self.assertIn('--sha "$GITHUB_SHA"', step)
+        self.assertIn("--fallback operations/release-notes.json", step)
+        self.assertIn("--output usl-release-notes.json", step)
+        release_job = self.workflow[self.workflow.index("  release:\n"):notes_step]
+        self.assertIn("pull-requests: read", release_job)
+        caller = (ROOT / ".github/workflows/qualification.yml").read_text(encoding="utf-8")
+        publish = caller[caller.index("  publish:\n"):]
+        self.assertIn("pull-requests: read", publish)
 
     def test_release_attests_the_exact_verified_renderer_digest(self) -> None:
         self.assertIn(

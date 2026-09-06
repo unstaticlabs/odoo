@@ -13,6 +13,9 @@ The temporary Odoo Online importer lives only under
 
 1. Configure the platform's partners, products, journals, currency,
    commission rate and bank-recognition rules.
+   Genuine 0% commission is supported; a rounded-zero commission creates no
+   bill. Set the customer/supplier country and review the fiscal position before
+   generating documents.
 2. Create a monthly session. Its name follows the historical French format,
    such as `Août 2026`; enter payouts or import received bank transactions.
    Imported rows are drafts: complete their platform, original reference,
