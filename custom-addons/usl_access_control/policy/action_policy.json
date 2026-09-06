@@ -193876,6 +193876,23 @@
       "reviewed_digests": {
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/hygiene.py:rebuild.account.hygiene.issue._structured_evidence_move_ids:sudo:1": "4272bf648cf88adc9e6982093b8bb5ec05936d8a45eca7e86df17389fccb7c21"
       }
+    },
+    {
+      "action_keys": [
+        "ui:usl_accounting.action_scan_existing_receipt_emails"
+      ],
+      "classification": "transport",
+      "consequence": "Dispatches the expense cog/list action to its fixed, reviewed receipt scan server action.",
+      "domain": "people_and_payroll",
+      "evidence_id": "historical-receipt-rescan",
+      "id": "transport.accounting.receipt_scan_ui",
+      "rationale": "The installed UI binding delegates only to the exact operational server action; expense read/write, ownership and company checks remain authoritative in its RPC.",
+      "reviewed_digests": {
+        "ui:usl_accounting.action_scan_existing_receipt_emails": "adf3efe5b5788d5cc810e94c45515f86d64c88778d47051bd35e6709fb1212c5"
+      },
+      "targets": [
+        "server_action:usl_accounting.action_scan_existing_receipt_emails"
+      ]
     }
   ],
   "evidence_families": {
@@ -194054,6 +194071,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "9dded3ea3c9de1cfa7656873247973a23297ffd8af359e55454faacc2599912c",
+  "qualified_policy_digest": "8027cba7a8d260aea1df3157a99960f219e776d07122a10c7beca70d9f5dd214",
   "schema": "usl-action-risk-policy-v1"
 }
