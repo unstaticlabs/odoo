@@ -757,6 +757,7 @@
                     name="rebuild_receipt_state"
                     widget="badge"
                     decoration-success="rebuild_receipt_state in ('received', 'not_required')"
+                    decoration-info="rebuild_receipt_state == 'waived'"
                     decoration-warning="rebuild_receipt_state == 'missing'"/>
                 <field name="analytic_distribution" widget="analytic_distribution" optional="show" groups="analytic.group_analytic_accounting"/>
                 <field name="vendor_id" optional="hide"/>
@@ -782,6 +783,11 @@
                     string="Missing receipt"
                     name="missing_receipt"
                     domain="[('rebuild_receipt_state', '=', 'missing'), ('state', 'not in', ['paid', 'refused'])]"/>
+                <filter
+                    string="Receipt waived"
+                    name="receipt_waived"
+                    domain="[('rebuild_receipt_state', '=', 'waived')]"
+                    help="Expenses continuing without a receipt after a documented decision."/>
                 <separator/>
             </xpath>
             <xpath expr="//group" position="inside">
@@ -804,7 +810,11 @@
                 </div>
                 <div class="alert alert-warning" role="alert" invisible="rebuild_next_step != 'receipt'">
                     <strong>Next step: attach the receipt.</strong>
-                    Evidence is required before submission, approval or posting so the reviewer can verify the expense. If this category legitimately needs no receipt, an Expense Manager must update the category policy.
+                    Evidence is required before submission, approval or posting so the reviewer can verify the expense. If no receipt can be obtained, explain why in the Receipt section below and confirm continuing without one; the decision is recorded with your name. If this category legitimately never needs a receipt, an Expense Manager must update the category policy.
+                </div>
+                <div class="alert alert-info" role="status" invisible="rebuild_receipt_state != 'waived'">
+                    <strong>Continuing without a receipt.</strong>
+                    A documented decision replaces the receipt for this expense; the reason, the person who confirmed it and the time are recorded below and in the history. Attach the receipt if it becomes available.
                 </div>
                 <div class="alert alert-info" role="status" invisible="rebuild_next_step != 'submit'">
                     <strong>Ready to submit.</strong>
@@ -834,6 +844,25 @@
                     <strong>Expense refused.</strong>
                     Review the refusal reason and correct the expense before submitting it again.
                 </div>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <group name="rebuild_receipt_waiver" string="Receipt" invisible="rebuild_receipt_state not in ('missing', 'waived')">
+                    <field
+                        name="rebuild_receipt_waiver_reason"
+                        placeholder="Explain why no receipt can be provided, for example a lost paper ticket or a provider that issues none."
+                        readonly="state in ('done', 'paid', 'in_payment', 'refused')"/>
+                    <field name="rebuild_receipt_waived_by_id" invisible="rebuild_receipt_state != 'waived'"/>
+                    <field name="rebuild_receipt_waived_at" invisible="rebuild_receipt_state != 'waived'"/>
+                    <button
+                        name="action_rebuild_waive_receipt"
+                        type="object"
+                        string="Confirm: continue without a receipt"
+                        class="btn btn-warning"
+                        colspan="2"
+                        invisible="rebuild_receipt_state != 'missing' or state in ('done', 'paid', 'in_payment', 'refused')"
+                        title="Record the documented decision to submit, approve and post this expense without a receipt."
+                        confirm="No receipt will be attached to this expense. The reason you wrote, your name and the time are recorded on the expense and in its history for the reviewer. Continue without a receipt?"/>
+                </group>
             </xpath>
             <xpath expr="//button[@name='action_post']" position="attributes">
                 <attribute name="string">Post Expense</attribute>

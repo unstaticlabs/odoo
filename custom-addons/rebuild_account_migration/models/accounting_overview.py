@@ -229,6 +229,7 @@ class RebuildAccountOverview(models.Model):
         return [
             ("state", "!=", "refused"),
             ("message_main_attachment_id", "=", False),
+            ("rebuild_receipt_waived_at", "=", False),
         ]
 
     def init(self):
@@ -471,6 +472,7 @@ class RebuildAccountOverview(models.Model):
                              count(*) FILTER (
                                  WHERE expense.state != 'refused'
                                    AND expense.message_main_attachment_id IS NULL
+                                   AND expense.rebuild_receipt_waived_at IS NULL
                              )::integer AS missing_expense_attachment_count,
                              count(*) FILTER (
                                  WHERE expense.state IN (

@@ -68499,6 +68499,7 @@
         "rpc:hr.employee.message_post",
         "rpc:hr.expense.action_approve",
         "rpc:hr.expense.action_post",
+        "rpc:hr.expense.action_rebuild_waive_receipt",
         "rpc:hr.expense.action_refresh_bank_match_candidates",
         "rpc:hr.expense.create",
         "rpc:hr.expense.get_view",
@@ -76032,6 +76033,9 @@
         "rpc:hr.expense.action_post": {
           "reversal_action": "rpc:hr.expense.write"
         },
+        "rpc:hr.expense.action_rebuild_waive_receipt": {
+          "reversal_action": "rpc:hr.expense.write"
+        },
         "rpc:hr.expense.action_refresh_bank_match_candidates": {
           "reversal_action": "rpc:hr.expense.write"
         },
@@ -81685,12 +81689,13 @@
         "rpc:hr.employee.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:hr.expense.action_approve": "1c5ac92f4e60de5d22469b23fbadc8bf0d27d8d1d48a2e6e9af434993b0205ed",
         "rpc:hr.expense.action_post": "966aac07eb839e4dd47962cfdaac11f44154e4fdabd630e9a0ada9037004bcde",
+        "rpc:hr.expense.action_rebuild_waive_receipt": "da2b3d997a5eb94fb5947570ea799df3641a40047ca6d020b505f4ab4e34d795",
         "rpc:hr.expense.action_refresh_bank_match_candidates": "52ba6d0bd98f5a482ae99e7e69a58fd06866a8019c2a075b22ed369f8075bbab",
         "rpc:hr.expense.create": "b741d12b85d25cc1916d9916f8980d577bbc11ed05c9b9cedc13c6845cc92b99",
         "rpc:hr.expense.get_view": "829ead50476916a75b5a15b02576065008a75e42e189f8bf5a708413c61a6762",
         "rpc:hr.expense.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:hr.expense.unlink": "396221741fb0ae97c15e29174299a517f985d8f5ebdb97a9a8deb266bf4d40df",
-        "rpc:hr.expense.write": "24fe9d153cb509f5076d808d4c40bf659594982bb4dced8ca1eec309dfe4c592",
+        "rpc:hr.expense.write": "2fbe81b0bea1ed7d211f00751e127618563832804a615147d50de10b3329cd8e",
         "rpc:hr.job.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:hr.version.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:iap.account.action_buy_credits": "88264d92a75439cf8c8f447a696781c521b6317b3d0b90ff44893b2683ed0a10",
@@ -142261,6 +142266,8 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:account.statement.import._import_file:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:account.statement.import._import_file:orm_write:2",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:account.statement.import._prepare_create_attachment:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.action_rebuild_waive_receipt:message_send:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.action_rebuild_waive_receipt:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.create:orm_create:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.unlink:orm_unlink:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.write:orm_write:1",
@@ -147614,6 +147621,12 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:account.statement.import._prepare_create_attachment:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.action_rebuild_waive_receipt:message_send:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:hr.expense.action_rebuild_waive_receipt"
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.action_rebuild_waive_receipt:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:hr.expense.action_rebuild_waive_receipt"
+        },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.create:orm_create:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:hr.expense.create"
         },
@@ -150727,9 +150740,11 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:account.statement.import._import_file:orm_write:1": "6d4925c0ebe82bd7eb42d4e257bf0c37f6495c55d473b8939ccc047402b24e27",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:account.statement.import._import_file:orm_write:2": "474a737b911dbb55602e9428173edf3784bb590542f3a049e352a743787a49a1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:account.statement.import._prepare_create_attachment:orm_write:1": "793947e593fa57e605048cc9c96f996848e88d67929317b7616ac324f8960e0d",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.action_rebuild_waive_receipt:message_send:1": "9e4d6b8f83e0831a61e5bde02c89af61f8eeb8b9d1547c2ad01070a4b047e9f7",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.action_rebuild_waive_receipt:orm_write:1": "16368d067f983870d11aa53120ca2a73b21f6fb26b5b4b629b63d379bcf1d7b9",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.create:orm_create:1": "498fe1fd65cabccc7c2917466e03112c0e91b98f46a881dff353723cc1424349",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.unlink:orm_unlink:1": "6aa4ea04342b7aa9cae1c1a42610ba0f6d25385950c1f8c2a82955b91c24bd25",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.write:orm_write:1": "4830c3057cb7c0fa5a612d45f7e9e54b319530a5716fa669e80b3f63a59ed9bf",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.write:orm_write:1": "3002c731d03b596ff8c6650243bfe1c715fd85a59a1bf861fb2eae89343662f5",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_create:1": "8759eef40cfcebacb088638ef2eede0ed81645423e7647349bfcf1ad6f1f9464",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_create:2": "ef2c78ea3fd4210bf69c20a81861375a75af963ecc8137a73ad6c229f621aacb",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:account.reconcile.model.action_rebuild_approve_proposal:message_send:1": "f63f09130910acaf32747578d3f4c6f78db969f2196a87058dc9c810059812ac",
@@ -194728,6 +194743,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "a398a3fe1a4f89489535b091ce9e6bdc11296629b0aa81a146a1f781aebd5798",
+  "qualified_policy_digest": "16059c05636082630a64364ff66deaedab4e0d7d282697e1e6afce7830908924",
   "schema": "usl-action-risk-policy-v1"
 }
