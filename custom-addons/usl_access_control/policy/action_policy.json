@@ -153581,33 +153581,33 @@
         "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController._document:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController.materialize:sudo:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._post_add_create:orm_write:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_archived_operation:sudo:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:orm_write:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:orm_write:2",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:orm_write:3",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:sudo:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:sudo:2",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:sudo:3",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_keep_in_documents:sudo:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:orm_write:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:2",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.create:orm_create:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.get_keep_in_documents_details:sudo:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.get_keep_in_documents_details:sudo:2",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.write:orm_write:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.followers._refresh_linked_document_access:sudo:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.followers.create:orm_create:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.followers.unlink:orm_unlink:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.thread._message_post_after_hook:orm_unlink:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.thread._message_post_after_hook:orm_write:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.thread._message_post_after_hook:sudo:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.thread.message_post:message_send:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.thread.message_post:message_send:2",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:project.collaborator.create:orm_create:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:project.collaborator.unlink:orm_unlink:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:project.collaborator.write:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._post_add_create:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._usl_documents_archived_operation:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._usl_documents_capture_policy:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._usl_documents_capture_policy:orm_write:2",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._usl_documents_capture_policy:orm_write:3",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._usl_documents_capture_policy:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._usl_documents_capture_policy:sudo:2",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._usl_documents_capture_policy:sudo:3",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.action_keep_in_documents:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.action_remove_archived_from_record:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.action_remove_archived_from_record:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.action_remove_archived_from_record:sudo:2",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.create:orm_create:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.get_keep_in_documents_details:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.get_keep_in_documents_details:sudo:2",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.write:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.followers._refresh_linked_document_access:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.followers.create:orm_create:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.followers.unlink:orm_unlink:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.thread._message_post_after_hook:orm_unlink:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.thread._message_post_after_hook:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.thread._message_post_after_hook:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.thread.message_post:message_send:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.thread.message_post:message_send:2",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:project.collaborator.create:orm_create:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:project.collaborator.unlink:orm_unlink:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:project.collaborator.write:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:2",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:3",
@@ -157456,87 +157456,6 @@
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController.materialize:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._post_add_create:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_archived_operation:sudo:1": {
-          "reachability_proof": "Private Documents archive lookup helper; it has no independent RPC, controller, UI, server-action, or cron entry point."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:orm_write:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:sudo:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_keep_in_documents:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:orm_write:1": {
-          "reachability_proof": "This sink is reachable only from the separately reviewed parent action keys: rpc:ir.attachment.action_remove_archived_from_record"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:1": {
-          "reachability_proof": "This sink is reachable only from the separately reviewed parent action keys: rpc:ir.attachment.action_remove_archived_from_record"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:2": {
-          "reachability_proof": "This sink is reachable only from the separately reviewed parent action keys: rpc:ir.attachment.action_remove_archived_from_record"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.create:orm_create:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.get_keep_in_documents_details:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.get_keep_in_documents_details:sudo:2": {
-          "reachability_proof": "This sink is reachable only from the separately reviewed parent action keys: rpc:ir.attachment.get_keep_in_documents_details"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.write:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.followers._refresh_linked_document_access:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.followers.create:orm_create:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.followers.unlink:orm_unlink:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.thread._message_post_after_hook:orm_unlink:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.thread._message_post_after_hook:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.thread._message_post_after_hook:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.thread.message_post:message_send:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.thread.message_post:message_send:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:project.collaborator.create:orm_create:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:project.collaborator.unlink:orm_unlink:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:project.collaborator.write:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -157751,6 +157670,87 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.write:sudo:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._post_add_create:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._usl_documents_archived_operation:sudo:1": {
+          "reachability_proof": "Private Documents archive lookup helper; it has no independent RPC, controller, UI, server-action, or cron entry point."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._usl_documents_capture_policy:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._usl_documents_capture_policy:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._usl_documents_capture_policy:orm_write:3": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._usl_documents_capture_policy:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._usl_documents_capture_policy:sudo:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._usl_documents_capture_policy:sudo:3": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.action_keep_in_documents:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.action_remove_archived_from_record:orm_write:1": {
+          "reachability_proof": "This sink is reachable only from the separately reviewed parent action keys: rpc:ir.attachment.action_remove_archived_from_record"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.action_remove_archived_from_record:sudo:1": {
+          "reachability_proof": "This sink is reachable only from the separately reviewed parent action keys: rpc:ir.attachment.action_remove_archived_from_record"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.action_remove_archived_from_record:sudo:2": {
+          "reachability_proof": "This sink is reachable only from the separately reviewed parent action keys: rpc:ir.attachment.action_remove_archived_from_record"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.create:orm_create:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.get_keep_in_documents_details:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.get_keep_in_documents_details:sudo:2": {
+          "reachability_proof": "This sink is reachable only from the separately reviewed parent action keys: rpc:ir.attachment.get_keep_in_documents_details"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.write:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.followers._refresh_linked_document_access:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.followers.create:orm_create:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.followers.unlink:orm_unlink:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.thread._message_post_after_hook:orm_unlink:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.thread._message_post_after_hook:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.thread._message_post_after_hook:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.thread.message_post:message_send:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.thread.message_post:message_send:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:project.collaborator.create:orm_create:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:project.collaborator.unlink:orm_unlink:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:project.collaborator.write:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin._compute_archived_document_count:sudo:1": {
@@ -160599,33 +160599,6 @@
         "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:1": "0c741ab67a00a533cf8d2cbe7bccd8880b4d0240b30a29e6068ec8c61c3837ee",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController._document:sudo:1": "c3f9bcb8846423081a3296d1a5a1b0370e8cb5f4f45df5d9c9e6be50dea8d583",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController.materialize:sudo:1": "44e2f28fc7e81fc86c7097bbf4f7fc2dd247ce25e8276b36f52d22e4e17b4283",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._post_add_create:orm_write:1": "bf6891576b7c69ddbb053176692631d7af0a83087993642fb6128dc24be2faaf",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_archived_operation:sudo:1": "b8cde4275ab038015d097d7cc347140e7579ab664fbdd174c21863335dd50300",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:orm_write:1": "b68e0116a22344cc63d9bbf49f1fc850d5e10ee9e161fe68125002f1ce84767c",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:orm_write:2": "2ff21f953adae7018eae2d19bdde8025a5a7603c933eb5e9189b6423a743a2cd",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:orm_write:3": "1fb048306c49f360067df3191202ac9d24127acfde4630443d0b3f600650b043",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:sudo:1": "ee261265a41e3173b0a704460add43b3c027851b41d5d5d746bc273f9f871c2d",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:sudo:2": "2d7139a7094f20796fce2fa1d4cd244c76459e04029e22428ef3e3b66d4ebe39",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment._usl_documents_capture_policy:sudo:3": "4dcbd543821c21fc236c9e48bf7b796d713595294e81d1b8c1e109a0b1935605",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_keep_in_documents:sudo:1": "d16650e32ab32275f601d791405fc235356a56d986814798d33cd5dc037ccdf5",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:orm_write:1": "89d747f2e5c1e8ef359f28ea8cb5093bfc034ecdd671c6fe70d068ec0b4a8cd4",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:1": "b12ed221c9f957af8c9cde066883b0b43dbe49b2eb1764f4355917ac3cf3adfa",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.action_remove_archived_from_record:sudo:2": "4a14b2a7b205ff2d17f9e1471c2c1c25eb071a1b9ff9dc1e72124f24db6c0639",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.create:orm_create:1": "5aec8ce1db9494ffa58694b99a81b92fcd861224e9187a675ad374b91728ef52",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.get_keep_in_documents_details:sudo:1": "ce0b121b414d84a5d821102e5db3e69453220ad62d393987b335de5d4ca36dad",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.get_keep_in_documents_details:sudo:2": "0e1285b8216b12cafb558169d3c6b2fb6f7c010a29a12fd24abbb9cc5687b2fc",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:ir.attachment.write:orm_write:1": "047af96ec38be9bad4a94b442a5a45a2250a2633f6255a9bf97b9a1f0ba1896f",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.followers._refresh_linked_document_access:sudo:1": "4120bd54a60c2dd21dc7bee9ea880bbf9dcafafd68009fdb57e5178affa55707",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.followers.create:orm_create:1": "f98d4fa375b1cbaef55cff7d9164e88244c22bbaaa9c95b2caf65e368fdaad06",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.followers.unlink:orm_unlink:1": "e8032b3da6e56d7332976352f865314bf1943c4ff63742bd1179fe4dc332de69",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.thread._message_post_after_hook:orm_unlink:1": "22737333d10d90ff8c13594edb547d64ecccc8c40c4d3d8ce81e599aa6c8ceba",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.thread._message_post_after_hook:orm_write:1": "3584ff1fffd14230a4aa0e1534cfbe427c34452cc7bb2b7f4d9bdf32e0ba5359",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.thread._message_post_after_hook:sudo:1": "1572ee4ae437f855caa393ccac7e3d96ed1da0c6a549be1c2a515e15e1df2ff3",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.thread.message_post:message_send:1": "e9724f08ab5d33b602a63f404eb55bfda58386ac157e0a9fcddd2dfe800583bb",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:mail.thread.message_post:message_send:2": "ea0ef7dbe94d81ef4de2e9f5a1ed782860e7cfdb18a34be3a27c03129e0d8025",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:project.collaborator.create:orm_create:1": "970ae4fc3221320789e68e37ac0281c070868e840b7f17dc07e5b3bcf615f3a8",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:project.collaborator.unlink:orm_unlink:1": "9e6acdef6aa95cd7284da8bd6f97eaa9252579062af4958a9579cc10bc44bc9d",
-        "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:project.collaborator.write:orm_write:1": "c2b8fa259f6740156dc54a072b89020a630d79321dda80a82a0022bb1598e05f",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:1": "1866d26c71b23676c921e6e318a19589949e2c6d96a10fd0aa91b21555c1c7ad",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:2": "9a101e747e34a7baca33f6ba02c1a0dc8011a77924250ebf78d7e61b820598e9",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:3": "eb2510687cbfc7379072d47d4f287bd710a97ef5edefde309ae1f58e8139557e",
@@ -160698,6 +160671,33 @@
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.write:orm_write:3": "6d1d472ebc8c80bed03d4600e294c93bbb1c607786405fd29c310a24316fad03",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.write:sudo:1": "c1c6b9b5d58f4392252ee7143a5193e872da06daf934a30ea610ac5c5077f594",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document.operation.write:sudo:2": "52a6fe3e4ac917e26417abb39db405ff3399b34b9ffca50756b775e946e907ba",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._post_add_create:orm_write:1": "bf6891576b7c69ddbb053176692631d7af0a83087993642fb6128dc24be2faaf",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._usl_documents_archived_operation:sudo:1": "b8cde4275ab038015d097d7cc347140e7579ab664fbdd174c21863335dd50300",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._usl_documents_capture_policy:orm_write:1": "b68e0116a22344cc63d9bbf49f1fc850d5e10ee9e161fe68125002f1ce84767c",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._usl_documents_capture_policy:orm_write:2": "2ff21f953adae7018eae2d19bdde8025a5a7603c933eb5e9189b6423a743a2cd",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._usl_documents_capture_policy:orm_write:3": "1fb048306c49f360067df3191202ac9d24127acfde4630443d0b3f600650b043",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._usl_documents_capture_policy:sudo:1": "ee261265a41e3173b0a704460add43b3c027851b41d5d5d746bc273f9f871c2d",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._usl_documents_capture_policy:sudo:2": "2d7139a7094f20796fce2fa1d4cd244c76459e04029e22428ef3e3b66d4ebe39",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment._usl_documents_capture_policy:sudo:3": "4dcbd543821c21fc236c9e48bf7b796d713595294e81d1b8c1e109a0b1935605",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.action_keep_in_documents:sudo:1": "d16650e32ab32275f601d791405fc235356a56d986814798d33cd5dc037ccdf5",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.action_remove_archived_from_record:orm_write:1": "89d747f2e5c1e8ef359f28ea8cb5093bfc034ecdd671c6fe70d068ec0b4a8cd4",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.action_remove_archived_from_record:sudo:1": "b12ed221c9f957af8c9cde066883b0b43dbe49b2eb1764f4355917ac3cf3adfa",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.action_remove_archived_from_record:sudo:2": "4a14b2a7b205ff2d17f9e1471c2c1c25eb071a1b9ff9dc1e72124f24db6c0639",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.create:orm_create:1": "5aec8ce1db9494ffa58694b99a81b92fcd861224e9187a675ad374b91728ef52",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.get_keep_in_documents_details:sudo:1": "ce0b121b414d84a5d821102e5db3e69453220ad62d393987b335de5d4ca36dad",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.get_keep_in_documents_details:sudo:2": "0e1285b8216b12cafb558169d3c6b2fb6f7c010a29a12fd24abbb9cc5687b2fc",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:ir.attachment.write:orm_write:1": "047af96ec38be9bad4a94b442a5a45a2250a2633f6255a9bf97b9a1f0ba1896f",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.followers._refresh_linked_document_access:sudo:1": "4120bd54a60c2dd21dc7bee9ea880bbf9dcafafd68009fdb57e5178affa55707",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.followers.create:orm_create:1": "f98d4fa375b1cbaef55cff7d9164e88244c22bbaaa9c95b2caf65e368fdaad06",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.followers.unlink:orm_unlink:1": "e8032b3da6e56d7332976352f865314bf1943c4ff63742bd1179fe4dc332de69",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.thread._message_post_after_hook:orm_unlink:1": "22737333d10d90ff8c13594edb547d64ecccc8c40c4d3d8ce81e599aa6c8ceba",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.thread._message_post_after_hook:orm_write:1": "3584ff1fffd14230a4aa0e1534cfbe427c34452cc7bb2b7f4d9bdf32e0ba5359",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.thread._message_post_after_hook:sudo:1": "1572ee4ae437f855caa393ccac7e3d96ed1da0c6a549be1c2a515e15e1df2ff3",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.thread.message_post:message_send:1": "e9724f08ab5d33b602a63f404eb55bfda58386ac157e0a9fcddd2dfe800583bb",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:mail.thread.message_post:message_send:2": "ea0ef7dbe94d81ef4de2e9f5a1ed782860e7cfdb18a34be3a27c03129e0d8025",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:project.collaborator.create:orm_create:1": "970ae4fc3221320789e68e37ac0281c070868e840b7f17dc07e5b3bcf615f3a8",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:project.collaborator.unlink:orm_unlink:1": "9e6acdef6aa95cd7284da8bd6f97eaa9252579062af4958a9579cc10bc44bc9d",
+        "sink:usl_documents:custom-addons/usl_documents/models/attachment_native.py:project.collaborator.write:orm_write:1": "c2b8fa259f6740156dc54a072b89020a630d79321dda80a82a0022bb1598e05f",
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin._compute_archived_document_count:sudo:1": "f816feafba74f3a14e415fa775892c78c9680c5b47b7a4d55a750caeecc7833c",
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin._compute_archived_document_count:sudo:2": "00edb26a2cb360dfe33c112c1226beb236b2516dc7784804fa21adc6c4848f42",
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin._compute_archived_document_count:sudo:3": "2dc9f166017b2e94fffb5b78ec89fd9b0ab42435c5a50587b3e3e8b653518449",

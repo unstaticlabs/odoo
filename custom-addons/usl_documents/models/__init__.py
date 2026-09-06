@@ -19,4 +19,5 @@ from . import (
     res_config_settings,
     res_users,
     attachment_bridge,
+    attachment_native,
 )
