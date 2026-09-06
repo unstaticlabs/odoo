@@ -6,6 +6,7 @@ import asyncio
 import base64
 import hashlib
 import json
+import logging
 import os
 import re
 import subprocess
@@ -82,6 +83,7 @@ SAFE_ERROR_MESSAGES = {
     "pdf_active_content": "The PDF contains unsupported active content.",
     "pdf_encrypted": "The PDF is encrypted.",
     "pdf_too_large": "The PDF exceeds the 20 MB safety limit.",
+    "rate_limited": "The receipt provider is limiting download attempts.",
     "unsafe_url": "The receipt link is not an allowed public HTTPS URL.",
 }
 
@@ -120,11 +122,33 @@ class FetchRequest(BaseModel):
     limits: Limits = Field(default_factory=Limits)
 
 
+# Uvicorn runs this service with its own log configuration and leaves the
+# root logger untouched, so failures were previously invisible.  Configure a
+# handler here and keep every diagnostic redacted: a signed receipt URL must
+# never reach a log line.
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+)
+logger = logging.getLogger("usl.receipt.fetcher")
+
+
 class FetchFailure(Exception):
-    def __init__(self, code: str, status: int = 422):
+    def __init__(
+        self,
+        code: str,
+        status: int = 422,
+        *,
+        upstream_status: int | None = None,
+        location: dict[str, str] | None = None,
+    ):
         super().__init__(code)
         self.code = code if code in SAFE_ERROR_MESSAGES else "fetch_failed"
         self.status = status
+        self.upstream_status = upstream_status
+        # Only a redacted {host, path} template from _path_template may be
+        # retained here.  Never the full URL, and never its query string.
+        self.location = location or {}
 
 
 @dataclass
@@ -142,6 +166,14 @@ FETCH_SLOTS = asyncio.Semaphore(2)
 
 @app.exception_handler(FetchFailure)
 async def _fetch_failure(_request, error: FetchFailure):
+    logger.warning(
+        "linked receipt fetch failed code=%s response_status=%s upstream_status=%s host=%s path=%s",
+        error.code,
+        error.status,
+        "-" if error.upstream_status is None else error.upstream_status,
+        error.location.get("host") or "-",
+        error.location.get("path") or "-",
+    )
     return JSONResponse(
         status_code=error.status,
         content={"code": error.code, "message": SAFE_ERROR_MESSAGES[error.code]},
@@ -305,26 +337,38 @@ async def _direct_fetch(
         ) as client:
             for hop in range(request.limits.max_redirects + 1):
                 async with client.stream("GET", current, headers={"Referer": ""}) as response:
-                    chain.append(_path_template(str(response.request.url)))
-                    if response.status_code in {301, 302, 303, 307, 308}:
+                    where = _path_template(str(response.request.url))
+                    chain.append(where)
+                    status = response.status_code
+                    if status in {301, 302, 303, 307, 308}:
                         if hop >= request.limits.max_redirects:
-                            raise FetchFailure("http_error")
+                            raise FetchFailure("http_error", upstream_status=status, location=where)
                         location = response.headers.get("location")
                         if not location:
-                            raise FetchFailure("http_error")
+                            raise FetchFailure("http_error", upstream_status=status, location=where)
                         current = _validate_url(urljoin(current, location), blocked_hosts)
                         continue
-                    if response.status_code in {401, 403}:
+                    if status in {401, 403}:
                         # Some providers deny non-browser clients before a
                         # JavaScript challenge. Give the disposable browser
                         # one chance; it still cannot authenticate or submit.
                         return None, chain, current
-                    if response.status_code == 410:
-                        raise FetchFailure("expired_or_forbidden")
-                    if response.status_code in {408, 425, 429} or response.status_code >= 500:
-                        raise FetchFailure("http_error", 503)
-                    if response.status_code >= 400:
-                        raise FetchFailure("http_error")
+                    if status in {404, 410}:
+                        # The provider no longer knows this link.  Email
+                        # click-tracking wrappers are purged after a few months,
+                        # so an old receipt link answers 404 rather than
+                        # redirecting.  That is a dead link, not a provider
+                        # fault, and retrying it can never succeed.
+                        raise FetchFailure("expired_or_forbidden", upstream_status=status, location=where)
+                    if status == 429:
+                        # Report throttling as itself: a bulk rescan can walk
+                        # many links on one provider, and "provider error" hides
+                        # that the right response is to slow down, not retry hard.
+                        raise FetchFailure("rate_limited", 503, upstream_status=status, location=where)
+                    if status in {408, 425} or status >= 500:
+                        raise FetchFailure("http_error", 503, upstream_status=status, location=where)
+                    if status >= 400:
+                        raise FetchFailure("http_error", upstream_status=status, location=where)
                     mimetype = response.headers.get("content-type", "").lower()
                     maximum = request.limits.max_bytes if "pdf" in mimetype or "octet-stream" in mimetype else MAX_HTML_BYTES
                     content = await _read_limited(response, maximum)
@@ -526,8 +570,8 @@ async def _browser_fetch(
                 raise failure_queue.get_nowait()
             if policy_denied:
                 raise FetchFailure("egress_denied")
-            if navigation and navigation.status in {401, 403, 410}:
-                raise FetchFailure("expired_or_forbidden")
+            if navigation and navigation.status in {401, 403, 404, 410}:
+                raise FetchFailure("expired_or_forbidden", upstream_status=navigation.status)
             body_text = (await page.locator("body").inner_text(timeout=2_000)).casefold()[:20_000]
             controls = page.locator("a, button, [role=button]")
             ranked = []
