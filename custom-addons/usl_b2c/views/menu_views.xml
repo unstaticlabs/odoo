@@ -35,10 +35,10 @@
         <field name="help" type="html"><p>The restored source baseline is zero historical stock moves. Future native operations appear here.</p></field>
     </record>
 
-    <menuitem id="menu_b2c_root" name="B2C" sequence="35" groups="usl_b2c.group_b2c_reader"/>
-    <menuitem id="menu_b2c_orders" name="Orders" parent="menu_b2c_root" action="action_b2c_order" sequence="10"/>
+    <menuitem id="menu_b2c_root" name="B2C Evidence" sequence="35" groups="usl_b2c.group_b2c_reader"/>
+    <menuitem id="menu_b2c_orders" name="Canonical Orders" parent="menu_b2c_root" action="action_b2c_order" sequence="10"/>
 
-    <menuitem id="menu_b2c_operations" name="Operations" parent="menu_b2c_root" sequence="20"/>
+    <menuitem id="menu_b2c_operations" name="Provider Operations" parent="menu_b2c_root" sequence="20"/>
     <menuitem id="menu_b2c_payments" name="Payments, Refunds and Fees" parent="menu_b2c_operations" action="action_b2c_payment_event" sequence="10"/>
     <menuitem id="menu_b2c_fulfilments" name="Fulfilment and COGS" parent="menu_b2c_operations" action="action_b2c_fulfilment_event" sequence="20"/>
     <menuitem id="menu_b2c_mappings" name="Product and SKU Mappings" parent="menu_b2c_operations" action="action_b2c_product_alias" sequence="30"/>

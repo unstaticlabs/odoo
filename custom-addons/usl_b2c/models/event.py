@@ -38,6 +38,12 @@ class B2cPaymentEvent(models.Model):
         index=True,
         ondelete="restrict",
     )
+    sale_order_id = fields.Many2one(
+        related="order_id.sale_order_id",
+        string="Native Sale Order",
+        store=True,
+        readonly=True,
+    )
     source_provider = fields.Selection(SOURCE_PROVIDERS, required=True, index=True)
     origin = fields.Selection(ORIGINS, required=True, default="manual", index=True)
     event_type = fields.Selection(
@@ -238,6 +244,12 @@ class B2cFulfilmentEvent(models.Model):
         index=True,
         ondelete="restrict",
     )
+    sale_order_id = fields.Many2one(
+        related="order_id.sale_order_id",
+        string="Native Sale Order",
+        store=True,
+        readonly=True,
+    )
     source_provider = fields.Selection(SOURCE_PROVIDERS, required=True, index=True)
     origin = fields.Selection(ORIGINS, required=True, default="manual", index=True)
     provider_event_key = fields.Char(required=True, index=True, copy=False, readonly=True)
@@ -334,6 +346,14 @@ class B2cFulfilmentEvent(models.Model):
         copy=False,
         index=True,
     )
+    stock_picking_ids = fields.Many2many(
+        "stock.picking",
+        "b2c_fulfilment_picking_rel",
+        "fulfilment_id",
+        "picking_id",
+        string="Native Stock Pickings",
+        readonly=True,
+    )
     stock_move_id = fields.Many2one(
         "stock.move",
         string="Native Stock Move",
@@ -341,6 +361,22 @@ class B2cFulfilmentEvent(models.Model):
         ondelete="restrict",
         copy=False,
         index=True,
+    )
+    stock_move_ids = fields.Many2many(
+        "stock.move",
+        "b2c_fulfilment_stock_move_rel",
+        "fulfilment_id",
+        "stock_move_id",
+        string="Native Stock Moves",
+        readonly=True,
+    )
+    sale_order_line_ids = fields.Many2many(
+        "sale.order.line",
+        "b2c_fulfilment_sale_line_rel",
+        "fulfilment_id",
+        "sale_line_id",
+        string="Native Sales Lines",
+        readonly=True,
     )
     purchase_order_id = fields.Many2one(
         "purchase.order",

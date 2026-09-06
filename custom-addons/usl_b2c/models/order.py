@@ -2,6 +2,7 @@ from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
 from .constants import (
+    BUSINESS_PURPOSES,
     COMPLETENESS_STATES,
     CONVERSION_STATES,
     FULFILMENT_MODES,
@@ -43,13 +44,28 @@ class B2cOrder(models.Model):
         tracking=True,
     )
     origin = fields.Selection(ORIGINS, required=True, default="manual", index=True)
+    business_purpose = fields.Selection(
+        BUSINESS_PURPOSES,
+        required=True,
+        default="sale",
+        index=True,
+        tracking=True,
+        help=(
+            "What the order was for. Only a customer sale becomes native Sales "
+            "history; marketing, prototyping and internal consumption are cost, "
+            "and their recorded provider total is what the supplier billed."
+        ),
+    )
     external_order_id = fields.Char(index=True, copy=False)
     external_display_id = fields.Char(index=True, copy=False)
     original_provider_state = fields.Char(copy=False)
+    source_payment_state = fields.Char(copy=False, readonly=True)
+    source_fulfilment_state = fields.Char(copy=False, readonly=True)
     state = fields.Selection(
         [
             ("pending", "Pending"),
             ("confirmed", "Confirmed"),
+            ("partially_fulfilled", "Partially fulfilled"),
             ("fulfilled", "Fulfilled"),
             ("partially_refunded", "Partially refunded"),
             ("refunded", "Refunded"),
@@ -65,6 +81,16 @@ class B2cOrder(models.Model):
     payment_date = fields.Datetime(index=True)
     refund_date = fields.Datetime(index=True)
     fulfilment_date = fields.Datetime(index=True)
+    customer_external_id = fields.Char(index=True, copy=False, readonly=True)
+    customer_name = fields.Char(copy=False, readonly=True)
+    customer_email = fields.Char(copy=False, readonly=True)
+    shipping_name = fields.Char(copy=False, readonly=True)
+    shipping_street = fields.Char(copy=False, readonly=True)
+    shipping_street2 = fields.Char(copy=False, readonly=True)
+    shipping_city = fields.Char(copy=False, readonly=True)
+    shipping_state = fields.Char(copy=False, readonly=True)
+    shipping_zip = fields.Char(copy=False, readonly=True)
+    shipping_address_raw = fields.Text(copy=False, readonly=True)
     country_id = fields.Many2one("res.country", ondelete="restrict", index=True)
     original_country = fields.Char(copy=False, index=True)
     currency_id = fields.Many2one(
@@ -88,6 +114,13 @@ class B2cOrder(models.Model):
     revenue_amount = fields.Monetary(currency_field="currency_id")
     total_amount = fields.Monetary(currency_field="currency_id")
     net_amount = fields.Monetary(currency_field="currency_id")
+    supplier_cost_amount = fields.Monetary(
+        currency_field="currency_id",
+        help=(
+            "What the fulfilment supplier billed for this order. It is the only "
+            "amount a marketing or prototyping order has; it is never revenue."
+        ),
+    )
 
     subtotal_company_amount = fields.Monetary(currency_field="company_currency_id")
     shipping_company_amount = fields.Monetary(currency_field="company_currency_id")
@@ -180,7 +213,32 @@ class B2cOrder(models.Model):
         ondelete="restrict",
         copy=False,
         index=True,
-        help="Used only when a real native sale order exists; imports never manufacture one.",
+        help="Native Sales record promoted from this immutable source order.",
+    )
+    partner_identity_id = fields.Many2one(
+        "b2c.partner.identity",
+        string="Provider Contact Identity",
+        check_company=True,
+        ondelete="restrict",
+        copy=False,
+        index=True,
+        readonly=True,
+    )
+    partner_id = fields.Many2one(
+        "res.partner",
+        string="Native Customer",
+        check_company=True,
+        ondelete="restrict",
+        copy=False,
+        readonly=True,
+    )
+    shipping_partner_id = fields.Many2one(
+        "res.partner",
+        string="Native Delivery Contact",
+        check_company=True,
+        ondelete="restrict",
+        copy=False,
+        readonly=True,
     )
     supporting_attachment_id = fields.Many2one(
         "ir.attachment",
@@ -345,6 +403,31 @@ class B2cOrderLine(models.Model):
         check_company=True,
         ondelete="restrict",
         copy=False,
+    )
+    sale_order_line_id = fields.Many2one(
+        "sale.order.line",
+        string="Native Sales Line",
+        check_company=True,
+        ondelete="restrict",
+        copy=False,
+        index=True,
+        readonly=True,
+    )
+    production_ids = fields.Many2many(
+        "mrp.production",
+        "b2c_order_line_production_rel",
+        "b2c_line_id",
+        "production_id",
+        string="Manufacturing Orders",
+        readonly=True,
+    )
+    stock_move_ids = fields.Many2many(
+        "stock.move",
+        "b2c_order_line_stock_move_rel",
+        "b2c_line_id",
+        "stock_move_id",
+        string="Stock Movements",
+        readonly=True,
     )
 
     _order_line_key_unique = models.Constraint(

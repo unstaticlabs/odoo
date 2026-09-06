@@ -35,6 +35,14 @@ and its upgrade cost is documented.
   manifests, source bindings, or finalization behavior change.
 - Preserve foreign Docker projects and persistent resources. Delete only
   resources whose ownership and scope are proven.
+- This repository is public. Business data never enters it: supplier and
+  customer identities, order and invoice references, unit prices, margins,
+  freight, personal data and access credentials. Code carries the contract and
+  the exact SHA-256 of the evidence; the values live with the frozen source
+  package under `usl-online-dump/supplemental/`, loaded through
+  `usl_b2c_restore.private_evidence`. When a reviewed fact is needed to make a
+  decision, pin the file and read it at run time. Never inline it, not even in a
+  test fixture, a docstring, a comment, a commit message or a runbook example.
 - Protected CI/GitOps is the default delivery path, not an exclusive one. When
   the user explicitly authorizes it, an operator may deploy staging or
   production manually and may bypass CI. Before a production mutation, verify

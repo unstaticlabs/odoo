@@ -430,6 +430,16 @@
       }
     },
     {
+      "action_key": "rpc:b2c.partner.identity.unlink",
+      "action_name": "permanently delete b2c.partner.identity",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "b2c.partner.identity",
+        "operation": "unlink"
+      }
+    },
+    {
       "action_key": "rpc:b2c.payment.event.unlink",
       "action_name": "permanently delete b2c.payment.event",
       "classification": "protected",
@@ -2071,8 +2081,8 @@
       "classification": "protected"
     }
   ],
-  "qualified_policy_digest": "28e7c1cd9fa609119a17854f5cb4465aedfa41301351837333ccbf64132114b8",
-  "runtime_policy_sha256": "99889dc09c2e5b468b806e2608ed2b680156d45d0ad153a458596c9981941bb0",
+  "qualified_policy_digest": "16059c05636082630a64364ff66deaedab4e0d7d282697e1e6afce7830908924",
+  "runtime_policy_sha256": "388b11bb8eb8d3d456548de5d4fe4c904b480125fbf694372fe9d713e4007d24",
   "schema": "usl-action-risk-protected-runtime-v2",
   "server_actions": [
     {

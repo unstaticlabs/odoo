@@ -27,7 +27,10 @@
                         <field name="b2c_inventory_role"/>
                     </group>
                     <div class="alert alert-warning" role="alert" invisible="b2c_opening_stock_state != 'not_evidenced'">
-                        The source has no stock moves or quants. Physical opening stock remains a blocking, not-evidenced release item until an approved dated count is entered through a native inventory adjustment.
+                        Inventory is not yet supported by reconstructed movements or an approved physical count.
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="b2c_opening_stock_state != 'theoretical_reconstructed'">
+                        The current quantity is a dated theoretical position reconstructed from documented acquisitions, evidenced consumption and known reservations. Reconcile it with the September 30 physical count through a native Inventory Adjustment.
                     </div>
                     <div class="alert alert-info" role="status" invisible="b2c_inventory_role != 'supplier_pack'">
                         This is a purchasing pack, not a saleable unit. Receive it as purchased, then use <strong>Unpack supplier pack</strong> above to create its individual inventory units.

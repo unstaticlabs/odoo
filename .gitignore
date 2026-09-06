@@ -62,7 +62,7 @@ package.json
 /share/
 /src/
 
-usl-online-dump/
+usl-online-dump
 /oca-addons/*
 !/oca-addons/README.md
 /oca-src/

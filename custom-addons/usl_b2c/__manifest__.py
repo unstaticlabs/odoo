@@ -1,7 +1,7 @@
 {
     "name": "USL B2C Sales and Inventory",
     "summary": "Auditable B2C commerce history and native operational workflows",
-    "version": "saas~19.3.1.2.2",
+    "version": "saas~19.3.1.3.0",
     "category": "Sales/Sales",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -29,6 +29,7 @@
         "views/accounting_views.xml",
         "views/evidence_views.xml",
         "views/product_views.xml",
+        "views/native_history_views.xml",
         "views/menu_views.xml",
     ],
     "application": True,
