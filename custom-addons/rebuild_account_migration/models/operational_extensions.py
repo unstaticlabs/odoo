@@ -2,6 +2,7 @@ from lxml import etree
 
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
+
 from odoo.addons.account_statement_import_qif.wizards.account_statement_import_qif import (
     AccountStatementImport as QifAccountStatementImport,
 )

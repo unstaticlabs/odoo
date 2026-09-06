@@ -1,7 +1,6 @@
 from odoo import api, fields, models, tools
 from odoo.exceptions import UserError
 
-
 FIRST_FISCAL_YEAR_PERIOD_KEY = "Fiscal year 2024-01-10 to 2025-09-30"
 CURRENT_PERIOD_KEY = "Fiscal year from 2025-10-01"
 USL_MEDIA_PERIOD_KEY = "All posted accounting"

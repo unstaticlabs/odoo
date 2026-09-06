@@ -1,6 +1,7 @@
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
+
 class RebuildAccountDeferral(models.Model):
     _name = "rebuild.account.deferral"
     _description = "Deferred Expense and Revenue Schedule"
@@ -263,6 +264,7 @@ class RebuildAccountDeferralLine(models.Model):
         copy=False,
         ondelete="restrict",
     )
+
     @api.constrains(
         "recognition_balance",
         "deferral_balance",

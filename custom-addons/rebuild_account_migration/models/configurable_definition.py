@@ -1,6 +1,5 @@
 from odoo import fields, models
 
-
 ACCOUNTING_DEFINITION_ORIGINS = [
     ("odoo", "Standard Odoo"),
     ("oca", "OCA Community"),

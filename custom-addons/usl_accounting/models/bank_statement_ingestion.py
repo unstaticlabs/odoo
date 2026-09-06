@@ -609,7 +609,7 @@ class AccountBankIngestion(models.Model):
                 char for char in unicodedata.normalize("NFKD", (value or "").casefold())
                 if not unicodedata.combining(char)
             )
-            months = "janvier fevrier mars avril mai juin juillet aout septembre octobre novembre decembre".split()
+            months = ["janvier", "fevrier", "mars", "avril", "mai", "juin", "juillet", "aout", "septembre", "octobre", "novembre", "decembre"]
             periods = re.findall(r"\b(" + "|".join(months) + r")\s+(\d{4})\b", normalized)
             if not matches and len(periods) == 1:
                 month, year = periods[0]
@@ -651,7 +651,7 @@ class AccountBankIngestion(models.Model):
         verified = self.file_ids.filtered(
             lambda source: source.classification == "ofx"
             and source.processing_state in ("processed", "duplicate")
-            and source.statement_id
+            and source.statement_id,
         )
         periods = {(source.period_start, source.period_end) for source in verified}
         pdfs = pdf if pdf is not None else self.file_ids.filtered(lambda source: source.classification == "pdf")
@@ -2245,7 +2245,7 @@ class AccountBankIngestionFile(models.Model):
         }
         self.exception_ids.filtered(
             lambda item: item.state == "open" and item.kind == "evidence"
-            and item.name in period_exception_names
+            and item.name in period_exception_names,
         ).with_context(bank_exception_internal=True).write({
             "state": "resolved", "resolution": "corrected_source",
             "resolution_reason": _("The retained PDF now has an established statement period."),

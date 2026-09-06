@@ -7,7 +7,6 @@ backed up. The caller redirects stdout into the encrypted backup set.
 import json
 import os
 
-
 manager_group = env.ref("usl_documents.group_documents_manager")
 manager = env["res.users"].sudo().search(
     [("active", "=", True), ("all_group_ids", "in", manager_group.id)],

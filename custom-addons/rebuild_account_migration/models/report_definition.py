@@ -462,12 +462,12 @@ class RebuildAccountReportDefinition(models.Model):
             domain.append(
                 ("company_id", "=", definition.company_id.id)
                 if definition.company_id
-                else ("company_id", "=", False)
+                else ("company_id", "=", False),
             )
             if self.with_context(active_test=False).search_count(domain):
                 raise UserError(
                     "Only one Accounting Report definition is allowed for "
-                    "the same code and company scope."
+                    "the same code and company scope.",
                 )
 
     @api.model
@@ -624,7 +624,7 @@ class RebuildAccountReportDefinition(models.Model):
             ) and (
                 not definition.effective_to
                 or definition.effective_to >= on_date
-            )
+            ),
         )
         company_definition = candidates.filtered(
             lambda definition: definition.company_id == company,
@@ -643,11 +643,11 @@ class RebuildAccountReportDefinition(models.Model):
         )
         if not definition:
             raise UserError(
-                f"No Accounting Report definition is installed for {report_type}."
+                f"No Accounting Report definition is installed for {report_type}.",
             )
         if not definition.active or definition.lifecycle != "current":
             raise UserError(
-                f"{definition.name} is not active for {company.display_name}."
+                f"{definition.name} is not active for {company.display_name}.",
             )
         return definition
 
@@ -738,7 +738,7 @@ class RebuildAccountReportDefinition(models.Model):
         ):
             raise UserError(
                 "Shared Accounting Report definitions are upgrade-managed. "
-                "Use Customize for Company and edit the company definition."
+                "Use Customize for Company and edit the company definition.",
             )
         if (
             protected_business_fields & set(vals)

@@ -233,7 +233,7 @@ class UslMailSenderAlias(models.Model):
             "<p><a href=\"%(link)s\" style=\"background:#714b67;color:#fff;"
             "padding:10px 16px;text-decoration:none;border-radius:4px;"
             "display:inline-block;\">Verify email address</a></p>"
-            "<p>This personal link expires after 24 hours.</p>"
+            "<p>This personal link expires after 24 hours.</p>",
         ) % {
             "name": escape(self.partner_id.name),
             "email": escape(self.email_normalized),

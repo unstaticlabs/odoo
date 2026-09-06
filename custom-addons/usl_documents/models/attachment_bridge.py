@@ -923,7 +923,7 @@ class IrAttachment(models.Model):
                         attachment.has_access("write")
                         and visible_document.has_access("write")
                         and record
-                        and record.has_access("write")
+                        and record.has_access("write"),
                     )
                     active_links = visible_document.sudo().link_ids.filtered("active")
                     current_links = active_links.filtered(
@@ -938,7 +938,7 @@ class IrAttachment(models.Model):
                             "can_move_to_trash": bool(
                                 can_remove
                                 and visible_document.availability_state == "available"
-                                and not (active_links - current_links)
+                                and not (active_links - current_links),
                             ),
                         },
                     )

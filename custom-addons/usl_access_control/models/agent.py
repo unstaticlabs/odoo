@@ -24,7 +24,7 @@ def _agent_key_path_allowed(path):
     return bool(
         path.startswith("/json/2/")
         or path == "/doc-bearer/index.json"
-        or (path.startswith("/doc-bearer/") and path.endswith(".json"))
+        or (path.startswith("/doc-bearer/") and path.endswith(".json")),
     )
 
 
@@ -347,7 +347,7 @@ class UslAgent(models.Model):
             self.env.user._is_internal()
             and not self.env.user.usl_is_ai_agent
             and self.env.user.active
-            and (owner == self.env.user or self.env.user.has_group("base.group_system"))
+            and (owner == self.env.user or self.env.user.has_group("base.group_system")),
         )
 
     def _check_caller_can_manage(self):
@@ -767,7 +767,7 @@ class UslAgent(models.Model):
                     "access_mode": access_mode,
                     "delegated_group_ids": [Command.set(groups.ids)],
                     "read_only_group_ids": [
-                        Command.set(groups.ids if access_mode == "read_only" else [])
+                        Command.set(groups.ids if access_mode == "read_only" else []),
                     ],
                 },
             )
@@ -789,7 +789,7 @@ class UslAgent(models.Model):
             access_mode="read_only",
             title=_("Read-only profile applied"),
             message=_(
-                "%(count)s owner-scoped access roles are now visible in read-only mode."
+                "%(count)s owner-scoped access roles are now visible in read-only mode.",
             ),
         )
 
@@ -1239,7 +1239,7 @@ class ResUsersApikeys(models.Model):
                 if not _agent_key_path_allowed(path):
                     raise AgentAuthenticationError(
                         _(
-                            "Agent API keys may be used only with JSON-2 and API documentation."
+                            "Agent API keys may be used only with JSON-2 and API documentation.",
                         ),
                         "agent_transport_denied",
                     )

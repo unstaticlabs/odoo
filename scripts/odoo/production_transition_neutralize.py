@@ -8,7 +8,6 @@ import os
 
 from odoo.modules.neutralize import neutralize_database
 
-
 if os.environ.get("USL_TRANSITION_WRITERS_QUIESCED") != "1":
     raise RuntimeError("Transition neutralization requires quiesced writers.")
 if os.environ.get("USL_EINVOICE_LIVE_ENABLED") != "0" or os.environ.get(

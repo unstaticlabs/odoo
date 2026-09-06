@@ -140,12 +140,12 @@ class ResCompany(models.Model):
             if bool(first_start) != bool(first_end):
                 raise ValidationError(
                     "Set both the start and end of the exceptional first "
-                    "fiscal year."
+                    "fiscal year.",
                 )
             if first_start and first_start > first_end:
                 raise ValidationError(
                     "The exceptional first fiscal-year start must be before "
-                    "or equal to its end."
+                    "or equal to its end.",
                 )
 
     def _rebuild_first_fiscalyear_dates(self):
@@ -529,7 +529,7 @@ class RebuildAccountDeclarationRule(models.Model):
         ):
             raise UserError(
                 "Localization Declaration definitions are upgrade-managed. "
-                "Use Customize for Company and edit the company definition."
+                "Use Customize for Company and edit the company definition.",
             )
         if "version" in vals:
             vals = {**vals, "definition_version": vals["version"]}
@@ -727,7 +727,7 @@ class RebuildAccountDeclaration(models.Model):
                 declaration.applicability == "applicable"
                 and declaration.deadline_date
                 and declaration.deadline_date < today
-                and declaration.status not in finished
+                and declaration.status not in finished,
             )
 
     @api.model
@@ -967,7 +967,7 @@ class RebuildAccountDeclaration(models.Model):
             eligible_balance = sum(
                 bill.invoice_line_ids.filtered(
                     lambda line: (line.account_id.code or "").startswith("622"),
-                ).mapped("balance")
+                ).mapped("balance"),
             )
             payable_lines = bill.line_ids.filtered(
                 lambda line: line.account_id.account_type == "liability_payable",
@@ -1464,7 +1464,7 @@ class RebuildAccountDeclaration(models.Model):
             first_start, first_end = self.company_id._rebuild_first_fiscalyear_dates()
             new_company_period = bool(
                 first_start and first_end
-                and first_start <= self.period_end <= first_end
+                and first_start <= self.period_end <= first_end,
             )
             reason = (
                 "Confirm the portal amount and document that the new-company instalments cover at least 80% of VAT actually due for the corresponding period."

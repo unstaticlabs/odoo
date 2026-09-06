@@ -99,7 +99,7 @@ missing_ids = sorted(set(crons.ids) - set(xmlids_by_id))
 if ambiguous or missing_ids:
     raise RuntimeError(
         "Every installed cron must have exactly one XML ID: "
-        + json.dumps({"ambiguous": ambiguous, "missing_ids": missing_ids}, sort_keys=True)
+        + json.dumps({"ambiguous": ambiguous, "missing_ids": missing_ids}, sort_keys=True),
     )
 installed = {values[0]: crons.browse(record_id) for record_id, values in xmlids_by_id.items()}
 unknown = sorted(set(installed) - set(rules))
@@ -107,7 +107,7 @@ missing = sorted(set(rules) - set(installed))
 if unknown or missing:
     raise RuntimeError(
         "The installed cron inventory differs from the versioned production policy: "
-        + json.dumps({"unknown": unknown, "missing": missing}, sort_keys=True)
+        + json.dumps({"unknown": unknown, "missing": missing}, sort_keys=True),
     )
 
 desired = {
@@ -140,7 +140,7 @@ alias_domains = env["mail.alias.domain"].sudo().search([])  # noqa: F821
 if len(alias_domains) != 1:
     raise RuntimeError(
         "Production requires exactly one mail alias domain; "
-        f"found {len(alias_domains)}."
+        f"found {len(alias_domains)}.",
     )
 alias_domain = alias_domains.ensure_one()
 expected_alias_domain = expected_mail_alias_domain()
@@ -162,7 +162,7 @@ gate_mismatch = {
 if gate_mismatch:
     raise RuntimeError(
         "The PDP cron gates and regulatory live flags do not agree: "
-        + json.dumps(gate_mismatch, sort_keys=True)
+        + json.dumps(gate_mismatch, sort_keys=True),
     )
 
 pending_mail = env["mail.mail"].sudo().search_count([  # noqa: F821
@@ -177,7 +177,7 @@ if gates["inbound_mail"]:
     if len(active_fetchmail) != 1:
         raise RuntimeError(
             "Admitted inbound mail requires exactly one active server; "
-            f"found {len(active_fetchmail)}."
+            f"found {len(active_fetchmail)}.",
         )
     incoming = active_fetchmail.ensure_one()
     expected_incoming = expected_inbound_server()
@@ -194,7 +194,7 @@ if gates["inbound_mail"]:
     if incoming_mismatch or not incoming.user or not incoming.password:
         raise RuntimeError(
             "The admitted Gmail IMAP server is incomplete or unsafe: "
-            + json.dumps(incoming_mismatch, sort_keys=True)
+            + json.dumps(incoming_mismatch, sort_keys=True),
         )
     if incoming.error_message:
         raise RuntimeError("The admitted Gmail IMAP server has an unresolved error.")
@@ -233,7 +233,7 @@ if gates["inbound_mail"]:
     if alias_errors:
         raise RuntimeError(
             "Production inbound aliases are incomplete or unsafe: "
-            + json.dumps(alias_errors, sort_keys=True)
+            + json.dumps(alias_errors, sort_keys=True),
         )
     inbound_mail = {
         "active_server_count": 1,
@@ -242,7 +242,7 @@ if gates["inbound_mail"]:
     }
 elif active_fetchmail:
     raise RuntimeError(
-        f"Incoming mail is gated off but active servers remain: {active_fetchmail.ids}"
+        f"Incoming mail is gated off but active servers remain: {active_fetchmail.ids}",
     )
 
 apply = os.environ.get("USL_PRODUCTION_ADMISSION_APPLY") == "1"
@@ -273,7 +273,7 @@ if assert_converged and (
                 "enable": to_enable,
             },
             sort_keys=True,
-        )
+        ),
     )
 
 print(json.dumps({

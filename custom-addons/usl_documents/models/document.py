@@ -5058,7 +5058,7 @@ class UslDocumentOperation(models.Model):
         return bool(
             started_at
             and started_at
-            <= (now or fields.Datetime.now()) - timedelta(minutes=timeout_minutes)
+            <= (now or fields.Datetime.now()) - timedelta(minutes=timeout_minutes),
         )
 
     def _fail_stale_processing(self):

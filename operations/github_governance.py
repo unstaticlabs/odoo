@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-
 STAGING_BRANCH = {"refs/heads/19-usl-staging"}
 PRODUCTION_BRANCH = {"refs/heads/19-usl"}
 PROTECTION_RULES = {

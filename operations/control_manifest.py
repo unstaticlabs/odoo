@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Any, Mapping
-
+from collections.abc import Mapping
+from typing import Any
 
 SCHEMA_V1 = "usl-control-manifest/v1"
 SCHEMA = "usl-control-manifest/v2"
@@ -277,7 +277,7 @@ def classify(controls: object) -> dict[str, Any]:
             "odoo": {
                 key: odoo[key]
                 for key in sorted(
-                    ODOO_QUEUE_KEYS_V2 if schema == SCHEMA else ODOO_QUEUE_KEYS
+                    ODOO_QUEUE_KEYS_V2 if schema == SCHEMA else ODOO_QUEUE_KEYS,
                 )
             },
         },
@@ -316,7 +316,7 @@ def validate_restore(
         }
         raise ControlManifestError(
             "restored business controls differ from the source cohort: "
-            + json.dumps(differences, sort_keys=True)
+            + json.dumps(differences, sort_keys=True),
         )
 
     baseline_queues = baseline["queues"]["odoo"]

@@ -15,8 +15,8 @@ from typing import Any
 
 from operations.control_manifest import ControlManifestError, classify
 from operations.module_release import validate_upgrade_plan
-from operations.release_manifest import ReleaseManifestError, validate as validate_release
-
+from operations.release_manifest import ReleaseManifestError
+from operations.release_manifest import validate as validate_release
 
 SCHEMA = "usl-staging-upgrade-plan-evidence/v2"
 PROMOTION_SCHEMA = "usl-production-upgrade-plan-promotion/v1"
@@ -195,7 +195,7 @@ def verify(value: object, public_key: Path) -> dict[str, Any]:
     staging = value.get("staging")
     if not isinstance(staging, dict) or set(staging) != {
         "target", "snapshot", "generation", "candidate_release", "health_sha256",
-        "smoke_sha256", "release_definitions_sha256", "status"
+        "smoke_sha256", "release_definitions_sha256", "status",
     }:
         raise PlanEvidenceError("staging qualification evidence fields differ")
     if staging.get("target") != "staging" or staging.get("status") != "passed":
@@ -276,7 +276,7 @@ def verify_promotion(
 ) -> dict[str, Any]:
     """Verify both signatures and return the production-bound plan."""
     if not isinstance(value, dict) or set(value) != {
-        "schema", "staging_evidence", "staging_release_manifest", "promotion", "signed_at", "signature"
+        "schema", "staging_evidence", "staging_release_manifest", "promotion", "signed_at", "signature",
     } or value.get("schema") != PROMOTION_SCHEMA:
         raise PlanEvidenceError("production plan promotion fields differ")
     _verify_signature(value, public_key)

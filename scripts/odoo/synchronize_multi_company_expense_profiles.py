@@ -1,6 +1,5 @@
 import json
 
-
 users = env["res.users"].sudo().with_context(active_test=False).search([
     ("usl_expense_multi_company", "=", True),
     ("active", "=", True),

@@ -191,7 +191,7 @@ class IrAttachment(models.Model):
             raise UserError(
                 "An attachment captured by the current accepted closing "
                 "decision is locked. Supersede that decision before changing "
-                "the package file."
+                "the package file.",
             )
         return super().write(vals)
 
@@ -199,7 +199,7 @@ class IrAttachment(models.Model):
         if self._has_current_accepted_closing_snapshot():
             raise UserError(
                 "An attachment captured by the current accepted closing "
-                "decision cannot be deleted."
+                "decision cannot be deleted.",
             )
         return super().unlink()
 
@@ -364,7 +364,7 @@ class RebuildAccountClosingPeriod(models.Model):
                 raise UserError(
                     "Accepted closing-package evidence is locked. Supersede "
                     "the recorded closing decision before changing the "
-                    "package reference or attachments."
+                    "package reference or attachments.",
                 )
         return super().write(vals)
 
@@ -864,7 +864,7 @@ class RebuildAccountClosingPeriod(models.Model):
             ("date", "<=", self.date_to),
         ])
         available = bool(
-            fec_action and "l10n_fr.fec.export.wizard" in self.env.registry
+            fec_action and "l10n_fr.fec.export.wizard" in self.env.registry,
         )
         return self._control_values(
             "fec", "fec", "FEC readiness",
@@ -1034,12 +1034,12 @@ class RebuildAccountClosingPeriod(models.Model):
         ):
             raise UserError(
                 "Accepted snapshots require a recorded closing decision "
-                "linked to this workspace."
+                "linked to this workspace.",
             )
         if not self.package_attachment_ids:
             raise UserError(
                 "Attach at least one generated closing package before "
-                "recording an accepted closing decision."
+                "recording an accepted closing decision.",
             )
         Snapshot = self.env["rebuild.account.closing.snapshot"].sudo()
         snapshots = Snapshot.browse()
@@ -1048,7 +1048,7 @@ class RebuildAccountClosingPeriod(models.Model):
             if not raw:
                 raise UserError(
                     f"Closing package attachment {attachment.name} has no "
-                    "binary content and cannot be accepted as a snapshot."
+                    "binary content and cannot be accepted as a snapshot.",
                 )
             sha256 = hashlib.sha256(raw).hexdigest()
             snapshot = Snapshot.search([
@@ -1071,7 +1071,7 @@ class RebuildAccountClosingPeriod(models.Model):
         if not self.env.user.has_group("account.group_account_manager"):
             raise AccessError(
                 "Only an Accounting Manager can capture accepted closing "
-                "snapshots."
+                "snapshots.",
             )
         decision = self.env["rebuild.account.assurance.decision"].search([
             ("closing_period_id", "=", self.id),
@@ -1086,7 +1086,7 @@ class RebuildAccountClosingPeriod(models.Model):
         if not decision:
             raise UserError(
                 "Record an accepted closing review decision before "
-                "capturing snapshots."
+                "capturing snapshots.",
             )
         self._capture_accepted_snapshots(decision)
         return self.action_open_snapshots()
@@ -1199,7 +1199,7 @@ class RebuildAccountClosingSnapshot(models.Model):
             if not closing or not decision or not attachment:
                 raise UserError(
                     "A closing workspace, recorded decision and package "
-                    "attachment are required."
+                    "attachment are required.",
                 )
             if (
                 decision.closing_period_id != closing
@@ -1211,17 +1211,17 @@ class RebuildAccountClosingSnapshot(models.Model):
             ):
                 raise UserError(
                     "The snapshot decision must be a recorded acceptance "
-                    "linked to the same closing workspace."
+                    "linked to the same closing workspace.",
                 )
             if attachment not in closing.package_attachment_ids:
                 raise UserError(
                     "Only an attachment in the closing package can be "
-                    "captured as accepted evidence."
+                    "captured as accepted evidence.",
                 )
             raw = bytes(attachment.raw or b"")
             if not raw:
                 raise UserError(
-                    "The accepted closing attachment must contain binary data."
+                    "The accepted closing attachment must contain binary data.",
                 )
             prepared.append({
                 **vals,
@@ -1250,7 +1250,7 @@ class RebuildAccountClosingSnapshot(models.Model):
     def write(self, _vals):
         raise UserError(
             "Accepted closing snapshots are immutable. Create a new review "
-            "decision and snapshot instead."
+            "decision and snapshot instead.",
         )
 
     def unlink(self):
@@ -1775,7 +1775,7 @@ class RebuildAccountClosingControl(models.Model):
             ])
         if self.code == "reports":
             return self.env.ref(
-                "rebuild_account_migration.action_rebuild_account_report_export_wizard"
+                "rebuild_account_migration.action_rebuild_account_report_export_wizard",
             ).read()[0]
         return self._action("Closing Journal Items", "account.move.line", [
             ("company_id", "=", self.company_id.id), ("date", ">=", closing.date_from), ("date", "<=", closing.date_to),

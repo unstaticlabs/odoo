@@ -1,6 +1,5 @@
 import re
 
-
 AGENT_HIDDEN_API_MODELS = frozenset(
     {
         "auth.passkey.key",
@@ -105,7 +104,7 @@ def is_agent_secret_field(field_name, *, model_name=None):
             or _SECRET_SUFFIX.search(part)
             or _SECRET_MATERIAL.search(part)
             for part in path_parts
-        )
+        ),
     )
 
 

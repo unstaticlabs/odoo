@@ -2,7 +2,6 @@
 
 import json
 
-
 companies = env["res.company"].sudo().search(  # noqa: F821
     [
         ("rebuild_currency_rate_provider", "=", "ecb"),

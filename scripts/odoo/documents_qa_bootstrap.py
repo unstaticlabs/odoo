@@ -28,7 +28,7 @@ def wait_for_operation(operation, timeout=180):
 
 def ensure_user(login, name, groups, company):
     user = env["res.users"].with_context(no_reset_password=True).search(
-        [("login", "=", login)], limit=1
+        [("login", "=", login)], limit=1,
     )
     values = {
         "name": name,
@@ -41,8 +41,8 @@ def ensure_user(login, name, groups, company):
                 [
                     env.ref("base.group_user").id,
                     *[env.ref(group).id for group in groups],
-                ]
-            )
+                ],
+            ),
         ],
     }
     if user:
@@ -117,12 +117,12 @@ def upload_document(spec):
         )
         if result["state"] == "processing":
             operation = wait_for_operation(
-                env["usl.document.operation"].browse(result["operation_id"])
+                env["usl.document.operation"].browse(result["operation_id"]),
             )
             if operation.state != "archived":
                 raise RuntimeError(
                     f"QA document {spec['filename']} failed: "
-                    f"{operation.error_message}"
+                    f"{operation.error_message}",
                 )
             document = operation.document_id
         else:
@@ -138,7 +138,7 @@ def upload_document(spec):
                     [*document.tag_ids.ids, *[tag.id for tag in spec["tags"]]],
                 ),
             ),
-        }
+        },
     )
     document.with_context(usl_documents_policy_write=True).write(
         {
@@ -146,7 +146,7 @@ def upload_document(spec):
             "confidentiality": spec.get("confidentiality", "internal"),
             "accounting_evidence": spec.get("accounting_evidence", False),
             "review_state": spec.get("review_state", "reviewed"),
-        }
+        },
     )
     # Fixture text can legitimately evolve between branches. The checksum then
     # identifies the new canonical root, while an older root with the same
@@ -157,7 +157,7 @@ def upload_document(spec):
             ("id", "!=", document.id),
             ("original_filename", "=", spec["filename"]),
             ("availability_state", "!=", "permanently_deleted"),
-        ]
+        ],
     )
     for legacy in legacy_roots:
         legacy.sudo().link_ids.unlink()
@@ -170,7 +170,7 @@ def upload_document(spec):
 
 params = env["ir.config_parameter"].sudo()
 token = os.environ.get("PAPERLESS_QA_TOKEN") or params.get_str(
-    "usl_documents.paperless_token"
+    "usl_documents.paperless_token",
 )
 if not token:
     raise RuntimeError("PAPERLESS_QA_TOKEN is required")
@@ -209,7 +209,7 @@ admin.write(
                 "project.group_project_manager",
             )
         ],
-    }
+    },
 )
 documents = env["usl.document"].with_user(admin)
 client = documents._paperless()
@@ -278,7 +278,7 @@ if legacy_acceptance:
 
 main_company = env.company
 restricted_company = env["res.company"].search(
-    [("name", "=", "Synthetic Restricted Company")], limit=1
+    [("name", "=", "Synthetic Restricted Company")], limit=1,
 ) or env["res.company"].create({"name": "Synthetic Restricted Company"})
 
 qa_users = {
@@ -361,7 +361,7 @@ for user, username in identity_pairs:
     if not paperless_user_id:
         raise RuntimeError(f"Paperless QA identity {username} is missing")
     mapping = env["usl.paperless.user.mapping"].search(
-        [("user_id", "=", user.id)], limit=1
+        [("user_id", "=", user.id)], limit=1,
     )
     values = {
         "paperless_user_id": int(paperless_user_id),
@@ -388,54 +388,54 @@ for reference, name in {
     "USL-DOCS-QA-TAX": "French Tax Administration — Synthetic",
 }.items():
     contacts[reference] = env["res.partner"].search(
-        [("ref", "=", reference)], limit=1
+        [("ref", "=", reference)], limit=1,
     ) or env["res.partner"].create(
         {
             "name": name,
             "ref": reference,
             "company_id": main_company.id,
-        }
+        },
     )
 
 people_contact = env["res.partner"].search(
-    [("ref", "=", "USL-DOCS-QA-PEOPLE")], limit=1
+    [("ref", "=", "USL-DOCS-QA-PEOPLE")], limit=1,
 ) or env["res.partner"].create(
     {
         "name": "USL People Operations",
         "ref": "USL-DOCS-QA-PEOPLE",
         "company_id": main_company.id,
-    }
+    },
 )
 
 purchase_journal = env["account.journal"].search(
-    [("company_id", "=", main_company.id), ("type", "=", "purchase")], limit=1
+    [("company_id", "=", main_company.id), ("type", "=", "purchase")], limit=1,
 ) or env["account.journal"].create(
     {
         "name": "Synthetic Purchases",
         "code": "DQA",
         "type": "purchase",
         "company_id": main_company.id,
-    }
+    },
 )
 sales_journal = env["account.journal"].search(
-    [("company_id", "=", main_company.id), ("type", "=", "sale")], limit=1
+    [("company_id", "=", main_company.id), ("type", "=", "sale")], limit=1,
 ) or env["account.journal"].create(
     {
         "name": "Synthetic Sales",
         "code": "DQS",
         "type": "sale",
         "company_id": main_company.id,
-    }
+    },
 )
 general_journal = env["account.journal"].search(
-    [("company_id", "=", main_company.id), ("type", "=", "general")], limit=1
+    [("company_id", "=", main_company.id), ("type", "=", "general")], limit=1,
 ) or env["account.journal"].create(
     {
         "name": "Synthetic Miscellaneous",
         "code": "DQG",
         "type": "general",
         "company_id": main_company.id,
-    }
+    },
 )
 
 bill = env["account.move"].search(
@@ -449,10 +449,10 @@ bill = env["account.move"].search(
         "invoice_date": "2026-07-15",
         "ref": "USL-DOCS-CEO-QA-BILL",
         "company_id": main_company.id,
-    }
+    },
 )
 customer_invoice = env["account.move"].search(
-    [("ref", "=", "USL-DOCS-CEO-QA-CUSTOMER-INVOICE")], limit=1
+    [("ref", "=", "USL-DOCS-CEO-QA-CUSTOMER-INVOICE")], limit=1,
 ) or env["account.move"].create(
     {
         "move_type": "out_invoice",
@@ -461,10 +461,10 @@ customer_invoice = env["account.move"].search(
         "invoice_date": "2026-07-18",
         "ref": "USL-DOCS-CEO-QA-CUSTOMER-INVOICE",
         "company_id": main_company.id,
-    }
+    },
 )
 journal_entry = env["account.move"].search(
-    [("ref", "=", "USL-DOCS-QA-BANK-ENTRY")], limit=1
+    [("ref", "=", "USL-DOCS-QA-BANK-ENTRY")], limit=1,
 ) or env["account.move"].create(
     {
         "move_type": "entry",
@@ -472,24 +472,24 @@ journal_entry = env["account.move"].search(
         "date": "2026-07-31",
         "ref": "USL-DOCS-QA-BANK-ENTRY",
         "company_id": main_company.id,
-    }
+    },
 )
 
 project = env["project.project"].search(
-    [("name", "=", "Atlas Website Rollout")], limit=1
+    [("name", "=", "Atlas Website Rollout")], limit=1,
 ) or env["project.project"].create(
-    {"name": "Atlas Website Rollout", "company_id": main_company.id}
+    {"name": "Atlas Website Rollout", "company_id": main_company.id},
 )
 task = env["project.task"].search(
     [("name", "=", "Approve launch evidence"), ("project_id", "=", project.id)],
     limit=1,
 ) or env["project.task"].create(
-    {"name": "Approve launch evidence", "project_id": project.id}
+    {"name": "Approve launch evidence", "project_id": project.id},
 )
 employee = env["hr.employee"].search(
-    [("name", "=", "Camille Martin — Synthetic")], limit=1
+    [("name", "=", "Camille Martin — Synthetic")], limit=1,
 ) or env["hr.employee"].create(
-    {"name": "Camille Martin — Synthetic", "company_id": main_company.id}
+    {"name": "Camille Martin — Synthetic", "company_id": main_company.id},
 )
 expense = env["hr.expense"].search(
     [
@@ -505,7 +505,7 @@ expense = env["hr.expense"].search(
         "currency_id": main_company.currency_id.id,
         "date": "2026-07-11",
         "total_amount_currency": 84.20,
-    }
+    },
 )
 
 correspondents = {
@@ -528,7 +528,7 @@ internal_correspondent = ensure_metadata(
     is_insensitive=True,
 )
 internal_correspondent.with_context(usl_documents_cache_write=True).write(
-    {"partner_id": False, "rejected_partner_id": False}
+    {"partner_id": False, "rejected_partner_id": False},
 )
 ensure_metadata(
     "usl.paperless.correspondent",
@@ -732,9 +732,9 @@ client.update_document_metadata(
 
 contract = seeded["qa-signed-contract-v1.txt"]
 replacement = (
-    "SYNTHETIC SIGNED AGREEMENT\nELECTRONICALLY SIGNED SYNTHETIC\n"
-    "Services agreement amendment. Current commercial term; original retained."
-).encode()
+    b"SYNTHETIC SIGNED AGREEMENT\nELECTRONICALLY SIGNED SYNTHETIC\n"
+    b"Services agreement amendment. Current commercial term; original retained."
+)
 replacement_checksum = hashlib.sha256(replacement).hexdigest()
 if replacement_checksum not in contract.version_ids.mapped("checksum"):
     result = contract.upload_new_version(
@@ -745,14 +745,14 @@ if replacement_checksum not in contract.version_ids.mapped("checksum"):
     )
     if result["state"] == "processing":
         wait_for_operation(
-            env["usl.document.operation"].browse(result["operation_id"])
+            env["usl.document.operation"].browse(result["operation_id"]),
         )
 
 # Older QA bootstrap revisions could create another root after the contract's
 # current checksum changed. Preserve those test artifacts, but make the
 # duplicate condition explicit and remove them from the clean Contracts view.
 contract_original_checksum = hashlib.sha256(
-    specs[3]["content"].encode()
+    specs[3]["content"].encode(),
 ).hexdigest()
 legacy_contract_roots = documents.search(
     [
@@ -773,10 +773,10 @@ for index, duplicate in enumerate(legacy_contract_roots, start=1):
             "document_type_id": document_types["Signed contract"].id,
             "correspondent_id": correspondents["USL-DOCS-QA-CUSTOMER"].id,
             "tag_ids": [tags["Needs follow-up"].id],
-        }
+        },
     )
     duplicate.with_context(usl_documents_policy_write=True).write(
-        {"review_state": "needs_attention"}
+        {"review_state": "needs_attention"},
     )
     duplicate.link_ids.filtered(
         lambda link: (
@@ -786,15 +786,15 @@ for index, duplicate in enumerate(legacy_contract_roots, start=1):
         or (
             link.res_model == project._name
             and link.res_id == project.id
-        )
+        ),
     ).unlink()
 
 # Upload one item directly through Paperless. It deliberately remains in Needs
 # review with no business link, proving that external intake is discoverable.
 external_content = (
-    "NEEDS FOLLOW UP SYNTHETIC\nExternal mailroom intake.\n"
-    "Please decide company, correspondent and business relationship."
-).encode()
+    b"NEEDS FOLLOW UP SYNTHETIC\nExternal mailroom intake.\n"
+    b"Please decide company, correspondent and business relationship."
+)
 external_checksum = hashlib.sha256(external_content).hexdigest()
 external = documents.search([("checksum", "=", external_checksum)], limit=1)
 if not external:
@@ -830,7 +830,7 @@ if duplicate_result["state"] != "duplicate":
     raise RuntimeError("Synthetic duplicate fixture was not detected")
 
 failed_operation = env["usl.document.operation"].search(
-    [("name", "=", "qa-corrupted-upload.pdf")], limit=1
+    [("name", "=", "qa-corrupted-upload.pdf")], limit=1,
 )
 if not failed_operation:
     failed_operation = env["usl.document.operation"].sudo().create(
@@ -844,7 +844,7 @@ if not failed_operation:
             "error_message": (
                 "Synthetic QA failure: the file is corrupted. Upload a valid PDF."
             ),
-        }
+        },
     )
 
 trash_spec = {
@@ -865,14 +865,14 @@ if trashed.availability_state == "available":
     documents.sync_from_paperless(full=True)
 
 documents.search(
-    [("availability_state", "in", ("available", "permission_error"))]
+    [("availability_state", "in", ("available", "permission_error"))],
 ).action_sync_permissions()
 documents_crons = env["ir.cron"].browse(
     [
         env.ref("usl_documents.ir_cron_usl_documents_sync").id,
         env.ref("usl_documents.ir_cron_usl_documents_poll").id,
         env.ref("usl_documents.ir_cron_usl_documents_attachment_queue").id,
-    ]
+    ],
 )
 documents_crons.sudo().write({"active": True})
 env.cr.commit()
@@ -886,7 +886,7 @@ print(
         "versions": env["usl.document.version"].search_count([]),
         "trashed": documents.search_count([("availability_state", "=", "trashed")]),
         "needs_review": documents.search_count(
-            [("review_state", "=", "needs_attention")]
+            [("review_state", "=", "needs_attention")],
         ),
         "failed_operation": failed_operation.id,
         "bill_id": bill.id,

@@ -12,10 +12,10 @@ from lxml import etree, html
 from psycopg2 import IntegrityError
 
 from odoo import _, api, fields, models
-from odoo.addons.queue_job.exception import RetryableJobError
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools import html2plaintext
 
+from odoo.addons.queue_job.exception import RetryableJobError
 
 MAX_CANDIDATES = 10
 MAX_DISCOVERED_LINKS = 100
@@ -118,7 +118,7 @@ def _tokens(value):
             token
             for token in TOKEN_RE.findall((value or "").casefold())
             if not OPAQUE_TOKEN_RE.fullmatch(token)
-        }
+        },
     )
 
 
@@ -263,7 +263,7 @@ class UslMailPdfHost(models.Model):
             raise UserError(_("A learned host name cannot be changed."))
         if self.env.context.get("linked_receipt_internal") is not _LINKED_RECEIPT_INTERNAL:
             raise AccessError(
-                _("Use the linked-receipt governance actions to change a host.")
+                _("Use the linked-receipt governance actions to change a host."),
             )
         return super().write(vals)
 
@@ -275,7 +275,7 @@ class UslMailPdfHost(models.Model):
         self.check_access("write")
         for host in self:
             host.with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write(
-                {"state": "active" if host.success_count else "provisional"}
+                {"state": "active" if host.success_count else "provisional"},
             )
 
     @api.model
@@ -342,7 +342,7 @@ class UslMailPdfPattern(models.Model):
     def write(self, vals):
         if self.env.context.get("linked_receipt_internal") is not _LINKED_RECEIPT_INTERNAL:
             raise AccessError(
-                _("Use the linked-receipt governance actions to change a pattern.")
+                _("Use the linked-receipt governance actions to change a pattern."),
             )
         return super().write(vals)
 
@@ -368,11 +368,11 @@ class UslMailPdfPattern(models.Model):
                             "path_template": candidate["path_template"],
                             "label_tokens": " ".join(candidate["label_tokens"]),
                             "query_keys": " ".join(candidate["query_keys"]),
-                        }
+                        },
                     )
             except IntegrityError:
                 pattern = self.sudo().search(
-                    [("signature", "=", candidate["signature"])], limit=1
+                    [("signature", "=", candidate["signature"])], limit=1,
                 )
         pattern._locked()
         if positive and pattern.state == "blocked":
@@ -417,7 +417,7 @@ class UslMailPdfPattern(models.Model):
                     _path_template(final.get("path")) if final else False
                 ),
                 "last_used_at": now,
-            }
+            },
         )
 
     def _register_terminal_failure(self):
@@ -430,7 +430,7 @@ class UslMailPdfPattern(models.Model):
                 "consecutive_failure_count": failures,
                 "state": "paused" if failures >= 2 else self.state,
                 "last_used_at": fields.Datetime.now(),
-            }
+            },
         )
 
     def action_pause(self):
@@ -444,7 +444,7 @@ class UslMailPdfPattern(models.Model):
                 {
                     "state": "active" if pattern.success_count else "learning",
                     "consecutive_failure_count": 0,
-                }
+                },
             )
 
     def action_block(self):
@@ -529,7 +529,7 @@ class UslMailPdfRetrieval(models.Model):
             return False
         deployment = os.getenv("USL_DEPLOYMENT_ENV", "development").strip().casefold()
         return deployment != "production" or os.getenv(
-            "USL_LINKED_PDF_DOWNLOAD_ADMITTED", "0"
+            "USL_LINKED_PDF_DOWNLOAD_ADMITTED", "0",
         ) == "1"
 
     @api.model
@@ -588,7 +588,7 @@ class UslMailPdfRetrieval(models.Model):
                 )[:240]
                 receipt_cta_seen = receipt_cta_seen or bool(
                     set(_tokens(f"{label} {semantic_context}"))
-                    & set(POSITIVE_TOKENS)
+                    & set(POSITIVE_TOKENS),
                 )
                 discovered.append((url, label, semantic_context, position, role))
         except (ValueError, TypeError, etree.ParserError, etree.XMLSyntaxError):
@@ -630,7 +630,7 @@ class UslMailPdfRetrieval(models.Model):
             label = _safe_label(label, hostname)
             label_tokens = sorted(
                 set(_tokens(context if label == hostname else f"{label} {context}"))
-                & SEMANTIC_TOKENS
+                & SEMANTIC_TOKENS,
             )
             if label == hostname and label_tokens:
                 label = " ".join(label_tokens)
@@ -643,7 +643,7 @@ class UslMailPdfRetrieval(models.Model):
                         keep_blank_values=True,
                     )
                     if not OPAQUE_TOKEN_RE.search(key)
-                }
+                },
             )[:20]
             signal_tokens = set(label_tokens) | set(_tokens(path_template))
             negative_tokens = signal_tokens & NEGATIVE_TOKENS
@@ -658,7 +658,7 @@ class UslMailPdfRetrieval(models.Model):
             generic_pdf_signature = bool(
                 parsed.path.casefold().endswith(".pdf")
                 and positive_tokens
-                & {"facture", "invoice", "justificatif", "receipt", "recu", "reçu"}
+                & {"facture", "invoice", "justificatif", "receipt", "recu", "reçu"},
             )
             canonical = {
                 "sender_domain": sender_domain,
@@ -669,14 +669,14 @@ class UslMailPdfRetrieval(models.Model):
                 "query_keys": query_keys,
             }
             signature = hashlib.sha256(
-                json.dumps(canonical, sort_keys=True, separators=(",", ":")).encode()
+                json.dumps(canonical, sort_keys=True, separators=(",", ":")).encode(),
             ).hexdigest()
             matching = Pattern.search(
                 [
                     ("sender_domain", "=", sender_domain),
                     ("hostname", "=", hostname),
                     ("state", "=", "active"),
-                ]
+                ],
             )
             compatible = matching.filtered(
                 lambda item: item.confidence >= MIN_PATTERN_CONFIDENCE
@@ -689,7 +689,7 @@ class UslMailPdfRetrieval(models.Model):
                             or bool(set(item.label_tokens.split()) & set(label_tokens))
                         )
                     )
-                )
+                ),
             )
             exact = compatible.filtered(lambda item: item.signature == signature)
             pattern = (exact or compatible).sorted(
@@ -714,7 +714,7 @@ class UslMailPdfRetrieval(models.Model):
                     "host_active": bool(host and host.state == "active"),
                     "generic_pdf_signature": generic_pdf_signature,
                     "_url": url,
-                }
+                },
             )
         ranked = sorted(
             candidates,
@@ -741,8 +741,8 @@ class UslMailPdfRetrieval(models.Model):
                 and (
                     attachment.mimetype == "application/pdf"
                     or attachment.mimetype.startswith("image/")
-                )
-            )
+                ),
+            ),
         )
 
     @api.model
@@ -769,7 +769,7 @@ class UslMailPdfRetrieval(models.Model):
                 "expense_id": expense.id,
                 "source_message_id": message.id,
                 "candidate_features": [self._safe_candidate_snapshot(item) for item in candidates],
-            }
+            },
         )
         if automatic:
             retrieval._select_candidate(top["fingerprint"], teach=False)
@@ -844,7 +844,7 @@ class UslMailPdfRetrieval(models.Model):
                 "handoff_open_count": self.handoff_open_count + 1,
                 "last_handoff_at": fields.Datetime.now(),
                 "last_handoff_user_id": self.env.user.id,
-            }
+            },
         )
         return candidate["_url"]
 
@@ -879,7 +879,7 @@ class UslMailPdfRetrieval(models.Model):
         )
         if pattern.state == "blocked":
             raise UserError(
-                _("This receipt pattern is blocked for the Odoo instance.")
+                _("This receipt pattern is blocked for the Odoo instance."),
             )
         if teach:
             for rejected in self._extract_candidates(self.source_message_id):
@@ -904,7 +904,7 @@ class UslMailPdfRetrieval(models.Model):
                 "pattern_id": pattern.id,
                 "failure_code": False,
                 "failure_message": False,
-            }
+            },
         )
         return candidate
 
@@ -925,7 +925,7 @@ class UslMailPdfRetrieval(models.Model):
                     "state": "needs_attention",
                     "failure_code": "feature_disabled",
                     "failure_message": _("Automatic linked-receipt download is disabled in this environment."),
-                }
+                },
             )
             return
         self.sudo().write({"state": "queued"})
@@ -946,16 +946,16 @@ class UslMailPdfRetrieval(models.Model):
         pattern = self.pattern_id.sudo()
         if pattern.state == "blocked":
             raise UserError(
-                _("This receipt pattern is blocked for the Odoo instance.")
+                _("This receipt pattern is blocked for the Odoo instance."),
             )
         host = self.env["usl.mail.pdf.host"].sudo().search(
-            [("hostname", "=", self.starting_host)], limit=1
+            [("hostname", "=", self.starting_host)], limit=1,
         )
         if host.state == "blocked":
             raise UserError(_("This receipt host is blocked for the Odoo instance."))
         if pattern.state == "paused":
             pattern.with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write(
-                {"state": "learning", "consecutive_failure_count": 0}
+                {"state": "learning", "consecutive_failure_count": 0},
             )
         self.sudo().write(
             {
@@ -963,7 +963,7 @@ class UslMailPdfRetrieval(models.Model):
                 "attempt_count": 0,
                 "failure_code": False,
                 "failure_message": False,
-            }
+            },
         )
         self._enqueue()
         return True
@@ -990,7 +990,7 @@ class UslMailPdfRetrieval(models.Model):
         ):
             return True
         messages = self.expense_id.message_ids.filtered(
-            lambda item: item.id != self.source_message_id.id
+            lambda item: item.id != self.source_message_id.id,
         )
         return any(self._message_has_receipt(message) for message in messages)
 
@@ -1102,14 +1102,14 @@ class UslMailPdfRetrieval(models.Model):
                 else "http"
             ),
             "redirect_hosts": _safe_redirect_evidence(
-                response_headers.get("x-usl-redirect-hosts")
+                response_headers.get("x-usl-redirect-hosts"),
             ),
         }
         learned_action = response_headers.get("x-usl-learned-action")
         if learned_action:
             try:
                 decoded = json.loads(
-                    base64.urlsafe_b64decode(learned_action + "===").decode()
+                    base64.urlsafe_b64decode(learned_action + "===").decode(),
                 )
                 if isinstance(decoded, dict) and decoded.get("role") == "control":
                     metadata["learned_action"] = {
@@ -1117,8 +1117,8 @@ class UslMailPdfRetrieval(models.Model):
                         "tokens": " ".join(
                             sorted(
                                 set(_tokens(str(decoded.get("tokens") or "")))
-                                & set(POSITIVE_TOKENS)
-                            )
+                                & set(POSITIVE_TOKENS),
+                            ),
                         )[:120],
                     }
             except (ValueError, TypeError, json.JSONDecodeError):
@@ -1131,7 +1131,7 @@ class UslMailPdfRetrieval(models.Model):
                 "state": "needs_attention",
                 "failure_code": error.code,
                 "failure_message": error.message,
-            }
+            },
         )
         if self.pattern_id:
             self.pattern_id._register_terminal_failure()
@@ -1139,7 +1139,7 @@ class UslMailPdfRetrieval(models.Model):
         if host:
             host._locked()
             host.with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write(
-                {"failure_count": host.failure_count + 1}
+                {"failure_count": host.failure_count + 1},
             )
 
     def _job_generation(self):
@@ -1230,7 +1230,7 @@ class UslMailPdfRetrieval(models.Model):
                         retrieval.failure_code or "fetch_failed",
                         retrieval.failure_message
                         or _("The receipt download failed after four attempts."),
-                    )
+                    ),
                 )
 
     def _job_fetch_receipt(self):
@@ -1245,9 +1245,9 @@ class UslMailPdfRetrieval(models.Model):
                     "state": "needs_attention",
                     "failure_code": "feature_disabled",
                     "failure_message": _(
-                        "Automatic linked-receipt download is disabled in this environment."
+                        "Automatic linked-receipt download is disabled in this environment.",
                     ),
-                }
+                },
             )
             return
         if not retrieval._expense_is_eligible(retrieval.expense_id):
@@ -1257,7 +1257,7 @@ class UslMailPdfRetrieval(models.Model):
                     "generation": retrieval.generation + 1,
                     "failure_code": False,
                     "failure_message": False,
-                }
+                },
             )
             return
         if retrieval.pattern_id.state in ("paused", "blocked"):
@@ -1266,22 +1266,22 @@ class UslMailPdfRetrieval(models.Model):
                     "state": "needs_attention",
                     "failure_code": "pattern_unavailable",
                     "failure_message": _(
-                        "The learned receipt pattern is paused or blocked."
+                        "The learned receipt pattern is paused or blocked.",
                     ),
-                }
+                },
             )
             return
         if self.env["usl.mail.pdf.host"].sudo().search_count(
-            [("hostname", "=", retrieval.starting_host), ("state", "=", "blocked")]
+            [("hostname", "=", retrieval.starting_host), ("state", "=", "blocked")],
         ):
             retrieval.write(
                 {
                     "state": "needs_attention",
                     "failure_code": "egress_denied",
                     "failure_message": _(
-                        "The receipt host is blocked for the Odoo instance."
+                        "The receipt host is blocked for the Odoo instance.",
                     ),
-                }
+                },
             )
             return
         if retrieval._has_manual_receipt():
@@ -1381,7 +1381,7 @@ class UslMailPdfRetrieval(models.Model):
                     {
                         "state": "superseded",
                         "generation": retrieval.generation + 1,
-                    }
+                    },
                 )
             return
         # Serialize global governance with the final attachment decision.  A
@@ -1395,9 +1395,9 @@ class UslMailPdfRetrieval(models.Model):
                         "state": "needs_attention",
                         "failure_code": "pattern_unavailable",
                         "failure_message": _(
-                            "The learned receipt pattern is paused or blocked."
+                            "The learned receipt pattern is paused or blocked.",
                         ),
-                    }
+                    },
                 )
                 return
         try:
@@ -1423,7 +1423,7 @@ class UslMailPdfRetrieval(models.Model):
                 ReceiptFetchError(
                     "egress_denied",
                     _("A host in the receipt download chain was blocked."),
-                )
+                ),
             )
             return
         if retrieval._has_manual_receipt():
@@ -1441,7 +1441,7 @@ class UslMailPdfRetrieval(models.Model):
                 "res_model": "hr.expense",
                 "res_id": retrieval.expense_id.id,
                 "company_id": retrieval.company_id.id,
-            }
+            },
         )
         if not duplicate:
             retrieval.expense_id.with_context(
@@ -1465,7 +1465,7 @@ class UslMailPdfRetrieval(models.Model):
                 "redirect_hosts": metadata.get("redirect_hosts"),
                 "failure_code": False,
                 "failure_message": False,
-            }
+            },
         )
         if retrieval.pattern_id:
             retrieval.pattern_id._register_success(metadata)
@@ -1489,7 +1489,7 @@ class UslMailPdfRetrieval(models.Model):
                     "first_success_at": host.first_success_at or now,
                     "last_success_at": now,
                     "success_count": host.success_count + 1,
-                }
+                },
             )
 
     @api.model
@@ -1498,14 +1498,14 @@ class UslMailPdfRetrieval(models.Model):
             [
                 ("expense_id", "=", expense.id),
                 ("state", "in", ("selection_required", "queued", "running", "retrying", "needs_attention")),
-            ]
+            ],
         )
         for retrieval in retrievals:
             retrieval.write(
                 {
                     "state": "superseded",
                     "generation": retrieval.generation + 1,
-                }
+                },
             )
 
 
@@ -1529,7 +1529,7 @@ class HrExpense(models.Model):
     linked_receipt_message = fields.Char(compute="_compute_linked_receipt_status", compute_sudo=True)
     linked_receipt_can_manage = fields.Boolean(compute="_compute_linked_receipt_can_manage")
     linked_receipt_can_open_website = fields.Boolean(
-        compute="_compute_linked_receipt_can_manage"
+        compute="_compute_linked_receipt_can_manage",
     )
     linked_receipt_authentication_required = fields.Boolean(
         compute="_compute_linked_receipt_status",
@@ -1543,7 +1543,7 @@ class HrExpense(models.Model):
             expense.linked_receipt_state = retrieval.state or False
             expense.linked_receipt_authentication_required = bool(
                 retrieval.state == "needs_attention"
-                and retrieval.failure_code == "authentication_required"
+                and retrieval.failure_code == "authentication_required",
             )
             if not retrieval:
                 expense.linked_receipt_message = False
@@ -1556,7 +1556,7 @@ class HrExpense(models.Model):
             elif retrieval.state == "needs_attention":
                 if retrieval.failure_code == "authentication_required":
                     expense.linked_receipt_message = _(
-                        "Sign in on the receipt website, download the PDF, then attach it here. Your credentials stay with the provider."
+                        "Sign in on the receipt website, download the PDF, then attach it here. Your credentials stay with the provider.",
                     )
                 else:
                     expense.linked_receipt_message = retrieval.failure_message or _("The linked receipt needs attention.")
@@ -1567,16 +1567,16 @@ class HrExpense(models.Model):
         is_manager = self.env.user.has_group("account.group_account_manager")
         for expense in self:
             expense.linked_receipt_can_manage = bool(
-                expense.employee_id.user_id == self.env.user or is_manager
+                expense.employee_id.user_id == self.env.user or is_manager,
             )
             expense.linked_receipt_can_open_website = bool(
-                expense.employee_id.user_id == self.env.user
+                expense.employee_id.user_id == self.env.user,
             )
 
     def _latest_linked_receipt(self):
         self.ensure_one()
         retrieval = self.env["usl.mail.pdf.retrieval"].sudo().search(
-            [("expense_id", "=", self.id)], order="id desc", limit=1
+            [("expense_id", "=", self.id)], order="id desc", limit=1,
         )
         if not retrieval:
             raise UserError(_("This expense has no linked receipt to manage."))
@@ -1597,7 +1597,7 @@ class HrExpense(models.Model):
         for expense in eligible.sorted("id"):
             # Serialize repeat clicks before discovering or enqueueing any work.
             self.env.cr.execute(
-                "SELECT id FROM hr_expense WHERE id = %s FOR UPDATE", [expense.id]
+                "SELECT id FROM hr_expense WHERE id = %s FOR UPDATE", [expense.id],
             )
             expense.invalidate_recordset()
             if not Retrieval._expense_is_eligible(expense):
@@ -1643,7 +1643,7 @@ class HrExpense(models.Model):
             {
                 "retrieval_id": retrieval.id,
                 "candidate_ids": Wizard._candidate_commands(retrieval),
-            }
+            },
         )
         return {
             "type": "ir.actions.act_window",

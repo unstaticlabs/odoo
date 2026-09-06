@@ -7,10 +7,10 @@ import json
 import os
 import re
 import tempfile
+from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Callable
-
+from typing import Any
 
 SCHEMA = "usl-release-run/v1"
 RUN_ID = re.compile(r"[a-z0-9][a-z0-9._-]{7,95}\Z")

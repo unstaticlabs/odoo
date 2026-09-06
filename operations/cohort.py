@@ -10,7 +10,6 @@ import re
 import shutil
 import subprocess
 import sys
-import tempfile
 import time
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -18,9 +17,8 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from operations.control_manifest import ODOO_CONTROL_SQL, PAPERLESS_CONTROL_SQL
-
-from operations.release_manifest import ReleaseManifestError, validate as validate_release
-
+from operations.release_manifest import ReleaseManifestError
+from operations.release_manifest import validate as validate_release
 
 SCHEMA = "usl-recovery-cohort/v2"
 LEGACY_SCHEMA = "usl-recovery-cohort/v1"

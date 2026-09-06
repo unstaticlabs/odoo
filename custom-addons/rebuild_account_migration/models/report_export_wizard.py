@@ -5,7 +5,7 @@ import io
 import json
 import math
 from datetime import date, timedelta
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 
 from odoo import Command, api, fields, models
 from odoo.exceptions import AccessError, UserError
@@ -659,7 +659,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "group_key": line.group_key or "",
                 "collapsed": bool(
                     line.is_group
-                    and line.group_key in collapsed_groups
+                    and line.group_key in collapsed_groups,
                 ),
                 "journal_code": row.get("journal_code") or "",
                 "move_ref": row.get("move_ref") or "",
@@ -1346,13 +1346,13 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         if (
             definition
             and (
-                export_format == "pdf" and not definition.supports_pdf
-                or export_format == "xlsx" and not definition.supports_xlsx
+                (export_format == "pdf" and not definition.supports_pdf)
+                or (export_format == "xlsx" and not definition.supports_xlsx)
             )
         ):
             raise UserError(
                 f"{export_format.upper()} is disabled by the active "
-                f"{definition.name} definition."
+                f"{definition.name} definition.",
             )
         wizard.export_format = export_format
         wizard.action_generate_export()
@@ -1631,7 +1631,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         ):
             raise UserError(
                 "The closing package company and dates must match the "
-                "linked closing workspace."
+                "linked closing workspace.",
             )
         checksum = hashlib.sha1(payload).hexdigest()
         attachment = closing.package_attachment_ids.filtered(
@@ -3212,7 +3212,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "&LExport comptable Odoo Community"
             "&CPage &P sur &N"
             f"&RGénéré le "
-            f"{self._display_export_datetime(metadata['generated_at'])}"
+            f"{self._display_export_datetime(metadata['generated_at'])}",
         )
 
         raw_sheet = workbook.add_worksheet("Audit Data")
@@ -3739,7 +3739,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 7.5 * mm,
                 clean_text(
                     "Généré le "
-                    f"{self._display_export_datetime(metadata['generated_at'])}"
+                    f"{self._display_export_datetime(metadata['generated_at'])}",
                 ),
             )
             canvas.drawRightString(
@@ -3791,7 +3791,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                         "du grand livre sélectionné. Ce document n’est ni "
                         "une attestation professionnelle, ni un rapport de "
                         "mission d’un expert-comptable ou d’un commissaire "
-                        "aux comptes."
+                        "aux comptes.",
                     ),
                     styles["USLNote"],
                 ),
@@ -3799,14 +3799,14 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 Paragraph(
                     clean_text(
                         f"Exercice du {date_from_display} au "
-                        f"{date_to_display}"
+                        f"{date_to_display}",
                     ),
                     styles["USLSection"],
                 ),
                 Paragraph(
                     clean_text(
                         f"Monnaie de présentation : "
-                        f"{metadata['currency']}"
+                        f"{metadata['currency']}",
                     ),
                     styles["USLSubtitle"],
                 ),
@@ -3819,7 +3819,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                         "3. Bilan — passif<br/>"
                         "4. Compte de résultat<br/>"
                         "5. Soldes intermédiaires de gestion et CAF<br/>"
-                        "6. Ratios de gestion"
+                        "6. Ratios de gestion",
                     ),
                     styles["USLBody"],
                 ),
@@ -3834,7 +3834,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                         "comptabilisées du périmètre affiché, selon les "
                         "rubriques du Plan comptable général français. Les "
                         "montants restent traçables jusqu’aux comptes et aux "
-                        "écritures sources dans le rapport interactif."
+                        "écritures sources dans le rapport interactif.",
                     ),
                     styles["USLNote"],
                 ),
@@ -3845,7 +3845,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                         "confirmés lors de la clôture. Cette édition de "
                         "gestion ne remplace pas l’annexe légale lorsque "
                         "celle-ci est requise et ne reproduit aucune "
-                        "attestation du précédent professionnel."
+                        "attestation du précédent professionnel.",
                     ),
                     styles["USLNote"],
                 ),
@@ -4334,7 +4334,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "rows": [{
                     "role": "empty",
                     "values": {
-                        **{"label": "Aucune donnée pour le périmètre sélectionné."},
+                        "label": "Aucune donnée pour le périmètre sélectionné.",
                         **{
                             f"value_{sequence}": ""
                             for sequence in range(1, len(value_columns) + 1)
@@ -4383,7 +4383,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "Comparaison : "
                 f"{self._display_export_date(metadata['comparison_date_from'])}"
                 " – "
-                f"{self._display_export_date(metadata['comparison_date_to'])}"
+                f"{self._display_export_date(metadata['comparison_date_to'])}",
             )
         basis_note = (
             "Document préparatoire produit à partir des écritures et contrôles "
@@ -4636,7 +4636,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 level = max(level, 1)
             rendered_rows.append({
                 "label": str(
-                    self._report_export_row_value(row, label_field) or ""
+                    self._report_export_row_value(row, label_field) or "",
                 ),
                 "level": min(max(level, 0), 6),
                 "emphasis": role,
@@ -4693,7 +4693,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "Comparaison : "
                 f"{self._display_export_date(metadata['comparison_date_from'])}"
                 " – "
-                f"{self._display_export_date(metadata['comparison_date_to'])}"
+                f"{self._display_export_date(metadata['comparison_date_to'])}",
             )
         basis_note = (
             "Document préparatoire produit à partir des écritures et contrôles "
@@ -6322,7 +6322,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             account_ids = tuple(self.account_ids.ids)
             clauses.append(
                 "AND (deferral.deferral_account_id IN %s "
-                "OR schedule.recognition_account_id IN %s)"
+                "OR schedule.recognition_account_id IN %s)",
             )
             params.extend([account_ids, account_ids])
         return "\n               ".join(clauses), params

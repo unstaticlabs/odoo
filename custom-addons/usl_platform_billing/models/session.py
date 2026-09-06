@@ -682,7 +682,7 @@ class UslPlatformBillingSession(models.Model):
             commission_payouts = invoice_payouts.filtered(
                 lambda payout: not payout.platform_currency_id.is_zero(
                     payout.commission_platform_amount,
-                )
+                ),
             )
             if platform.vendor_bill_grouping_mode == "monthly":
                 bill_groups = [commission_payouts] if commission_payouts else []

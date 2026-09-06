@@ -21,8 +21,9 @@ import re
 import subprocess
 import sys
 import tempfile
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = "usl-release-notes/v2"
@@ -149,7 +150,7 @@ def associated_pull_requests(repository: str, commits: list[str], api: Api = gh_
         if response.get("errors"):
             raise ReleaseNotesError(
                 "GitHub GraphQL errors: "
-                + "; ".join(str(error.get("message")) for error in response["errors"])
+                + "; ".join(str(error.get("message")) for error in response["errors"]),
             )
         objects = (response.get("data") or {}).get("repository") or {}
         for index in range(len(batch)):
