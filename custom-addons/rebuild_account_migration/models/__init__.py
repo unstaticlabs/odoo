@@ -10,6 +10,7 @@ from . import pocketid_profiles
 from . import native_deferral
 from . import assurance_decision
 from . import report_views
+from . import report_views_french
 from . import report_definition
 from . import report_export_wizard
 from . import report_export_rows
