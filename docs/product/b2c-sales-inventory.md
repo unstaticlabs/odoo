@@ -65,11 +65,14 @@ Three credible treatments were reviewed:
 | C. Retain only aggregate journal totals | Smallest model | Loses order, SKU, country, fulfilment, fee, and refund evidence and prevents source-level audit | Rejected |
 
 The source confirms that B is the only lossless safe option. The 304 canonical
-orders have deterministic header identity; 269 also have complete item detail.
-Those orders become native Sales history while 35 legacy-only orders use an
-explicit header-only line. Any Medusa header/line remainder is represented as a
-visible provider adjustment. Processor payments remain evidence unless an
-immutable identifier supports a unique direct relationship.
+orders have deterministic header identity. Of those, 273 are customer sales and
+become native Sales history; 31 were raised by hand at the print supplier with
+no store order behind them, which makes them marketing and prototyping rather
+than sales. Their recorded provider total is what the supplier billed, so it is
+kept as a supplier cost and never as revenue, and no Sales order is created for
+them. Any Medusa header/line remainder is represented as a visible provider
+adjustment. Processor payments remain evidence unless an immutable identifier
+supports a unique direct relationship.
 
 ## Native and custom choices
 
@@ -147,6 +150,14 @@ purchases, receipts, supplier-pack unbuilds, manufacturing, deliveries and
 reservations from that evidence only. It never uses Medusa inventory snapshots.
 The result is an operational theoretical balance, not a signed physical count;
 the 30 September count remains the native reconciliation point.
+
+One reviewed catalog carries the whole history: 27 products and 170 variants
+cover all 184 distinct product identities the channels recorded, with nothing
+unmatched. A garment sold on both channels is one product with one alias per
+channel, and a product renamed mid-life keeps a single identity. Attributes hold
+the source variation exactly — the length in centimetres, the chain diameter,
+the configuration — so Odoo cannot offer a combination that was never sold.
+Products made from own stock carry the bill of materials a sale consumes.
 
 The normalization preserves raw provider rows, original titles, variations,
 SKUs, linked documents and cost-history row identity. It may advance a reviewed

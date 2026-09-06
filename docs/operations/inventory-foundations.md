@@ -70,9 +70,13 @@ the four evidenced individual colours.
 
 The one-off native-history materializer uses documented acquisitions, evidenced
 delivered consumption and known reservations. It creates 17 dated Purchase
-orders and receipts, 12 supplier-pack unbuilds, native manufacturing and
-deliveries, and open reservations. It excludes Medusa inventory quantities and
-does not infer losses, gifts, damage or a physical count.
+orders and receipts, 12 supplier-pack unbuilds, 81 manufacturing orders, 85
+deliveries and the open reservations behind them. It excludes Medusa inventory
+quantities and does not infer losses, gifts, damage or a physical count.
+
+It runs after the reviewed catalog is materialized, which is what gives every
+historical line a product to move. Marketing and prototyping orders create no
+stock movement: they were fulfilled by the print supplier and were never sales.
 
 The second Quandun batch is allocated from the supplier invoice remark: 25
 purple, 25 black, 20 red and 20 blue. Eight documented prototype samples are
