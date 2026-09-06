@@ -46,6 +46,20 @@ accounting hygiene.
 
 ## Evidence and corrections
 
+Statement dates come from validated retained files before the email subject.
+The OFX coverage dates must agree with its single calendar month and transaction
+dates. An exact copy of an already accepted PDF inherits that statement's period
+within the same company and bank route. Conflicting file evidence needs review.
+When no file establishes the period, explicit subject dates or a French month
+and year (for example `août 2026`) remain a fallback, not a file identity check.
+
+If dates are still missing, use **Correct period** on the received export in
+**Needs attention**. Enter the dates verified on the original statement and a
+reason. Odoo records the correction and reassociates retained PDFs without
+downloading links or reimporting transactions. The action cannot override dates
+from verified files or replace accepted evidence. Original source files remain
+read-only. Missing OFX data or a replacement-PDF decision can still block statement review.
+
 Every original email, ZIP and extracted file remains downloadable with its
 filename, received source and SHA-256 checksum. Forwarding the same email or
 file does not add transactions. Two similar-looking transactions remain

@@ -1437,6 +1437,80 @@ class TestDocuments(TransactionCase):
         self.assertFalse(detail["archive_available"])
         self.assertEqual(detail["name"], "Cached supplier evidence")
 
+    def test_document_detail_surfaces_unapplied_paperless_suggestions(self):
+        existing = self._tag(501, "Existing")
+        suggested = self._tag(502, "Payroll")
+        correspondent = self._correspondent(503, "TESE")
+        document_type = self._document_type(504, "Payslip")
+        document = self._document(
+            405,
+            document_date="2026-08-01",
+            tag_ids=[Command.set(existing.ids)],
+        )
+        payload = {
+            "tags": [501, 502, 999999],
+            "correspondents": [503],
+            "document_types": [504],
+            "dates": ["2026-08-01", "2026-08-31", "not-a-date"],
+        }
+        with (
+            patch.object(PaperlessClient, "compatibility"),
+            patch.object(
+                PaperlessClient,
+                "get_document_suggestions",
+                return_value=payload,
+            ),
+        ):
+            suggestions = document.document_detail(
+                document.id,
+                check_archive=True,
+            )["paperless_suggestions"]
+
+        self.assertEqual(
+            suggestions,
+            [
+                {
+                    "kind": "document_type",
+                    "field": "document_type_id",
+                    "record_id": document_type.id,
+                    "label": "Payslip",
+                },
+                {
+                    "kind": "correspondent",
+                    "field": "correspondent_id",
+                    "record_id": correspondent.id,
+                    "label": "TESE",
+                },
+                {
+                    "kind": "tag",
+                    "field": "tag_ids",
+                    "record_id": suggested.id,
+                    "label": "Payroll",
+                },
+                {
+                    "kind": "date",
+                    "field": "document_date",
+                    "value": "2026-08-31",
+                    "label": "2026-08-31",
+                },
+            ],
+        )
+
+    def test_suggestion_outage_does_not_hide_available_archive(self):
+        document = self._document(406)
+        with (
+            patch.object(PaperlessClient, "compatibility"),
+            patch.object(
+                PaperlessClient,
+                "get_document_suggestions",
+                side_effect=PaperlessUnavailable("Classifier unavailable"),
+            ),
+        ):
+            detail = document.document_detail(document.id, check_archive=True)
+
+        self.assertTrue(detail["archive_available"])
+        self.assertEqual(detail["paperless_suggestions"], [])
+
     def test_duplicate_checksum_reuses_archive_without_upload(self):
         content = b"identical supplier evidence"
         checksum = __import__("hashlib").sha256(content).hexdigest()
@@ -2301,6 +2375,46 @@ class TestDocuments(TransactionCase):
             },
         )
         self.assertEqual(document.tag_ids, child)
+
+    def test_tag_catalog_sync_uses_one_consistent_remote_snapshot(self):
+        payloads = [
+            {
+                "id": 307,
+                "name": "Parent",
+                "owner": None,
+                "matching_algorithm": 6,
+                "document_count": 1,
+                "parent": None,
+            },
+            {
+                "id": 308,
+                "name": "Child",
+                "owner": None,
+                "matching_algorithm": 6,
+                "document_count": 1,
+                "parent": 307,
+            },
+        ]
+        client = PaperlessClient(self.env)
+        client.owner_user_id = 3
+        with patch.object(
+            client,
+            "list_metadata",
+            side_effect=[payloads, payloads[:1]],
+        ) as list_metadata:
+            count = self.env["usl.paperless.tag"].synchronize_catalog(client=client)
+
+        self.assertEqual(count, 2)
+        self.assertEqual(list_metadata.call_count, 1)
+        parent = self.env["usl.paperless.tag"].search(
+            [("paperless_id", "=", 307)],
+        )
+        child = self.env["usl.paperless.tag"].search(
+            [("paperless_id", "=", 308)],
+        )
+        self.assertTrue(parent.active)
+        self.assertTrue(child.active)
+        self.assertEqual(child.parent_id, parent)
 
     def test_catalog_sync_reactivates_cached_identity_after_archive_reset(self):
         tag = self.env["usl.paperless.tag"].sudo().with_context(

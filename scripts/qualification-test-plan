@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+"""Print a comma-separated Odoo module test plan for a Git diff."""
+
+from __future__ import annotations
+
+import argparse
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from operations.module_release import build_inventory  # noqa: E402
+from operations.qualification_plan import affected_modules, all_modules  # noqa: E402
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--all", action="store_true", dest="all_modules")
+    parser.add_argument("--base")
+    parser.add_argument("--head")
+    arguments = parser.parse_args()
+    inventory = build_inventory(ROOT, require_dependencies=True)
+    if arguments.all_modules:
+        if arguments.base or arguments.head:
+            parser.error("--all cannot be combined with --base or --head")
+        print(",".join(all_modules(inventory)))
+        return 0
+    if not arguments.base or not arguments.head:
+        parser.error("--base and --head are required unless --all is used")
+    changed = subprocess.run(
+        ["git", "diff", "--name-only", arguments.base, arguments.head],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.splitlines()
+    print(",".join(affected_modules(changed, inventory)))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

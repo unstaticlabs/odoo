@@ -23,7 +23,7 @@ VISIBLE_HTML_ATTRIBUTE = re.compile(
 # entries below cover only surfaces whose business context is unambiguous.
 GLOSSARY = {
     "Accounting": "Comptabilité",
-    "Accounting Hygiene": "Qualité comptable",
+    "Accounting Hygiene": "Hygiène comptable",
     "Accounting Overview": "Vue d’ensemble comptable",
     "Accounting Review": "Vérification comptable",
     "Accountant Review": "Vérification comptable",
@@ -120,8 +120,8 @@ BAD_TRANSLATION_PATTERNS = {
         "use 'dans le Rapprochement bancaire'"
     ),
     re.compile(r"[\u200b\u200c\u200d\ufeff]"): "remove invisible formatting characters",
-    re.compile(r"\bhygiène comptable\b", re.IGNORECASE): (
-        "use the product term 'qualité comptable'"
+    re.compile(r"\bqualité comptable\b", re.IGNORECASE): (
+        "use the product term 'hygiène comptable'"
     ),
     re.compile(r"\bseau d['’]hygiène\b", re.IGNORECASE): (
         "translate the accounting concept, not the English metaphor"

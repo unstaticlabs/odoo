@@ -204,4 +204,8 @@ then twice daily as a recovery safety net. It applies the more specific
 **Payroll record**, **HR**, and **Payroll** metadata without uploading a
 duplicate. The payroll form reports processing until that relationship is
 actually present; it no longer treats a shared accounting attachment as proof
-that Documents linking finished.
+that Documents linking finished. When choosing an existing archive original,
+the initial picker shows only unlinked PDFs that Paperless classified with the
+**Payroll record** type or **Payroll** tag. A name search remains available for
+misclassified documents. Paperless enables automatic learning for these shared
+metadata classes after it has at least two examples.

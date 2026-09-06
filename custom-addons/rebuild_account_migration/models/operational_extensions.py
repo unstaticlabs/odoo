@@ -193,7 +193,7 @@ class HrExpense(models.Model):
             arch.set("edit", "false")
             arch.set("delete", "false")
             if view_type == "form":
-                for control in arch.xpath("//header/button | //header/widget"):
+                for control in arch.xpath("//header/button | //header/widget | //widget[@name='attach_document']"):
                     control.getparent().remove(control)
             result["arch"] = etree.tostring(arch, encoding="unicode")
         return result

@@ -1,0 +1,73 @@
+diff --git a/queue_job/controllers/main.py b/queue_job/controllers/main.py
+index 3d748b7..783b947 100644
+--- a/queue_job/controllers/main.py
++++ b/queue_job/controllers/main.py
+@@ -13,8 +13,13 @@ from psycopg2 import OperationalError, errorcodes
+ from werkzeug.exceptions import BadRequest, Forbidden
+ 
+ from odoo import SUPERUSER_ID, api, http
+-from odoo.service.model import PG_CONCURRENCY_ERRORS_TO_RETRY
+ from odoo.tools import config
++
++PG_CONCURRENCY_ERRORS_TO_RETRY = (
++    errorcodes.DEADLOCK_DETECTED,
++    errorcodes.LOCK_NOT_AVAILABLE,
++    errorcodes.SERIALIZATION_FAILURE,
++)
+ 
+ from ..delay import chain, group
+ from ..exception import FailedJobError, RetryableJobError
+diff --git a/queue_job/jobrunner/runner.py b/queue_job/jobrunner/runner.py
+index 1b071ce..d5d4182 100644
+--- a/queue_job/jobrunner/runner.py
++++ b/queue_job/jobrunner/runner.py
+@@ -29,6 +29,7 @@ import requests
+ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+ 
+ import odoo
++from odoo.modules import db as modules_db
+ from odoo.tools import config
+ 
+ from . import queue_job_config
+@@ -382,7 +383,7 @@ class QueueJobRunner:
+         db_names = config["db_name"]
+         if db_names:
+             return db_names
+-        return odoo.service.db.list_dbs(True)
++        return modules_db.list_dbs(force=True)
+ 
+     def close_databases(self, remove_jobs=True):
+         for db_name, db in self.db_by_name.items():
+diff --git a/queue_job/models/base.py b/queue_job/models/base.py
+index 37d88e1..f057ced 100644
+--- a/queue_job/models/base.py
++++ b/queue_job/models/base.py
+@@ -14,6 +14,7 @@ class Base(models.AbstractModel):
+ 
+     _inherit = "base"
+ 
++    @api.private
+     def with_delay(
+         self,
+         priority=None,
+@@ -60,6 +61,7 @@ class Base(models.AbstractModel):
+             identity_key=identity_key,
+         )
+ 
++    @api.private
+     def delayable(
+         self,
+         priority=None,
+diff --git a/queue_job/controllers/main.py b/queue_job/controllers/main.py
+index 783b947..c8b8a3e 100644
+--- a/queue_job/controllers/main.py
++++ b/queue_job/controllers/main.py
+@@ -227,6 +227,8 @@ class RunJobController(http.Controller):
+         commit_within_job=False,
+         failure_retry_seconds=0,
+     ):
++        if not config["test_enable"]:
++            raise Forbidden(http.request.env._("Access Denied"))
+         if not http.request.env.user.has_group("base.group_erp_manager"):
+             raise Forbidden(http.request.env._("Access Denied"))
+ 

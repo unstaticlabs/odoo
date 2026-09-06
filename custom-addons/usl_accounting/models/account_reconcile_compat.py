@@ -42,6 +42,19 @@ class AccountAccountReconcile(models.Model):
         compute="_compute_rebuild_selection_summary",
     )
 
+    def _compute_reconcile_data_info(self):
+        # Launch defaults must not replace a saved (even empty) selection on
+        # the next RPC. This also repairs sessions opened before this upgrade.
+        for record in self:
+            saved = self.env["account.account.reconcile.data"].search([
+                ("user_id", "=", self.env.uid),
+                ("reconcile_id", "=", record.id),
+            ], limit=1)
+            if saved:
+                record.reconcile_data_info = saved.data
+            else:
+                super(AccountAccountReconcile, record)._compute_reconcile_data_info()
+
     @api.depends("reconcile_data_info")
     def _compute_rebuild_selection_summary(self):
         for record in self:
@@ -146,6 +159,63 @@ class AccountAccountReconcile(models.Model):
 
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
+
+    def _prepare_exchange_difference_move_vals(
+        self, amounts_list, company=None, exchange_date=None, **kwargs,
+    ):
+        result = super()._prepare_exchange_difference_move_vals(
+            amounts_list, company=company, exchange_date=exchange_date, **kwargs,
+        )
+        if not result:
+            return result
+        # Native reconciliation carries an earlier FX account per move into
+        # recursive rounding adjustments. That account may have the opposite
+        # direction to this new adjustment. Preserve custom account mappings,
+        # amounts and reconciliation links; only correct the configured FX pair.
+        commands = result["move_values"]["line_ids"]
+        for line, sequence in result["to_reconcile"]:
+            expense = line.company_id.expense_currency_exchange_account_id
+            income = line.company_id.income_currency_exchange_account_id
+            values = commands[sequence + 1][2]
+            balance = values.get("debit", 0) - values.get("credit", 0)
+            if balance and values["account_id"] in (expense | income).ids:
+                account = expense if balance > 0 else income
+                if account:
+                    values["account_id"] = account.id
+        return result
+
+    def action_reconcile_manually(self):
+        action = super().action_reconcile_manually()
+        if not action:
+            return action
+        # Seed once at launch, scoped to each company/account/partner/currency
+        # workspace. Subsequent requests use OCA's per-user saved selection.
+        context = dict(action["context"])
+        selected = self.browse(context.pop("default_account_move_lines", []))
+        # The workspace is a SQL view over these models, not a stored table.
+        self.env["account.move.line"].flush_model()
+        self.env["account.move"].flush_model()
+        self.env["account.account"].flush_model()
+        workspaces = self.env["account.account.reconcile"].with_context(
+            active_test=False,
+        ).search(action["domain"] + [("company_id", "in", self.company_id.ids)])
+        for workspace in workspaces:
+            lines = selected.filtered(lambda line: (
+                line.company_id == workspace.company_id
+                and line.account_id == workspace.account_id
+                and line.currency_id == workspace.currency_id
+                and (
+                    workspace.account_id.account_type not in (
+                        "asset_receivable", "liability_payable",
+                    )
+                    or line.partner_id == workspace.partner_id
+                )
+            ))
+            workspace.reconcile_data_info = workspace._recompute_data({
+                "data": [], "counterparts": lines.ids,
+            })
+        action["context"] = context
+        return action
 
     rebuild_reconciliation_state = fields.Selection(
         selection=[

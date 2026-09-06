@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_usl_mail_pdf_candidate_wizard_form" model="ir.ui.view">
+        <field name="name">usl.mail.pdf.candidate.wizard.form</field>
+        <field name="model">usl.mail.pdf.candidate.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Choose the PDF receipt link">
+                <field name="retrieval_id" invisible="1"/>
+                <div class="alert alert-info" role="status">
+                    Choose the link that downloads the receipt. Odoo will remember the sender, host, and link pattern across this instance. Signed URLs stay only in the source email.
+                </div>
+                <field name="candidate_ids" nolabel="1">
+                    <list create="false" edit="false" delete="false">
+                        <field name="label"/>
+                        <field name="hostname"/>
+                        <field name="path_template" optional="hide"/>
+                        <field name="score" optional="hide"/>
+                        <field name="fingerprint" column_invisible="True"/>
+                        <button name="action_choose"
+                                type="object"
+                                string="Use this link"
+                                class="btn-primary"
+                                help="Teach this choice instance-wide and queue its safe PDF retrieval."/>
+                    </list>
+                </field>
+                <footer>
+                    <button string="Cancel" special="cancel" class="btn-secondary" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The conversation draft is rendered inside the native MessagingMenu; it has no standalone action. -->
+</odoo>

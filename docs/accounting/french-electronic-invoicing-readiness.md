@@ -46,8 +46,9 @@ state and the action relevant to it:
 |---|---|---|
 | Needs setup | Identity, journal or contact is incomplete | Complete setup |
 | Ready to test | Business setup is complete | Run self-check |
-| Ready for production | Decoder and current configuration are validated | Activate reception |
-| Activation in progress | Production onboarding is incomplete | Continue native registration |
+| Ready for production | Decoder and current configuration are validated | Prepare production activation |
+| Activation required | Registration or local reception startup requires a deliberate action | Activate / Start receiving |
+| Registration in progress | Odoo's Approved Platform is registering the company in the French directory | Wait for native receiver status |
 | Receiving | This company accepts automatic incoming checks | Check now / Pause |
 | Needs attention | Connection or received document needs action | Review issue |
 

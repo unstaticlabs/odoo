@@ -272,6 +272,18 @@ class TestCleanUslSign(TransactionCase):
         request_values.update(values)
         return self.env["sign.oca.request"].create(request_values)
 
+    def _isolated_daily_manifest_company(self):
+        """Keep daily-manifest tests independent from installed/runtime state."""
+        self.env["res.company"].search([]).write(
+            {"sign_opentimestamps_enabled": False},
+        )
+        return self.env["res.company"].create(
+            {
+                "name": f"Sign daily manifest {uuid.uuid4()}",
+                "sign_opentimestamps_enabled": True,
+            },
+        )
+
     @staticmethod
     def _items(request, role, value):
         items = json.loads(json.dumps(request.frozen_layout))
@@ -3540,7 +3552,8 @@ class TestCleanUslSign(TransactionCase):
         self.assertEqual(self.env["sign.oca.template"].search_count([]), before)
 
     def test_daily_event_head_manifest_is_signed_and_immutable(self):
-        request = self._request()
+        company = self._isolated_daily_manifest_company()
+        request = self._request(company_id=company.id)
         first_day = fields.Date.today() - timedelta(days=2)
         second_day = fields.Date.today() - timedelta(days=1)
         request._append_event(
@@ -3554,7 +3567,7 @@ class TestCleanUslSign(TransactionCase):
             return_value=FakeDSS(),
         ):
             manifest = self.env["usl.sign.daily.manifest"]._build_for_day(
-                self.company,
+                company,
                 first_day,
             )
         self.assertEqual(manifest.state, "signed")
@@ -3578,7 +3591,7 @@ class TestCleanUslSign(TransactionCase):
             return_value=FakeDSS(),
         ):
             next_manifest = self.env["usl.sign.daily.manifest"]._build_for_day(
-                self.company,
+                company,
                 second_day,
             )
         self.assertEqual(next_manifest.previous_manifest_id, manifest)
@@ -3594,7 +3607,8 @@ class TestCleanUslSign(TransactionCase):
             manifest.unlink()
 
     def test_daily_manifest_cron_catches_up_closed_utc_days_without_gaps(self):
-        request = self._request()
+        company = self._isolated_daily_manifest_company()
+        request = self._request(company_id=company.id)
         first_day = fields.Date.today() - timedelta(days=3)
         closed_day = fields.Date.today() - timedelta(days=1)
         request._append_event(
@@ -3609,7 +3623,7 @@ class TestCleanUslSign(TransactionCase):
             self.env["usl.sign.daily.manifest"]._cron_build_daily_manifests()
         manifests = self.env["usl.sign.daily.manifest"].search(
             [
-                ("company_id", "=", self.company.id),
+                ("company_id", "=", company.id),
                 ("manifest_date", ">=", first_day),
                 ("manifest_date", "<=", closed_day),
             ],
@@ -3625,13 +3639,14 @@ class TestCleanUslSign(TransactionCase):
         self.assertEqual(manifests[2].previous_manifest_id, manifests[1])
         with self.assertRaises(ValidationError):
             self.env["usl.sign.daily.manifest"]._build_for_day(
-                self.company,
+                company,
                 fields.Date.today(),
             )
 
     def test_opentimestamps_submission_retry_reuses_persisted_nonce(self):
         first_day = fields.Date.today() - timedelta(days=1)
-        request = self._request()
+        company = self._isolated_daily_manifest_company()
+        request = self._request(company_id=company.id)
         request._append_event(
             "timestamp_retry_test",
             occurred_at=datetime.combine(first_day, datetime.min.time())
@@ -3642,7 +3657,7 @@ class TestCleanUslSign(TransactionCase):
             return_value=FakeDSS(),
         ):
             manifest = self.env["usl.sign.daily.manifest"]._build_for_day(
-                self.company,
+                company,
                 first_day,
             )
 
@@ -3676,7 +3691,8 @@ class TestCleanUslSign(TransactionCase):
 
     def test_opentimestamps_poll_persists_rfc3339_block_time_as_odoo_utc(self):
         first_day = fields.Date.today() - timedelta(days=1)
-        request = self._request()
+        company = self._isolated_daily_manifest_company()
+        request = self._request(company_id=company.id)
         request._append_event(
             "timestamp_block_time_test",
             occurred_at=datetime.combine(first_day, datetime.min.time())
@@ -3687,7 +3703,7 @@ class TestCleanUslSign(TransactionCase):
             return_value=FakeDSS(),
         ):
             manifest = self.env["usl.sign.daily.manifest"]._build_for_day(
-                self.company,
+                company,
                 first_day,
             )
 
@@ -3728,7 +3744,8 @@ class TestCleanUslSign(TransactionCase):
 
     def test_daily_timestamp_dossier_archive_reuses_checksum_identical_document(self):
         first_day = fields.Date.today() - timedelta(days=1)
-        request = self._request()
+        company = self._isolated_daily_manifest_company()
+        request = self._request(company_id=company.id)
         request._append_event(
             "timestamp_archive_test",
             occurred_at=datetime.combine(first_day, datetime.min.time())
@@ -3739,14 +3756,14 @@ class TestCleanUslSign(TransactionCase):
             return_value=FakeDSS(),
         ):
             manifest = self.env["usl.sign.daily.manifest"]._build_for_day(
-                self.company,
+                company,
                 first_day,
             )
         archived = self.env["usl.document"].sudo().create(
             {
                 "name": "Daily timestamp proof dossier",
                 "paperless_id": 990002,
-                "company_id": self.company.id,
+                "company_id": company.id,
                 "confidentiality": "private",
                 "availability_state": "available",
                 "source": "odoo_generated",
@@ -3777,7 +3794,8 @@ class TestCleanUslSign(TransactionCase):
 
     def test_daily_timestamp_dossier_queues_as_private_sign_evidence(self):
         first_day = fields.Date.today() - timedelta(days=1)
-        request = self._request()
+        company = self._isolated_daily_manifest_company()
+        request = self._request(company_id=company.id)
         request._append_event(
             "timestamp_archive_context_test",
             occurred_at=datetime.combine(first_day, datetime.min.time())
@@ -3788,7 +3806,7 @@ class TestCleanUslSign(TransactionCase):
             return_value=FakeDSS(),
         ):
             manifest = self.env["usl.sign.daily.manifest"]._build_for_day(
-                self.company,
+                company,
                 first_day,
             )
         dossier = _pdf()
@@ -3860,12 +3878,13 @@ class TestCleanUslSign(TransactionCase):
 
     def test_confirmed_archived_daily_proof_leaves_the_cron_queue(self):
         first_day = fields.Date.today() - timedelta(days=1)
+        company = self._isolated_daily_manifest_company()
         with patch(
             "odoo.addons.usl_sign.models.daily_manifest.DSSClient",
             return_value=FakeDSS(),
         ):
             manifest = self.env["usl.sign.daily.manifest"]._build_for_day(
-                self.company,
+                company,
                 first_day,
             )
         manifest._operational_write(

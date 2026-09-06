@@ -83,6 +83,9 @@ paie. **Ajouter un document** permet de déposer une nouvelle pièce dans
 l’archive selon vos droits. L’écriture et la paie conservent aussi leur pièce
 opérationnelle native : l’archive ne remplace pas la preuve de comptabilisation.
 
+**Choisir dans Documents** propose d’abord les PDF de paie non liés reconnus
+par Paperless. Recherchez par nom si le document attendu a été mal classé.
+
 ## Rapprocher le salaire et TESE
 
 La fiche passe à **À rapprocher** tant qu’une dette reste ouverte :

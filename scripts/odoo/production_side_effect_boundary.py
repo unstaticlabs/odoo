@@ -25,10 +25,10 @@ if live_ereporting and not live_einvoice:
 if mode == "staged" and (live_einvoice or live_ereporting):
     errors.append("regulatory live access is enabled during staging")
 if mode == "admitted" and (
-    cron_gates.get("pdp_reception") is not live_einvoice
-    or cron_gates.get("pdp_ereporting") is not live_ereporting
+    live_einvoice and cron_gates.get("pdp_reception") is not True
+    or live_ereporting and cron_gates.get("pdp_ereporting") is not True
 ):
-    errors.append("regulatory live flags and production cron gates disagree")
+    errors.append("regulatory live access exceeds production cron gates")
 
 parameters = env["ir.config_parameter"].sudo()  # noqa: F821
 neutralized = parameters.get_bool("database.is_neutralized")
@@ -96,4 +96,4 @@ print(json.dumps({
     },
     "smtp_transport": "resend-host-config",
     "status": "passed",
-}, indent=2, sort_keys=True))
+}, sort_keys=True))

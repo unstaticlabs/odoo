@@ -1,7 +1,7 @@
 # Odoo MCP operations
 
 Odoo MCP is a first-class service in the USL Distribution stack. It runs as a
-non-root Node 24 container on the private Compose network, exposes Streamable
+non-root Node 26 container on the private Compose network, exposes Streamable
 HTTP at `/mcp` and `/mcp/<profile>`, and calls Odoo over the private
 `http://odoo:8069` origin. Odoo remains authoritative for users, companies,
 access rights, record rules, public methods, and transactions.
@@ -75,8 +75,11 @@ safe configuration status and health metadata remain available.
 
 ## Readiness and acceptance
 
-The container is ready only when `/readyz` reports `status=ready`, the default
-surface remains within its tool/schema budget, and the OAuth vault is ready.
+The container is ready only when `/readyz` reports the
+`usl-odoo-mcp-readiness/v1` schema, a supported server version, the expected
+OAuth-vault schema, `status=ready`, and a ready OAuth vault. The default surface
+must also remain within its tool/schema budget. The runtime schema is sealed to
+the release compatibility contract so a vault migration cannot be omitted.
 An unauthenticated `/mcp` request must return 401.
 
 ```bash

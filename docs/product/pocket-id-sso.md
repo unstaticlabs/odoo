@@ -125,8 +125,10 @@ Odoo's native group graph.
 
 The external-accountant profile deliberately reuses
 `rebuild_account_migration.group_rebuild_accountant_reviewer`. That role has
-the existing company-scoped, tested read-only accounting surface. It does not
-receive Accounting administrator or ordinary Accounting write access.
+the existing company-scoped review surface and is composed with the
+Distribution Accounting Reviewer role. The resulting profile may perform
+reversible Accounting work in unlocked periods, but it does not receive
+Accounting administration, lock management or permanent-deletion authority.
 
 ## Historical identity decisions
 

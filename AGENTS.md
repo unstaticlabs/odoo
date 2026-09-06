@@ -35,8 +35,16 @@ and its upgrade cost is documented.
   manifests, source bindings, or finalization behavior change.
 - Preserve foreign Docker projects and persistent resources. Delete only
   resources whose ownership and scope are proven.
-- Production deployment belongs to CI. Do not deploy production manually.
-
+- Protected CI/GitOps is the default delivery path, not an exclusive one. When
+  the user explicitly authorizes it, an operator may deploy staging or
+  production manually and may bypass CI. Before a production mutation, verify
+  a current qualified, restorable backup and confirm that the current GitOps
+  checkout and desired-state ledgers already describe the intended release.
+- Release branches intentionally require zero approving reviews so qualified
+  merges and promotions can run unattended. Do not propose a human-review gate
+  merely as a generic production safeguard.
+- Builds generate SBOM metadata, but this distribution does not enforce or gate
+  releases on SBOM policy.
 ## Product references
 
 - Feature and module map: `docs/product/fork-overview.md`
@@ -54,8 +62,16 @@ documentation, reports, comments, and commit messages.
   escaped newlines or repeat attribution text manually.
 - Commit subjects follow Conventional Commits:
   `<type>(<scope>): <description>`.
-- The helper enforces the worktree-local author
-  `Coding Agent <318050048+elio-usl@users.noreply.github.com>`, adds
-  `AI-generated commit`, and adds exactly:
-  `Co-authored-by: ValentinViennot <18735898+ValentinViennot@users.noreply.github.com>`.
+- The history names the person who asked for the work and the agent that made
+  it. The commit author is the driving human of the session; the helper adds
+  `AI-generated commit` and `Co-authored-by:` with the agent identity. Both
+  come from worktree-local Git settings that every session sets once:
+  `user.name`/`user.email` and `usl.drivingHuman` for the human
+  (`Name <id+login@users.noreply.github.com>`), and `usl.agent` for the agent
+  (for example `Claude Fable 5.1 <noreply@anthropic.com>` or
+  `Coding Agent <318050048+elio-usl@users.noreply.github.com>` for Codex).
+  Never hard-code a person and never commit as the agent account.
+- Open pull requests with the GitHub account of the driving human. Agent
+  service accounts such as `@elio-usl` are for automation that no person
+  drives. Name the agent in the PR body.
 - Use terminal Git and GitHub CLI. Do not use a browser for repository actions.

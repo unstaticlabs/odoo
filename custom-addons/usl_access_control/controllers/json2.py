@@ -1,11 +1,18 @@
+import inspect
 import json
+import logging
 import uuid
 
 from odoo import SUPERUSER_ID, _, api, http
 from odoo.exceptions import AccessDenied, AccessError
 from odoo.http import request
+from odoo.models import get_public_method
 
 from ..exceptions import AgentPolicyAccessError
+from ..models.agent_policy_tokens import (
+    AGENT_OPERATION_SCOPE_CONTEXT_KEY,
+    create_agent_operation_scope,
+)
 from ..models.agent_secrets import (
     AGENT_HIDDEN_API_MODELS,
     is_agent_secret_field,
@@ -13,10 +20,23 @@ from ..models.agent_secrets import (
 )
 from odoo.addons.rpc.controllers.json2 import WebJson2Controller
 
+_logger = logging.getLogger(__name__)
+
 
 class UslAgentJson2Controller(WebJson2Controller):
+    _ORM_PAYLOAD_PARAMETERS = {
+        "create": "vals_list",
+        "write": "vals",
+    }
+
     @http.route()
     def web_json_2_rpc(self, __model__, __method__, ids=(), context=None, **kwargs):
+        kwargs = self._normalize_orm_payload_kwargs(
+            env=request.env,
+            model_name=__model__,
+            method_name=__method__,
+            kwargs=kwargs,
+        )
         agent = request.env["usl.agent"].sudo().search(
             [("user_id", "=", request.env.uid)],
             limit=1,
@@ -38,17 +58,29 @@ class UslAgentJson2Controller(WebJson2Controller):
         )
         outcome = "succeeded"
         try:
-            self._check_agent_call(
+            access = self._check_agent_call(
                 agent=agent,
                 model_name=__model__,
                 method_name=__method__,
                 kwargs=kwargs,
             )
+            call_context = self._agent_call_context(
+                context=context,
+                agent=agent,
+                model_name=__model__,
+                method_name=__method__,
+                access=access,
+            )
+            # HTML collaboration and deferred ORM work also use request.env,
+            # not only the recordset context passed to the public method.
+            # Keep the authorized scope through precommit without sudoing the
+            # request or bypassing any root/non-sudo operation checks.
+            request.update_env(context=call_context)
             result = super().web_json_2_rpc(
                 __model__,
                 __method__,
                 ids=ids,
-                context=context or {},
+                context=call_context,
                 **kwargs,
             )
             return (
@@ -71,6 +103,53 @@ class UslAgentJson2Controller(WebJson2Controller):
                     correlation_id=correlation_id,
                 )
 
+    @classmethod
+    def _normalize_orm_payload_kwargs(
+        cls,
+        *,
+        env,
+        model_name,
+        method_name,
+        kwargs,
+    ):
+        """Adapt canonical ORM payload names to legacy override signatures."""
+        canonical_name = cls._ORM_PAYLOAD_PARAMETERS.get(method_name)
+        if canonical_name not in kwargs:
+            return kwargs
+
+        try:
+            method = get_public_method(env[model_name], method_name)
+        except (AccessError, AttributeError, KeyError):
+            # Preserve the base JSON-2 controller's canonical error response.
+            return kwargs
+        parameters = list(inspect.signature(method).parameters.values())
+        if parameters and parameters[0].name in {"self", "cls"}:
+            parameters = parameters[1:]
+        if canonical_name in {parameter.name for parameter in parameters}:
+            return kwargs
+        if any(parameter.kind == inspect.Parameter.VAR_KEYWORD for parameter in parameters):
+            return kwargs
+
+        payload_parameters = [
+            parameter
+            for parameter in parameters
+            if parameter.kind
+            in {
+                inspect.Parameter.POSITIONAL_ONLY,
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                inspect.Parameter.KEYWORD_ONLY,
+            }
+        ]
+        if len(payload_parameters) != 1:
+            return kwargs
+        actual_name = payload_parameters[0].name
+        if actual_name in kwargs or actual_name in {"ids", "context"}:
+            return kwargs
+
+        normalized = dict(kwargs)
+        normalized[actual_name] = normalized.pop(canonical_name)
+        return normalized
+
     @staticmethod
     def _check_agent_call(*, agent, model_name, method_name, kwargs):
         if model_name in AGENT_HIDDEN_API_MODELS:
@@ -91,7 +170,8 @@ class UslAgentJson2Controller(WebJson2Controller):
                 _("Secret fields are not available to Agents."),
                 "agent_read_only_action_denied",
             )
-        if not agent._api_method_access(model_name, method_name):
+        access = agent._api_method_access(model_name, method_name)
+        if not access:
             raise AgentPolicyAccessError(
                 _(
                     "This Agent has no approved application access for %(model)s.%(method)s.",
@@ -100,6 +180,22 @@ class UslAgentJson2Controller(WebJson2Controller):
                 ),
                 "agent_read_only_action_denied",
             )
+        return access
+
+    @staticmethod
+    def _agent_call_context(*, context, agent, model_name, method_name, access):
+        call_context = dict(context or {})
+        call_context.pop(AGENT_OPERATION_SCOPE_CONTEXT_KEY, None)
+        if access in {"collaboration", "write"}:
+            call_context[AGENT_OPERATION_SCOPE_CONTEXT_KEY] = (
+                create_agent_operation_scope(
+                    agent_user_id=agent.user_id.id,
+                    root_model=model_name,
+                    root_method=method_name,
+                    access=access,
+                )
+            )
+        return call_context
 
     def _record_agent_api_call(
         self,
@@ -132,10 +228,37 @@ class UslAgentJson2Controller(WebJson2Controller):
             "remote_address": (request.httprequest.remote_addr or "")[:128],
             "user_agent": (request.httprequest.user_agent.string or "")[:512],
         }
-        with request.registry.cursor() as cursor:
-            env = api.Environment(cursor, SUPERUSER_ID, {"usl_skip_distribution_audit": True})
-            env["usl.audit.event"]._record_event(values)
-            cursor.commit()
+        # Never write from a second connection while the request transaction
+        # is still open. The insert checks foreign keys against rows that this
+        # transaction may have locked (the credential usage touch, the Agent
+        # authority), so the second connection waits on the first one, which
+        # itself waits for this request: a deadlock that PostgreSQL cannot
+        # detect and that holds an HTTP worker until its time limit. Record
+        # the evidence once the transaction has committed or rolled back.
+        registry = request.registry
+        cr = request.env.cr
+
+        def record(outcome_override=None):
+            recorded = dict(values, outcome=outcome_override or values["outcome"])
+            try:
+                with registry.cursor() as cursor:
+                    env = api.Environment(
+                        cursor, SUPERUSER_ID, {"usl_skip_distribution_audit": True},
+                    )
+                    env["usl.audit.event"]._record_event(recorded)
+                    cursor.commit()
+            except Exception:
+                _logger.exception(
+                    "Agent API audit event was not recorded: %s %s",
+                    recorded.get("action_name"), recorded.get("request_id"),
+                )
+
+        cr.postcommit.add(record)
+        # A request that succeeded in the controller can still roll back at
+        # commit time. Keep the evidence, but do not call it a success.
+        cr.postrollback.add(
+            lambda: record("failed" if values["outcome"] == "succeeded" else None),
+        )
 
     @staticmethod
     def _operation_for_method(method_name):

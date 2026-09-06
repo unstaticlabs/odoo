@@ -1,7 +1,11 @@
 # Production image CI
 
-The `Distribution release` workflow builds the immutable artifacts consumed by
-future deployment workflows. It does not alter a runtime.
+The `Distribution release` reusable workflow builds the immutable artifacts
+consumed by future deployment workflows. It is called only after the exact
+protected-branch push has passed `USL qualification`; an explicit
+`recovery-*` tag may also be dispatched manually. It does not alter a runtime.
+The caller passes the exact source ref, source commit, qualification evidence
+digest and qualification run ID, so publication has no polling admission job.
 
 ## Content-addressed builds
 
@@ -20,9 +24,52 @@ adds a GitHub attestation. A source-only operations change therefore rebuilds
 only the backup tool; unchanged product images normally resolve in about one
 minute.
 
+The SBOM is retained as build metadata. It is not evaluated as a release gate,
+and this distribution has no SBOM-enforcement requirement.
+
 Odoo MCP and the document renderer remain separately owned images. The
 Distribution workflow verifies their pinned commits, compatibility metadata,
-OCI revision labels, and digest references before assembling a release.
+OCI revision labels, and digest references before assembling a release. After
+that verification, the protected Distribution release job adds an artifact
+attestation for the exact renderer digest with `unstaticlabs/odoo` as the
+trusted integration owner. GitHub stores the public-repository attestation;
+the separately owned renderer package does not need to accept a cross-package
+write. The workflow neither rebuilds nor retags the renderer.
+
+## Reproducible layers
+
+`scripts/component-build --json` reports `source_date_epoch`, the committer
+time of `HEAD`. The build step passes it as the `SOURCE_DATE_EPOCH` build
+argument and exports the image with `rewrite-timestamp=true`. BuildKit then
+clamps every file timestamp in the exported layers to that time, so a layer
+digest depends on the file content and the commit only. A checkout sets the
+file times to the checkout time, so without this option the same tree got a
+new layer digest on every runner. Base image layers are not rewritten.
+
+A build of the same commit gives the same layer digests on any machine, with
+or without a build cache. An unchanged tree in a later commit still shares
+its layer through the registry cache, as before. For a local build, pass the
+same values:
+
+```bash
+docker buildx build --file Dockerfile --target distribution \
+  --build-arg SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)" \
+  --output type=image,name=usl-odoo:local,rewrite-timestamp=true .
+```
+
+## Translations in the image
+
+`Dockerfile.dockerignore` keeps only the `.pot` templates and the `en*.po`,
+`fr.po`, and `fr_*.po` catalogs out of the `i18n/` and `i18n_extra/`
+directories of core, custom, and OCA add-ons. The distribution activates only
+English and French (`usl_locale`), and the other catalogs made up about 740 MB
+of the `addons` layer. Every non-`.po` file still enters the image.
+
+Odoo reads `<module>/i18n/<lang>.po` when a language is activated or a module
+is updated. If a third language is activated on a running database, its terms
+stay in English until the image is rebuilt with that catalog. To add a
+language, add its exception lines to `Dockerfile.dockerignore` and to
+`.dockerignore`, then build a new release.
 
 ## Release artifact
 
@@ -45,12 +92,15 @@ lookup aids, not deployable identities.
 
 ## Permissions
 
-The workflow uses the repository `GITHUB_TOKEN` with job-scoped permissions:
+The calling qualification job grants the repository `GITHUB_TOKEN` the write
+permissions that a reusable workflow cannot elevate for itself. The called
+workflow then narrows those permissions per job:
 
 - `contents: read` for source;
 - `packages: read` when verifying external MCP and renderer images;
 - `packages: write`, `id-token: write`, `attestations: write`, and
-  `artifact-metadata: write` only for repository-owned image publication.
+  `artifact-metadata: write` for repository-owned image publication and the
+  exact verified renderer digest's GitHub-stored integration attestation.
 
 Each GHCR package must grant `unstaticlabs/odoo` Actions read access; the four
 repository-owned packages must also permit publication from this repository.
@@ -62,6 +112,12 @@ Manage Actions access**. Grant `unstaticlabs/odoo` read access to the separately
 owned `odoo-mcp` and document-renderer packages. Repository-owned Distribution,
 backup-tool, Paperless, and Sign packages inherit publication access from
 `unstaticlabs/odoo`; their workflow job alone receives `packages: write`.
+
+Deployment admission verifies the renderer digest against the
+`unstaticlabs/odoo` attestation owner and this Distribution workflow identity.
+It retrieves that renderer bundle from GitHub's attestation store rather than
+requiring an OCI referrer write to the separately owned package. The renderer's
+own BuildKit provenance remains separate source-build evidence.
 
 The validated repository context is `unstaticlabs/odoo`, not a fork or local
 runner. Run 33568552569 at commit `84c8d30159dbc99258c8e44f3316fbdec88bf799`
@@ -79,9 +135,33 @@ A later protected deployment workflow consumes the release artifact and uses
 2. freeze access and deploy the exact image cohort;
 3. run required Odoo module upgrades;
 4. run health and business smoke gates;
-5. unfreeze on success or restore the pre-release snapshot on failure;
-6. recreate staging from the accepted production backup.
+5. reopen after admission; recover the previous generation on pre-activation
+   failure, and repair forward once production activation has started;
+6. after production admission, create and qualify a new production backup;
+7. reset staging from that exact post-admission backup only when its
+   pre-production staging intent still matches the complete staging runtime.
+
+Ordinary staging releases use a staging checkpoint and upgrade the existing
+staging state. They never restore a production backup. A scheduled run with no
+production release change performs the production backup and an independent
+disposable restore proof, but leaves persistent staging unchanged.
 
 Build caching and runtime backup caching are separate: OCI layers stay in
 GHCR, while OCR, previews, Tantivy, and vectors use the reusable Restic cache
 repository described in [Backup and recovery](backup-and-recovery.md).
+
+
+Production qualification compares ACLs, record rules, group implications and
+cron definitions using stable model/XML identities. Database row IDs are used
+only for preserving the same database's business state. Signed staging plan
+evidence uses `usl-staging-upgrade-plan-evidence/v2` and applies to staging
+targets only. Production derives its own `usl-module-upgrade-plan/v1` plan from
+its active release and installed modules; see
+[Continuous delivery](continuous-delivery.md) for the plan contract and the
+coordination rule for the operations image and the GitOps launcher.
+
+Activation restores the production Pocket ID provider from its running service
+environment and verifies the authorization callback and client credentials.
+A healthy HTTP endpoint alone does not prove that users can authenticate.
+Late scheduled jobs remain visible as warnings while workers catch up; actual
+cron failures and changes to enabled-job policy still block admission.

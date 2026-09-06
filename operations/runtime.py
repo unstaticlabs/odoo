@@ -4,11 +4,17 @@ from __future__ import annotations
 
 import json
 import re
+import select
 import shlex
 import subprocess
+import time
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Protocol
+from urllib.parse import urlsplit
+
+from operations.release_manifest import ReleaseManifestError, validate as validate_release
 
 
 SCHEMA = "usl-runtime/v1"
@@ -46,30 +52,84 @@ class RuntimeError(RuntimeError):
 
 
 class Runner(Protocol):
-    def run(self, command: list[str], *, check: bool = True) -> subprocess.CompletedProcess[str]: ...
+    def run(
+        self,
+        command: list[str],
+        *,
+        check: bool = True,
+        input_text: str | None = None,
+    ) -> subprocess.CompletedProcess[str]: ...
 
 
 @dataclass
 class CommandRunner:
     prefix: tuple[str, ...] = ()
+    deadline_monotonic: float | None = None
+
+    @contextmanager
+    def advisory_lock(self, path: str, timeout: float = 30.0):
+        command = [
+            "flock", "--nonblock", path, "sh", "-c", "printf 'locked\\n'; cat >/dev/null",
+        ]
+        invocation = [*self.prefix, *command]
+        if self.prefix and self.prefix[0] == "ssh":
+            invocation = [self.prefix[0], self.prefix[1], "--", shlex.join(command)]
+        process = subprocess.Popen(
+            invocation, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE, text=True,
+        )
+        readable, _, _ = select.select([process.stdout], [], [], timeout)
+        if not readable:
+            process.terminate()
+            process.wait(timeout=10)
+            raise RuntimeError(f"advisory lock acquisition timed out: {path}")
+        ready = process.stdout.readline().strip() if process.stdout is not None else ""
+        if ready != "locked":
+            stderr = process.stderr.read().strip() if process.stderr is not None else ""
+            process.wait()
+            raise RuntimeError(f"another operation owns advisory lock: {path}: {stderr}")
+        try:
+            yield
+        finally:
+            if process.stdin is not None:
+                process.stdin.close()
+            try:
+                process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                process.terminate()
+                process.wait(timeout=10)
 
     def run(
         self,
         command: list[str],
         *,
         check: bool = True,
+        input_text: str | None = None,
     ) -> subprocess.CompletedProcess[str]:
         invocation = [*self.prefix, *command]
         if self.prefix and self.prefix[0] == "ssh":
             invocation = [self.prefix[0], self.prefix[1], "--", shlex.join(command)]
-        process = subprocess.run(
-            invocation,
-            check=False,
-            capture_output=True,
-            text=True,
-        )
+        timeout = None
+        if self.deadline_monotonic is not None:
+            timeout = self.deadline_monotonic - time.monotonic()
+            if timeout <= 0:
+                raise RuntimeError("command refused: operation deadline expired")
+        try:
+            process = subprocess.run(
+                invocation,
+                check=False,
+                capture_output=True,
+                text=True,
+                input=input_text,
+                timeout=timeout,
+            )
+        except subprocess.TimeoutExpired as error:
+            raise RuntimeError("command exceeded the operation deadline") from error
         if check and process.returncode:
-            detail = (process.stderr or process.stdout).strip()
+            detail = (
+                "subprocess output redacted because standard input was sensitive"
+                if input_text is not None else (process.stderr or process.stdout).strip()
+            )
             raise RuntimeError(f"command failed ({' '.join(command)}): {detail}")
         return process
 
@@ -123,14 +183,18 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
             "compose",
             "services",
             "databases",
+            "storage",
             "volumes",
             "paths",
             "external_networks",
             "endpoints",
+            "admission_endpoints",
             "ingress",
             "ollama",
             "backup",
             "release_manifest",
+            "plan_signing",
+            "cron_policy",
             "secrets",
             "state_directory",
         },
@@ -153,11 +217,14 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
     if transport.get("type") == "ssh" and not TARGET_NAME.fullmatch(str(transport.get("host"))):
         raise RuntimeError("transport.host is invalid")
 
-    compose = _exact(
-        root["compose"],
-        {"project", "anchor_service", "profiles", "default_network", "resource_overlay"},
-        "compose",
-    )
+    compose_fields = {
+        "project", "anchor_service", "profiles", "default_network", "resource_overlay",
+    }
+    if isinstance(root["compose"], dict) and "adoption" in root["compose"]:
+        compose_fields.add("adoption")
+    if isinstance(root["compose"], dict) and "canonical" in root["compose"]:
+        compose_fields.add("canonical")
+    compose = _exact(root["compose"], compose_fields, "compose")
     if not TARGET_NAME.fullmatch(str(compose["project"])):
         raise RuntimeError("compose.project is invalid")
     if not isinstance(compose["anchor_service"], str) or not compose["anchor_service"]:
@@ -176,6 +243,79 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         or not resource_overlay.endswith(".json")
     ):
         raise RuntimeError("compose.resource_overlay must be a safe relative JSON path")
+    canonical = compose.get("canonical")
+    if canonical is not None:
+        canonical = _exact(
+            canonical,
+            {"working_directory", "compose_files", "environment_file"},
+            "compose.canonical",
+        )
+        working = canonical["working_directory"]
+        if (
+            not isinstance(working, str)
+            or not working
+            or working.startswith("/")
+            or ".." in Path(working).parts
+        ):
+            raise RuntimeError("compose.canonical.working_directory must be relative")
+        files = canonical["compose_files"]
+        if (
+            not isinstance(files, list)
+            or not files
+            or not all(
+                isinstance(item, str)
+                and bool(item)
+                and not item.startswith("/")
+                and ".." not in Path(item).parts
+                for item in files
+            )
+        ):
+            raise RuntimeError("compose.canonical.compose_files must be safe relative paths")
+        environment_file = canonical["environment_file"]
+        if not isinstance(environment_file, str) or not environment_file.startswith("/"):
+            raise RuntimeError("compose.canonical.environment_file must be absolute")
+    adoption = compose.get("adoption")
+    if adoption is not None:
+        if root["name"] != "staging" or root["environment"] != "staging":
+            raise RuntimeError("compose.adoption is staging-only")
+        adoption = _exact(
+            adoption,
+            {"schema", "legacy_anchor_service", "legacy_release_schema", "candidate"},
+            "compose.adoption",
+        )
+        if adoption["schema"] != "usl-compose-adoption/v1":
+            raise RuntimeError("compose.adoption schema is invalid")
+        if adoption["legacy_anchor_service"] == compose["anchor_service"]:
+            raise RuntimeError("compose.adoption legacy anchor must differ")
+        if adoption["legacy_release_schema"] != "usl-release/v2":
+            raise RuntimeError("compose.adoption release schema is invalid")
+        candidate = _exact(
+            adoption["candidate"],
+            {"working_directory", "compose_files", "environment_file"},
+            "compose.adoption.candidate",
+        )
+        for field in ("working_directory", "environment_file"):
+            if not isinstance(candidate[field], str) or not candidate[field].startswith("/"):
+                raise RuntimeError(f"compose.adoption.candidate.{field} must be absolute")
+        if (
+            not isinstance(candidate["compose_files"], list)
+            or not candidate["compose_files"]
+            or not all(
+                isinstance(item, str) and item.startswith("/")
+                for item in candidate["compose_files"]
+            )
+        ):
+            raise RuntimeError("compose.adoption.candidate.compose_files must be absolute paths")
+        approved_working_root = "/etc/komodo/stacks/usl-odoo-production-main/"
+        if not candidate["working_directory"].startswith(approved_working_root):
+            raise RuntimeError("compose.adoption candidate working directory is outside GitOps")
+        if any(
+            not item.startswith(candidate["working_directory"] + "/")
+            for item in candidate["compose_files"]
+        ):
+            raise RuntimeError("compose.adoption candidate file is outside its working directory")
+        if not candidate["environment_file"].startswith("/opt/usl-odoo/staging/"):
+            raise RuntimeError("compose.adoption candidate environment is outside staging")
 
     services = root["services"]
     required_services = {
@@ -188,6 +328,8 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         "paperless_tika",
         "mcp",
         "renderer",
+        "receipt_fetcher",
+        "receipt_egress",
         "sign",
         "sign_ca",
     }
@@ -206,6 +348,19 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         if not SECRET_KEY.fullmatch(database["password_key"]):
             raise RuntimeError(f"databases.{name}.password_key is invalid")
 
+    storage = _exact(root["storage"], {"tiers"}, "storage")
+    tiers = storage["tiers"]
+    if not isinstance(tiers, dict) or set(tiers) != {"bulk", "database", "local"}:
+        raise RuntimeError("storage.tiers must declare bulk, database, and local")
+    for name, tier in tiers.items():
+        _exact(tier, {"path", "reserve_bytes"}, f"storage.tiers.{name}")
+        if not isinstance(tier["path"], str) or not tier["path"].startswith("/"):
+            raise RuntimeError(f"storage.tiers.{name}.path must be absolute")
+        if type(tier["reserve_bytes"]) is not int or tier["reserve_bytes"] < 0:
+            raise RuntimeError(f"storage.tiers.{name}.reserve_bytes must be non-negative")
+    if len({tier["path"] for tier in tiers.values()}) != len(tiers):
+        raise RuntimeError("storage tier paths must be distinct")
+
     volumes = root["volumes"]
     required_volumes = {
         "odoo_filestore",
@@ -218,28 +373,42 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         "paperless_broker",
         "paperless_export",
         "mcp_oauth",
+        "receipt_control",
     }
     if not isinstance(volumes, dict) or not required_volumes <= set(volumes):
         raise RuntimeError(f"target volumes must include {sorted(required_volumes)}")
     for role, volume in volumes.items():
-        _exact(volume, {"name", "class"}, f"volumes.{role}")
+        _exact(volume, {"name", "class", "tier"}, f"volumes.{role}")
         if volume["class"] not in {"durable", "cache", "transient"}:
             raise RuntimeError(f"volumes.{role}.class is invalid")
         if not isinstance(volume["name"], str) or not volume["name"]:
             raise RuntimeError(f"volumes.{role}.name is required")
+        if volume["tier"] not in tiers:
+            raise RuntimeError(f"volumes.{role}.tier is invalid")
 
     paths = root["paths"]
     required_paths = {"sign_secrets", "sign_evidence"}
     if not isinstance(paths, dict) or not required_paths <= set(paths):
         raise RuntimeError(f"target paths must include {sorted(required_paths)}")
     for role, definition in paths.items():
-        _exact(definition, {"path", "class", "required"}, f"paths.{role}")
+        _exact(definition, {"path", "class", "required", "tier"} | ({"files"} if "files" in definition else set()), f"paths.{role}")
+        if "files" in definition:
+            files = definition["files"]
+            if role != "mcp_secrets" or not isinstance(files, dict) or not files:
+                raise RuntimeError(f"paths.{role}.files must map MCP recovery filenames to source paths")
+            for name, source in files.items():
+                if not isinstance(name, str) or Path(name).name != name or name in {".", ".."}:
+                    raise RuntimeError(f"paths.{role}.files contains an invalid filename")
+                if not isinstance(source, str) or not source.startswith("/"):
+                    raise RuntimeError(f"paths.{role}.files source must be absolute")
         if definition["class"] not in {"durable", "cache", "transient"}:
             raise RuntimeError(f"paths.{role}.class is invalid")
         if not isinstance(definition["path"], str) or not definition["path"].startswith("/"):
             raise RuntimeError(f"paths.{role}.path must be absolute")
         if not isinstance(definition["required"], bool):
             raise RuntimeError(f"paths.{role}.required must be boolean")
+        if definition["tier"] not in tiers:
+            raise RuntimeError(f"paths.{role}.tier is invalid")
     sign_root = Path(paths["sign_secrets"]["path"])
     evidence_root = Path(paths["sign_evidence"]["path"])
     if sign_root == evidence_root or sign_root in evidence_root.parents or evidence_root in sign_root.parents:
@@ -250,11 +419,31 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         for key, value in root["external_networks"].items()
     ):
         raise RuntimeError("external_networks must map roles to names")
-    if not isinstance(root["endpoints"], dict) or not all(
-        isinstance(key, str) and isinstance(value, str) and value.startswith(("http://", "https://"))
-        for key, value in root["endpoints"].items()
+    endpoint_fields = {"odoo", "paperless", "mcp"}
+    if (
+        not isinstance(root["endpoints"], dict)
+        or set(root["endpoints"]) != endpoint_fields
+        or not all(
+            isinstance(value, str) and value.startswith(("http://", "https://"))
+            for value in root["endpoints"].values()
+        )
     ):
-        raise RuntimeError("endpoints must contain HTTP URLs")
+        raise RuntimeError("endpoints must contain the public HTTP URLs")
+    admission_fields = {*endpoint_fields, "odoo_websocket"}
+    if (
+        not isinstance(root["admission_endpoints"], dict)
+        or set(root["admission_endpoints"]) != admission_fields
+        or not all(
+            isinstance(value, str) and value.startswith(("http://", "https://"))
+            for value in root["admission_endpoints"].values()
+        )
+    ):
+        raise RuntimeError("admission_endpoints must contain the internal HTTP URLs")
+    if root["environment"] in {"production", "staging"} and any(
+        urlsplit(value).hostname != "127.0.0.1"
+        for value in root["admission_endpoints"].values()
+    ):
+        raise RuntimeError("remote admission endpoints must use target-host loopback")
 
     ingress = _exact(
         root["ingress"],
@@ -281,12 +470,42 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
 
     backup = _exact(root["backup"], {"durable_repository", "cache_repository"}, "backup")
     for key, value in backup.items():
-        if not isinstance(value, str) or not value.startswith(("s3:", "rest:")):
+        local_repository = (
+            root["environment"] == "staging"
+            and value == f"/var/lib/usl-odoo/restic/staging/{key.removesuffix('_repository')}"
+        )
+        if not isinstance(value, str) or not (value.startswith(("s3:", "rest:")) or local_repository):
             raise RuntimeError(f"backup.{key} is not a supported Restic repository")
     if backup["durable_repository"] == backup["cache_repository"]:
         raise RuntimeError("durable and cache repositories must differ")
     if not isinstance(root["release_manifest"], str) or not root["release_manifest"].startswith("/"):
         raise RuntimeError("release_manifest must be absolute")
+
+    plan_signing = _exact(root["plan_signing"], {"private_key", "public_key"}, "plan_signing")
+    for field, value in plan_signing.items():
+        if value is not None and (not isinstance(value, str) or not value.startswith("/")):
+            raise RuntimeError(f"plan_signing.{field} must be an absolute path or null")
+    if root["environment"] == "staging" and not all(plan_signing.values()):
+        raise RuntimeError("staging requires plan signing and verification keys")
+    if root["environment"] == "production" and not plan_signing["public_key"]:
+        raise RuntimeError("production requires the staging plan verification key")
+    if root["environment"] == "production" and plan_signing["private_key"] is not None:
+        raise RuntimeError("production must not receive the staging plan signing key")
+
+    cron_policy = _exact(root["cron_policy"], {"mode", "path", "gates"}, "cron_policy")
+    if cron_policy["mode"] not in {"managed", "neutralized", "unmanaged"}:
+        raise RuntimeError("cron_policy.mode is invalid")
+    if cron_policy["mode"] == "unmanaged":
+        if cron_policy["path"] is not None or cron_policy["gates"] != {}:
+            raise RuntimeError("unmanaged cron policy must not declare a path or gates")
+    else:
+        if not isinstance(cron_policy["path"], str) or not cron_policy["path"].startswith("/"):
+            raise RuntimeError("managed cron policy path must be absolute")
+        if not isinstance(cron_policy["gates"], dict) or any(
+            not isinstance(key, str) or type(value) is not bool
+            for key, value in cron_policy["gates"].items()
+        ):
+            raise RuntimeError("cron policy gates must be boolean decisions")
 
     secrets = _exact(root["secrets"], {"env_file", "allowed_keys"}, "secrets")
     if not isinstance(secrets["env_file"], str) or not secrets["env_file"]:
@@ -344,20 +563,47 @@ def _json_lines(output: str) -> list[dict[str, Any]]:
 
 def compose_identity(target: Target, runner: Runner) -> dict[str, Any]:
     anchor = target.value["compose"]["anchor_service"]
-    process = runner.run(
-        [
-            "docker",
-            "ps",
-            "-a",
-            "--filter",
-            f"label=com.docker.compose.project={target.project}",
-            "--filter",
-            f"label=com.docker.compose.service={anchor}",
-            "--format",
-            "{{.ID}}",
-        ],
-    )
-    identifiers = [line for line in process.stdout.splitlines() if line]
+    def service_containers(service: str) -> list[str]:
+        process = runner.run(
+            [
+                "docker",
+                "ps",
+                "-a",
+                "--filter",
+                f"label=com.docker.compose.project={target.project}",
+                "--filter",
+                f"label=com.docker.compose.service={service}",
+                "--format",
+                "{{.ID}}",
+            ],
+        )
+        return [line for line in process.stdout.splitlines() if line]
+
+    identifiers = service_containers(anchor)
+    selected_anchor = anchor
+    active_state = None
+    active_release_schema = None
+    adoption = target.value["compose"].get("adoption")
+    staging_transition = adoption is not None
+    if staging_transition:
+        legacy_anchor = adoption["legacy_anchor_service"]
+        legacy_identifiers = service_containers(legacy_anchor)
+        if identifiers and legacy_identifiers:
+            active_state = read_active_state(target, runner)
+            if active_state is not None:
+                active_release_schema = read_active_release(target, runner, active_state)["schema"]
+            if active_release_schema != "usl-release/v3":
+                raise RuntimeError(
+                    f"both canonical and legacy anchors exist for {target.project}",
+                )
+        elif not identifiers and len(legacy_identifiers) == 1:
+            active_state = read_active_state(target, runner)
+            if active_state is not None:
+                active_release_schema = read_active_release(target, runner, active_state)["schema"]
+            if active_release_schema != adoption["legacy_release_schema"]:
+                raise RuntimeError("legacy staging anchor is not an active v2 release")
+            identifiers = legacy_identifiers
+            selected_anchor = legacy_anchor
     if len(identifiers) != 1:
         raise RuntimeError(
             f"expected one {target.project}/{anchor} container, found {len(identifiers)}",
@@ -368,7 +614,24 @@ def compose_identity(target: Target, runner: Runner) -> dict[str, Any]:
     labels = json.loads(inspect.stdout)
     if labels.get("com.docker.compose.project") != target.project:
         raise RuntimeError("anchor container belongs to another Compose project")
-    files = [item for item in labels.get("com.docker.compose.project.config_files", "").split(",") if item]
+    if labels.get("com.docker.compose.service") != selected_anchor:
+        raise RuntimeError("anchor container has the wrong Compose service label")
+    if selected_anchor != anchor:
+        state = json.loads(
+            runner.run(
+                ["docker", "inspect", identifiers[0], "--format", "{{json .State}}"],
+            ).stdout,
+        )
+        if (
+            state.get("Running") is not True
+            or state.get("Health", {}).get("Status") != "healthy"
+        ):
+            raise RuntimeError("legacy staging anchor is not running and healthy")
+    files = [
+        item
+        for item in labels.get("com.docker.compose.project.config_files", "").split(",")
+        if item
+    ]
     directory = labels.get("com.docker.compose.project.working_dir", "")
     env_file = labels.get("com.docker.compose.project.environment_file", "")
     env_files = [item for item in env_file.split(",") if item]
@@ -376,17 +639,40 @@ def compose_identity(target: Target, runner: Runner) -> dict[str, Any]:
         not files
         or not directory.startswith("/")
         or not env_files
+        or any(not item.startswith("/") for item in files)
         or any(not item.startswith("/") for item in env_files)
     ):
         raise RuntimeError("anchor container has incomplete Compose provenance")
-    return {
+    identity = {
         "container_id": identifiers[0],
+        "anchor_service": selected_anchor,
         "project": target.project,
         "working_directory": directory,
         "compose_files": files,
         "environment_file": env_file,
         "profiles": target.value["compose"]["profiles"],
     }
+    if selected_anchor != anchor:
+        paths = [directory, *files, *env_files]
+        if runner.run(["test", "-d", directory], check=False).returncode:
+            raise RuntimeError("legacy Compose working directory is missing")
+        for path in paths:
+            if path != directory and runner.run(
+                ["test", "-f", path], check=False,
+            ).returncode:
+                raise RuntimeError(f"legacy Compose identity file is missing: {path}")
+            resolved = runner.run(["readlink", "-f", "--", path]).stdout.strip()
+            if resolved != path:
+                raise RuntimeError(f"legacy Compose identity path is not direct: {path}")
+        services = set(
+            runner.run(compose_command(identity, ["config", "--services"])).stdout.splitlines(),
+        )
+        expected = set(target.value["services"].values())
+        expected.remove(anchor)
+        expected.add(selected_anchor)
+        if not expected.issubset(services) or anchor in services:
+            raise RuntimeError("legacy Compose service perimeter differs")
+    return identity
 
 
 def compose_command(identity: dict[str, Any], arguments: list[str]) -> list[str]:
@@ -432,7 +718,12 @@ def read_active_state(target: Target, runner: Runner) -> dict[str, Any] | None:
         raise RuntimeError("active generation state belongs to another target")
     if not TARGET_NAME.fullmatch(str(state["generation"])):
         raise RuntimeError("active generation name is invalid")
-    if set(state["volumes"]) != set(target.value["volumes"]):
+    recorded_roles = set(state["volumes"])
+    target_roles = set(target.value["volumes"])
+    if recorded_roles - target_roles or any(
+        target.value["volumes"][role]["class"] != "transient"
+        for role in target_roles - recorded_roles
+    ):
         raise RuntimeError("active generation volume perimeter differs")
     if not isinstance(state["network"], str) or not state["network"]:
         raise RuntimeError("active generation network is invalid")
@@ -445,16 +736,34 @@ def read_active_state(target: Target, runner: Runner) -> dict[str, Any] | None:
     return state
 
 
+def read_active_release(target: Target, runner: Runner, state: dict[str, Any]) -> dict[str, Any]:
+    expected = (
+        f"{target.value['state_directory']}/generations/"
+        f"{state['generation']}/usl-release.json"
+    )
+    if state["release_manifest"] != expected:
+        raise RuntimeError("active release manifest path does not match its generation")
+    try:
+        payload = json.loads(runner.run(["cat", expected]).stdout)
+        return validate_release(payload)
+    except (json.JSONDecodeError, ReleaseManifestError) as error:
+        raise RuntimeError("active release manifest is invalid") from error
+
+
 def effective_volumes(target: Target, runner: Runner) -> tuple[dict[str, dict[str, str]], str | None]:
     state = read_active_state(target, runner)
     if state is None:
         return target.value["volumes"], None
     volumes = {
-        role: {"name": name, "class": target.value["volumes"][role]["class"]}
+        role: {
+            "name": name,
+            "class": target.value["volumes"][role]["class"],
+            "tier": target.value["volumes"][role]["tier"],
+        }
         for role, name in state["volumes"].items()
         if isinstance(name, str) and name
     }
-    if set(volumes) != set(target.value["volumes"]):
+    if set(volumes) != set(state["volumes"]):
         raise RuntimeError("active generation contains an invalid volume name")
     return volumes, state["generation"]
 
@@ -487,7 +796,11 @@ def inspect_runtime(target: Target, runner: Runner) -> dict[str, Any]:
         )
         if not legacy_owner and not generation_owner:
             raise RuntimeError(f"volume {definition['name']} is not owned by {target.project}")
-        volumes[role] = {"name": definition["name"], "class": definition["class"]}
+        volumes[role] = {
+            "name": definition["name"],
+            "class": definition["class"],
+            "tier": definition["tier"],
+        }
     return {
         "schema": "usl-runtime-status/v1",
         "target": target.name,

@@ -57,13 +57,13 @@ msgstr "Alertes comptables et de conformité"
 #. odoo-python
 #: code:addons/usl_home/models/home_service.py:0
 msgid "Accounting Hygiene"
-msgstr "Qualité comptable"
+msgstr "Hygiène comptable"
 
 #. module: usl_home
 #. odoo-python
 #: code:addons/usl_home/models/home_service.py:0
 msgid "Accounting Hygiene is not available."
-msgstr "La qualité comptable n’est pas disponible."
+msgstr "L’hygiène comptable n’est pas disponible."
 
 #. module: usl_home
 #. odoo-python
@@ -75,7 +75,7 @@ msgstr "Les alertes comptables ne sont pas disponibles."
 #. odoo-python
 #: code:addons/usl_home/models/home_service.py:0
 msgid "Accounting hygiene issues"
-msgstr "Problèmes de qualité comptable"
+msgstr "Problèmes d’hygiène comptable"
 
 #. module: usl_home
 #. odoo-python

@@ -152,6 +152,20 @@ class TestDeclarationAndClosing(TransactionCase):
         self.assertTrue(basis.xpath(".//field[@name='applicability_reason']"))
         self.assertTrue(basis.xpath(".//field[@name='deadline_basis']"))
 
+    def test_hygiene_issue_list_shows_company_for_multi_company_users(self):
+        list_arch = etree.fromstring(
+            self.env.ref(
+                "rebuild_account_migration.view_rebuild_account_hygiene_issue_list",
+            ).arch_db,
+        )
+        company_nodes = list_arch.xpath("//field[@name='company_id']")
+        self.assertEqual(len(company_nodes), 1)
+        self.assertEqual(
+            company_nodes[0].get("groups"),
+            "base.group_multi_company",
+        )
+        self.assertEqual(company_nodes[0].get("optional"), "show")
+
     def _declaration(self, company, rule_xmlid="declaration_rule_3517_2026"):
         rule = self.env.ref(f"rebuild_account_migration.{rule_xmlid}")
         return self.env["rebuild.account.declaration"].with_company(company).create({

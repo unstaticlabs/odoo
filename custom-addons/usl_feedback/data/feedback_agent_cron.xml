@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="ir_cron_feedback_agent" model="ir.cron">
+        <field name="name">Product Feedback: process assistant conversations</field>
+        <field name="model_id" ref="model_usl_feedback_agent_run"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_process_feedback()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">minutes</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

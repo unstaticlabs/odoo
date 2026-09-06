@@ -1,5 +1,7 @@
 import io
 import os
+from datetime import timedelta
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from odoo import Command, fields
@@ -523,6 +525,116 @@ class TestFrenchEinvoiceReception(
         self.assertFalse(self.company.rebuild_einvoice_activation_approved)
         self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
 
+    def test_readiness_tracks_native_registration_and_reception_states(self):
+        self.company.with_user(
+            self.manager,
+        ).action_rebuild_run_einvoice_acceptance_test()
+        self.company.write({
+            "rebuild_einvoice_environment": "production",
+            "rebuild_einvoice_activation_approved": True,
+        })
+        self._create_production_proxy_user()
+        self.company.pdp_kyc_status = "success"
+
+        other_company = self.env["res.company"].create({
+            "name": "Independent E-Invoice Company",
+            "rebuild_einvoice_last_poll_status": "temporary_failure",
+        })
+        self.assertEqual(
+            other_company.rebuild_einvoice_readiness_status,
+            "needs_attention",
+        )
+
+        proxy_model = self.env.registry["account_edi_proxy_client.user"]
+        with patch.dict(
+            os.environ,
+            LIVE_ENVIRONMENT,
+            clear=False,
+        ), patch.object(
+            proxy_model,
+            "_call_peppol_proxy",
+            side_effect=AssertionError(
+                "Computing readiness must not contact the provider.",
+            ),
+        ) as provider_call:
+            self.assertEqual(
+                self.company.rebuild_einvoice_readiness_status,
+                "activation_required",
+            )
+
+            self.company.account_peppol_proxy_state = "smp_registration"
+            self.assertEqual(
+                self.company.rebuild_einvoice_readiness_status,
+                "registration_in_progress",
+            )
+            self.assertEqual(
+                self.company.rebuild_einvoice_connection_status,
+                "registration_pending",
+            )
+            self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
+            self.assertEqual(
+                self.company.rebuild_einvoice_next_action,
+                "Registration in progress",
+            )
+
+            self.company.account_peppol_proxy_state = "receiver"
+            self.assertEqual(
+                self.company.rebuild_einvoice_readiness_status,
+                "activation_required",
+            )
+            self.assertEqual(
+                self.company.rebuild_einvoice_connection_status,
+                "connected_suspended",
+            )
+
+            self.company.rebuild_einvoice_exchange_enabled = True
+            self.assertEqual(
+                self.company.rebuild_einvoice_readiness_status,
+                "active",
+            )
+
+            self.company.account_peppol_proxy_state = "rejected"
+            self.assertEqual(
+                self.company.rebuild_einvoice_readiness_status,
+                "needs_attention",
+            )
+
+            for poll_status in ("authentication", "temporary_failure"):
+                with self.subTest(poll_status=poll_status):
+                    self.company.write({
+                        "account_peppol_proxy_state": "receiver",
+                        "rebuild_einvoice_last_poll_status": poll_status,
+                    })
+                    self.assertEqual(
+                        self.company.rebuild_einvoice_readiness_status,
+                        "needs_attention",
+                    )
+
+            self.company.rebuild_einvoice_last_poll_status = "passed"
+            self.assertEqual(
+                self.company.rebuild_einvoice_readiness_status,
+                "active",
+            )
+
+        provider_call.assert_not_called()
+        self.assertEqual(
+            other_company.rebuild_einvoice_readiness_status,
+            "needs_attention",
+        )
+        self.assertFalse(other_company.rebuild_einvoice_exchange_enabled)
+        self.assertFalse(self.company.l10n_fr_pdp_send_to_ppf)
+        self.assertFalse(self.company.l10n_fr_pdp_pilot_phase)
+
+        readiness_labels = dict(
+            self.company._fields[
+                "rebuild_einvoice_readiness_status"
+            ]._description_selection(self.env),
+        )
+        self.assertEqual(
+            readiness_labels["registration_in_progress"],
+            "Registration in progress",
+        )
+
     def test_production_preparation_enforces_role_company_and_single_record(self):
         with self.assertRaises(AccessError):
             self.company.with_user(
@@ -612,6 +724,8 @@ class TestFrenchEinvoiceReception(
         )["arch"]
         self.assertIn("action_rebuild_prepare_einvoice_activation", manager_arch)
         self.assertNotIn("action_rebuild_prepare_einvoice_activation", reviewer_arch)
+        self.assertIn("registration_in_progress", manager_arch)
+        self.assertIn("Registration in progress", manager_arch)
 
     def test_self_check_is_invalidated_by_material_configuration_change(self):
         self.company.write({
@@ -841,6 +955,55 @@ class TestFrenchEinvoiceReception(
             self.company.rebuild_einvoice_provider_contract_status,
             "not_verified",
         )
+
+    def test_cii_billing_period_without_complete_deferred_fields(self):
+        cii = self.env["account.edi.cii"]
+        start = fields.Date.to_date("2026-09-01")
+        end = fields.Date.to_date("2026-09-30")
+        for line_fields in ({}, {"deferred_start_date": object()}, {"deferred_end_date": object()}):
+            for invoice_date, due_date in ((start, end), (False, end), (start, False), (False, False)):
+                with self.subTest(fields=list(line_fields), start=invoice_date, end=due_date):
+                    # A non-iterable fixture proves the fallback never reads
+                    # absent line-level deferral data, including partial schemas.
+                    invoice = SimpleNamespace(
+                        invoice_line_ids=SimpleNamespace(_fields=line_fields),
+                        invoice_date=invoice_date,
+                        invoice_date_due=due_date,
+                    )
+                    node = cii._cii_get_billing_specified_period_node({"invoice": invoice})
+                    self.assertEqual(node, {
+                        "ram:StartDateTime": {
+                            "udt:DateTimeString": {"_text": "20260901", "format": "102"},
+                        } if invoice_date else None,
+                        "ram:EndDateTime": {
+                            "udt:DateTimeString": {"_text": "20260930", "format": "102"},
+                        } if due_date else None,
+                    })
+
+    def test_cii_billing_period_preserves_native_complete_deferral_range(self):
+        class DeferredLines(list):
+            _fields = {"deferred_start_date": object(), "deferred_end_date": object()}
+
+        invoice = SimpleNamespace(
+            invoice_date=fields.Date.to_date("2026-09-01"),
+            invoice_date_due=fields.Date.to_date("2026-09-30"),
+            invoice_line_ids=DeferredLines([
+                SimpleNamespace(
+                    deferred_start_date=fields.Date.to_date("2026-08-01"),
+                    deferred_end_date=fields.Date.to_date("2026-10-31"),
+                ),
+                SimpleNamespace(deferred_start_date=False, deferred_end_date=False),
+            ]),
+        )
+        node = self.env["account.edi.cii"]._cii_get_billing_specified_period_node({"invoice": invoice})
+        self.assertEqual(node, {
+            "ram:StartDateTime": {
+                "udt:DateTimeString": {"_text": "20260801", "format": "102"},
+            },
+            "ram:EndDateTime": {
+                "udt:DateTimeString": {"_text": "20261031", "format": "102"},
+            },
+        })
 
     def test_supported_formats_credit_notes_taxes_and_currencies(self):
         source = self._source_invoice()
@@ -1255,6 +1418,107 @@ class TestFrenchEinvoiceReception(
             ).action_rebuild_suspend_einvoice_exchange()
             self.assertFalse(self.company.rebuild_einvoice_exchange_enabled)
             self.assertTrue(all(cron.active for cron in reception_crons))
+
+    def test_participant_status_cron_retries_pending_approved_registration(self):
+        self.company.write({
+            "rebuild_einvoice_activation_approved": True,
+            "account_peppol_proxy_state": "smp_registration",
+        })
+        self._create_production_proxy_user()
+        cron = self.env.ref(
+            "account_peppol.ir_cron_peppol_get_participant_status",
+        )
+        self.env["ir.cron.trigger"].sudo().search([
+            ("cron_id", "=", cron.id),
+        ]).unlink()
+        scheduled_after = fields.Datetime.now()
+
+        proxy_model = self.env.registry["account_edi_proxy_client.user"]
+        with patch.object(
+            proxy_model,
+            "_peppol_get_participant_status",
+        ) as poll_status:
+            self.env["account_edi_proxy_client.user"]._cron_peppol_get_participant_status()
+
+        self.assertTrue(poll_status.called)
+        retries = self.env["ir.cron.trigger"].sudo().search([
+            ("cron_id", "=", cron.id),
+        ])
+        self.assertEqual(len(retries), 1)
+        self.assertGreaterEqual(
+            retries.call_at,
+            scheduled_after + timedelta(minutes=59),
+        )
+        self.assertLessEqual(
+            retries.call_at,
+            fields.Datetime.now() + timedelta(hours=1, minutes=1),
+        )
+
+    def test_participant_status_cron_does_not_retry_resolved_registration(self):
+        self.company.write({
+            "rebuild_einvoice_activation_approved": True,
+            "account_peppol_proxy_state": "receiver",
+        })
+        self._create_production_proxy_user()
+        cron = self.env.ref(
+            "account_peppol.ir_cron_peppol_get_participant_status",
+        )
+        self.env["ir.cron.trigger"].sudo().search([
+            ("cron_id", "=", cron.id),
+        ]).unlink()
+
+        proxy_model = self.env.registry["account_edi_proxy_client.user"]
+        with patch.object(
+            proxy_model,
+            "_peppol_get_participant_status",
+        ):
+            self.env["account_edi_proxy_client.user"]._cron_peppol_get_participant_status()
+
+        self.assertFalse(self.env["ir.cron.trigger"].sudo().search([
+            ("cron_id", "=", cron.id),
+        ]))
+
+    def test_participant_status_cron_does_not_retry_unapproved_registration(self):
+        proxy_users = self.env["account_edi_proxy_client.user"].sudo().search([
+            ("proxy_type", "in", self.env[
+                "account_edi_proxy_client.user"
+            ]._get_peppol_proxy_types()),
+        ])
+        proxy_users.company_id.write({
+            "rebuild_einvoice_activation_approved": False,
+        })
+        self.company.write({
+            "rebuild_einvoice_activation_approved": False,
+            "account_peppol_proxy_state": "smp_registration",
+        })
+        unapproved_proxy = self._create_production_proxy_user()
+        eligible_users = self.env["account_edi_proxy_client.user"].search([
+            ("company_id.rebuild_einvoice_activation_approved", "=", True),
+            ("proxy_type", "in", self.env[
+                "account_edi_proxy_client.user"
+            ]._get_peppol_proxy_types()),
+        ])
+        self.assertNotIn(unapproved_proxy, eligible_users)
+        cron = self.env.ref(
+            "account_peppol.ir_cron_peppol_get_participant_status",
+        )
+        self.env["ir.cron.trigger"].sudo().search([
+            ("cron_id", "=", cron.id),
+        ]).unlink()
+
+        proxy_model = self.env.registry["account_edi_proxy_client.user"]
+        with patch.object(
+            proxy_model,
+            "_peppol_get_participant_status",
+        ) as poll_status:
+            self.env["account_edi_proxy_client.user"]._cron_peppol_get_participant_status()
+
+        # The cron invokes the recordset method even when the eligible
+        # recordset is empty; the domain assertion above proves exclusion.
+        poll_status.assert_called_once()
+        self.assertFalse(self.env["ir.cron.trigger"].sudo().search([
+            ("cron_id", "=", cron.id),
+        ]))
 
     def test_upgrade_initialization_preserves_active_production_reception(self):
         self.company.write({

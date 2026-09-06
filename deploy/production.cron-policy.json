@@ -15,6 +15,7 @@
     "vies"
   ],
   "crons": {
+    "usl_feedback.ir_cron_feedback_agent": {"gate": "always", "reason": "Process user-requested product feedback conversations through the configured assistant."},
     "account.ir_cron_account_move_send": {"gate": "smtp", "reason": "Send explicitly scheduled accounting documents through the admitted Resend transport."},
     "account.ir_cron_auto_post_draft_entry": {"gate": "always", "reason": "Post scheduled journal entries on their configured accounting date."},
     "account_asset_management.ir_cron_assets_generator": {"gate": "always", "reason": "Generate configured asset and depreciation entries."},
@@ -49,6 +50,7 @@
     "payment.cron_post_process_payment_tx": {"gate": "always", "reason": "Finalize payment transactions already accepted by configured providers."},
     "project.ir_cron_rating_project": {"gate": "project_ratings", "reason": "Send project ratings only after stored rating configuration and backlog review."},
     "purchase.purchase_send_reminder_mail": {"gate": "purchase_reminders", "reason": "Send purchase reminders only after stored configuration and backlog review."},
+    "queue_job.ir_cron_autovacuum_queue_jobs": {"gate": "always", "reason": "Remove completed or cancelled queue records under configured channel retention without deleting business evidence."},
     "rebuild_account_migration.ir_cron_rebuild_currency_rate_provider": {"gate": "always", "reason": "Retrieve daily ECB reference exchange rates."},
     "sale.send_invoice_cron": {"gate": "sales_automation", "reason": "Run automatic invoicing only after stored configuration and backlog review."},
     "sale.send_pending_emails_cron": {"gate": "sales_automation", "reason": "Send pending sales emails only after stored configuration and backlog review."},
@@ -66,6 +68,7 @@
     "usl_documents.ir_cron_usl_documents_poll": {"gate": "always", "reason": "Track Paperless ingestion completion."},
     "usl_documents.ir_cron_usl_documents_sync": {"gate": "always", "reason": "Synchronize Odoo and Paperless archive metadata."},
     "usl_documents_accounting.ir_cron_archive_bank_statement_evidence": {"gate": "always", "reason": "Archive accepted bank-statement evidence."},
+    "usl_project.ir_cron_usl_reactivate_later_tasks": {"gate": "always", "reason": "Return active deferred personal tasks to Inbox when their actionable date arrives."},
     "usl_sign.ir_cron_sign_daily_event_heads": {"gate": "always", "reason": "Build daily Sign evidence manifests."},
     "usl_sign.ir_cron_sign_opentimestamps": {"gate": "ots", "reason": "Submit public timestamp proofs after the external-service gate."},
     "usl_sign.ir_cron_sign_operations": {"gate": "always", "reason": "Process Sign lifecycle, reminders and archive recovery."},

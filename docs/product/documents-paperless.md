@@ -182,6 +182,12 @@ Paperless retrains periodically. It is probabilistic and local, but it does not
 create an inspectable list of heuristic rules that either application could
 truthfully display.
 
+When Paperless proposes metadata for an archived document, its Odoo detail
+panel shows those proposals separately from applied metadata. An authorized
+editor can review and apply one suggested type, correspondent, tag, or date at
+a time. Suggestions never change Odoo or Paperless data merely by being shown,
+and a classifier outage does not make the archived document unavailable.
+
 The catalog synchronizer enables **Learn automatically** for active shared
 tags, correspondents, and document types that still have no explicit rule and
 already occur on at least two documents. Inbox tags are excluded. This setup is

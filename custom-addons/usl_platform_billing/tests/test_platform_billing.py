@@ -33,6 +33,7 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
             },
         )
         cls.platform_partner = cls.partner_a
+        cls.platform_partner.country_id = cls.env.ref("base.us")
         cls.platform = cls.env["usl.platform.billing.platform"].create(
             {
                 "name": "CreatorHub",
@@ -178,6 +179,23 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
             },
         )
 
+    def _ledger_fingerprint(self, moves):
+        return tuple(
+            sorted(
+                (
+                    line.move_id.id,
+                    line.id,
+                    line.account_id.id,
+                    line.debit,
+                    line.credit,
+                    line.balance,
+                    line.amount_currency,
+                    line.currency_id.id,
+                )
+                for line in moves.line_ids
+            ),
+        )
+
     def _bank_wizard(self, session, *, mode="link"):
         wizard = self.env[
             "usl.platform.billing.bank.import.wizard"
@@ -286,6 +304,13 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         )
         allocation = self._allocation(payout, bank_line)
         session.action_cancel()
+
+        irreversible = self.env.ref(
+            "usl_access_control.group_irreversible_actions",
+            raise_if_not_found=False,
+        )
+        if irreversible:
+            self.manager.group_ids += irreversible
 
         session.with_user(self.manager).unlink()
 
@@ -457,6 +482,129 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
             mute_logger("odoo.sql_db"),
         ):
             self._payout(session, reference=payout.platform_reference)
+
+    def test_zero_and_rounded_zero_commission_do_not_create_bills(self):
+        for grouping in ("monthly", "per_payout"):
+            for rate in (0.0, 0.0001):
+                with self.subTest(grouping=grouping, rate=rate):
+                    self.platform.write({"commission_rate": rate, "vendor_bill_grouping_mode": grouping})
+                    session = self._session(name=f"Zero commission {grouping} {rate}")
+                    payout = self._payout(session, reference=f"zero-{grouping}-{rate}")
+                    self._generate_and_post(session)
+                    self.assertEqual(payout.gross_platform_amount, 80)
+                    self.assertFalse(payout.commission_platform_amount)
+                    self.assertFalse(payout.vendor_bill_id)
+                    self.assertFalse(payout.compensation_move_id)
+                    self.assertEqual(session.generated_move_ids, payout.customer_invoice_id)
+                    bank = self._bank_line(80, label=f"zero receipt {grouping} {rate}")
+                    self._allocation(payout, bank)
+                    session.action_reconcile_bank()
+                    self.assertTrue(bank.is_reconciled)
+                    self.assertEqual(payout.state, "paid")
+                    self.assertEqual(session.state, "paid")
+
+    def test_prefill_preserves_explicit_zero_snapshot(self):
+        session = self._session()
+        payout = self._payout(session)
+        payout.commission_rate_snapshot = 0
+        session.action_prefill()
+        self.assertEqual(payout.commission_rate_snapshot, 0)
+        self.assertEqual(payout.gross_platform_amount, payout.net_platform_amount)
+
+    def test_monthly_bill_excludes_zero_commission_payouts(self):
+        session = self._session()
+        zero = self._payout(session, reference="mixed-zero")
+        zero.commission_rate_snapshot = 0
+        charged = self._payout(session, reference="mixed-charged")
+        self._generate_and_post(session)
+        self.assertFalse(zero.vendor_bill_id)
+        self.assertFalse(zero.compensation_move_id)
+        self.assertEqual(charged.vendor_bill_id.amount_total, 20)
+        self.assertEqual(charged.vendor_bill_id.platform_billing_payout_ids, charged)
+
+    def test_foreign_bank_import_defaults_to_reference_rate(self):
+        foreign = self.env["res.currency"].create({"name": "WFX", "symbol": "W", "rounding": 0.01})
+        journal = self.company_data["default_journal_bank"].copy({"name": "Synthetic USD bank", "code": "WFX", "currency_id": foreign.id})
+        platform = self.platform.copy({"name": "Synthetic USD platform", "currency_id": foreign.id, "bank_journal_id": journal.id, "bank_label_pattern": "WFX {ref}"})
+        session = self._session()
+        session.bank_currency_id = foreign
+        bank = self._bank_line(80, journal=journal, label="WFX receipt-001")
+        wizard = self._bank_wizard(session, mode="create")
+        wizard.candidate_ids.filtered(lambda row: row.bank_statement_line_id == bank).selected = True
+        wizard.action_create_payouts()
+        payout = session.payout_ids
+        self.assertEqual(payout.platform_id, platform)
+        self.assertEqual(payout.currency_valuation_method, "reference")
+        payout.net_platform_amount = 80
+        self.assertFalse(payout._bank_rate_validation_errors())
+        payout._workflow_write({"currency_valuation_method": "bank"})
+        self.assertIn("use Odoo Reference Rate", " ".join(payout._bank_rate_validation_errors()))
+
+    def test_tax_country_required_before_generation(self):
+        session = self._session()
+        self._payout(session)
+        self.platform_partner.country_id = False
+        with self.assertRaisesRegex(UserError, "country"):
+            session.action_check()
+        self.assertFalse(session.generated_move_ids)
+        self.platform_partner.country_id = self.env.ref("base.us")
+        session.action_check()
+        self.platform_partner.country_id = False
+        with self.assertRaisesRegex(UserError, "country"):
+            session.action_generate_documents()
+        self.assertFalse(session.generated_move_ids)
+
+    def test_bank_wizard_onchange_roundtrip_preserves_candidate_links(self):
+        session = self._session()
+        unused_bank = self._bank_line(91.80, label="Unselected synthetic receipt")
+        bank = self._bank_line(43.73, label="Synthetic Remitly receipt")
+        wizard = self._bank_wizard(session, mode="create").with_user(self.operator)
+        with Form(wizard) as form:
+            form.candidate_scope = "recommended"
+            form.candidate_scope = "all"
+            for index in range(len(form.candidate_ids)):
+                with form.candidate_ids.edit(index) as candidate_form:
+                    candidate_form.selected = candidate_form.bank_statement_line_id == bank
+        self.assertTrue(wizard.candidate_ids)
+        self.assertTrue(all(wizard.candidate_ids.mapped("bank_statement_line_id")))
+        candidate = wizard.candidate_ids.filtered(lambda line: line.bank_statement_line_id == bank)
+        self.assertTrue(candidate.selected)
+        wizard.action_create_payouts()
+        self.assertEqual(session.payout_ids.bank_allocation_ids.bank_statement_line_id, bank)
+        self.assertFalse(unused_bank.is_reconciled)
+        with self.assertRaises(AccessError):
+            session.payout_ids.with_user(self.operator).unlink()
+        self.manager.group_ids += self.env.ref("usl_access_control.group_irreversible_actions")
+        session.payout_ids.with_user(self.manager).unlink()
+        replacement = self._bank_wizard(session, mode="create").with_user(self.operator)
+        with Form(replacement) as form:
+            form.candidate_scope = "recommended"
+            form.candidate_scope = "all"
+            for index in range(len(form.candidate_ids)):
+                with form.candidate_ids.edit(index) as candidate_form:
+                    candidate_form.selected = candidate_form.bank_statement_line_id == bank
+        replacement.action_create_payouts()
+        self.assertEqual(len(session.payout_ids), 1)
+        self.assertEqual(session.payout_ids.bank_allocation_ids.bank_statement_line_id, bank)
+
+    def test_exchange_carryover_account_follows_actual_balance(self):
+        session = self._session()
+        payout = self._payout(session)
+        self._generate_and_post(session)
+        line = payout.customer_invoice_id.line_ids.filtered(lambda item: item.account_id.account_type == "asset_receivable")
+        expense = self.company.expense_currency_exchange_account_id
+        income = self.company.income_currency_exchange_account_id
+        expense.rebuild_entry_direction_policy = "debit"
+        income.rebuild_entry_direction_policy = "credit"
+        for amount, wrong_account, expected in ((10, income, expense), (-10, expense, income)):
+            values = line.with_context(exchange_account_per_move={line.move_id: wrong_account.id})._prepare_exchange_difference_move_vals([{"amount_residual": amount}])
+            counterpart = values["move_values"]["line_ids"][1][2]
+            self.assertEqual(counterpart["account_id"], expected.id)
+            self.assertEqual(counterpart["debit"] - counterpart["credit"], amount)
+            move = self.env["account.move"].create(values["move_values"])
+            move.action_post()
+            self.assertEqual(move.state, "posted")
+            self.assertEqual(sum(move.line_ids.mapped("balance")), 0)
 
     def test_effective_accounts_are_visible_and_checked_before_generation(self):
         self.assertEqual(
@@ -816,6 +964,194 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         session.action_reconcile_bank()
         self.assertEqual(session.state, "posted")
         self.assertEqual(session.customer_invoice_ids.amount_residual, 80.0)
+
+    def test_native_accounting_payment_settles_without_bank_allocation(self):
+        session = self._session(name="Native settlement — July 2026")
+        payout = self._payout(session, reference="NATIVE-001")
+        self._generate_and_post(session)
+        invoice = payout.customer_invoice_id
+        compensation = payout.compensation_move_id
+
+        payment = self._register_payment(invoice, amount=invoice.amount_residual)
+
+        self.assertEqual(invoice.payment_state, "paid")
+        self.assertEqual(payout.vendor_bill_id.payment_state, "paid")
+        self.assertEqual(compensation.payment_state, "not_paid")
+        self.assertTrue(
+            all(
+                compensation.line_ids.filtered(
+                    lambda line: line.account_id.account_type
+                    in {"asset_receivable", "liability_payable"},
+                ).mapped("reconciled"),
+            ),
+        )
+        self.assertFalse(payout.bank_allocation_ids)
+        self.assertEqual(payout.bank_match_status, "unmatched")
+        self.assertEqual(payout.state, "paid")
+        self.assertEqual(session.state, "paid")
+
+        fingerprint = self._ledger_fingerprint(session.generated_move_ids)
+        payout._workflow_write({"state": "posted"})
+        session._workflow_write({"state": "posted"})
+        session._refresh_state()
+        session._refresh_state()
+        self.assertEqual(payout.state, "paid")
+        self.assertEqual(session.state, "paid")
+        self.assertEqual(
+            self._ledger_fingerprint(session.generated_move_ids),
+            fingerprint,
+        )
+
+        payment_receivable = payment.move_id.line_ids.filtered(
+            lambda line: line.account_id.account_type == "asset_receivable",
+        )
+        payment_receivable.remove_move_reconcile()
+        self.assertEqual(payout.state, "posted")
+        self.assertEqual(session.state, "posted")
+
+        open_receivable = (
+            invoice.line_ids | payment_receivable
+        ).filtered(
+            lambda line: (
+                line.account_id.account_type == "asset_receivable"
+                and not line.reconciled
+            ),
+        )
+        open_receivable.reconcile()
+        self.assertEqual(payout.state, "paid")
+        self.assertEqual(session.state, "paid")
+
+    def test_partial_native_payments_keep_session_posted_until_fully_settled(self):
+        session = self._session(name="Split native settlement — July 2026")
+        payout = self._payout(session, reference="SPLIT-001")
+        self._generate_and_post(session)
+        invoice = payout.customer_invoice_id
+
+        self._register_payment(invoice, amount=40.0)
+
+        self.assertEqual(invoice.amount_residual, 40.0)
+        self.assertEqual(payout.state, "posted")
+        self.assertEqual(session.state, "posted")
+        self.assertFalse(payout.bank_allocation_ids)
+
+        self._register_payment(invoice, amount=40.0)
+
+        self.assertEqual(invoice.amount_residual, 0.0)
+        self.assertEqual(payout.state, "paid")
+        self.assertEqual(session.state, "paid")
+
+    def test_shared_invoice_uses_its_native_settlement_for_every_payout(self):
+        session = self._session(name="Shared native settlement — July 2026")
+        first = self._payout(session, reference="SHARED-001")
+        second = self._payout(
+            session,
+            reference="SHARED-002",
+            amount=40.0,
+        )
+        self._generate_and_post(session)
+        invoice = session.customer_invoice_ids
+
+        self.assertEqual(len(invoice), 1)
+        self._register_payment(invoice, amount=80.0)
+        self.assertEqual(invoice.amount_residual, 40.0)
+        self.assertEqual(set((first | second).mapped("state")), {"posted"})
+        self.assertEqual(session.state, "posted")
+
+        self._register_payment(invoice, amount=40.0)
+
+        self.assertEqual(invoice.payment_state, "paid")
+        self.assertEqual(set((first | second).mapped("state")), {"paid"})
+        self.assertEqual(session.state, "paid")
+        self.assertFalse((first | second).bank_allocation_ids)
+
+    def test_each_payout_reflects_its_own_accounting_settlement(self):
+        session = self._session(name="Mixed native settlement — July 2026")
+        first = self._payout(session, reference="MIXED-001")
+        other_platform = self.platform.copy({"name": "Second native platform"})
+        second = self._payout(
+            session,
+            reference="MIXED-002",
+            platform=other_platform,
+        )
+        self._generate_and_post(session)
+
+        self._register_payment(
+            first.customer_invoice_id,
+            amount=first.customer_invoice_id.amount_residual,
+        )
+
+        self.assertEqual(first.state, "paid")
+        self.assertEqual(second.state, "posted")
+        self.assertEqual(session.state, "posted")
+
+    def test_reversal_settlement_and_reopening_refresh_states(self):
+        session = self._session(name="Reversed settlement — July 2026")
+        platform = self.platform.copy(
+            {
+                "name": "Reversal-only platform",
+                "auto_create_compensation": False,
+            },
+        )
+        payout = self._payout(
+            session,
+            reference="REVERSED-001",
+            platform=platform,
+        )
+        self._generate_and_post(session)
+        invoice = payout.customer_invoice_id
+        bill = payout.vendor_bill_id
+
+        invoice_reversal = invoice._reverse_moves(cancel=True)
+        bill._reverse_moves(
+            [{"invoice_date": bill.invoice_date}],
+            cancel=True,
+        )
+
+        self.assertEqual(invoice.payment_state, "reversed")
+        self.assertEqual(bill.payment_state, "reversed")
+        self.assertFalse(payout.compensation_move_id)
+        self.assertEqual(payout.state, "paid")
+        self.assertEqual(session.state, "paid")
+        self.assertFalse(payout.bank_allocation_ids)
+
+        invoice_reversal.line_ids.filtered(
+            lambda line: line.account_id.account_type == "asset_receivable",
+        ).remove_move_reconcile()
+
+        self.assertNotIn(invoice.payment_state, {"paid", "reversed"})
+        self.assertEqual(payout.state, "posted")
+        self.assertEqual(session.state, "posted")
+
+    def test_native_settlement_refresh_is_company_scoped(self):
+        other_company_data = self.setup_other_company(
+            name="Unrelated Platform Billing Company",
+        )
+        other_company = other_company_data["company"]
+        other_session = (
+            self.env["usl.platform.billing.session"]
+            .with_company(other_company)
+            .create(
+                {
+                    "name": "Unrelated session",
+                    "company_id": other_company.id,
+                    "period_month": fields.Date.from_string("2026-07-01"),
+                    "invoice_date": fields.Date.from_string("2026-07-31"),
+                    "bank_currency_id": other_company.currency_id.id,
+                },
+            )
+        )
+        other_session._workflow_write({"state": "posted"})
+        session = self._session(name="Company-scoped settlement — July 2026")
+        payout = self._payout(session, reference="SCOPED-001")
+        self._generate_and_post(session)
+
+        self._register_payment(
+            payout.customer_invoice_id,
+            amount=payout.customer_invoice_id.amount_residual,
+        )
+
+        self.assertEqual(session.state, "paid")
+        self.assertEqual(other_session.state, "posted")
 
     def test_one_payout_can_be_settled_by_two_partial_receipts(self):
         session = self._session(name="Partial receipts — July 2026")

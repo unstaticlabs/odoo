@@ -522,7 +522,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_form
 msgid "A blocking Hygiene or closing issue requires review."
 msgstr ""
-"Une anomalie bloquante de qualité comptable ou de clôture doit être traitée."
+"Une anomalie bloquante d’hygiène comptable ou de clôture doit être traitée."
 
 #. module: rebuild_account_migration
 #: model:ir.model.constraint,message:rebuild_account_migration.constraint_rebuild_account_closing_control_definition_unique_clos_9ccfa9a8
@@ -889,24 +889,24 @@ msgstr "Cadre comptable"
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_search
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
 msgid "Accounting Hygiene"
-msgstr "Qualité comptable"
+msgstr "Hygiène comptable"
 
 #. module: rebuild_account_migration
 #: model:ir.model,name:rebuild_account_migration.model_rebuild_account_hygiene_dismissal
 msgid "Accounting Hygiene Dismissal"
-msgstr "Masquage d’une anomalie de qualité comptable"
+msgstr "Masquage d’une anomalie d’hygiène comptable"
 
 #. module: rebuild_account_migration
 #: model:ir.model,name:rebuild_account_migration.model_rebuild_account_hygiene_issue
 msgid "Accounting Hygiene Issue"
-msgstr "Anomalie de qualité comptable"
+msgstr "Anomalie d’hygiène comptable"
 
 #. module: rebuild_account_migration
 #. odoo-python
 #: code:addons/rebuild_account_migration/models/accounting_overview.py:0
 msgid "Accounting Hygiene is not available for the current company."
 msgstr ""
-"Le contrôle de qualité comptable n’est pas disponible pour la société "
+"Le contrôle d’hygiène comptable n’est pas disponible pour la société "
 "active."
 
 #. module: rebuild_account_migration
@@ -915,7 +915,7 @@ msgid ""
 "Accounting Hygiene has blocking issues.\n"
 "                        Review them before continuing normal accounting work."
 msgstr ""
-"La qualité comptable présente des anomalies bloquantes.\n"
+"L’hygiène comptable présente des anomalies bloquantes.\n"
 "                        Traitez-les avant de poursuivre les opérations comptables courantes."
 
 #. module: rebuild_account_migration
@@ -1335,7 +1335,7 @@ msgstr "Condition de montant"
 #: model:ir.model.constraint,message:rebuild_account_migration.constraint_rebuild_account_hygiene_issue_unique_hygiene_issue
 msgid "An Accounting Hygiene issue key must be unique within one company."
 msgstr ""
-"La clé d’une anomalie de qualité comptable doit être unique au sein d’une "
+"La clé d’une anomalie d’hygiène comptable doit être unique au sein d’une "
 "société."
 
 #. module: rebuild_account_migration
@@ -2913,12 +2913,6 @@ msgstr "Activation complète de la plateforme"
 #. module: rebuild_account_migration
 #. odoo-python
 #: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
-msgid "Complete platform registration"
-msgstr "Inscription complète à la plateforme"
-
-#. module: rebuild_account_migration
-#. odoo-python
-#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
 msgid "Complete platform setup"
 msgstr "Terminer la configuration de la plateforme"
 
@@ -3240,7 +3234,7 @@ msgid ""
 "Automatic mode uses the account type and common French contra-account "
 "prefixes. This is a review signal, not an automatic accounting correction."
 msgstr ""
-"Détermine si la qualité comptable signale un solde global de sens anormal. "
+"Détermine si l’hygiène comptable signale un solde global de sens anormal. "
 "Le mode automatique utilise le type de compte et les préfixes usuels des "
 "comptes correcteurs français. Il s’agit d’un indicateur à vérifier, et non "
 "d’une correction comptable automatique."
@@ -5133,14 +5127,6 @@ msgid "Finding"
 msgstr "Trouver"
 
 #. module: rebuild_account_migration
-#. odoo-python
-#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
-msgid "Finish registration and verify the French directory effective date."
-msgstr ""
-"Terminez l’inscription et vérifiez la date d’entrée en vigueur de l’annuaire"
-" français."
-
-#. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_hygiene_issue__first_detected_at
 msgid "First Detected"
 msgstr "Détecté pour la première fois"
@@ -5528,7 +5514,7 @@ msgstr "Résultats des contrôles de qualité"
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_overview__hygiene_status
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_search
 msgid "Hygiene Status"
-msgstr "État de la qualité comptable"
+msgstr "État de l’hygiène comptable"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_account_account__id
@@ -6399,8 +6385,8 @@ msgstr "Lignes à zéro masquées"
 #: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_closing_control_definition__closing_period_scope
 msgid "Limits closing execution without changing daily Hygiene execution."
 msgstr ""
-"Limite l’exécution de la clôture sans modifier les contrôles quotidiens de "
-"qualité comptable."
+"Limite l’exécution de la clôture sans modifier les contrôles quotidiens "
+"d’hygiène comptable."
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_french_statement_line__line_code
@@ -6969,7 +6955,7 @@ msgstr "Aucune nouvelle suggestion"
 #. module: rebuild_account_migration
 #: model_terms:ir.actions.act_window,help:rebuild_account_migration.action_rebuild_account_hygiene
 msgid "No open Accounting Hygiene issue."
-msgstr "Aucune anomalie de qualité comptable à traiter."
+msgstr "Aucune anomalie d’hygiène comptable à traiter."
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_bank_transaction_form
@@ -7130,6 +7116,17 @@ msgstr "Ventes OSS"
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__res_company__rebuild_einvoice_provider__odoo_pdp
 msgid "Odoo Approved Platform"
 msgstr "Plateforme agréée Odoo"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
+msgid ""
+"Odoo's Approved Platform is registering this company in the French "
+"directory. Reception can be enabled after the native status becomes "
+"Receiver."
+msgstr ""
+"La Plateforme Agréée d’Odoo inscrit cette société dans l’annuaire français. "
+"La réception pourra être activée lorsque l’état natif passera à « Récepteur »."
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__account_reconcile_model__rebuild_origin__standard
@@ -8916,7 +8913,7 @@ msgid ""
 "Re-run deterministic Hygiene and closing controls from the current "
 "accounting records. No accounting entry is posted or changed."
 msgstr ""
-"Relancez les contrôles déterministes de qualité comptable et de clôture à "
+"Relancez les contrôles déterministes d’hygiène comptable et de clôture à "
 "partir des écritures actuelles. Aucune écriture n’est comptabilisée ni "
 "modifiée."
 
@@ -9045,7 +9042,7 @@ msgid ""
 "Recalculate every open closing workspace and Accounting Hygiene using the "
 "enabled controls and policies shown here."
 msgstr ""
-"Recalculez tous les espaces de clôture ouverts et la qualité comptable à "
+"Recalculez tous les espaces de clôture ouverts et l’hygiène comptable à "
 "partir des contrôles et règles activés ici."
 
 #. module: rebuild_account_migration
@@ -9063,8 +9060,8 @@ msgid ""
 "Recalculate open closing workspaces and daily Accounting Hygiene for this "
 "company using this configuration."
 msgstr ""
-"Recalculez les espaces de clôture ouverts et les contrôles quotidiens de "
-"qualité comptable de cette société avec cette configuration."
+"Recalculez les espaces de clôture ouverts et les contrôles quotidiens "
+"d’hygiène comptable de cette société avec cette configuration."
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_closing_form
@@ -9470,7 +9467,7 @@ msgstr "Actualiser les résultats actuels"
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_form
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
 msgid "Refresh Hygiene"
-msgstr "Actualiser la qualité comptable"
+msgstr "Actualiser l’hygiène comptable"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_closing_form
@@ -9542,7 +9539,9 @@ msgid "Registration needs attention"
 msgstr "L'inscription nécessite une attention particulière"
 
 #. module: rebuild_account_migration
+#: model:ir.model.fields.selection,name:rebuild_account_migration.selection__res_company__rebuild_einvoice_readiness_status__registration_in_progress
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__res_company__rebuild_einvoice_connection_status__registration_pending
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form
 msgid "Registration in progress"
 msgstr "Inscription en cours"
 
@@ -10011,7 +10010,7 @@ msgstr "Vérifier"
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
 msgid "Review Accounting Hygiene"
-msgstr "Vérifier la qualité comptable"
+msgstr "Vérifier l’hygiène comptable"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_closing_snapshot__review_decision_id
@@ -10271,7 +10270,7 @@ msgstr "Effectuer l'auto-contrôle de réception"
 #. module: rebuild_account_migration
 #: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_closing_control_definition__applies_to_hygiene
 msgid "Run this control when Accounting Hygiene is refreshed."
-msgstr "Exécuter ce contrôle lors de l’actualisation de la qualité comptable."
+msgstr "Exécuter ce contrôle lors de l’actualisation de l’hygiène comptable."
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_closing_control_definition__applies_to_closing
@@ -12293,7 +12292,7 @@ msgstr "Utiliser un partenaire"
 #: model_terms:ir.actions.act_window,help:rebuild_account_migration.action_rebuild_account_hygiene
 msgid "Accounting Managers refresh Hygiene automatically when this view opens."
 msgstr ""
-"La qualité comptable est actualisée automatiquement lorsqu’un responsable "
+"L’hygiène comptable est actualisée automatiquement lorsqu’un responsable "
 "comptable ouvre cette vue."
 
 #. module: rebuild_account_migration

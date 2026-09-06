@@ -306,7 +306,8 @@
                             <span class="o_usl_tag_chip_label" t-esc="tag.name"/>
                         </button>
                         <details t-if="overflowTagShortcuts.length"
-                                 class="o_usl_more_tags position-relative">
+                                 class="o_usl_more_tags position-relative"
+                                 t-on-toggle="onMoreTagsToggle">
                             <summary class="btn btn-sm btn-outline-secondary rounded-pill text-nowrap">
                                 More tags (<t t-esc="overflowTagShortcuts.length"/>)
                             </summary>
@@ -327,7 +328,7 @@
                                             type="button"
                                             t-att-class="'dropdown-item d-flex align-items-center gap-2 rounded ' + (this.isTagShortcutActive(tag) ? 'active' : '')"
                                             t-att-title="'Filter by tag: ' + tag.name"
-                                            t-on-click="() => this.toggleTagFilter(tag)">
+                                            t-on-click="(event) => this.selectTagShortcut(tag, event)">
                                         <span class="o_usl_tag_color flex-shrink-0"
                                               t-att-style="'--tag-color:' + tag.color"/>
                                         <span class="text-truncate flex-grow-1"
@@ -877,6 +878,29 @@
                                 <span t-else=""
                                       class="o_usl_readonly_value"
                                       t-esc="state.selected.company || 'Needs attention'"/>
+                            </div>
+                        </div>
+                        <div t-if="state.selected.paperless_suggestions?.length"
+                             class="o_usl_paperless_suggestions mt-3"
+                             aria-label="Paperless suggestions">
+                            <div class="d-flex align-items-baseline justify-content-between gap-2 mb-2">
+                                <label class="form-label small fw-semibold mb-0">
+                                    Suggested by Paperless
+                                </label>
+                                <span class="small text-muted">Review before applying.</span>
+                            </div>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button t-foreach="state.selected.paperless_suggestions"
+                                        t-as="suggestion"
+                                        t-key="suggestion.kind + '-' + (suggestion.record_id || suggestion.value)"
+                                        type="button"
+                                        class="btn btn-sm btn-outline-secondary o_usl_paperless_suggestion"
+                                        t-att-disabled="!state.selected.can_edit || state.savingFields[suggestion.field]"
+                                        t-on-click="() => this.applyPaperlessSuggestion(suggestion)">
+                                    <i class="fa fa-magic me-1" aria-hidden="true"/>
+                                    <span t-esc="paperlessSuggestionKindLabel(suggestion.kind)"/>:
+                                    <span t-esc="suggestion.label"/>
+                                </button>
                             </div>
                         </div>
                         <div class="o_usl_detail_tags mt-3">

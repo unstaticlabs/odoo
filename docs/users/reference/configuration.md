@@ -31,6 +31,10 @@ does not contact a provider or leave synthetic accounting data.
 **Ready for production** is the expected pre-activation state. Authentication,
 production registration, manual production checks and deregistration are
 external actions, not configuration previews.
+**Registration in progress** means the Approved Platform is still completing
+the French directory registration; it is not a request to start registration
+again. **Activation required** returns when the receiver is ready but local
+reception remains disabled.
 
 Use [Prepare electronic-invoice reception](../how-to/prepare-electronic-invoice-reception.md)
 for safe checks. Use

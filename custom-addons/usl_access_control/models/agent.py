@@ -2,6 +2,8 @@ import datetime
 import uuid
 from copy import deepcopy
 
+from psycopg2 import errors as pgerrors
+
 from odoo import SUPERUSER_ID, Command, _, api, fields, models
 from odoo.exceptions import AccessDenied, AccessError, UserError, ValidationError
 from odoo.http import request
@@ -11,6 +13,7 @@ from .action_policy import ActionPolicyConfigurationError, load_agent_readonly_p
 from odoo.addons.base.models.res_users import KEY_CRYPT_CONTEXT, check_identity
 
 _AGENT_KEY_MAX_DAYS = 5 * 365 + 1
+_AGENT_CREDENTIAL_TOUCH_LOCK_NAMESPACE = 5_590_092
 
 _AGENT_VISIBLE_STANDALONE_READER_PRIVILEGES = (
     ("account.group_account_readonly", "account.res_groups_privilege_accounting"),
@@ -429,6 +432,8 @@ class UslAgent(models.Model):
     def _api_method_access(self, model_name, method_name):
         """Return the effective Agent policy classification for one JSON-2 call."""
         self.ensure_one()
+        if model_name == "usl.agent" and method_name == "submit_mcp_feedback":
+            return "collaboration" if self.state == "active" else None
         try:
             access = load_agent_readonly_policy().access_for(model_name, method_name)
         except ActionPolicyConfigurationError:
@@ -954,6 +959,44 @@ class UslAgentCredential(models.Model):
         matching_ids = self.sudo().search(domains[value]).ids
         return [("id", "in" if operator == "=" else "not in", matching_ids)]
 
+    def _touch_last_used_at(self, used_at):
+        """Best-effort usage telemetry that cannot contend with Agent calls."""
+        self.ensure_one()
+        cutoff = used_at - datetime.timedelta(minutes=1)
+        if self.last_used_at and self.last_used_at >= cutoff:
+            return False
+        self.env.cr.execute(
+            "SELECT pg_try_advisory_xact_lock(%s, %s)",
+            [_AGENT_CREDENTIAL_TOUCH_LOCK_NAMESPACE, self.id],
+        )
+        if not self.env.cr.fetchone()[0]:
+            return False
+        try:
+            with self.env.cr.savepoint(flush=False):
+                self.env.cr.execute(
+                    """
+                    WITH candidate AS (
+                        SELECT id FROM usl_agent_credential
+                         WHERE id = %s
+                           AND (last_used_at IS NULL OR last_used_at < %s)
+                         FOR UPDATE SKIP LOCKED
+                    )
+                    UPDATE usl_agent_credential
+                       SET last_used_at = %s,
+                           write_date = %s,
+                           write_uid = %s
+                     WHERE id IN (SELECT id FROM candidate)
+                    """,
+                    [self.id, cutoff, used_at, used_at, SUPERUSER_ID],
+                )
+                updated = bool(self.env.cr.rowcount)
+        except pgerrors.SerializationFailure:
+            # A peer may have committed after this request's repeatable-read
+            # snapshot. Usage telemetry must not restart the business call.
+            return False
+        self.invalidate_recordset(["last_used_at", "write_date", "write_uid"], flush=False)
+        return updated
+
     def _check_caller_can_manage(self):
         self.mapped("agent_id")._check_caller_can_manage()
 
@@ -1158,43 +1201,56 @@ class ResUsersApikeys(models.Model):
         # returned actor remains ``uid`` and subsequent business calls still
         # execute with that Agent's ordinary ACLs and record rules.
         governance_env = api.Environment(self.env.cr, SUPERUSER_ID, {})
-        agent = governance_env["usl.agent"].search([("user_id", "=", uid)], limit=1)
-        user = governance_env["res.users"].browse(uid)
-        if not agent and not user.usl_is_ai_agent:
-            return uid
-        if not agent:
-            raise AgentAuthenticationError(
-                _("This Agent identity is not governed."),
-                "agent_principal_required",
-            )
-        agent._reconcile_authority()
-        if agent.state != "active" or not agent.owner_id.active or not agent.user_id.active:
-            raise AgentAuthenticationError(_("This Agent is suspended."), "agent_suspended")
-        governance_env.cr.execute(
-            "SELECT id FROM res_users_apikeys WHERE user_id = %s AND index = %s LIMIT 1",
-            [uid, key[:8]],
-        )
-        row = governance_env.cr.fetchone()
-        credential = governance_env["usl.agent.credential"].search(
-            [("native_key_id", "=", row[0] if row else 0), ("agent_id", "=", agent.id)],
-            limit=1,
-        )
-        if not credential or credential.status != "active":
-            raise AccessDenied(_("This Agent credential is not active."))
-        if request:
-            path = request.httprequest.path or ""
-            if not _agent_key_path_allowed(path):
+        # ``Environment`` may return an already cached superuser environment;
+        # in that case it does not repopulate the transaction default that the
+        # relational-field engine uses for safe sudo command evaluation.
+        transaction = governance_env.transaction
+        previous_default_env = transaction.default_env
+        transaction.default_env = governance_env
+        try:
+            agent = governance_env["usl.agent"].search([("user_id", "=", uid)], limit=1)
+            user = governance_env["res.users"].browse(uid)
+            if not agent and not user.usl_is_ai_agent:
+                return uid
+            if not agent:
                 raise AgentAuthenticationError(
-                    _("Agent API keys may be used only with JSON-2 and API documentation."),
-                    "agent_transport_denied",
+                    _("This Agent identity is not governed."),
+                    "agent_principal_required",
                 )
-        now = fields.Datetime.now()
-        if not credential.last_used_at or credential.last_used_at < now - datetime.timedelta(minutes=1):
-            credential.with_context(usl_agent_credential_internal=True).write({"last_used_at": now})
-        if request:
-            request.usl_agent_reconciled_id = agent.id
-            request.usl_agent_credential_id = credential.id
-        return uid
+            agent._reconcile_authority()
+            if agent.state != "active" or not agent.owner_id.active or not agent.user_id.active:
+                raise AgentAuthenticationError(_("This Agent is suspended."), "agent_suspended")
+            governance_env.cr.execute(
+                "SELECT id FROM res_users_apikeys WHERE user_id = %s AND index = %s LIMIT 1",
+                [uid, key[:8]],
+            )
+            row = governance_env.cr.fetchone()
+            credential = governance_env["usl.agent.credential"].search(
+                [
+                    ("native_key_id", "=", row[0] if row else 0),
+                    ("agent_id", "=", agent.id),
+                ],
+                limit=1,
+            )
+            if not credential or credential.status != "active":
+                raise AccessDenied(_("This Agent credential is not active."))
+            if request:
+                path = request.httprequest.path or ""
+                if not _agent_key_path_allowed(path):
+                    raise AgentAuthenticationError(
+                        _(
+                            "Agent API keys may be used only with JSON-2 and API documentation."
+                        ),
+                        "agent_transport_denied",
+                    )
+            now = fields.Datetime.now()
+            credential._touch_last_used_at(now)
+            if request:
+                request.usl_agent_reconciled_id = agent.id
+                request.usl_agent_credential_id = credential.id
+            return uid
+        finally:
+            transaction.default_env = previous_default_env
 
     @api.model
     def generate(self, key, scope, name, expiration_date):

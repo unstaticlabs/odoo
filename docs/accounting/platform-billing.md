@@ -20,6 +20,17 @@ receivable/payable accounts remain native Odoo configuration. The local QA
 fixture reuses the journal proven by restored payout allocations (`Banque
 Shine`, account `512001`) rather than choosing an arbitrary liquidity account.
 Analytic distribution is copied to invoice/bill lines.
+Genuine 0% commission is supported: gross equals net and no commission bill or
+compensation is created. The same rule applies when a nonzero rate rounds the
+commission to zero in the platform currency. Monthly commission bills include
+only payouts with nonzero commissions. An explicit zero snapshot is retained
+when prefilling a session; it is not replaced by the platform's current rate.
+
+Before checking or generating a session, set the country on each effective
+customer/supplier partner (or its commercial entity) and review its native
+fiscal position. An explicit fiscal position alone does not replace missing
+location evidence. The application never infers tax jurisdiction from USD/EUR
+or a platform name and never assigns a blanket VAT exemption.
 When the session has no explicit due date, partner payment terms determine
 document maturities. A session due date is an intentional override.
 
@@ -30,6 +41,15 @@ months: each payout stores its positive share of the same bank transaction and
 the application submits all linked open receivable lines together. A payout
 may also be paid in instalments; each received transaction stores the part it
 settles, and the session remains Posted until the full debt is reconciled.
+
+Native Accounting settlement is authoritative for the payout and session Paid
+states. A posted or reversed invoice and bill with no currency-rounded residual
+settle their payout, including when users registered or reconciled the payment
+outside Platform Billing. Platform Billing bank allocations remain optional
+matching evidence and operational guidance; they do not override the native
+Accounting result. Any linked compensation entry must be posted and its
+receivable and payable lines fully reconciled. Reopening native Accounting
+settlement returns the affected payout and session to Posted automatically.
 
 ## Currency
 
@@ -62,6 +82,24 @@ gain or loss. A bank transaction in a non-company-currency journal also keeps
 the reference-rate policy because it does not directly provide the company
 currency valuation required by this treatment.
 
+In particular, USD received into a USD bank account in an EUR company uses
+**Odoo Reference Rate**. USD received into an EUR bank account can use
+**Effective Bank Rate**. Bank import chooses based on receipt versus company
+currency, not a bank's or platform's name.
+
+Native recursive reconciliation may carry a previously chosen FX account into
+an adjustment of the opposite sign. The compatibility layer corrects only the
+configured gain/loss pair on the new exchange entry: positive company-currency
+balance selects loss (debit), negative selects gain (credit). It preserves
+amounts, custom non-FX mappings and reconciliation links. The account-direction
+guard remains enabled; posted historical entries are not repaired by this change.
+
+Existing zero-value draft bills can still be removed with **Reset Drafts** on
+their generated session. This clears the governed links before deleting the
+draft documents. Review the whole session first: this resets all its generated
+drafts, not just zero bills. Posted documents require native correction/reversal;
+do not clear workflow fields or delete payout references manually.
+
 Before reconciliation, the application sets only the statement line's normal
 partner, `foreign_currency_id` and `amount_currency` synchronization fields. It
 then submits the receivable line through `account_reconcile_oca`. The
@@ -92,5 +130,7 @@ retains signed `amount_currency` when the platform currency differs.
   shared by several payouts.
 - A generated document links its session, platform and all contributing
   payouts.
-- A session is paid only when all required invoices/bills are settled and
-  every payout has a reconciled bank transaction. Otherwise it remains posted.
+- A payout is paid when its required invoice and bill are settled and any
+  linked compensation entry is posted and reconciled. A session is paid when
+  every non-cancelled payout is paid. Bank allocations are supporting evidence,
+  not a prerequisite for either state.

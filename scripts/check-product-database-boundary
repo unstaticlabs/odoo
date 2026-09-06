@@ -30,6 +30,7 @@ fi
 
 if [[ -n "$("${compose[@]}" ps --status running -q odoo)" ]]; then
   "${compose[@]}" exec -T \
+    -e ODOO_INIT_DB="$target_database" \
     -e USL_EINVOICE_LIVE_ENABLED=0 \
     -e USL_EREPORTING_LIVE_ENABLED=0 \
     -e USL_PRODUCT_BOUNDARY_PREPROD="${USL_PRODUCT_BOUNDARY_PREPROD:-0}" \

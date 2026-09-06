@@ -38,7 +38,6 @@ deploy/documents/*
 # ship in a product image; OCA vendor checkouts enter without their Git state.
 !custom-addons/
 !custom-addons/**
-custom-addons/usl_bootstrap/
 !docs/
 docs/*
 !docs/users/
@@ -52,3 +51,22 @@ oca-src/**/.git/**
 !services/
 !services/usl-sign-dss/
 !services/usl-sign-dss/**
+
+# Translation catalogs. The distribution activates only English and French
+# (custom-addons/usl_locale), so only the .pot templates and the en*, fr and
+# fr_* catalogs enter the image. Odoo reads <module>/i18n/<lang>.po and
+# <module>/i18n_extra/<lang>.po when a language is activated; a language
+# without a catalog stays untranslated until the image is rebuilt with its
+# .po files.
+**/i18n/*.po
+!**/i18n/en*.po
+!**/i18n/fr.po
+!**/i18n/fr_*.po
+**/i18n_extra/*.po
+!**/i18n_extra/en*.po
+!**/i18n_extra/fr.po
+!**/i18n_extra/fr_*.po
+
+# usl_bootstrap is a test-only fixture. Keep this rule last so that no later
+# exception adds one of its files back.
+custom-addons/usl_bootstrap/

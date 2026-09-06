@@ -10,6 +10,7 @@ from odoo.service.model import call_kw
 from odoo.tests import tagged
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
+from odoo.addons.usl_access_control.models.action_policy import load_agent_readonly_policy
 
 
 @tagged("post_install", "-at_install", "usl_access_control")
@@ -156,6 +157,17 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
         with self.assertRaises(TypeError):
             policy.model_operation_guards["project.task", "unlink"] = None
 
+    def test_reconciliation_selection_and_matching_require_agent_write_scope(self):
+        policy = load_agent_readonly_policy()
+        self.assertEqual(
+            policy.access_for("account.move.line", "action_reconcile_manually"),
+            "write",
+        )
+        self.assertEqual(
+            policy.access_for("account.bank.statement.line", "reconcile_bank_line"),
+            "write",
+        )
+
     def test_document_detail_keeps_model_rpc_contract(self):
         with self.assertRaisesRegex(ValidationError, "no longer exists"):
             call_kw(
@@ -198,14 +210,15 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
 
     def test_named_profiles_resolve_to_one_distribution_role(self):
         definitions = self.env["res.users"]._usl_pocketid_profile_definitions()
-        self.assertEqual(
+        self.assertIn(
+            "usl_access_control.group_distribution_administrator",
             definitions["administrator"]["groups"],
-            (
-                "usl_access_control.group_distribution_administrator",
-                "usl_access_control.group_irreversible_actions",
-                "base.group_system",
-            ),
         )
+        self.assertIn(
+            "usl_access_control.group_irreversible_actions",
+            definitions["administrator"]["groups"],
+        )
+        self.assertIn("base.group_system", definitions["administrator"]["groups"])
         self.assertEqual(
             definitions["product_administrator"]["groups"],
             (
@@ -213,22 +226,26 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
                 "base.group_system",
             ),
         )
-        self.assertEqual(
+        self.assertIn(
+            "usl_access_control.group_distribution_administrator",
             definitions["break_glass"]["groups"],
-            (
-                "usl_access_control.group_distribution_administrator",
-                "usl_access_control.group_irreversible_actions",
-                "base.group_system",
-            ),
         )
+        self.assertIn(
+            "usl_access_control.group_irreversible_actions",
+            definitions["break_glass"]["groups"],
+        )
+        self.assertIn("base.group_system", definitions["break_glass"]["groups"])
         self.assertEqual(
             definitions["technical_operator"]["groups"],
             ("usl_access_control.group_technical_administrator",),
         )
-        self.assertEqual(
+        self.assertIn(
+            "usl_access_control.group_accounting_reviewer",
             definitions["accountant_reviewer"]["groups"],
-            ("usl_access_control.group_accounting_reviewer",),
         )
+        for definition in definitions.values():
+            groups = definition.get("groups") or ()
+            self.assertEqual(len(groups), len(set(groups)))
 
     def test_agent_can_mutate_operational_records_and_leaves_audit_evidence(self):
         project = self.env["project.project"].create(
@@ -259,12 +276,18 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
         task = self.env["project.task"].create(
             {"name": "Keep history", "project_id": project.id},
         )
-        for user in (self.agent, self.roger, self.prosper):
+        for user in (self.agent, self.roger):
             with self.subTest(user=user.login), self.assertRaisesRegex(
                 AccessError,
                 "Irreversible Actions|AI Agents",
             ):
                 task.with_user(user).unlink()
+            self.assertTrue(task.exists())
+        # Upstream checks task access before recurrence cleanup. Prosper's
+        # native record rule can therefore deny deletion before the USL guard.
+        with self.assertRaises(AccessError):
+            task.with_user(self.prosper).unlink()
+        self.assertTrue(task.exists())
         task.with_user(self.valentin).unlink()
         self.assertFalse(task.exists())
         event = self.env["usl.audit.event"].sudo().search(

@@ -67,7 +67,7 @@ test("breadcrumbs", async () => {
 });
 
 test.tags("desktop");
-test("breadcrumbs hide an unknown history entry", async () => {
+test("breadcrumbs keep unknown history navigable without a placeholder", async () => {
     await mountWithSearch(
         ControlPanel,
         { resModel: "foo" },
@@ -88,9 +88,11 @@ test("breadcrumbs hide an unknown history entry", async () => {
     );
 
     expect(`.o_breadcrumb`).toHaveText("Current");
-    expect(`.o_breadcrumb .o_back_button`).toHaveCount(0);
+    expect(`.o_breadcrumb .o_back_button`).toHaveCount(1);
     expect(`.o_breadcrumb .text-warning`).toHaveCount(0);
-    expect.verifySteps([]);
+    expect(`.o_breadcrumb`).not.toHaveText(/Unnamed/);
+    await contains(`.o_breadcrumb .o_back_button`).click();
+    expect.verifySteps(["unknown_controller"]);
 });
 
 test.tags("desktop");

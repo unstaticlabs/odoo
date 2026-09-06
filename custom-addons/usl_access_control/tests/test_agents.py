@@ -1,21 +1,38 @@
+import contextlib
 import datetime
-from types import SimpleNamespace
+import inspect
+from types import MethodType, SimpleNamespace
 from unittest.mock import patch
 
 from lxml import etree
+from psycopg2 import errors as pgerrors
 
 from odoo import SUPERUSER_ID, Command, api, fields
-from odoo.exceptions import AccessError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.models import get_public_method
+from odoo.http.requestlib import Request, _request_stack
+from odoo.sql_db import db_connect
 from odoo.tests import TransactionCase, tagged
 
+from odoo.addons.account.tests.common import AccountTestInvoicingCommon
+
 from ..controllers.json2 import UslAgentJson2Controller
+from ..controllers import json2 as json2_module
 from ..exceptions import AgentAuthenticationError, AgentPolicyAccessError
 from ..models import agent as agent_model_module
+from ..models import agent_feedback as agent_feedback_module
+from ..models.action_policy import load_agent_readonly_policy
 from ..models.agent import (
     UslAgentCredential,
     UslAgentKeyWizard,
     UslAgentTransferWizard,
+    _AGENT_CREDENTIAL_TOUCH_LOCK_NAMESPACE,
     _agent_key_path_allowed,
+)
+from ..models.agent_policy_tokens import (
+    AGENT_OPERATION_SCOPE_CONTEXT_KEY,
+    create_agent_operation_scope,
+    get_agent_operation_scope,
 )
 from ..models.agent_secrets import is_agent_secret_field, sanitize_agent_payload
 
@@ -41,6 +58,7 @@ class TestAutonomousAgents(TransactionCase):
             cls.env.ref("base.group_partner_manager"),
             cls.env.ref("hr.group_hr_manager"),
             cls.env.ref("hr_expense.group_hr_expense_manager"),
+            cls.env.ref("mrp.group_mrp_manager"),
             cls.env.ref("project.group_project_manager"),
             cls.env.ref("purchase.group_purchase_manager"),
             cls.env.ref("sales_team.group_sale_manager"),
@@ -49,6 +67,7 @@ class TestAutonomousAgents(TransactionCase):
             cls.env.ref("usl_document_templates.group_document_letter_manager"),
             cls.env.ref("usl_documents.group_documents_manager"),
             cls.env.ref("usl_platform_billing.group_platform_billing_manager"),
+            cls.env.ref("usl_sign.group_sign_template_manager"),
             companies=cls.company | cls.other_company,
         )
         cls.other_user = cls._create_user("agent.other", cls.group_user)
@@ -353,6 +372,112 @@ class TestAutonomousAgents(TransactionCase):
         self.assertIn("create", audit_operations)
         self.assertIn("write", audit_operations)
 
+    def test_json2_write_accepts_the_canonical_vals_keyword(self):
+        agent = self._create_agent()
+        project_manager = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write(
+            {
+                "delegated_group_ids": [Command.set(project_manager.ids)],
+                "read_only_group_ids": [Command.clear()],
+            },
+        )
+        project = self.env["project.project"].create({"name": "JSON-2 write project"})
+        task = self.env["project.task"].create(
+            {"name": "Before JSON-2 write", "project_id": project.id},
+        )
+        access = UslAgentJson2Controller._check_agent_call(
+            agent=agent,
+            model_name="project.task",
+            method_name="write",
+            kwargs={"vals": {"name": "After JSON-2 write"}},
+        )
+        context = UslAgentJson2Controller._agent_call_context(
+            context={},
+            agent=agent,
+            model_name="project.task",
+            method_name="write",
+            access=access,
+        )
+
+        kwargs = UslAgentJson2Controller._normalize_orm_payload_kwargs(
+            env=self.env,
+            model_name="project.task",
+            method_name="write",
+            kwargs={"vals": {"name": "After JSON-2 write"}},
+        )
+        updated = task.with_user(agent.user_id).with_context(context).write(
+            **kwargs,
+        )
+
+        self.assertTrue(updated)
+        self.assertEqual(task.name, "After JSON-2 write")
+
+    def test_json2_preserves_canonical_orm_payload_names(self):
+        def write(model, vals):
+            pass
+
+        def create(model, vals_list):
+            pass
+
+        for method_name, method, kwargs in (
+            ("write", write, {"vals": {"name": "Renamed"}}),
+            ("create", create, {"vals_list": [{"name": "Created"}]}),
+        ):
+            with self.subTest(method=method_name), patch(
+                "odoo.addons.usl_access_control.controllers.json2.get_public_method",
+                return_value=method,
+            ):
+                self.assertIs(
+                    UslAgentJson2Controller._normalize_orm_payload_kwargs(
+                        env=self.env,
+                        model_name="project.project",
+                        method_name=method_name,
+                        kwargs=kwargs,
+                    ),
+                    kwargs,
+                )
+
+    def test_json2_never_overwrites_an_explicit_legacy_payload(self):
+        kwargs = {
+            "vals": {"name": "Canonical"},
+            "values": {"name": "Legacy"},
+        }
+        self.assertIs(
+            UslAgentJson2Controller._normalize_orm_payload_kwargs(
+                env=self.env,
+                model_name="project.task",
+                method_name="write",
+                kwargs=kwargs,
+            ),
+            kwargs,
+        )
+
+    def test_json2_canonical_orm_payloads_bind_across_the_registry(self):
+        payloads = {
+            "create": {"vals_list": []},
+            "write": {"vals": {}},
+        }
+        for model_name in self.env.registry:
+            model = self.env[model_name]
+            for method_name, kwargs in payloads.items():
+                with self.subTest(model=model_name, method=method_name):
+                    try:
+                        method = get_public_method(model, method_name)
+                    except AccessError:
+                        # Private ORM overrides remain inaccessible to JSON-2.
+                        self.assertTrue(any(
+                            getattr(getattr(cls, method_name, None), "_api_private", False)
+                            for cls in type(model).mro()
+                        ))
+                        continue
+                    normalized = UslAgentJson2Controller._normalize_orm_payload_kwargs(
+                        env=self.env,
+                        model_name=model_name,
+                        method_name=method_name,
+                        kwargs=kwargs,
+                    )
+                    inspect.signature(method).bind(model, **normalized)
+
     def test_highest_access_still_excludes_irreversible_actions(self):
         agent = self._create_agent()
         agent.with_user(self.owner).action_grant_all_read_write()
@@ -636,11 +761,14 @@ class TestAutonomousAgents(TransactionCase):
     def test_readonly_json2_policy_denies_unknown_mutations_and_secrets(self):
         agent = self._create_agent()
         agent.with_user(self.owner).action_grant_all_read()
-        UslAgentJson2Controller._check_agent_call(
-            agent=agent,
-            model_name="res.partner",
-            method_name="search_read",
-            kwargs={"fields": ["name", "email"]},
+        self.assertEqual(
+            UslAgentJson2Controller._check_agent_call(
+                agent=agent,
+                model_name="res.partner",
+                method_name="search_read",
+                kwargs={"fields": ["name", "email"]},
+            ),
+            "read_only",
         )
         for model_name, method_name, kwargs in (
             ("res.partner", "write", {}),
@@ -663,6 +791,692 @@ class TestAutonomousAgents(TransactionCase):
                 denied.exception.context["usl_code"],
                 "agent_read_only_action_denied",
             )
+
+    def test_agent_json2_operation_scope_is_unforgeable_and_mutation_only(self):
+        agent = self._create_agent()
+        read_context = UslAgentJson2Controller._agent_call_context(
+            context={AGENT_OPERATION_SCOPE_CONTEXT_KEY: "forged", "lang": "en_US"},
+            agent=agent,
+            model_name="res.partner",
+            method_name="search_read",
+            access="read_only",
+        )
+        self.assertEqual(read_context, {"lang": "en_US"})
+
+        write_context = UslAgentJson2Controller._agent_call_context(
+            context={AGENT_OPERATION_SCOPE_CONTEXT_KEY: {"forged": True}},
+            agent=agent,
+            model_name="res.partner",
+            method_name="write",
+            access="write",
+        )
+        scope = get_agent_operation_scope(
+            write_context,
+            agent_user_id=agent.user_id.id,
+        )
+        self.assertEqual(scope.root_model, "res.partner")
+        self.assertEqual(scope.root_method, "write")
+        self.assertEqual(scope.access, "write")
+        self.assertIsNone(
+            get_agent_operation_scope(
+                write_context,
+                agent_user_id=self.other_user.id,
+            ),
+        )
+        self.assertIsNone(
+            get_agent_operation_scope(
+                {AGENT_OPERATION_SCOPE_CONTEXT_KEY: {"forged": True}},
+                agent_user_id=agent.user_id.id,
+            ),
+        )
+        for values in (
+            {
+                "agent_user_id": agent.user_id.id,
+                "root_model": "res.partner",
+                "root_method": "search_read",
+                "access": "read_only",
+            },
+            {
+                "agent_user_id": 0,
+                "root_model": "res.partner",
+                "root_method": "write",
+                "access": "write",
+            },
+        ):
+            with self.assertRaises(ValueError):
+                create_agent_operation_scope(**values)
+
+    def test_agent_operation_scope_allows_only_governed_sudo_side_effects(self):
+        agent = self._create_agent()
+        project_manager = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write(
+            {
+                "delegated_group_ids": [Command.set(project_manager.ids)],
+                "read_only_group_ids": [Command.clear()],
+            },
+        )
+        operation_context = UslAgentJson2Controller._agent_call_context(
+            context={},
+            agent=agent,
+            model_name="project.task",
+            method_name="write",
+            access="write",
+        )
+        bus_values = {
+            "channel": '"agent-operation-scope-test"',
+            "message": '{"type":"test","payload":{}}',
+        }
+
+        with self.assertRaises(AgentPolicyAccessError):
+            self.env["bus.bus"].with_user(agent.user_id).sudo().create(bus_values)
+        with self.assertRaises(AgentPolicyAccessError):
+            self.env["bus.bus"].with_user(agent.user_id).with_context(
+                **{AGENT_OPERATION_SCOPE_CONTEXT_KEY: "forged"},
+            ).sudo().create(bus_values)
+        with self.assertRaises(AgentPolicyAccessError):
+            self.env["project.task"].with_user(agent.user_id).sudo().write({})
+        with self.assertRaises(AgentPolicyAccessError):
+            self.env["mail.message"].with_user(agent.user_id).with_context(
+                operation_context,
+            ).create({"body": "A non-sudo cross-application mutation remains denied."})
+
+        notification_message = self.env["mail.message"].sudo().create(
+            {"body": "Direct technical mutation probe"},
+        )
+        technical_probes = {
+            "bus.bus": {},
+            "ir.attachment": {},
+            "mail.activity": {},
+            "mail.followers": {},
+            "mail.mail": {},
+            "mail.message": {},
+            "mail.notification": {
+                "mail_message_id": notification_message.id,
+                "notification_type": "inbox",
+                "res_partner_id": agent.user_id.partner_id.id,
+            },
+        }
+        for technical_model, values in technical_probes.items():
+            with self.subTest(technical_model=technical_model):
+                with self.assertRaises(AgentPolicyAccessError):
+                    self.env[technical_model].with_user(agent.user_id).sudo().create(values)
+
+        bus = self.env["bus.bus"].with_user(agent.user_id).with_context(
+            operation_context,
+        ).sudo().create(bus_values)
+        self.assertTrue(bus)
+
+        with self.assertRaises(AgentPolicyAccessError):
+            self.env["res.groups"].with_user(agent.user_id).with_context(
+                operation_context,
+            ).sudo().create({"name": "Scoped identity escalation"})
+
+    def test_project_agent_write_keeps_all_automatic_side_effects(self):
+        agent = self._create_agent()
+        project_manager = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write(
+            {
+                "delegated_group_ids": [Command.set(project_manager.ids)],
+                "read_only_group_ids": [Command.clear()],
+            },
+        )
+        project = self.env["project.project"].create(
+            {"name": "Agent side-effect project", "company_id": self.company.id},
+        )
+        task = self.env["project.task"].create(
+            {"name": "Agent side-effect task", "project_id": project.id},
+        )
+        operation_context = UslAgentJson2Controller._agent_call_context(
+            context={"mail_notify_force_send": False},
+            agent=agent,
+            model_name="project.task",
+            method_name="write",
+            access="write",
+        )
+        message_count = self.env["mail.message"].sudo().search_count([])
+        follower_count = self.env["mail.followers"].sudo().search_count([])
+        bus_count = self.env["bus.bus"].sudo().search_count([])
+
+        task.with_user(agent.user_id).with_context(operation_context).write(
+            {
+                "name": "Agent side-effect task updated",
+                "user_ids": [Command.set(self.owner.ids)],
+            },
+        )
+        self.env.flush_all()
+        self.env.cr.precommit.run()
+
+        self.assertEqual(task.name, "Agent side-effect task updated")
+        self.assertGreater(self.env["mail.message"].sudo().search_count([]), message_count)
+        self.assertGreater(
+            self.env["mail.followers"].sudo().search_count([]),
+            follower_count,
+        )
+        self.assertGreater(self.env["bus.bus"].sudo().search_count([]), bus_count)
+
+        task.with_user(agent.user_id).with_context(
+            operation_context,
+            tracking_disable=True,
+        ).write({"user_ids": [Command.set(agent.user_id.ids)]})
+        self.env.flush_all()
+        self.env.cr.precommit.run()
+        self.assertEqual(task.user_ids, agent.user_id)
+
+    def test_json2_request_environment_preserves_scope_for_html_notifications(self):
+        agent = self._create_agent()
+        agent.with_user(self.owner).write({
+            "delegated_group_ids": [Command.set(self.env.ref("project.group_project_manager").ids)],
+            "read_only_group_ids": [Command.clear()],
+        })
+        project = self.env["project.project"].create({"name": "Request scope project"})
+        task = self.env["project.task"].create({"name": "Request scope task", "project_id": project.id})
+        self.env.flush_all()
+        self.env.cr.precommit.run()
+        before = self.env["bus.bus"].sudo().search_count([])
+        initial_env = self.env(user=agent.user_id, context={})
+        request_state = SimpleNamespace(
+            env=initial_env, db=self.env.cr.dbname, registry=self.env.registry,
+            httprequest=SimpleNamespace(headers={}, remote_addr="127.0.0.1", user_agent=SimpleNamespace(string="test")),
+        )
+        request_state.update_env = MethodType(Request.update_env, request_state)
+        previous_default_env = self.env.transaction.default_env
+        controller = UslAgentJson2Controller()
+        dispatch = controller.web_json_2_rpc.__wrapped__
+        # The separate audit transaction cannot see this test's uncommitted
+        # identities. Check its attribution at the boundary instead.
+        audit_patch = patch.object(controller, "_record_agent_api_call")
+        audit = audit_patch.start()
+        _request_stack.push(request_state)
+        try:
+            self.assertTrue(dispatch(
+                controller, "project.task", "write", ids=task.ids,
+                vals={"description": "<p>Authorized HTML update</p>"},
+            ))
+            self.assertIsNotNone(get_agent_operation_scope(
+                request_state.env.context, agent_user_id=agent.user_id.id,
+            ))
+            self.assertFalse(request_state.env.su)
+            self.assertEqual(audit.call_args.kwargs["outcome"], "succeeded")
+            self.assertEqual(audit.call_args.kwargs["model_name"], "project.task")
+            self.env.flush_all()
+            self.env.cr.precommit.run()
+            self.assertGreater(self.env["bus.bus"].sudo().search_count([]), before)
+            self.assertIn("Authorized HTML update", task.description)
+
+            # Each HTTP request starts without its predecessor's scope.
+            request_state.update_env(context={})
+            with self.assertRaises(AgentPolicyAccessError):
+                dispatch(controller, "bus.bus", "create", vals_list=[{}])
+            self.assertEqual(audit.call_args.kwargs["outcome"], "denied")
+            self.assertNotIn(AGENT_OPERATION_SCOPE_CONTEXT_KEY, request_state.env.context)
+            dispatch(
+                controller, "project.task", "read", ids=task.ids, fields=["name"],
+                context={AGENT_OPERATION_SCOPE_CONTEXT_KEY: {"access": "write"}},
+            )
+            self.assertNotIn(AGENT_OPERATION_SCOPE_CONTEXT_KEY, request_state.env.context)
+        finally:
+            _request_stack.pop()
+            audit_patch.stop()
+            self.env.transaction.default_env = previous_default_env
+
+    def test_operation_scope_covers_every_installed_product_family(self):
+        agent = self._create_agent()
+        families = (
+            ("contacts and crm", ("base.group_partner_manager",), "res.partner"),
+            ("hr", ("hr.group_hr_manager",), "hr.employee"),
+            ("projects", ("project.group_project_manager",), "project.task"),
+            ("accounting", ("account.group_account_manager",), "account.move"),
+            ("expenses", ("hr_expense.group_hr_expense_manager",), "hr.expense"),
+            ("sales", ("sales_team.group_sale_manager",), "sale.order"),
+            ("purchase", ("purchase.group_purchase_manager",), "purchase.order"),
+            ("inventory", ("stock.group_stock_manager",), "stock.picking"),
+            ("manufacturing", ("mrp.group_mrp_manager",), "mrp.production"),
+            ("documents", ("usl_documents.group_documents_manager",), "usl.document"),
+            (
+                "document templates",
+                ("usl_document_templates.group_document_letter_manager",),
+                "usl.document.letter",
+            ),
+            (
+                "sign",
+                ("usl_sign.group_sign_template_manager",),
+                "sign.oca.template",
+            ),
+            ("b2c", ("usl_b2c.group_b2c_manager",), "b2c.order"),
+            (
+                "platform billing",
+                ("usl_platform_billing.group_platform_billing_manager",),
+                "usl.platform.billing.session",
+            ),
+            (
+                "tese payroll",
+                ("hr.group_hr_manager", "account.group_account_manager"),
+                "usl.tese.payslip",
+            ),
+            ("safe administration", ("base.group_system",), "ir.sequence"),
+        )
+
+        for family, group_xmlids, model_name in families:
+            with self.subTest(family=family, model_name=model_name):
+                groups = self.env["res.groups"].browse(
+                    [self.env.ref(xmlid).id for xmlid in group_xmlids],
+                )
+                agent.with_user(self.owner).write(
+                    {
+                        "delegated_group_ids": [Command.set(groups.ids)],
+                        "read_only_group_ids": [Command.clear()],
+                    },
+                )
+                access = UslAgentJson2Controller._check_agent_call(
+                    agent=agent,
+                    model_name=model_name,
+                    method_name="write",
+                    kwargs={},
+                )
+                self.assertEqual(access, "write")
+                operation_context = UslAgentJson2Controller._agent_call_context(
+                    context={},
+                    agent=agent,
+                    model_name=model_name,
+                    method_name="write",
+                    access=access,
+                )
+                self.env["bus.bus"].with_user(agent.user_id).with_context(
+                    operation_context,
+                ).sudo().create(
+                    {
+                        "channel": f'"agent-{family}"',
+                        "message": '{"type":"test","payload":{}}',
+                    },
+                )
+
+    def test_writable_agent_collaboration_propagates_technical_authority(self):
+        agent = self._create_agent()
+        project_manager = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write(
+            {
+                "delegated_group_ids": [Command.set(project_manager.ids)],
+                "read_only_group_ids": [Command.clear()],
+            },
+        )
+        project = self.env["project.project"].create(
+            {"name": "Writable Agent collaboration project"},
+        )
+        task = self.env["project.task"].create(
+            {
+                "name": "Writable Agent collaboration",
+                "project_id": project.id,
+                "user_ids": [Command.set(agent.user_id.ids)],
+            },
+        )
+        recipient = self.env["res.partner"].create(
+            {"name": "Writable Agent recipient", "email": "recipient@example.test"},
+        )
+        message_count = self.env["mail.message"].sudo().search_count([])
+        mail_count = self.env["mail.mail"].sudo().search_count([])
+
+        task.with_user(agent.user_id).message_subscribe(
+            partner_ids=agent.user_id.partner_id.ids,
+        )
+        activity = task.with_user(agent.user_id).activity_schedule(
+            "mail.mail_activity_data_todo",
+            user_id=agent.user_id.id,
+            summary="Review writable Agent result",
+        )
+        message = task.with_user(agent.user_id).with_context(
+            mail_notify_force_send=False,
+        ).message_post(
+            body="Writable Agent review note",
+            message_type="comment",
+            subtype_xmlid="mail.mt_comment",
+            partner_ids=recipient.ids,
+        )
+        notification = task.with_user(agent.user_id).message_notify(
+            body="Writable Agent direct notification",
+            partner_ids=recipient.ids,
+            force_send=False,
+        )
+        task.with_user(agent.user_id).message_unsubscribe(
+            partner_ids=agent.user_id.partner_id.ids,
+        )
+        self.env.flush_all()
+        self.env.cr.precommit.run()
+
+        self.assertEqual(message.author_id, agent.user_id.partner_id)
+        self.assertTrue(notification)
+        self.assertEqual(activity.create_uid, agent.user_id)
+        self.assertGreater(self.env["mail.message"].sudo().search_count([]), message_count)
+        self.assertGreater(self.env["mail.mail"].sudo().search_count([]), mail_count)
+
+    def test_project_agent_completes_activity_through_business_record_authority(self):
+        agent = self._create_agent()
+        project_manager = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write(
+            {
+                "delegated_group_ids": [Command.set(project_manager.ids)],
+                "read_only_group_ids": [Command.clear()],
+            },
+        )
+        project = self.env["project.project"].create({"name": "Agent activity project"})
+        task = self.env["project.task"].create(
+            {"name": "Agent activity task", "project_id": project.id},
+        )
+        activity = task.activity_schedule(
+            "mail.mail_activity_data_todo",
+            user_id=agent.user_id.id,
+            summary="Complete through Agent",
+        )
+        access = UslAgentJson2Controller._check_agent_call(
+            agent=agent,
+            model_name="mail.activity",
+            method_name="action_feedback",
+            kwargs={},
+        )
+        self.assertEqual(access, "collaboration")
+        context = UslAgentJson2Controller._agent_call_context(
+            context={},
+            agent=agent,
+            model_name="mail.activity",
+            method_name="action_feedback",
+            access=access,
+        )
+
+        activity.with_user(agent.user_id).with_context(context).action_feedback(
+            feedback="Completed by governed Agent",
+        )
+
+        self.assertFalse(activity.active)
+        self.assertTrue(activity.date_done)
+        self.assertTrue(
+            self.env["mail.message"].sudo().search_count(
+                [("model", "=", "project.task"), ("res_id", "=", task.id)],
+            ),
+        )
+
+    def test_project_agent_reschedules_activity_through_business_record_authority(self):
+        agent = self._create_agent()
+        project_manager = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write({
+            "delegated_group_ids": [Command.set(project_manager.ids)],
+            "read_only_group_ids": [Command.clear()],
+        })
+        project = self.env["project.project"].create({"name": "Agent reschedule project"})
+        task = self.env["project.task"].create({"name": "Agent reschedule task", "project_id": project.id})
+        other_task = task.copy({"name": "Unrelated activity task"})
+        activity = task.activity_schedule("mail.mail_activity_data_call", user_id=agent.user_id.id)
+        unrelated = other_task.activity_schedule("mail.mail_activity_data_call", user_id=agent.user_id.id)
+        before = unrelated.date_deadline
+        deadline = fields.Date.today() + datetime.timedelta(days=7)
+        self.assertFalse(agent._allows_model_operation("mail.activity", "write"))
+        access = UslAgentJson2Controller._check_agent_call(
+            agent=agent, model_name="project.task", method_name="activity_reschedule", kwargs={},
+        )
+        self.assertEqual(access, "write")
+        context = UslAgentJson2Controller._agent_call_context(
+            context={}, agent=agent, model_name="project.task", method_name="activity_reschedule", access=access,
+        )
+        result = task.with_user(agent.user_id).with_context(context).activity_reschedule(
+            ["mail.mail_activity_data_call"], date_deadline=deadline, new_user_id=self.owner.id,
+        )
+        self.env.flush_all()
+        self.env.cr.precommit.run()
+        self.assertEqual(result.ids, activity.ids)
+        self.assertEqual(activity.date_deadline, deadline)
+        self.assertEqual(activity.user_id, self.owner)
+        self.assertEqual(unrelated.date_deadline, before)
+        self.assertEqual(unrelated.user_id, agent.user_id)
+        with self.assertRaises(AgentPolicyAccessError):
+            activity.with_user(agent.user_id).write({"summary": "Direct technical write remains denied"})
+
+        agent.with_user(self.owner).write({"read_only_group_ids": [Command.set(project_manager.ids)]})
+        with self.assertRaises(AgentPolicyAccessError):
+            task.with_user(agent.user_id).activity_reschedule(
+                ["mail.mail_activity_data_call"], date_deadline=deadline,
+            )
+
+    def test_agent_activity_reschedule_requires_access_to_business_record(self):
+        agent = self._create_agent()
+        project_manager = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write({
+            "delegated_group_ids": [Command.set(project_manager.ids)],
+            "read_only_group_ids": [Command.clear()],
+        })
+        project = self.env["project.project"].with_company(self.other_company).create({
+            "name": "Other company reschedule", "company_id": self.other_company.id,
+        })
+        task = self.env["project.task"].with_company(self.other_company).create({
+            "name": "Other company task", "project_id": project.id,
+        })
+        with self.assertRaises(AccessError):
+            task.with_user(agent.user_id).with_context(allowed_company_ids=self.company.ids).activity_reschedule(
+                ["mail.mail_activity_data_call"], date_deadline=fields.Date.today(),
+            )
+
+    def test_project_agent_creates_task_with_followers_and_personal_stage(self):
+        agent = self._create_agent()
+        project_manager = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write(
+            {
+                "delegated_group_ids": [Command.set(project_manager.ids)],
+                "read_only_group_ids": [Command.clear()],
+            },
+        )
+        project = self.env["project.project"].create({"name": "Agent create project"})
+        access = UslAgentJson2Controller._check_agent_call(
+            agent=agent,
+            model_name="project.task",
+            method_name="create",
+            kwargs={},
+        )
+        context = UslAgentJson2Controller._agent_call_context(
+            context={},
+            agent=agent,
+            model_name="project.task",
+            method_name="create",
+            access=access,
+        )
+
+        task = self.env["project.task"].with_user(agent.user_id).with_context(
+            context,
+        ).create(
+            {
+                "name": "Created by governed Agent",
+                "project_id": project.id,
+                "user_ids": [Command.set(agent.user_id.ids)],
+            },
+        )
+        self.env.flush_all()
+        self.env.cr.precommit.run()
+
+        self.assertEqual(task.create_uid, agent.user_id)
+        self.assertTrue(task.message_follower_ids)
+        self.assertTrue(
+            self.env["project.task.stage.personal"].sudo().search_count(
+                [("user_id", "=", agent.user_id.id), ("task_id", "=", task.id)],
+            ),
+        )
+
+    def test_activity_completion_denies_agent_without_business_write(self):
+        agent = self._create_agent()
+        agent.with_user(self.owner).action_grant_all_read()
+        project = self.env["project.project"].create({"name": "Read-only activity project"})
+        task = self.env["project.task"].create(
+            {"name": "Read-only activity task", "project_id": project.id},
+        )
+        activity = task.activity_schedule(
+            "mail.mail_activity_data_todo",
+            user_id=agent.user_id.id,
+        )
+        context = UslAgentJson2Controller._agent_call_context(
+            context={},
+            agent=agent,
+            model_name="mail.activity",
+            method_name="action_feedback",
+            access="collaboration",
+        )
+
+        with self.assertRaises(AgentPolicyAccessError):
+            activity.with_user(agent.user_id).with_context(context).action_feedback()
+        self.assertTrue(activity.exists())
+
+    def test_active_agent_submits_atomic_low_trust_feedback(self):
+        agent = self._create_agent()
+        project = self.env["project.project"].create({"name": "[DEV] Odoo MCP"})
+        stage = self.env["project.task.type"].create(
+            {"name": "Inbox", "sequence": 0, "project_ids": [Command.set(project.ids)]},
+        )
+        self.env["project.tags"].create({"name": "MCP"})
+        self.env["project.tags"].create({"name": "Agent Feedback"})
+        self.env["project.tags"].create({"name": "Bug"})
+        context = UslAgentJson2Controller._agent_call_context(
+            context={},
+            agent=agent,
+            model_name="usl.agent",
+            method_name="submit_mcp_feedback",
+            access="collaboration",
+        )
+        values = {
+            "category": "bug",
+            "impact": "major",
+            "title": "Escaped <feedback>",
+            "summary": "A structured failure was observed.",
+            "affected_tool": "odoo_call_method",
+            "expected_behavior": "The action succeeds.",
+            "actual_behavior": "The action was denied.",
+            "reproduction_steps": ["Call the tool", "Observe the denial"],
+            "workaround": "Use a human session.",
+            "correlation_id": "corr-test",
+        }
+        environment = {
+            "USL_MCP_FEEDBACK_PROJECT_ID": str(project.id),
+            "USL_MCP_FEEDBACK_STAGE_ID": str(stage.id),
+            "USL_RELEASE_COMMIT": "c" * 40,
+        }
+        with patch.object(agent_feedback_module.os, "getenv", side_effect=environment.get):
+            result = self.env["usl.agent"].with_user(agent.user_id).with_context(
+                context,
+            ).submit_mcp_feedback(
+                values,
+                {
+                    "mcp_server_version": "1.1.0",
+                    "mcp_commit": "a" * 40,
+                    "gitops_commit": "b" * 40,
+                },
+            )
+
+        task = self.env["project.task"].sudo().browse(result["task_id"])
+        self.assertEqual(task.project_id, project)
+        self.assertEqual(task.stage_id, stage)
+        self.assertEqual(task.name, "[Agent feedback] Escaped <feedback>")
+        self.assertIn("[agent-feedback]", task.description)
+        self.assertIn("a" * 40, task.description)
+        self.assertIn("b" * 40, task.description)
+        self.assertIn("c" * 40, task.description)
+        self.assertEqual(set(task.tag_ids.mapped("name")), {"MCP", "Agent Feedback", "Bug"})
+        self.assertTrue(task.message_ids.filtered(lambda message: "[agent-feedback]" in message.body))
+
+    def test_feedback_rejects_suspended_agent_and_incomplete_bug(self):
+        agent = self._create_agent()
+        with self.assertRaises(ValidationError):
+            self.env["usl.agent"].with_user(agent.user_id).submit_mcp_feedback(
+                {
+                    "category": "bug",
+                    "impact": "major",
+                    "title": "Incomplete",
+                    "summary": "Missing reproduction details",
+                },
+            )
+        agent.with_user(self.owner).action_suspend()
+        with self.assertRaises(AgentPolicyAccessError):
+            self.env["usl.agent"].with_user(agent.user_id).submit_mcp_feedback(
+                {
+                    "category": "feature_request",
+                    "impact": "suggestion",
+                    "title": "No longer active",
+                    "summary": "Suspended Agents cannot submit.",
+                },
+            )
+
+    def test_feedback_requires_authenticated_root_scope_and_strict_fields(self):
+        agent = self._create_agent()
+        project = self.env["project.project"].create({"name": "[DEV] Odoo MCP"})
+        stage = self.env["project.task.type"].create(
+            {"name": "Inbox", "sequence": 0, "project_ids": [Command.set(project.ids)]},
+        )
+        feedback = {
+            "category": "feature_request",
+            "impact": "suggestion",
+            "title": "Strict feedback",
+            "summary": "Reject fields outside the public contract.",
+        }
+        environment = {
+            "USL_MCP_FEEDBACK_PROJECT_ID": str(project.id),
+            "USL_MCP_FEEDBACK_STAGE_ID": str(stage.id),
+        }
+        with patch.object(agent_feedback_module.os, "getenv", side_effect=environment.get):
+            with self.assertRaises(AgentPolicyAccessError):
+                self.env["usl.agent"].with_user(agent.user_id).submit_mcp_feedback(feedback)
+            context = UslAgentJson2Controller._agent_call_context(
+                context={},
+                agent=agent,
+                model_name="usl.agent",
+                method_name="submit_mcp_feedback",
+                access="collaboration",
+            )
+            with self.assertRaises(ValidationError):
+                self.env["usl.agent"].with_user(agent.user_id).with_context(
+                    context,
+                ).submit_mcp_feedback({**feedback, "unexpected": "rejected"})
+            with self.assertRaises(ValidationError):
+                self.env["usl.agent"].with_user(agent.user_id).with_context(
+                    context,
+                ).submit_mcp_feedback(feedback, {"unexpected": "rejected"})
+
+    def test_every_collaboration_action_uses_a_governed_shared_primitive(self):
+        policy = load_agent_readonly_policy()
+        parsed = {
+            action_key.removeprefix("rpc:").rsplit(".", 1)[1]
+            for action_key in policy.collaboration_actions
+        }
+        models = {
+            action_key.removeprefix("rpc:").rsplit(".", 1)[0]
+            for action_key in policy.collaboration_actions
+        }
+        self.assertTrue(policy.collaboration_actions)
+        self.assertTrue(models)
+        self.assertEqual(
+            parsed,
+            {
+                "activity_schedule",
+                "action_done_schedule_next",
+                "action_feedback",
+                "action_feedback_schedule_next",
+                "mcp_create_download_grant",
+                "mcp_revoke_download_grant",
+                "message_post",
+                "message_subscribe",
+                "message_unsubscribe",
+                "submit_mcp_feedback",
+            },
+        )
+        for action_key in policy.collaboration_actions:
+            model_name, method_name = action_key.removeprefix("rpc:").rsplit(".", 1)
+            with self.subTest(action_key=action_key):
+                self.assertIn(model_name, self.env)
+                self.assertTrue(hasattr(self.env[model_name], method_name))
+
+        message_notify_actions = {
+            action_key
+            for action_key in policy.write_actions
+            if action_key.endswith(".message_notify")
+        }
+        self.assertTrue(message_notify_actions)
+        self.assertTrue(message_notify_actions.isdisjoint(policy.collaboration_actions))
+        for action_key in message_notify_actions:
+            model_name = action_key.removeprefix("rpc:").rsplit(".", 1)[0]
+            with self.subTest(action_key=action_key):
+                self.assertIn(model_name, self.env)
+                self.assertTrue(hasattr(self.env[model_name], "message_notify"))
 
     def test_agent_cannot_administer_identities_or_irreversible_actions(self):
         agent = self._create_agent()
@@ -742,6 +1556,65 @@ class TestAutonomousAgents(TransactionCase):
         self.assertNotEqual(initial, read_only)
         agent.with_user(self.owner).write({"company_ids": [Command.set([self.company.id])]})
         self.assertNotEqual(read_only, partner_model._api_doc_cache_vary())
+
+    def test_agent_and_audit_searches_respect_active_companies(self):
+        local_agent = self._create_agent()
+        foreign_agent = self.env["usl.agent"].with_user(self.owner).create(
+            {
+                "name": "Other-company Agent",
+                "purpose": "Prove the global company boundary.",
+                "owner_id": self.owner.id,
+                "company_id": self.other_company.id,
+                "company_ids": [Command.set([self.other_company.id])],
+            },
+        )
+        local_key = self._generate_key(local_agent)
+        foreign_key = self._generate_key(foreign_agent)
+        local_credential = local_agent.credential_ids
+        foreign_credential = foreign_agent.credential_ids
+        local_event = self.env["usl.audit.event"]._record_event(
+            {
+                "actor_id": self.owner.id,
+                "actor_is_agent": False,
+                "owner_id": self.owner.id,
+                "company_id": self.company.id,
+                "event_type": "api_call",
+                "model_name": "res.partner",
+                "operation": "read",
+                "action_name": "Local read",
+                "origin": "test",
+            },
+        )
+        foreign_event = self.env["usl.audit.event"]._record_event(
+            {
+                "actor_id": self.owner.id,
+                "actor_is_agent": False,
+                "owner_id": self.owner.id,
+                "company_id": self.other_company.id,
+                "event_type": "api_call",
+                "model_name": "res.partner",
+                "operation": "read",
+                "action_name": "Foreign read",
+                "origin": "test",
+            },
+        )
+        owner_env = self.env(user=self.owner, context={"allowed_company_ids": [self.company.id]})
+
+        visible_agents = owner_env["usl.agent"].search(
+            [("id", "in", (local_agent | foreign_agent).ids)],
+        )
+        visible_events = owner_env["usl.audit.event"].search(
+            [("id", "in", (local_event | foreign_event).ids)],
+        )
+        visible_credentials = owner_env["usl.agent.credential"].search(
+            [("id", "in", (local_credential | foreign_credential).ids)],
+        )
+
+        self.assertEqual(visible_agents, local_agent)
+        self.assertEqual(visible_events, local_event)
+        self.assertEqual(visible_credentials, local_credential)
+        self.assertTrue(local_key)
+        self.assertTrue(foreign_key)
 
     def test_new_owner_access_requires_read_profile_reapplication(self):
         owner = self._create_user("agent.profile.reapply.owner", self.group_user)
@@ -871,9 +1744,79 @@ class TestAutonomousAgents(TransactionCase):
                 scope="rpc",
                 key=key,
             )
+            self.assertIsNone(transaction.default_env)
         finally:
             transaction.default_env = previous_default_env
         self.assertEqual(uid, agent.user_id.id)
+
+    def test_concurrent_agent_authentication_skips_contended_usage_touch(self):
+        agent = self._create_agent()
+        key = self._generate_key(agent)
+        credential = agent.credential_ids
+
+        # The lock must belong to an independent PostgreSQL transaction,
+        # not the registry's same-transaction test cursor.
+        with db_connect(self.env.cr.dbname).cursor() as lock_cr:
+            lock_cr.execute(
+                "SELECT pg_advisory_xact_lock(%s, %s)",
+                [_AGENT_CREDENTIAL_TOUCH_LOCK_NAMESPACE, credential.id],
+            )
+            uid = self.env["res.users.apikeys"]._check_credentials(scope="rpc", key=key)
+
+        credential.invalidate_recordset(["last_used_at"])
+        self.assertEqual(uid, agent.user_id.id)
+        self.assertFalse(credential.last_used_at)
+
+        uid = self.env["res.users.apikeys"]._check_credentials(scope="rpc", key=key)
+        credential.invalidate_recordset(["last_used_at"])
+        self.assertEqual(uid, agent.user_id.id)
+        self.assertTrue(credential.last_used_at)
+
+    def test_agent_usage_touch_preserves_authentication_after_serialization_failure(self):
+        agent = self._create_agent()
+        key = self._generate_key(agent)
+        cursor_type = type(self.env.cr)
+        execute = cursor_type.execute
+
+        def concurrent_update(cursor, query, *args, **kwargs):
+            if isinstance(query, str) and "WITH candidate AS" in query:
+                # A real database error aborts the savepoint. Authentication
+                # and the surrounding transaction must remain usable.
+                execute(cursor, "DO $$ BEGIN RAISE EXCEPTION USING ERRCODE = '40001'; END $$")
+            return execute(cursor, query, *args, **kwargs)
+
+        with patch.object(cursor_type, "execute", concurrent_update):
+            uid = self.env["res.users.apikeys"]._check_credentials(scope="rpc", key=key)
+        self.assertEqual(uid, agent.user_id.id)
+        self.assertFalse(agent.credential_ids.last_used_at)
+        self.env.cr.execute("SELECT 1")
+        self.assertEqual(self.env.cr.fetchone(), (1,))
+
+    def test_agent_usage_touch_is_throttled(self):
+        agent = self._create_agent()
+        self._generate_key(agent)
+        credential = agent.credential_ids
+        now = fields.Datetime.now()
+        self.assertTrue(credential._touch_last_used_at(now))
+        self.assertFalse(credential._touch_last_used_at(now + datetime.timedelta(seconds=30)))
+        self.assertTrue(credential._touch_last_used_at(now + datetime.timedelta(minutes=2)))
+
+    def test_agent_usage_touch_does_not_hide_other_database_errors(self):
+        agent = self._create_agent()
+        key = self._generate_key(agent)
+        credential = agent.credential_ids
+        cursor_type = type(self.env.cr)
+        execute = cursor_type.execute
+
+        def unavailable(cursor, query, *args, **kwargs):
+            if isinstance(query, str) and "WITH candidate AS" in query:
+                raise pgerrors.OperationalError()
+            return execute(cursor, query, *args, **kwargs)
+
+        with self.assertRaises(pgerrors.OperationalError):
+            with patch.object(cursor_type, "execute", unavailable):
+                credential._touch_last_used_at(fields.Datetime.now())
+        self.assertEqual(self.env["res.users.apikeys"]._check_credentials(scope="rpc", key=key), agent.user_id.id)
 
     def test_authenticated_identity_reconciles_authority_only_once(self):
         agent = self._create_agent()
@@ -952,4 +1895,218 @@ class TestAutonomousAgents(TransactionCase):
                     "duration": "custom",
                     "expiration_date": fields.Datetime.now() + datetime.timedelta(days=1827),
                 },
+            )
+    def test_agent_api_audit_is_recorded_after_the_request_transaction_ends(self):
+        """The audit insert must not run on a second connection while the
+        request transaction is open: its foreign-key checks wait on rows that
+        the request locked, which wedges the HTTP worker."""
+        agent = self._create_agent()
+        controller = UslAgentJson2Controller()
+        request_state = SimpleNamespace(
+            env=self.env, registry=self.env.registry,
+            httprequest=SimpleNamespace(remote_addr="127.0.0.1", user_agent=SimpleNamespace(string="test")),
+        )
+        events = self.env["usl.audit.event"].sudo()
+
+        def record(request_id, outcome="succeeded"):
+            controller._record_agent_api_call(
+                agent=agent, model_name="res.partner", method_name="search_read",
+                record_ids=(), outcome=outcome, request_id=request_id, correlation_id=request_id,
+            )
+
+        same_transaction = patch.object(
+            self.env.registry, "cursor", return_value=contextlib.nullcontext(self.env.cr),
+        )
+        with (
+            patch.object(json2_module, "request", request_state),
+            same_transaction,
+            patch.object(self.env.cr, "commit", lambda: None),
+        ):
+            record("req-committed")
+            self.assertFalse(events.search([("request_id", "=", "req-committed")]))
+            self.env.cr.postcommit.run()
+            self.assertEqual(
+                events.search([("request_id", "=", "req-committed")]).mapped("outcome"),
+                ["succeeded"],
+            )
+
+            record("req-rolled-back")
+            self.env.cr.postcommit.clear()
+            self.env.cr.postrollback.run()
+            self.assertEqual(
+                events.search([("request_id", "=", "req-rolled-back")]).mapped("outcome"),
+                ["failed"],
+            )
+
+            record("req-denied", outcome="denied")
+            self.env.cr.postcommit.clear()
+            self.env.cr.postrollback.run()
+            self.assertEqual(
+                events.search([("request_id", "=", "req-denied")]).mapped("outcome"),
+                ["denied"],
+            )
+
+
+
+
+@tagged("post_install", "-at_install", "usl_access_control")
+class TestAgentDraftVendorBillConfiguration(AccountTestInvoicingCommon):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        accounting_manager = cls.env.ref("account.group_account_manager")
+        cls.agent = cls.env["usl.agent"].create(
+            {
+                "name": "Accounting configuration Agent",
+                "purpose": "Prepare draft vendor bills for human accounting review.",
+                "owner_id": cls.env.user.id,
+                "company_id": cls.env.company.id,
+                "company_ids": [Command.set(cls.env.company.ids)],
+                "delegated_group_ids": [Command.set(accounting_manager.ids)],
+                "read_only_group_ids": [Command.clear()],
+                "access_mode": "read_write",
+            },
+        )
+        cls.reverse_charge_tax = cls.env["account.tax"].create(
+            {
+                "name": "Agent reverse charge purchase tax",
+                "amount_type": "percent",
+                "amount": 20.0,
+                "type_tax_use": "purchase",
+                "company_id": cls.env.company.id,
+                "invoice_repartition_line_ids": [
+                    Command.create({"repartition_type": "base"}),
+                    Command.create(
+                        {
+                            "repartition_type": "tax",
+                            "factor_percent": 100.0,
+                            "account_id": cls.company_data["default_account_tax_purchase"].id,
+                        },
+                    ),
+                    Command.create(
+                        {
+                            "repartition_type": "tax",
+                            "factor_percent": -100.0,
+                            "account_id": cls.company_data["default_account_tax_purchase"].id,
+                        },
+                    ),
+                ],
+                "refund_repartition_line_ids": [
+                    Command.create({"repartition_type": "base"}),
+                    Command.create(
+                        {
+                            "repartition_type": "tax",
+                            "factor_percent": 100.0,
+                            "account_id": cls.company_data["default_account_tax_purchase"].id,
+                        },
+                    ),
+                    Command.create(
+                        {
+                            "repartition_type": "tax",
+                            "factor_percent": -100.0,
+                            "account_id": cls.company_data["default_account_tax_purchase"].id,
+                        },
+                    ),
+                ],
+            },
+        )
+
+    def _bill(self, move_type="in_invoice", taxes=None):
+        return self.init_invoice(
+            move_type,
+            invoice_date=fields.Date.today(),
+            amounts=[100.0],
+            taxes=taxes if taxes is not None else self.tax_purchase_a,
+        )
+
+    def _configure(self, bill, **values):
+        access = self.agent._api_method_access(
+            "account.move",
+            "configure_draft_vendor_bill",
+        )
+        self.assertEqual(access, "write")
+        context = UslAgentJson2Controller._agent_call_context(
+            context={},
+            agent=self.agent,
+            model_name="account.move",
+            method_name="configure_draft_vendor_bill",
+            access=access,
+        )
+        result = bill.with_user(self.agent.user_id).with_context(context).configure_draft_vendor_bill(
+            **values,
+        )
+        self.env.flush_all()
+        self.env.cr.precommit.run()
+        return result
+
+    def test_agent_replaces_and_removes_draft_vendor_bill_tax(self):
+        bill = self._bill()
+        line = bill.invoice_line_ids
+
+        replacement = self._configure(
+            bill,
+            line_patches=[{"line_id": line.id, "tax_ids": self.tax_purchase_b.ids}],
+        )
+        self.assertEqual(line.tax_ids, self.tax_purchase_b)
+        self.assertEqual(replacement["invoice_lines"][0]["tax_ids"], self.tax_purchase_b.ids)
+        self.assertTrue(replacement["tax_lines"])
+
+        removal = self._configure(
+            bill,
+            line_patches=[{"line_id": line.id, "tax_ids": []}],
+        )
+        self.assertFalse(line.tax_ids)
+        self.assertFalse(removal["tax_lines"])
+        self.assertEqual(removal["bill"]["amount_tax"], 0.0)
+
+    def test_agent_applies_reverse_charge_tax_and_returns_both_generated_lines(self):
+        bill = self._bill(taxes=self.env["account.tax"])
+        result = self._configure(
+            bill,
+            line_patches=[
+                {
+                    "line_id": bill.invoice_line_ids.id,
+                    "tax_ids": self.reverse_charge_tax.ids,
+                },
+            ],
+        )
+        self.assertEqual(bill.invoice_line_ids.tax_ids, self.reverse_charge_tax)
+        self.assertEqual(len(result["tax_lines"]), 2)
+        self.assertEqual(result["bill"]["amount_tax"], 0.0)
+
+    def test_agent_recomputes_tax_on_draft_vendor_credit_note(self):
+        credit_note = self._bill(move_type="in_refund")
+        result = self._configure(
+            credit_note,
+            line_patches=[
+                {
+                    "line_id": credit_note.invoice_line_ids.id,
+                    "tax_ids": self.tax_purchase_b.ids,
+                },
+            ],
+        )
+        self.assertEqual(result["bill"]["move_type"], "in_refund")
+        self.assertEqual(credit_note.invoice_line_ids.tax_ids, self.tax_purchase_b)
+        self.assertTrue(result["tax_lines"])
+
+    def test_agent_cannot_patch_generated_or_posted_accounting_lines(self):
+        bill = self._bill()
+        other_bill = self._bill()
+        generated_tax_line = bill.line_ids.filtered(lambda line: line.display_type == "tax")
+        with self.assertRaises(ValidationError):
+            self._configure(
+                bill,
+                line_patches=[{"line_id": generated_tax_line.id, "name": "Denied"}],
+            )
+        with self.assertRaises(ValidationError):
+            self._configure(
+                bill,
+                line_patches=[{"line_id": other_bill.invoice_line_ids.id, "name": "Denied"}],
+            )
+
+        bill.action_post()
+        with self.assertRaises(UserError):
+            self._configure(
+                bill,
+                line_patches=[{"line_id": bill.invoice_line_ids.id, "tax_ids": []}],
             )

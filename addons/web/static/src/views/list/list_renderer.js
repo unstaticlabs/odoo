@@ -126,6 +126,7 @@ export class ListRenderer extends Component {
         "onOpenFormView?",
         "hasOpenFormViewButton?",
         "noContentHelp?",
+        "onOrderByChange?",
         "nestedKeyOptionalFieldsData?",
         "optionalActiveFields?",
         "readonly?",
@@ -738,15 +739,17 @@ export class ListRenderer extends Component {
                             multiCurrency = true;
                             currencyId = user.activeCompany.currency_id;
                             for (const i in values) {
-                                let currency = values[i][currencyField].id;
+                                const currencyValue = values[i][currencyField];
+                                if (!currencyValue) {
+                                    continue;
+                                }
+                                let currency = currencyValue.id;
                                 if (
                                     this.props.list.isGrouped &&
                                     !this.props.list.selection.length
                                 ) {
                                     currency =
-                                        values[i][currencyField].length > 1
-                                            ? currencyId
-                                            : values[i][currencyField][0];
+                                        currencyValue.length > 1 ? currencyId : currencyValue[0];
                                 }
                                 if (currency !== currencyId) {
                                     fieldValues[i] *= currency
@@ -794,7 +797,7 @@ export class ListRenderer extends Component {
         }
         if (this.props.list.isGrouped && !this.props.list.selection.length) {
             return values.reduce((set, value) => {
-                value[currencyField].forEach((c) => {
+                value[currencyField]?.forEach((c) => {
                     set.add(c);
                 });
                 return set;
@@ -1210,7 +1213,7 @@ export class ListRenderer extends Component {
         return optionalActiveFields;
     }
 
-    onClickSortColumn(column) {
+    async onClickSortColumn(column) {
         if (this.preventReorder) {
             this.preventReorder = false;
             return;
@@ -1221,7 +1224,8 @@ export class ListRenderer extends Component {
         const list = this.props.list;
         const fieldName = column.name;
         if (this.isSortable(column)) {
-            list.sortBy(fieldName);
+            await list.sortBy(fieldName);
+            this.props.onOrderByChange?.();
         }
     }
 

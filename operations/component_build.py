@@ -70,10 +70,18 @@ COMPONENTS = {
             (
                 "docker/backup.Dockerfile",
                 "docker/backup.Dockerfile.dockerignore",
+                "compose.resources.production.json",
+                "compose.resources.staging.json",
+                "deploy/production.cron-policy.json",
                 "operations/**",
                 "operations/contracts/**",
                 "scripts/cohort-runtime",
                 "scripts/usl-stack",
+                "scripts/odoo/production_quarantine.py",
+                "scripts/odoo/production_activate.py",
+                "scripts/odoo/production_side_effect_boundary.py",
+                "scripts/sign-services-smoke.py",
+                "scripts/generate-receipt-fetcher-certs",
             ),
         ),
         Component(
@@ -92,6 +100,20 @@ COMPONENTS = {
                 "services/usl-sign-dss/**",
                 "addons/web/static/fonts/sign/NotoSans-Reg.ttf",
             ),
+        ),
+        Component(
+            "receipt-fetcher",
+            "ghcr.io/unstaticlabs/usl-receipt-fetcher",
+            "services/usl-receipt-fetcher/Dockerfile",
+            None,
+            ("services/usl-receipt-fetcher/**",),
+        ),
+        Component(
+            "receipt-egress",
+            "ghcr.io/unstaticlabs/usl-receipt-egress",
+            "services/usl-receipt-egress/Dockerfile",
+            None,
+            ("services/usl-receipt-egress/**",),
         ),
     )
 }
@@ -155,8 +177,32 @@ def component_digest(component: Component, root: Path = ROOT) -> str:
     return digest.hexdigest()
 
 
+def source_date_epoch(root: Path = ROOT) -> int | None:
+    """Return the committer time of HEAD as the SOURCE_DATE_EPOCH of a build.
+
+    BuildKit writes it as the image creation time and, with the exporter
+    option ``rewrite-timestamp=true``, as the timestamp of every file in the
+    exported layers. A layer digest then depends on the content and on the
+    commit, not on the checkout time of the build machine. The value is not
+    part of the component input digest. It is ``None`` when HEAD has no
+    commit, for example in a test repository.
+    """
+    process = subprocess.run(
+        ("git", "log", "-1", "--format=%ct"),
+        cwd=root,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    value = process.stdout.strip()
+    if process.returncode or not value.isdigit():
+        return None
+    return int(value)
+
+
 def resolve(root: Path = ROOT) -> dict[str, object]:
     values = {}
+    epoch = source_date_epoch(root)
     for name, component in sorted(COMPONENTS.items()):
         digest = component_digest(component, root)
         values[name] = {
@@ -165,6 +211,7 @@ def resolve(root: Path = ROOT) -> dict[str, object]:
             "tag": f"content-{digest}",
             "dockerfile": component.dockerfile,
             "target": component.target or "",
+            "source_date_epoch": epoch,
         }
     return {"schema": SCHEMA, "components": values}
 

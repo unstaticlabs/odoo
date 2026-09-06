@@ -118,6 +118,12 @@
         <field name="groups" eval="[Command.link(ref('base.group_user'))]"/>
         <field name="domain_force">[('owner_id', '=', user.id)]</field>
     </record>
+    <record id="rule_usl_agent_company" model="ir.rule">
+        <field name="name">Agents: allowed companies</field>
+        <field name="model_id" ref="model_usl_agent"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
     <record id="rule_usl_agent_administrator" model="ir.rule">
         <field name="name">Agents: administrator access</field>
         <field name="model_id" ref="model_usl_agent"/>
@@ -130,6 +136,12 @@
         <field name="groups" eval="[Command.link(ref('base.group_user'))]"/>
         <field name="domain_force">[('agent_id.owner_id', '=', user.id)]</field>
     </record>
+    <record id="rule_usl_agent_credential_company" model="ir.rule">
+        <field name="name">Agent credentials: allowed companies</field>
+        <field name="model_id" ref="model_usl_agent_credential"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('agent_id.company_id', 'in', company_ids)]</field>
+    </record>
     <record id="rule_usl_agent_credential_administrator" model="ir.rule">
         <field name="name">Agent credentials: administrator access</field>
         <field name="model_id" ref="model_usl_agent_credential"/>
@@ -141,6 +153,16 @@
         <field name="model_id" ref="model_usl_audit_event"/>
         <field name="groups" eval="[Command.link(ref('base.group_user'))]"/>
         <field name="domain_force">[('owner_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="rule_usl_audit_company" model="ir.rule">
+        <field name="name">Distribution audit: allowed companies</field>
+        <field name="model_id" ref="model_usl_audit_event"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">['|', ('company_id', '=', False), ('company_id', 'in', company_ids)]</field>
         <field name="perm_read" eval="True"/>
         <field name="perm_write" eval="False"/>
         <field name="perm_create" eval="False"/>

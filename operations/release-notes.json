@@ -1,0 +1,10 @@
+{
+  "action_required": null,
+  "changes": [
+    "Production releases now use a qualified, recoverable deployment process.",
+    "Release status and recovery evidence are recorded for administrators."
+  ],
+  "schema": "usl-release-notes/v1",
+  "summary": "This release improves how USL Distribution is delivered and recovered without changing your normal Odoo workflow.",
+  "title": "Safer USL Distribution releases"
+}

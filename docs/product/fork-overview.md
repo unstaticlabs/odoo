@@ -13,22 +13,22 @@ production-admission work.
 
 | Capability | Technical owner | Main entry points | State |
 | --- | --- | --- | --- |
-| Multi-company Accounting cockpit, Hygiene, controls, French reports, declarations, closing and FEC | `rebuild_account_migration`, `usl_accounting`, native Accounting and pinned OCA modules | **Accounting** | Operational locally; final statutory and professional sign-off remains |
+| Multi-company Accounting cockpit, Hygiene, controls, French reports, declarations, closing and FEC | `rebuild_account_migration`, `usl_accounting`, native Accounting and pinned OCA modules | **Accounting** | Operational in production; final statutory and professional sign-off remains |
 | Customer invoices, supplier bills, expenses, payments, assets, deferrals, bank matching, reconciliation and analytics | native Accounting, `usl_accounting` | **Accounting**, **Expenses** | Operational |
 | Company-aware personal Home and attention summaries | `usl_home` | **Home** | Operational |
 | Expense Batches with shared business and analytic context | `usl_expense_batch`, `usl_accounting` | **Expenses > Expense Batches** | Operational |
 | Content-platform payout billing and settlement | `usl_platform_billing`, `usl_platform_billing_pocketid` | **Platform Billing** | Operational |
 | TESE payroll evidence, entries and settlement controls | `usl_tese_payroll`, `usl_tese_accounting` | **Paie TESE** | Operational; TESE remains the legal payroll calculator |
-| Projects and tasks with dependencies, chatter, attachments and stage history | native Projects, `usl_project` | **Projects** | Operational |
+| Projects and tasks with dependencies, chatter, attachments, stage history and favorite-project navigation | native Projects, `usl_project` | **Projects** | Operational |
 | Paperless-backed Documents, OCR, previews, metadata, versions, Trash, search and business links | `usl_documents`, `usl_documents_accounting`, `usl_documents_b2c` | **Documents** and record smart buttons | Operational |
 | Governed official PDFs and correspondence | `usl_document_templates`, document renderer | Native print actions, **Official Documents** | Operational |
-| Electronic signatures and completion evidence | `usl_sign` | **Sign** | Operational locally; production certificate and ingress configuration remain |
-| Pocket ID OIDC authentication and named-user governance | `usl_pocketid`, `usl_access_control` | Odoo sign-in and **Settings** | Operational locally; production issuer configuration remains |
+| Electronic signatures and completion evidence | `usl_sign` | **Sign** | Operational in production with server-managed certificate material |
+| Pocket ID OIDC authentication and named-user governance | `usl_pocketid`, `usl_access_control` | Odoo sign-in and **Settings** | Operational in production |
 | Company-scoped roles, owned autonomous Agents, irreversible-action controls and immutable audit events | `usl_access_control` | **My Agents**, access rights and protected actions | Operational |
 | Historical commerce evidence and native future sales/inventory foundations | `usl_b2c`, `usl_documents_b2c` | **B2C**, **Sales**, **Inventory** | Variants, locations, traceability, UoM and Landed Costs available; physical opening inventory and advanced automation remain |
 | French-first terminology, European dates and company-aware presentation | `usl_locale` | All affected backend views | Operational |
 | French electronic-invoice reception for UBL, CII and Factur-X | `rebuild_account_migration`, native Accounting/localization | **Vendors > Incoming E-Invoices** | Ready but inactive pending approved-platform production onboarding |
-| Agent-authenticated Odoo automation endpoint and tool contract | separately built `odoo-mcp` image pinned by the release | **My Agents** and the MCP service endpoint | Governed Agent rollout in qualification |
+| Agent-authenticated Odoo automation endpoint and tool contract | separately built `odoo-mcp` image admitted by its environment GitOps ledger | **My Agents** and the MCP service endpoint | MCP operational; governed Agent identities are qualified for compatibility, while MCP advances independently |
 
 Detailed behavior belongs in the relevant product, Accounting, user and
 operations documents rather than in this inventory.
@@ -48,12 +48,13 @@ Only `custom-addons/` is part of the normal USL add-ons path.
 | `usl_documents_accounting` | Authorized Accounting evidence links and exact-version archive controls. |
 | `usl_documents_b2c` | Authorized B2C document links and smart buttons. |
 | `usl_expense_batch` | Optional expense grouping, shared context, review and native workflow integration. |
+| `usl_feedback` | Shared conversational product feedback, private local page previews, bounded assistant processing and reporter-confirmed Project workflow. |
 | `usl_home` | Personal launcher, durable destinations and bounded attention summaries. |
 | `usl_locale` | European date conventions and company-aware presentation. |
 | `usl_platform_billing` | Platform sessions, payouts, generated native Accounting documents and settlement. |
 | `usl_platform_billing_pocketid` | Pocket ID role mapping for Platform Billing administrators. |
 | `usl_pocketid` | Pocket ID authentication and identity governance. |
-| `usl_project` | Focused Project compatibility and task presentation. |
+| `usl_project` | Focused Project compatibility, task presentation and favorite-project navigation. |
 | `usl_sign` | Signature requests, operations, evidence and completion records. |
 | `usl_tese_payroll` | External-provider payroll records, evidence, Accounting and settlement. |
 | `usl_tese_accounting` | TESE state and evidence in Accounting closing controls. |
@@ -76,24 +77,31 @@ The Distribution currently carries focused patches in:
 
 - `addons/account/models/account_move.py`;
 - `addons/account/wizard/account_resequence.py`;
+- `addons/web/static/src/search/`;
+- `addons/web/static/src/views/list/`;
 - `addons/web/static/src/webclient/actions/action_service.js`.
 
 The Accounting patches keep journal sequences and resequencing aligned with
-the company fiscal year. The webclient patch restores a valid dynamic action
-name when browser history recreates a controller. Each patch has focused
-regression coverage and should be removed when upstream provides an equivalent
-extension point or behavior.
+the company fiscal year. The webclient patches restore a valid dynamic action
+name when browser history recreates a controller and keep portable search,
+sort and pagination choices in the URL. Each patch has focused regression
+coverage and should be removed when upstream provides an equivalent extension
+point or behavior. The exact navigation contract is documented in
+[`docs/product/navigation.md`](navigation.md).
 
 No other product-specific core divergence is allowed without an explicit
 architecture decision, upgrade analysis and regression evidence.
 
 ## Runtime and release cohort
 
-Odoo, PostgreSQL, Paperless, its broker and archive state, Ollama/BGE, the
-document renderer, Sign services and the separately built MCP image form one
-coordinated release and recovery cohort. A release records exact source
-commits, image digests, modules, configuration identity and backup identity.
-Tags alone are not deployment authority.
+Odoo, PostgreSQL, Paperless, its broker and archive state, the document
+renderer, Sign services, isolated receipt-fetcher and receipt-egress images,
+and the separately built MCP image form one coordinated release and recovery
+cohort. The shared MsgVault-owned Ollama service is an external dependency:
+releases record and validate the required BGE model, manifest and embedding
+dimension without managing or restoring that service. A release records exact
+source commits, image digests, modules, configuration identity and backup
+identity. Tags alone are not deployment authority.
 
 Production changes use the procedures in
 [`docs/operations/production.md`](../operations/production.md). Live mail,

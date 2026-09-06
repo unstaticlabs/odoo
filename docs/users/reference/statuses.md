@@ -118,8 +118,10 @@ period automatically.
 - **Test passed** — the maintained fixture created a correct native draft bill.
 - **Ready but inactive** — safe preparation passed and no live reception is
   running.
-- **Production activation required** — the production deployment still needs
-  deliberate approval, onboarding, registration or reception startup.
+- **Production activation required** — deliberate registration or local
+  reception startup is still required.
+- **Registration in progress** — Odoo's Approved Platform is registering the
+  company in the French directory.
 - **Active** — the production receiver is connected and scheduled reception is
   running.
 

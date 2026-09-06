@@ -4,6 +4,8 @@ Start with the production entry point:
 
 - [Production operations](production.md) for immutable releases, coordinated
   backup, deployment, admission, upgrades and recovery.
+- [Continuous delivery](continuous-delivery.md) for release branches, v3
+  manifests, exact module plans, unattended reconciliation and rollback.
 
 The [historical reconstruction interface](migration.md) is retained for audit,
 exceptional recovery and transfer of the evolved data cohort. It is not a
@@ -20,6 +22,7 @@ activation or domain-specific response:
 - [Electronic-invoice activation](activate-french-electronic-invoicing.md)
 - [Document renderer](document-renderer-runbook.md)
 - [Paperless and Documents](paperless-documents-runbook.md)
+- [Linked expense receipts](linked-receipt-runbook.md)
 - [Sign](sign-runbook.md)
 - [Odoo MCP](odoo-mcp.md)
 - [Personal Gemini](personal-gemini-runbook.md)

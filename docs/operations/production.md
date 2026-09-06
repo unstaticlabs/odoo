@@ -7,7 +7,7 @@ data moves only through the coordinated backup and recovery contract.
 ## Runtime topology
 
 Production and staging each run isolated Odoo, PostgreSQL, Paperless, broker,
-MCP, Sign, and renderer services. Both use the protected shared Ollama service
+MCP, Sign, renderer, receipt-fetcher, and receipt-egress services. Both use the protected shared Ollama service
 and its qualified BGE-M3 model. They use separate volumes, databases, OAuth
 state, ports, ingress aliases, and external-side-effect policies.
 
@@ -18,6 +18,16 @@ state, ports, ingress aliases, and external-side-effect policies.
 Cloudflare routes production to `odoo:8069` and staging to
 `odoo-staging:8069`; websocket routes use port `8072`. Never reuse the ingress
 alias across environments.
+
+The first v3 staging rollout may discover the active v2 generation under its
+legacy `odoo` Compose label. The controller accepts that anchor only when the
+canonical `odoo-staging` anchor is absent, exactly one running and healthy
+legacy anchor has complete provenance for the staging project, and its recorded
+active release is schema v2. Candidate and resource overlays use the canonical
+`odoo-staging` service, while failure rollback retains the captured v2 Compose
+identity. Once a v3 generation exists, the canonical anchor takes precedence
+and staging never falls back to a stale legacy container. Production always
+requires `odoo` and has no transition fallback.
 
 Odoo enables `proxy_mode` only in production-like targets. Cloudflare is the
 trusted edge for those targets and must preserve `Host`, `X-Forwarded-For`, and
@@ -43,17 +53,33 @@ start either VPS stack without its environment-specific resource overlay.
 Every release manifest binds:
 
 - the Distribution source commit;
-- immutable Odoo, backup-tool, Paperless, Sign, MCP, and renderer images;
+- immutable Odoo, backup-tool, Paperless, Sign, MCP, renderer, receipt-fetcher,
+  and receipt-egress images;
 - the MCP compatibility contract;
 - OCA and action-risk-policy identities;
-- the Ollama image, BGE model digest, and embedding dimension.
+- the required BGE model digest and embedding dimension;
+- reviewed, plain-language release notes and any required user action.
+
+The shared MsgVault-owned Ollama image is observed in admission evidence but
+is not owned or selected by the Odoo release. Compatibility is determined by
+the model contract and representative 1024-dimension inference.
 
 CI publishes content-addressed images. Unchanged components are reused from
 GHCR; digest references—not branch names or `latest`—are deployable identities.
 The runtime release manifest must match the images actually running. Backup
 refuses a mismatched manifest.
 
-Production deployment belongs to protected CI/GitOps. A release workflow must:
+Production plans its module upgrade from its own active release and the
+modules installed in its database. It does not consume a staging-signed plan.
+[Continuous delivery](continuous-delivery.md) describes the plan contract, the
+required production checks and the coordination rule for the operations image
+and the GitOps launcher.
+
+Protected CI/GitOps is the normal deployment path, not the only authorized
+path. An operator may deploy manually or bypass CI when the owner explicitly
+instructs it. Before changing production, confirm that a current qualified
+backup is restorable and that the current GitOps checkout and desired-state
+ledgers describe the intended release. Automated and manual releases must both:
 
 1. freeze user writes;
 2. create and qualify a coordinated backup;
@@ -62,6 +88,10 @@ Production deployment belongs to protected CI/GitOps. A release workflow must:
 5. unfreeze and notify on success;
 6. restore the pre-release snapshot and report clearly on failure;
 7. recreate staging from the successful production recovery point.
+
+The branch rules intentionally require zero approving reviews: qualified
+promotion MRs are expected to merge unattended. SBOMs remain generated build
+metadata and are not an admission or enforcement gate.
 
 ## Backup and recovery
 
@@ -91,6 +121,8 @@ External effects are controlled independently from image deployment.
 - Sending and e-reporting require their own accepted activation gates.
 - Bank ingestion must validate the intended company, journal, account, and
   sender before automatic processing.
+- Linked receipt retrieval remains doubly gated, uses mTLS over an isolated
+  Unix socket, and may reach public HTTPS only through its pinned egress proxy.
 
 Historical queues must never be replayed during an upgrade or restore. Staging
 must remain neutralized: no live mail, filing, payment, bank, or signing side
@@ -124,6 +156,8 @@ Before opening a changed runtime, require:
 - Odoo filestore and Paperless original coverage;
 - preserved OCR, previews, Tantivy, and vectors;
 - no unexplained mail, Documents, bank, payment, Sign, or PDP queue work;
+- healthy receipt sidecars, four Odoo queue workers, a two-slot receipt
+  channel, and negative private-network reachability probes;
 - zero active cron failures;
 - Pocket ID and multi-company access checks;
 - a qualified recovery point and tested rollback.
@@ -156,4 +190,5 @@ The Online export is historical evidence, never a production rollback source.
 - [Document renderer](document-renderer-runbook.md)
 - [Sign](sign-runbook.md)
 - [Odoo MCP](odoo-mcp.md)
+- [Linked expense receipts](linked-receipt-runbook.md)
 - [Product and migration boundary](product-migration-boundary.md)

@@ -241,7 +241,7 @@ def database_action_records(model, kind, prefix, fields):
                 "kind": kind,
                 "xmlid": xmlid,
                 "modules": [xmlid.split(".", 1)[0]] if "." in xmlid else ["database"],
-                "sources": [{"path": f"database:{model}:{record.id}"}],
+                "sources": [{"path": f"database:{model}:{xmlid}"}],
                 "digest": digest(values),
             },
         )
@@ -303,7 +303,7 @@ def ui_action_records():
                 "xmlid": xmlid,
                 "ui_type": concrete_model,
                 "modules": [xmlid.split(".", 1)[0]] if "." in xmlid else ["database"],
-                "sources": [{"path": f"database:{concrete_model}:{action.id}"}],
+                "sources": [{"path": f"database:{concrete_model}:{xmlid}"}],
                 "delegates": delegates,
                 "digest": digest(values),
             },
@@ -399,7 +399,7 @@ def ui_view_buttons():
                     "kind": "ui",
                     "xmlid": xmlid,
                     "modules": [xmlid.split(".", 1)[0]] if "." in xmlid else ["database"],
-                    "sources": [{"path": f"database:ir.ui.view:{view.id}"}],
+                    "sources": [{"path": f"database:ir.ui.view:{xmlid}"}],
                     "delegates": delegates,
                     "digest": digest(
                         {

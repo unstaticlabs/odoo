@@ -1,6 +1,6 @@
 # USL Odoo Distribution roadmap
 
-Status: 2 September 2026
+Status: 3 September 2026
 
 The USL Odoo Distribution is live on the production VPS. That database is the
 authoritative business record. The former Odoo Online export and its migration
@@ -45,8 +45,8 @@ matched all recorded business controls.
 
 ### Continuous delivery
 
-- merge the migration and post-migration branches into `19-usl` through the
-  reviewed stacked changes;
+- complete the reviewed historical consolidation into `19-usl` and make its
+  qualified tree the production source of truth;
 - create and protect `19-usl-staging` as the feature-integration line;
 - deploy each staging merge against a fresh production backup;
 - schedule the daily production promotion, backup-only no-change run, health

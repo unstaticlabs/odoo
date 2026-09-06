@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="project_product_feedback" model="project.project">
+        <field name="name">Odoo Product Feedback</field>
+        <field name="privacy_visibility">employees</field>
+        <field name="company_id" eval="False"/>
+        <field name="user_id" eval="False"/>
+        <field name="label_tasks">Feedback</field>
+        <field name="allow_task_dependencies" eval="False"/>
+        <field name="allow_milestones" eval="False"/>
+        <field name="allow_recurring_tasks" eval="False"/>
+        <field name="usl_feedback_project" eval="True"/>
+    </record>
+
+    <record id="stage_feedback_new" model="project.task.type">
+        <field name="name">Inbox</field>
+        <field name="sequence">10</field>
+        <field name="project_ids" eval="[Command.link(ref('project_product_feedback'))]"/>
+    </record>
+    <record id="stage_feedback_triaged" model="project.task.type">
+        <field name="name">Triage</field>
+        <field name="sequence">20</field>
+        <field name="project_ids" eval="[Command.link(ref('project_product_feedback'))]"/>
+    </record>
+    <record id="stage_feedback_planned" model="project.task.type">
+        <field name="name">Shaping</field>
+        <field name="sequence">30</field>
+        <field name="project_ids" eval="[Command.link(ref('project_product_feedback'))]"/>
+    </record>
+    <record id="stage_feedback_in_progress" model="project.task.type">
+        <field name="name">Build</field>
+        <field name="sequence">40</field>
+        <field name="project_ids" eval="[Command.link(ref('project_product_feedback'))]"/>
+    </record>
+    <record id="stage_feedback_ready_to_verify" model="project.task.type">
+        <field name="name">Review</field>
+        <field name="sequence">50</field>
+        <field name="project_ids" eval="[Command.link(ref('project_product_feedback'))]"/>
+    </record>
+    <record id="stage_feedback_done" model="project.task.type">
+        <field name="name">Release</field>
+        <field name="sequence">60</field>
+        <field name="fold" eval="True"/>
+        <field name="project_ids" eval="[Command.link(ref('project_product_feedback'))]"/>
+    </record>
+    <record id="stage_feedback_declined" model="project.task.type">
+        <field name="name">Icebox</field>
+        <field name="sequence">70</field>
+        <field name="fold" eval="True"/>
+        <field name="project_ids" eval="[Command.link(ref('project_product_feedback'))]"/>
+    </record>
+
+    <record id="tag_feedback_bug" model="project.tags">
+        <field name="name">Feedback: Bug</field>
+        <field name="color">1</field>
+        <field name="usl_feedback_tag" eval="True"/>
+    </record>
+    <record id="tag_feedback_improvement" model="project.tags">
+        <field name="name">Feedback: Improvement</field>
+        <field name="color">4</field>
+        <field name="usl_feedback_tag" eval="True"/>
+    </record>
+    <record id="tag_feedback_question" model="project.tags">
+        <field name="name">Feedback: Question</field>
+        <field name="color">3</field>
+        <field name="usl_feedback_tag" eval="True"/>
+    </record>
+    <record id="tag_feedback_ux" model="project.tags">
+        <field name="name">Feedback: UX</field>
+        <field name="color">5</field>
+        <field name="usl_feedback_tag" eval="True"/>
+    </record>
+
+    <record id="partner_feedback_assistant" model="res.partner">
+        <field name="name">Feedback Assistant</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

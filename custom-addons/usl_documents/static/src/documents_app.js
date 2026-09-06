@@ -230,6 +230,7 @@ export class DocumentsWorkspaceView extends Component {
     };
     static props = {
         ...standardActionServiceProps,
+        urlState: { type: Object, optional: true },
         context: { type: Object, optional: true },
         domain: { type: Array, optional: true },
         groupBy: { type: Array, optional: true },
@@ -2160,6 +2161,27 @@ export class DocumentsWorkspaceView extends Component {
         this.replaceTagSearchFilters([...selected]);
     }
 
+    onMoreTagsToggle(event) {
+        const details = event.currentTarget;
+        if (!details.open) {
+            this.state.tagShortcutQuery = "";
+            return;
+        }
+        browser.requestAnimationFrame(() => {
+            details.querySelector("input[type='search']")?.focus();
+        });
+    }
+
+    selectTagShortcut(tag, event) {
+        const details = event.currentTarget.closest("details");
+        this.toggleTagFilter(tag);
+        this.state.tagShortcutQuery = "";
+        if (details) {
+            details.open = false;
+            details.querySelector("summary")?.focus();
+        }
+    }
+
     onTagShortcutSearch(event) {
         this.state.tagShortcutQuery = event.target.value;
     }
@@ -2594,6 +2616,8 @@ export class DocumentsWorkspaceView extends Component {
         this.state.savingFields[field] = true;
         const save = async () => {
             try {
+                const paperlessSuggestions =
+                    this.state.selected?.paperless_suggestions || [];
                 const value = await resolveValue();
                 const detail = await this.orm.call(
                     "usl.document",
@@ -2603,10 +2627,12 @@ export class DocumentsWorkspaceView extends Component {
                 if (this.state.selected?.id === selectedId) {
                     this.state.selected = {
                         ...detail,
+                        paperless_suggestions: paperlessSuggestions,
                         preview_url: this.documentPreviewUrl(detail),
                     };
                     await this.load();
                 }
+                return true;
             } catch (error) {
                 this.notification.add(
                     error.data?.message ||
@@ -2614,12 +2640,45 @@ export class DocumentsWorkspaceView extends Component {
                         "The change could not be saved. The previous value was kept.",
                     { type: "danger", sticky: true }
                 );
+                return false;
             } finally {
                 this.state.savingFields[field] = false;
             }
         };
         this.metadataSaveQueue = this.metadataSaveQueue.then(save, save);
         return this.metadataSaveQueue;
+    }
+
+    async applyPaperlessSuggestion(suggestion) {
+        if (!suggestion || !this.state.selected?.can_edit) {
+            return;
+        }
+        let applied;
+        if (suggestion.kind === "tag") {
+            applied = await this.addSelectedTag({
+                id: suggestion.record_id,
+                display_name: suggestion.label,
+            });
+        } else {
+            applied = await this.saveMetadataField(
+                suggestion.field,
+                suggestion.record_id || suggestion.value
+            );
+        }
+        if (applied !== false && this.state.selected) {
+            this.state.selected.paperless_suggestions = (
+                this.state.selected.paperless_suggestions || []
+            ).filter((item) => item !== suggestion);
+        }
+    }
+
+    paperlessSuggestionKindLabel(kind) {
+        return {
+            document_type: _t("Type"),
+            correspondent: _t("From"),
+            tag: _t("Tag"),
+            date: _t("Date"),
+        }[kind] || _t("Suggestion");
     }
 
     selectCorrespondent(value) {
@@ -3311,7 +3370,10 @@ export class DocumentsWorkspaceView extends Component {
 export class DocumentsWorkspace extends Component {
     static template = "usl_documents.DocumentsWorkspace";
     static components = { WithSearch, DocumentsWorkspaceView };
-    static props = { ...standardActionServiceProps };
+    static props = {
+        ...standardActionServiceProps,
+        urlState: { type: Object, optional: true },
+    };
 
     setup() {
         // Client actions do not pass through ``View.setup()``, while
@@ -3359,6 +3421,9 @@ export class DocumentsWorkspace extends Component {
                   }
                 : { searchViewId: false, loadIrFilters: true }),
             context: this.props.action.context || {},
+            // Only restore search state assigned to this action, never the
+            // outgoing action's global route while this workspace mounts.
+            urlState: this.props.urlState || {},
             domain: [],
             dynamicFilters,
             searchMenuTypes: ["filter", "groupBy", "favorite"],

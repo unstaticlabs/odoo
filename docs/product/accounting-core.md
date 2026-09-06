@@ -2,11 +2,14 @@
 
 ## Outcome
 
-The Community target must preserve and operate the accounting reality used by USL and its accountant. It must reproduce accepted Odoo Online accounting and reporting results from approved source exports before production replacement is considered.
+The production Distribution preserves and operates the accounting reality used
+by USL and its accountant. Accepted Odoo Online accounting and reporting
+results remain historical parity evidence; the current production database is
+authoritative for every upgrade and recovery.
 
 ## Required functional perimeter
 
-The target supports, where used:
+The Distribution supports, where used:
 
 - French chart of accounts and localization;
 - customer invoices, vendor bills and credit notes;
@@ -63,7 +66,8 @@ Valentin and the accountant must be able to:
 - Posted history is never silently altered or deleted.
 - Accounting differences are visible, classified and evidence-backed.
 - Legal compliance is professionally reviewed, not inferred from passing software tests.
-- Live bank connectivity is optional and outside the initial parity gate; historical bank accounting is not.
+- Live bank connectivity is optional; complete historical bank accounting is
+  not.
 - Accounting Hygiene and Closing use one visible, company-scoped control
   catalogue. Business policy is configurable; advanced evaluators are
   whitelisted module extensions rather than arbitrary code.

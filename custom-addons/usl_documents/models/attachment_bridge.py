@@ -5,7 +5,7 @@ import logging
 import re
 from datetime import timedelta
 
-from odoo import Command, _, api, fields, models
+from odoo import SUPERUSER_ID, Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
 from .document import ARCHIVE_MODES, ATTACHMENT_ORIGINS, DOCUMENT_ROLES
@@ -1047,7 +1047,7 @@ class IrAttachment(models.Model):
         # Authorization was verified above. Scoped elevation only removes the
         # redundant Odoo copy and notifies open clients; it never edits the
         # system message that originally carried the attachment.
-        self.sudo()._delete_and_notify(message)
+        self.with_user(SUPERUSER_ID)._delete_and_notify(message)
         if removal == "trash":
             return {
                 "removed": True,

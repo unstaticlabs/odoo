@@ -28,6 +28,7 @@ PRODUCT_MODULES = {
     "usl_documents_accounting",
     "usl_documents_b2c",
     "usl_expense_batch",
+    "usl_feedback",
     "usl_home",
     "usl_locale",
     "usl_platform_billing",
@@ -66,6 +67,35 @@ def sha256_file(path: Path) -> str:
     with path.open("rb") as stream:
         while chunk := stream.read(1024 * 1024):
             digest.update(chunk)
+    return digest.hexdigest()
+
+
+def odoo_core_sha256() -> str:
+    """Digest the exact tracked Odoo core shipped by this checkout."""
+    tracked = run(
+        "git",
+        "ls-files",
+        "-z",
+        "--",
+        "odoo",
+        "addons",
+        "setup",
+        "setup.py",
+        "MANIFEST.in",
+    ).split("\0")
+    digest = hashlib.sha256()
+    found = False
+    for relative in sorted(item for item in tracked if item):
+        path = ROOT / relative
+        if not path.is_file():
+            raise ReleaseIdentityError(f"Tracked Odoo core file is missing: {relative}")
+        found = True
+        digest.update(relative.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
+    if not found:
+        raise ReleaseIdentityError("The tracked Odoo core inventory is empty")
     return digest.hexdigest()
 
 

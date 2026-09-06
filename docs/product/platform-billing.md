@@ -63,7 +63,12 @@ delayed-settlement FX.
 
 ## Controls
 
-- Commission is strictly between 0% and 100%.
+- Commission is at least 0% and below 100%. At 0%, gross equals net.
+  A currency-rounded zero commission creates neither a vendor bill nor a
+  compensation entry, including within a mixed monthly bill group.
+- Document generation requires country information on the effective customer
+  and supplier partners. Review their fiscal positions; currency is not proof
+  of tax location. Native Odoo remains responsible for determining taxes.
 - Non-empty platform references are unique per company/platform.
 - A payout may have several bank allocations, and a bank transaction may serve
   several payouts. A newly imported draft temporarily keeps a zero platform
@@ -86,6 +91,11 @@ delayed-settlement FX.
   reconciliation metadata and counterpart lines. It cannot change the
   certified source amount, date, account, statement identity or liquidity
   balance.
+- Native Accounting settlement determines whether a payout is Paid. Platform
+  Billing allocations remain visible as optional matching evidence, so manual,
+  split and pooled Accounting reconciliation can settle a payout without an
+  application-owned allocation. Reopening the invoice or bill returns the
+  payout and its session to Posted.
 - The maintenance repair for older pooled compensation reverses the former
   entry and any resulting exchange differences through Odoo's accounting
   trail. It never deletes posted accounting history.

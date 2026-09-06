@@ -24,6 +24,7 @@ limit_time_real = ${ODOO_LIMIT_TIME_REAL}
 dbfilter = ${ODOO_DB_FILTER}
 dev_mode = ${ODOO_DEV_MODE}
 default_productivity_apps = ${ODOO_DEFAULT_PRODUCTIVITY_APPS}
+server_wide_modules = ${ODOO_SERVER_WIDE_MODULES}
 smtp_server = ${ODOO_SMTP_SERVER}
 smtp_port = ${ODOO_SMTP_PORT}
 smtp_ssl = ${ODOO_SMTP_SSL}
