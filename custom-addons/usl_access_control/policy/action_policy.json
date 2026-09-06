@@ -193753,6 +193753,26 @@
     },
     {
       "action_keys": [
+        "rpc:hr.expense.action_scan_existing_receipt_emails",
+        "server_action:usl_accounting.action_scan_existing_receipt_emails",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense.action_scan_existing_receipt_emails:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense.action_scan_existing_receipt_emails:sudo:2"
+      ],
+      "classification": "operational",
+      "consequence": "Creates one receipt-discovery request for eligible missing-receipt draft or approved expenses; recognized candidates may enter the existing download queue.",
+      "domain": "people_and_payroll",
+      "evidence_id": "historical-receipt-rescan",
+      "id": "operational.accounting.historical_receipt_rescan",
+      "rationale": "Explicit expense read/write and owner/Accounting Manager checks precede company-scoped elevation. Existing evidence and requests are skipped. Elevation only reads receipt evidence or invokes the existing discovery flow; no financial state, policy, credentials or provider-learning controls are changed.",
+      "reviewed_digests": {
+        "rpc:hr.expense.action_scan_existing_receipt_emails": "81a5061742ffdb24dc1bcac032cc16f4c67b40fce22cb55d6eb9311a5ab2ec41",
+        "server_action:usl_accounting.action_scan_existing_receipt_emails": "2535eba137f4c558e15e0b6b4abdaca6628878687117f7e34bcd4f1190f5d5e3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense.action_scan_existing_receipt_emails:sudo:1": "a73c2f8c543a87d11aa469cd96a0fd025a547da0099cfb39023f0638770c1617",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense.action_scan_existing_receipt_emails:sudo:2": "8fef44fe6b962721ae66966566b5256a49bd5cc81f02a6d44dda7fdcabe64417"
+      }
+    },
+    {
+      "action_keys": [
         "client:usl_project:custom-addons/usl_project/static/src/favorite_project_navigation.js:if:rpc:1"
       ],
       "classification": "transport",
@@ -193770,6 +193790,20 @@
       "rationale": "The client forwards only the selected project ID to the exact native action_view_tasks method and returns its action unchanged. Native access rules and project context remain authoritative.",
       "reviewed_digests": {
         "client:usl_project:custom-addons/usl_project/static/src/favorite_project_navigation.js:if:rpc:1": "fd0f221b7e8726c710f0ea1a5454fc1c80ae1086406b425dc3d4a868bc95b3e9"
+      }
+    },
+    {
+      "action_keys": [
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/hygiene.py:rebuild.account.hygiene.issue._structured_evidence_move_ids:sudo:1"
+      ],
+      "classification": "read_only",
+      "consequence": "Reads qualifying payout links for already-readable bills and returns only their bill IDs; does not mutate payouts, bills, attachments or external state.",
+      "domain": "accounting",
+      "evidence_id": "platform-billing-structured-evidence",
+      "id": "read_only.accounting.platform_billing_evidence",
+      "rationale": "The private helper checks bill read access before elevating one search_fetch bounded by bill IDs, companies and posted/paid payout states. Elevated payout records are never returned. The native relational company constraint remains active; no partner or reference heuristic is used.",
+      "reviewed_digests": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/hygiene.py:rebuild.account.hygiene.issue._structured_evidence_move_ids:sudo:1": "4272bf648cf88adc9e6982093b8bb5ec05936d8a45eca7e86df17389fccb7c21"
       }
     }
   ],
@@ -193826,6 +193860,17 @@
         "custom-addons/usl_accounting/tests/test_linked_receipt_http.py::TestLinkedReceiptHandoffHttp.test_post_rejects_missing_csrf"
       ]
     },
+    "historical-receipt-rescan": {
+      "contract": "Exercise idempotency, expense invariants, evidence skips, feature gates, owner authority, cross-company denial, and the ordinary-user cog-menu journey.",
+      "tests": [
+        "custom-addons/usl_accounting/tests/test_linked_receipt.py::TestLinkedReceipt.test_historical_scan_is_idempotent_and_preserves_expense",
+        "custom-addons/usl_accounting/tests/test_linked_receipt.py::TestLinkedReceipt.test_historical_scan_rejects_other_company_record",
+        "custom-addons/usl_accounting/tests/test_linked_receipt.py::TestLinkedReceipt.test_historical_scan_checks_authority_and_feature_gate",
+        "custom-addons/usl_accounting/tests/test_linked_receipt_tour.py::TestLinkedReceiptBrowser.test_employee_scans_historical_receipt",
+        "custom-addons/usl_accounting/tests/test_linked_receipt.py::TestLinkedReceipt.test_historical_scan_includes_approved_expenses",
+        "custom-addons/usl_accounting/tests/test_linked_receipt.py::TestLinkedReceipt.test_historical_scan_skips_posted_and_paid_expenses"
+      ]
+    },
     "internal-reachability-v1": {
       "contract": "Has no ordinary RPC/controller actor entry; manual scheduler execution uses a separately guarded action.",
       "tests": [
@@ -193839,6 +193884,15 @@
         "custom-addons/usl_access_control/tests/test_access_control.py::TestDistributionAccessControl.test_reviewed_operational_server_action_does_not_require_capability",
         "custom-addons/usl_documents/tests/test_documents.py::TestDocuments.test_readonly_thumbnail_update_is_a_noop_for_existing_clients",
         "custom-addons/usl_documents/tests/test_download_grants.py::TestDocumentDownloadGrants.test_materialization_is_exactly_once_and_revocable"
+      ]
+    },
+    "platform-billing-structured-evidence": {
+      "contract": "Prove attachment and payout-state semantics, a single bounded lookup, revocation, empty-batch behavior and company denial before elevation; preserve financial records.",
+      "tests": [
+        "custom-addons/rebuild_account_migration/tests/test_hygiene_structured_evidence.py::TestHygieneStructuredEvidence.test_attachment_and_payout_state_evidence",
+        "custom-addons/rebuild_account_migration/tests/test_hygiene_structured_evidence.py::TestHygieneStructuredEvidence.test_batched_lookup_and_state_revocation",
+        "custom-addons/rebuild_account_migration/tests/test_hygiene_structured_evidence.py::TestHygieneStructuredEvidence.test_empty_batch_does_not_query_payouts",
+        "custom-addons/rebuild_account_migration/tests/test_hygiene_structured_evidence.py::TestHygieneStructuredEvidence.test_accountant_without_platform_access_and_company_boundary"
       ]
     },
     "protected-deny-allow-audit-v1": {
@@ -193898,6 +193952,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "dd83831b635b8cef1016fc8ab9760f5c2978f449dab55663bed49d5ddb702beb",
+  "qualified_policy_digest": "e8023f7c29b0b756fda2b1ee22319596b6ef1bb79471d14fbd140100970c1c5d",
   "schema": "usl-action-risk-policy-v1"
 }

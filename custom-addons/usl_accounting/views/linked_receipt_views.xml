@@ -59,6 +59,15 @@
         </field>
     </record>
 
+    <record id="action_scan_existing_receipt_emails" model="ir.actions.server">
+        <field name="name">Scan existing emails for receipts</field>
+        <field name="model_id" ref="hr_expense.model_hr_expense"/>
+        <field name="binding_model_id" ref="hr_expense.model_hr_expense"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_scan_existing_receipt_emails()</field>
+    </record>
+
     <record id="view_usl_mail_pdf_retrieval_list" model="ir.ui.view">
         <field name="name">usl.mail.pdf.retrieval.list</field>
         <field name="model">usl.mail.pdf.retrieval</field>

@@ -14,6 +14,30 @@ from odoo.addons.hr_expense.tests.common import TestExpenseCommon
 class TestLinkedReceiptBrowser(TestExpenseCommon, HttpCase):
     browser_size = "390x844"
 
+    def test_employee_scans_historical_receipt(self):
+        for size in ("1440x1000", "390x844"):
+            self.browser_size = size
+            message = EmailMessage()
+            message["From"] = self.expense_user_employee.email
+            message["To"] = "expenses@example.invalid"
+            message["Subject"] = f"{self.product_c.default_code} Taxi EUR 24.50"
+            message["Message-ID"] = f"<historical-browser-{size}@example.invalid>"
+            message.set_content("Download receipt")
+            message.add_alternative(
+                '<a href="https://receipts.example.com/receipt.pdf">Download PDF receipt</a>',
+                subtype="html",
+            )
+            with patch.dict("os.environ", {"USL_LINKED_PDF_DOWNLOAD_ENABLED": "0"}):
+                expense = self.env["mail.thread"].message_process("hr.expense", message.as_bytes())
+            with patch.dict("os.environ", {"USL_LINKED_PDF_DOWNLOAD_ENABLED": "1"}):
+                self.start_tour(
+                    f"/odoo/hr.expense/{expense.id}", "usl_linked_receipt_historical_scan",
+                    login=self.expense_user_employee.login,
+                )
+            retrieval = self.env["usl.mail.pdf.retrieval"].sudo().search([("expense_id", "=", expense.id)])
+            self.assertEqual(len(retrieval), 1)
+            self.assertEqual(retrieval.state, "selection_required")
+
     def test_employee_teaches_and_recovers_linked_receipt(self):
         message = EmailMessage()
         message["From"] = self.expense_user_employee.email
