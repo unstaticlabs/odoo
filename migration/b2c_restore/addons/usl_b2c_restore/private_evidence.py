@@ -37,6 +37,12 @@ PINNED_EVIDENCE = {
     "printful-order-items-2026-09-06.json": (
         "7f22ff667369a7622a018c2ec612d107488382e79d6e02112699bfe6b974c8e7"
     ),
+    "catalog-specification-2026-09-06.json": (
+        "3094b307c5521197d4dba5459fff917290a8d5737a797947bd308d96a028c90e"
+    ),
+    "medusa-sold-items-2026-09-06.csv": (
+        "c12eb028fcc1abd7cbaab4b9d856ca9ba8ebf2cd564645b0e902cb05e560d557"
+    ),
 }
 
 MONEY_FIELDS = frozenset({"quantity", "price", "amount"})
@@ -107,6 +113,12 @@ def printful_orders():
     """
     document = load("printful-order-items-2026-09-06.json")
     return {entry["legacy_order_id"]: entry for entry in document["orders"]}
+
+
+@lru_cache(maxsize=1)
+def catalog_specification():
+    """Return the reviewed catalog: one product per garment, with its aliases."""
+    return load("catalog-specification-2026-09-06.json")["products"]
 
 
 @lru_cache(maxsize=1)
