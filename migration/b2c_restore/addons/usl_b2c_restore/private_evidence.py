@@ -53,8 +53,13 @@ class MissingEvidenceError(RuntimeError):
 
 
 @lru_cache(maxsize=None)
-def load(name):
-    """Return one pinned evidence document."""
+def read(name):
+    """Return one pinned evidence file, verified against its reviewed digest.
+
+    Not every reviewed file is JSON, so verification is separate from parsing:
+    a caller that only needs to know the file is the reviewed one must not be
+    made to parse it.
+    """
     expected = PINNED_EVIDENCE.get(name)
     if expected is None:
         raise MissingEvidenceError(f"{name} is not reviewed evidence.")
@@ -72,13 +77,19 @@ def load(name):
         raise MissingEvidenceError(
             f"Reviewed B2C evidence {name} changed: {digest} is not {expected}.",
         )
-    return json.loads(content)
+    return content
+
+
+@lru_cache(maxsize=None)
+def load(name):
+    """Return one pinned JSON evidence document."""
+    return json.loads(read(name))
 
 
 def available(name):
-    """Return whether one pinned document can be read right now."""
+    """Return whether one pinned file is present and is the reviewed one."""
     try:
-        load(name)
+        read(name)
     except MissingEvidenceError:
         return False
     return True
