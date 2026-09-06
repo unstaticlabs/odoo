@@ -1382,7 +1382,7 @@ def with_writers_paused(
             runner.run(
                 compose_command(
                     identity,
-                    ["up", "--detach", "--wait", "--no-recreate", *services],
+                    ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *services],
                 ),
             )
 
@@ -2864,7 +2864,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     if not leave_quiesced or not capture_succeeded:
                         runner.run(compose_command(
                             identity,
-                            ["up", "--detach", "--wait", "--no-recreate", *writer_services],
+                            ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *writer_services],
                         ))
                         writers_resumed_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
                 if leave_quiesced:
@@ -2902,7 +2902,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     return
                 runner.run(compose_command(
                     identity,
-                    ["up", "--detach", "--wait", "--no-recreate", *writer_services],
+                    ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *writer_services],
                 ))
                 if _runtime_cas_sha256(
                     target, runner, inspect_runtime(target, runner),
@@ -3952,7 +3952,7 @@ def _preserve_staging_environment_state(target, runner, current: dict, volumes: 
             raise RuntimeError("staging MCP OAuth preservation differs")
     finally:
         runner.run(compose_command(
-            current["compose"], ["up", "--detach", "--wait", "--no-recreate", mcp],
+            current["compose"], ["up", "--detach", "--wait", "--no-recreate", "--no-deps", mcp],
         ))
     return {
         "schema": "usl-staging-environment-state/v1",
@@ -8093,7 +8093,7 @@ def _recover_recovery_proof_backup(target, runner, run_id: str, runtime_sha: str
     identity = compose_identity(target, runner)
     runner.run(compose_command(
         identity,
-        ["up", "--detach", "--wait", "--no-recreate", *services],
+        ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *services],
     ))
     if _runtime_cas_sha256(target, runner, inspect_runtime(target, runner)) != runtime_sha:
         raise RuntimeError("recovery proof writer resumption changed the production baseline")
@@ -9413,7 +9413,7 @@ def release_command(arguments: argparse.Namespace) -> int:
             services = quiescence["writer_services"]
             runner.run(compose_command(
                 runtime["compose"],
-                ["up", "--detach", "--wait", "--no-recreate", *services],
+                ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *services],
             ))
             resumed = inspect_runtime(target, runner)
             if _runtime_cas_sha256(target, runner, resumed) != baseline:
