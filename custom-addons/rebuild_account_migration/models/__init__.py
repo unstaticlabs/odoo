@@ -1,5 +1,6 @@
 from . import configurable_definition
 from . import einvoice_readiness
+from . import einvoice_transport
 from . import operational_extensions
 from . import currency_rate_provider
 from . import external_report_value

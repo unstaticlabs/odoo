@@ -136069,15 +136069,15 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.rule.write:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.sync_for_company:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.sync_for_company:orm_write:2",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._cron_peppol_get_message_status:orm_write:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._pdp_send_lifecycles:orm_write:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:l10n.fr.pdp.reports.flow._cron_update_and_send_flows:orm_write:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_deregister_pdp_participant:sudo:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_deregister_pdp_participant:sudo:2",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_open_authentication_link:sudo:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_refresh_authentication:sudo:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_register_pdp_participant:sudo:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_trigger_authentication:sudo:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._cron_peppol_get_message_status:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._pdp_send_lifecycles:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:l10n.fr.pdp.reports.flow._cron_update_and_send_flows:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:pdp.registration.button_deregister_pdp_participant:sudo:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:pdp.registration.button_deregister_pdp_participant:sudo:2",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:pdp.registration.button_open_authentication_link:sudo:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:pdp.registration.button_refresh_authentication:sudo:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:pdp.registration.button_register_pdp_participant:sudo:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:pdp.registration.button_trigger_authentication:sudo:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:rebuild.einvoice.reception.action_retry_processing:sudo:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:rebuild.einvoice.reception.action_retry_processing:sudo:2",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:rebuild.einvoice.reception.action_retry_processing:sudo:3",
@@ -141266,33 +141266,6 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.sync_for_company:orm_write:2": {
           "reachability_proof": "This implementation sink is reachable only through separately reviewed parent action(s): rpc:rebuild.account.declaration.sync_for_company."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._cron_peppol_get_message_status:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._pdp_send_lifecycles:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:l10n.fr.pdp.reports.flow._cron_update_and_send_flows:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_deregister_pdp_participant:sudo:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:pdp.registration.button_deregister_pdp_participant"
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_deregister_pdp_participant:sudo:2": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:pdp.registration.button_deregister_pdp_participant"
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_open_authentication_link:sudo:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:pdp.registration.button_open_authentication_link"
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_refresh_authentication:sudo:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:pdp.registration.button_refresh_authentication"
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_register_pdp_participant:sudo:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:pdp.registration.button_register_pdp_participant"
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_trigger_authentication:sudo:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:pdp.registration.button_trigger_authentication"
-        },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:rebuild.einvoice.reception.action_retry_processing:sudo:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.einvoice.reception.action_retry_processing"
         },
@@ -141409,6 +141382,33 @@
         },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.config.settings.button_peppol_deregister:sudo:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:res.config.settings.button_peppol_deregister"
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._cron_peppol_get_message_status:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._pdp_send_lifecycles:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:l10n.fr.pdp.reports.flow._cron_update_and_send_flows:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:pdp.registration.button_deregister_pdp_participant:sudo:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:pdp.registration.button_deregister_pdp_participant"
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:pdp.registration.button_deregister_pdp_participant:sudo:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:pdp.registration.button_deregister_pdp_participant"
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:pdp.registration.button_open_authentication_link:sudo:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:pdp.registration.button_open_authentication_link"
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:pdp.registration.button_refresh_authentication:sudo:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:pdp.registration.button_refresh_authentication"
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:pdp.registration.button_register_pdp_participant:sudo:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:pdp.registration.button_register_pdp_participant"
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:pdp.registration.button_trigger_authentication:sudo:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:pdp.registration.button_trigger_authentication"
         },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/fec_export_wizard.py:l10n_fr.fec.export.wizard.create:orm_create:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:l10n_fr.fec.export.wizard.create"
@@ -144511,15 +144511,6 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.rule.write:orm_write:1": "daadf87e63209932dad7873350233492a41729131634f3e1a480270e044c3bd6",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.sync_for_company:orm_write:1": "ef5aa996e4285846f62103ff89463aafafc47bd5765f49ba3fc6c93199b3d8fa",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.sync_for_company:orm_write:2": "dca348dc95d35adaeed2af38ce378c1af438ccf754a18d7a2a70bd917f62ce4e",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._cron_peppol_get_message_status:orm_write:1": "994732b9b0dc06ff8ca0e002f9a61f01161e53393c7089da15192519fb6adb0b",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._pdp_send_lifecycles:orm_write:1": "c9356351eaa7578026cce6892a4ee1113212f5d6af08104340d7c887f1fb606e",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:l10n.fr.pdp.reports.flow._cron_update_and_send_flows:orm_write:1": "714fd217d471fe40bc4633d1ef97ec12faf2da05615e462fce3423942a33b6f8",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_deregister_pdp_participant:sudo:1": "e345e5bd046f91cb88a703e2aff8201d4e1a3e2d5edf2ec9d95580de4bd5f0f7",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_deregister_pdp_participant:sudo:2": "e5b4eefd7b8e30916856d2dc11e3fe1c6dc9b2158c211dc092e813e298dbb716",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_open_authentication_link:sudo:1": "3fc9efe23a696348da79fadd3c6728476eccf4dfbaa6ec1a32e99f0f389e840d",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_refresh_authentication:sudo:1": "3b4ec6f1a28cc380739c14bba889a17ce1a2199575dc3a67c43b3a78ec20c377",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_register_pdp_participant:sudo:1": "1a129d93bcb484eafcdf3d8ac5bb35f088aa167e7acea3ef7674b0fe344920cd",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:pdp.registration.button_trigger_authentication:sudo:1": "17dc092c3985e6b3fed3d79bb345aba8cebe3e4539678e6b9a84ab72b8731b15",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:rebuild.einvoice.reception.action_retry_processing:sudo:1": "e9fef9506e4418b5b0e8f97e9486b5a63846d926a2386b7ba289f4496bf5a522",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:rebuild.einvoice.reception.action_retry_processing:sudo:2": "390a286b1c34694f23ef72c36b96a409826c48d9c4e3c77c109a15ddd14b692f",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:rebuild.einvoice.reception.action_retry_processing:sudo:3": "bd78009fdde084c181c194c121ae7cb926f10e643857ef3c0615a2a98224c108",
@@ -144559,6 +144550,15 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_run_einvoice_acceptance_test:sudo:3": "1f94da2a90c93d70defb15d9a99b564f2b35c9f7200dc345c0e1dd399908413e",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.company.action_rebuild_suspend_einvoice_exchange:sudo:1": "5027f54e1e5b1234b57bc7d9d0e6ef8a52d212746ed82b3f1046da99e2ea57e5",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:res.config.settings.button_peppol_deregister:sudo:1": "a02e50a1d323c6ea0a1247e4e9355e32706bf0276da642cb8517f367dd8d6db9",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._cron_peppol_get_message_status:orm_write:1": "994732b9b0dc06ff8ca0e002f9a61f01161e53393c7089da15192519fb6adb0b",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._pdp_send_lifecycles:orm_write:1": "c9356351eaa7578026cce6892a4ee1113212f5d6af08104340d7c887f1fb606e",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:l10n.fr.pdp.reports.flow._cron_update_and_send_flows:orm_write:1": "714fd217d471fe40bc4633d1ef97ec12faf2da05615e462fce3423942a33b6f8",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:pdp.registration.button_deregister_pdp_participant:sudo:1": "e345e5bd046f91cb88a703e2aff8201d4e1a3e2d5edf2ec9d95580de4bd5f0f7",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:pdp.registration.button_deregister_pdp_participant:sudo:2": "e5b4eefd7b8e30916856d2dc11e3fe1c6dc9b2158c211dc092e813e298dbb716",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:pdp.registration.button_open_authentication_link:sudo:1": "3fc9efe23a696348da79fadd3c6728476eccf4dfbaa6ec1a32e99f0f389e840d",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:pdp.registration.button_refresh_authentication:sudo:1": "3b4ec6f1a28cc380739c14bba889a17ce1a2199575dc3a67c43b3a78ec20c377",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:pdp.registration.button_register_pdp_participant:sudo:1": "1a129d93bcb484eafcdf3d8ac5bb35f088aa167e7acea3ef7674b0fe344920cd",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:pdp.registration.button_trigger_authentication:sudo:1": "17dc092c3985e6b3fed3d79bb345aba8cebe3e4539678e6b9a84ab72b8731b15",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/fec_export_wizard.py:l10n_fr.fec.export.wizard.create:orm_create:1": "e3a88ea726537c059a3cb3ba649a1d7dad248f6714a4892a67cdb85b1e73c025",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/fec_export_wizard.py:l10n_fr.fec.export.wizard.write:orm_write:1": "4a2d6570bf6c74b46b24d65699dd75d76a695640e32f90b41f0196f2cee20a88",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/french_tax_report.py:rebuild.account.report.export.wizard._french_tax_control_warning:orm_create:1": "6e23b0147fb640a73a20aa4ded7b14513d71369e6453f4d87f48e448c81bb57d",
@@ -192186,23 +192186,23 @@
         "sink:purchase_stock:addons/purchase_stock/models/purchase_order.py:purchase.order.action_purchase_order_suggest:orm_create:1",
         "sink:purchase_stock:addons/purchase_stock/models/purchase_order.py:purchase.order.action_purchase_order_suggest:orm_write:1",
         "sink:purchase_stock:addons/purchase_stock/models/purchase_order.py:purchase.order.action_purchase_order_suggest:sudo:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_create:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_create:2",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:2",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:3",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:4",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:5",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:6",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:7",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:8",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:2",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:3",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:4",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:5",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:6",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:7",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_create:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_create:2",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:2",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:3",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:4",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:5",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:6",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:7",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:8",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:2",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:3",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:4",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:5",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:6",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:7",
         "sink:stock_account:addons/stock_account/models/product.py:product.product._update_standard_price:sudo:1",
         "sink:stock_account:addons/stock_account/models/product.py:product.product._update_standard_price:sudo:2",
         "sink:stock_account:addons/stock_account/models/product.py:product.product._update_standard_price:sudo:3",
@@ -193030,71 +193030,71 @@
           "rationale": "Public recoverable suggestion uses seller UOM and converts quantities; draft order/line writes keep native ACL and existing exact reversal.",
           "reachability_proof": "Public recoverable suggestion uses seller UOM and converts quantities; draft order/line writes keep native ACL and existing exact reversal."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_create:1": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_create:1": {
           "rationale": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain.",
           "reachability_proof": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_create:2": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_create:2": {
           "rationale": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain.",
           "reachability_proof": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:1": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:1": {
           "rationale": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain.",
           "reachability_proof": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:2": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:2": {
           "rationale": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain.",
           "reachability_proof": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:3": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:3": {
           "rationale": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain.",
           "reachability_proof": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:4": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:4": {
           "rationale": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain.",
           "reachability_proof": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:5": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:5": {
           "rationale": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain.",
           "reachability_proof": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:6": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:6": {
           "rationale": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain.",
           "reachability_proof": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:7": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:7": {
           "rationale": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain.",
           "reachability_proof": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:8": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:8": {
           "rationale": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain.",
           "reachability_proof": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:1": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:1": {
           "rationale": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain.",
           "reachability_proof": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:2": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:2": {
           "rationale": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain.",
           "reachability_proof": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:3": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:3": {
           "rationale": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain.",
           "reachability_proof": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:4": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:4": {
           "rationale": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain.",
           "reachability_proof": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:5": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:5": {
           "rationale": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain.",
           "reachability_proof": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:6": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:6": {
           "rationale": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain.",
           "reachability_proof": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:7": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:7": {
           "rationale": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain.",
           "reachability_proof": "Private received-document import. Upstream unwraps files/type codes; USL pre-parses before invoking super so malformed documents retain reception evidence without an empty accounting move. Existing company/journal/reception and live gates remain."
         },
@@ -193336,23 +193336,23 @@
         "sink:purchase_stock:addons/purchase_stock/models/purchase_order.py:purchase.order.action_purchase_order_suggest:orm_create:1": "e4e2c36399b5ff190933f0644a3d3f7fc4d06e9e304b634f64285b26f617af46",
         "sink:purchase_stock:addons/purchase_stock/models/purchase_order.py:purchase.order.action_purchase_order_suggest:orm_write:1": "6d594b165b3a009f08a74ccd67cfd021c7ffd6abf39761cb428a1512acd8f49c",
         "sink:purchase_stock:addons/purchase_stock/models/purchase_order.py:purchase.order.action_purchase_order_suggest:sudo:1": "567d77e89c654338d0145c7d7fca1e4ffc1eab9b0a2a45b9cb341840c76b2b16",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_create:1": "1c2fbff477d2f271e95eb523dd8899087683c469df01af807bd77f68eaa07a84",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_create:2": "b1a3aa0e5fd45257d951594c62d783bbc266be14140b8f5f337d9f5cb0acae24",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:1": "38a4fdeb325eba16e3e24d63e7d8c8176b33f8393dbe54d9eb50217b02dd2a28",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:2": "f8a8ba2c5820d368421f1abc8f1aa6501f3d04750d5934e1aab26c4827e9ab73",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:3": "57aa5dcbd71e0ad634673334a5d3d64caa1330290683451402235e4748dfc071",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:4": "e5916caa0b1bb9e86eda0d638408639efb69a32952c3234c2dd5569abf937616",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:5": "cd80f6db1dae0d35bde7d77ba466f15fc8a93040042d56051d472174c5d2c9be",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:6": "9dc909a44b451f2fea0bdf953f26b5d6ffa70bd68e246272523b33fa4464a2e3",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:7": "5af7dc5364a445f0b88c371e0ec50aea988cbf6d586410340fc98bfe7b258ce2",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:8": "065e7a20a63b2e1a232b39323e34d0604593745e9d6b64a697984322d9ed4091",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:1": "34c4a1cc839d20cd76754b2484af0b19715e3034cbb1edadac7d2cd6165b3f77",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:2": "bd2adaf14406f4f78da3a215e78da34a85bb47e26b03fe0a3b1816f2e898a22c",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:3": "fe8ed437c58f6d2bfb8c336db4aac3bc2e0fabb9a3eb5ef16f838fb934305bf9",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:4": "ca287c99e8ab7ba2d94ab611d85496afffb9d6baecb90ba0055a8a1e3f20cb1c",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:5": "85562153b1ce2374f0c59d90516d60c802261ae3ebc91c2cc8a8a0bbdfd1a155",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:6": "046b30938f893a7b83f6d966fb3fc6435ef8c36e22b6ee3ac2a8c4bf7113879b",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:7": "c5465a3631e7a5d58a97c21c305b3d1b76e43baaafe127ef6432ae87e0f0cc8a",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_create:1": "1c2fbff477d2f271e95eb523dd8899087683c469df01af807bd77f68eaa07a84",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_create:2": "b1a3aa0e5fd45257d951594c62d783bbc266be14140b8f5f337d9f5cb0acae24",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:1": "38a4fdeb325eba16e3e24d63e7d8c8176b33f8393dbe54d9eb50217b02dd2a28",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:2": "f8a8ba2c5820d368421f1abc8f1aa6501f3d04750d5934e1aab26c4827e9ab73",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:3": "57aa5dcbd71e0ad634673334a5d3d64caa1330290683451402235e4748dfc071",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:4": "e5916caa0b1bb9e86eda0d638408639efb69a32952c3234c2dd5569abf937616",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:5": "cd80f6db1dae0d35bde7d77ba466f15fc8a93040042d56051d472174c5d2c9be",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:6": "9dc909a44b451f2fea0bdf953f26b5d6ffa70bd68e246272523b33fa4464a2e3",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:7": "5af7dc5364a445f0b88c371e0ec50aea988cbf6d586410340fc98bfe7b258ce2",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:orm_write:8": "065e7a20a63b2e1a232b39323e34d0604593745e9d6b64a697984322d9ed4091",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:1": "34c4a1cc839d20cd76754b2484af0b19715e3034cbb1edadac7d2cd6165b3f77",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:2": "bd2adaf14406f4f78da3a215e78da34a85bb47e26b03fe0a3b1816f2e898a22c",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:3": "fe8ed437c58f6d2bfb8c336db4aac3bc2e0fabb9a3eb5ef16f838fb934305bf9",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:4": "ca287c99e8ab7ba2d94ab611d85496afffb9d6baecb90ba0055a8a1e3f20cb1c",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:5": "85562153b1ce2374f0c59d90516d60c802261ae3ebc91c2cc8a8a0bbdfd1a155",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:6": "046b30938f893a7b83f6d966fb3fc6435ef8c36e22b6ee3ac2a8c4bf7113879b",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._peppol_import_invoice:sudo:7": "c5465a3631e7a5d58a97c21c305b3d1b76e43baaafe127ef6432ae87e0f0cc8a",
         "sink:stock_account:addons/stock_account/models/product.py:product.product._update_standard_price:sudo:1": "c2d6109f7a6ee6dbe3a77fff177c419b5f5cb0ec2333aaa5c1896a7a6d07803b",
         "sink:stock_account:addons/stock_account/models/product.py:product.product._update_standard_price:sudo:2": "1f9a828a93954bd63cd5ae8b1d33156255c8376da1633c5b22cfaae2f5624a1d",
         "sink:stock_account:addons/stock_account/models/product.py:product.product._update_standard_price:sudo:3": "0182c797847534a9f02c1f1e8225052a160814df1d29b6fec183732af26df805",
