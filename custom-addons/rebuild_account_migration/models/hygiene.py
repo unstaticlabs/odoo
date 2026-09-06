@@ -330,7 +330,10 @@ class RebuildAccountHygieneIssue(models.Model):
             ("state", "!=", "refused"),
         ])
         missing_expense_evidence = expenses.filtered(
-            lambda item: not item.message_main_attachment_id,
+            lambda item: (
+                not item.message_main_attachment_id
+                and not item.rebuild_receipt_waived_at
+            ),
         )
         if missing_expense_evidence:
             expense = missing_expense_evidence.sorted("id")[0]
