@@ -22,10 +22,9 @@ class UslDocument(models.Model):
     @api.model
     def _accessible_role_document_ids(self, roles):
         """Resolve role visibility through the target record's native ACLs."""
-        accessible_ids = set(self.search([]).ids)
         links = self.env["usl.document.link"].sudo().search(
             [
-                ("document_id", "in", list(accessible_ids)),
+                ("document_id", "in", self._search([])),
                 ("active", "=", True),
                 ("document_role", "in", list(roles)),
             ],
@@ -34,10 +33,9 @@ class UslDocument(models.Model):
 
     @api.model
     def _accessible_project_document_ids(self):
-        accessible_ids = self.search([]).ids
         links = self.env["usl.document.link"].sudo().search(
             [
-                ("document_id", "in", accessible_ids),
+                ("document_id", "in", self._search([])),
                 ("active", "=", True),
                 ("res_model", "in", ("project.project", "project.task")),
             ],

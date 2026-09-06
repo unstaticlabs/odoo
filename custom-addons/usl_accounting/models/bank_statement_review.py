@@ -180,6 +180,20 @@ class AccountBankStatement(models.Model):
         "period_end",
     )
     def _compute_bank_review(self):
+        certified_by_config = {}
+        config_ids = self.ingestion_config_id.ids
+        if config_ids:
+            for certified in self.search(
+                [
+                    ("ingestion_config_id", "in", config_ids),
+                    ("certification_state", "=", "certified"),
+                ],
+                order="period_end desc, id desc",
+            ):
+                certified_by_config.setdefault(
+                    certified.ingestion_config_id.id, self.env["account.bank.statement"],
+                )
+                certified_by_config[certified.ingestion_config_id.id] |= certified
         for statement in self:
             posted = statement.line_ids.filtered(lambda line: line.state == "posted")
             movement = sum(posted.mapped("amount"))
@@ -245,14 +259,16 @@ class AccountBankStatement(models.Model):
                 statement.balance_check_status = "ready"
             previous = self.env["account.bank.statement"]
             if statement.ingestion_config_id and statement.period_start:
-                previous = self.search(
-                    [
-                        ("ingestion_config_id", "=", statement.ingestion_config_id.id),
-                        ("period_end", "<", statement.period_start),
-                        ("certification_state", "=", "certified"),
-                    ],
-                    order="period_end desc, id desc",
-                    limit=1,
+                previous = next(
+                    (
+                        certified
+                        for certified in certified_by_config.get(
+                            statement.ingestion_config_id.id, self.env["account.bank.statement"],
+                        )
+                        if certified.period_end
+                        and certified.period_end < statement.period_start
+                    ),
+                    previous,
                 )
             statement.previous_certified_statement_id = previous
             if previous:

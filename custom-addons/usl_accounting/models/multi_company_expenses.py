@@ -57,6 +57,9 @@ class ResUsers(models.Model):
         Employee = self.env["hr.employee"].sudo().with_context(
             active_test=False,
         )
+        profiles_by_user = {user.id: Employee for user in self}
+        for profile in Employee.search([("user_id", "in", self.ids)]):
+            profiles_by_user[profile.user_id.id] |= profile
         for user in self:
             if not user.usl_expense_multi_company:
                 user.usl_expense_company_profile_status = "disabled"
@@ -66,10 +69,9 @@ class ResUsers(models.Model):
                 )
                 continue
             expense_companies = user.company_ids - user.usl_expense_excluded_company_ids
-            profiles = Employee.search([
-                ("user_id", "=", user.id),
-                ("company_id", "in", expense_companies.ids),
-            ])
+            profiles = profiles_by_user[user.id].filtered(
+                lambda profile: profile.company_id in expense_companies,
+            )
             ready_company_ids = set(
                 profiles.filtered("active").company_id.ids,
             )

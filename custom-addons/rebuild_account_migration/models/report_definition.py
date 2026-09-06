@@ -447,10 +447,16 @@ class RebuildAccountReportDefinition(models.Model):
     @api.depends("report_type", "company_id")
     def _compute_generated_session_count(self):
         Wizard = self.env["rebuild.account.report.export.wizard"]
+        counts = {
+            definition.id: count
+            for definition, count in Wizard._read_group(
+                [("report_definition_id", "in", self.ids)],
+                ["report_definition_id"],
+                ["__count"],
+            )
+        }
         for definition in self:
-            definition.generated_session_count = Wizard.search_count([
-                ("report_definition_id", "=", definition.id),
-            ])
+            definition.generated_session_count = counts.get(definition.id, 0)
 
     @api.constrains("company_id", "code")
     def _check_unique_scope(self):

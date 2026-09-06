@@ -3979,3 +3979,30 @@ class TestCleanUslSign(TransactionCase):
             cover=self.pdf,
         )
         self.assertEqual(base64.b64decode(captured["coverDocument"]), self.pdf)
+
+    def test_signer_and_partner_summaries_have_bounded_query_count(self):
+        """Request and Contact lists resolve signers with one query per page."""
+        requests = self.env["sign.oca.request"]
+        for index in range(12):
+            requests |= self._request(
+                partners=[self.partner_one if index % 2 else self.partner_two],
+                name=f"Bounded request {index}",
+                record_ref=f"res.partner,{self.partner_one.id}",
+            )
+        requests.invalidate_recordset()
+        query_start = self.env.cr.sql_log_count
+        signer_values = requests.read(["signer_id"])
+        request_queries = self.env.cr.sql_log_count - query_start
+
+        self.assertEqual(len(signer_values), 12)
+        self.assertLessEqual(request_queries, 8)
+
+        partners = self.partner_one | self.partner_two
+        partners.invalidate_recordset()
+        query_start = self.env.cr.sql_log_count
+        summaries = partners.read(["signature_request_count", "signature_current_state"])
+        partner_queries = self.env.cr.sql_log_count - query_start
+
+        self.assertEqual(summaries[0]["signature_request_count"], 12)
+        self.assertEqual(summaries[1]["signature_request_count"], 6)
+        self.assertLessEqual(partner_queries, 12)

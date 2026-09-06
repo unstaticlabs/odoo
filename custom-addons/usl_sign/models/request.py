@@ -112,19 +112,23 @@ class SignRequest(models.Model):
         interchangeable.
         """
         partner = self.env.user.partner_id
+        # ``request.signer_ids`` contains every recipient id.  A recipient
+        # may read only their own row, so traversing the whole relation can
+        # fail as soon as another recipient is prefetched.  Resolve the
+        # exact identity under sudo, then let normal rules protect any
+        # later access to the selected row.
+        Signer = self.env["sign.oca.request.signer"].sudo()
+        assigned_by_request = {request.id: Signer for request in self}
+        for signer in Signer.search(
+            [
+                ("request_id", "in", self.ids),
+                ("partner_id", "=", partner.id),
+            ],
+            order="sequence, id",
+        ):
+            assigned_by_request[signer.request_id.id] |= signer
         for request in self:
-            # ``request.signer_ids`` contains every recipient id.  A recipient
-            # may read only their own row, so traversing the whole relation can
-            # fail as soon as another recipient is prefetched.  Resolve the
-            # exact identity under sudo, then let normal rules protect any
-            # later access to the selected row.
-            assigned = self.env["sign.oca.request.signer"].sudo().search(
-                [
-                    ("request_id", "=", request.id),
-                    ("partner_id", "=", partner.id),
-                ],
-                order="sequence, id",
-            )
+            assigned = assigned_by_request[request.id]
             allowed = assigned.filtered("is_allow_signature")
             request.signer_id = allowed[:1] if allowed else assigned[:1]
 

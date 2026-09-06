@@ -472,6 +472,17 @@ class UslExpenseBatch(models.Model):
         "expense_ids.total_amount",
     )
     def _compute_accounting_reconciliation(self):
+        posted_moves = self.expense_ids.account_move_id.filtered(
+            lambda move: move.state == "posted",
+        )
+        debit_by_move = {
+            move.id: debit
+            for move, debit in self.env["account.move.line"].sudo()._read_group(
+                [("move_id", "in", posted_moves.ids)],
+                ["move_id"],
+                ["debit:sum"],
+            )
+        }
         for batch in self:
             active_expenses = batch.expense_ids.filtered(
                 lambda expense: expense.state != "refused",
@@ -486,10 +497,8 @@ class UslExpenseBatch(models.Model):
                 continue
             expected_total = sum(accounted.mapped("total_amount"))
             ledger_total = sum(
-                self.env["account.move.line"]
-                .sudo()
-                .search([("move_id", "in", accounted.account_move_id.ids)])
-                .mapped("debit"),
+                debit_by_move.get(move.id, 0.0)
+                for move in accounted.account_move_id
             )
             difference = batch.currency_id.round(ledger_total - expected_total)
             batch.accounting_difference = difference

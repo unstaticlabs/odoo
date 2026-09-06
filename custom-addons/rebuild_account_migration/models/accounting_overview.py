@@ -178,11 +178,19 @@ class RebuildAccountOverview(models.Model):
 
     def _compute_hygiene_issue_count(self):
         Issue = self.env["rebuild.account.hygiene.issue"]
+        counts = {
+            company.id: count
+            for company, count in Issue._read_group(
+                [
+                    ("company_id", "in", self.company_id.ids),
+                    ("status", "=", "open"),
+                ],
+                ["company_id"],
+                ["__count"],
+            )
+        }
         for summary in self:
-            summary.hygiene_issue_count = Issue.search_count([
-                ("company_id", "=", summary.company_id.id),
-                ("status", "=", "open"),
-            ])
+            summary.hygiene_issue_count = counts.get(summary.company_id.id, 0)
 
     def _compute_evidence_status(self):
         for summary in self:

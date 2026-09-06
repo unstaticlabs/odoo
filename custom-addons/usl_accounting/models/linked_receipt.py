@@ -1538,8 +1538,14 @@ class HrExpense(models.Model):
 
     def _compute_linked_receipt_status(self):
         Retrieval = self.env["usl.mail.pdf.retrieval"].sudo()
+        latest_by_expense = {
+            expense.id: Retrieval.browse(latest_id)
+            for expense, latest_id in Retrieval._read_group(
+                [("expense_id", "in", self.ids)], ["expense_id"], ["id:max"],
+            )
+        }
         for expense in self:
-            retrieval = Retrieval.search([("expense_id", "=", expense.id)], order="id desc", limit=1)
+            retrieval = latest_by_expense.get(expense.id, Retrieval)
             expense.linked_receipt_state = retrieval.state or False
             expense.linked_receipt_authentication_required = bool(
                 retrieval.state == "needs_attention"
