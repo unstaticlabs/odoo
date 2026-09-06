@@ -779,7 +779,7 @@ class UslMailPdfRetrieval(models.Model):
     @api.model
     def _expense_is_eligible(self, expense):
         expense = expense.exists()
-        return bool(expense and expense.state == "draft")
+        return bool(expense and expense.state in ("draft", "approved"))
 
     def _check_can_manage(self):
         self.ensure_one()
@@ -1585,7 +1585,7 @@ class HrExpense(models.Model):
     def action_scan_existing_receipt_emails(self):
         """Discover historical links without reprocessing existing retrievals."""
         self.check_access("read")
-        eligible = self.filtered(lambda expense: expense.state == "draft")
+        eligible = self.filtered(Retrieval._expense_is_eligible)
         eligible.check_access("write")
         manager = self.env.user.has_group("account.group_account_manager")
         if any(expense.employee_id.user_id != self.env.user for expense in self) and not manager:

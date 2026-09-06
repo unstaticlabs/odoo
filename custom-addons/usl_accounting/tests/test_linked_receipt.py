@@ -133,7 +133,7 @@ class TestLinkedReceipt(TestExpenseCommon):
         self.assertEqual(retrievals.state, "selection_required")
         self.assertEqual((expense.state, expense.total_amount, expense.company_id), before)
 
-    def test_historical_scan_skips_receipts_and_non_drafts(self):
+    def test_historical_scan_skips_receipts_and_non_eligible_states(self):
         attached = self._historical_expense(token="historical-attached", attachment=True)
         refused = self._historical_expense(token="historical-refused")
         refused.state = "refused"
@@ -142,6 +142,17 @@ class TestLinkedReceipt(TestExpenseCommon):
         self.assertFalse(self.env["usl.mail.pdf.retrieval"].sudo().search([
             ("expense_id", "in", (attached | refused).ids),
         ]))
+
+    def test_historical_scan_includes_approved_expenses(self):
+        approved = self._historical_expense(token="historical-approved")
+        approved.sudo().write({"state": "approved"})
+        with patch.dict("os.environ", {"USL_LINKED_PDF_DOWNLOAD_ENABLED": "1"}):
+            approved.with_user(self.expense_user_employee).action_scan_existing_receipt_emails()
+
+        retrievals = self.env["usl.mail.pdf.retrieval"].sudo().search(
+            [("expense_id", "=", approved.id)]
+        )
+        self.assertEqual(retrievals.state, "selection_required")
 
     def test_historical_scan_checks_authority_and_feature_gate(self):
         expense = self._historical_expense(token="historical-authority")

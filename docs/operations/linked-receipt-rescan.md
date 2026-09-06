@@ -1,13 +1,14 @@
 # Scan historical expense emails
 
-Enabling linked receipt downloads does not replay existing emails. For a draft
+Enabling linked receipt downloads does not replay existing emails. For a draft or
+approved
 expense without receipt evidence, open the form's cog menu and choose
 **Scan existing emails for receipts**. For a batch, select expenses in the list and use the action
 with the same name.
 
 The action requires write access and either expense ownership or the Accounting
 Manager role. It respects company access and the environment activation gates.
-It skips non-draft expenses, existing retrieval requests (including dismissed
+It skips non-eligible expenses (for example, paid or refused), existing retrieval requests (including dismissed
 or failed requests), and expenses with attached receipt evidence. Use the
 existing retry or link-selection controls to manage a previous request.
 
