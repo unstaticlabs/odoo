@@ -6,8 +6,22 @@ The permanent delivery path starts from two protected branches:
 - `19-usl` is the production branch.
 
 Feature work reaches staging through a pull request and merge queue. Production
-accepts only `19-usl-staging` or an `urgent/**` pull request. An urgent change is
-also mirrored back to staging so the two lines cannot silently diverge.
+accepts only `19-usl-staging` or an `urgent/**` pull request.
+
+Production advances on its own whenever an `urgent/**` branch merges into it,
+and every promotion adds a merge commit that exists only on `19-usl`. Both leave
+staging behind, so `Back-merge production into staging` opens a `19-usl` ->
+`19-usl-staging` pull request as soon as production is no longer an ancestor of
+staging, and an hourly run catches anything the push-triggered run missed. The
+back-merge is the one operation that restores the shared ancestry; staging is
+never expected to sit behind production.
+
+An urgent fix therefore reaches staging after it merges to production rather
+than in parallel with it. The earlier arrangement mirrored the urgent branch
+into a second staging pull request, which kept the content in step but merged
+the same work twice from unrelated commits: the two branches ended up with equal
+trees and no common history, and nothing could bring them back together because
+the source policy rejected the back-merge that would have done it.
 
 Both branch rules intentionally require zero approving reviews. Qualification
 checks and merge queues are machine admission boundaries, and qualified
@@ -544,11 +558,14 @@ zero approving reviews by design. There is no required-deployment-environment
 gate. The source policy accepts a production pull request only when it comes
 from `unstaticlabs/odoo:19-usl-staging` or an
 `unstaticlabs/odoo:urgent/**` branch; a fork cannot pass by reusing one of those
-branch names.
+branch names. A staging pull request accepts any feature branch and, for the
+back-merge, `unstaticlabs/odoo:19-usl`; that source carries the same repository
+check, so a fork cannot pass by naming a branch `19-usl` either. Staging never
+accepts itself as a source.
 
 The `USL source policy` and `USL production promotion` jobs run only for a
 pull request or merge group whose base is `19-usl`. On a staging pull request,
-a staging merge group or an urgent mirror run, the workflow skips both jobs and
+a staging merge group or a back-merge run, the workflow skips both jobs and
 names them `USL source policy not applicable` and
 `USL production promotion not applicable`. A skipped job under a different name
 never satisfies a production required check. GitHub therefore waits for the
