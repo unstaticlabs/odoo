@@ -164600,18 +164600,18 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.action_suspend:orm_write:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.create:orm_create:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.create:orm_create:2",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential._search_status:sudo:1",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential.action_revoke:orm_write:1",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential.action_revoke:orm_write:2",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential.action_revoke:sudo:1",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential.create:orm_create:1",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential.write:orm_write:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential._search_status:sudo:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential.action_revoke:orm_write:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential.action_revoke:orm_write:2",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential.action_revoke:sudo:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential.create:orm_create:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential.write:orm_write:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.current_identity:sudo:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.current_identity:sudo:2",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.key.wizard.action_generate:orm_create:1",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.key.wizard.action_generate:orm_unlink:1",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.key.wizard.action_generate:sudo:1",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.transfer.wizard.action_transfer:orm_write:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.key.wizard.action_generate:orm_create:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.key.wizard.action_generate:orm_unlink:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.key.wizard.action_generate:sudo:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.transfer.wizard.action_transfer:orm_write:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:2",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:3",
@@ -164690,40 +164690,10 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.create:orm_create:2": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential._search_status:sudo:1": {
-          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
-        },
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential.action_revoke:orm_write:1": {
-          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
-        },
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential.action_revoke:orm_write:2": {
-          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
-        },
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential.action_revoke:sudo:1": {
-          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
-        },
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential.create:orm_create:1": {
-          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
-        },
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential.write:orm_write:1": {
-          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
-        },
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.current_identity:sudo:1": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.current_identity:sudo:2": {
-          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
-        },
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.key.wizard.action_generate:orm_create:1": {
-          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
-        },
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.key.wizard.action_generate:orm_unlink:1": {
-          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
-        },
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.key.wizard.action_generate:sudo:1": {
-          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
-        },
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.transfer.wizard.action_transfer:orm_write:1": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:1": {
@@ -164746,6 +164716,36 @@
         },
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:usl.document.mcp_revoke_download_grant:sudo:1": {
           "reachability_proof": "Internal implementation sink reachable only through its separately reviewed guarded collaboration method; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential._search_status:sudo:1": {
+          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential.action_revoke:orm_write:1": {
+          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential.action_revoke:orm_write:2": {
+          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential.action_revoke:sudo:1": {
+          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential.create:orm_create:1": {
+          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential.write:orm_write:1": {
+          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.key.wizard.action_generate:orm_create:1": {
+          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.key.wizard.action_generate:orm_unlink:1": {
+          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.key.wizard.action_generate:sudo:1": {
+          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.transfer.wizard.action_transfer:orm_write:1": {
+          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_feedback.py:usl.agent.submit_mcp_feedback:message_send:1": {
           "reachability_proof": "Internal implementation sink reachable only through the validated active-Agent feedback transaction; it has no independent RPC, controller, UI, or scheduled entry point."
@@ -164798,18 +164798,8 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.action_suspend:orm_write:1": "3a1d69ad9d4cc0e46e7f37fbdbcafad1908e5c7188583bf5d5dc06b9a7fffc4d",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.create:orm_create:1": "3d9fdf708c986cd284466ce0efb0ec7279973e7ad310348360df7c32c4d947c2",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.create:orm_create:2": "9824630413e04a9906d9771678d0e5c8ee1249da0f317f95851dd8e9c9c03fab",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential._search_status:sudo:1": "12716b0c6d5da91e9bc48d74d4179edb5e7496281ee0bd1447197427d08b51de",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential.action_revoke:orm_write:1": "568f9d09d97f03fc87d7e80048916961b1251ee79cc6225a5ac71a330a95af1f",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential.action_revoke:orm_write:2": "8d5b631f2c60ec77cf7fc4cd96dc95af3125311abc8564c7dcaac467e128f045",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential.action_revoke:sudo:1": "6c6d8b63219676d447227be09464c3d3a75d60b8a7bbcaaca14edbcc90c81984",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential.create:orm_create:1": "5647948f62ad35ae061fde2d1cb305457da04c9d749acf23f20e30e5f1da5038",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential.write:orm_write:1": "72daee0daf9d06e4583ca2a3bafe65d7636e1f54bf28cfdcc75e649b1131da48",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.current_identity:sudo:1": "6d04c54a41e845c0203bb218b6b4f9a3184e3ef185d6e6f39f39ecbc3de22660",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.current_identity:sudo:2": "e8a36e107710ca469bd9eddf7a4a267ea25f1687086e7b22dc5b4199f82d14e5",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.key.wizard.action_generate:orm_create:1": "ae6e45b9febedc47a72920dfdac025b61f468626a75543fc623bd0f2ee3e9997",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.key.wizard.action_generate:orm_unlink:1": "978b03fa5a0322ee7d4c587eeb6700665301171160250c8a070208b9b06992a0",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.key.wizard.action_generate:sudo:1": "1babcc78551343c29b0975048777f3e13814668ace04b2a72a771f20e1d9b731",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.transfer.wizard.action_transfer:orm_write:1": "edb60495c97488d32cbb42de983b3921caa728f998530e5a078201fe8fa0476f",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:1": "908837c35df00cbcad84264379a5766fa9dea3a76c63337d7b56beedbbe6a314",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:2": "9da815d19438ebe05b77bb5df8041eefed2a663547afcd5b4d79aafc6effd5fc",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:3": "8d89c2cf31a264209e939ec5686383db2123878c93dcd586b536f3dd58419319",
@@ -164817,6 +164807,16 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:5": "fc4890618e8c15eaca737f2e449137d4c0d4060eadf465e3a73e70e4518b56dd",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.thread.message_post:message_send:1": "6756fdc9d85dca4068c4c35f56ea34595fca28b61f4aa7d782b8b9133bb35a0d",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:usl.document.mcp_revoke_download_grant:sudo:1": "8db24acee12b1a793ea5c1c57fe1a0fd921ba7733fc83b245a93736b4a0b45d4",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential._search_status:sudo:1": "12716b0c6d5da91e9bc48d74d4179edb5e7496281ee0bd1447197427d08b51de",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential.action_revoke:orm_write:1": "568f9d09d97f03fc87d7e80048916961b1251ee79cc6225a5ac71a330a95af1f",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential.action_revoke:orm_write:2": "8d5b631f2c60ec77cf7fc4cd96dc95af3125311abc8564c7dcaac467e128f045",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential.action_revoke:sudo:1": "6c6d8b63219676d447227be09464c3d3a75d60b8a7bbcaaca14edbcc90c81984",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential.create:orm_create:1": "5647948f62ad35ae061fde2d1cb305457da04c9d749acf23f20e30e5f1da5038",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential.write:orm_write:1": "72daee0daf9d06e4583ca2a3bafe65d7636e1f54bf28cfdcc75e649b1131da48",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.key.wizard.action_generate:orm_create:1": "ae6e45b9febedc47a72920dfdac025b61f468626a75543fc623bd0f2ee3e9997",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.key.wizard.action_generate:orm_unlink:1": "978b03fa5a0322ee7d4c587eeb6700665301171160250c8a070208b9b06992a0",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.key.wizard.action_generate:sudo:1": "1babcc78551343c29b0975048777f3e13814668ace04b2a72a771f20e1d9b731",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.transfer.wizard.action_transfer:orm_write:1": "edb60495c97488d32cbb42de983b3921caa728f998530e5a078201fe8fa0476f",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_feedback.py:usl.agent.submit_mcp_feedback:message_send:1": "792ba40d8638f9217f67b237fc8b542c216a6ebeedfc79497bd844f399546318",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_feedback.py:usl.agent.submit_mcp_feedback:orm_create:1": "1ace33d560520d7ec8cd7cb7d290aba361c8ae13a4df531d7cf8781c57a62c4d",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_feedback.py:usl.agent.submit_mcp_feedback:sudo:1": "e0befc41a5bb6f3cf629cbeab5ff70a7414823ddc6c71a9fcaaea488db31053c",
@@ -193728,7 +193728,7 @@
     {
       "action_keys": [
         "sink:usl_access_control:custom-addons/usl_access_control/controllers/json2.py:UslAgentJson2Controller.web_json_2_rpc:sudo:1",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential._touch_last_used_at:raw_sql_mutation:1"
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential._touch_last_used_at:raw_sql_mutation:1"
       ],
       "classification": "system_internal",
       "consequence": "Supports a reviewed workflow internally and has no independent ordinary-user entry point.",
@@ -193739,14 +193739,14 @@
         "sink:usl_access_control:custom-addons/usl_access_control/controllers/json2.py:UslAgentJson2Controller.web_json_2_rpc:sudo:1": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential._touch_last_used_at:raw_sql_mutation:1": {
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential._touch_last_used_at:raw_sql_mutation:1": {
           "reachability_proof": "Private authenticated-credential telemetry helper; updates only last_used_at and ORM audit timestamps on its own credential. No public RPC entry point; credential validity, Agent status and transport checks run before this helper."
         }
       },
       "rationale": "Reachability is limited to the reviewed caller or scheduler; any separately reachable action is classified independently.",
       "reviewed_digests": {
         "sink:usl_access_control:custom-addons/usl_access_control/controllers/json2.py:UslAgentJson2Controller.web_json_2_rpc:sudo:1": "e2685d6f7c17b07858f9a944ed44e9d238af50c2f9d7f29810776ca198456be6",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.credential._touch_last_used_at:raw_sql_mutation:1": "5a8d08e234e9b50548fc9cef563d6829e54b5f4b1b218af8511d3d4b37154a97"
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential._touch_last_used_at:raw_sql_mutation:1": "5a8d08e234e9b50548fc9cef563d6829e54b5f4b1b218af8511d3d4b37154a97"
       }
     },
     {
