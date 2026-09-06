@@ -193753,6 +193753,26 @@
     },
     {
       "action_keys": [
+        "rpc:hr.expense.action_scan_existing_receipt_emails",
+        "server_action:usl_accounting.action_scan_existing_receipt_emails",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense.action_scan_existing_receipt_emails:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense.action_scan_existing_receipt_emails:sudo:2"
+      ],
+      "classification": "operational",
+      "consequence": "Creates one receipt-discovery request for eligible missing-receipt draft or approved expenses; recognized candidates may enter the existing download queue.",
+      "domain": "people_and_payroll",
+      "evidence_id": "historical-receipt-rescan",
+      "id": "operational.accounting.historical_receipt_rescan",
+      "rationale": "Explicit expense read/write and owner/Accounting Manager checks precede company-scoped elevation. Existing evidence and requests are skipped. Elevation only reads receipt evidence or invokes the existing discovery flow; no financial state, policy, credentials or provider-learning controls are changed.",
+      "reviewed_digests": {
+        "rpc:hr.expense.action_scan_existing_receipt_emails": "81a5061742ffdb24dc1bcac032cc16f4c67b40fce22cb55d6eb9311a5ab2ec41",
+        "server_action:usl_accounting.action_scan_existing_receipt_emails": "2535eba137f4c558e15e0b6b4abdaca6628878687117f7e34bcd4f1190f5d5e3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense.action_scan_existing_receipt_emails:sudo:1": "a73c2f8c543a87d11aa469cd96a0fd025a547da0099cfb39023f0638770c1617",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:hr.expense.action_scan_existing_receipt_emails:sudo:2": "8fef44fe6b962721ae66966566b5256a49bd5cc81f02a6d44dda7fdcabe64417"
+      }
+    },
+    {
+      "action_keys": [
         "client:usl_project:custom-addons/usl_project/static/src/favorite_project_navigation.js:if:rpc:1"
       ],
       "classification": "transport",
@@ -193824,6 +193844,17 @@
         "custom-addons/usl_accounting/tests/test_linked_receipt.py::TestLinkedReceipt.test_success_attaches_exactly_one_main_receipt",
         "custom-addons/usl_accounting/tests/test_linked_receipt.py::TestLinkedReceipt.test_stale_generation_after_fetch_cannot_attach_or_update_learning",
         "custom-addons/usl_accounting/tests/test_linked_receipt_http.py::TestLinkedReceiptHandoffHttp.test_post_rejects_missing_csrf"
+      ]
+    },
+    "historical-receipt-rescan": {
+      "contract": "Exercise idempotency, expense invariants, evidence skips, feature gates, owner authority, cross-company denial, and the ordinary-user cog-menu journey.",
+      "tests": [
+        "custom-addons/usl_accounting/tests/test_linked_receipt.py::TestLinkedReceipt.test_historical_scan_is_idempotent_and_preserves_expense",
+        "custom-addons/usl_accounting/tests/test_linked_receipt.py::TestLinkedReceipt.test_historical_scan_rejects_other_company_record",
+        "custom-addons/usl_accounting/tests/test_linked_receipt.py::TestLinkedReceipt.test_historical_scan_checks_authority_and_feature_gate",
+        "custom-addons/usl_accounting/tests/test_linked_receipt_tour.py::TestLinkedReceiptBrowser.test_employee_scans_historical_receipt",
+        "custom-addons/usl_accounting/tests/test_linked_receipt.py::TestLinkedReceipt.test_historical_scan_includes_approved_expenses",
+        "custom-addons/usl_accounting/tests/test_linked_receipt.py::TestLinkedReceipt.test_historical_scan_skips_posted_and_paid_expenses"
       ]
     },
     "internal-reachability-v1": {
@@ -193898,6 +193929,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "dd83831b635b8cef1016fc8ab9760f5c2978f449dab55663bed49d5ddb702beb",
+  "qualified_policy_digest": "61a00bcb842868ebb0e5e6720ed1c12817b697879d1e59d15b5f5fbc053e651e",
   "schema": "usl-action-risk-policy-v1"
 }
