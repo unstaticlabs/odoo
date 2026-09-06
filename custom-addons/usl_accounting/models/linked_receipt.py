@@ -779,7 +779,7 @@ class UslMailPdfRetrieval(models.Model):
     @api.model
     def _expense_is_eligible(self, expense):
         expense = expense.exists()
-        return bool(expense and expense.state == "draft")
+        return bool(expense and expense.state in ("draft", "approved"))
 
     def _check_can_manage(self):
         self.ensure_one()
@@ -1581,6 +1581,58 @@ class HrExpense(models.Model):
         if not retrieval:
             raise UserError(_("This expense has no linked receipt to manage."))
         return retrieval
+
+    def action_scan_existing_receipt_emails(self):
+        """Discover historical links without reprocessing existing retrievals."""
+        self.check_access("read")
+        Retrieval = self.env["usl.mail.pdf.retrieval"]
+        eligible = self.filtered(Retrieval._expense_is_eligible)
+        eligible.check_access("write")
+        manager = self.env.user.has_group("account.group_account_manager")
+        if any(expense.employee_id.user_id != self.env.user for expense in self) and not manager:
+            raise AccessError(_("Only the expense owner or an Accounting Manager can manage its linked receipt."))
+        if not Retrieval._feature_enabled():
+            raise UserError(_("Linked receipt retrieval is disabled in this environment."))
+        found = 0
+        for expense in eligible.sorted("id"):
+            # Serialize repeat clicks before discovering or enqueueing any work.
+            self.env.cr.execute(
+                "SELECT id FROM hr_expense WHERE id = %s FOR UPDATE", [expense.id]
+            )
+            expense.invalidate_recordset()
+            if not Retrieval._expense_is_eligible(expense):
+                continue
+            scoped = Retrieval.sudo().with_company(expense.company_id)
+            if scoped.search_count([("expense_id", "=", expense.id)]):
+                continue
+            attachments = self.env["ir.attachment"].sudo().search_count([
+                ("res_model", "=", "hr.expense"), ("res_id", "=", expense.id),
+                "|", ("mimetype", "=", "application/pdf"), ("mimetype", "=like", "image/%"),
+            ])
+            messages = expense.message_ids
+            if expense.message_main_attachment_id or attachments or any(
+                scoped._message_has_receipt(message) for message in messages
+            ):
+                continue
+            emails = messages.filtered(lambda item: item.message_type == "email")
+            for message in emails.sorted("id", reverse=True):
+                if scoped._discover_for_expense(expense, message):
+                    found += 1
+                    break
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Receipt email scan complete"),
+                "message": _(
+                    "Found receipt links for %(count)s expenses. Existing requests and expenses with receipts were skipped.",
+                    count=found,
+                ),
+                "type": "success" if found else "info",
+                "sticky": False,
+                "next": {"type": "ir.actions.client", "tag": "reload"},
+            },
+        }
 
     def action_review_linked_receipt(self):
         self.ensure_one()
