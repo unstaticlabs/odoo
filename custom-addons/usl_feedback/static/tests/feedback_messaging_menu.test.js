@@ -239,6 +239,10 @@ test("page preview rejects external resources and preserves visible scroll offse
 test("page preview renders the Odoo viewport, compresses locally, and releases once", async () => {
     patchWithCleanup(browser, { innerHeight: 1440, innerWidth: 2560 });
     const root = document.createElement("main");
+    Object.defineProperties(root, {
+        clientWidth: { value: 50000 },
+        clientHeight: { value: 20000 },
+    });
     root.className = "o_web_client";
     const qualities = [];
     const canvas = {
@@ -256,6 +260,8 @@ test("page preview renders the Odoo viewport, compresses locally, and releases o
             expect(target).toBe(root);
             expect(options.canvasWidth).toBe(1920);
             expect(options.canvasHeight).toBe(1080);
+            expect(options.width).toBe(2560);
+            expect(options.height).toBe(1440);
             expect(options.includeQueryParams).toBe(false);
             return canvas;
         },

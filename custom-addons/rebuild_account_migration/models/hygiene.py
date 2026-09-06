@@ -198,6 +198,21 @@ class RebuildAccountHygieneIssue(models.Model):
         }
 
     @api.model
+    def _structured_evidence_move_ids(self, moves):
+        """Resolve structured evidence once for a bounded set of readable moves."""
+        if not moves:
+            return set()
+        moves.check_access("read")
+        # Accounting reviewers need not have Platform Billing access. Elevate
+        # only this relational lookup; never expose elevated payout records.
+        payouts = self.env["usl.platform.billing.payout"].sudo().search_fetch([
+            ("company_id", "in", moves.company_id.ids),
+            ("vendor_bill_id", "in", moves.ids),
+            ("state", "in", ["posted", "paid"]),
+        ], ["vendor_bill_id"])
+        return set(payouts.vendor_bill_id.ids)
+
+    @api.model
     def _evaluate_builtin_hygiene(self, company):
         now = fields.Date.context_today(self)
         cutoff = date_utils.subtract(now, days=30)
@@ -239,9 +254,13 @@ class RebuildAccountHygieneIssue(models.Model):
             ("move_type", "in", ["out_invoice", "out_refund", "in_invoice", "in_refund", "out_receipt", "in_receipt"]),
             ("state", "!=", "cancel"),
         ])
-        missing_vendor_evidence = documents.filtered(
+        vendor_documents = documents.filtered(
+            lambda item: item.move_type in {"in_invoice", "in_refund", "in_receipt"}
+        )
+        structured_evidence_ids = self._structured_evidence_move_ids(vendor_documents)
+        missing_vendor_evidence = vendor_documents.filtered(
             lambda item: not item.message_main_attachment_id
-            and item.move_type in {"in_invoice", "in_refund", "in_receipt"}
+            and item.id not in structured_evidence_ids
         )
         if missing_vendor_evidence:
             move = missing_vendor_evidence.sorted("id")[0]
