@@ -153891,31 +153891,31 @@
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_create_download_grant:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_revoke_download_grant:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_revoke_download_grant:sudo:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.create:orm_create:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.create:orm_create:2",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.create:orm_write:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.save_from_search:orm_create:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.save_from_search:orm_create:2",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.save_from_search:orm_create:3",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.save_from_search:orm_write:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.save_from_search:orm_write:2",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.unlink:orm_unlink:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.write:orm_write:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.write:orm_write:2",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view._push_to_paperless:orm_write:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view._push_to_paperless:sudo:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view._remote_cache_values:sudo:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.create:orm_create:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.save_personal_view:orm_create:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.synchronize_archive_views:orm_create:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.synchronize_archive_views:orm_write:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.synchronize_archive_views:orm_write:2",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.synchronize_archive_views:orm_write:3",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.synchronize_archive_views:sudo:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.synchronize_archive_views:sudo:2",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.synchronize_archive_views:sudo:3",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.unlink:orm_unlink:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.write:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.create:orm_create:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.create:orm_create:2",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.create:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.save_from_search:orm_create:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.save_from_search:orm_create:2",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.save_from_search:orm_create:3",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.save_from_search:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.save_from_search:orm_write:2",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.unlink:orm_unlink:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.write:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.write:orm_write:2",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view._push_to_paperless:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view._push_to_paperless:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view._remote_cache_values:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.create:orm_create:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.save_personal_view:orm_create:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.synchronize_archive_views:orm_create:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.synchronize_archive_views:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.synchronize_archive_views:orm_write:2",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.synchronize_archive_views:orm_write:3",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.synchronize_archive_views:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.synchronize_archive_views:sudo:2",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.synchronize_archive_views:sudo:3",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.unlink:orm_unlink:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.write:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.paperless.correspondent._compute_partner_visible:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.paperless.correspondent._compute_partner_visible:sudo:2",
         "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.paperless.correspondent._compute_suggested_partner:sudo:1",
@@ -158268,6 +158268,81 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document.sync_from_paperless:sudo:7": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.sync_from_paperless"
         },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.create"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.create:orm_create:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.create"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.create:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.create"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.save_from_search:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.save_from_search"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.save_from_search:orm_create:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.save_from_search"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.save_from_search:orm_create:3": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.save_from_search"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.save_from_search:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.save_from_search"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.save_from_search:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.save_from_search"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.unlink:orm_unlink:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.unlink"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.write:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.write"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.write:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.write"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view._push_to_paperless:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view._push_to_paperless:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view._remote_cache_values:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.smart.view.create"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.save_personal_view:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.smart.view.save_personal_view"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.synchronize_archive_views:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.smart.view.synchronize_archive_views"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.synchronize_archive_views:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.smart.view.synchronize_archive_views"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.synchronize_archive_views:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.smart.view.synchronize_archive_views"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.synchronize_archive_views:orm_write:3": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.smart.view.synchronize_archive_views"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.synchronize_archive_views:sudo:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.smart.view.synchronize_archive_views"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.synchronize_archive_views:sudo:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.smart.view.synchronize_archive_views"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.synchronize_archive_views:sudo:3": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.smart.view.synchronize_archive_views"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.unlink:orm_unlink:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.smart.view.unlink"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.write:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.smart.view.write"
+        },
         "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document._workspace_correspondent_values_by_id:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -158330,81 +158405,6 @@
         },
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_revoke_download_grant:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.create:orm_create:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.create"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.create:orm_create:2": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.create"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.create:orm_write:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.create"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.save_from_search:orm_create:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.save_from_search"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.save_from_search:orm_create:2": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.save_from_search"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.save_from_search:orm_create:3": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.save_from_search"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.save_from_search:orm_write:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.save_from_search"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.save_from_search:orm_write:2": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.save_from_search"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.unlink:orm_unlink:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.unlink"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.write:orm_write:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.write"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.write:orm_write:2": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.quick.filter.write"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view._push_to_paperless:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view._push_to_paperless:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view._remote_cache_values:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.create:orm_create:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.smart.view.create"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.save_personal_view:orm_create:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.smart.view.save_personal_view"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.synchronize_archive_views:orm_create:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.smart.view.synchronize_archive_views"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.synchronize_archive_views:orm_write:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.smart.view.synchronize_archive_views"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.synchronize_archive_views:orm_write:2": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.smart.view.synchronize_archive_views"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.synchronize_archive_views:orm_write:3": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.smart.view.synchronize_archive_views"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.synchronize_archive_views:sudo:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.smart.view.synchronize_archive_views"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.synchronize_archive_views:sudo:2": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.smart.view.synchronize_archive_views"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.synchronize_archive_views:sudo:3": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.smart.view.synchronize_archive_views"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.unlink:orm_unlink:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.smart.view.unlink"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.write:orm_write:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.smart.view.write"
         },
         "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.paperless.correspondent._compute_partner_visible:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
@@ -160866,6 +160866,31 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document.sync_from_paperless:sudo:5": "736814f9218f7bb6809b6e403f1ae13887feacaf146a8cecefe8c63b64af2e06",
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document.sync_from_paperless:sudo:6": "a8a5195aac2e7127c70ba74e29ea3973bbc8483f588e5b764f54af782a48b348",
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document.sync_from_paperless:sudo:7": "a6b00df87f3ae88f7e7638753a8cb223a94646dc0014269090ce6652f3b269d9",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.create:orm_create:1": "80328b82e6a781f16968ae30298d812d4c83e261f2e21760562fd5c081409b65",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.create:orm_create:2": "c2f8e791745a9faa94b988cef9c896ab350e12dd38ddf7575f89e38f031d0049",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.create:orm_write:1": "aee681312bab1bb87c842a6342bcaceb579cc6b10fc572771169b6eb9b6a7855",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.save_from_search:orm_create:1": "18d194136512954a4b1cdb55d4318217af644de43fde725ff7dfadca4366e853",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.save_from_search:orm_create:2": "d85883f942bb8e5db2d13811585bdcfcdf2561bb1af3bd5e0b56043febf73a5f",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.save_from_search:orm_create:3": "dfe47a1d3640bcbedc6452437d7df4ea8e1fce479a15b0ce7920c3be876b7f4e",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.save_from_search:orm_write:1": "242230db5b72dce498b33dc21e343d26dc1c47f4a631783e06fce97316334546",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.save_from_search:orm_write:2": "9d70fb7b5d025545e4715f7e5a553647272852f77b5e45c62a9df7793d9f18e8",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.unlink:orm_unlink:1": "31eb3b6da627e718289bf51315d39c3db613c407d12bd08f9d955e14ac76e98d",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.write:orm_write:1": "1dfe8f205b93ddbd35bbdbd9a9e2b5c9477b4b90fd1130001f55c8c994b43488",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.quick.filter.write:orm_write:2": "240362bbc9ff5524809d2055e23281f5e1cabde0532d79b34814ea0c5309aa5c",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view._push_to_paperless:orm_write:1": "aaf9b01762cc19948771807e6bf54a3f825f19a6b0774fb150f10939784b106f",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view._push_to_paperless:sudo:1": "b48f210c08aecb4f37a68a8db0e3330d16564b24c67ace3057ebb9ee41517941",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view._remote_cache_values:sudo:1": "457029d59f4cc2172810ea7f9f58d33c587578823ea763a3896fb6578f4c8702",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.create:orm_create:1": "c9aff877835c4d2a73514c50c6bd49e7f5ab11da291b8d98312423368df95940",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.save_personal_view:orm_create:1": "ea0e25aa859c866fc39ede03519c33f7806e48c52bb2bc6b69503aaa83477d84",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.synchronize_archive_views:orm_create:1": "701caba22035249bd4a9fbd4aefc7b07232e212e169bc8e8dbf64776ca0b792a",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.synchronize_archive_views:orm_write:1": "216d0983aad706413cf1ee30f7e4b6fd5ccc8962b8c094967dbb11e929f48462",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.synchronize_archive_views:orm_write:2": "7cb1a9a94d347eea196dc8ec6e7cf35f0177154d7e8b921e0b454c8957f95ac9",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.synchronize_archive_views:orm_write:3": "dd9b5211c9b4b10559f2d9371543ad617f969f986edd3177622b2b7a1ec57740",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.synchronize_archive_views:sudo:1": "a42d07581efa2af1052a372d6459111b93916f0d9f674d8bc762fa4e95d21228",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.synchronize_archive_views:sudo:2": "2bdd6fd274e06905871d01d3673b2b828e1bc41b565bb4fa1587093dd07c7bca",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.synchronize_archive_views:sudo:3": "cee9c887a464feafc348486506a1f10be3b1ea87ffa14cac590785506d3d113f",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.unlink:orm_unlink:1": "2193304b9a07e9370883bfa7738d210db7ee7dc3bdc0695fa7d8bad0a302b146",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.write:orm_write:1": "5df0b4f975bcc3ad89129f34f93d9f2e59be40fda4368ff43687be04154c7d61",
         "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document._workspace_correspondent_values_by_id:sudo:1": "e312d2dc5e573ab7fa87504c55eada7f0782faaf34faf176e3af458fa696963b",
         "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.document_detail:sudo:1": "36b2b698b972405a74d437c129fe3a55a4d293048660243ca63c846accd47663",
         "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.document_detail:sudo:2": "9e5b4d0365731ad9ed5d52122cba120b046846b80abc8ec07f2e69f7360f1748",
@@ -160887,31 +160912,6 @@
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_create_download_grant:sudo:1": "c11b84fdbb572466fb15bf0c1457405731fdafacb48737955005e0c2b370ac66",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_revoke_download_grant:orm_write:1": "d0156e017a9d81a752292d7ce0625d08161a5cea7ee7b2a6f90008032f49850e",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.mcp_revoke_download_grant:sudo:1": "40a2347f9f46b8d472eb46f620c6a3c16b0c1f7a3d95ff72747d43d446bfe191",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.create:orm_create:1": "80328b82e6a781f16968ae30298d812d4c83e261f2e21760562fd5c081409b65",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.create:orm_create:2": "c2f8e791745a9faa94b988cef9c896ab350e12dd38ddf7575f89e38f031d0049",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.create:orm_write:1": "aee681312bab1bb87c842a6342bcaceb579cc6b10fc572771169b6eb9b6a7855",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.save_from_search:orm_create:1": "18d194136512954a4b1cdb55d4318217af644de43fde725ff7dfadca4366e853",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.save_from_search:orm_create:2": "d85883f942bb8e5db2d13811585bdcfcdf2561bb1af3bd5e0b56043febf73a5f",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.save_from_search:orm_create:3": "dfe47a1d3640bcbedc6452437d7df4ea8e1fce479a15b0ce7920c3be876b7f4e",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.save_from_search:orm_write:1": "242230db5b72dce498b33dc21e343d26dc1c47f4a631783e06fce97316334546",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.save_from_search:orm_write:2": "9d70fb7b5d025545e4715f7e5a553647272852f77b5e45c62a9df7793d9f18e8",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.unlink:orm_unlink:1": "31eb3b6da627e718289bf51315d39c3db613c407d12bd08f9d955e14ac76e98d",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.write:orm_write:1": "1dfe8f205b93ddbd35bbdbd9a9e2b5c9477b4b90fd1130001f55c8c994b43488",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.quick.filter.write:orm_write:2": "240362bbc9ff5524809d2055e23281f5e1cabde0532d79b34814ea0c5309aa5c",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view._push_to_paperless:orm_write:1": "aaf9b01762cc19948771807e6bf54a3f825f19a6b0774fb150f10939784b106f",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view._push_to_paperless:sudo:1": "b48f210c08aecb4f37a68a8db0e3330d16564b24c67ace3057ebb9ee41517941",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view._remote_cache_values:sudo:1": "457029d59f4cc2172810ea7f9f58d33c587578823ea763a3896fb6578f4c8702",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.create:orm_create:1": "c9aff877835c4d2a73514c50c6bd49e7f5ab11da291b8d98312423368df95940",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.save_personal_view:orm_create:1": "ea0e25aa859c866fc39ede03519c33f7806e48c52bb2bc6b69503aaa83477d84",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.synchronize_archive_views:orm_create:1": "701caba22035249bd4a9fbd4aefc7b07232e212e169bc8e8dbf64776ca0b792a",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.synchronize_archive_views:orm_write:1": "216d0983aad706413cf1ee30f7e4b6fd5ccc8962b8c094967dbb11e929f48462",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.synchronize_archive_views:orm_write:2": "7cb1a9a94d347eea196dc8ec6e7cf35f0177154d7e8b921e0b454c8957f95ac9",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.synchronize_archive_views:orm_write:3": "dd9b5211c9b4b10559f2d9371543ad617f969f986edd3177622b2b7a1ec57740",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.synchronize_archive_views:sudo:1": "a42d07581efa2af1052a372d6459111b93916f0d9f674d8bc762fa4e95d21228",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.synchronize_archive_views:sudo:2": "2bdd6fd274e06905871d01d3673b2b828e1bc41b565bb4fa1587093dd07c7bca",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.synchronize_archive_views:sudo:3": "cee9c887a464feafc348486506a1f10be3b1ea87ffa14cac590785506d3d113f",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.unlink:orm_unlink:1": "2193304b9a07e9370883bfa7738d210db7ee7dc3bdc0695fa7d8bad0a302b146",
-        "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.document.smart.view.write:orm_write:1": "5df0b4f975bcc3ad89129f34f93d9f2e59be40fda4368ff43687be04154c7d61",
         "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.paperless.correspondent._compute_partner_visible:sudo:1": "9582f9e633989f256fcb491ac6f757c44f1bce6bd053a01fd761b11144b6b3de",
         "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.paperless.correspondent._compute_partner_visible:sudo:2": "964807211e3b4c61fa51c8344f3ccd1954dba621dca30a8bd42e1db2f182b5d5",
         "sink:usl_documents:custom-addons/usl_documents/models/metadata.py:usl.paperless.correspondent._compute_suggested_partner:sudo:1": "d7f1b12fa8c3b5e1dc422d57a09b2479ec631cd46bca54c5f2f6ddce4851be6e",

@@ -12,6 +12,7 @@ from . import (
     document_workspace,
     download_grant,
     metadata,
+    document_views,
     paperless_client,
     paperless_user_mapping,
     pocketid,
