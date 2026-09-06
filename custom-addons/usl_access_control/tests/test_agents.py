@@ -20,14 +20,17 @@ from ..controllers.json2 import UslAgentJson2Controller
 from ..controllers import json2 as json2_module
 from ..exceptions import AgentAuthenticationError, AgentPolicyAccessError
 from ..models import agent as agent_model_module
+from ..models import agent_credential as agent_credential_module
 from ..models import agent_feedback as agent_feedback_module
 from ..models.action_policy import load_agent_readonly_policy
 from ..models.agent import (
+    _AGENT_CREDENTIAL_TOUCH_LOCK_NAMESPACE,
+    _agent_key_path_allowed,
+)
+from ..models.agent_credential import (
     UslAgentCredential,
     UslAgentKeyWizard,
     UslAgentTransferWizard,
-    _AGENT_CREDENTIAL_TOUCH_LOCK_NAMESPACE,
-    _agent_key_path_allowed,
 )
 from ..models.agent_policy_tokens import (
     AGENT_OPERATION_SCOPE_CONTEXT_KEY,
@@ -1834,6 +1837,7 @@ class TestAutonomousAgents(TransactionCase):
 
         with (
             patch.object(agent_model_module, "request", request_state),
+            patch.object(agent_credential_module, "request", request_state),
             patch.object(model_type, "_reconcile_authority", counted_reconcile),
         ):
             uid = self.env["res.users.apikeys"]._check_credentials(scope="rpc", key=key)

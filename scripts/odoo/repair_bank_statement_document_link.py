@@ -80,5 +80,5 @@ print(
     "bank_statement_document_repair=passed "
     f"statement={statement.id} source_file={source_file.id} "
     f"document={document.id} version={version_id} "
-    f"deactivated_links={len(competing_links)}"
+    f"deactivated_links={len(competing_links)}",
 )

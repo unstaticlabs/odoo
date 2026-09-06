@@ -3,7 +3,7 @@ import os
 import re
 import secrets
 import uuid
-from datetime import timedelta, timezone
+from datetime import UTC, timedelta
 from urllib.parse import urlsplit
 
 from psycopg2 import IntegrityError
@@ -18,7 +18,7 @@ _MAX_TTL_SECONDS = 900
 
 
 def _iso_utc(value):
-    return value.replace(tzinfo=timezone.utc).isoformat().replace("+00:00", "Z")
+    return value.replace(tzinfo=UTC).isoformat().replace("+00:00", "Z")
 
 
 class UslDocumentDownloadGrant(models.Model):

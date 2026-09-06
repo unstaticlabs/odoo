@@ -1,7 +1,7 @@
 import io
 from collections import OrderedDict
 
-from odoo import api, fields, models, _
+from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
 
@@ -34,7 +34,7 @@ class IrActionsReport(models.Model):
         for report in self:
             if bool(report.usl_document_template_id) != (report.usl_output_policy == "latex"):
                 raise ValidationError(
-                    _("A LaTeX output policy and governed template binding must be set together.")
+                    _("A LaTeX output policy and governed template binding must be set together."),
                 )
             if report.usl_document_template_id and report.report_type != "qweb-pdf":
                 raise ValidationError(_("Governed document templates require a qweb-pdf report action."))
@@ -55,7 +55,7 @@ class IrActionsReport(models.Model):
         company = self._usl_document_company(record)
         if not company.usl_document_renderer_enabled:
             company._usl_document_raise_configuration_error(
-                _("The governed document renderer is disabled for this company.")
+                _("The governed document renderer is disabled for this company."),
             )
         adapter = getattr(record, "_usl_document_render_payload", None)
         if adapter is None:
@@ -65,7 +65,7 @@ class IrActionsReport(models.Model):
                     report=report.display_name,
                     template=report.usl_document_template_id.key,
                     model=report.model,
-                )
+                ),
             )
         locale = self._usl_document_locale(record, company)
         company_payload, assets = company._usl_document_renderer_company_payload(locale)
@@ -103,14 +103,14 @@ class IrActionsReport(models.Model):
             streams = []
             for res_id in res_ids:
                 stream, _provenance = self._usl_render_one(
-                    report, self.env[report.model].browse(res_id), data
+                    report, self.env[report.model].browse(res_id), data,
                 )
                 streams.append(stream)
             return {
                 False: {
                     "stream": self._merge_pdfs(streams),
                     "attachment": None,
-                }
+                },
             }
 
         collected = OrderedDict()

@@ -15,11 +15,8 @@ from typing import Any
 
 from operations.control_manifest import ControlManifestError, classify
 from operations.module_release import validate_upgrade_plan
-from operations.release_manifest import ReleaseManifestError, validate as validate_release
-
 
 SCHEMA = "usl-staging-upgrade-plan-evidence/v2"
-PROMOTION_SCHEMA = "usl-production-upgrade-plan-promotion/v1"
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 GENERATION = re.compile(r"g[a-zA-Z0-9._-]{1,31}\Z")
 
@@ -69,37 +66,6 @@ def _public_identity(path: Path) -> str:
     _validate_key(path, private=False)
     value = _openssl(["pkey", "-pubin", "-in", str(path), "-outform", "DER"], label="staging plan verification key is invalid")
     return hashlib.sha256(value).hexdigest()
-
-
-def _release_equivalence(release: dict[str, Any]) -> dict[str, Any]:
-    """Bind every deployable input while allowing branch-specific release metadata."""
-    release = validate_release(release)
-    if release.get("schema") != "usl-release/v3":
-        raise PlanEvidenceError("plan promotion requires v3 releases")
-    body = {
-        key: release[key]
-        for key in (
-            "components",
-            "modules",
-            "foundation",
-            "mcp",
-            "mcp_contract",
-            "renderer",
-            "ollama",
-        )
-    }
-    # The branch commit and its enclosing metadata digest change on promotion.
-    # Core content, dependency and policy hashes remain deployment inputs.
-    body["foundation"] = {
-        key: value for key, value in release["foundation"].items()
-        if key not in {"odoo_core_commit", "digest"}
-    }
-    return {
-        "deployable_inputs_sha256": _digest(body),
-        "module_inventory_sha256": release["modules"]["sha256"],
-        "distribution_input_sha256": release["components"]["distribution"]["input_sha256"],
-        "distribution_image": release["components"]["distribution"]["digest_reference"],
-    }
 
 
 def _sign_body(body: dict[str, Any], private_key: Path) -> dict[str, Any]:
@@ -195,7 +161,7 @@ def verify(value: object, public_key: Path) -> dict[str, Any]:
     staging = value.get("staging")
     if not isinstance(staging, dict) or set(staging) != {
         "target", "snapshot", "generation", "candidate_release", "health_sha256",
-        "smoke_sha256", "release_definitions_sha256", "status"
+        "smoke_sha256", "release_definitions_sha256", "status",
     }:
         raise PlanEvidenceError("staging qualification evidence fields differ")
     if staging.get("target") != "staging" or staging.get("status") != "passed":
@@ -219,98 +185,3 @@ def verify(value: object, public_key: Path) -> dict[str, Any]:
         raise PlanEvidenceError("staging plan signature timestamp is invalid") from error
     _verify_signature(value, public_key)
     return plan
-
-
-def promote(
-    staging_evidence: dict[str, Any],
-    staging_release: dict[str, Any],
-    production_release: dict[str, Any],
-    private_key: Path,
-    public_key: Path,
-) -> dict[str, Any]:
-    """Sign an exact equivalence bridge without replacing staging's signature."""
-    staging_plan = verify(staging_evidence, public_key)
-    try:
-        staging_release = validate_release(staging_release)
-        production_release = validate_release(production_release)
-    except (ReleaseManifestError, ValueError) as error:
-        raise PlanEvidenceError("promotion release manifest is invalid") from error
-    if staging_release["identity"] != staging_plan["candidate_release"]:
-        raise PlanEvidenceError("staging evidence and staging release differ")
-    # Explicit operator releases can reuse their own signed staging plan. Normal
-    # hosted releases still require the staging-to-production branch boundary.
-    operator_recovery = (
-        staging_release == production_release
-        and "operator_run_id" in staging_release["build"]
-        and staging_release["source"]["ref"].startswith("refs/tags/recovery-")
-    )
-    if not operator_recovery and staging_release["source"]["ref"] != "refs/heads/19-usl-staging":
-        raise PlanEvidenceError("promotion source was not the staging branch")
-    if not operator_recovery and production_release["source"]["ref"] != "refs/heads/19-usl":
-        raise PlanEvidenceError("promotion target was not the production branch")
-    if staging_release["source"]["repository"] != production_release["source"]["repository"]:
-        raise PlanEvidenceError("promotion releases come from different repositories")
-    staging_inputs = _release_equivalence(staging_release)
-    production_inputs = _release_equivalence(production_release)
-    if staging_inputs != production_inputs:
-        raise PlanEvidenceError("production deployable inputs differ from staging")
-    body = {
-        "schema": PROMOTION_SCHEMA,
-        "staging_evidence": staging_evidence,
-        "staging_release_manifest": staging_release,
-        "promotion": {
-            "staging_release": staging_release["identity"],
-            "production_release": production_release["identity"],
-            "source_repository": staging_release["source"]["repository"],
-            **staging_inputs,
-        },
-        "signed_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
-    }
-    return _sign_body(body, private_key)
-
-
-def verify_promotion(
-    value: object,
-    public_key: Path,
-    production_release: dict[str, Any],
-) -> dict[str, Any]:
-    """Verify both signatures and return the production-bound plan."""
-    if not isinstance(value, dict) or set(value) != {
-        "schema", "staging_evidence", "staging_release_manifest", "promotion", "signed_at", "signature"
-    } or value.get("schema") != PROMOTION_SCHEMA:
-        raise PlanEvidenceError("production plan promotion fields differ")
-    _verify_signature(value, public_key)
-    staging_plan = verify(value["staging_evidence"], public_key)
-    try:
-        staging_release = validate_release(value["staging_release_manifest"])
-        production_release = validate_release(production_release)
-    except (ReleaseManifestError, ValueError) as error:
-        raise PlanEvidenceError("promotion release manifest is invalid") from error
-    promotion = value.get("promotion")
-    expected_fields = {
-        "staging_release", "production_release", "source_repository", "deployable_inputs_sha256",
-        "module_inventory_sha256", "distribution_input_sha256", "distribution_image",
-    }
-    if not isinstance(promotion, dict) or set(promotion) != expected_fields:
-        raise PlanEvidenceError("production plan promotion binding differs")
-    if promotion["staging_release"] != staging_release.get("identity"):
-        raise PlanEvidenceError("promotion staging release differs")
-    if promotion["production_release"] != production_release.get("identity"):
-        raise PlanEvidenceError("promotion production release differs")
-    if staging_plan["candidate_release"] != staging_release.get("identity"):
-        raise PlanEvidenceError("original staging signature targets another release")
-    staging_inputs = _release_equivalence(staging_release)
-    if staging_inputs != _release_equivalence(production_release) or promotion != {
-        "staging_release": staging_release["identity"],
-        "production_release": production_release["identity"],
-        "source_repository": staging_release["source"]["repository"],
-        **staging_inputs,
-    }:
-        raise PlanEvidenceError("promoted deployable inputs differ")
-    plan = {
-        **staging_plan,
-        "candidate_release": production_release["identity"],
-    }
-    plan.pop("sha256", None)
-    plan["sha256"] = _digest(plan)
-    return validate_upgrade_plan(plan)

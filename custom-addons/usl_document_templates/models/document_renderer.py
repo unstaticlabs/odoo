@@ -6,7 +6,7 @@ import urllib.error
 import urllib.request
 import uuid
 
-from odoo import api, fields, models, _
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 MAX_PDF_BYTES = 20 * 1024 * 1024
@@ -37,10 +37,10 @@ class UslDocumentRenderer(models.AbstractModel):
             return None
         ca_path = self._parameter("usl_document_templates.renderer_ca_path", required=True)
         certificate_path = self._parameter(
-            "usl_document_templates.renderer_certificate_path", required=True
+            "usl_document_templates.renderer_certificate_path", required=True,
         )
         private_key_path = self._parameter(
-            "usl_document_templates.renderer_private_key_path", required=True
+            "usl_document_templates.renderer_private_key_path", required=True,
         )
         try:
             context = ssl.create_default_context(cafile=ca_path)
@@ -82,14 +82,14 @@ class UslDocumentRenderer(models.AbstractModel):
             ) as response:
                 response_headers = response.headers
                 content_length = int(
-                    response_headers.get("Content-Length", "0") or 0
+                    response_headers.get("Content-Length", "0") or 0,
                 )
                 if expect_pdf and content_length > MAX_PDF_BYTES:
                     raise UserError(
-                        _("The renderer response exceeds the allowed PDF size.")
+                        _("The renderer response exceeds the allowed PDF size."),
                     )
                 content = response.read(
-                    MAX_PDF_BYTES + 1 if expect_pdf else 1024 * 1024
+                    MAX_PDF_BYTES + 1 if expect_pdf else 1024 * 1024,
                 )
         except (urllib.error.URLError, TimeoutError, OSError, ValueError) as error:
             raise UserError(_("The document renderer is unavailable. Try again or open Settings.")) from error
@@ -128,7 +128,7 @@ class UslDocumentRenderer(models.AbstractModel):
                     "Renderer revision mismatch: expected %(expected)s, received %(received)s.",
                     expected=expected,
                     received=health.get("template_revision") or _("none"),
-                )
+                ),
             )
         if health.get("status") != "ok":
             raise UserError(_("The document renderer reported an unhealthy state."))

@@ -8,6 +8,9 @@ from odoo.tests import TransactionCase, new_test_user, tagged
 from odoo.tools import BinaryBytes, file_open
 
 from odoo.addons.usl_documents.models.document import UslDocument
+from odoo.addons.usl_documents.models.document_lifecycle import (
+    UslDocument as UslDocumentLifecycle,
+)
 from odoo.addons.usl_documents.models.paperless_client import PaperlessError
 
 
@@ -261,7 +264,7 @@ class TestAccountingDocumentContexts(TransactionCase):
         self.assertFalse(statement.can_certify)
         self.assertIn("Documents", statement.review_blocking_reason)
         with patch.object(
-            UslDocument,
+            UslDocumentLifecycle,
             "upload_from_odoo",
             side_effect=PaperlessError("Archive offline"),
         ):
@@ -348,7 +351,7 @@ class TestAccountingDocumentContexts(TransactionCase):
             b"%PDF-1.4\ntruncated bank statement",
         )
 
-        with patch.object(UslDocument, "upload_from_odoo") as upload:
+        with patch.object(UslDocumentLifecycle, "upload_from_odoo") as upload:
             statement.action_archive_bank_evidence()
 
         upload.assert_not_called()
@@ -376,7 +379,7 @@ class TestAccountingDocumentContexts(TransactionCase):
 
         with (
             patch.object(
-                UslDocument,
+                UslDocumentLifecycle,
                 "upload_from_odoo",
                 return_value={"state": "duplicate", "document_id": document.id},
             ),
@@ -406,7 +409,7 @@ class TestAccountingDocumentContexts(TransactionCase):
 
         with (
             patch.object(
-                UslDocument,
+                UslDocumentLifecycle,
                 "upload_from_odoo",
                 return_value={
                     "state": "duplicate",
@@ -507,7 +510,7 @@ class TestAccountingDocumentContexts(TransactionCase):
         document = self._archived_document(source_file, checksum="f" * 64)
 
         with patch.object(
-            UslDocument,
+            UslDocumentLifecycle,
             "upload_from_odoo",
             return_value={"state": "duplicate", "document_id": document.id},
         ):
@@ -532,7 +535,7 @@ class TestAccountingDocumentContexts(TransactionCase):
         document = self._archived_document(source_file)
         duplicate = {"state": "duplicate", "document_id": document.id}
         with (
-            patch.object(UslDocument, "upload_from_odoo", return_value=duplicate),
+            patch.object(UslDocumentLifecycle, "upload_from_odoo", return_value=duplicate),
             patch.object(UslDocument, "action_sync_permissions", return_value=True),
         ):
             statement.action_archive_bank_evidence()

@@ -110,7 +110,7 @@ expected_capabilities = {
 if capabilities != expected_capabilities:
     raise ValidationError(
         f"Unexpected Prosper declaration capabilities: {capabilities}; "
-        f"expected {expected_capabilities}."
+        f"expected {expected_capabilities}.",
     )
 
 conflicts = Users.search([]).filtered(

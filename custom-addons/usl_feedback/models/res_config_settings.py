@@ -196,7 +196,7 @@ class ResConfigSettings(models.TransientModel):
         except (GeminiError, ValueError, requests.RequestException) as error:
             # requests errors can include a credential-bearing URL or response body.
             detail = str(error) if isinstance(error, (GeminiError, ValueError)) else _(
-                "The Projects MCP endpoint could not be reached. Check its URL and service status."
+                "The Projects MCP endpoint could not be reached. Check its URL and service status.",
             )
             detail = _("%(stage)s: %(reason)s", stage=stage, reason=detail)
             self._set_feedback_connection_status("error", detail)

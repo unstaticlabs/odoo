@@ -7,7 +7,6 @@ import sys
 from pathlib import Path
 from xml.etree import ElementTree
 
-
 ACTION_PREFIXES = (
     "accept",
     "apply",

@@ -57,6 +57,33 @@ class SourcePolicyTests(unittest.TestCase):
     def test_integration_accepts_feature_branches(self):
         validate(event="pull_request", base="19-usl-staging", head="feat/inventory")
 
+    def test_integration_accepts_the_production_back_merge(self):
+        validate(
+            event="pull_request",
+            base="19-usl-staging",
+            head="19-usl",
+            head_repository="unstaticlabs/odoo",
+            expected_repository="unstaticlabs/odoo",
+        )
+
+    def test_integration_rejects_fork_with_production_branch_name(self):
+        with self.assertRaisesRegex(SourcePolicyError, "protected repository"):
+            validate(
+                event="pull_request",
+                base="19-usl-staging",
+                head="19-usl",
+                head_repository="fork-owner/odoo",
+                expected_repository="unstaticlabs/odoo",
+            )
+
+    def test_integration_back_merge_requires_repository_identity(self):
+        with self.assertRaisesRegex(SourcePolicyError, "repository identity"):
+            validate(event="pull_request", base="19-usl-staging", head="19-usl")
+
+    def test_integration_still_rejects_itself_as_a_source(self):
+        with self.assertRaisesRegex(SourcePolicyError, "staging source branch"):
+            validate(event="pull_request", base="19-usl-staging", head="19-usl-staging")
+
     def test_merge_queue_requires_one_valid_production_pull_request(self):
         pull_request = {
             "number": 17,

@@ -95,7 +95,7 @@ class ProductTemplate(models.Model):
             raise UserError(
                 self.env._(
                     "Select the exact supplier-pack variant to unpack when a "
-                    "purchasing product has more than one variant."
+                    "purchasing product has more than one variant.",
                 ),
             )
         return variants.action_usl_unpack_supplier_pack()
@@ -132,7 +132,7 @@ class ProductProduct(models.Model):
             raise UserError(
                 self.env._(
                     "This supplier pack needs exactly one active unpacking recipe "
-                    "before it can be processed."
+                    "before it can be processed.",
                 ),
             )
         return {

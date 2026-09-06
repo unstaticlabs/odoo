@@ -44,13 +44,13 @@ class ProjectTaskType(models.Model):
             if not open_stages:
                 continue
             if not user_stages.filtered(
-                lambda stage: stage.usl_reactivation_role == "inbox"
+                lambda stage: stage.usl_reactivation_role == "inbox",
             ):
                 open_stages[0].usl_reactivation_role = "inbox"
             if (
                 len(open_stages) > 1
                 and not user_stages.filtered(
-                    lambda stage: stage.usl_reactivation_role == "later"
+                    lambda stage: stage.usl_reactivation_role == "later",
                 )
             ):
                 open_stages[-1].usl_reactivation_role = "later"

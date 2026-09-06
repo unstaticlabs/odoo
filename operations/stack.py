@@ -10,53 +10,77 @@ import json
 import os
 import re
 import sys
-import time
 import textwrap
+import time
 from contextlib import contextmanager, redirect_stdout
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from urllib.parse import urlsplit
 
 from operations import upgrade_preservation
-from operations.oidc_admission import CLIENT_PROBE_SCRIPT
-from operations.control_manifest import (
-    RELEASE_DEFINITIONS_SQL,
-    release_definitions_digest,
-    ODOO_CONTROL_SQL,
-    PAPERLESS_CONTROL_SQL,
-    ControlManifestError,
-    validate_restore,
-)
 from operations.cohort import (
     SCHEMA as RECOVERY_COHORT_SCHEMA,
+)
+from operations.cohort import (
+    STATE_SCHEMA as RECOVERY_STATE_SCHEMA,
+)
+from operations.cohort import (
+    CohortError as RecoveryCohortError,
+)
+from operations.cohort import (
     select_latest_recovery_snapshot,
+)
+from operations.cohort import (
     validate_manifest as validate_cohort_manifest,
+)
+from operations.control_manifest import (
+    ODOO_CONTROL_SQL,
+    PAPERLESS_CONTROL_SQL,
+    RELEASE_DEFINITIONS_SQL,
+    ControlManifestError,
+    release_definitions_digest,
+    validate_restore,
 )
 from operations.cron_policy import (
     INVENTORY_SQL as CRON_INVENTORY_SQL,
+)
+from operations.cron_policy import (
     CronPolicyError,
-    parse as parse_cron_policy,
     render_odoo_apply_script,
+)
+from operations.cron_policy import (
+    parse as parse_cron_policy,
+)
+from operations.cron_policy import (
     validate_runtime as validate_cron_runtime,
 )
-from operations.release_controller import (
-    ReleaseControllerError,
-    abort as abort_release_state,
-    parse as parse_release_state,
-)
-from operations.release_manifest import ReleaseManifestError, validate as validate_release
 from operations.module_release import (
     ModuleReleaseError,
     derive_legacy_upgrade_plan,
     derive_upgrade_plan,
     validate_upgrade_plan,
 )
+from operations.oidc_admission import CLIENT_PROBE_SCRIPT
 from operations.plan_evidence import (
     PlanEvidenceError,
-    promote as promote_upgrade_plan,
+)
+from operations.plan_evidence import (
     sign as sign_upgrade_plan,
+)
+from operations.plan_evidence import (
     verify as verify_upgrade_plan,
 )
+from operations.release_controller import (
+    ReleaseControllerError,
+)
+from operations.release_controller import (
+    abort as abort_release_state,
+)
+from operations.release_controller import (
+    parse as parse_release_state,
+)
+from operations.release_manifest import ReleaseManifestError
+from operations.release_manifest import validate as validate_release
 from operations.runtime import (
     RuntimeError,
     Target,
@@ -67,7 +91,6 @@ from operations.runtime import (
     read_active_state,
     validate_secret_text,
 )
-
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_TARGETS = ROOT / "operations/targets"
@@ -133,6 +156,13 @@ RESOURCE_FIELDS = {
 }
 BACKUP_WRITER_SERVICE_ROLES = ("odoo", "paperless", "mcp", "sign", "sign_ca")
 GENERATION_NAME = re.compile(r"g[a-z0-9][a-z0-9-]{0,30}\Z")
+# Local capture directories that the fixed release launcher creates under the
+# state directory.  Production runs are named after their release attempt;
+# staging runs are the attempt itself.
+CAPTURE_ATTEMPT = re.compile(r"intent-[0-9a-f]{48}\Z")
+PRODUCTION_CAPTURE_PREFIXES = ("release-pre-", "release-candidate-", "release-admitted-")
+STAGING_CAPTURE_KEEP = 2
+UNFINISHED_RELEASE_STATUSES = frozenset({"running", "failed"})
 GIT_COMMIT = re.compile(r"[0-9a-f]{40}\Z")
 RELEASE_ATTEMPT = re.compile(r"[a-z0-9][a-z0-9._-]{7,63}\Z")
 RECOVERY_PROOF_ID = re.compile(r"[a-z0-9][a-z0-9-]{7,23}\Z")
@@ -422,9 +452,9 @@ def _gateway_labeled_identity(target, runner, labels: dict, canonical_identity: 
             for path in config_files
         )
         or env_files != canonical_identity["environment_file"].split(",")
-        or working_directory != canonical_working
+        or (working_directory != canonical_working
         and running_prefix != canonical_prefix
-        and not snapshot_prefix.fullmatch(running_prefix)
+        and not snapshot_prefix.fullmatch(running_prefix))
     ):
         raise RuntimeError("running gateway Compose identity is invalid")
     return {
@@ -513,8 +543,8 @@ def _validate_gateway_container(
     if (
         inspected["Config"].get("Image") != canonical_gateway.get("image")
         or inspected["Config"].get("Cmd") != canonical_gateway.get("command")
-        or canonical_gateway.get("entrypoint") is not None
-        and inspected["Config"].get("Entrypoint") != canonical_gateway["entrypoint"]
+        or (canonical_gateway.get("entrypoint") is not None
+        and inspected["Config"].get("Entrypoint") != canonical_gateway["entrypoint"])
         or not health_matches
         or host.get("ReadonlyRootfs") is not True
         or (host.get("RestartPolicy") or {}).get("Name") != "unless-stopped"
@@ -1382,7 +1412,7 @@ def with_writers_paused(
             runner.run(
                 compose_command(
                     identity,
-                    ["up", "--detach", "--wait", "--no-recreate", *services],
+                    ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *services],
                 ),
             )
 
@@ -1517,29 +1547,28 @@ def _mcp_runtime_authority(target) -> dict | None:
     manifest_relative = f"komodo/releases/usl-odoo-{environment}-mcp-manifest.json"
     if release_manifest is None:
         raise RuntimeError("uncommissioned GitOps MCP cannot be runtime authority")
-    else:
-        if (
-            not re.fullmatch(
-                r"ghcr\.io/unstaticlabs/usl-odoo-mcp-release@sha256:[0-9a-f]{64}",
-                str(release_manifest),
-            )
-            or not re.fullmatch(r"[0-9a-f]{64}", str(compatibility_sha256))
-        ):
-            raise RuntimeError("GitOps MCP release identity is invalid")
-        manifest = _load_gitops_json(root, manifest_relative)
-        source = manifest.get("source") or {}
-        image = manifest.get("image") or {}
-        compatibility = manifest.get("compatibility") or {}
-        if (
-            manifest.get("schema") != "usl-odoo-mcp-oci-release/v2"
-            or source.get("repository") != "https://github.com/unstaticlabs/odoo-mcp.git"
-            or source.get("ref") != "refs/heads/main"
-            or source.get("commit") != selected["commit"]
-            or image.get("digest_reference") != selected["image"]
-            or compatibility.get("sha256") != compatibility_sha256
-            or (compatibility.get("oauth_vault") or {}).get("schema_version") != 1
-        ):
-            raise RuntimeError("GitOps MCP manifest and ledger differ")
+    if (
+        not re.fullmatch(
+            r"ghcr\.io/unstaticlabs/usl-odoo-mcp-release@sha256:[0-9a-f]{64}",
+            str(release_manifest),
+        )
+        or not re.fullmatch(r"[0-9a-f]{64}", str(compatibility_sha256))
+    ):
+        raise RuntimeError("GitOps MCP release identity is invalid")
+    manifest = _load_gitops_json(root, manifest_relative)
+    source = manifest.get("source") or {}
+    image = manifest.get("image") or {}
+    compatibility = manifest.get("compatibility") or {}
+    if (
+        manifest.get("schema") != "usl-odoo-mcp-oci-release/v2"
+        or source.get("repository") != "https://github.com/unstaticlabs/odoo-mcp.git"
+        or source.get("ref") != "refs/heads/main"
+        or source.get("commit") != selected["commit"]
+        or image.get("digest_reference") != selected["image"]
+        or compatibility.get("sha256") != compatibility_sha256
+        or (compatibility.get("oauth_vault") or {}).get("schema_version") != 1
+    ):
+        raise RuntimeError("GitOps MCP manifest and ledger differ")
     authority = {**selected, "gitops_commit": gitops_commit}
     authority["sha256"] = hashlib.sha256(json.dumps(
         authority, sort_keys=True, separators=(",", ":"),
@@ -1994,10 +2023,10 @@ def _prepare_receipt(value: object, *, target: str, attempt: str, release: str) 
         or value["runtime_changed"] is not False
         or value["status"] != "prepared"
         or not re.fullmatch(r"[0-9a-f]{64}", str(value["compose_sha256"]))
-        or value["gitops_commit"] is not None
-        and not re.fullmatch(r"[0-9a-f]{40}", str(value["gitops_commit"]))
-        or value["upgrade_plan_sha256"] is not None
-        and not re.fullmatch(r"[0-9a-f]{64}", str(value["upgrade_plan_sha256"]))
+        or (value["gitops_commit"] is not None
+        and not re.fullmatch(r"[0-9a-f]{40}", str(value["gitops_commit"])))
+        or (value["upgrade_plan_sha256"] is not None
+        and not re.fullmatch(r"[0-9a-f]{64}", str(value["upgrade_plan_sha256"])))
     ):
         raise RuntimeError("release prepare receipt identity differs")
     try:
@@ -2114,8 +2143,8 @@ def _backup_run_receipt(
             or not re.fullmatch(r"[0-9a-f]{64}", str(quiescence["baseline_runtime_sha256"]))
             or not isinstance(quiescence["writer_services"], list)
             or not quiescence["writer_services"]
-            or expected_writer_services is not None
-            and quiescence["writer_services"] != expected_writer_services
+            or (expected_writer_services is not None
+            and quiescence["writer_services"] != expected_writer_services)
             or quiescence["stopped_at"] != value["writers_stopped_at"]
         ):
             raise RuntimeError("backup quiescence receipt is invalid")
@@ -2180,8 +2209,8 @@ def _validate_backup_quiescence_receipt(
         or value["writer_services"] != services
         or value["status"] not in {"prepared", "quiesced", "resumed"}
         or not re.fullmatch(r"[0-9a-f]{64}", str(value["baseline_runtime_sha256"]))
-        or value["status"] == "prepared" and value["stopped_at"] is not None
-        or value["status"] != "prepared" and not isinstance(value["stopped_at"], str)
+        or (value["status"] == "prepared" and value["stopped_at"] is not None)
+        or (value["status"] != "prepared" and not isinstance(value["stopped_at"], str))
     ):
         raise RuntimeError("backup quiescence receipt identity differs")
     timestamps = {}
@@ -2243,8 +2272,8 @@ def _staging_checkpoint_receipt(
                 "maintenance_receipt_sha256", "resources_sha256", "controls_sha256",
             )
         )
-        or value["baseline_generation"] is not None
-        and not GENERATION_NAME.fullmatch(str(value["baseline_generation"]))
+        or (value["baseline_generation"] is not None
+        and not GENERATION_NAME.fullmatch(str(value["baseline_generation"])))
     ):
         raise RuntimeError("staging checkpoint receipt identity differs")
     try:
@@ -2289,8 +2318,8 @@ def _staging_reset_intent_receipt(value: object, *, target, admission: dict) -> 
         or not re.fullmatch(
             r"[0-9a-f]{64}", str(value["production_upgrade_plan_sha256"]),
         )
-        or value["staging_baseline_generation"] is not None
-        and not GENERATION_NAME.fullmatch(str(value["staging_baseline_generation"]))
+        or (value["staging_baseline_generation"] is not None
+        and not GENERATION_NAME.fullmatch(str(value["staging_baseline_generation"])))
     ):
         raise RuntimeError("staging reset intent identity differs")
     try:
@@ -2413,25 +2442,6 @@ def _require_same_preparation(current: dict, receipt: dict) -> None:
     ):
         if current.get(field) != receipt.get(field):
             raise RuntimeError(f"release preparation changed after maintenance: {field}")
-
-
-def _staging_release_definitions_sha256(plan_evidence: dict | None) -> str | None:
-    """Return the staging-qualified release definitions digest carried by a plan.
-
-    Only staging-signed evidence and its production promotion envelope carry
-    staging evidence. A plan that production derives from its own baseline
-    carries none, so there is nothing to compare.
-    """
-    if plan_evidence is None:
-        return None
-    staging_evidence = plan_evidence.get("staging_evidence", plan_evidence)
-    staging = staging_evidence.get("staging") if isinstance(staging_evidence, dict) else None
-    if not isinstance(staging, dict):
-        return None
-    value = staging.get("release_definitions_sha256")
-    if not isinstance(value, str) or not value:
-        raise RuntimeError("staging evidence lacks its release definitions digest")
-    return value
 
 
 def _validated_release_upgrade_plan(target, value: object, release: dict) -> dict:
@@ -2719,6 +2729,11 @@ def backup_command(arguments: argparse.Namespace) -> int:
         run_id = f"retention-{datetime.now(UTC):%Y%m%dt%H%M%S}"
         with runtime_lock(target, runner, "retention", run_id):
             result = _run_cohort(target, runner, image, "retention-apply", [], volumes=runtime["volumes"])
+            # Staging keeps its newest local captures; the generation set is unused.
+            captures = _cleanup_captures(target, runner, set())
+            paths = _validated_cleanup_captures(target, runner, captures)
+            _delete_cleanup_resources(runner, [], [], [], [], paths)
+            result = {**result, **captures}
     elif arguments.action == "list":
         result = _run_cohort(target, runner, image, "list", [], volumes=runtime["volumes"])
     elif arguments.action == "select":
@@ -2864,7 +2879,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     if not leave_quiesced or not capture_succeeded:
                         runner.run(compose_command(
                             identity,
-                            ["up", "--detach", "--wait", "--no-recreate", *writer_services],
+                            ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *writer_services],
                         ))
                         writers_resumed_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
                 if leave_quiesced:
@@ -2897,12 +2912,13 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     or captured.get("release", {}).get("manifest_sha256") != release_sha
                 ):
                     raise RuntimeError("resumed backup capture identity differs")
+
             def resume_failed_quiescence() -> None:
                 if not leave_quiesced or not writer_services:
                     return
                 runner.run(compose_command(
                     identity,
-                    ["up", "--detach", "--wait", "--no-recreate", *writer_services],
+                    ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *writer_services],
                 ))
                 if _runtime_cas_sha256(
                     target, runner, inspect_runtime(target, runner),
@@ -3952,7 +3968,7 @@ def _preserve_staging_environment_state(target, runner, current: dict, volumes: 
             raise RuntimeError("staging MCP OAuth preservation differs")
     finally:
         runner.run(compose_command(
-            current["compose"], ["up", "--detach", "--wait", "--no-recreate", mcp],
+            current["compose"], ["up", "--detach", "--wait", "--no-recreate", "--no-deps", mcp],
         ))
     return {
         "schema": "usl-staging-environment-state/v1",
@@ -4291,14 +4307,14 @@ def _release_attempt_claim(value: object, *, target, attempt: str, release: str)
             else value["gitops_commit"] is not None
         )
         or not re.fullmatch(r"[a-z][a-z0-9-]{1,31}", str(value["source"]))
-        or value["schema"] == "usl-release-attempt/v3"
+        or (value["schema"] == "usl-release-attempt/v3"
         and (
             value["operation_kind"] not in {
                 "production-upgrade", "staging-upgrade", "staging-reset-from-production",
             }
             or not re.fullmatch(r"[0-9a-f]{64}", str(value["source_receipt_sha256"]))
             or not re.fullmatch(r"[0-9a-f]{64}", str(value["baseline_runtime_sha256"]))
-        )
+        ))
         or not all(
             re.fullmatch(r"[0-9a-f]{64}", str(value[field]))
             for field in (
@@ -4309,8 +4325,8 @@ def _release_attempt_claim(value: object, *, target, attempt: str, release: str)
         or value["operation_bundle_sha256"] != hashlib.sha256(
             json.dumps(operation, sort_keys=True, separators=(",", ":")).encode(),
         ).hexdigest()
-        or value["baseline_generation"] is not None
-        and not re.fullmatch(r"g[a-zA-Z0-9._-]{1,31}", str(value["baseline_generation"]))
+        or (value["baseline_generation"] is not None
+        and not re.fullmatch(r"g[a-zA-Z0-9._-]{1,31}", str(value["baseline_generation"])))
     ):
         raise RuntimeError("release attempt claim identity differs")
     try:
@@ -4497,12 +4513,12 @@ def _validate_release_boundary_receipt(
         or not re.fullmatch(r"g[a-zA-Z0-9._-]{1,31}", str(value["generation"]))
         or not re.fullmatch(r"[0-9a-f]{64}", str(value["snapshot"]))
         or not re.fullmatch(r"[0-9a-f]{64}", str(value["operation_bundle_sha256"]))
-        or actual_schema == f"{expected_kind}/v2"
+        or (actual_schema == f"{expected_kind}/v2"
         and (
             not re.fullmatch(r"[0-9a-f]{64}", str(value["runtime_evidence_sha256"]))
             if target.value["environment"] == "staging"
             else value["runtime_evidence_sha256"] is not None
-        )
+        ))
     ):
         raise RuntimeError("release boundary receipt identity differs")
     digest = hashlib.sha256(
@@ -5495,10 +5511,10 @@ def _validate_staging_auth_compose(target, runner, candidate_identity: dict) -> 
     base_url = target.value["endpoints"]["odoo"].rstrip("/")
     paperless_url = str(paperless.get("PAPERLESS_URL", "")).rstrip("/")
     paperless_public_url = str(
-        paperless_preflight.get("PAPERLESS_PUBLIC_URL", "")
+        paperless_preflight.get("PAPERLESS_PUBLIC_URL", ""),
     ).rstrip("/")
     paperless_public_base = str(
-        paperless_preflight.get("PAPERLESS_PUBLIC_BASE_URL", "")
+        paperless_preflight.get("PAPERLESS_PUBLIC_BASE_URL", ""),
     ).rstrip("/")
     configured_paperless_urls = [
         value for value in (paperless_url, paperless_public_url, paperless_public_base) if value
@@ -5535,7 +5551,7 @@ def _validate_staging_auth_compose(target, runner, candidate_identity: dict) -> 
         except (KeyError, TypeError, json.JSONDecodeError) as error:
             raise RuntimeError("rendered public Paperless OIDC contract is invalid") from error
         provider_server = str(
-            (provider.get("settings") or {}).get("server_url", "")
+            (provider.get("settings") or {}).get("server_url", ""),
         ).rstrip("/")
         checks.update({
             "paperless_https_url": (
@@ -5576,7 +5592,7 @@ def _validate_staging_auth_compose(target, runner, candidate_identity: dict) -> 
         for service_name, service in services.items():
             service_networks = service.get("networks") or []
             service_network_names = set(
-                service_networks if isinstance(service_networks, list) else service_networks
+                service_networks if isinstance(service_networks, list) else service_networks,
             )
             resolved_service_networks = {
                 str((rendered_networks.get(name) or {}).get("name", name))
@@ -6083,7 +6099,6 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             required_endpoints=_required_maintenance_endpoints(target),
         )
     upgrade_plan = None
-    signed_plan_evidence = None
     cron_policy_application = None
     environment_state_preservation = None
     pocketid_admission = None
@@ -6091,8 +6106,6 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         try:
             plan_value = json.loads(_read_path(target, target_runner, arguments.upgrade_plan))
             upgrade_plan = _validated_release_upgrade_plan(target, plan_value, release)
-            if target.value["environment"] == "production":
-                signed_plan_evidence = plan_value
         except (json.JSONDecodeError, ModuleReleaseError, PlanEvidenceError) as error:
             raise RuntimeError("upgrade plan is invalid") from error
     tool_image = _operations_image(release)
@@ -6367,9 +6380,6 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     try:
         health = _gate(health_command, target, arguments.targets)
         smoke = _gate(smoke_command, target, arguments.targets)
-        expected_release_definitions_sha256 = _staging_release_definitions_sha256(
-            signed_plan_evidence,
-        )
         preservation_proof = None
         compared_controls = smoke["controls"]
         if preservation_baseline is not None:
@@ -6394,10 +6404,6 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
                 ).hexdigest()
         except ControlManifestError as error:
             raise RuntimeError(str(error)) from error
-        if expected_release_definitions_sha256 is not None and (
-            smoke.get("release_definitions_sha256") != expected_release_definitions_sha256
-        ):
-            raise RuntimeError("production release definitions differ from staging qualification")
         production_activation = None
         if target.value["environment"] == "production" and attempt is None:
             # The candidate databases now run on the canonical Compose network.
@@ -6955,7 +6961,7 @@ def _validate_recovery_proof_state(value: object, proof_id: str) -> dict:
         or not re.fullmatch(r"[0-9a-f]{64}", str(state["release_identity"]))
         or not re.fullmatch(r"[0-9a-f]{64}", str(state["release_manifest_sha256"]))
         or not re.fullmatch(r"[0-9a-f]{64}", str(state["runtime_sha256"]))
-        or state["backup"] is not None and not isinstance(state["backup"], dict)
+        or (state["backup"] is not None and not isinstance(state["backup"], dict))
     ):
         raise RuntimeError("recovery proof state is invalid")
     started = _recovery_proof_timestamp(state["started_at"], "state.started_at")
@@ -7337,7 +7343,7 @@ def _recovery_proof_environment(
         key: str(value)
         for key, value in services[target.value["services"]["odoo"]].get("environment", {}).items()
         if key in allow["odoo"]
-        or key.startswith("USL_SIGN_") and not key.endswith("PASSWORD")
+        or (key.startswith("USL_SIGN_") and not key.endswith("PASSWORD"))
         or key.startswith("USL_DOCUMENT_RENDERER_")
     }
     selected["odoo"].update({
@@ -7415,7 +7421,7 @@ def _recovery_proof_environment(
     selected["dss"] = {
         key: str(value)
         for key, value in services[target.value["services"]["sign"]].get("environment", {}).items()
-        if key in allow["dss"] or key.startswith("USL_DSS_") and not key.endswith("_URL")
+        if key in allow["dss"] or (key.startswith("USL_DSS_") and not key.endswith("_URL"))
     }
     selected["dss"].update({
         "USL_DSS_PORT": "8443", "USL_DSS_LOTL_URL": "", "USL_DSS_OJ_URL": "",
@@ -7961,9 +7967,9 @@ def _recovery_proof_durable_state(
 
 def _require_recovery_proof_deadline(started: float, deadline_at: str | None = None) -> float:
     elapsed = time.monotonic() - started
-    if elapsed >= RECOVERY_PROOF_MAX_SECONDS or deadline_at is not None and (
+    if elapsed >= RECOVERY_PROOF_MAX_SECONDS or (deadline_at is not None and (
         datetime.now(UTC) >= _recovery_proof_timestamp(deadline_at, "deadline_at")
-    ):
+    )):
         raise RuntimeError("recovery proof exceeded its 1800-second hard deadline")
     return round(elapsed, 3)
 
@@ -8093,7 +8099,7 @@ def _recover_recovery_proof_backup(target, runner, run_id: str, runtime_sha: str
     identity = compose_identity(target, runner)
     runner.run(compose_command(
         identity,
-        ["up", "--detach", "--wait", "--no-recreate", *services],
+        ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *services],
     ))
     if _runtime_cas_sha256(target, runner, inspect_runtime(target, runner)) != runtime_sha:
         raise RuntimeError("recovery proof writer resumption changed the production baseline")
@@ -8165,7 +8171,7 @@ def _recovery_proof_command_locked(
             state.get("source") != "production"
             or state.get("release_identity") != release["identity"]
             or state.get("release_manifest_sha256") != release_sha
-            or not backup_interrupted and state.get("runtime_sha256") != observed_runtime_sha
+            or (not backup_interrupted and state.get("runtime_sha256") != observed_runtime_sha)
         ):
             raise RuntimeError("recovery proof retry baseline differs")
         runtime_sha = state["runtime_sha256"]
@@ -8208,6 +8214,7 @@ def _recovery_proof_command_locked(
             runtime_sha, started_at, started_monotonic,
         )
         raise
+
     def write_state(phase: str, backup_receipt: dict | None) -> dict:
         elapsed = _require_recovery_proof_deadline(started_monotonic, deadline_at)
         return _write_recovery_proof_evidence(
@@ -8712,6 +8719,186 @@ def _cleanup_workspaces(target, runner, protected_generations: set[str]) -> list
     return sorted(candidates)
 
 
+def _capture_attempt(target, run_id: str) -> str | None:
+    """Return the release attempt that owns one managed local capture run.
+
+    Only the run identities that the fixed release launcher creates are
+    managed: production ``release-{pre,candidate,admitted}-<attempt>`` and
+    staging ``<attempt>``.  Every other entry of the state directory is
+    outside capture retention and is never touched.
+    """
+    environment = target.value["environment"]
+    if environment == "production":
+        for prefix in PRODUCTION_CAPTURE_PREFIXES:
+            if run_id.startswith(prefix):
+                attempt = run_id.removeprefix(prefix)
+                return attempt if CAPTURE_ATTEMPT.fullmatch(attempt) else None
+        return None
+    if environment == "staging":
+        return run_id if CAPTURE_ATTEMPT.fullmatch(run_id) else None
+    return None
+
+
+def _qualified_capture(target, runner, run_id: str) -> dict | None:
+    """Return the capture creation time when the run is qualified, else None.
+
+    ``qualified`` is written by the cohort tool only after both Restic
+    snapshots were restored, verified and tagged ``recovery-eligible``.
+    A missing, unreadable or unqualified state protects the capture.
+    """
+    root = f"{target.value['state_directory']}/{run_id}"
+    state_result = runner.run(["cat", f"{root}/state.json"], check=False)
+    if state_result.returncode:
+        return None
+    try:
+        state = json.loads(state_result.stdout)
+    except json.JSONDecodeError:
+        return None
+    if (
+        not isinstance(state, dict)
+        or state.get("schema") != RECOVERY_STATE_SCHEMA
+        or state.get("run_id") != run_id
+        or state.get("target") != target.name
+        or state.get("status") != "qualified"
+        or not all(
+            re.fullmatch(r"[0-9a-f]{64}", str(state.get(key, "")))
+            for key in ("durable_snapshot_id", "cache_snapshot_id")
+        )
+    ):
+        return None
+    manifest_result = runner.run(["cat", f"{root}/manifest.json"], check=False)
+    if manifest_result.returncode:
+        return None
+    try:
+        manifest = validate_cohort_manifest(json.loads(manifest_result.stdout))
+        created_at = datetime.fromisoformat(
+            str(manifest["created_at"]).replace("Z", "+00:00"),
+        )
+    except (
+        json.JSONDecodeError, RecoveryCohortError, AttributeError, KeyError, TypeError, ValueError,
+    ):
+        return None
+    if (
+        manifest["run_id"] != run_id
+        or manifest["target"] != target.name
+        or created_at.tzinfo is None
+    ):
+        return None
+    return {"created_at": created_at}
+
+
+def _unfinished_release_attempts(target, runner) -> set[str]:
+    """Return attempts whose persisted launcher run may still resume a capture."""
+    runs_root = f"{target.value['state_directory']}/runs"
+    listing = runner.run(
+        [
+            "find", runs_root, "-mindepth", "1", "-maxdepth", "1",
+            "-name", "release-*.json", "-printf", "%f\\t%y\\n",
+        ],
+        check=False,
+    )
+    if listing.returncode:
+        if runner.run(["test", "!", "-e", runs_root], check=False).returncode == 0:
+            return set()
+        raise RuntimeError("release run inventory cannot be inspected")
+    attempts: set[str] = set()
+    for line in listing.stdout.splitlines():
+        try:
+            name, kind = line.split("\t", 1)
+        except ValueError as error:
+            raise RuntimeError("release run inventory is invalid") from error
+        if kind != "f":
+            raise RuntimeError(f"release run state is not a file: {name}")
+        try:
+            value = json.loads(runner.run(["cat", f"{runs_root}/{name}"]).stdout)
+        except json.JSONDecodeError as error:
+            raise RuntimeError(f"release run state is invalid: {name}") from error
+        if not isinstance(value, dict):
+            raise RuntimeError(f"release run state is invalid: {name}")
+        if value.get("status") not in UNFINISHED_RELEASE_STATUSES:
+            continue
+        attempt = str(value.get("attempt", ""))
+        if not RELEASE_ATTEMPT.fullmatch(attempt):
+            raise RuntimeError(f"release run attempt is invalid: {name}")
+        attempts.add(attempt)
+    return attempts
+
+
+def _attempt_generation(target, runner, attempt: str) -> str | None:
+    """Return the generation claimed by one attempt, or None without a claim."""
+    claim_path = f"{target.value['state_directory']}/attempts/{attempt}/claim.json"
+    result = runner.run(["cat", claim_path], check=False)
+    if result.returncode:
+        return None
+    try:
+        value = json.loads(result.stdout)
+    except json.JSONDecodeError as error:
+        raise RuntimeError(f"release attempt claim is invalid: {attempt}") from error
+    release = str(value.get("candidate_release", "")) if isinstance(value, dict) else ""
+    return _release_attempt_claim(value, target=target, attempt=attempt, release=release)["generation"]
+
+
+def _cleanup_captures(target, runner, protected_generations: set[str]) -> dict:
+    """Select the qualified local captures that retention may delete.
+
+    Production keeps every capture whose attempt claimed a protected (active
+    or previous) generation.  Staging keeps the newest ``STAGING_CAPTURE_KEEP``
+    captures.  Both keep captures that are not ``qualified`` and captures of
+    attempts whose launcher run is still running or resumable.  Entries that
+    are not managed capture runs are ignored.
+    """
+    state_root = target.value["state_directory"]
+    if runner.run(["test", "-L", state_root], check=False).returncode == 0:
+        raise RuntimeError("cleanup state root must not be a symlink")
+    listing = runner.run(
+        ["find", state_root, "-mindepth", "1", "-maxdepth", "1", "-printf", "%f\\t%y\\n"],
+        check=False,
+    )
+    if listing.returncode:
+        if runner.run(["test", "!", "-e", state_root], check=False).returncode == 0:
+            return {"protected_captures": [], "delete_captures": []}
+        raise RuntimeError("cleanup capture inventory cannot be inspected")
+    captures: dict[str, str] = {}
+    for line in listing.stdout.splitlines():
+        try:
+            name, kind = line.split("\t", 1)
+        except ValueError as error:
+            raise RuntimeError("cleanup capture inventory is invalid") from error
+        attempt = _capture_attempt(target, name)
+        if attempt is None:
+            continue
+        if kind != "d":
+            raise RuntimeError(f"cleanup capture is not a directory: {name}")
+        captures[name] = attempt
+    if not captures:
+        return {"protected_captures": [], "delete_captures": []}
+    unfinished = _unfinished_release_attempts(target, runner)
+    protected: set[str] = set()
+    qualified: dict[str, datetime] = {}
+    for run_id, attempt in sorted(captures.items()):
+        capture = _qualified_capture(target, runner, run_id)
+        if capture is None or attempt in unfinished:
+            protected.add(run_id)
+        else:
+            qualified[run_id] = capture["created_at"]
+    if target.value["environment"] == "production":
+        generations = {
+            attempt: _attempt_generation(target, runner, attempt)
+            for attempt in sorted({captures[run_id] for run_id in qualified})
+        }
+        protected.update(
+            run_id for run_id in qualified
+            if generations[captures[run_id]] in protected_generations
+        )
+    else:
+        newest = sorted(qualified, key=lambda run_id: (qualified[run_id], run_id), reverse=True)
+        protected.update(newest[:STAGING_CAPTURE_KEEP])
+    return {
+        "protected_captures": sorted(protected),
+        "delete_captures": sorted(set(qualified) - protected),
+    }
+
+
 def _cleanup_inventory(target, runner, current: dict) -> dict:
     active = {item["name"] for item in current["volumes"].values()}
     state_path = f"{target.value['state_directory']}/active.json"
@@ -8788,6 +8975,7 @@ def _cleanup_inventory(target, runner, current: dict) -> dict:
         "delete_volumes": candidates,
         "delete_networks": network_candidates,
         "delete_workspaces": _cleanup_workspaces(target, runner, protected_generations),
+        **_cleanup_captures(target, runner, protected_generations),
     }
 
 
@@ -8982,12 +9170,33 @@ def _validated_cleanup_resources(
     return containers, volumes, networks
 
 
+def _validated_cleanup_captures(target, runner, inventory: dict) -> list[str]:
+    """Re-check every capture directory immediately before deletion."""
+    state_root = target.value["state_directory"]
+    paths = []
+    for run_id in inventory["delete_captures"]:
+        if _capture_attempt(target, run_id) is None:
+            raise RuntimeError(f"cleanup capture identity is invalid: {run_id}")
+        path = f"{state_root}/{run_id}"
+        probe = runner.run(
+            ["find", path, "-mindepth", "0", "-maxdepth", "0", "-printf", "%y\\n"],
+            check=False,
+        )
+        if probe.returncode or probe.stdout.strip() != "d":
+            raise RuntimeError(f"cleanup capture became invalid: {path}")
+        if _qualified_capture(target, runner, run_id) is None:
+            raise RuntimeError(f"cleanup capture is not qualified: {run_id}")
+        paths.append(path)
+    return paths
+
+
 def _delete_cleanup_resources(
     runner,
     containers: list[str],
     volumes: list[dict],
     networks: list[dict],
     workspaces: list[str],
+    captures: list[str] | tuple[str, ...] = (),
 ) -> None:
     for identifier in containers:
         runner.run(["docker", "rm", "--force", identifier])
@@ -9002,6 +9211,8 @@ def _delete_cleanup_resources(
         runner.run(["docker", "network", "rm", name["name"]])
     for workspace in workspaces:
         runner.run(["rm", "-rf", "--", workspace])
+    for capture in captures:
+        runner.run(["rm", "-rf", "--", capture])
 
 
 def _cleanup_plan(target, inventory: dict, retention_plan: dict | None) -> dict:
@@ -9038,6 +9249,7 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
             containers, volumes, networks = _validated_cleanup_resources(
                 target, runner, inventory,
             )
+            captures = _validated_cleanup_captures(target, runner, inventory)
             if any(item["database_path"] is not None for item in volumes):
                 database_source, _available = _filesystem_capacity(
                     runner, target.value["storage"]["tiers"]["database"]["path"],
@@ -9048,7 +9260,7 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
                 if database_source == bulk_source:
                     raise RuntimeError("cleanup database tier is not local NVMe")
             _delete_cleanup_resources(
-                runner, containers, volumes, networks, inventory["delete_workspaces"],
+                runner, containers, volumes, networks, inventory["delete_workspaces"], captures,
             )
             if retention_image is not None:
                 retention_plan = _run_cohort(
@@ -9413,7 +9625,7 @@ def release_command(arguments: argparse.Namespace) -> int:
             services = quiescence["writer_services"]
             runner.run(compose_command(
                 runtime["compose"],
-                ["up", "--detach", "--wait", "--no-recreate", *services],
+                ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *services],
             ))
             resumed = inspect_runtime(target, runner)
             if _runtime_cas_sha256(target, runner, resumed) != baseline:
@@ -9765,46 +9977,6 @@ def release_command(arguments: argparse.Namespace) -> int:
         print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
         return 0
     if arguments.action == "plan":
-        if arguments.promote:
-            if target.value["environment"] != "staging":
-                raise RuntimeError("only staging may sign a production plan promotion")
-            if not arguments.upgrade_plan or not arguments.staging_release or not arguments.candidate_release:
-                raise RuntimeError(
-                    "plan promotion requires staging evidence and both release manifests",
-                )
-            try:
-                evidence = json.loads(_read_path(target, runner, arguments.upgrade_plan))
-                staging_release = validate_release(json.loads(
-                    _read_path(target, runner, arguments.staging_release),
-                ))
-                production_release = validate_release(json.loads(
-                    _read_path(target, runner, arguments.candidate_release),
-                ))
-                promoted = promote_upgrade_plan(
-                    evidence,
-                    staging_release,
-                    production_release,
-                    Path(target.value["plan_signing"]["private_key"]),
-                    Path(target.value["plan_signing"]["public_key"]),
-                )
-            except (json.JSONDecodeError, ReleaseManifestError, PlanEvidenceError) as error:
-                raise RuntimeError(f"production plan promotion is invalid: {error}") from error
-            output = arguments.output or arguments.upgrade_plan
-            _write_remote(
-                target,
-                runner,
-                str(output),
-                json.dumps(promoted, indent=2, sort_keys=True) + "\n",
-                "0644",
-            )
-            print(json.dumps({
-                "schema": promoted["schema"],
-                "path": str(output),
-                "staging_release": staging_release["identity"],
-                "production_release": production_release["identity"],
-                "status": "signed",
-            }, indent=None if arguments.json else 2, sort_keys=True))
-            return 0
         if arguments.attest:
             if target.value["environment"] != "staging":
                 raise RuntimeError("only staging may attest an upgrade plan")
@@ -10356,8 +10528,6 @@ def build_parser() -> argparse.ArgumentParser:
     release.add_argument("--candidate-release", type=Path)
     release.add_argument("--upgrade-plan", type=Path)
     release.add_argument("--attest", action="store_true")
-    release.add_argument("--promote", action="store_true")
-    release.add_argument("--staging-release", type=Path)
     release.add_argument("--snapshot")
     release.add_argument("--generation")
     release.add_argument("--output", type=Path)

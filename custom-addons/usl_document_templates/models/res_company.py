@@ -2,7 +2,7 @@ import base64
 import hashlib
 import re
 
-from odoo import api, fields, models, _
+from odoo import _, api, fields, models
 from odoo.exceptions import RedirectWarning, ValidationError
 from odoo.tools.mimetypes import guess_mimetype
 
@@ -180,10 +180,10 @@ class ResCompany(models.Model):
         if locale == "fr_FR":
             localized_company = self.with_context(lang=locale)
             capital = localized_company.currency_id.format(
-                localized_company.usl_document_share_capital
+                localized_company.usl_document_share_capital,
             )
             if localized_company.usl_document_share_capital == int(
-                localized_company.usl_document_share_capital
+                localized_company.usl_document_share_capital,
             ):
                 capital = (
                     f"{int(localized_company.usl_document_share_capital):,}"
@@ -232,7 +232,7 @@ class ResCompany(models.Model):
                 name=self.name,
                 form=self.usl_document_legal_form,
                 capital=self.with_context(lang=locale).currency_id.format(
-                    self.usl_document_share_capital
+                    self.usl_document_share_capital,
                 ),
             ),
             document_env._(
@@ -248,7 +248,7 @@ class ResCompany(models.Model):
         errors = self._usl_document_identity_errors()
         if errors:
             self._usl_document_raise_configuration_error(
-                _("The legal identity is incomplete: %s", ", ".join(errors))
+                _("The legal identity is incomplete: %s", ", ".join(errors)),
             )
         assets = []
         logo_digest = None
@@ -258,7 +258,7 @@ class ResCompany(models.Model):
             mimetype = guess_mimetype(content)
             if mimetype not in {"image/png", "image/jpeg"}:
                 self._usl_document_raise_configuration_error(
-                    _("The company logo must be a PNG or JPEG image.")
+                    _("The company logo must be a PNG or JPEG image."),
                 )
             logo_digest = hashlib.sha256(content).hexdigest()
             assets.append(
@@ -266,7 +266,7 @@ class ResCompany(models.Model):
                     "sha256": logo_digest,
                     "mime_type": mimetype,
                     "data": base64.b64encode(content).decode(),
-                }
+                },
             )
         primary_color = (self.primary_color or "#714B67").upper()
         return (
@@ -300,7 +300,7 @@ class ResCompany(models.Model):
                     "usl_document_renderer_status": "error",
                     "usl_document_renderer_checked_at": fields.Datetime.now(),
                     "usl_document_renderer_message": str(error),
-                }
+                },
             )
             return False
         self.write(
@@ -310,6 +310,6 @@ class ResCompany(models.Model):
                 "usl_document_renderer_revision": health["template_revision"],
                 "usl_document_renderer_version": health["engine_version"],
                 "usl_document_renderer_message": _("Renderer is healthy."),
-            }
+            },
         )
         return True

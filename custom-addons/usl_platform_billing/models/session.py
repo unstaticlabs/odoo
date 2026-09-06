@@ -279,13 +279,16 @@ class UslPlatformBillingSession(models.Model):
     @api.depends("company_id", "payout_ids.platform_id")
     def _compute_platform_coverage(self):
         Platform = self.env["usl.platform.billing.platform"]
+        platforms_by_company = {company.id: Platform for company in self.company_id}
+        for platform in Platform.search(
+            [
+                ("company_id", "in", self.company_id.ids),
+                ("active", "=", True),
+            ],
+        ):
+            platforms_by_company[platform.company_id.id] |= platform
         for session in self:
-            active_platforms = Platform.search(
-                [
-                    ("company_id", "=", session.company_id.id),
-                    ("active", "=", True),
-                ],
-            )
+            active_platforms = platforms_by_company.get(session.company_id.id, Platform)
             missing = active_platforms - session.payout_ids.platform_id
             session.missing_active_platform_ids = missing
             session.platform_coverage_warning = (
@@ -682,7 +685,7 @@ class UslPlatformBillingSession(models.Model):
             commission_payouts = invoice_payouts.filtered(
                 lambda payout: not payout.platform_currency_id.is_zero(
                     payout.commission_platform_amount,
-                )
+                ),
             )
             if platform.vendor_bill_grouping_mode == "monthly":
                 bill_groups = [commission_payouts] if commission_payouts else []

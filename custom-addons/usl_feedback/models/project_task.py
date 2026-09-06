@@ -272,6 +272,7 @@ class ProjectTask(models.Model):
         identity = identity or cls._usl_feedback_deployment_identity()
         release = identity["release_commit"]
         gitops = identity["gitops_commit"]
+
         def linked(value, repository, path):
             if value == "Unknown":
                 return escape(value)
@@ -286,7 +287,7 @@ class ProjectTask(models.Model):
             '<p><strong>Deployment identity</strong></p><ul>'
             '<li>Environment: %s</li><li>Odoo release: %s</li><li>GitOps release: %s</li>'
             '<li>Deployment generation: %s</li><li>Release manifest SHA-256: %s</li>'
-            '</ul></section>'
+            '</ul></section>',
         ) % (
             escape(identity["environment"]),
             linked(release, "odoo", "tree"),

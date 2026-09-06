@@ -1,11 +1,10 @@
 import ast
 import re
 from collections import defaultdict
-from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
-from odoo import api, fields, models
+from odoo import api, models
 from odoo.exceptions import AccessError, UserError
-
 
 _ZERO = Decimal("0")
 _WHOLE_EURO = Decimal("1")
@@ -44,7 +43,7 @@ class RebuildFrenchTaxReport(models.TransientModel):
         if not report:
             raise UserError(
                 "Le rapport fiscal français fourni par l10n_fr_account "
-                "est introuvable."
+                "est introuvable.",
             )
         return report
 
@@ -72,11 +71,11 @@ class RebuildFrenchTaxReport(models.TransientModel):
                 for tag_id in tag_ids_by_name.get(tag_name, [])
             })
             balance_expression = expressions.filtered(
-                lambda expression: expression.label == "balance"
+                lambda expression: expression.label == "balance",
             )[:1]
             adjustment_expression = expressions.filtered(
                 lambda expression: expression.label == "adjustment"
-                and expression.engine == "external"
+                and expression.engine == "external",
             )[:1]
             children = line.children_ids.sorted(
                 lambda child: (child.sequence, child.id),
@@ -105,7 +104,7 @@ class RebuildFrenchTaxReport(models.TransientModel):
                 "adjustment_editable": bool(
                     adjustment_expression
                     and "editable" in (adjustment_expression.subformula or "")
-                    and self.env.user.has_group("account.group_account_manager")
+                    and self.env.user.has_group("account.group_account_manager"),
                 ),
                 "source_tax_tag_id": (
                     str(source_tag_ids[0]) if len(source_tag_ids) == 1 else ""
@@ -160,13 +159,13 @@ class RebuildFrenchTaxReport(models.TransientModel):
                 "tax_tags",
                 "external",
                 "aggregation",
-            }
+            },
         )
         if unsupported:
             engines = ", ".join(sorted(set(unsupported.mapped("engine"))))
             raise UserError(
                 "Le rapport fiscal français utilise un moteur non pris en "
-                f"charge : {engines}."
+                f"charge : {engines}.",
             )
         tag_balances = (
             self._french_tax_tag_balances()
@@ -195,12 +194,12 @@ class RebuildFrenchTaxReport(models.TransientModel):
             if not expression:
                 raise UserError(
                     "La formule de TVA référence une expression inconnue : "
-                    f"{key[0]}.{key[1]}."
+                    f"{key[0]}.{key[1]}.",
                 )
             if key in active:
                 raise UserError(
                     "Une dépendance circulaire a été détectée dans le "
-                    f"rapport de TVA : {key[0]}.{key[1]}."
+                    f"rapport de TVA : {key[0]}.{key[1]}.",
                 )
             active.add(key)
             if expression.engine == "tax_tags":
@@ -256,14 +255,14 @@ class RebuildFrenchTaxReport(models.TransientModel):
         tag_name = self._french_tax_formula_tag_name(formula)
         if not tag_name or any(character.isspace() for character in tag_name):
             raise UserError(
-                f"Formule de grille de TVA non prise en charge : {formula}."
+                f"Formule de grille de TVA non prise en charge : {formula}.",
             )
         value = tag_balances.get(tag_name, _ZERO)
         return -value if (formula or "").strip().startswith("-") else value
 
     def _french_tax_external_values(self, expressions):
         expression_ids = expressions.filtered(
-            lambda expression: expression.engine == "external"
+            lambda expression: expression.engine == "external",
         ).ids
         values = self.env["account.report.external.value"].search([
             ("target_report_expression_id", "in", expression_ids),
@@ -275,7 +274,7 @@ class RebuildFrenchTaxReport(models.TransientModel):
             grouped[value.target_report_expression_id.id].append(value)
         result = {}
         for expression in expressions.filtered(
-            lambda item: item.engine == "external"
+            lambda item: item.engine == "external",
         ):
             candidates = grouped.get(expression.id, [])
             if expression.formula == "sum":
@@ -284,18 +283,18 @@ class RebuildFrenchTaxReport(models.TransientModel):
                     for value in candidates
                     if self.date_from <= value.date <= self.date_to
                 ]
-                result[(expression.report_line_id.code, expression.label)] = sum(
+                result[expression.report_line_id.code, expression.label] = sum(
                     (_decimal(value.value) for value in selected),
                     _ZERO,
                 )
             elif expression.formula == "most_recent":
-                result[(expression.report_line_id.code, expression.label)] = (
+                result[expression.report_line_id.code, expression.label] = (
                     _decimal(candidates[-1].value) if candidates else _ZERO
                 )
             else:
                 raise UserError(
                     "Formule de valeur externe TVA non prise en charge : "
-                    f"{expression.formula}."
+                    f"{expression.formula}.",
                 )
         return result
 
@@ -304,7 +303,7 @@ class RebuildFrenchTaxReport(models.TransientModel):
             node = ast.parse((formula or "").strip(), mode="eval")
         except SyntaxError as error:
             raise UserError(
-                f"Formule d'agrégation TVA invalide : {formula}."
+                f"Formule d'agrégation TVA invalide : {formula}.",
             ) from error
 
         def evaluate(item):
@@ -329,18 +328,18 @@ class RebuildFrenchTaxReport(models.TransientModel):
                     return left * right
                 if right == 0:
                     raise UserError(
-                        f"Division par zéro dans la formule TVA : {formula}."
+                        f"Division par zéro dans la formule TVA : {formula}.",
                     )
                 return left / right
             if isinstance(item, ast.Attribute) and isinstance(item.value, ast.Name):
                 reference = f"{item.value.id}.{item.attr}"
                 if not _REFERENCE_RE.fullmatch(reference):
                     raise UserError(
-                        f"Référence TVA non prise en charge : {reference}."
+                        f"Référence TVA non prise en charge : {reference}.",
                     )
                 return resolve((item.value.id, item.attr))
             raise UserError(
-                f"Construction non prise en charge dans la formule TVA : {formula}."
+                f"Construction non prise en charge dans la formule TVA : {formula}.",
             )
 
         return evaluate(node)
@@ -366,7 +365,7 @@ class RebuildFrenchTaxReport(models.TransientModel):
                 reference = match.group(1).strip()
                 if not _REFERENCE_RE.fullmatch(reference):
                     raise UserError(
-                        f"Condition TVA non prise en charge : {part}."
+                        f"Condition TVA non prise en charge : {part}.",
                     )
                 line_code, label = reference.split(".", 1)
                 value = value if resolve((line_code, label)) > 0 else _ZERO
@@ -552,7 +551,7 @@ class RebuildFrenchTaxReport(models.TransientModel):
         if not self.env.user.has_group("account.group_account_manager"):
             raise AccessError(
                 "Seul un responsable de la comptabilité peut modifier "
-                "un ajustement de TVA."
+                "un ajustement de TVA.",
             )
         try:
             desired_total = Decimal(str(value).replace(",", "."))
@@ -566,16 +565,16 @@ class RebuildFrenchTaxReport(models.TransientModel):
         if not company or company not in wizard._selected_companies():
             raise AccessError(
                 "La société de cet ajustement n'appartient pas au périmètre "
-                "du rapport."
+                "du rapport.",
             )
         report = wizard._french_tax_report()
         report_line = report.line_ids.filtered(
-            lambda line: line.code == line_code
+            lambda line: line.code == line_code,
         )[:1]
         expression = report_line.expression_ids.filtered(
             lambda item: item.label == "adjustment"
             and item.engine == "external"
-            and "editable" in (item.subformula or "")
+            and "editable" in (item.subformula or ""),
         )[:1]
         if not expression:
             raise UserError("Cette ligne ne permet pas d'ajustement manuel.")
@@ -586,7 +585,7 @@ class RebuildFrenchTaxReport(models.TransientModel):
             ("date", "<=", wizard.date_to),
         ], order="date, id")
         value_at_period_end = external_values.filtered(
-            lambda item: item.date == wizard.date_to
+            lambda item: item.date == wizard.date_to,
         )[:1]
         other_total = sum(
             (

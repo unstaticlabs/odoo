@@ -79,7 +79,5 @@ documentation, reports, comments, and commit messages.
   (for example `Claude Fable 5.1 <noreply@anthropic.com>` or
   `Coding Agent <318050048+elio-usl@users.noreply.github.com>` for Codex).
   Never hard-code a person and never commit as the agent account.
-- Open pull requests with the GitHub account of the driving human. Agent
-  service accounts such as `@elio-usl` are for automation that no person
-  drives. Name the agent in the PR body.
+- Name the driving human and the agent in the pull request body.
 - Use terminal Git and GitHub CLI. Do not use a browser for repository actions.

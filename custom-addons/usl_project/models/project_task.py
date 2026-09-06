@@ -2,6 +2,7 @@ from datetime import UTC, timedelta
 from zoneinfo import ZoneInfo
 
 from odoo import _, api, fields, models, tools
+
 from odoo.addons.project.models.project_task import CLOSED_STATES
 
 
@@ -56,7 +57,7 @@ class ProjectTask(models.Model):
         timezone = ZoneInfo(user.tz or "UTC")
         utc_now = fields.Datetime.to_datetime(now).replace(tzinfo=UTC)
         utc_deadline = fields.Datetime.to_datetime(self.date_deadline).replace(
-            tzinfo=UTC
+            tzinfo=UTC,
         )
         today = utc_now.astimezone(timezone).date()
         local_deadline = utc_deadline.astimezone(timezone).date()
@@ -65,7 +66,7 @@ class ProjectTask(models.Model):
     def _usl_reactivate_later_personal_stages(self, *, due_only=False, now=None):
         """Move validated assignee-owned Later links to their Inbox stages."""
         tasks = self.sudo().filtered(
-            lambda task: task.active and task.state not in CLOSED_STATES
+            lambda task: task.active and task.state not in CLOSED_STATES,
         )
         if not tasks:
             return 0
@@ -79,14 +80,14 @@ class ProjectTask(models.Model):
                 ("user_id.active", "=", True),
                 ("user_id.share", "=", False),
                 ("stage_id.usl_reactivation_role", "=", "later"),
-            ]
+            ],
         )
         inbox_stages = self.env["project.task.type"].sudo().search(
             [
                 ("user_id", "in", later_links.user_id.ids),
                 ("active", "=", True),
                 ("usl_reactivation_role", "=", "inbox"),
-            ]
+            ],
         )
         inbox_by_user = {stage.user_id.id: stage for stage in inbox_stages}
         links_by_inbox = {}
@@ -113,7 +114,7 @@ class ProjectTask(models.Model):
                 ("user_id.active", "=", True),
                 ("user_id.share", "=", False),
                 ("stage_id.usl_reactivation_role", "=", "later"),
-            ]
+            ],
         )
         return later_links.task_id._usl_reactivate_later_personal_stages(
             due_only=True,
@@ -178,17 +179,17 @@ class ProjectTask(models.Model):
                 lambda task: (
                     ("stage_id" in values and task.stage_id.id != task_before[task.id]["stage_id"])
                     or ("state" in values and task.state != task_before[task.id]["state"])
-                )
+                ),
             )
         if "depend_on_ids" in values:
             candidates |= tracked_tasks.filtered(
                 lambda task: task_before[task.id]["blocked"]
-                and not task.is_blocked_by_dependences()
+                and not task.is_blocked_by_dependences(),
             )
         if "state" in values:
             candidates |= dependent_tasks.filtered(
                 lambda task: dependent_blocked_before.get(task.id, False)
-                and not task.is_blocked_by_dependences()
+                and not task.is_blocked_by_dependences(),
             )
         if {"state", "parent_id", "active"}.intersection(values):
             parents |= tracked_tasks.sudo().parent_id
@@ -196,7 +197,7 @@ class ProjectTask(models.Model):
                 lambda parent: (
                     not parent_complete_before.get(parent.id, False)
                     and parent._usl_has_completed_direct_subtasks()
-                )
+                ),
             )
         if {"planned_date_begin", "date_deadline"}.intersection(values):
             changed_date_tasks = tracked_tasks.filtered(
@@ -204,14 +205,14 @@ class ProjectTask(models.Model):
                     field_name in values
                     and task[field_name] != task_before.get(task.id, {}).get(field_name)
                     for field_name in ("planned_date_begin", "date_deadline")
-                )
+                ),
             )
             if changed_date_tasks:
                 changed_date_tasks._usl_reactivate_later_personal_stages(
                     due_only=True,
                 )
         candidates.with_context(
-            usl_skip_task_reactivation=True
+            usl_skip_task_reactivation=True,
         )._usl_reactivate_later_personal_stages()
         return result
 
@@ -226,7 +227,7 @@ class ProjectTask(models.Model):
             lambda parent: (
                 not parent_complete_before.get(parent.id, False)
                 and parent._usl_has_completed_direct_subtasks()
-            )
+            ),
         )._usl_reactivate_later_personal_stages()
         return result
 

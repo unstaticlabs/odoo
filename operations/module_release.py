@@ -9,7 +9,6 @@ from collections import defaultdict, deque
 from pathlib import Path
 from typing import Any
 
-
 INVENTORY_SCHEMA = "usl-module-inventory/v1"
 PLAN_SCHEMA = "usl-module-upgrade-plan/v1"
 

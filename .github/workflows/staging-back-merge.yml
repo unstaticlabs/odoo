@@ -1,0 +1,29 @@
+name: Back-merge production into staging
+
+on:
+  push:
+    branches: [19-usl]
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: staging-back-merge
+  cancel-in-progress: false
+
+jobs:
+  back-merge:
+    name: Back-merge production into staging
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Open the back-merge pull request when staging is behind
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/back-merge-production

@@ -113,7 +113,7 @@ inbound_mail_blockers = []
 if gates["inbound_mail"]:
     if len(active_fetchmail) != 1:
         inbound_mail_blockers.append(
-            f"expected one active server, found {len(active_fetchmail)}"
+            f"expected one active server, found {len(active_fetchmail)}",
         )
     else:
         incoming = active_fetchmail.ensure_one()
@@ -134,7 +134,7 @@ if gates["inbound_mail"]:
                 mismatched.append(field_name)
         if mismatched:
             inbound_mail_blockers.append(
-                "server fields differ: " + ", ".join(sorted(mismatched))
+                "server fields differ: " + ", ".join(sorted(mismatched)),
             )
         if incoming.error_message:
             inbound_mail_blockers.append("server has an unresolved error")
@@ -147,7 +147,7 @@ if gates["inbound_mail"]:
         }
 elif active_fetchmail:
     inbound_mail_blockers.append(
-        f"gate is disabled but active servers remain: {active_fetchmail.ids}"
+        f"gate is disabled but active servers remain: {active_fetchmail.ids}",
     )
 if "usl.document.operation" in env.registry:  # noqa: F821
     queue_counts["documents_unsettled"] = env["usl.document.operation"].sudo().search_count([  # noqa: F821

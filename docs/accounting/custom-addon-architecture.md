@@ -217,6 +217,13 @@ This refactor does not modify either patch.
   uninstall it before product acceptance.
 - Do not add a new module unless the boundary improves dependency isolation,
   installability, ownership clarity or independent validation.
+- Keep one model file readable: when a model or an extension grows past a
+  few hundred lines, move a cohesive group of methods into a same-module file
+  that declares `_inherit` on the same model, or move whole sibling classes
+  into their own file. Register the new file in the package `__init__` right
+  after the file it came from so method resolution order does not change, keep
+  compute, search, constraint and onchange methods with their fields, and run
+  `carry-moved-sinks` before refreshing the action-risk surface.
 
 ## Validation contract
 
