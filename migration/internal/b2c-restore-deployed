@@ -22,7 +22,7 @@ usage() {
 Usage: migration/internal/b2c-restore-deployed <stage>
 
 Stages: install | import | catalog | native-history-dry-run | native-history
-        reclassify-marketing | validate | finalize
+        reclassify-marketing | reconcile-access | validate | finalize
 
 Required environment:
   B2C_DEPLOYED_ANCHOR      running container of the deployed stack, for example
@@ -54,7 +54,7 @@ case "$stage" in
         echo "Refusing '$stage' against a deployed database: run one reviewed stage at a time." >&2
         exit 2
         ;;
-    install|import|catalog|native-history|native-history-dry-run|reclassify-marketing|validate|finalize)
+    install|import|catalog|native-history|native-history-dry-run|reclassify-marketing|reconcile-access|validate|finalize)
         ;;
     *)
         usage
@@ -213,6 +213,7 @@ run_stage_script() {
         -e B2C_REQUIRE_FINAL_RELATIONSHIPS="${B2C_REQUIRE_FINAL_RELATIONSHIPS:-0}" \
         -e USL_B2C_NATIVE_HISTORY_MODE="${history_mode:-dry_run}" \
         -e USL_B2C_MARKETING_COST_MODE="${USL_B2C_MARKETING_COST_MODE:-dry_run}" \
+        -e USL_B2C_ACCESS_MODE="${USL_B2C_ACCESS_MODE:-dry_run}" \
         "$odoo_image" \
         odoo shell --config=/etc/odoo/odoo.conf \
         --addons-path="$USL_MIGRATION_ADDONS_PATH" \
