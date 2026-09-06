@@ -190310,7 +190310,7 @@
         },
         "rpc:usl.feedback.agent.run.write": {
           "evidence_id": "feedback-provider-phases-20260906",
-          "rationale": "Reviewed in docs/operations/feedback-action-risk-review.md: phase-separated configured provider work, bounded task-owned images and temporary evidence, terminal cleanup and rate-limit recovery preserve owner/company checks, retained-run ACLs and the server-owned deployment snapshot. No protected guard or service-identity permission is changed."
+          "rationale": "Full-product registry review: terminal evidence cleanup delegates through usl_access_control Base.write and native ORM write. The complete installed guard chain remains active; read-only run ACLs and Agent restrictions are unchanged. All 167 focused Odoo tests pass in this registry."
         },
         "rpc:usl.feedback.submission.copy": {
           "rationale": "Exact native implementation identity rpc:_unknown.copy; draft mutations are owner-bound, retained run writes are private-service-only by native ACL. Imports/view pseudo-record helpers conservatively treated as operational."
@@ -190644,7 +190644,7 @@
         "rpc:usl.feedback.agent.run.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:usl.feedback.agent.run.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:usl.feedback.agent.run.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:usl.feedback.agent.run.write": "2dfb7cff3a28c1e4e96ba7b373d326c1e39a726b87654ad5d06e9dd8a77c4a9d",
+        "rpc:usl.feedback.agent.run.write": "02effb282d6dfa39d9b99f5523d10346c11493aed16bda6c56e5b4481ce5b948",
         "rpc:usl.feedback.submission.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:usl.feedback.submission.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
         "rpc:usl.feedback.submission.create": "e01529fb01e0889fd6f4679a25ce6d1fcd327ded248fcd5e59cbcd4b0f6453e0",
@@ -194071,6 +194071,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "8027cba7a8d260aea1df3157a99960f219e776d07122a10c7beca70d9f5dd214",
+  "qualified_policy_digest": "4f2be73df1c0b2bc39d250fc80c0d221ebacd2523bb6edf31ff1b894b48ed26a",
   "schema": "usl-action-risk-policy-v1"
 }
