@@ -13,7 +13,7 @@ from pathlib import Path
 from unittest import mock
 
 from operations import cohort
-from operations.runtime import load_target
+from operations.runtime import compose_command, load_target
 from operations.stack import (
     BACKUP_WRITER_SERVICE_ROLES,
     _compose_services,
@@ -3049,6 +3049,7 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("30", runner.commands[0])
         self.assertIn("up", runner.commands[-1])
         self.assertIn("--no-recreate", runner.commands[-1])
+        self.assertIn("--no-deps", runner.commands[-1])
 
     def test_successful_release_capture_can_leave_writers_quiesced(self) -> None:
         identity = {
@@ -3193,7 +3194,137 @@ class CohortContractTests(unittest.TestCase):
         )
         commands = [call.args[0] for call in runner.run.call_args_list]
         self.assertTrue(any("stop" in command for command in commands))
-        self.assertTrue(any("up" in command and "--no-recreate" in command for command in commands))
+        resume = next(command for command in commands if "up" in command)
+        self.assertIn("--no-recreate", resume)
+        self.assertIn("--no-deps", resume)
+
+    def _backup_runner_and_target(self, name: str):
+        configured = load_target(name, TARGETS)
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        target = mock.Mock(value=configured.value, runner=mock.Mock(return_value=runner))
+        target.name = name
+        target.project = configured.project
+        return runner, target
+
+    def test_production_backup_writer_restart_skips_stale_one_shot_dependencies(self) -> None:
+        # The captured Compose identity may point at a stale checkout whose
+        # one-shot services (odoo-upgrade, odoo-mcp-oauth-init) already exited.
+        # The writer restart must start only the writers it stopped.
+        runner, target = self._backup_runner_and_target("production")
+        writer_services = [target.value["services"][role] for role in BACKUP_WRITER_SERVICE_ROLES]
+        identity = {
+            "project": "usl-odoo-production-main",
+            "working_directory": "/etc/komodo/stacks/usl-odoo-production-main",
+            "environment_file": "/etc/komodo/stacks/usl-odoo-production-main/.env",
+            "compose_files": ["/etc/komodo/stacks/usl-odoo-production-main/compose.yaml"],
+        }
+        runtime = {"compose": identity, "volumes": {}}
+        release = {
+            "identity": "a" * 64,
+            "source": {"commit": "b" * 40},
+            "components": {"backup-tool": {"digest_reference": "backup@sha256:" + "c" * 64}},
+        }
+        cohort_results = {
+            "capture": {"status": "captured"},
+            "push": {"durable_snapshot_id": "d" * 64},
+            "qualify": {"status": "verified"},
+        }
+
+        def run_cohort(_target, _runner, _image, action, *_args, **_kwargs):
+            return cohort_results[action]
+
+        arguments = argparse.Namespace(
+            target="production", targets=TARGETS, action="create", release=None,
+            resume=None, run_id="attempt-20260906-no-deps", leave_quiesced=False,
+            snapshot=None, json=True,
+        )
+        with (
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack.inspect_runtime", return_value=runtime),
+            mock.patch("operations.stack._release", return_value=(release, "d" * 64, "{}")),
+            mock.patch("operations.stack._secret_file"),
+            mock.patch("operations.stack._ensure_image"),
+            mock.patch("operations.stack._validate_runtime_release_images", return_value={"odoo": "image@sha256:" + "e" * 64}),
+            mock.patch("operations.stack.runtime_lock", return_value=contextlib.nullcontext()),
+            mock.patch("operations.stack._record_event"),
+            mock.patch("operations.stack._runtime_cas_sha256", return_value="f" * 64),
+            mock.patch("operations.stack.compose_identity", return_value=identity),
+            mock.patch("operations.stack._mcp_runtime_authority", return_value=None),
+            mock.patch("operations.stack._write_remote"),
+            mock.patch("operations.stack._run_cohort", side_effect=run_cohort),
+            mock.patch("builtins.print"),
+        ):
+            self.assertEqual(backup_command(arguments), 0)
+        commands = [call.args[0] for call in runner.run.call_args_list]
+        stops = [command for command in commands if "stop" in command]
+        ups = [command for command in commands if "up" in command]
+        self.assertEqual(len(stops), 1)
+        self.assertEqual(len(ups), 1)
+        self.assertEqual(stops[0][-len(writer_services):], writer_services)
+        self.assertEqual(
+            ups[0],
+            compose_command(
+                identity,
+                ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *writer_services],
+            ),
+        )
+        for one_shot in ("odoo-upgrade", "odoo-mcp-oauth-init"):
+            self.assertFalse(any(one_shot in command for command in commands))
+
+    def test_production_backup_upload_failure_resumes_writers_without_dependencies(self) -> None:
+        runner, target = self._backup_runner_and_target("production")
+        writer_services = [target.value["services"][role] for role in BACKUP_WRITER_SERVICE_ROLES]
+        identity = {
+            "project": "usl-odoo-production-main",
+            "working_directory": "/etc/komodo/stacks/usl-odoo-production-main",
+            "environment_file": "/etc/komodo/stacks/usl-odoo-production-main/.env",
+            "compose_files": ["/etc/komodo/stacks/usl-odoo-production-main/compose.yaml"],
+        }
+        runtime = {"compose": identity, "volumes": {}}
+        release = {
+            "identity": "a" * 64,
+            "source": {"commit": "b" * 40},
+            "components": {"backup-tool": {"digest_reference": "backup@sha256:" + "c" * 64}},
+        }
+
+        def run_cohort(_target, _runner, _image, action, *_args, **_kwargs):
+            if action == "capture":
+                return {"status": "captured"}
+            raise RuntimeError("injected upload failure")
+
+        arguments = argparse.Namespace(
+            target="production", targets=TARGETS, action="create", release=None,
+            resume=None, run_id="attempt-20260906-upload", leave_quiesced=True,
+            snapshot=None, json=True,
+        )
+        with (
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack.inspect_runtime", return_value=runtime),
+            mock.patch("operations.stack._release", return_value=(release, "d" * 64, "{}")),
+            mock.patch("operations.stack._secret_file"),
+            mock.patch("operations.stack._ensure_image"),
+            mock.patch("operations.stack._validate_runtime_release_images", return_value={"odoo": "image@sha256:" + "e" * 64}),
+            mock.patch("operations.stack.runtime_lock", return_value=contextlib.nullcontext()),
+            mock.patch("operations.stack._record_event"),
+            mock.patch("operations.stack._runtime_cas_sha256", return_value="f" * 64),
+            mock.patch("operations.stack.compose_identity", return_value=identity),
+            mock.patch("operations.stack._mcp_runtime_authority", return_value=None),
+            mock.patch("operations.stack._write_remote"),
+            mock.patch("operations.stack._run_cohort", side_effect=run_cohort),
+            self.assertRaisesRegex(RuntimeError, "injected upload"),
+        ):
+            backup_command(arguments)
+        commands = [call.args[0] for call in runner.run.call_args_list]
+        ups = [command for command in commands if "up" in command]
+        self.assertEqual(len(ups), 1)
+        self.assertEqual(
+            ups[0],
+            compose_command(
+                identity,
+                ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *writer_services],
+            ),
+        )
 
     def test_backup_image_is_pulled_only_when_missing(self) -> None:
         image = "backup@sha256:" + "a" * 64
@@ -5908,6 +6039,7 @@ class CohortContractTests(unittest.TestCase):
             self.assertEqual(release_command(arguments), 0)
         recovery = next(command for command in runner.commands if "up" in command)
         self.assertIn("--no-recreate", recovery)
+        self.assertIn("--no-deps", recovery)
         self.assertEqual(recovery[-len(services):], services)
 
     def test_release_cli_exposes_crash_recovery_quiescence_receipt(self) -> None:
@@ -6263,6 +6395,7 @@ class CohortContractTests(unittest.TestCase):
         self.assertTrue(any("stop" in command for command in runner.commands))
         resume = next(command for command in runner.commands if "up" in command)
         self.assertIn("--no-recreate", resume)
+        self.assertIn("--no-deps", resume)
         self.assertEqual(resume[-1], target.value["services"]["mcp"])
 
     def test_staging_oauth_copy_binds_identical_source_and_destination_trees(self) -> None:
