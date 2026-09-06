@@ -288,7 +288,7 @@
     "rpc:usl.tese.profile.message_subscribe",
     "rpc:usl.tese.profile.message_unsubscribe"
   ],
-  "qualified_policy_digest": "cc40b12a3a22d2f4cf50d5c896453518cb1a33f3d4ba46b704147c311a1defad",
+  "qualified_policy_digest": "28e7c1cd9fa609119a17854f5cb4465aedfa41301351837333ccbf64132114b8",
   "read_only_actions": [
     "rpc:_unknown.check_field_access",
     "rpc:_unknown.export_data",
@@ -12679,7 +12679,7 @@
     "rpc:wizard.open.tax.balances.search_count",
     "rpc:wizard.open.tax.balances.search_read"
   ],
-  "runtime_policy_sha256": "bc2248370332ded693853b4e9d3b797ac75b1b15cb8f8538814f73ddfbacb0e9",
+  "runtime_policy_sha256": "558b09555d60c794ac19d0648d2436a96622679b7993fc03ed4d6d31a4d18875",
   "schema": "usl-agent-access-runtime-v2",
   "write_actions": [
     "rpc:_unknown.copy",
@@ -16510,6 +16510,7 @@
     "rpc:hr.expense.action_open_documents_workspace",
     "rpc:hr.expense.action_open_expense_batch_wizard",
     "rpc:hr.expense.action_post",
+    "rpc:hr.expense.action_rebuild_waive_receipt",
     "rpc:hr.expense.action_refresh_bank_match_candidates",
     "rpc:hr.expense.action_reset",
     "rpc:hr.expense.action_retry_linked_receipt",
