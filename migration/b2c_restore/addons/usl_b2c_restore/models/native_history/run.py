@@ -141,6 +141,51 @@ class UslB2cNativeHistoryRun(models.Model):
             result[key] = {"count": len(rows), "digest": _digest(rows)}
         return result
 
+    # A database identifier says nothing about the evidence and differs between
+    # a clone and production, so the fingerprint names every record by its own
+    # business identity instead.
+    _BUSINESS_KEYS = {
+        "b2c.order": "canonical_key",
+        "b2c.order.line": "line_key",
+        "b2c.order.source": "source_record_key",
+        "b2c.product.alias": "alias_key",
+        "b2c.provider.evidence": "evidence_key",
+        "b2c.fulfilment.event": "provider_event_key",
+        "b2c.channel": "code",
+        "product.product": "default_code",
+        "product.template": "default_code",
+        "res.country": "code",
+        "res.currency": "name",
+        "res.partner": "name",
+        "ir.attachment": "checksum",
+    }
+
+    def _business_identity(self, record):
+        if not record:
+            return False
+        key = self._BUSINESS_KEYS.get(record._name)
+        if key is None:
+            raise UserError(
+                f"The B2C fingerprint has no business identity for {record._name}.",
+            )
+        return record[key] or False
+
+    def _fingerprint_row(self, record, field_names):
+        """Return one record as content, with no database identifier in it."""
+        row = {"identity": self._business_identity(record)}
+        for name in field_names:
+            field = record._fields[name]
+            value = record[name]
+            if field.type == "many2one":
+                row[name] = self._business_identity(value)
+            elif field.type in {"many2many", "one2many"}:
+                row[name] = sorted(
+                    str(self._business_identity(item)) for item in value
+                )
+            else:
+                row[name] = value
+        return row
+
     def _source_fingerprint(self, company):
         models_and_fields = {
             "orders": (
@@ -263,7 +308,10 @@ class UslB2cNativeHistoryRun(models.Model):
                 .with_context(active_test=False)
                 .search(domain, order="id")
             )
-            rows = records.read(["id", *field_names], load=False)
+            rows = sorted(
+                (self._fingerprint_row(record, field_names) for record in records),
+                key=lambda row: _digest(row),
+            )
             result[key] = {"count": len(records), "digest": _digest(rows)}
         documents = (
             self.env["b2c.provider.evidence"]
@@ -577,6 +625,9 @@ class UslB2cNativeHistoryRun(models.Model):
         return metadata
 
     def _normalize_printful_links(self, company, orders, apply):
+        # Provider evidence links to every canonical order, including the ones
+        # that were marketing rather than a sale.
+        orders = self.env["b2c.order"].sudo().search([("company_id", "=", company.id)])
         external_counts = Counter(orders.mapped("external_order_id"))
         duplicates = sorted(
             external_id
@@ -1171,7 +1222,7 @@ class UslB2cNativeHistoryRun(models.Model):
                 if not currency:
                     raise UserError(f"Order {order.external_order_id} has no currency.")
             return {"orders_planned": len(orders), "contacts_planned": "deterministic-at-apply"}
-        sales = self.env["sale.order"]
+        sales = self.env["sale.order"].sudo().with_context(**self._ctx())
         for order in orders:
             sales |= self._materialize_sale(company, order)
         return {

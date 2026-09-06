@@ -112,14 +112,20 @@ def pod_attributes(variation):
                 attributes.setdefault("Size", part)
             elif part in FORMAT_VALUES:
                 attributes.setdefault("Size", part)
-            elif part.endswith(" - One"):
-                attributes.setdefault("Colour", part[: -len(" - One")])
-                attributes.setdefault("Size", "One")
+            elif re.match(r"^.*\s+-\s+(One|Two|Four)$", part):
+                pack = re.match(r"^(.*?)\s+-\s+(One|Two|Four)$", part)
+                attributes.setdefault("Colour", pack.group(1))
+                attributes.setdefault("Pack", pack.group(2))
             else:
                 attributes.setdefault("Colour", part)
     elif variation.strip() and variation.strip() not in SINGLE_VARIANT_VALUES:
         value = variation.strip()
-        attributes["Size" if value in FORMAT_VALUES else "Colour"] = value
+        pack = re.match(r"^(.*?)\s+-\s+(One|Two|Four)$", value)
+        if pack:
+            attributes["Colour"] = pack.group(1)
+            attributes["Pack"] = pack.group(2)
+        else:
+            attributes["Size" if value in FORMAT_VALUES else "Colour"] = value
     attributes = {k: SIZE_ALIASES.get(v, v) if k == "Size" else v for k, v in attributes.items()}
     return attributes
 
@@ -149,6 +155,21 @@ def main():
             {"provider": provider, "sku": sku, "name": name, "variation": variation,
              "lines": int(lines), "units": int(units)},
         )
+    # Odoo builds variants from an attribute matrix, so every variant of one
+    # product must answer the same attributes. Where a channel never recorded
+    # one, say so explicitly rather than inventing a value.
+    for product in products.values():
+        used = set()
+        for signature in product["variants"]:
+            used.update(json.loads(signature))
+        normalised = defaultdict(list)
+        for signature, aliases in product["variants"].items():
+            attributes = json.loads(signature)
+            for name in used:
+                attributes.setdefault(name, "Not specified")
+            normalised[json.dumps(attributes, sort_keys=True, ensure_ascii=False)].extend(aliases)
+        product["variants"] = normalised
+
     specification = {
         "schema": "usl-b2c-catalog-specification-v1",
         "provenance": {

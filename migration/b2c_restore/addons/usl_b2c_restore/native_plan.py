@@ -23,13 +23,13 @@ EXPECTED_NATIVE_COUNTS = {
     "medusa_orders": 96,
     "legacy_orders": 35,
     "printful_events": 261,
-    "aliases": 174,
+    "aliases": 184,
     "provider_evidence": 2893,
     "order_sources": 614,
     "source_documents": 40,
-    "sale_lines": 940,
-    "contacts": 365,
-    "partner_identities": 365,
+    "sale_lines": 909,
+    "contacts": 345,
+    "partner_identities": 345,
     "purchases": 17,
     "receipts": 17,
     "unbuilds": 12,
@@ -51,28 +51,28 @@ EXPECTED_NATIVE_COUNTS = {
 # not the delivered product module.
 EXPECTED_SOURCE_FINGERPRINTS = {
     "aliases": {
-        "count": 174,
-        "digest": "185cf839848fdb6c35fd6892547384f511f1909297f69285ee07b721985be498",
+        "count": 184,
+        "digest": "e04af55a2d689b6ebb00021da841887df59f4cdf64b29e3ae9fbf7065a375f1a",
     },
     "evidence": {
         "count": 2893,
-        "digest": "bfdc75f35ee2bc36193e5b38fe207800944a387163d015c5fdac0cc9041b9e8a",
+        "digest": "df8f29b94c2a2cc93c9629560ad6141ebb20b092579f9f7a47c0563994299d67",
     },
     "fulfilment_events": {
         "count": 261,
-        "digest": "18302ef601aabc8d5f84c208b179a211ae34ab100e0ea673f20128b193c08f7b",
+        "digest": "15da20b2ba107c408d6c9eadd188cb896b4a7c2f2d50af5ffe16c0e6769f755f",
     },
     "lines": {
         "count": 457,
-        "digest": "38d9f2b29fa7bce19873df057be26568d80650a1c7a8b14b13806612f99f29c9",
+        "digest": "fba53fc38f1e314c15b6d1288fae950e410c7619e79fe5f052115514b74da997",
     },
     "order_sources": {
         "count": 614,
-        "digest": "6a17fe80ab9197b95c4fd1361c9fbb700061bb5a8eb7038582de084849c2b99c",
+        "digest": "f02a18cc6aeb4d86d129e8d8f8b98de50f056ba5d73dd886e2b46d29abc9e9a7",
     },
     "orders": {
         "count": 304,
-        "digest": "8407c1d7f82683226cc7ca2f4c06fa8c01f2b98bdd801e837386aa3a183b2bc8",
+        "digest": "16cc7d58fc349e9101637ee149fe536c5fba83fa54ce1dcee22d3af75e8b065c",
     },
     "source_documents": {
         "count": 40,

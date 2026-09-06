@@ -362,7 +362,7 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
                 "usl_b2c_source_key": key,
             },
         )
-        records = self.env["stock.move"]
+        records = self.env["stock.move"].sudo().with_context(**self._ctx())
         for product, quantity, extra in moves:
             records |= self.env["stock.move"].sudo().with_context(**self._ctx()).create(
                 {
@@ -427,7 +427,7 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
                 "usl_b2c_order_id": b2c_order.id if b2c_order else False,
             },
         )
-        move_records = self.env["stock.move"]
+        move_records = self.env["stock.move"].sudo().with_context(**self._ctx())
         for product, quantity, extra in moves:
             move_records |= self.env["stock.move"].sudo().with_context(**self._ctx()).create(
                 {
@@ -989,8 +989,8 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
         return production
 
     def _materialize_demands(self, company, warehouse, orders):
-        deliveries = self.env["stock.picking"]
-        productions = self.env["mrp.production"]
+        deliveries = self.env["stock.picking"].sudo().with_context(**self._ctx())
+        productions = self.env["mrp.production"].sudo().with_context(**self._ctx())
         for order in orders:
             sale = order.sale_order_id
             stock_lines = []
@@ -1117,7 +1117,7 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
                 "uses_medusa_inventory_quantities": False,
             }
         warehouse = self._warehouse(company)
-        purchases = self.env["purchase.order"]
+        purchases = self.env["purchase.order"].sudo().with_context(**self._ctx())
         for acquisition, partner, currency, lines in acquisitions:
             purchases |= self._purchase(run, company, warehouse, acquisition, partner, currency, lines)
         deliveries, productions = self._materialize_demands(company, warehouse, orders)
@@ -1127,7 +1127,7 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
             *EXPECTED_THEORETICAL_STOCK,
             *(
                 line["code"]
-                for acquisition in acquisitions()
+                for acquisition, _partner, _currency, _lines in acquisitions
                 for line in acquisition["lines"]
             ),
         }:

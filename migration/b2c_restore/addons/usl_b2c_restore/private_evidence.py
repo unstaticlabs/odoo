@@ -38,7 +38,7 @@ PINNED_EVIDENCE = {
         "7f22ff667369a7622a018c2ec612d107488382e79d6e02112699bfe6b974c8e7"
     ),
     "catalog-specification-2026-09-06.json": (
-        "3094b307c5521197d4dba5459fff917290a8d5737a797947bd308d96a028c90e"
+        "25dd5a143ef2eda62b920498b1fb7aa5df7fa1da24152c9cbc8e498680c856cc"
     ),
     "medusa-sold-items-2026-09-06.csv": (
         "c12eb028fcc1abd7cbaab4b9d856ca9ba8ebf2cd564645b0e902cb05e560d557"
