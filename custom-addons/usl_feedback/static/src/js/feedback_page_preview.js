@@ -86,8 +86,8 @@ export async function captureFeedbackPagePreview({
     if (!root) {
         throw new Error("The Odoo page is unavailable.");
     }
-    const width = Math.max(1, Math.round(root.clientWidth || browser.innerWidth));
-    const height = Math.max(1, Math.round(root.clientHeight || browser.innerHeight));
+    const width = Math.max(1, Math.round(Math.min(root.clientWidth || browser.innerWidth, browser.innerWidth)));
+    const height = Math.max(1, Math.round(Math.min(root.clientHeight || browser.innerHeight, browser.innerHeight)));
     const scale = Math.min(1, MAX_PAGE_PREVIEW_DIMENSION / Math.max(width, height));
     const backgroundColor = window.getComputedStyle(root).backgroundColor || "#ffffff";
     const rendered = await render(root, {
