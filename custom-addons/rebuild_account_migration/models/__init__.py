@@ -12,6 +12,15 @@ from . import assurance_decision
 from . import report_views
 from . import report_definition
 from . import report_export_wizard
+from . import report_export_rows
+from . import report_export_ledgers
+from . import report_export_tax
+from . import report_export_management
+from . import report_export_assets
+from . import report_export_french
+from . import report_export_client
+from . import report_export_xlsx
+from . import report_export_pdf
 from . import french_tax_report
 from . import accounting_overview
 from . import analytic_pivot_export

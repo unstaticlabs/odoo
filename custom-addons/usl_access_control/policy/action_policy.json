@@ -136163,24 +136163,24 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._attach_generated_closing_package:orm_create:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._attach_generated_closing_package:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._export_metadata:orm_write:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._fec_export_payload:orm_create:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._fec_export_payload:sudo:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._raw_report_rows:orm_create:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._raw_report_rows:sudo:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._report_client_payload:orm_write:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._report_client_summary:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_ledgers.py:rebuild.account.report.export.wizard._fec_export_payload:orm_create:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_ledgers.py:rebuild.account.report.export.wizard._fec_export_payload:sudo:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_rows.py:rebuild.account.report.export.wizard._raw_report_rows:orm_create:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_rows.py:rebuild.account.report.export.wizard._raw_report_rows:sudo:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard._report_client_payload:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard._report_client_summary:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._toggle_preview_group:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._toggle_preview_group:orm_write:2",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._visible_preview_rows:orm_write:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:2",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:3",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:4",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:5",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:6",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:7",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:8",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:9",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:2",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:3",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:4",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:5",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:6",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:7",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:8",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:9",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_collapse_all:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_expand_all:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_generate_export:orm_write:1",
@@ -136190,9 +136190,9 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_write:3",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:sudo:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.create:orm_create:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.report_client_load:orm_create:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.report_client_load:orm_write:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.report_client_load:orm_write:2",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard.report_client_load:orm_create:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard.report_client_load:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard.report_client_load:orm_write:2",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.write:orm_write:1",
         "sink:sale:addons/sale/models/account_analytic_line.py:account.analytic.line._check_can_write:orm_write:1",
         "sink:sale:addons/sale/models/account_analytic_line.py:account.analytic.line._check_can_write:orm_write:2",
@@ -141530,6 +141530,33 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_definition.py:rebuild.account.report.definition.write:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.account.report.definition.write"
         },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard._report_client_payload:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard._report_client_summary:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard.report_client_load:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.account.report.export.wizard.report_client_load"
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard.report_client_load:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.account.report.export.wizard.report_client_load"
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard.report_client_load:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.account.report.export.wizard.report_client_load"
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_ledgers.py:rebuild.account.report.export.wizard._fec_export_payload:orm_create:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_ledgers.py:rebuild.account.report.export.wizard._fec_export_payload:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_rows.py:rebuild.account.report.export.wizard._raw_report_rows:orm_create:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_rows.py:rebuild.account.report.export.wizard._raw_report_rows:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._apply_comparison_values:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -141548,24 +141575,6 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._export_metadata:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._fec_export_payload:orm_create:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._fec_export_payload:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._raw_report_rows:orm_create:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._raw_report_rows:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._report_client_payload:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._report_client_summary:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._toggle_preview_group:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -141573,33 +141582,6 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._visible_preview_rows:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:4": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:5": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:6": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:7": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:8": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:9": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_collapse_all:orm_write:1": {
@@ -141629,17 +141611,35 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.create:orm_create:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.account.report.export.wizard.create"
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.report_client_load:orm_create:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.account.report.export.wizard.report_client_load"
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.report_client_load:orm_write:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.account.report.export.wizard.report_client_load"
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.report_client_load:orm_write:2": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.account.report.export.wizard.report_client_load"
-        },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.write:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.account.report.export.wizard.write"
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:3": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:4": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:5": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:6": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:7": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:8": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:9": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:sale:addons/sale/models/account_analytic_line.py:account.analytic.line._check_can_write:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
@@ -144599,30 +144599,24 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_definition.py:rebuild.account.report.definition._ensure_standard_definitions:orm_write:1": "2222af00998390bdf76e5c6cb14d627cada0ea2fc77b9196c22dbd3ca3b11de4",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_definition.py:rebuild.account.report.definition.create:orm_create:1": "900e7d389f0fc7a6d22cad0ffe1ad8850c1ef06e64ff0cfeab7cbfb6dd8b192b",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_definition.py:rebuild.account.report.definition.write:orm_write:1": "983f3a260add301061405b74e7a9ca3384184c5f14ff41559e7f66692a9067f3",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard._report_client_payload:orm_write:1": "2be6cc8716a8be953cfbac632fefb812d163556f2daab8e389dcbe567d3e7611",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard._report_client_summary:orm_write:1": "9e445724535faa69f67ab6852d784d5960e223d67e78bf136ee8b75759082e09",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard.report_client_load:orm_create:1": "555afed6431ad4e1ec73d9ab54eff801c2ed8c44453f0ed5233f58614e381b58",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard.report_client_load:orm_write:1": "39e9b3c9b7fea224caf0278c39247b70b518187ad3e96c3a0c68ee0b64d31fda",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard.report_client_load:orm_write:2": "441292db64d272443ba47fe29c29495acb39a397a2a6408cca0e0bc3af9d48bf",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_ledgers.py:rebuild.account.report.export.wizard._fec_export_payload:orm_create:1": "5f1db25ffb8bb6d41bdb5bb4860ccb0c93fe3c0dadb080db1d6f04158c050aa3",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_ledgers.py:rebuild.account.report.export.wizard._fec_export_payload:sudo:1": "ac547a665961da86b300170a7706f1dc0cb75e92a79424bcf4a87f5255188009",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_rows.py:rebuild.account.report.export.wizard._raw_report_rows:orm_create:1": "b2471dc9f316c736d3bc667892f638ea98e306eda9b909c7e31546bed5e8e724",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_rows.py:rebuild.account.report.export.wizard._raw_report_rows:sudo:1": "05df7e7128799675de1cef1f5288d23c635bce3a8d234302a4a88c9fc81ec7e2",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._apply_comparison_values:orm_write:1": "e5899e71d5ab0fd0635a236d097f7c28d6fc774574e8e79323e296316e3cc208",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._apply_comparison_values:orm_write:2": "2cc9da9b061a12d4aa6026d32a3450276a40ea874ad7c2d18d8b4d58eff7360c",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._apply_period_values:orm_write:1": "2ba1cba51addc2161213a4db705bd4ac2432de73ec9c6f01201002c38ea7e65f",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._attach_generated_closing_package:orm_create:1": "21e4dce3d705c2985b106758895f60071ba0589297db4b2adf3c8f9cc36ad2e8",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._attach_generated_closing_package:orm_write:1": "7e417cfb69cec98a751ad86e545b5d155a798ef2c2f4f600f7be4453b5ef6fdb",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._export_metadata:orm_write:1": "273109f3d12b24fde0441825b60caea21850ecc3cd8ecf07183ab2762f4352b8",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._fec_export_payload:orm_create:1": "5f1db25ffb8bb6d41bdb5bb4860ccb0c93fe3c0dadb080db1d6f04158c050aa3",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._fec_export_payload:sudo:1": "ac547a665961da86b300170a7706f1dc0cb75e92a79424bcf4a87f5255188009",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._raw_report_rows:orm_create:1": "b2471dc9f316c736d3bc667892f638ea98e306eda9b909c7e31546bed5e8e724",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._raw_report_rows:sudo:1": "05df7e7128799675de1cef1f5288d23c635bce3a8d234302a4a88c9fc81ec7e2",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._report_client_payload:orm_write:1": "2be6cc8716a8be953cfbac632fefb812d163556f2daab8e389dcbe567d3e7611",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._report_client_summary:orm_write:1": "9e445724535faa69f67ab6852d784d5960e223d67e78bf136ee8b75759082e09",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._toggle_preview_group:orm_write:1": "5b2e22ba9561db624ff49a4a1ee66d6e5518c489016ced8d41f6a9f52aab60f8",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._toggle_preview_group:orm_write:2": "a52546687a3d2a5adda9c6507227ea819b2028dd7e38fe633fd1b011d79ca303",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._visible_preview_rows:orm_write:1": "c97ab03795194059a2963cc7a8fa220281fad6b232dccd06cab4ca1cda5c8ad9",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:1": "996ca01f45c70ac64963ac313e73072b46b6d7e0c516f3194d321163d66d37e4",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:2": "3b579244a17c2fb8ced481258333460466c539e5c78beb4663aaaf9f8364618a",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:3": "3c7478bc649dae93daf7d3b2d84239730f9b9c70ae6b416db8506dbeff0e4b21",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:4": "4a8ef494bba2b54e7c5819a683f4768408e4a3b9a4baf45db17e03c9ba42a3d1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:5": "fc9c9ed61461767356458b19265523315b0313d8af4c8cd921043e18a2f74990",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:6": "d1f27314c219debee32dfb2a910948619e33383807f402b0b79c2b73ad4270b5",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:7": "db858304494a908abfaeb748b46c69b4ca9a669722f774cabe432f24a8072061",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:8": "f8a4674528166f65c9f5e89c2d5832c09c2ebbcced36fd2b6bc314375c05b362",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:9": "1db0f0d292aa6210049c70920638b32e38debc68b8896944f3f8e8eaf9b4de9a",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_collapse_all:orm_write:1": "cc1f59fb5d76bc1918809bdbeb19d32db26c1950de2836dad5f0d3629a5b3421",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_expand_all:orm_write:1": "581f3e26f767af8b77e435557cb349a58607271a7cc74c48a0a459f684105471",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_generate_export:orm_write:1": "88921874951a52aeb3aa60fa3118cda602f7346eaa1c0b07a5bc8a21f37bf400",
@@ -144632,10 +144626,16 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_write:3": "3bbbbe713a145c350a9036b1c282746f1cda88b7a0a4ca2ce3237a51d0687784",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:sudo:1": "a1607fcb7d775abf84b2b7848cddb7c124abd92aef1210075597a11399c8a165",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.create:orm_create:1": "b63398e2314fd5c9f57d0f0e58cf58641db7ebdba2169b6a1940483f500a59ba",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.report_client_load:orm_create:1": "555afed6431ad4e1ec73d9ab54eff801c2ed8c44453f0ed5233f58614e381b58",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.report_client_load:orm_write:1": "39e9b3c9b7fea224caf0278c39247b70b518187ad3e96c3a0c68ee0b64d31fda",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.report_client_load:orm_write:2": "441292db64d272443ba47fe29c29495acb39a397a2a6408cca0e0bc3af9d48bf",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.write:orm_write:1": "579bdbf52793c9658bbf0d975e915452c55b4d6100c5257c1575e97552cf68a8",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:1": "996ca01f45c70ac64963ac313e73072b46b6d7e0c516f3194d321163d66d37e4",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:2": "3b579244a17c2fb8ced481258333460466c539e5c78beb4663aaaf9f8364618a",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:3": "3c7478bc649dae93daf7d3b2d84239730f9b9c70ae6b416db8506dbeff0e4b21",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:4": "4a8ef494bba2b54e7c5819a683f4768408e4a3b9a4baf45db17e03c9ba42a3d1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:5": "fc9c9ed61461767356458b19265523315b0313d8af4c8cd921043e18a2f74990",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:6": "d1f27314c219debee32dfb2a910948619e33383807f402b0b79c2b73ad4270b5",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:7": "db858304494a908abfaeb748b46c69b4ca9a669722f774cabe432f24a8072061",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:8": "f8a4674528166f65c9f5e89c2d5832c09c2ebbcced36fd2b6bc314375c05b362",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:9": "1db0f0d292aa6210049c70920638b32e38debc68b8896944f3f8e8eaf9b4de9a",
         "sink:sale:addons/sale/models/account_analytic_line.py:account.analytic.line._check_can_write:orm_write:1": "e70dafd35d097600e5d591c6971f9e17e5d500ca45de6bfc3984ad40507ee1d8",
         "sink:sale:addons/sale/models/account_analytic_line.py:account.analytic.line._check_can_write:orm_write:2": "416a175ca2e7972e6d0efb2a2ca016f5c04b09f3f7dc0455a3ab15d0cb80ca68",
         "sink:sale:addons/sale/models/account_analytic_line.py:account.analytic.line._create_so_line:orm_create:1": "ce763b125fc51636da94286a18e9e5fed0008aa18f29614838ed7740de8147d9",
