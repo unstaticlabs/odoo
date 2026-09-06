@@ -29,6 +29,8 @@ from operations.control_manifest import (
 )
 from operations.cohort import (
     SCHEMA as RECOVERY_COHORT_SCHEMA,
+    STATE_SCHEMA as RECOVERY_STATE_SCHEMA,
+    CohortError as RecoveryCohortError,
     select_latest_recovery_snapshot,
     validate_manifest as validate_cohort_manifest,
 )
@@ -133,6 +135,13 @@ RESOURCE_FIELDS = {
 }
 BACKUP_WRITER_SERVICE_ROLES = ("odoo", "paperless", "mcp", "sign", "sign_ca")
 GENERATION_NAME = re.compile(r"g[a-z0-9][a-z0-9-]{0,30}\Z")
+# Local capture directories that the fixed release launcher creates under the
+# state directory.  Production runs are named after their release attempt;
+# staging runs are the attempt itself.
+CAPTURE_ATTEMPT = re.compile(r"intent-[0-9a-f]{48}\Z")
+PRODUCTION_CAPTURE_PREFIXES = ("release-pre-", "release-candidate-", "release-admitted-")
+STAGING_CAPTURE_KEEP = 2
+UNFINISHED_RELEASE_STATUSES = frozenset({"running", "failed"})
 GIT_COMMIT = re.compile(r"[0-9a-f]{40}\Z")
 RELEASE_ATTEMPT = re.compile(r"[a-z0-9][a-z0-9._-]{7,63}\Z")
 RECOVERY_PROOF_ID = re.compile(r"[a-z0-9][a-z0-9-]{7,23}\Z")
@@ -2719,6 +2728,11 @@ def backup_command(arguments: argparse.Namespace) -> int:
         run_id = f"retention-{datetime.now(UTC):%Y%m%dt%H%M%S}"
         with runtime_lock(target, runner, "retention", run_id):
             result = _run_cohort(target, runner, image, "retention-apply", [], volumes=runtime["volumes"])
+            # Staging keeps its newest local captures; the generation set is unused.
+            captures = _cleanup_captures(target, runner, set())
+            paths = _validated_cleanup_captures(target, runner, captures)
+            _delete_cleanup_resources(runner, [], [], [], [], paths)
+            result = {**result, **captures}
     elif arguments.action == "list":
         result = _run_cohort(target, runner, image, "list", [], volumes=runtime["volumes"])
     elif arguments.action == "select":
@@ -8712,6 +8726,186 @@ def _cleanup_workspaces(target, runner, protected_generations: set[str]) -> list
     return sorted(candidates)
 
 
+def _capture_attempt(target, run_id: str) -> str | None:
+    """Return the release attempt that owns one managed local capture run.
+
+    Only the run identities that the fixed release launcher creates are
+    managed: production ``release-{pre,candidate,admitted}-<attempt>`` and
+    staging ``<attempt>``.  Every other entry of the state directory is
+    outside capture retention and is never touched.
+    """
+    environment = target.value["environment"]
+    if environment == "production":
+        for prefix in PRODUCTION_CAPTURE_PREFIXES:
+            if run_id.startswith(prefix):
+                attempt = run_id.removeprefix(prefix)
+                return attempt if CAPTURE_ATTEMPT.fullmatch(attempt) else None
+        return None
+    if environment == "staging":
+        return run_id if CAPTURE_ATTEMPT.fullmatch(run_id) else None
+    return None
+
+
+def _qualified_capture(target, runner, run_id: str) -> dict | None:
+    """Return the capture creation time when the run is qualified, else None.
+
+    ``qualified`` is written by the cohort tool only after both Restic
+    snapshots were restored, verified and tagged ``recovery-eligible``.
+    A missing, unreadable or unqualified state protects the capture.
+    """
+    root = f"{target.value['state_directory']}/{run_id}"
+    state_result = runner.run(["cat", f"{root}/state.json"], check=False)
+    if state_result.returncode:
+        return None
+    try:
+        state = json.loads(state_result.stdout)
+    except json.JSONDecodeError:
+        return None
+    if (
+        not isinstance(state, dict)
+        or state.get("schema") != RECOVERY_STATE_SCHEMA
+        or state.get("run_id") != run_id
+        or state.get("target") != target.name
+        or state.get("status") != "qualified"
+        or not all(
+            re.fullmatch(r"[0-9a-f]{64}", str(state.get(key, "")))
+            for key in ("durable_snapshot_id", "cache_snapshot_id")
+        )
+    ):
+        return None
+    manifest_result = runner.run(["cat", f"{root}/manifest.json"], check=False)
+    if manifest_result.returncode:
+        return None
+    try:
+        manifest = validate_cohort_manifest(json.loads(manifest_result.stdout))
+        created_at = datetime.fromisoformat(
+            str(manifest["created_at"]).replace("Z", "+00:00"),
+        )
+    except (
+        json.JSONDecodeError, RecoveryCohortError, AttributeError, KeyError, TypeError, ValueError,
+    ):
+        return None
+    if (
+        manifest["run_id"] != run_id
+        or manifest["target"] != target.name
+        or created_at.tzinfo is None
+    ):
+        return None
+    return {"created_at": created_at}
+
+
+def _unfinished_release_attempts(target, runner) -> set[str]:
+    """Return attempts whose persisted launcher run may still resume a capture."""
+    runs_root = f"{target.value['state_directory']}/runs"
+    listing = runner.run(
+        [
+            "find", runs_root, "-mindepth", "1", "-maxdepth", "1",
+            "-name", "release-*.json", "-printf", "%f\\t%y\\n",
+        ],
+        check=False,
+    )
+    if listing.returncode:
+        if runner.run(["test", "!", "-e", runs_root], check=False).returncode == 0:
+            return set()
+        raise RuntimeError("release run inventory cannot be inspected")
+    attempts: set[str] = set()
+    for line in listing.stdout.splitlines():
+        try:
+            name, kind = line.split("\t", 1)
+        except ValueError as error:
+            raise RuntimeError("release run inventory is invalid") from error
+        if kind != "f":
+            raise RuntimeError(f"release run state is not a file: {name}")
+        try:
+            value = json.loads(runner.run(["cat", f"{runs_root}/{name}"]).stdout)
+        except json.JSONDecodeError as error:
+            raise RuntimeError(f"release run state is invalid: {name}") from error
+        if not isinstance(value, dict):
+            raise RuntimeError(f"release run state is invalid: {name}")
+        if value.get("status") not in UNFINISHED_RELEASE_STATUSES:
+            continue
+        attempt = str(value.get("attempt", ""))
+        if not RELEASE_ATTEMPT.fullmatch(attempt):
+            raise RuntimeError(f"release run attempt is invalid: {name}")
+        attempts.add(attempt)
+    return attempts
+
+
+def _attempt_generation(target, runner, attempt: str) -> str | None:
+    """Return the generation claimed by one attempt, or None without a claim."""
+    claim_path = f"{target.value['state_directory']}/attempts/{attempt}/claim.json"
+    result = runner.run(["cat", claim_path], check=False)
+    if result.returncode:
+        return None
+    try:
+        value = json.loads(result.stdout)
+    except json.JSONDecodeError as error:
+        raise RuntimeError(f"release attempt claim is invalid: {attempt}") from error
+    release = str(value.get("candidate_release", "")) if isinstance(value, dict) else ""
+    return _release_attempt_claim(value, target=target, attempt=attempt, release=release)["generation"]
+
+
+def _cleanup_captures(target, runner, protected_generations: set[str]) -> dict:
+    """Select the qualified local captures that retention may delete.
+
+    Production keeps every capture whose attempt claimed a protected (active
+    or previous) generation.  Staging keeps the newest ``STAGING_CAPTURE_KEEP``
+    captures.  Both keep captures that are not ``qualified`` and captures of
+    attempts whose launcher run is still running or resumable.  Entries that
+    are not managed capture runs are ignored.
+    """
+    state_root = target.value["state_directory"]
+    if runner.run(["test", "-L", state_root], check=False).returncode == 0:
+        raise RuntimeError("cleanup state root must not be a symlink")
+    listing = runner.run(
+        ["find", state_root, "-mindepth", "1", "-maxdepth", "1", "-printf", "%f\\t%y\\n"],
+        check=False,
+    )
+    if listing.returncode:
+        if runner.run(["test", "!", "-e", state_root], check=False).returncode == 0:
+            return {"protected_captures": [], "delete_captures": []}
+        raise RuntimeError("cleanup capture inventory cannot be inspected")
+    captures: dict[str, str] = {}
+    for line in listing.stdout.splitlines():
+        try:
+            name, kind = line.split("\t", 1)
+        except ValueError as error:
+            raise RuntimeError("cleanup capture inventory is invalid") from error
+        attempt = _capture_attempt(target, name)
+        if attempt is None:
+            continue
+        if kind != "d":
+            raise RuntimeError(f"cleanup capture is not a directory: {name}")
+        captures[name] = attempt
+    if not captures:
+        return {"protected_captures": [], "delete_captures": []}
+    unfinished = _unfinished_release_attempts(target, runner)
+    protected: set[str] = set()
+    qualified: dict[str, datetime] = {}
+    for run_id, attempt in sorted(captures.items()):
+        capture = _qualified_capture(target, runner, run_id)
+        if capture is None or attempt in unfinished:
+            protected.add(run_id)
+        else:
+            qualified[run_id] = capture["created_at"]
+    if target.value["environment"] == "production":
+        generations = {
+            attempt: _attempt_generation(target, runner, attempt)
+            for attempt in sorted({captures[run_id] for run_id in qualified})
+        }
+        protected.update(
+            run_id for run_id in qualified
+            if generations[captures[run_id]] in protected_generations
+        )
+    else:
+        newest = sorted(qualified, key=lambda run_id: (qualified[run_id], run_id), reverse=True)
+        protected.update(newest[:STAGING_CAPTURE_KEEP])
+    return {
+        "protected_captures": sorted(protected),
+        "delete_captures": sorted(set(qualified) - protected),
+    }
+
+
 def _cleanup_inventory(target, runner, current: dict) -> dict:
     active = {item["name"] for item in current["volumes"].values()}
     state_path = f"{target.value['state_directory']}/active.json"
@@ -8788,6 +8982,7 @@ def _cleanup_inventory(target, runner, current: dict) -> dict:
         "delete_volumes": candidates,
         "delete_networks": network_candidates,
         "delete_workspaces": _cleanup_workspaces(target, runner, protected_generations),
+        **_cleanup_captures(target, runner, protected_generations),
     }
 
 
@@ -8982,12 +9177,33 @@ def _validated_cleanup_resources(
     return containers, volumes, networks
 
 
+def _validated_cleanup_captures(target, runner, inventory: dict) -> list[str]:
+    """Re-check every capture directory immediately before deletion."""
+    state_root = target.value["state_directory"]
+    paths = []
+    for run_id in inventory["delete_captures"]:
+        if _capture_attempt(target, run_id) is None:
+            raise RuntimeError(f"cleanup capture identity is invalid: {run_id}")
+        path = f"{state_root}/{run_id}"
+        probe = runner.run(
+            ["find", path, "-mindepth", "0", "-maxdepth", "0", "-printf", "%y\\n"],
+            check=False,
+        )
+        if probe.returncode or probe.stdout.strip() != "d":
+            raise RuntimeError(f"cleanup capture became invalid: {path}")
+        if _qualified_capture(target, runner, run_id) is None:
+            raise RuntimeError(f"cleanup capture is not qualified: {run_id}")
+        paths.append(path)
+    return paths
+
+
 def _delete_cleanup_resources(
     runner,
     containers: list[str],
     volumes: list[dict],
     networks: list[dict],
     workspaces: list[str],
+    captures: list[str] | tuple[str, ...] = (),
 ) -> None:
     for identifier in containers:
         runner.run(["docker", "rm", "--force", identifier])
@@ -9002,6 +9218,8 @@ def _delete_cleanup_resources(
         runner.run(["docker", "network", "rm", name["name"]])
     for workspace in workspaces:
         runner.run(["rm", "-rf", "--", workspace])
+    for capture in captures:
+        runner.run(["rm", "-rf", "--", capture])
 
 
 def _cleanup_plan(target, inventory: dict, retention_plan: dict | None) -> dict:
@@ -9038,6 +9256,7 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
             containers, volumes, networks = _validated_cleanup_resources(
                 target, runner, inventory,
             )
+            captures = _validated_cleanup_captures(target, runner, inventory)
             if any(item["database_path"] is not None for item in volumes):
                 database_source, _available = _filesystem_capacity(
                     runner, target.value["storage"]["tiers"]["database"]["path"],
@@ -9048,7 +9267,7 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
                 if database_source == bulk_source:
                     raise RuntimeError("cleanup database tier is not local NVMe")
             _delete_cleanup_resources(
-                runner, containers, volumes, networks, inventory["delete_workspaces"],
+                runner, containers, volumes, networks, inventory["delete_workspaces"], captures,
             )
             if retention_image is not None:
                 retention_plan = _run_cohort(
