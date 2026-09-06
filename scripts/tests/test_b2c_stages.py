@@ -15,6 +15,7 @@ SCRIPT_STAGES = (
     "native-history",
     "native-history-dry-run",
     "reclassify-marketing",
+    "tag-assets",
     "validate",
     "finalize",
 )

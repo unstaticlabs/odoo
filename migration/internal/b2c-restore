@@ -92,6 +92,7 @@ run_shell() {
         -e B2C_SUPPLEMENTAL_EVIDENCE_DIR=/mnt/accounting-source/supplemental/b2c \
         -e USL_B2C_NATIVE_HISTORY_MODE="${B2C_NATIVE_HISTORY_MODE:-dry_run}" \
         -e USL_B2C_MARKETING_COST_MODE="${USL_B2C_MARKETING_COST_MODE:-dry_run}" \
+        -e USL_B2C_TAG_MODE="${USL_B2C_TAG_MODE:-dry_run}" \
         b2c-migration odoo shell --config=/etc/odoo/odoo.conf \
         --addons-path="$migration_addons_path" --database="$target_database" \
         --shell-interface=python < "$script_path"
@@ -196,6 +197,7 @@ case "$command_name" in
         B2C_NATIVE_HISTORY_MODE=apply \
             run_shell migration/b2c_restore/addons/usl_b2c_restore/scripts/materialize_native_history.py
         ;;
+    tag-assets) run_shell migration/b2c_restore/addons/usl_b2c_restore/scripts/tag_gbc_assets.py ;;
     validate) run_shell migration/b2c_restore/addons/usl_b2c_restore/scripts/validate_restore.py ;;
     product-validate) validate_product_boundary ;;
     test) test_parsers ;;
@@ -209,12 +211,14 @@ case "$command_name" in
         run_shell migration/b2c_restore/addons/usl_b2c_restore/scripts/materialize_catalog.py
         B2C_NATIVE_HISTORY_MODE=apply \
             run_shell migration/b2c_restore/addons/usl_b2c_restore/scripts/materialize_native_history.py
+        USL_B2C_TAG_MODE=apply \
+            run_shell migration/b2c_restore/addons/usl_b2c_restore/scripts/tag_gbc_assets.py
         run_shell migration/b2c_restore/addons/usl_b2c_restore/scripts/validate_restore.py
         run_shell migration/b2c_restore/addons/usl_b2c_restore/scripts/finalize_restore.py
         scripts/check-product-migration-boundary
         ;;
     *)
-        echo "Usage: migration/internal/b2c-restore [install|import|catalog|native-history-dry-run|native-history|reclassify-marketing|validate|finalize|product-validate|test|all]" >&2
+        echo "Usage: migration/internal/b2c-restore [install|import|catalog|native-history-dry-run|native-history|reclassify-marketing|tag-assets|validate|finalize|product-validate|test|all]" >&2
         exit 2
         ;;
 esac

@@ -18,6 +18,7 @@ usl_b2c_stage_script() {
         reclassify-marketing)
             printf '%s/reclassify_marketing_cost.py' "$USL_B2C_SCRIPT_DIR"
             ;;
+        tag-assets) printf '%s/tag_gbc_assets.py' "$USL_B2C_SCRIPT_DIR" ;;
         validate) printf '%s/validate_restore.py' "$USL_B2C_SCRIPT_DIR" ;;
         finalize) printf '%s/finalize_restore.py' "$USL_B2C_SCRIPT_DIR" ;;
         *) return 1 ;;
