@@ -916,38 +916,33 @@ class AccountMove(models.Model):
         eligibility = eligibility_method(payment_line, raise_exception=True)
         statement_line = eligibility["facts"]["statement_line"]
         bank_move = statement_line.move_id
-        original_foreign_currency = statement_line.foreign_currency_id
-        original_foreign_amount = statement_line.amount_currency
-        original_foreign_source = (
-            statement_line.immediate_settlement_foreign_amount_source
-            or (
-                "bank_reported"
-                if eligibility["facts"].get("authoritative_foreign")
-                else "missing"
-            )
-        )
-        original_liquidity = statement_line._seek_for_lines()[0]
-        original_liquidity_snapshot = [
-            (
-                line.id,
-                line.balance,
-                line.amount_currency,
-                line.currency_id.id,
-            )
-            for line in original_liquidity
-        ]
-        original_tax_snapshot = (
-            False
-            if mechanism == "payment_rate"
-            else self._foreign_settlement_tax_snapshot()
-        )
-        original_line_ids = set(bank_move.line_ids.ids)
-        original_partial_ids = set(
-            (
-                eligibility["allocation"]["lines"].matched_debit_ids
-                + eligibility["allocation"]["lines"].matched_credit_ids
-            ).ids,
-        )
+        original = {
+            "foreign_currency": statement_line.foreign_currency_id,
+            "foreign_amount": statement_line.amount_currency,
+            "foreign_source": (
+                statement_line.immediate_settlement_foreign_amount_source
+                or (
+                    "bank_reported"
+                    if eligibility["facts"].get("authoritative_foreign")
+                    else "missing"
+                )
+            ),
+            "liquidity_snapshot": self._foreign_settlement_liquidity_snapshot(
+                statement_line,
+            ),
+            "tax_snapshot": (
+                False
+                if mechanism == "payment_rate"
+                else self._foreign_settlement_tax_snapshot()
+            ),
+            "line_ids": set(bank_move.line_ids.ids),
+            "partial_ids": set(
+                (
+                    eligibility["allocation"]["lines"].matched_debit_ids
+                    + eligibility["allocation"]["lines"].matched_credit_ids
+                ).ids,
+            ),
+        }
         reprice_result = {}
         if mechanism == "payment_rate":
             reprice_result = self._apply_payment_rate_to_document(eligibility)
@@ -962,6 +957,68 @@ class AccountMove(models.Model):
         else:
             selected_lines = eligibility["allocation"]["lines"]
             reconcile_eligibility = eligibility
+        self._foreign_settlement_reconcile(
+            statement_line, eligibility, reconcile_eligibility,
+        )
+        outcome = self._foreign_settlement_verify(
+            mechanism, statement_line, selected_lines, eligibility, original,
+        )
+        settlement = _as_settlement_service(
+            self.env["account.immediate.settlement"],
+        ).create(
+            self._foreign_settlement_values(
+                mechanism,
+                line_id,
+                statement_line,
+                selected_lines,
+                eligibility,
+                original,
+                outcome,
+                reprice_result,
+            ),
+        )
+        _as_settlement_service(outcome["counterpart_lines"]).write(
+            {
+                "immediate_settlement_id": settlement.id,
+                "immediate_settlement_role": "bank_counterpart",
+            },
+        )
+        _as_settlement_service(outcome["exchange_lines"]).write(
+            {
+                "immediate_settlement_id": settlement.id,
+                "immediate_settlement_role": "exchange_difference",
+            },
+        )
+        _as_settlement_service(outcome["economic_lines"]).write(
+            {"immediate_settlement_id": settlement.id},
+        )
+        _as_settlement_service(outcome["new_partials"]).write(
+            {"immediate_settlement_id": settlement.id},
+        )
+        _as_settlement_service(statement_line).write(
+            {"active_immediate_settlement_id": settlement.id},
+        )
+        self._foreign_settlement_announce(settlement, bank_move, mechanism)
+        return {"settlement_id": settlement.id}
+
+    @staticmethod
+    def _foreign_settlement_liquidity_snapshot(statement_line):
+        """Return the comparable identity of the bank liquidity lines."""
+        return [
+            (
+                line.id,
+                line.balance,
+                line.amount_currency,
+                line.currency_id.id,
+            )
+            for line in statement_line._seek_for_lines()[0]
+        ]
+
+    def _foreign_settlement_reconcile(
+        self, statement_line, eligibility, reconcile_eligibility,
+    ):
+        """Write the settlement metadata and run the exact OCA reconciliation."""
+        self.ensure_one()
         signed_foreign_amount = (
             eligibility["foreign_amount"]
             if statement_line.amount > 0
@@ -1011,19 +1068,15 @@ class AccountMove(models.Model):
             ),
         )
         statement_line.invalidate_recordset()
-        bank_move.invalidate_recordset()
+        statement_line.move_id.invalidate_recordset()
         self.invalidate_recordset()
-        current_liquidity = statement_line._seek_for_lines()[0]
-        current_liquidity_snapshot = [
-            (
-                line.id,
-                line.balance,
-                line.amount_currency,
-                line.currency_id.id,
-            )
-            for line in current_liquidity
-        ]
-        if current_liquidity_snapshot != original_liquidity_snapshot:
+
+    def _foreign_settlement_verify(
+        self, mechanism, statement_line, selected_lines, eligibility, original,
+    ):
+        """Check the reconciliation invariants and return the lines it created."""
+        self.ensure_one()
+        if self._foreign_settlement_liquidity_snapshot(statement_line) != original["liquidity_snapshot"]:
             raise UserError(
                 _("Settlement attempted to change the bank liquidity amount."),
             )
@@ -1045,15 +1098,17 @@ class AccountMove(models.Model):
             )
         if (
             mechanism != "payment_rate"
-            and self._foreign_settlement_tax_snapshot() != original_tax_snapshot
+            and self._foreign_settlement_tax_snapshot() != original["tax_snapshot"]
         ):
             raise UserError(
                 _("Settlement attempted to change the document's tax lines."),
             )
         new_partials = (
             selected_lines.matched_debit_ids + selected_lines.matched_credit_ids
-        ).filtered(lambda partial: partial.id not in original_partial_ids)
-        new_lines = other_lines.filtered(lambda line: line.id not in original_line_ids)
+        ).filtered(lambda partial: partial.id not in original["partial_ids"])
+        new_lines = other_lines.filtered(
+            lambda line: line.id not in original["line_ids"],
+        )
         counterpart_lines = new_lines.filtered(
             lambda line: (
                 line.account_id == eligibility["allocation"]["account"]
@@ -1117,6 +1172,29 @@ class AccountMove(models.Model):
                     "difference. No accounting changes were saved.",
                 ),
             )
+        return {
+            "new_partials": new_partials,
+            "counterpart_lines": counterpart_lines,
+            "exchange_moves": exchange_moves,
+            "exchange_lines": exchange_lines,
+            "actual_difference": actual_difference,
+            "economic_lines": economic_lines,
+            "actual_economic_adjustment": actual_economic_adjustment,
+        }
+
+    def _foreign_settlement_values(
+        self,
+        mechanism,
+        line_id,
+        statement_line,
+        selected_lines,
+        eligibility,
+        original,
+        outcome,
+        reprice_result,
+    ):
+        """Return the values of the settlement record for an executed settlement."""
+        self.ensure_one()
         foreign_amount_source = (
             "bank_reported"
             if eligibility["facts"].get("authoritative_foreign")
@@ -1132,128 +1210,108 @@ class AccountMove(models.Model):
             if mechanism == "payment_rate"
             else eligibility["exchange_account"]
         )
-        settlement = (
-            _as_settlement_service(
-                self.env["account.immediate.settlement"],
+        return {
+            "name": self.env["ir.sequence"].next_by_code(
+                "account.immediate.settlement",
             )
-            .create(
-                {
-                    "name": self.env["ir.sequence"].next_by_code(
-                        "account.immediate.settlement",
-                    )
-                    or _("New"),
-                    "mechanism": mechanism,
-                    "payment_rate_application": (
-                        "document_reprice"
-                        if mechanism == "payment_rate"
-                        else False
-                    ),
-                    "company_id": self.company_id.id,
-                    "currency_id": self.currency_id.id,
-                    "document_id": self.id,
-                    "document_line_ids": [Command.set(selected_lines.ids)],
-                    "source_line_id_snapshot": line_id,
-                    "statement_line_id": statement_line.id,
-                    "bank_move_id": bank_move.id,
-                    "original_statement_foreign_currency_id": (
-                        original_foreign_currency.id
-                    ),
-                    "original_statement_foreign_amount": original_foreign_amount,
-                    "original_statement_foreign_amount_source": (
-                        original_foreign_source
-                    ),
-                    "foreign_amount": eligibility["foreign_amount"],
-                    "foreign_amount_source": foreign_amount_source,
-                    "company_amount": eligibility["company_amount"],
-                    "reference_company_amount": eligibility["allocation"][
-                        "reference_company_amount"
-                    ],
-                    "benchmark_company_amount": eligibility["allocation"][
-                        "benchmark_company_amount"
-                    ],
-                    "synthetic_foreign_amount": eligibility[
-                        "synthetic_foreign_amount"
-                    ],
-                    "preview_settlement_difference": eligibility[
-                        "settlement_difference"
-                    ],
-                    "settlement_difference": (
-                        actual_difference if mechanism == "bank_statement" else 0.0
-                    ),
-                    "settlement_difference_type": settlement_difference_type,
-                    "exchange_account_id": exchange_account.id,
-                    "exchange_line_ids": [Command.set(exchange_lines.ids)],
-                    "exchange_move_ids": [Command.set(exchange_moves.ids)],
-                    "exchange_move_names": ", ".join(exchange_moves.mapped("name")),
-                    "economic_adjustment_amount": actual_economic_adjustment,
-                    "economic_adjustment_line_ids": [
-                        Command.set(economic_lines.ids),
-                    ],
-                    "original_invoice_currency_rate": reprice_result.get(
-                        "original_rate",
-                        0.0,
-                    ),
-                    "applied_invoice_currency_rate": reprice_result.get(
-                        "applied_rate",
-                        0.0,
-                    ),
-                    "original_document_company_amount": reprice_result.get(
-                        "original_company_amount",
-                        0.0,
-                    ),
-                    "repriced_document_company_amount": reprice_result.get(
-                        "repriced_company_amount",
-                        0.0,
-                    ),
-                    "document_revaluation_amount": (
-                        reprice_result.get("repriced_company_amount", 0.0)
-                        - reprice_result.get("original_company_amount", 0.0)
-                    ),
-                    "original_document_line_snapshot": reprice_result.get(
-                        "original_snapshot",
-                    ),
-                    "repriced_document_line_snapshot": reprice_result.get(
-                        "repriced_snapshot",
-                    ),
-                    "executed_rate": eligibility["executed_rate"],
-                    "reference_rate": eligibility["reference_rate"],
-                    "rate_deviation": eligibility["rate_deviation"],
-                    "policy_date_distance": eligibility["date_distance"],
-                    "policy_warning": eligibility["policy_warning"],
-                    "document_date": eligibility["document_date"],
-                    "payment_date": eligibility["payment_date"],
-                    "settlement_date": eligibility["settlement_date"],
-                    "provenance": eligibility["facts"]["provenance"],
-                    "provenance_details": eligibility["facts"]["details"],
-                    "trusted_source": eligibility["facts"].get(
-                        "trusted_date",
-                        False,
-                    ),
-                    "user_id": self.env.user.id,
-                },
-            )
-        )
-        _as_settlement_service(counterpart_lines).write(
-            {
-                "immediate_settlement_id": settlement.id,
-                "immediate_settlement_role": "bank_counterpart",
-            },
-        )
-        _as_settlement_service(exchange_lines).write(
-            {
-                "immediate_settlement_id": settlement.id,
-                "immediate_settlement_role": "exchange_difference",
-            },
-        )
-        _as_settlement_service(economic_lines).write(
-            {"immediate_settlement_id": settlement.id},
-        )
-        _as_settlement_service(new_partials).write(
-            {"immediate_settlement_id": settlement.id},
-        )
-        _as_settlement_service(statement_line).write(
-            {"active_immediate_settlement_id": settlement.id},
-        )
+            or _("New"),
+            "mechanism": mechanism,
+            "payment_rate_application": (
+                "document_reprice"
+                if mechanism == "payment_rate"
+                else False
+            ),
+            "company_id": self.company_id.id,
+            "currency_id": self.currency_id.id,
+            "document_id": self.id,
+            "document_line_ids": [Command.set(selected_lines.ids)],
+            "source_line_id_snapshot": line_id,
+            "statement_line_id": statement_line.id,
+            "bank_move_id": statement_line.move_id.id,
+            "original_statement_foreign_currency_id": (
+                original["foreign_currency"].id
+            ),
+            "original_statement_foreign_amount": original["foreign_amount"],
+            "original_statement_foreign_amount_source": (
+                original["foreign_source"]
+            ),
+            "foreign_amount": eligibility["foreign_amount"],
+            "foreign_amount_source": foreign_amount_source,
+            "company_amount": eligibility["company_amount"],
+            "reference_company_amount": eligibility["allocation"][
+                "reference_company_amount"
+            ],
+            "benchmark_company_amount": eligibility["allocation"][
+                "benchmark_company_amount"
+            ],
+            "synthetic_foreign_amount": eligibility[
+                "synthetic_foreign_amount"
+            ],
+            "preview_settlement_difference": eligibility[
+                "settlement_difference"
+            ],
+            "settlement_difference": (
+                outcome["actual_difference"]
+                if mechanism == "bank_statement"
+                else 0.0
+            ),
+            "settlement_difference_type": settlement_difference_type,
+            "exchange_account_id": exchange_account.id,
+            "exchange_line_ids": [Command.set(outcome["exchange_lines"].ids)],
+            "exchange_move_ids": [Command.set(outcome["exchange_moves"].ids)],
+            "exchange_move_names": ", ".join(
+                outcome["exchange_moves"].mapped("name"),
+            ),
+            "economic_adjustment_amount": outcome["actual_economic_adjustment"],
+            "economic_adjustment_line_ids": [
+                Command.set(outcome["economic_lines"].ids),
+            ],
+            "original_invoice_currency_rate": reprice_result.get(
+                "original_rate",
+                0.0,
+            ),
+            "applied_invoice_currency_rate": reprice_result.get(
+                "applied_rate",
+                0.0,
+            ),
+            "original_document_company_amount": reprice_result.get(
+                "original_company_amount",
+                0.0,
+            ),
+            "repriced_document_company_amount": reprice_result.get(
+                "repriced_company_amount",
+                0.0,
+            ),
+            "document_revaluation_amount": (
+                reprice_result.get("repriced_company_amount", 0.0)
+                - reprice_result.get("original_company_amount", 0.0)
+            ),
+            "original_document_line_snapshot": reprice_result.get(
+                "original_snapshot",
+            ),
+            "repriced_document_line_snapshot": reprice_result.get(
+                "repriced_snapshot",
+            ),
+            "executed_rate": eligibility["executed_rate"],
+            "reference_rate": eligibility["reference_rate"],
+            "rate_deviation": eligibility["rate_deviation"],
+            "policy_date_distance": eligibility["date_distance"],
+            "policy_warning": eligibility["policy_warning"],
+            "document_date": eligibility["document_date"],
+            "payment_date": eligibility["payment_date"],
+            "settlement_date": eligibility["settlement_date"],
+            "provenance": eligibility["facts"]["provenance"],
+            "provenance_details": eligibility["facts"]["details"],
+            "trusted_source": eligibility["facts"].get(
+                "trusted_date",
+                False,
+            ),
+            "user_id": self.env.user.id,
+        }
+
+    def _foreign_settlement_announce(self, settlement, bank_move, mechanism):
+        """Post the settlement summary on the document and the bank entry."""
+        self.ensure_one()
         difference_text = (
             _("no settlement difference")
             if settlement.settlement_difference_type == "none"
@@ -1313,4 +1371,3 @@ class AccountMove(models.Model):
                 ),
             ),
         )
-        return {"settlement_id": settlement.id}
