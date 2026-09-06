@@ -136004,13 +136004,13 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:ir.attachment._has_current_accepted_closing_snapshot:sudo:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:ir.attachment.unlink:orm_unlink:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:ir.attachment.write:orm_write:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.control._upsert:orm_create:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.control._upsert:orm_write:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.control.definition._ensure_for_company:orm_create:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.control.definition._ensure_for_company:orm_create:2",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.control.definition._ensure_for_company:orm_write:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.control.definition._ensure_for_company:orm_write:2",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.control.definition.write:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing_controls.py:rebuild.account.closing.control._upsert:orm_create:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing_controls.py:rebuild.account.closing.control._upsert:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing_controls.py:rebuild.account.closing.control.definition._ensure_for_company:orm_create:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing_controls.py:rebuild.account.closing.control.definition._ensure_for_company:orm_create:2",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing_controls.py:rebuild.account.closing.control.definition._ensure_for_company:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing_controls.py:rebuild.account.closing.control.definition._ensure_for_company:orm_write:2",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing_controls.py:rebuild.account.closing.control.definition.write:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.period._capture_accepted_snapshots:orm_create:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.period._capture_accepted_snapshots:sudo:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.period._refresh_controls:orm_write:1",
@@ -136047,13 +136047,13 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/currency_rate_provider.py:res.company._rebuild_update_ecb_currency_rates:sudo:2",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/currency_rate_provider.py:res.company._rebuild_update_ecb_currency_rates:sudo:3",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/currency_rate_provider.py:res.company._rebuild_update_shared_ecb_currency_rates:orm_write:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._retire_superseded_instances:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._retire_superseded_instances:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._sync_field_lines:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._sync_rule_specific_fields:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._sync_rule_specific_fields:orm_write:2",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._sync_vat_facts:orm_write:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._upsert_instance:orm_create:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._upsert_instance:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._upsert_instance:orm_create:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._upsert_instance:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.action_mark_filed:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.action_mark_internal_ready:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.action_mark_paid_or_refunded:orm_write:1",
@@ -136063,12 +136063,12 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.action_request_accountant_review:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.field._upsert:orm_create:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.field._upsert:orm_write:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.rule._ensure_governance_metadata:orm_write:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.rule._ensure_governance_metadata:orm_write:2",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.rule.create:orm_create:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.rule.write:orm_write:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.sync_for_company:orm_write:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.sync_for_company:orm_write:2",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_rules.py:rebuild.account.declaration.rule._ensure_governance_metadata:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_rules.py:rebuild.account.declaration.rule._ensure_governance_metadata:orm_write:2",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_rules.py:rebuild.account.declaration.rule.create:orm_create:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_rules.py:rebuild.account.declaration.rule.write:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration.sync_for_company:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration.sync_for_company:orm_write:2",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._cron_peppol_get_message_status:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:account_edi_proxy_client.user._pdp_send_lifecycles:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_transport.py:l10n.fr.pdp.reports.flow._cron_update_and_send_flows:orm_write:1",
@@ -141071,27 +141071,6 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:ir.attachment.write:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:ir.attachment.write"
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.control._upsert:orm_create:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.control._upsert:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.control.definition._ensure_for_company:orm_create:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.control.definition._ensure_for_company:orm_create:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.control.definition._ensure_for_company:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.control.definition._ensure_for_company:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.control.definition.write:orm_write:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.account.closing.control.definition.write"
-        },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.period._capture_accepted_snapshots:orm_create:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -141127,6 +141106,27 @@
         },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.snapshot.create:orm_create:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.account.closing.snapshot.create"
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing_controls.py:rebuild.account.closing.control._upsert:orm_create:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing_controls.py:rebuild.account.closing.control._upsert:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing_controls.py:rebuild.account.closing.control.definition._ensure_for_company:orm_create:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing_controls.py:rebuild.account.closing.control.definition._ensure_for_company:orm_create:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing_controls.py:rebuild.account.closing.control.definition._ensure_for_company:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing_controls.py:rebuild.account.closing.control.definition._ensure_for_company:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing_controls.py:rebuild.account.closing.control.definition.write:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.account.closing.control.definition.write"
         },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/currency_rate_provider.py:rebuild.currency.rate.update.wizard._rebuild_save_configuration:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
@@ -141200,9 +141200,6 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/currency_rate_provider.py:res.company._rebuild_update_shared_ecb_currency_rates:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._retire_superseded_instances:orm_write:1": {
-          "reachability_proof": "This implementation sink is reachable only through separately reviewed parent action(s): a private migration-safe helper."
-        },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._sync_field_lines:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -141213,12 +141210,6 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._sync_vat_facts:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._upsert_instance:orm_create:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._upsert_instance:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.action_mark_filed:orm_write:1": {
@@ -141248,22 +141239,31 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.field._upsert:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.rule._ensure_governance_metadata:orm_write:1": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_rules.py:rebuild.account.declaration.rule._ensure_governance_metadata:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.rule._ensure_governance_metadata:orm_write:2": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_rules.py:rebuild.account.declaration.rule._ensure_governance_metadata:orm_write:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.rule.create:orm_create:1": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_rules.py:rebuild.account.declaration.rule.create:orm_create:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.account.declaration.rule.create"
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.rule.write:orm_write:1": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_rules.py:rebuild.account.declaration.rule.write:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.account.declaration.rule.write"
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.sync_for_company:orm_write:1": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._retire_superseded_instances:orm_write:1": {
+          "reachability_proof": "This implementation sink is reachable only through separately reviewed parent action(s): a private migration-safe helper."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._upsert_instance:orm_create:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._upsert_instance:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration.sync_for_company:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.account.declaration.sync_for_company"
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.sync_for_company:orm_write:2": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration.sync_for_company:orm_write:2": {
           "reachability_proof": "This implementation sink is reachable only through separately reviewed parent action(s): rpc:rebuild.account.declaration.sync_for_company."
         },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:rebuild.einvoice.reception.action_retry_processing:sudo:1": {
@@ -144446,13 +144446,6 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:ir.attachment._has_current_accepted_closing_snapshot:sudo:1": "9f154ee52463d1ef0093bad3b172c6669536fe8e9fea54b257627156176cbb5c",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:ir.attachment.unlink:orm_unlink:1": "68b2339749a3f5be46dda4d3be57317dc8d469f896718660da7e4e72f240fff5",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:ir.attachment.write:orm_write:1": "707fea3eeb66f5e9c54d549189dbff216abae94b9a92132680d78cf6c50101e8",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.control._upsert:orm_create:1": "1da92f031ec41fb20ba4b373fcf98981721dd3a366345f4fb4d963e2e7aeef62",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.control._upsert:orm_write:1": "0494bcfe1e37e82ae378dd69252150763484a20dace1c72905800dd55c6af8b0",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.control.definition._ensure_for_company:orm_create:1": "e17ac31db380d35f65c3f5c140cb3705cb4d6e6ea718a9cc1e378de4f10b6305",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.control.definition._ensure_for_company:orm_create:2": "8c7df3309ba26fdea59f73f03376beb8dea4ab1a210eff561ecd85d98a8fc505",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.control.definition._ensure_for_company:orm_write:1": "0fc5f736bffafb0cb26ca30ae58f2622174e5dfcb74cbf6286337530ea8c115e",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.control.definition._ensure_for_company:orm_write:2": "f821f27a5d50a43af4b5ec51fea0c073b0a25e1a6ab7de2bbd1a0f1d6110d7f1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.control.definition.write:orm_write:1": "7e55c307eb51e02ba248fe2b91c378b52899e0a52556b3fb962328a1d8d41440",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.period._capture_accepted_snapshots:orm_create:1": "85ce70471a976169b64ceb76a0805fcb8cf6588f3877b747222b7895485981ef",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.period._capture_accepted_snapshots:sudo:1": "7977d0e3e439706762819fdd58898a3c9f6d5b617b86e016259d9066b45a9a66",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.period._refresh_controls:orm_write:1": "24db9c15ac879790eb8f3d46882b8a4a55aca929f11c8d34a387eee08a178441",
@@ -144465,6 +144458,13 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.period.action_request_accountant_review:orm_write:1": "900b87a79acffb2ae5fa74015d3955012c48c2c47c90faffd802f0b5240f291f",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.period.write:orm_write:1": "135785bcfa3f5f30673d8ad8f8485a2978a4bf79ba25a83a650b3c1038d1f81b",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.snapshot.create:orm_create:1": "b42970bc03e3538bfefeea5967e143af8ce934aa332e4a198c2b395e066ce658",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing_controls.py:rebuild.account.closing.control._upsert:orm_create:1": "1da92f031ec41fb20ba4b373fcf98981721dd3a366345f4fb4d963e2e7aeef62",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing_controls.py:rebuild.account.closing.control._upsert:orm_write:1": "0494bcfe1e37e82ae378dd69252150763484a20dace1c72905800dd55c6af8b0",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing_controls.py:rebuild.account.closing.control.definition._ensure_for_company:orm_create:1": "e17ac31db380d35f65c3f5c140cb3705cb4d6e6ea718a9cc1e378de4f10b6305",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing_controls.py:rebuild.account.closing.control.definition._ensure_for_company:orm_create:2": "8c7df3309ba26fdea59f73f03376beb8dea4ab1a210eff561ecd85d98a8fc505",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing_controls.py:rebuild.account.closing.control.definition._ensure_for_company:orm_write:1": "0fc5f736bffafb0cb26ca30ae58f2622174e5dfcb74cbf6286337530ea8c115e",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing_controls.py:rebuild.account.closing.control.definition._ensure_for_company:orm_write:2": "f821f27a5d50a43af4b5ec51fea0c073b0a25e1a6ab7de2bbd1a0f1d6110d7f1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing_controls.py:rebuild.account.closing.control.definition.write:orm_write:1": "7e55c307eb51e02ba248fe2b91c378b52899e0a52556b3fb962328a1d8d41440",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/currency_rate_provider.py:rebuild.currency.rate.update.wizard._rebuild_save_configuration:orm_write:1": "01020b52e88199839d7ae56d6ca1cf1eb8aaf483f39237314083734f93fa169d",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/currency_rate_provider.py:rebuild.currency.rate.update.wizard._rebuild_save_configuration:sudo:1": "3ed3f47c816a2baca72430a240036594d35d66cdb5469a36960a76d2aeb68536",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/currency_rate_provider.py:rebuild.currency.rate.update.wizard.action_update_now:orm_write:1": "6497b674edaffc7150c2958f6649333642a754ce343d0db02281882b6cd8bc78",
@@ -144489,13 +144489,10 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/currency_rate_provider.py:res.company._rebuild_update_ecb_currency_rates:sudo:2": "d0b0dbc34932a7952b3311272ab4e4a96482b7d2724bdd730252f76b1657710b",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/currency_rate_provider.py:res.company._rebuild_update_ecb_currency_rates:sudo:3": "d5cff6b15d98b1a805104e568fe10e15eb9cf76766c568711655479f89044b8a",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/currency_rate_provider.py:res.company._rebuild_update_shared_ecb_currency_rates:orm_write:1": "617e344028cc823ab003365bfb916ad07870f986b7d44eeccfcf41efbdcbcd6c",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._retire_superseded_instances:orm_write:1": "6ba3420205263e23ea7d8c1b836beb9f66b9b8299c73a686f293d375c35df312",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._sync_field_lines:orm_write:1": "4fd672b994728fea45b5504d80a73c4a2ab99dc6a7a5c82a61573d03cb0957ee",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._sync_rule_specific_fields:orm_write:1": "408e5159e6276ea4840a6f0fad7c4d38d03f8129695acfa5c3d0b2a8f0e14119",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._sync_rule_specific_fields:orm_write:2": "2484171160689357f9a72d1d6c292193654ab1277f81fead9e8475cfec1c8193",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._sync_vat_facts:orm_write:1": "d1118b23ae561f78f1d596aefe8e3a87c19bfef3f8c41558c08d5c09a11ee9b7",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._upsert_instance:orm_create:1": "bec2e31e7782faf6fe1dfee793c00f2de4cfba30ea828f2a6e618657f1c49318",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._upsert_instance:orm_write:1": "7d462dfef9560f5f92c6a9f2eb22d98997426c61fb712126c1c8ff8442776aa8",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.action_mark_filed:orm_write:1": "2412c9a79bafa27393332f749e33cfd689b398c5d466738375e8e609ae516f7a",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.action_mark_internal_ready:orm_write:1": "9352166c1896d253b6d11d1ac74563f89d8d3f64a84cf8b7f41cc28725ffa819",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.action_mark_paid_or_refunded:orm_write:1": "6620237964e5dd70d27ac948010277f1f67687d1f1ca6d554666722f45fd31e7",
@@ -144505,12 +144502,15 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.action_request_accountant_review:orm_write:1": "621ebb76e2fa08dcb94a9abc979646a8c2f2f11409f807c90fa4f64d02bd5a82",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.field._upsert:orm_create:1": "04a716dcdd332763225787b576f2296e422490dcc0c3e75b50ceab81eb2e3b90",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.field._upsert:orm_write:1": "b4d6e8116242d1c58bac33deb83fc5d24af1686b75c36e841ea6b2f843ed6b15",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.rule._ensure_governance_metadata:orm_write:1": "52b9f75db37c05d4cba7193a800c924a8cdae1f96626a058d45f18fc20a5f0cf",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.rule._ensure_governance_metadata:orm_write:2": "0192b51b7600fe8c955e009c6793fc6dbb0ebf66bb78486530922656f59efb2e",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.rule.create:orm_create:1": "224b3e177cbdc6ace5d8efd8be5040e3e33135095fb60231ab84d837e3533073",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.rule.write:orm_write:1": "daadf87e63209932dad7873350233492a41729131634f3e1a480270e044c3bd6",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.sync_for_company:orm_write:1": "ef5aa996e4285846f62103ff89463aafafc47bd5765f49ba3fc6c93199b3d8fa",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.sync_for_company:orm_write:2": "dca348dc95d35adaeed2af38ce378c1af438ccf754a18d7a2a70bd917f62ce4e",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_rules.py:rebuild.account.declaration.rule._ensure_governance_metadata:orm_write:1": "52b9f75db37c05d4cba7193a800c924a8cdae1f96626a058d45f18fc20a5f0cf",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_rules.py:rebuild.account.declaration.rule._ensure_governance_metadata:orm_write:2": "0192b51b7600fe8c955e009c6793fc6dbb0ebf66bb78486530922656f59efb2e",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_rules.py:rebuild.account.declaration.rule.create:orm_create:1": "224b3e177cbdc6ace5d8efd8be5040e3e33135095fb60231ab84d837e3533073",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_rules.py:rebuild.account.declaration.rule.write:orm_write:1": "daadf87e63209932dad7873350233492a41729131634f3e1a480270e044c3bd6",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._retire_superseded_instances:orm_write:1": "6ba3420205263e23ea7d8c1b836beb9f66b9b8299c73a686f293d375c35df312",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._upsert_instance:orm_create:1": "bec2e31e7782faf6fe1dfee793c00f2de4cfba30ea828f2a6e618657f1c49318",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._upsert_instance:orm_write:1": "7d462dfef9560f5f92c6a9f2eb22d98997426c61fb712126c1c8ff8442776aa8",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration.sync_for_company:orm_write:1": "ef5aa996e4285846f62103ff89463aafafc47bd5765f49ba3fc6c93199b3d8fa",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration.sync_for_company:orm_write:2": "dca348dc95d35adaeed2af38ce378c1af438ccf754a18d7a2a70bd917f62ce4e",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:rebuild.einvoice.reception.action_retry_processing:sudo:1": "e9fef9506e4418b5b0e8f97e9486b5a63846d926a2386b7ba289f4496bf5a522",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:rebuild.einvoice.reception.action_retry_processing:sudo:2": "390a286b1c34694f23ef72c36b96a409826c48d9c4e3c77c109a15ddd14b692f",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/einvoice_readiness.py:rebuild.einvoice.reception.action_retry_processing:sudo:3": "bd78009fdde084c181c194c121ae7cb926f10e643857ef3c0615a2a98224c108",

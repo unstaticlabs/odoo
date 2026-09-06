@@ -5,12 +5,17 @@ from . import operational_extensions
 from . import currency_rate_provider
 from . import external_report_value
 from . import declaration
+from . import declaration_rules
+from . import declaration_sync
 from . import closing
+from . import closing_controls
+from . import closing_evaluators
 from . import hygiene
 from . import pocketid_profiles
 from . import native_deferral
 from . import assurance_decision
 from . import report_views
+from . import report_views_ledgers
 from . import report_views_french
 from . import report_definition
 from . import report_export_wizard
@@ -25,6 +30,7 @@ from . import report_export_xlsx
 from . import report_export_pdf
 from . import french_tax_report
 from . import accounting_overview
+from . import accounting_overview_actions
 from . import analytic_pivot_export
 from . import bank_statement_hygiene
 from . import cash_position
