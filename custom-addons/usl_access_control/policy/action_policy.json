@@ -193846,6 +193846,20 @@
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run.write:orm_write:1": "0a8c5f9f82869b8309e643bb3323d832cd73ae02105b52cf101258ff686f9919",
         "sink:usl_feedback:custom-addons/usl_feedback/models/res_config_settings.py:res.config.settings.action_test_feedback_agent:orm_write:5": "1334486a798cfd429cd269bf8cf354ee24aeaaf0e548f0601f4cbdf332a1fe66"
       }
+    },
+    {
+      "action_keys": [
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/hygiene.py:rebuild.account.hygiene.issue._structured_evidence_move_ids:sudo:1"
+      ],
+      "classification": "read_only",
+      "consequence": "Reads qualifying payout links for already-readable bills and returns only their bill IDs; does not mutate payouts, bills, attachments or external state.",
+      "domain": "accounting",
+      "evidence_id": "platform-billing-structured-evidence",
+      "id": "read_only.accounting.platform_billing_evidence",
+      "rationale": "The private helper checks bill read access before elevating one search_fetch bounded by bill IDs, companies and posted/paid payout states. Elevated payout records are never returned. The native relational company constraint remains active; no partner or reference heuristic is used.",
+      "reviewed_digests": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/hygiene.py:rebuild.account.hygiene.issue._structured_evidence_move_ids:sudo:1": "4272bf648cf88adc9e6982093b8bb5ec05936d8a45eca7e86df17389fccb7c21"
+      }
     }
   ],
   "evidence_families": {
@@ -193945,6 +193959,15 @@
         "custom-addons/usl_documents/tests/test_download_grants.py::TestDocumentDownloadGrants.test_materialization_is_exactly_once_and_revocable"
       ]
     },
+    "platform-billing-structured-evidence": {
+      "contract": "Prove attachment and payout-state semantics, a single bounded lookup, revocation, empty-batch behavior and company denial before elevation; preserve financial records.",
+      "tests": [
+        "custom-addons/rebuild_account_migration/tests/test_hygiene_structured_evidence.py::TestHygieneStructuredEvidence.test_attachment_and_payout_state_evidence",
+        "custom-addons/rebuild_account_migration/tests/test_hygiene_structured_evidence.py::TestHygieneStructuredEvidence.test_batched_lookup_and_state_revocation",
+        "custom-addons/rebuild_account_migration/tests/test_hygiene_structured_evidence.py::TestHygieneStructuredEvidence.test_empty_batch_does_not_query_payouts",
+        "custom-addons/rebuild_account_migration/tests/test_hygiene_structured_evidence.py::TestHygieneStructuredEvidence.test_accountant_without_platform_access_and_company_boundary"
+      ]
+    },
     "protected-deny-allow-audit-v1": {
       "contract": "Ordinary human, Agent, and Agent with sudo are denied before effects; an authorized human is allowed and immutable action/digest evidence is created.",
       "tests": [
@@ -194002,6 +194025,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "3a79a4d9ac7df2a6eefca7d4342414c9e1a58e82a3f2ca47e5161fad08f4a783",
+  "qualified_policy_digest": "cc3bbae4af3a43f026635b1e843a17a75347b35de368b647561831d9edea38fa",
   "schema": "usl-action-risk-policy-v1"
 }

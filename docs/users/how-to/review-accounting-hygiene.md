@@ -45,3 +45,9 @@ to disable a Control for future evaluations.
 
 Hygiene uses deterministic, configured controls. It does not post automatically
 and does not claim probabilistic or AI matching.
+
+Supplier document evidence accepts the existing main attachment or a direct
+Platform Billing payout link to the vendor bill when the payout is **Posted**
+or **Paid**. Draft, Generated and Cancelled payouts do not qualify. Supplier
+names and bill references never create an exemption. This control classifies
+supporting evidence; it does not determine VAT deductibility.
