@@ -280,7 +280,7 @@
         "rpc:account.peppol.response.fields_get": "54e9647068c2f61bc56f71a73f3cd7c55515336d96d741a30bd7c179cb4cea69",
         "rpc:pdp.response.wizard.button_send": "7d337a7b40e614dd4314927b54ea405510189899e1988821a0097aaf7a02c3d7",
         "rpc:pdp.response.wizard.fields_get": "84ab441f672d3088bf474e19374d75b67616cdfe639c3de36efa41ecd316d3a2",
-        "server_action:l10n_fr_pdp.l10n_fr_pdp_action_open_response_wizard": "0341a0aaf5fc8a3a2f7a97f1ccaed20ea6613df6188015989e5fa38e746eace7"
+        "server_action:l10n_fr_pdp.l10n_fr_pdp_action_open_response_wizard": "25c746c04b67638872712c374a7b23af2fef1f2292021a3ec3fa6d5f08704495"
       }
     },
     {
@@ -3537,7 +3537,7 @@
       "reviewed_digests": {
         "guard:inventory.landed_cost.validate": "2878b20da7b39cef2d6080fa900aae85d48f3fa5dc8e15398eb47f74c0e961a2",
         "rpc:stock.landed.cost.button_validate": "8c393860645e72fc2f08bbf6fe5d912774acd3a0c4c398cf65bbeba11dd731c3",
-        "rpc:stock.landed.cost.unlink": "e39e0407f76f139ba1f0e0fae0739a2511355619ad55dc6dbc5957913ca44901"
+        "rpc:stock.landed.cost.unlink": "b7e5658b6bb51143370f4a3d11b409e002a77ac123417ee8ee5438b28bf39a36"
       }
     },
     {
@@ -3810,6 +3810,7 @@
         "rpc:b2c.channel.unlink",
         "rpc:b2c.fulfilment.event.unlink",
         "rpc:b2c.order.unlink",
+        "rpc:b2c.partner.identity.unlink",
         "rpc:b2c.payment.event.unlink",
         "rpc:b2c.provider.evidence.unlink",
         "rpc:base.automation.create",
@@ -4064,6 +4065,14 @@
           "enforcement": {
             "kind": "model_operation",
             "model": "b2c.order",
+            "operation": "unlink"
+          }
+        },
+        "rpc:b2c.partner.identity.unlink": {
+          "action_name": "permanently delete b2c.partner.identity",
+          "enforcement": {
+            "kind": "model_operation",
+            "model": "b2c.partner.identity",
             "operation": "unlink"
           }
         },
@@ -5117,6 +5126,7 @@
         "rpc:b2c.channel.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:b2c.fulfilment.event.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:b2c.order.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
+        "rpc:b2c.partner.identity.unlink": "7f34751fdb97f427343ba2c0e8f0584163805124b3fafdfdefd986d89c4a1928",
         "rpc:b2c.payment.event.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:b2c.provider.evidence.unlink": "269b4460a0ef1129ae350199b86f82ae5eddf4d99caf04f5552dde1ed61d8ea7",
         "rpc:base.automation.create": "b6020f9b44b4b35ceaed31f3b062f294907bd0a51fbeb67d84c1c48badc1ddfd",
@@ -5204,7 +5214,7 @@
         "rpc:product.template.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
         "rpc:project.project.stage.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:project.role.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
-        "rpc:purchase.order.unlink": "11d7e972fdae510b7eba8a8d1631914e4f7613a370339da226c1a59a41976cbd",
+        "rpc:purchase.order.unlink": "0d4f03287c19f90987ae3de67ef5d1019d3eb6e7a270b2c865ac3b63f2fdb382",
         "rpc:quotation.document.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:res.company.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
         "rpc:res.currency.unlink": "6f5bdf9f65813f6ba07355976e057afa94afbf9ff1d481d0b511274f42297e0a",
@@ -5221,10 +5231,10 @@
         "rpc:resource.calendar.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:resource.resource.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:sale.order.template.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
-        "rpc:sale.order.unlink": "2ab0007bf704165fd001aee2a65b6c7d9ef0132f6aaf91b587050723e03fc6a0",
+        "rpc:sale.order.unlink": "110648f525cf1951e495872012b6b41a7830548fcf3220c45193856d724766e8",
         "rpc:stock.location.unlink": "275372db5ee21e515b9d1e81b7dab8b572e8472680a794021226c04381634220",
         "rpc:stock.picking.type.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
-        "rpc:stock.picking.unlink": "a71ed33210a6fb2a5a77c93c2fd5b0b2de06f04189aab76d01cf8cbde37a1467",
+        "rpc:stock.picking.unlink": "666341683c926c85872cac57a1581f61f7a9abbf557b7cdc477b12234d94d1d4",
         "rpc:stock.putaway.rule.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:stock.route.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:stock.rule.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
@@ -18631,6 +18641,38 @@
         "rpc:b2c.order.view_header_get",
         "rpc:b2c.order.web_name_search",
         "rpc:b2c.order.web_read",
+        "rpc:b2c.partner.identity.action_archive",
+        "rpc:b2c.partner.identity.action_unarchive",
+        "rpc:b2c.partner.identity.check_field_access",
+        "rpc:b2c.partner.identity.copy_translations",
+        "rpc:b2c.partner.identity.default_get",
+        "rpc:b2c.partner.identity.export_data",
+        "rpc:b2c.partner.identity.fields_get",
+        "rpc:b2c.partner.identity.formatted_read_group",
+        "rpc:b2c.partner.identity.get_base_url",
+        "rpc:b2c.partner.identity.get_empty_list_help",
+        "rpc:b2c.partner.identity.get_external_id",
+        "rpc:b2c.partner.identity.get_field_translations",
+        "rpc:b2c.partner.identity.get_formview_action",
+        "rpc:b2c.partner.identity.get_formview_id",
+        "rpc:b2c.partner.identity.get_import_templates",
+        "rpc:b2c.partner.identity.get_metadata",
+        "rpc:b2c.partner.identity.get_property_definition",
+        "rpc:b2c.partner.identity.has_access",
+        "rpc:b2c.partner.identity.has_field_access",
+        "rpc:b2c.partner.identity.hierarchy_read",
+        "rpc:b2c.partner.identity.load",
+        "rpc:b2c.partner.identity.name_search",
+        "rpc:b2c.partner.identity.read",
+        "rpc:b2c.partner.identity.read_progress_bar",
+        "rpc:b2c.partner.identity.search",
+        "rpc:b2c.partner.identity.search_count",
+        "rpc:b2c.partner.identity.search_panel_select_multi_range",
+        "rpc:b2c.partner.identity.search_panel_select_range",
+        "rpc:b2c.partner.identity.search_read",
+        "rpc:b2c.partner.identity.view_header_get",
+        "rpc:b2c.partner.identity.web_name_search",
+        "rpc:b2c.partner.identity.web_read",
         "rpc:b2c.payment.event.action_archive",
         "rpc:b2c.payment.event.action_unarchive",
         "rpc:b2c.payment.event.check_field_access",
@@ -23722,6 +23764,38 @@
         "rpc:b2c.order.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
         "rpc:b2c.order.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:b2c.order.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+        "rpc:b2c.partner.identity.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+        "rpc:b2c.partner.identity.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+        "rpc:b2c.partner.identity.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+        "rpc:b2c.partner.identity.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+        "rpc:b2c.partner.identity.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+        "rpc:b2c.partner.identity.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+        "rpc:b2c.partner.identity.fields_get": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
+        "rpc:b2c.partner.identity.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+        "rpc:b2c.partner.identity.get_base_url": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+        "rpc:b2c.partner.identity.get_empty_list_help": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+        "rpc:b2c.partner.identity.get_external_id": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+        "rpc:b2c.partner.identity.get_field_translations": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+        "rpc:b2c.partner.identity.get_formview_action": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+        "rpc:b2c.partner.identity.get_formview_id": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+        "rpc:b2c.partner.identity.get_import_templates": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+        "rpc:b2c.partner.identity.get_metadata": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+        "rpc:b2c.partner.identity.get_property_definition": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+        "rpc:b2c.partner.identity.has_access": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+        "rpc:b2c.partner.identity.has_field_access": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+        "rpc:b2c.partner.identity.hierarchy_read": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+        "rpc:b2c.partner.identity.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+        "rpc:b2c.partner.identity.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+        "rpc:b2c.partner.identity.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+        "rpc:b2c.partner.identity.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+        "rpc:b2c.partner.identity.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+        "rpc:b2c.partner.identity.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+        "rpc:b2c.partner.identity.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+        "rpc:b2c.partner.identity.search_panel_select_range": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+        "rpc:b2c.partner.identity.search_read": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+        "rpc:b2c.partner.identity.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+        "rpc:b2c.partner.identity.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+        "rpc:b2c.partner.identity.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
         "rpc:b2c.payment.event.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
         "rpc:b2c.payment.event.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:b2c.payment.event.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
@@ -25916,7 +25990,7 @@
         "rpc:purchase.order.action_open_business_doc": "7577a443430159ef75d9e51fed85c64ac24a8c22524b8f2f4098bb80cd3c2619",
         "rpc:purchase.order.action_purchase_comparison": "57ab857f462ec7e67b7885d9e652df9829b9a643a61d67d3c486ef98af9f8f01",
         "rpc:purchase.order.action_receive": "d52529717b12eeec33db7a079239cae9d92d2bf5c5b1fb4e05e497b64340a72e",
-        "rpc:purchase.order.action_rfq_send": "18348a56e33e61c10bd6c099bd9d96af1c0968cf16367feb0df4f134389116fc",
+        "rpc:purchase.order.action_rfq_send": "378dc10af7986334cd1e37835ff1828e6afc047b7552307fa8d58cdf30125379",
         "rpc:purchase.order.action_share": "fdc25b000f103307c619157641a916be9a7fc0c22d79621543798abe15fbd4f9",
         "rpc:purchase.order.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:purchase.order.action_view_mrp_productions": "eba0bf34296c98e8d8224aa7d8a53dca0c102195b23c03a1d06d2123061b98e2",
@@ -26530,7 +26604,7 @@
         "rpc:sale.order.action_open_business_doc": "f92009da67cdbf1ed2930fc9ed8559dc52129316c7be9d32d739e1ce248266a7",
         "rpc:sale.order.action_open_delivery_wizard": "42ad39467853c5a78e0b6ca63a2eab086f63bf9f3aabe60424985d8b7f87a383",
         "rpc:sale.order.action_open_discount_wizard": "43d8bac065a1519e99b5ef5876a544a457d1a941f911e1ba07a372c3bb104815",
-        "rpc:sale.order.action_quotation_send": "0e33c99b3b0def51e252a09fde54cc7ada1d788f691e001d01b6a4d126222a5c",
+        "rpc:sale.order.action_quotation_send": "f1e06770ba4b47bb748e54013f843a4b3831f9bc6bbf1c810b1e635765a218ee",
         "rpc:sale.order.action_reopen_order": "ae36ceae2cfadf98633be1eee80cabebc16cb469cc3ed87b46dfcd98893c996e",
         "rpc:sale.order.action_share": "fdc25b000f103307c619157641a916be9a7fc0c22d79621543798abe15fbd4f9",
         "rpc:sale.order.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
@@ -28610,110 +28684,6 @@
     },
     {
       "action_keys": [
-        "rpc:b2c.partner.identity.action_archive",
-        "rpc:b2c.partner.identity.action_unarchive",
-        "rpc:b2c.partner.identity.check_field_access",
-        "rpc:b2c.partner.identity.copy",
-        "rpc:b2c.partner.identity.copy_data",
-        "rpc:b2c.partner.identity.copy_translations",
-        "rpc:b2c.partner.identity.default_get",
-        "rpc:b2c.partner.identity.export_data",
-        "rpc:b2c.partner.identity.fields_get",
-        "rpc:b2c.partner.identity.formatted_read_group",
-        "rpc:b2c.partner.identity.formatted_read_grouping_sets",
-        "rpc:b2c.partner.identity.get_base_url",
-        "rpc:b2c.partner.identity.get_empty_list_help",
-        "rpc:b2c.partner.identity.get_external_id",
-        "rpc:b2c.partner.identity.get_field_translations",
-        "rpc:b2c.partner.identity.get_formview_action",
-        "rpc:b2c.partner.identity.get_formview_id",
-        "rpc:b2c.partner.identity.get_import_templates",
-        "rpc:b2c.partner.identity.get_metadata",
-        "rpc:b2c.partner.identity.get_property_definition",
-        "rpc:b2c.partner.identity.get_view",
-        "rpc:b2c.partner.identity.get_views",
-        "rpc:b2c.partner.identity.has_access",
-        "rpc:b2c.partner.identity.has_field_access",
-        "rpc:b2c.partner.identity.hierarchy_read",
-        "rpc:b2c.partner.identity.load",
-        "rpc:b2c.partner.identity.name_create",
-        "rpc:b2c.partner.identity.name_search",
-        "rpc:b2c.partner.identity.onchange",
-        "rpc:b2c.partner.identity.read",
-        "rpc:b2c.partner.identity.read_progress_bar",
-        "rpc:b2c.partner.identity.search",
-        "rpc:b2c.partner.identity.search_count",
-        "rpc:b2c.partner.identity.search_panel_select_multi_range",
-        "rpc:b2c.partner.identity.search_panel_select_range",
-        "rpc:b2c.partner.identity.search_read",
-        "rpc:b2c.partner.identity.update_field_translations",
-        "rpc:b2c.partner.identity.view_header_get",
-        "rpc:b2c.partner.identity.web_name_search",
-        "rpc:b2c.partner.identity.web_override_translations",
-        "rpc:b2c.partner.identity.web_read",
-        "rpc:b2c.partner.identity.web_read_group",
-        "rpc:b2c.partner.identity.web_resequence",
-        "rpc:b2c.partner.identity.web_save",
-        "rpc:b2c.partner.identity.web_save_multi",
-        "rpc:b2c.partner.identity.web_search_read"
-      ],
-      "classification": "read_only",
-      "consequence": "Returns data, metadata, navigation, or a computed result without changing Odoo or an external system.",
-      "domain": "commerce_and_fulfilment",
-      "evidence_id": "read-only-no-sink-v1",
-      "id": "read_only.commerce_and_fulfilment.native_b2c_identity",
-      "rationale": "Provider contact identities are immutable provenance. Their public runtime surface contains only metadata and read helpers; private create, write, and unlink methods are absent from RPC.",
-      "reviewed_digests": {
-        "rpc:b2c.partner.identity.action_archive": "235abd6cb4038dd6a2c42caf9de8eae77f16c7778621633c9823beb3bd840539",
-        "rpc:b2c.partner.identity.action_unarchive": "e7c3c156fbd16e6d970313b9bb9b3394d43b56dfb1627dd220be3a47a71c75e8",
-        "rpc:b2c.partner.identity.check_field_access": "6ea1f9fac0c6643412d04dd4d3c9c9ad70723c75a4fbf7d4aae0a10636bfeff1",
-        "rpc:b2c.partner.identity.copy": "e2701f4de378a2041241c55d30da98574d537a17c9ced308c1a1aaa37d3704ff",
-        "rpc:b2c.partner.identity.copy_data": "1bcb637275cc868763d196999ce5a96ed738f7a52b0206f6fc826561249f3d13",
-        "rpc:b2c.partner.identity.copy_translations": "5675fce11d83c7502d5bcd12d8de06759f5cbccea4f69e7e4cac81fb5c2d6915",
-        "rpc:b2c.partner.identity.default_get": "5a254545bb7959b0d3f555c147fe3f5e60d3c5889fa39b3ab58165013561b62c",
-        "rpc:b2c.partner.identity.export_data": "80bce7a82aa05b027a1d03304c15854a49afda0463cb1b81b1090b46ec7616ec",
-        "rpc:b2c.partner.identity.fields_get": "baa7a932d91057120b35e7a5c3e4b7e1e61836083fb2f0ffd1bdf6f6efd537db",
-        "rpc:b2c.partner.identity.formatted_read_group": "ad861b317e2d9b39640847bf88826fd861f2ecea91d0bb0b48322bc4c7a3a344",
-        "rpc:b2c.partner.identity.formatted_read_grouping_sets": "1fcb23eb76c979d3163287b2076a032ff3eb5d50c4a4aa9b2cd9fb7b38370cf8",
-        "rpc:b2c.partner.identity.get_base_url": "67d503784e6d6f7548d55a2cfdf3bdd45f8195b37ec1b1c9d0251a8dd98aaf30",
-        "rpc:b2c.partner.identity.get_empty_list_help": "71d9d7f85cddd3babee74d68b9bf1373cea9a671db1deb8a5b5a71f7cc68dae4",
-        "rpc:b2c.partner.identity.get_external_id": "d8ba5b2f03d09295cc21145c82fd52737b78a38b697ea7cdd704e2cedc9ae2ba",
-        "rpc:b2c.partner.identity.get_field_translations": "24f016d8e2a430cf59d47b17206cb2e434bfbaac4046ef4d8a0ce4778d1af7f2",
-        "rpc:b2c.partner.identity.get_formview_action": "f4edcfe3654b97ad72a319b821d294d1424decaa7390bc239027a6b78f9e970d",
-        "rpc:b2c.partner.identity.get_formview_id": "95c1752af454541997c8ccf2725058469cf43a5fd4da850f3a10f7d5fd29fb27",
-        "rpc:b2c.partner.identity.get_import_templates": "d8392d1f12eba5b1791ef6af27e90a1fc627cacbc6da374ac0ea04942331091a",
-        "rpc:b2c.partner.identity.get_metadata": "9478f042e1ad35efe156f1cebf773332d56b07c5d5a63ce07e245dea08083a64",
-        "rpc:b2c.partner.identity.get_property_definition": "1ac7b96c8c74abf184cdf2821627c7c899e14c965ece4dcc9af28468196b1217",
-        "rpc:b2c.partner.identity.get_view": "0acf8bd48cd6c0a934eab7561db739e01d8bf0281b9acfeb6c0d80b806025011",
-        "rpc:b2c.partner.identity.get_views": "28821b46e4ace196e2c4841baa399fd93e3de113f7b8a23e02a6ac1ebb808bb3",
-        "rpc:b2c.partner.identity.has_access": "7dde4c8c80708d5316a9b4ba890ccf506ecf99b81b508323688f41a5583a122a",
-        "rpc:b2c.partner.identity.has_field_access": "799cce23243afb3ae60b8c02627890f175177862620a93c73cdf96aba995336e",
-        "rpc:b2c.partner.identity.hierarchy_read": "e2aa251578d309d82ce2e4591076f9e17bd1687af9431cb2f477aea366bdc069",
-        "rpc:b2c.partner.identity.load": "aa42854816e20eef9f3bef4c8a7f7093ace251608e2835ac74c5b648ccdbb5a1",
-        "rpc:b2c.partner.identity.name_create": "e6630daa1f607675b91db65c230d53ad6df4b76fe10f88b2f49eca774d4948ee",
-        "rpc:b2c.partner.identity.name_search": "f70bce1e80cfd78fda12b36edcf68116ce8fbc3d07b0eee6a5888480a03ed0dd",
-        "rpc:b2c.partner.identity.onchange": "bb63b0e5f4471bbe579f6bd9d01af667898fd0484a0b5bf5e725470a019f8433",
-        "rpc:b2c.partner.identity.read": "0d6c99c6016f86318429152c1963ab593f5a5c240600946465a0ace17820f327",
-        "rpc:b2c.partner.identity.read_progress_bar": "de4401e52e0cc988131fc11f0c347e20a6b4711220c1152b1a161d892da174a4",
-        "rpc:b2c.partner.identity.search": "471d7d3160921d01da2add1ddbec37ccea1d00f6e1d65854177a91687eb04403",
-        "rpc:b2c.partner.identity.search_count": "123617ed36078cbf6b54e9ac2229a2f8905d7189d3d85f5e9be5765bc082d666",
-        "rpc:b2c.partner.identity.search_panel_select_multi_range": "8d1084cfaa7d7812902ea17cd937614b41c19556ff0370dff296111612ed17d2",
-        "rpc:b2c.partner.identity.search_panel_select_range": "f15fd0ab0ecc4f8a69aaba36f4bfc1948dc54f91dcd58f43abedfa92db7414ad",
-        "rpc:b2c.partner.identity.search_read": "e24e0149cc13b22ffe7216068d9cc91d4ad8abd145bb39a15322f2f205593b19",
-        "rpc:b2c.partner.identity.update_field_translations": "ebb8d3f11a6eb5272e7826ecf89c2299f4e381db6db738774fca6a44ece50361",
-        "rpc:b2c.partner.identity.view_header_get": "b14c94c41cfa171935e3cd3c93d8c9d8a732e022b83229ff98e6f8563f7dd110",
-        "rpc:b2c.partner.identity.web_name_search": "c432ba6a42dc18b2c8d36fc07d9fe66ab05e98d5bb4723f94b0e9a8cee8703a6",
-        "rpc:b2c.partner.identity.web_override_translations": "65b2b80d23fbf97f4beb6aa63793a2192c87df69a6b13e5205874744728e18e7",
-        "rpc:b2c.partner.identity.web_read": "0397df491af3e68dbf5a2c82620a77599e65baba4ec9661805e0dee10c669b41",
-        "rpc:b2c.partner.identity.web_read_group": "7cdc0dc7cd7348ca758ab89f1d40dd19c9157f3cd41788ad93bab7d62848bb5a",
-        "rpc:b2c.partner.identity.web_resequence": "9fb7342771181391f3c6bae96f4df108874f3ce018d05005ab2e137ae42dc48b",
-        "rpc:b2c.partner.identity.web_save": "112c33674d0668e62e51bf2c39467d97d7134617b41020fc6ed35aabba1fd575",
-        "rpc:b2c.partner.identity.web_save_multi": "dd52456050d0b84dceed94a869936592107bb741e770b55c9a4086276fab48bb",
-        "rpc:b2c.partner.identity.web_search_read": "883780099f8b4e2da155770cd316e20a5df8d7684c348d772c1d3e594b840018"
-      }
-    },
-    {
-      "action_keys": [
         "client:sign_oca:oca-addons/sign_oca/static/src/components/sign_oca_pdf_portal/sign_oca_pdf_portal.esm.js:_onClickSign:route:1",
         "route:http:ANY:/mail/font_to_img/<icon>",
         "route:http:ANY:/mail/font_to_img/<icon>/<color>",
@@ -28858,6 +28828,8 @@
         "rpc:b2c.order.message_get_followers",
         "rpc:b2c.order.source.mail_allowed_qweb_expressions",
         "rpc:b2c.order.source.mail_get_partner_fields",
+        "rpc:b2c.partner.identity.mail_allowed_qweb_expressions",
+        "rpc:b2c.partner.identity.mail_get_partner_fields",
         "rpc:b2c.payment.event.mail_allowed_qweb_expressions",
         "rpc:b2c.payment.event.mail_get_partner_fields",
         "rpc:b2c.product.alias.action_reschedule_my_next_nextweek",
@@ -32671,6 +32643,8 @@
         "rpc:b2c.order.message_get_followers": "485d5a0893a9f9abb3d517b4b09eefc2d37c4a934af9e774768f79fb6b6736a5",
         "rpc:b2c.order.source.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
         "rpc:b2c.order.source.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+        "rpc:b2c.partner.identity.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+        "rpc:b2c.partner.identity.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
         "rpc:b2c.payment.event.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
         "rpc:b2c.payment.event.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
         "rpc:b2c.product.alias.action_reschedule_my_next_nextweek": "1f8b565136e347fa9e15542d23e050e09462ec69985f610715ed95b84dcef46f",
@@ -36574,22 +36548,6 @@
         "ui:usl_document_templates.action_document_templates": "2735f6f893fae12516ce5dd3dc4e30c82cf7014fa81615de7593282070aad991",
         "ui:usl_document_templates.action_report_document_letter": "ec31bb66cd7dccb6cc6db889afc57a24bab2bbc934e52a9d6a2bb5793512939c",
         "ui:usl_document_templates.action_report_output_inventory": "016e960701b213e40c3b46aac6b846878747cb74cce93d5f1097c171a24f7b2f"
-      }
-    },
-    {
-      "action_keys": [
-        "rpc:b2c.partner.identity.mail_allowed_qweb_expressions",
-        "rpc:b2c.partner.identity.mail_get_partner_fields"
-      ],
-      "classification": "read_only",
-      "consequence": "Returns data, metadata, navigation, or a computed result without changing Odoo or an external system.",
-      "domain": "documents_and_communications",
-      "evidence_id": "read-only-no-sink-v1",
-      "id": "read_only.documents_and_communications.native_b2c_identity",
-      "rationale": "Mail metadata helpers expose no customer communication or mutation path on immutable provider contact identities.",
-      "reviewed_digests": {
-        "rpc:b2c.partner.identity.mail_allowed_qweb_expressions": "db8fea907626f92f1ff6db9395f1e14164568b94e599a3998467f1cfebeb397c",
-        "rpc:b2c.partner.identity.mail_get_partner_fields": "a336a2519b3cd4da27cb4136737e46b9917505349b03486123f14e0c971a669e"
       }
     },
     {
@@ -40581,7 +40539,7 @@
       },
       "rationale": "Exact upstream review: docs/operations/chore-stack-20260905.md; per-action rationale records the inspected consequence and authority boundary.",
       "reviewed_digests": {
-        "ui:hr_expense.hr_expense_actions_all": "32c70759d0be62c4aec5cd6c9b23393055c8a875e2d0446a8bd4b6cd2c0b591a"
+        "ui:hr_expense.hr_expense_actions_all": "b4fc6ad692c9deb3081c34a99bde4a497832ba3c8f7cb6b230ff2035c1551d80"
       }
     },
     {
@@ -81849,7 +81807,7 @@
         "rpc:mrp.bom.message_post": "d8df2b78c83c01b3d9696d6158e3543f768e1e182e433b436aea573519307e5b",
         "rpc:mrp.production.action_confirm": "9e7b87b04197c9ca078c83abe8acf73e84bdfb8373e0d285e6ea029302478c44",
         "rpc:mrp.production.message_post": "d8df2b78c83c01b3d9696d6158e3543f768e1e182e433b436aea573519307e5b",
-        "rpc:mrp.production.write": "5f1c2635616030d016714942c8535355d14986ea7ebf765d5d308785a71dbe01",
+        "rpc:mrp.production.write": "a5165d1d0db557191cb2de297c259543ce0f1c8e22e4adfac6a92c8892966f18",
         "rpc:mrp.routing.workcenter.message_post": "d8df2b78c83c01b3d9696d6158e3543f768e1e182e433b436aea573519307e5b",
         "rpc:mrp.unbuild.message_post": "d8df2b78c83c01b3d9696d6158e3543f768e1e182e433b436aea573519307e5b",
         "rpc:mrp.workcenter.message_post": "d8df2b78c83c01b3d9696d6158e3543f768e1e182e433b436aea573519307e5b",
@@ -81878,7 +81836,7 @@
         "rpc:project.milestone.message_post": "d8df2b78c83c01b3d9696d6158e3543f768e1e182e433b436aea573519307e5b",
         "rpc:project.project.message_post": "d8df2b78c83c01b3d9696d6158e3543f768e1e182e433b436aea573519307e5b",
         "rpc:project.update.message_post": "d8df2b78c83c01b3d9696d6158e3543f768e1e182e433b436aea573519307e5b",
-        "rpc:purchase.order.message_post": "1aef2445fd92f6e6b56477088227a7dc2e2c41b865099792ac704f17cbd37b08",
+        "rpc:purchase.order.message_post": "51d82c1355a12c631e202d4d8e56927336a243819f55ac1939448273b656a5d9",
         "rpc:rating.mixin.message_post": "d8df2b78c83c01b3d9696d6158e3543f768e1e182e433b436aea573519307e5b",
         "rpc:rebuild.account.aged.partner.balance.line.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:rebuild.account.aged.partner.balance.line.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
@@ -82763,11 +82721,11 @@
         "rpc:res.partner.bank.message_post": "d8df2b78c83c01b3d9696d6158e3543f768e1e182e433b436aea573519307e5b",
         "rpc:res.partner.bank.write": "1443b83831a354c5d64a1cb5bd5c665ebce9233a57ad539531b628e18155c000",
         "rpc:res.partner.button_account_peppol_check_partner_endpoint": "2c25d46173573de97d2251cd6b3401b84199b15786acdc7547b81c56d732ce9e",
-        "rpc:res.partner.create": "f17304f194d0e9fa1adf687d7afb472d56b1e8eba21d50f92fa76602db06b8b8",
+        "rpc:res.partner.create": "293fb36b61ea3c895e848de62ca08e49d59bf9fb801cfa650361582cd3cc6464",
         "rpc:res.partner.message_post": "d8df2b78c83c01b3d9696d6158e3543f768e1e182e433b436aea573519307e5b",
-        "rpc:res.partner.write": "c8fe77ac00d48d0845432745105577c2b091fe82560e63e398bb865f0d2a29ba",
+        "rpc:res.partner.write": "439338ce9f3688c079233630b9b703d9c769101503c9b638c97c04cf803de122",
         "rpc:res.users.action_usl_sync_expense_company_profiles": "4c12b196fcf3edfc27b3f2eec6651bd4416ede5143db0bcdf34470ad978f2c21",
-        "rpc:sale.order.message_post": "eea0403435fe41522b90342e5cd4195c74793bc89f4ed56829f0d09b28118a31",
+        "rpc:sale.order.message_post": "86180de2efa4fa0decf2069a9d884fd0abfc86b252dfe5e7840873bdc02d5ff0",
         "rpc:sequence.mixin.write": "1fe58c979e7f000497b32c4fef66636bbe7dea8d27e3047915612dfeceac63d2",
         "rpc:sign.oca.request.rating_apply": "67733772bfcfdda678ce0f33c63ce533bfce800bccc0212f07eeae88413c7cb4",
         "rpc:sign.oca.request.signer.rating_apply": "67733772bfcfdda678ce0f33c63ce533bfce800bccc0212f07eeae88413c7cb4",
@@ -82829,9 +82787,9 @@
         "rpc:stock.lot.create": "fd6dc79334893405dc7d70204243ccc9d63b7543d0cadda668c7f0e041cc1bb5",
         "rpc:stock.lot.message_post": "d8df2b78c83c01b3d9696d6158e3543f768e1e182e433b436aea573519307e5b",
         "rpc:stock.lot.write": "5b11aac2d7a795652a1b331c667097edf819dc54d433131f922925d72d6ba6c1",
-        "rpc:stock.move.line.create": "bc9c9d64354fccf79053c8a6238ab1c64cb7304c427eeb7abf5474592010727e",
-        "rpc:stock.move.line.unlink": "2e68ce59e7a26c78c9a502f3bd9ce306bcc391716306504e17a5a7422b047ef1",
-        "rpc:stock.move.line.write": "2573e68acc81038afba698333dbe4a3ba3509738ae9d9f937779294c0a9b993b",
+        "rpc:stock.move.line.create": "b4efa7b1a30f4d081fd0028b54d6205b934d9804dddf092a04a6bc155c8493f7",
+        "rpc:stock.move.line.unlink": "1ddc7183d9b99e65480e27afcc152d0a2b021c2c11c2c7fab0dcab20756798fc",
+        "rpc:stock.move.line.write": "72e66d324f426891047dd72d2d98d421f23721df4ecac3c354fbedadcc5bce73",
         "rpc:stock.picking.message_post": "d8df2b78c83c01b3d9696d6158e3543f768e1e182e433b436aea573519307e5b",
         "rpc:stock_account.stock.valuation.report.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:stock_account.stock.valuation.report.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
@@ -83085,6 +83043,19 @@
         "rpc:b2c.order.web_save",
         "rpc:b2c.order.web_save_multi",
         "rpc:b2c.order.web_search_read",
+        "rpc:b2c.partner.identity.copy",
+        "rpc:b2c.partner.identity.copy_data",
+        "rpc:b2c.partner.identity.formatted_read_grouping_sets",
+        "rpc:b2c.partner.identity.get_views",
+        "rpc:b2c.partner.identity.name_create",
+        "rpc:b2c.partner.identity.onchange",
+        "rpc:b2c.partner.identity.update_field_translations",
+        "rpc:b2c.partner.identity.web_override_translations",
+        "rpc:b2c.partner.identity.web_read_group",
+        "rpc:b2c.partner.identity.web_resequence",
+        "rpc:b2c.partner.identity.web_save",
+        "rpc:b2c.partner.identity.web_save_multi",
+        "rpc:b2c.partner.identity.web_search_read",
         "rpc:b2c.payment.event.action_archive_attachment",
         "rpc:b2c.payment.event.action_open_documents_workspace",
         "rpc:b2c.payment.event.copy",
@@ -85215,6 +85186,45 @@
         },
         "rpc:b2c.order.web_search_read": {
           "reversal_action": "rpc:b2c.order.write"
+        },
+        "rpc:b2c.partner.identity.copy": {
+          "reversal_action": "rpc:b2c.partner.identity.unlink"
+        },
+        "rpc:b2c.partner.identity.copy_data": {
+          "reversal_action": "rpc:b2c.partner.identity.unlink"
+        },
+        "rpc:b2c.partner.identity.formatted_read_grouping_sets": {
+          "reversal_action": "rpc:b2c.partner.identity.write"
+        },
+        "rpc:b2c.partner.identity.get_views": {
+          "reversal_action": "rpc:b2c.partner.identity.write"
+        },
+        "rpc:b2c.partner.identity.name_create": {
+          "reversal_action": "rpc:b2c.partner.identity.write"
+        },
+        "rpc:b2c.partner.identity.onchange": {
+          "reversal_action": "rpc:b2c.partner.identity.write"
+        },
+        "rpc:b2c.partner.identity.update_field_translations": {
+          "reversal_action": "rpc:b2c.partner.identity.write"
+        },
+        "rpc:b2c.partner.identity.web_override_translations": {
+          "reversal_action": "rpc:b2c.partner.identity.write"
+        },
+        "rpc:b2c.partner.identity.web_read_group": {
+          "reversal_action": "rpc:b2c.partner.identity.write"
+        },
+        "rpc:b2c.partner.identity.web_resequence": {
+          "reversal_action": "rpc:b2c.partner.identity.write"
+        },
+        "rpc:b2c.partner.identity.web_save": {
+          "reversal_action": "rpc:b2c.partner.identity.write"
+        },
+        "rpc:b2c.partner.identity.web_save_multi": {
+          "reversal_action": "rpc:b2c.partner.identity.write"
+        },
+        "rpc:b2c.partner.identity.web_search_read": {
+          "reversal_action": "rpc:b2c.partner.identity.write"
         },
         "rpc:b2c.payment.event.action_archive_attachment": {
           "reversal_action": "rpc:b2c.payment.event.write"
@@ -91007,6 +91017,19 @@
         "rpc:b2c.order.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:b2c.order.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:b2c.order.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+        "rpc:b2c.partner.identity.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+        "rpc:b2c.partner.identity.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+        "rpc:b2c.partner.identity.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
+        "rpc:b2c.partner.identity.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+        "rpc:b2c.partner.identity.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+        "rpc:b2c.partner.identity.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+        "rpc:b2c.partner.identity.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+        "rpc:b2c.partner.identity.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+        "rpc:b2c.partner.identity.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+        "rpc:b2c.partner.identity.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+        "rpc:b2c.partner.identity.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+        "rpc:b2c.partner.identity.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+        "rpc:b2c.partner.identity.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:b2c.payment.event.action_archive_attachment": "b709c664d814f18382ebd8438cd811570de88cb255a51bc05c7cad3e294c5b77",
         "rpc:b2c.payment.event.action_open_documents_workspace": "a77c4b201439ce301a99985661cf9f8dbe058829d55d16ea62e0b5fcaaecbaad",
         "rpc:b2c.payment.event.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
@@ -92364,19 +92387,19 @@
         "rpc:stock.landed.cost.compute_landed_cost": "393dd45f4b8d203f7d735366af1f8344dbcd933ecf8904dff25ab3c77cb4a64c",
         "rpc:stock.landed.cost.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:stock.landed.cost.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
-        "rpc:stock.landed.cost.create": "c66dfb745ec0817ec9b825a9f70d3b643de1eb0307b1c2d3afc7f2d8a141e462",
+        "rpc:stock.landed.cost.create": "5aefadb3bd39671a2f1cf2f5278522c7d0d51ab9c85a525226fb53f6ddf1112e",
         "rpc:stock.landed.cost.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:stock.landed.cost.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:stock.landed.cost.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
         "rpc:stock.landed.cost.lines.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:stock.landed.cost.lines.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
-        "rpc:stock.landed.cost.lines.create": "79f7be62eaa8676824664e0b8006ed7577d51defb2dfdb50e8985a3c6c75f014",
+        "rpc:stock.landed.cost.lines.create": "e947ad731d2078ef48a632d3df8c36463a6c731d9a634cea5d1aaf064ebfecf3",
         "rpc:stock.landed.cost.lines.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:stock.landed.cost.lines.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:stock.landed.cost.lines.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
         "rpc:stock.landed.cost.lines.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
         "rpc:stock.landed.cost.lines.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
-        "rpc:stock.landed.cost.lines.unlink": "dc4ac0b38a20786af9efc783f72e41b5898aeb7d164b706e9f7d6517d5e3954e",
+        "rpc:stock.landed.cost.lines.unlink": "aa200e9aa58140a1fbdef653ea52e001dccfa79fd8508ba33f20ca6638f925b6",
         "rpc:stock.landed.cost.lines.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
         "rpc:stock.landed.cost.lines.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
         "rpc:stock.landed.cost.lines.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
@@ -92384,7 +92407,7 @@
         "rpc:stock.landed.cost.lines.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:stock.landed.cost.lines.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:stock.landed.cost.lines.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:stock.landed.cost.lines.write": "ac3742737b0287fee33bcc4eb677f1cc9d6282f29635784990286782f4f27325",
+        "rpc:stock.landed.cost.lines.write": "20c320d30b7d98d7c86cbc6d377e46d36deb27ad5ea7025f958c6022174d2f15",
         "rpc:stock.landed.cost.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:stock.landed.cost.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:stock.landed.cost.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
@@ -92408,7 +92431,7 @@
         "rpc:stock.landed.cost.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:stock.landed.cost.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:stock.landed.cost.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:stock.landed.cost.write": "8a3ed2cdfb4bc260400f9f03039c3c02ab261d2578904ebbce8e1e6721bdd3f8",
+        "rpc:stock.landed.cost.write": "92c026ee2505bcfee11dad531274d9b840bad77e7b0322a0c52be3f58fdf38f5",
         "rpc:stock.location.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:stock.location.copy_data": "1cc024a0242d78333e57398a5927c7902f6cf18aad6aabc1afa9d53f0b33d1d2",
         "rpc:stock.location.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
@@ -92800,13 +92823,13 @@
         "rpc:stock.traceability.report.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:stock.valuation.adjustment.lines.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:stock.valuation.adjustment.lines.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
-        "rpc:stock.valuation.adjustment.lines.create": "aed185dc1ff43a755ea68c0d6d7311789b1a482fad5f35f24b0d4dde7b07bd33",
+        "rpc:stock.valuation.adjustment.lines.create": "8a8f238a8d29fd8630454525f9e46f30eca22c1be2db9fef494d9d9db412d69e",
         "rpc:stock.valuation.adjustment.lines.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:stock.valuation.adjustment.lines.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:stock.valuation.adjustment.lines.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
         "rpc:stock.valuation.adjustment.lines.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
         "rpc:stock.valuation.adjustment.lines.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
-        "rpc:stock.valuation.adjustment.lines.unlink": "d02100479bb6ed337f36c9f9edca5717ac122fefa5c4ad434ae4de86b622e77b",
+        "rpc:stock.valuation.adjustment.lines.unlink": "c15631fabcae0858cc20724b93d9bc822467dfe0ea6db8287d44cc452ffaca13",
         "rpc:stock.valuation.adjustment.lines.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
         "rpc:stock.valuation.adjustment.lines.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
         "rpc:stock.valuation.adjustment.lines.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
@@ -92814,7 +92837,7 @@
         "rpc:stock.valuation.adjustment.lines.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:stock.valuation.adjustment.lines.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:stock.valuation.adjustment.lines.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:stock.valuation.adjustment.lines.write": "6476d941530b7b054641a2d0ee94477ef1bf2dde558f999776267b12d3588801",
+        "rpc:stock.valuation.adjustment.lines.write": "28bb9f3267f06a2102b5d269255ec2339980e548d2ac5cfc22ba4f4404b6ba34",
         "rpc:stock.warehouse.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:stock.warehouse.copy_data": "b13c21da1676b482cfd21108ac6d7e9d27718cb0c4b81fbbb20f59544436d7ec",
         "rpc:stock.warehouse.create_resupply_routes": "4b14c3aa57dac03b590c20dedee5bf3d723e5a971fe80f6fffda2fbccecb2f53",
@@ -107812,7 +107835,7 @@
         "rpc:report.project.task.user.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:report.project.task.user.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:report.project.task.user.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:sale.order.action_confirm": "ba311280bfaec4422027d94f0dd9644f7c4e25a0b5dd32223611198754ca6fc4",
+        "rpc:sale.order.action_confirm": "f9eb561340284cf4fe4128f6e5be3e4356f5b7ee3e5b43d14f61dd7994ca1f96",
         "rpc:sale.order.default_get": "588fdd5501f38c3c68b5126d8c31fb3f3c0811079e04fd49d3a552d353b30767",
         "rpc:sale.order.line.copy_data": "9a609975abb430e2e8d5348c1c00322bdc4b42bb04afe85db9140dff9f3541ad",
         "rpc:sale.order.line.default_get": "6bf0acf373bd115373346b9939f81265550f17dc1298e2656496cfd5c73ed762",
@@ -108038,6 +108061,9 @@
         "rpc:b2c.order.source.unlink",
         "rpc:b2c.order.source.write",
         "rpc:b2c.order.write",
+        "rpc:b2c.partner.identity.create",
+        "rpc:b2c.partner.identity.get_view",
+        "rpc:b2c.partner.identity.write",
         "rpc:b2c.payment.event.create",
         "rpc:b2c.payment.event.get_view",
         "rpc:b2c.payment.event.write",
@@ -110553,6 +110579,15 @@
         },
         "rpc:b2c.order.write": {
           "reversal_action": "rpc:b2c.order.write"
+        },
+        "rpc:b2c.partner.identity.create": {
+          "reversal_action": "rpc:b2c.partner.identity.unlink"
+        },
+        "rpc:b2c.partner.identity.get_view": {
+          "reversal_action": "rpc:b2c.partner.identity.write"
+        },
+        "rpc:b2c.partner.identity.write": {
+          "reversal_action": "rpc:b2c.partner.identity.write"
         },
         "rpc:b2c.payment.event.create": {
           "reversal_action": "rpc:b2c.payment.event.unlink"
@@ -117318,20 +117353,23 @@
         "rpc:b2c.channel.create": "e01529fb01e0889fd6f4679a25ce6d1fcd327ded248fcd5e59cbcd4b0f6453e0",
         "rpc:b2c.channel.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:b2c.channel.write": "010ab28dd1877e9843e54acd846e0ab610a1d9b9dd59117f5f93494efba41b4f",
-        "rpc:b2c.fulfilment.event.create": "ec0459ded57cc75b450035b33966ba006b44945095cfbd40d900cc2af9704384",
+        "rpc:b2c.fulfilment.event.create": "ed7fb9da93021b832c891ed01cde7812cda526965bb5f11dd3b6a51a8d6017f2",
         "rpc:b2c.fulfilment.event.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
-        "rpc:b2c.fulfilment.event.write": "661a4b1037ae068cad4a775c6311b71d802270ae44319a46732c358646fe50e6",
-        "rpc:b2c.order.create": "a629541661c799f901a8ce48a4c425bf90ee1e62dba8183729298e4d86f86033",
+        "rpc:b2c.fulfilment.event.write": "bbbc9c35a2cecebaada88a5a113b3510c630e3cfb160a306d15307e04782dfa0",
+        "rpc:b2c.order.create": "54bfee1a489ad47cb431ce5357e90328b7115fd9b80c4a7118f7d2cba350d472",
         "rpc:b2c.order.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
-        "rpc:b2c.order.line.create": "ec0459ded57cc75b450035b33966ba006b44945095cfbd40d900cc2af9704384",
+        "rpc:b2c.order.line.create": "ed7fb9da93021b832c891ed01cde7812cda526965bb5f11dd3b6a51a8d6017f2",
         "rpc:b2c.order.line.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:b2c.order.line.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
-        "rpc:b2c.order.line.write": "c47a0dad6f3fc58b2cd169a99ebf42262b3be80ace8c8ea8f14b1d18181b21f1",
+        "rpc:b2c.order.line.write": "852b6f9c7d3d9b77af0b2d4c1a7144e0b5afadf53aff59e5610c9653de596e54",
         "rpc:b2c.order.source.create": "e01529fb01e0889fd6f4679a25ce6d1fcd327ded248fcd5e59cbcd4b0f6453e0",
         "rpc:b2c.order.source.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:b2c.order.source.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:b2c.order.source.write": "010ab28dd1877e9843e54acd846e0ab610a1d9b9dd59117f5f93494efba41b4f",
-        "rpc:b2c.order.write": "c39e83f928c561b0d7fb70a68f312025eef36c63ffe89c9ce96fd7d036ac78da",
+        "rpc:b2c.order.write": "68fc05d78b6a5012dcde38042141e7af4824c6b5b4e9bcfd6f274a00ebbd3c98",
+        "rpc:b2c.partner.identity.create": "e05748c21ce2760ee9580e72a872259bb5c2778e9d8a5d867c8395f3ac599c3f",
+        "rpc:b2c.partner.identity.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+        "rpc:b2c.partner.identity.write": "4525a001f9bc423b8593feee80717fe8559f038809d541181e87947e57e08ea2",
         "rpc:b2c.payment.event.create": "e01529fb01e0889fd6f4679a25ce6d1fcd327ded248fcd5e59cbcd4b0f6453e0",
         "rpc:b2c.payment.event.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:b2c.payment.event.write": "a04b01b7fd0a4bafc6afbd8ff0bde8288be432e2d3cd26d053f9ee807a7ff50b",
@@ -118306,7 +118344,7 @@
         "rpc:mrp.production.backorder.line.write": "010ab28dd1877e9843e54acd846e0ab610a1d9b9dd59117f5f93494efba41b4f",
         "rpc:mrp.production.backorder.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:mrp.production.backorder.write": "010ab28dd1877e9843e54acd846e0ab610a1d9b9dd59117f5f93494efba41b4f",
-        "rpc:mrp.production.create": "7b52c5d3041516ab3cad827574d98e03ef0f129c5ed81cb9d3cf9cac157cef50",
+        "rpc:mrp.production.create": "8f1eaaecda951d821cbfd86edf6c2f2e83510532b06b93eee9cd32a94711eb4c",
         "rpc:mrp.production.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:mrp.production.group.create": "e01529fb01e0889fd6f4679a25ce6d1fcd327ded248fcd5e59cbcd4b0f6453e0",
         "rpc:mrp.production.group.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
@@ -118328,14 +118366,14 @@
         "rpc:mrp.production.split.multi.write": "010ab28dd1877e9843e54acd846e0ab610a1d9b9dd59117f5f93494efba41b4f",
         "rpc:mrp.production.split.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:mrp.production.split.write": "010ab28dd1877e9843e54acd846e0ab610a1d9b9dd59117f5f93494efba41b4f",
-        "rpc:mrp.production.unlink": "ad5923279ceee26727766e181207b1512658940a50a60ab0195f46f999b36090",
+        "rpc:mrp.production.unlink": "8c090a6218db4b5f329bc90379125b79e82c883611b688b4b508536e1173ad1d",
         "rpc:mrp.routing.workcenter.create": "5943aa79a523513160ae2c4241b0fec5a54b702dd598b14375d523edbf606853",
         "rpc:mrp.routing.workcenter.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:mrp.routing.workcenter.write": "c534e0b99996eef2c4c3894fa78c738a08763fa336cbc809b071e4e0bd799f05",
-        "rpc:mrp.unbuild.create": "858e4ee27c5377723ea4fccfa9091c68f86c1160e23d3299b8d6b6fd9b75ea97",
+        "rpc:mrp.unbuild.create": "61c86445b67de69c6174c4751739d0ad0d3ce43022a41d274585a9ba78612b59",
         "rpc:mrp.unbuild.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
-        "rpc:mrp.unbuild.unlink": "1faf7f0d319ed12b571f052243a6974a97feab4164fd288a1e545a693566a8be",
-        "rpc:mrp.unbuild.write": "2616b0ad8b89e8d46d04b1aed055bf2282fda8ff246f9659e07ff58d2c045f7d",
+        "rpc:mrp.unbuild.unlink": "386c586757796b76d2f206ea2bf1dd59e8faafd28cd8e70db79272de53233a48",
+        "rpc:mrp.unbuild.write": "a6c12076d0d82378726020e64724226134bc43ef00cfa4064f29b680b846adb9",
         "rpc:mrp.workcenter.capacity.create": "e01529fb01e0889fd6f4679a25ce6d1fcd327ded248fcd5e59cbcd4b0f6453e0",
         "rpc:mrp.workcenter.capacity.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:mrp.workcenter.capacity.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
@@ -118408,10 +118446,10 @@
         "rpc:payment.token.create": "8709c0b01d05e8bd7e9dff54347c9a41f867efef77c47bfa66acb1241061711f",
         "rpc:payment.token.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:payment.token.write": "c4401ce4d140d03cb8e6ba5e84128054eada74904dcb816b317005d616c89e72",
-        "rpc:payment.transaction.create": "bc6bcbddd0d46bea78b87e6e6c80ed00607616571bc00924f703330a5d0e78cd",
+        "rpc:payment.transaction.create": "734b38c7fb8f2540c573f014d88dc896f78af2e218d11660ca310b8aed4dbe16",
         "rpc:payment.transaction.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:payment.transaction.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
-        "rpc:payment.transaction.write": "18042a585510c7872e42c074634124e03da1666585989f1f19a9fac9fe61701b",
+        "rpc:payment.transaction.write": "791e6448c90998de9f26f3852b6977a3cf55ff8e2c04e9d013c71f5b50d27031",
         "rpc:pdp.config.wizard.create": "e01529fb01e0889fd6f4679a25ce6d1fcd327ded248fcd5e59cbcd4b0f6453e0",
         "rpc:pdp.config.wizard.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:pdp.config.wizard.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
@@ -118632,13 +118670,13 @@
         "rpc:purchase.edi.xml.ubl_bis3.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:purchase.edi.xml.ubl_bis3.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:purchase.edi.xml.ubl_bis3.write": "010ab28dd1877e9843e54acd846e0ab610a1d9b9dd59117f5f93494efba41b4f",
-        "rpc:purchase.order.create": "018f115237c34923de7c1481564b1cbbfb3c77d9351a1d177c3e96ad92d21ed9",
+        "rpc:purchase.order.create": "e4a3df77b19426dca8d48f7cf1ca27b99df8e4bd390d6fd1c293ee33393c42d3",
         "rpc:purchase.order.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
-        "rpc:purchase.order.line.create": "c06d06a1021559f987ac8f923873f0701e5ef131ab34fca85f9778dc6385d554",
+        "rpc:purchase.order.line.create": "0cd88e08872e69ab7a4bc2351c8e026a75626b006cd44731efdc48e4633b9f83",
         "rpc:purchase.order.line.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
-        "rpc:purchase.order.line.unlink": "3f9890b02d51a8733e844f58848ab20a56521ffa27e9bf61839d81d813976197",
-        "rpc:purchase.order.line.write": "45d5ab8ac643d4d066e064999237aed8fceb250a30916df53d96679942af5710",
-        "rpc:purchase.order.write": "7d59bf25fd101b7ae71067fef86388b52ec0fe5132d76c13700bde8554d87428",
+        "rpc:purchase.order.line.unlink": "cb7cdd66b18a1b7c3153ba24c153d5244a0aa8e72e33ebba30982a851fa2ca5c",
+        "rpc:purchase.order.line.write": "d7b623a8ba2fe7800fc2dd6630f6efe325b409c5e69f81cf00483d6ee4b945c8",
+        "rpc:purchase.order.write": "3abfa8a791793a2374b4e7d51d24fed8944a804062f99f7a4672ff269bec6efc",
         "rpc:purchase.report.create": "e01529fb01e0889fd6f4679a25ce6d1fcd327ded248fcd5e59cbcd4b0f6453e0",
         "rpc:purchase.report.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:purchase.report.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
@@ -119105,16 +119143,16 @@
         "rpc:sale.mass.cancel.orders.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:sale.mass.cancel.orders.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:sale.mass.cancel.orders.write": "010ab28dd1877e9843e54acd846e0ab610a1d9b9dd59117f5f93494efba41b4f",
-        "rpc:sale.order.create": "48c82b2642561daf702add60fc4d092fbbdf1659c9a60deb4da3e3481cb7496d",
+        "rpc:sale.order.create": "ed1717476c00a4793137991badaabe3e489ecb27320f5e9f9941dc4f090ab746",
         "rpc:sale.order.discount.create": "e01529fb01e0889fd6f4679a25ce6d1fcd327ded248fcd5e59cbcd4b0f6453e0",
         "rpc:sale.order.discount.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:sale.order.discount.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:sale.order.discount.write": "010ab28dd1877e9843e54acd846e0ab610a1d9b9dd59117f5f93494efba41b4f",
         "rpc:sale.order.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
-        "rpc:sale.order.line.create": "aa5399593fb03042e63cd05c7f5506631936a3fde5490b7886f94b788d6287fe",
+        "rpc:sale.order.line.create": "ce6b659b2d33c9f72c811a1298c9aa6d045abe28aed85f8075b6a1bc107b0dd1",
         "rpc:sale.order.line.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
-        "rpc:sale.order.line.unlink": "58a199a2c47d22a186d5955703ed915194a67f2583eba610063affa190d6be06",
-        "rpc:sale.order.line.write": "83ba083cd948a16c059def16d14c88c4ef6d679960cf4354093f0e637fa257c1",
+        "rpc:sale.order.line.unlink": "a61c2310c66c19f04bb84f60f8d1b406c000b2c2ac1594c10fc6da0f11f43a32",
+        "rpc:sale.order.line.write": "70f9a6713e839067bb0e7cf1bef8663ca0ecc20c05b58d277f0cfc43c5edf81b",
         "rpc:sale.order.template.create": "ec69bb5b473a696316f6144bc1f9de585093fd3b9de7f95137938ca8bc0c72b4",
         "rpc:sale.order.template.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:sale.order.template.line.create": "d4e292c2367357b6e577ab2d65515edcb1fccb941d45930870a5f29e6c1148ca",
@@ -119122,7 +119160,7 @@
         "rpc:sale.order.template.line.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:sale.order.template.line.write": "fb08d8ffa5580d3134274791e2f382e22cf735a7214e43bc4afff255ee4bf2b7",
         "rpc:sale.order.template.write": "91da1f923dce5d4010bb12748a0dcfca6eaef2d5eb725602fe62c63880ae6f2b",
-        "rpc:sale.order.write": "10b0d0e808bd9f86761abbad59f781cb02c577a3e4d3d0f4b01c08a5d12ad739",
+        "rpc:sale.order.write": "9f3446060a3bbd66ea4a853c82e7d64b1f9c73a4b1888d01b64538bace3fda4c",
         "rpc:sale.pdf.form.field.create": "e01529fb01e0889fd6f4679a25ce6d1fcd327ded248fcd5e59cbcd4b0f6453e0",
         "rpc:sale.pdf.form.field.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:sale.pdf.form.field.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
@@ -119226,11 +119264,11 @@
         "rpc:stock.location.write": "2e7be39916c1c86c23e31a4cc8974bf13205ab8b8dff1060296ecdae9768167b",
         "rpc:stock.lot.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:stock.lot.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
-        "rpc:stock.move.create": "11d2849bc7488063b9085f7a8fbe8f6db995852b29a0368b7d507d17c83fbc29",
+        "rpc:stock.move.create": "482c99b89102f56ecfd794d480aa177a74dc1cf08c3f8f820e87368ed37d3dcd",
         "rpc:stock.move.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:stock.move.line.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
-        "rpc:stock.move.unlink": "864530dca4cd902e5c644b1916ce3b1e7a208e1588ea0b9f83121a810059a313",
-        "rpc:stock.move.write": "df42ae0f47482799f2b000d03010e28c232fe54f12ffa8a5ca1c9f7afc740794",
+        "rpc:stock.move.unlink": "8392cb22dcbadf550d97367b0eea2170ce3561dcde2302e2b8b521a12916da0b",
+        "rpc:stock.move.write": "bc46530ac5525dcd28c2cb8bf00fe9e0bb04e5fcc9181dea766043c376e85869",
         "rpc:stock.orderpoint.snooze.create": "e01529fb01e0889fd6f4679a25ce6d1fcd327ded248fcd5e59cbcd4b0f6453e0",
         "rpc:stock.orderpoint.snooze.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:stock.orderpoint.snooze.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
@@ -119251,12 +119289,12 @@
         "rpc:stock.package.type.write": "d4b7fd4f04ea9d10a89d93d279aff09073292867d415ae0c7cb3d0b6204fd2d7",
         "rpc:stock.package.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:stock.package.write": "be50a466148847cc167eca14c0be9f5e71ac99f75d9a3da31b7688d44dd8c74b",
-        "rpc:stock.picking.create": "fa44d34b66eb97f728843df433f7afee5e1d4ea0bf1ae60c0d3c15e3f9f86c20",
+        "rpc:stock.picking.create": "7e54762373172ead4bffdccddfb08ea385d9aeee278133312cfb1f92e26683d0",
         "rpc:stock.picking.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:stock.picking.type.create": "509517b65191daa3d0c0a7856d023581bb0803452c38e4ea97464a47f0a64836",
         "rpc:stock.picking.type.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:stock.picking.type.write": "83fde5a42ce78aaf67bc2281e74d3ebe46d955ce643dc1676f597f61123aaa71",
-        "rpc:stock.picking.write": "c34c2362a35aaa5f34c49a511213468aa6033b5249244dcd21ec1e91f7844eff",
+        "rpc:stock.picking.write": "9c39304a5d7df61fcb52e545d3c866c3dc45301c39d031d36d0d393efa06a6db",
         "rpc:stock.put.in.pack.create": "e01529fb01e0889fd6f4679a25ce6d1fcd327ded248fcd5e59cbcd4b0f6453e0",
         "rpc:stock.put.in.pack.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:stock.put.in.pack.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
@@ -152596,11 +152634,13 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.unlink:orm_unlink:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.write:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.write:orm_write:3",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.create:orm_create:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.create:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.unlink:orm_unlink:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.write:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.write:orm_write:3",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:payment.transaction.create:orm_create:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:payment.transaction.write:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.create:orm_create:1",
@@ -152610,10 +152650,12 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.unlink:orm_unlink:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.write:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.write:orm_write:3",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.message_post:message_send:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.unlink:orm_unlink:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.write:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.write:orm_write:3",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:res.partner.create:orm_create:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:res.partner.create:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:res.partner.write:orm_write:1",
@@ -152630,10 +152672,12 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.unlink:orm_unlink:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.write:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.write:orm_write:3",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.message_post:message_send:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.unlink:orm_unlink:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.write:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.write:orm_write:3",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.create:orm_create:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.create:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.lines.create:orm_create:1",
@@ -152642,19 +152686,23 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.unlink:orm_unlink:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.write:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.write:orm_write:3",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.create:orm_create:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.create:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.line.create:orm_create:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.line.unlink:orm_unlink:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.line.write:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.line.write:orm_write:2",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.unlink:orm_unlink:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.write:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.write:orm_write:3",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.create:orm_create:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.create:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.unlink:orm_unlink:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.write:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.write:orm_write:3",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.valuation.adjustment.lines.create:orm_create:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.valuation.adjustment.lines.unlink:orm_unlink:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.valuation.adjustment.lines.write:orm_write:1"
@@ -152722,6 +152770,9 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.write:orm_write:2": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:mrp.production.write"
         },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.write:orm_write:3": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:mrp.production.write"
+        },
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.create:orm_create:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:mrp.unbuild.create"
         },
@@ -152735,6 +152786,9 @@
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:mrp.unbuild.write"
         },
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.write:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:mrp.unbuild.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.write:orm_write:3": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:mrp.unbuild.write"
         },
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:payment.transaction.create:orm_create:1": {
@@ -152764,6 +152818,9 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.write:orm_write:2": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:purchase.order.line.write"
         },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.write:orm_write:3": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:purchase.order.line.write"
+        },
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.message_post:message_send:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:purchase.order.message_post"
         },
@@ -152774,6 +152831,9 @@
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:purchase.order.write"
         },
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.write:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:purchase.order.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.write:orm_write:3": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:purchase.order.write"
         },
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:res.partner.create:orm_create:1": {
@@ -152824,6 +152884,9 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.write:orm_write:2": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:sale.order.line.write"
         },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.write:orm_write:3": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:sale.order.line.write"
+        },
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.message_post:message_send:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:sale.order.message_post"
         },
@@ -152834,6 +152897,9 @@
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:sale.order.write"
         },
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.write:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:sale.order.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.write:orm_write:3": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:sale.order.write"
         },
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.create:orm_create:1": {
@@ -152849,7 +152915,7 @@
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.landed.cost.lines.unlink.unlink"
         },
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.lines.write:orm_write:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.landed.cost.lines.write.write"
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.landed.cost.lines.write"
         },
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.unlink:orm_unlink:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.landed.cost.unlink"
@@ -152858,6 +152924,9 @@
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.landed.cost.write"
         },
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.write:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.landed.cost.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.write:orm_write:3": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.landed.cost.write"
         },
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.create:orm_create:1": {
@@ -152873,7 +152942,10 @@
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.move.line.unlink.unlink"
         },
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.line.write:orm_write:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.move.line.write.write"
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.move.line.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.line.write:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.move.line.write"
         },
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.unlink:orm_unlink:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.move.unlink"
@@ -152882,6 +152954,9 @@
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.move.write"
         },
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.write:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.move.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.write:orm_write:3": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.move.write"
         },
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.create:orm_create:1": {
@@ -152899,6 +152974,9 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.write:orm_write:2": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.picking.write"
         },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.write:orm_write:3": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.picking.write"
+        },
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.valuation.adjustment.lines.create:orm_create:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.valuation.adjustment.lines.create.create"
         },
@@ -152906,7 +152984,7 @@
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.valuation.adjustment.lines.unlink.unlink"
         },
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.valuation.adjustment.lines.write:orm_write:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.valuation.adjustment.lines.write.write"
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:stock.valuation.adjustment.lines.write"
         }
       },
       "rationale": "Runtime registry and source reachability facts provide no direct ordinary RPC/controller access; any reviewed parent or manual scheduler entry is classified separately.",
@@ -152923,31 +153001,35 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.line.write:orm_write:2": "51f3c080e22a05f89a68c006527792690c603b50544ef802dc8e7fe7aeab772d",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.write:orm_write:1": "8efe912546c5d9b8d985acfdd4c4a96a3f42c71a5f1c35c813625ab3bd8ff955",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.order.write:orm_write:2": "51f3c080e22a05f89a68c006527792690c603b50544ef802dc8e7fe7aeab772d",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.partner.identity.create:orm_create:1": "565795794f776de9fc9c476c64c36916c4924364a7198020d26205816609b206",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.partner.identity.write:orm_write:1": "4bfb7189d8b74064494b847c5314e50928deeca8af1330cdbba8ba25c6b733b0",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.partner.identity.create:orm_create:1": "acc492f6129990690d3339e748df3b7abcb47fbaeb7764dbdd29198fbeaf0dd9",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.partner.identity.write:orm_write:1": "d97ff834d311e81cc31d3fa3d5bd97b3e8f3c905da800a544629167dbd648643",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.create:orm_create:1": "0630e8c345904ade618e11acba05297dbd5c1923309f44cc539ab2176dd5d6e4",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.create:orm_write:1": "f38f8ef34409d700f18a51078d0a812ef567b0e41db0450f0686f8222e3c0d23",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.unlink:orm_unlink:1": "59d22591229318e4a5ae3fd2fe6643ebeab63882980830b0012b33e39121bba4",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.write:orm_write:1": "256d7ba9a33af99aa0a94cf402e27ec636e82f5134ceafbe7a8b8e23b1cfaa6f",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.write:orm_write:2": "541893c5d94e22db12d1f77a9d8a4c770d9c883000272f938e37266c715110a1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.write:orm_write:1": "2e8ce83c81e4df132ce99a51b1cf716fcb8b6b9bac28449880be5f788d21d73c",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.write:orm_write:2": "799da693ce6e475538cbc5931539a91fa4a875ead503dd95c4c8581bbb7aa3e0",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.production.write:orm_write:3": "c4a7459bd788a757dc52b1e8c186e07fa43b30bf2e39feabe7b13149f88b83d3",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.create:orm_create:1": "0630e8c345904ade618e11acba05297dbd5c1923309f44cc539ab2176dd5d6e4",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.create:orm_write:1": "f38f8ef34409d700f18a51078d0a812ef567b0e41db0450f0686f8222e3c0d23",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.unlink:orm_unlink:1": "3b058dc61f6fbece67cd067390ee39ce8e35ef6e009eed88650c6582be83a16a",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.write:orm_write:1": "aed711ddd1dfecb3b122315a76c9db1f0100cca7b8819cc61d9c37cccd1559f6",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.write:orm_write:2": "4e9d0496266e55e19fc560e9298ecc15f560cdd7727164642aea3f353d9463ab",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.write:orm_write:1": "b0200370fc2b936077a60e961a9d0f487c9abe5fd754cc94bfdef4fb1040c1ef",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.write:orm_write:2": "5935e953e2d91f524c5b1001151439a14dc5ec41ede41f105933cc381f259158",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:mrp.unbuild.write:orm_write:3": "6cb75f7a0e131c5f81981c2b303ba7a48918b0a0462dd7fa878ef3eebba0867b",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:payment.transaction.create:orm_create:1": "f69851cf66dec06ffeac4d81752ad227dd93574d41ea714de16bd36aa784e3f5",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:payment.transaction.write:orm_write:1": "2b537d6bc699ece16f78bc392be0514b6569dc10ed14338af07a41ec9790cf43",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.create:orm_create:1": "0630e8c345904ade618e11acba05297dbd5c1923309f44cc539ab2176dd5d6e4",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.create:orm_write:1": "f38f8ef34409d700f18a51078d0a812ef567b0e41db0450f0686f8222e3c0d23",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.create:orm_create:1": "5b1613c4e679335a8def7e86b19ddcdd9008802c9638a64be80b497e22cd9cef",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.create:orm_write:1": "617b597eef8bb239b21dcc6b801635fda626b9a58a45c10b556f796bd337f7bb",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.create:orm_create:1": "16753df145f271e2e2f9930c7563beda07a07bc88fbb2c2a05f8e5035f511dd3",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.create:orm_write:1": "bad145ed20947d6132e7b535223801a576f2c1a4cee2274e3cdb951a4531e066",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.unlink:orm_unlink:1": "d6377395c8bbe586206b9d34b5b48f25ed9f04fba4bc2d06018830d54bfad942",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.write:orm_write:1": "b59d3991303efadef0c9c0a006693d5e681118302240ae909d82466177a087a3",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.write:orm_write:2": "5fe4748e2b13a5b3a9086069e8897b494d5f4f79a58f0f13fe95427857a572dd",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.write:orm_write:1": "6e8ae9dbcaa30b54b1f7d2966d0f7cc3365b5d156701f267ac7a552c0fa73251",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.write:orm_write:2": "757f10ddc6b596c4f230d587af3864ad3b0c9ed295cf9d2477992f20c871dc49",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.line.write:orm_write:3": "b9ee866726912866301d7f7292b15c38784d0e675142046fb04e9ed431946c3b",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.message_post:message_send:1": "080fbc148f5f777df8d4be0bc5342a96a4145156134b4c2f7ee039d28d1b59d1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.unlink:orm_unlink:1": "888a04bd2bcbd3e69e8f7c39271a16ee1e2439d2afbf6662d38fd65174215c56",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.write:orm_write:1": "f9e6b1d09c16465311881ad8c5db36aefdfb3c3d9aa3c9038cb7430f56213f7e",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.write:orm_write:2": "3aba3fc7012ecc43b7050333416edc3b622ca2ddbc01a1607b15f1688bd1883c",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.write:orm_write:1": "e4ae8d58ed129308a2d400c82cb779e1de1ddff7f36775725b41d4b25b1f23e9",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.write:orm_write:2": "f5d6a0685a75db7c71b8c223db672ab905dfe745cb1f9899985ca8627fe5f9e4",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:purchase.order.write:orm_write:3": "a07888f7d1d4944209a42ca2aa986d3ff6c842f75fbefde6d6709bce3bc869fc",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:res.partner.create:orm_create:1": "0630e8c345904ade618e11acba05297dbd5c1923309f44cc539ab2176dd5d6e4",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:res.partner.create:orm_write:1": "f38f8ef34409d700f18a51078d0a812ef567b0e41db0450f0686f8222e3c0d23",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:res.partner.write:orm_write:1": "8efe912546c5d9b8d985acfdd4c4a96a3f42c71a5f1c35c813625ab3bd8ff955",
@@ -152959,39 +153041,45 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order._send_payment_succeeded_for_order_mail:orm_write:1": "2488aa924e4e97f358c11c9a00dcb15554e4283271f0e87c23daa2a5333660f9",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.create:orm_create:1": "0630e8c345904ade618e11acba05297dbd5c1923309f44cc539ab2176dd5d6e4",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.create:orm_write:1": "f38f8ef34409d700f18a51078d0a812ef567b0e41db0450f0686f8222e3c0d23",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.create:orm_create:1": "c791dd956ec009c74b1e3f1892ddb7690357c56805e181e6c783e8fa86f07d9d",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.create:orm_write:1": "69649dd0cae1adaa697165c4fe1157e440a0c58e3f897988f16b641331e1293a",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.create:orm_create:1": "23de441e5ed7d42316154b8e7de883edf9449f5d152918f83ff1bf2a8d6e890b",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.create:orm_write:1": "7de493c2f40999d92f7d164bc653c1119362eacfe292b0323a1add02fd861627",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.unlink:orm_unlink:1": "7aa92c9482b5ece31de86d478e8a55d0114248f1148b06ff03e313de282ae2b1",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.write:orm_write:1": "81325485d3ae12402793696eb3452f16f83b6ead59bec983ef26e2a748239f38",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.write:orm_write:2": "341bb5ea479349480c62ca2deba8654131fd6666b600ff2597fce73c9d7b3839",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.write:orm_write:1": "d9c66428e3984873e21ee3628701ea4e75a77b2d73f764d1a702161bf359570f",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.write:orm_write:2": "c38204563d1c5ab49589f401ee853fb8bf9b9399ca02f6055846460ca19ec76b",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.line.write:orm_write:3": "139d6fb65731f62cc9f014fcaf75000ac6b169420a5e856b2385917d032c34dc",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.message_post:message_send:1": "e08bd66e11675c1cbe1b3efed6f275c7a5dfd13ed12904b2a67adc33e032aa00",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.unlink:orm_unlink:1": "ac30811a922edfc0f65fcdbd9dcc20185891b9441d422d11a93ad4fc82ef86d7",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.write:orm_write:1": "d381738ceef1672eb9036a84fb8fc92a097cabfde77398d8f2e4aeacb1eb2d7c",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.write:orm_write:2": "345b26ede02b2bc109102853ce0b81584d9731cbee58919cc27dfd36a16ae1bf",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.write:orm_write:1": "c49d4d7ba9bee21c98e37f2f49fa4dcacb234552b9fa0da4fab350866649e794",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.write:orm_write:2": "c2e37aa91e99da502015e090d627d4ddbfbfd84b1117bec336c69bf97493d804",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:sale.order.write:orm_write:3": "d12690b32d636d9ef9f20f6206c6110b9d24fa904789102cbab27a0af4dcd749",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.create:orm_create:1": "0630e8c345904ade618e11acba05297dbd5c1923309f44cc539ab2176dd5d6e4",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.create:orm_write:1": "f38f8ef34409d700f18a51078d0a812ef567b0e41db0450f0686f8222e3c0d23",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.lines.create:orm_create:1": "287900ea0f58231ccc21c76ff917996330af00d7d678bed6c9fe18a3a7e85a0b",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.lines.unlink:orm_unlink:1": "9d7402635763017821b62109f5ea5996d025cdef3ad19f73fd9f651dd8bb370a",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.lines.write:orm_write:1": "a178fc25653d18ff0a4d4937f31a0a99786f6cbdbdf7a07bc96631fb04f80129",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.lines.create:orm_create:1": "8352028c9eea239c1db096416063f4ccc3084958ae191885ea65c6f692ef2f15",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.lines.unlink:orm_unlink:1": "2834c76e959ef4c491d4fb2279603bb48272c110dcf0b95c800423c68c001672",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.lines.write:orm_write:1": "f2200c5fb98dbc88d72f8dd7e56badf6f9953b336acd35fd2176c1842707e36c",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.unlink:orm_unlink:1": "779f35135850eec0900e5ad417e482ab2ed9deeab32e48f1122c1c68b9a85366",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.write:orm_write:1": "2c461ececbbdb5e82671cafc1f0bb7c7d7ed2cd18a2c55bbb9b5824a7e51b420",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.write:orm_write:2": "557b68fd0ab61b4ffbd798e6154043571bba5d12f00cfe5019222e5e3b484b83",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.create:orm_create:1": "08af08b2755d2dd2a2cf7a58cbaca98299a6a3cd53c3a31894f09add16a39099",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.create:orm_write:1": "a01383c3e35a45e676b87c97d532d41295332ce2012f249551e893f3f01c9578",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.line.create:orm_create:1": "e50c703a8d06d1e1560249b76bf5bca0659e8f6e8d3575a8df638f80aae5c0fa",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.line.unlink:orm_unlink:1": "bdd390cb44713e30deb0a9f78503d73a41546650c023f0381638490b991d86dc",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.line.write:orm_write:1": "dd7b9a000e3f54ffe7f5ea65da1df83856461c428c933be93f98c8475638604c",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.write:orm_write:1": "aecd76bba4007df24358c356122e0ac95b31ad9c48d28e4b2dd5ed41fb355a47",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.write:orm_write:2": "b2a66073ae7c644d875d1fbf209aed8b755f2592354db6fc7ea847237357ca9f",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.landed.cost.write:orm_write:3": "8b0b723283bb51a86ba6102cb2359ca2d1f8d82bfe2fa997e5766d1884200db0",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.create:orm_create:1": "0c3fedfe9fcbf7444b835c82c885a77455ee0927f4558719be9540842a6e2760",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.create:orm_write:1": "16414a7860b43a1af303aeb200b145a2646341866ce7770c09fa4263c2ca5d83",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.line.create:orm_create:1": "e12618e5d1f9888a011dde514a437f74e6f874ed20830b428d700123460b51f0",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.line.unlink:orm_unlink:1": "ee3440623dd491e3ec8e0bcbc72226e1e4aaf988b81aae7d563091bae82d7219",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.line.write:orm_write:1": "aab9173b0391c3c4128c1c7a29b6f3538a766153ac666abb2ba8b0cdb9a4e4b9",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.line.write:orm_write:2": "06889bcd3f46e483fa9ad175e14bcb7866c5cc1034d74cf8a6959f5a5c764dc3",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.unlink:orm_unlink:1": "1853698ebef5c2eb18cfdfebe2ada23318e7982afe127f85ef120c9c71e064b8",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.write:orm_write:1": "910ce95e34ae7787fa945837c9cd45cf86eff24ddb98a1084bdfbbdda01204a9",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.write:orm_write:2": "f3fde00b0db9330fd97af099a54c9d1a74ce30b31fed9f5ac65900f5795fbf6e",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.write:orm_write:1": "553ac3408673566f892effe641b1e1ec919909bcc465fc6e851942fbce3bbe8c",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.write:orm_write:2": "9211e585964572c47db9e1135c561e7414314651f920e13e47b91a67e7b0cba2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.move.write:orm_write:3": "72bcf265b253d9dfcb99019aaf3d2776e81e0921cf09669725ebaf0049932ba4",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.create:orm_create:1": "0630e8c345904ade618e11acba05297dbd5c1923309f44cc539ab2176dd5d6e4",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.create:orm_write:1": "f38f8ef34409d700f18a51078d0a812ef567b0e41db0450f0686f8222e3c0d23",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.unlink:orm_unlink:1": "5a6a825349202750515b0c160995b5f214044b84a08fe51dc7af9cfc88aad24b",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.write:orm_write:1": "87ccaf67cc0a0113c0cec0daf86d0fde1eb0dd0462bc54ce05d399b3ebed2015",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.write:orm_write:2": "1cb4aa69befcb6040f0daf770559ee4a118c97f5c09fa30ec2c7f00bd22bb923",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.valuation.adjustment.lines.create:orm_create:1": "7f2eb909e2ddb0a5bb1a209ec604201ea6bf419936647b53936240240ff64f05",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.valuation.adjustment.lines.unlink:orm_unlink:1": "e381c61bfdec97734baab1babc24e7f953b396aba31c13d928f15d81430e3215",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.valuation.adjustment.lines.write:orm_write:1": "4ecdb1861adebb28bcfd960567ecf0110582cdf8705907e2fb96dd7b5184f3c1"
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.write:orm_write:1": "43ade4f4db713d47746f541bb7d8a59c3911401a149a5e01a0c69bb150277ea2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.write:orm_write:2": "03f4a0aed6db6cbfa8963ada0ab804acad6bcc7cc33e44dd81a74c2fbbbd05f2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.picking.write:orm_write:3": "109480286e50a461b0379e6d90652e80289fb0eccbc185eb5e3ee65e9448ddaf",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.valuation.adjustment.lines.create:orm_create:1": "4132e5f2c0acd03c2edeb70f7b64895109591a61ae10284364631257a6a2733f",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.valuation.adjustment.lines.unlink:orm_unlink:1": "429563df330cab320517f050ba7438c41de37aea6364b03316b321f07f8ee5e3",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:stock.valuation.adjustment.lines.write:orm_write:1": "587069ce18cee30b1b042467dfd52a1d2447cefb17078e0d293bc22d617b4c8b"
       }
     },
     {
@@ -185118,7 +185206,7 @@
       },
       "rationale": "Exact upstream review: docs/operations/chore-stack-20260905.md; per-action rationale records the inspected consequence and authority boundary.",
       "reviewed_digests": {
-        "ui:l10n_fr_pdp.l10n_fr_pdp_action_open_response_wizard": "6eb7bd2ef4dfc3e328cea1f9d669e3e17ceb42f82fc731deaf67654884ffd883"
+        "ui:l10n_fr_pdp.l10n_fr_pdp_action_open_response_wizard": "9372b351a5d72d96e15e31041f4980517470bbd68ebef426a93e883207da4ccb"
       }
     },
     {
@@ -194610,6 +194698,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "3326707ddd903adcb61c65f345b3036b146aa4bbac2bef9d82cf33dae834eb18",
+  "qualified_policy_digest": "683896cd878e77e479750ee7ae021a4d3a809e4c82f1531502e2ebe69c6f0fcb",
   "schema": "usl-action-risk-policy-v1"
 }
