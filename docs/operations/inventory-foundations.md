@@ -82,13 +82,29 @@ date as an explicit approximation.
 
 Historical Landed Costs are created only for documented relationships: Quandun
 freight and duty by quantity, and shared Chonghong chain freight by current
-receipt cost. Import VAT remains outside product cost. Because valuation is
-periodic/manual, these operations create no Accounting journal entry.
+receipt cost. Import VAT remains outside product cost. Because the products use
+periodic (manual) valuation, these operations create no Accounting journal
+entry, but they still need a moving cost — FIFO or average — to spread the cost
+over the receipt, and a stock journal on the company or the product category.
+The run checks both up front and names the products that would block it.
 
 The result is Odoo's theoretical stock source of truth until the 30 September
 physical inventory. At that point, record the measured differences through a
 native Inventory Adjustment and document their business explanation. Do not
 rewrite the reconstructed acquisition or consumption history.
+
+Run the promotion once, verify it, and finalize before warehouse work resumes.
+It proves a rerun by re-reading every record it created against the same
+evidence, so ordinary operations afterwards — validating one of the eight open
+reservations, adding a bill of materials, adjusting stock — make that proof
+fail. That is deliberate: after finalization the reconstruction is history, and
+later movements belong to normal operations.
+
+The promotion also requires the source graph to be complete before it starts.
+Every canonical order line must already carry a verified product mapping, and
+the evidence counts and digests must match the qualified set exactly. A database
+whose SKU mappings are still under review is refused with the exact shortfall;
+completing that review is a separate, evidence-backed step.
 
 Raw AISI 304 chain uses diameter variants; A4/316 remains separate so
 Odoo cannot offer impossible material/diameter combinations. Any later merge,

@@ -14,12 +14,32 @@ runs, source database IDs, technical row traces, manifests, or parity UI.
 Future sales, purchase, delivery, valuation, payment, and margin operations use
 native Community records. The reviewed Etsy and Medusa evidence is promoted to
 native Sales and Inventory records when its business meaning is deterministic;
-the canonical B2C records remain immutable provenance under **B2C Evidence**. A
+the canonical B2C records remain the provenance under **B2C Evidence**. Their
+identity is immutable: canonical keys, provider identifiers, order and line
+evidence, payload digests and attachments are fingerprinted before and after a
+promotion and any change fails it. The promotion does refresh the derived
+commercial reading of a canonical order — its state, dates, addresses and
+amounts — from the same evidence payloads, so those fields stay outside that
+fingerprint by design. A
 link may point to an existing native sale order, payment,
 transaction, journal item, bank transaction, picking, move, purchase order, or
 attachment. A relationship is direct only when unique transaction evidence
 supports it. Monthly aggregate Accounting coverage remains visibly separate
 from a direct order or event allocation.
+
+A promotion changes Accounting in exactly one way: it points a documented
+vendor-bill line at the historical Purchase line that reconstructs it. Every
+other Accounting fact — entries, journal items, reconciliation and payments — is
+fingerprinted before and after, and the run fails if any of it moves. The run
+also removes the vendor pricelist rows that confirming a historical Purchase
+order would otherwise leave behind, so historical prices never become today's
+purchasing defaults.
+
+Historical customers become ordinary contacts carrying an immutable provider
+identity. An erasure request is answered by anonymising the contact in place —
+name, email and address are editable — not by deleting it: the provider identity
+holds the audit relation and cannot be removed. The identity itself stores only
+a digest of the source address, never a second copy of the personal data.
 
 The business semantics are fixed:
 
