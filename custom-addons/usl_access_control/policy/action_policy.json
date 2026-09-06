@@ -280,7 +280,7 @@
         "rpc:account.peppol.response.fields_get": "54e9647068c2f61bc56f71a73f3cd7c55515336d96d741a30bd7c179cb4cea69",
         "rpc:pdp.response.wizard.button_send": "7d337a7b40e614dd4314927b54ea405510189899e1988821a0097aaf7a02c3d7",
         "rpc:pdp.response.wizard.fields_get": "84ab441f672d3088bf474e19374d75b67616cdfe639c3de36efa41ecd316d3a2",
-        "server_action:l10n_fr_pdp.l10n_fr_pdp_action_open_response_wizard": "25c746c04b67638872712c374a7b23af2fef1f2292021a3ec3fa6d5f08704495"
+        "server_action:l10n_fr_pdp.l10n_fr_pdp_action_open_response_wizard": "0341a0aaf5fc8a3a2f7a97f1ccaed20ea6613df6188015989e5fa38e746eace7"
       }
     },
     {
@@ -40539,7 +40539,7 @@
       },
       "rationale": "Exact upstream review: docs/operations/chore-stack-20260905.md; per-action rationale records the inspected consequence and authority boundary.",
       "reviewed_digests": {
-        "ui:hr_expense.hr_expense_actions_all": "b4fc6ad692c9deb3081c34a99bde4a497832ba3c8f7cb6b230ff2035c1551d80"
+        "ui:hr_expense.hr_expense_actions_all": "32c70759d0be62c4aec5cd6c9b23393055c8a875e2d0446a8bd4b6cd2c0b591a"
       }
     },
     {
@@ -181931,6 +181931,7 @@
         "ui:rebuild_account_migration.view_rebuild_account_tax_report_line_list:button:object:action_open_journal_items:1",
         "ui:rebuild_account_migration.view_rebuild_account_trial_balance_line_list:button:object:action_open_journal_items:1",
         "ui:rebuild_account_migration.view_rebuild_accounting_expense_form_guidance:button:object:action_pay:1",
+        "ui:rebuild_account_migration.view_rebuild_accounting_expense_form_guidance:button:object:action_rebuild_waive_receipt:1",
         "ui:rebuild_account_migration.view_rebuild_accounting_home_bank_checkpoint:button:object:action_open_bank_checkpoint:1",
         "ui:rebuild_account_migration.view_rebuild_accounting_home_form:button:object:action_open_bank_matching:1",
         "ui:rebuild_account_migration.view_rebuild_accounting_home_form:button:object:action_open_bank_matching:2",
@@ -184114,6 +184115,11 @@
             "rpc:hr.expense.action_pay"
           ]
         },
+        "ui:rebuild_account_migration.view_rebuild_accounting_expense_form_guidance:button:object:action_rebuild_waive_receipt:1": {
+          "targets": [
+            "rpc:hr.expense.action_rebuild_waive_receipt"
+          ]
+        },
         "ui:rebuild_account_migration.view_rebuild_accounting_home_bank_checkpoint:button:object:action_open_bank_checkpoint:1": {
           "targets": [
             "rpc:rebuild.account.overview.action_open_bank_checkpoint"
@@ -185099,6 +185105,7 @@
         "ui:rebuild_account_migration.view_rebuild_account_tax_report_line_list:button:object:action_open_journal_items:1": "4f52abac1c737291c83595f1d78d90710bea909f96a5164dd05bfbb2ba75413a",
         "ui:rebuild_account_migration.view_rebuild_account_trial_balance_line_list:button:object:action_open_journal_items:1": "be731b3d9f01a0df2c5fc384ec0588ae5192e3442b3cdf1e6190caa199bbcff0",
         "ui:rebuild_account_migration.view_rebuild_accounting_expense_form_guidance:button:object:action_pay:1": "46302dcd270aa01f264ea0ebf27bae876c0c84700e3250282d780f781e0bc6c8",
+        "ui:rebuild_account_migration.view_rebuild_accounting_expense_form_guidance:button:object:action_rebuild_waive_receipt:1": "c4fafbf7836fda5d1188ff81d168bf3fddb0e1c78dfc614a109df058e19e52c3",
         "ui:rebuild_account_migration.view_rebuild_accounting_home_bank_checkpoint:button:object:action_open_bank_checkpoint:1": "f9d4c4c47dc763a3970c7480174fdd745a10204070801167c05958d74a782bb3",
         "ui:rebuild_account_migration.view_rebuild_accounting_home_form:button:object:action_open_bank_matching:1": "360553ac7beba6311194e6cc38dba8e8b7bb609dbf439432675377b7ed34f342",
         "ui:rebuild_account_migration.view_rebuild_accounting_home_form:button:object:action_open_bank_matching:2": "e4b667d2d19443664754f5150f8b68a87db61966838923e82025f4f40d675595",
@@ -185251,7 +185258,7 @@
       },
       "rationale": "Exact upstream review: docs/operations/chore-stack-20260905.md; per-action rationale records the inspected consequence and authority boundary.",
       "reviewed_digests": {
-        "ui:l10n_fr_pdp.l10n_fr_pdp_action_open_response_wizard": "9372b351a5d72d96e15e31041f4980517470bbd68ebef426a93e883207da4ccb"
+        "ui:l10n_fr_pdp.l10n_fr_pdp_action_open_response_wizard": "6eb7bd2ef4dfc3e328cea1f9d669e3e17ceb42f82fc731deaf67654884ffd883"
       }
     },
     {
@@ -194743,6 +194750,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "16059c05636082630a64364ff66deaedab4e0d7d282697e1e6afce7830908924",
+  "qualified_policy_digest": "b1e9619c070b9289e3efe6463ff41388e4d511e03e03bb94a0405efd364c2960",
   "schema": "usl-action-risk-policy-v1"
 }
