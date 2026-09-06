@@ -1269,7 +1269,7 @@ class TestCleanUslSign(TransactionCase):
         signer = request.signer_ids
         invitation = signer._issue_access_token()
         with (
-            patch("odoo.addons.usl_sign.models.request.secrets.randbelow", return_value=42),
+            patch("odoo.addons.usl_sign.models.request_signer.secrets.randbelow", return_value=42),
             patch.object(type(signer), "_send_ephemeral_email", return_value=True),
         ):
             exchange = signer._exchange_access_token(invitation)

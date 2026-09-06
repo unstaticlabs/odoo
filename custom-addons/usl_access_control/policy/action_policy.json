@@ -154090,30 +154090,30 @@
         "sink:usl_sign:custom-addons/usl_sign/models/external.py:usl.sign.external.journey.create:orm_create:1",
         "sink:usl_sign:custom-addons/usl_sign/models/external.py:usl.sign.external.journey.write:orm_write:1",
         "sink:usl_sign:custom-addons/usl_sign/models/partner.py:res.partner._compute_signature_summary:external_call:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._archive_dossier:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._archive_dossier:orm_write:2",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._archive_dossier:orm_write:3",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._archive_dossier:sudo:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:10",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:2",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:3",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:4",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:5",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:6",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:7",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:8",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:9",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._archive_dossier:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._archive_dossier:orm_write:2",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._archive_dossier:orm_write:3",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._archive_dossier:sudo:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:10",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:2",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:3",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:4",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:5",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:6",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:7",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:8",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:9",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._close_outstanding_work:orm_write:1",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._close_outstanding_work:orm_write:2",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_create:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_write:2",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_write:3",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_write:4",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_write:5",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_write:6",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_write:7",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_create:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_write:2",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_write:3",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_write:4",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_write:5",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_write:6",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_write:7",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._compute_next_step:sudo:1",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._compute_signer_id:sudo:1",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._compute_workspace_presentation:sudo:1",
@@ -154126,38 +154126,38 @@
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._cron_sign_operations:orm_write:5",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._cron_sign_operations:orm_write:6",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._cron_sign_operations:sudo:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._cross_validate_pdf:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._editor_store_result:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._cross_validate_pdf:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_editor.py:sign.oca.request._editor_store_result:orm_write:1",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._expire_request:orm_write:1",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._expire_request:orm_write:2",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._freeze_document:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._freeze_document:orm_write:2",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._freeze_document:orm_write:3",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_editor.py:sign.oca.request._freeze_document:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_editor.py:sign.oca.request._freeze_document:orm_write:2",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_editor.py:sign.oca.request._freeze_document:orm_write:3",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._internal_signer_users:sudo:1",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._missing_strong_enrollments_by_request:sudo:1",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._prepare_external_journey:orm_create:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:2",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:3",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:4",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:5",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:6",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:7",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:8",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:sudo:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:2",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:3",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:4",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:5",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:6",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:7",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:8",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:sudo:1",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._record_validation_failure:orm_create:1",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._record_validation_failure:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._send_completed_dossier:sudo:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._send_completed_dossier:sudo:1",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._send_due_reminders:orm_write:1",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._send_due_reminders:orm_write:2",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._share_confirmation_action:orm_create:1",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._sign_business_record_models:sudo:1",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._sign_business_record_models:sudo:2",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._stamp_completion_renderer_provenance:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._start_final_validation:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._store_dss_reports:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._store_dss_reports:orm_write:2",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._store_pdf_certificate_chains:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._stamp_completion_renderer_provenance:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._start_final_validation:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._store_dss_reports:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._store_dss_reports:orm_write:2",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._store_pdf_certificate_chains:orm_write:1",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._transition:orm_write:1",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.action_create_replacement:orm_create:1",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.action_create_replacement:orm_create:2",
@@ -154185,45 +154185,45 @@
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.create:orm_create:1",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.create:orm_create:2",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.get_business_record_summary:external_call:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._activate_next_signer_or_finish:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._apply_standard_signature:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._apply_standard_signature:orm_write:2",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._apply_standard_signature:orm_write:3",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._check_exchange_rate_limit:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._compute_invitation_delivery_state:sudo:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._compute_is_allow_signature:sudo:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._compute_personal_presentation:sudo:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._ensure_internal_signing_activities:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._ensure_internal_signing_activities:sudo:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._exchange_access_token:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._internal_signing_users:sudo:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._internal_signing_users:sudo:2",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._issue_access_token:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._issue_email_otp:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._issue_email_otp:orm_write:2",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._mark_viewed:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._prepare_signing_candidate:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._prepare_signing_candidate:orm_write:2",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._prepare_signing_candidate:orm_write:3",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._record_exchange_failure:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._send_ephemeral_email:message_send:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._send_ephemeral_email:orm_create:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._send_ephemeral_email:sudo:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._send_signer_invitation:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._send_signer_invitation:orm_write:2",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._store_signing_context_evidence:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._verify_email_otp:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._verify_email_otp:orm_write:2",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.action_decline:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.action_decline:orm_write:2",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.action_decline:orm_write:3",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.create:orm_create:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.get_info:sudo:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.unlink:external_call:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.unlink:message_send:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.unlink:orm_unlink:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.unlink:orm_write:1",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.write:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._activate_next_signer_or_finish:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._apply_standard_signature:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._apply_standard_signature:orm_write:2",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._apply_standard_signature:orm_write:3",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._check_exchange_rate_limit:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._compute_invitation_delivery_state:sudo:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._compute_is_allow_signature:sudo:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._compute_personal_presentation:sudo:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._ensure_internal_signing_activities:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._ensure_internal_signing_activities:sudo:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._exchange_access_token:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._internal_signing_users:sudo:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._internal_signing_users:sudo:2",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._issue_access_token:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._issue_email_otp:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._issue_email_otp:orm_write:2",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._mark_viewed:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._prepare_signing_candidate:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._prepare_signing_candidate:orm_write:2",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._prepare_signing_candidate:orm_write:3",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._record_exchange_failure:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._send_ephemeral_email:message_send:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._send_ephemeral_email:orm_create:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._send_ephemeral_email:sudo:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._send_signer_invitation:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._send_signer_invitation:orm_write:2",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._store_signing_context_evidence:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._verify_email_otp:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._verify_email_otp:orm_write:2",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.action_decline:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.action_decline:orm_write:2",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.action_decline:orm_write:3",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.create:orm_create:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.get_info:sudo:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.unlink:external_call:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.unlink:message_send:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.unlink:orm_unlink:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.unlink:orm_write:1",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.write:orm_write:1",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.unlink:orm_unlink:1",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.write:orm_write:1",
         "sink:usl_sign:custom-addons/usl_sign/models/service_status.py:usl.sign.service.health._capability_result:sudo:1",
@@ -158982,76 +158982,10 @@
         "sink:usl_sign:custom-addons/usl_sign/models/partner.py:res.partner._compute_signature_summary:external_call:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._archive_dossier:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._archive_dossier:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._archive_dossier:orm_write:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._archive_dossier:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:10": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:4": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:5": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:6": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:7": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:8": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:9": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._close_outstanding_work:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._close_outstanding_work:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_create:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_write:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_write:4": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_write:5": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_write:6": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_write:7": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._compute_next_step:sudo:1": {
@@ -159090,25 +159024,10 @@
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._cron_sign_operations:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._cross_validate_pdf:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._editor_store_result:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._expire_request:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._expire_request:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._freeze_document:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._freeze_document:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._freeze_document:orm_write:3": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._internal_signer_users:sudo:1": {
@@ -159120,40 +159039,10 @@
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._prepare_external_journey:orm_create:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:4": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:5": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:6": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:7": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:8": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._record_validation_failure:orm_create:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._record_validation_failure:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._send_completed_dossier:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._send_due_reminders:orm_write:1": {
@@ -159169,21 +159058,6 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._sign_business_record_models:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._stamp_completion_renderer_provenance:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._start_final_validation:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._store_dss_reports:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._store_dss_reports:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._store_pdf_certificate_chains:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._transition:orm_write:1": {
@@ -159267,127 +159141,253 @@
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.get_business_record_summary:external_call:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._activate_next_signer_or_finish:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._apply_standard_signature:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._apply_standard_signature:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._apply_standard_signature:orm_write:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._check_exchange_rate_limit:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._compute_invitation_delivery_state:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._compute_is_allow_signature:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._compute_personal_presentation:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._ensure_internal_signing_activities:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._ensure_internal_signing_activities:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._exchange_access_token:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._internal_signing_users:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._internal_signing_users:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._issue_access_token:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._issue_email_otp:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._issue_email_otp:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._mark_viewed:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._prepare_signing_candidate:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._prepare_signing_candidate:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._prepare_signing_candidate:orm_write:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._record_exchange_failure:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._send_ephemeral_email:message_send:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._send_ephemeral_email:orm_create:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._send_ephemeral_email:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._send_signer_invitation:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._send_signer_invitation:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._store_signing_context_evidence:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._verify_email_otp:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._verify_email_otp:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.action_decline:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.action_decline:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.action_decline:orm_write:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.create:orm_create:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.get_info:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.unlink:external_call:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.unlink:message_send:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.unlink:orm_unlink:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.unlink:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.write:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.unlink:orm_unlink:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.write:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._archive_dossier:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._archive_dossier:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._archive_dossier:orm_write:3": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._archive_dossier:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:10": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:3": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:4": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:5": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:6": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:7": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:8": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:9": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_create:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_write:3": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_write:4": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_write:5": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_write:6": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_write:7": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._cross_validate_pdf:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:3": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:4": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:5": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:6": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:7": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:8": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._send_completed_dossier:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._stamp_completion_renderer_provenance:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._start_final_validation:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._store_dss_reports:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._store_dss_reports:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._store_pdf_certificate_chains:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_editor.py:sign.oca.request._editor_store_result:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_editor.py:sign.oca.request._freeze_document:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_editor.py:sign.oca.request._freeze_document:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_editor.py:sign.oca.request._freeze_document:orm_write:3": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._activate_next_signer_or_finish:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._apply_standard_signature:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._apply_standard_signature:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._apply_standard_signature:orm_write:3": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._check_exchange_rate_limit:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._compute_invitation_delivery_state:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._compute_is_allow_signature:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._compute_personal_presentation:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._ensure_internal_signing_activities:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._ensure_internal_signing_activities:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._exchange_access_token:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._internal_signing_users:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._internal_signing_users:sudo:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._issue_access_token:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._issue_email_otp:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._issue_email_otp:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._mark_viewed:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._prepare_signing_candidate:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._prepare_signing_candidate:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._prepare_signing_candidate:orm_write:3": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._record_exchange_failure:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._send_ephemeral_email:message_send:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._send_ephemeral_email:orm_create:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._send_ephemeral_email:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._send_signer_invitation:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._send_signer_invitation:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._store_signing_context_evidence:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._verify_email_otp:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._verify_email_otp:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.action_decline:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.action_decline:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.action_decline:orm_write:3": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.create:orm_create:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.get_info:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.unlink:external_call:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.unlink:message_send:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.unlink:orm_unlink:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.unlink:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.write:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_sign:custom-addons/usl_sign/models/service_status.py:usl.sign.service.health._capability_result:sudo:1": {
@@ -161104,30 +161104,8 @@
         "sink:usl_sign:custom-addons/usl_sign/models/external.py:usl.sign.external.journey.create:orm_create:1": "acfcdf2e06f048bf655b0023d2560f8118e83b3b9725ba6c413880ce5e0e3438",
         "sink:usl_sign:custom-addons/usl_sign/models/external.py:usl.sign.external.journey.write:orm_write:1": "5391ec149215444194db4501fe2678a2c61ad9bd32d55fe4750d5ad811c1f1a0",
         "sink:usl_sign:custom-addons/usl_sign/models/partner.py:res.partner._compute_signature_summary:external_call:1": "e1a0af69f99c60eefa649bafccaec0b6cc11633c835008007b4dad64b6cb3e8e",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._archive_dossier:orm_write:1": "b026490dfdb2e94cb84305335333d547f5e833b2d716d2d0c8082a4fc9761f04",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._archive_dossier:orm_write:2": "21b1526b550dfef3730545927d7976f9b6ccd72ff2e87344d614571c80a9c47a",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._archive_dossier:orm_write:3": "da41d0e3350e37f887f0b2f48aee92eb47970506e0ea2ff26188c47a7d2b666a",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._archive_dossier:sudo:1": "9ae59a661c4a9f2f99679fb8a4a8670440c4eb651049c9f319873109e7f1d925",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:1": "fa7111349423cc8bcffdca83f5b45da9eb0b995e2acbb930dff6013b87513079",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:10": "75a86f11dab688dd602b866500350f86178f88ea6bb7c92944f5841ebc56725b",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:2": "d528020968cfdb77b064b0eeac2e0a65a94bcef8a610daa85bce3ec712d14d66",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:3": "499d77bbf127e00aaf2b6fcc2099b68a747611dbf0cc3c8b52e9ba73ca8f0c0a",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:4": "591e15f77b82d9051b3d08111ce5a01cf09c7a7c9b8048afc082887804f22062",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:5": "568fa4b739679aed5f46c3c50a2da22382bad610e5428f60e2042cb018c44056",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:6": "f848ebdc9cef873e008db8730a3761810adc8f4febe7d53e2214067e2954f034",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:7": "9827a3eb1f7b773a3cba748c89d7b95abaa527657c13e4712f66b444e50d585c",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:8": "6e2b489b3fa5ebc4373b11b31e70c615ca291920ea823ba46d8494bd94f41886",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._build_completion_evidence:orm_write:9": "dc40590118a9c082f5b7106f7a7ec2d4a3b20091a2015a20ed8ecc94ce29b2e3",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._close_outstanding_work:orm_write:1": "7480f225339d0333c9d3d06eca6ee4f9747f8fbe5c25317aa4c33c6110ee32e7",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._close_outstanding_work:orm_write:2": "a6e109e202e30ee5bc785560a4ff5b9b881e937e344100ce6afe23f45f736cae",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_create:1": "c57e3a571dc2818c97f909e12fb5140afce62a99b529ae20ceecc97daada9089",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_write:1": "2ccde29d8ab46e4b1cd4caae4bf626aa9d27af5d2d78012713e2fea1a12ec6a7",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_write:2": "a3f2e1ae463361c042a170e4d1a58f719567b2001e084fde2b2f56b46d62a560",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_write:3": "ad5be07dec40a5dac22ad09a438126001f0d7cf0e2bcb7e761cc59ac7954526b",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_write:4": "10d3be443ba28d9ae250e320f4cd8adbe9d63b85a9a8f122797e3c5806ffabf5",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_write:5": "280173841ff7a63e790155ec085ef7c6734352f3741a0f477eaf92eef00efd47",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_write:6": "74425ab1dedd02fa2ecc90172cc0972b650cd44ca2c5b84cd5c62b462fda7b5e",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._complete_validated_document:orm_write:7": "14d07698adc962a019f6143c8e256e804fecfcf108defe40d8b35a002ceac527",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._compute_next_step:sudo:1": "93b9bd3176263eb5f92a465d028f9a0e4d260da771375ebcfa45ab6b42224735",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._compute_signer_id:sudo:1": "8bd0c0bee10b1985cdd703a63eea244f6c3934c9dd518883b815aa68ff5d1813",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._compute_workspace_presentation:sudo:1": "bcb4881f5da4935c2da080eb2922a7fbdd5d56913e6a0fe7b06570c8ff3f20e0",
@@ -161140,38 +161118,18 @@
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._cron_sign_operations:orm_write:5": "2bb79749e1e4ef67f3cd72394cd4a1e0e22cb23f8ea7cefa01e0f15b36e8635b",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._cron_sign_operations:orm_write:6": "db8213bffbbcb2c6992e216af19d662cf0a5f5b463372d6cccc9d2ce1bd04383",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._cron_sign_operations:sudo:1": "ba619ca35c5e8ac8f9a115e00cc1fbbf6f2396794ad6031044fcd5b40a2118ab",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._cross_validate_pdf:orm_write:1": "8b9856371f5f4bfd3408df4b08a375e8895c00d0128cc78ab61288ac17d392a2",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._editor_store_result:orm_write:1": "0366141bf6e51ddbb0b3f3f122f55a81c9d3a75daf0e71019e1178bedffdeb35",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._expire_request:orm_write:1": "ba2585b8137a7b85490df93cffef8fd1f2ff9738ce1b5919be922f4745642d13",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._expire_request:orm_write:2": "4227c5de4f2560cbfd77b531f3df5d1c20aeaa83e01c455715da5552525d9a78",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._freeze_document:orm_write:1": "8e7f274ec65bc305f09ae247cd6028baca1d06335034977726bdb08b3d44dfc9",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._freeze_document:orm_write:2": "9bce42dd7803db43eafd5243b4aacc9de8f1d8a768d53a34735e06238e7f0a7f",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._freeze_document:orm_write:3": "38467670b0c64277fd70da6e63b9526eb196a71bc83be9e6baf2f1e8ddf91eb9",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._internal_signer_users:sudo:1": "b56a0c749eb9766b3e6c991cd34ccee0b83af179280647a0fd9ffd67809532c9",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._missing_strong_enrollments_by_request:sudo:1": "43937b3f97cff8b672b17d4aefafdab0b41a3c80926b9ebb922497d7a11f2323",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._prepare_external_journey:orm_create:1": "8e83a51b24806f06a1caf5e526b4045c765e568efc0b26eb230e69954003ea59",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:1": "cc133697cd0930c1a99af8dc1c95cf3a7ddcacc2a345c4c6203730dbbb312419",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:2": "0045997525c45d7709cd9632148554977c29324d207ada117d64beee5258ed5a",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:3": "33d071f5bc40e45625de0bba3ab9b4f03389840a4c28504f42afd97158c4b26e",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:4": "e3642ee9bf44ceb73bd80c54f4dadc312a33d1c64f477793af279435ed5c02d6",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:5": "5ebce605b17408440b1c2762b5c2345fa793b71fbf4d3542ff571dd50accc020",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:6": "d75dd3e14fc0ba3097f5e59d9d25536fec4a2db8776ede0fec8c01b4b9d45993",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:7": "69475419e82ea348ff7b89e819a832d3778504f2977f97c80d9ae26ffb8ce274",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:orm_write:8": "99a029d290cd46e2964b83e77f861c5dd1ebd9735bcaa045a8f2119c04f73bcc",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._reconcile_archive:sudo:1": "be08fbfcc09e12070170849624790ce1ab1d14954a4ab3055697b8b19e97ebdc",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._record_validation_failure:orm_create:1": "9be84343750175bbbc2cab67176775b682e9ee309b0bedfcb6b84c8bf9ce8b69",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._record_validation_failure:orm_write:1": "66c623db23b58a93dd91a3f4b29946c72bf470988bd6e2c63aefc06cc8853090",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._send_completed_dossier:sudo:1": "9735c776c3892d53b9fed546f9da80f054af82c02317d9cf7f1e297a32ec6d26",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._send_due_reminders:orm_write:1": "5ba878c35f0ae0162bff3b824aa281783db3ce23bd0585d5de2be490914fc77f",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._send_due_reminders:orm_write:2": "9dea89bcf2edb2d76fd2837762bb933d87397ccfd6fd2e10c21166a70c334aed",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._share_confirmation_action:orm_create:1": "1726d11993a27ff73f22671bfd92f258366fb49a3d6958ddb39cd9fc7374a521",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._sign_business_record_models:sudo:1": "94def8ab333b78d5088405a193f2241dc934d2b3c229fb501b506ad9238a2835",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._sign_business_record_models:sudo:2": "a4afec0a25c0fdc55e9d3a7595d8f86b341efed8a6e330eb94001035d4aa2eb9",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._stamp_completion_renderer_provenance:orm_write:1": "bcf05411bfca3beaddd9b015f480ebeab72bbd8d838e1b64f560e3f0391ff93a",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._start_final_validation:orm_write:1": "181c6ec6b7dff8f7d4b26f1c714dc532dd14766c691e64f23852488ce8b1cc0c",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._store_dss_reports:orm_write:1": "8ab5e86673b7874e01256ba4fbb7df1634f89223d338436113296dbfe821ce24",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._store_dss_reports:orm_write:2": "eb082c316412f04afd8c3c51c91970b033fa28ebf773b2e6e464e3df701bde2a",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._store_pdf_certificate_chains:orm_write:1": "17c4508883881943cac9dbe9f8f4d9062c118d931ac0374f19fdd03d05afddd9",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._transition:orm_write:1": "aa5ee84f332963594e8cdc8f98402e2bb4a8ed7d188b06adf22aa4f08a1f7cf2",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.action_create_replacement:orm_create:1": "4cf4a600be6ca9b82a891b55adbede6d82049f466edf5f2f51f6d506d8dd430e",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.action_create_replacement:orm_create:2": "097998b8f85b3c3a625210e4f512e3d2464ab7e944b69aa951bdddc73bd2e457",
@@ -161199,47 +161157,89 @@
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.create:orm_create:1": "f45d755c0210242c11be1f9c90c0916f4659207695886a5c4a21c3e94fccd23b",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.create:orm_create:2": "630df7f74677af60ce78b6ebb207a0acb444fe026da1d251a409c21f33660a06",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.get_business_record_summary:external_call:1": "ec570475e1d2de4fbac3fc695441b368df43935efb2fe8b4d311e042ec4c6767",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._activate_next_signer_or_finish:orm_write:1": "e518eae767d59167a04636f767d46eee44395f8d88a00327e000b61314544eab",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._apply_standard_signature:orm_write:1": "7b304a582bb3dcfddaa155e5aeda2e01e9a12ae3be832df1d3b8859bb83d098e",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._apply_standard_signature:orm_write:2": "7e490f087ad09208af39c41f8f96ae5ffbbeaf7811fb38c93609293d76e83d35",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._apply_standard_signature:orm_write:3": "eec6b3801bf1309d46dc57046dc15119470b4a3e5c48f75f3cc22a03e2ae2b7c",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._check_exchange_rate_limit:orm_write:1": "ce84ffc1f5f7acf47e7681b79bbd8a80f8abf3b56ba2ec96e081ca0b56073dea",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._compute_invitation_delivery_state:sudo:1": "f8e3aa02bf495c486b285aa84140721dc0a66dd60e7d47c6d31dbd6e3745a9be",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._compute_is_allow_signature:sudo:1": "f42b8d762564ceabf05a78524fe76520e32200ad2a2a4126cc3882ebed8c71d9",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._compute_personal_presentation:sudo:1": "152ac9e13b37d1c2775888180d572990f5fbbc2e5dd48a3320acf1863d62244d",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._ensure_internal_signing_activities:orm_write:1": "735af636b68ebd35a9fabd327267fd09327d05085c94ba5f19825871cbd105fd",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._ensure_internal_signing_activities:sudo:1": "8752af0ac3182d49454d6ada1ab6b0e4ee212979bbe489b3b493cb0a05bbe549",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._exchange_access_token:orm_write:1": "b4475eaa014a0346cd927b444415dcf389456e97b3047da12247e2841458f78b",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._internal_signing_users:sudo:1": "bee18922ab871b0728e46b432e74b9a31dd73bb0e093e0904a89f9677c861b61",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._internal_signing_users:sudo:2": "62fa37c8eb89901e1906ff98ce5de708fc64e8203b38fa164ab36c50a865bbf9",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._issue_access_token:orm_write:1": "267d41fceca739ed26fa26d3d683eedd559d54a028441b78cef94b2d4880a585",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._issue_email_otp:orm_write:1": "73cc01cb69b2f1f0f73860bc544adf2fba9b03e681fb88dee3b5112efea04d64",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._issue_email_otp:orm_write:2": "63cefea59057c327b80141018fc82d971a9e2456d92a53fbb22da74081e35804",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._mark_viewed:orm_write:1": "376ff99644e7f91b11c091c667c87b6bf5cf4c30060095e9f207a6a3d2781d78",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._prepare_signing_candidate:orm_write:1": "7467e52cd43ab904c2421b7ec223a87cf0cda9af1ef5dcb2b23be030433e3f8b",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._prepare_signing_candidate:orm_write:2": "8ec6f88d18a464572ceb6f9b9db5162f05b89039cbcb4bcdb3f1a427a2bda394",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._prepare_signing_candidate:orm_write:3": "48e03d4bdbe158ed9288d77dc73f2271ee9eb5b8ece17ce1f956efd3aebaccda",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._record_exchange_failure:orm_write:1": "f0d0e22785c244ab83f9bede3f2e6a4d365d4966f05832c610c264832575b77f",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._send_ephemeral_email:message_send:1": "7617e5a945a35c6c5880b6ee6e2d2c6375652017db4266130cf38dfc794e6a84",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._send_ephemeral_email:orm_create:1": "257fd8252b99f18c8e236ee0f53d1d598b455fb219ee473d4285f5216f81d740",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._send_ephemeral_email:sudo:1": "f83969be86b7c632cf4b458b58a4ca04e45e9e78389f4ac09ffdb49e097c4832",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._send_signer_invitation:orm_write:1": "7eac6b7cf34b2c3010e79b886338ae6593b2e04cfaafe369cad9047eafcd836a",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._send_signer_invitation:orm_write:2": "93932993325deef1180d547f518b9bd148f52240f6355b4272c20526007e1369",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._store_signing_context_evidence:orm_write:1": "d923b4309ced6e49c9a756a7216424fff50570622a4afc0279576237f5c34ef3",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._verify_email_otp:orm_write:1": "fe6371f41a669e4345fa112ffbb1b4b74adea61502f8455beae5c74ef9db5481",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer._verify_email_otp:orm_write:2": "bb9c5b183edbd03bc07ec99ffe26dffed78757910eb0122cb640d6f6ebac6dc7",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.action_decline:orm_write:1": "0e9bb41f9a8d41f54fef75fb12a5533f443d971e351ad4ba270442da4d510d69",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.action_decline:orm_write:2": "de46c89498e04e8bc5f89bd7d42d1c168146d93a80064e07168d878f17fb2df6",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.action_decline:orm_write:3": "c4845dc4eab8f69e9cf062ba1402259a40723e55b8023b08f3c7575d157417f3",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.create:orm_create:1": "2b08018c2751b2f331f8ca0137ddfe5479d9a048e856d157666700d35f92d491",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.get_info:sudo:1": "4d137acd4585269a5bd4805be9df715940f76530c7ceb93228686effa3c2a943",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.unlink:external_call:1": "8120adf7fe9490a58fc504e9ab3b4d138097fd369f7655d5a207476e5b286f0d",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.unlink:message_send:1": "64f863d687ec22fb4d5fe26fa4219cd9fe8afcd9184449d87392b36b130f372e",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.unlink:orm_unlink:1": "b5be1de50eabb745bbc03c944808cd6b77d71bf2167f19a48931a00e12ea0893",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.unlink:orm_write:1": "62c96a492d280db59f4d991d3adc31915c96147bc8bb25332fee48a2fd7db68e",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.signer.write:orm_write:1": "2c468f3749bebd95f278843ca14aded12ac592f0dba551d3705794342c23f812",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.unlink:orm_unlink:1": "0182e0a14c9728e56bd04fb94c5941a12fd0ac4e66aa2d45c1a4fd67bf512c4e",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request.write:orm_write:1": "30cc89ccad1bfeec08555806456e1ce022e71e80639e767e18c640b5ea4e2b18",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._archive_dossier:orm_write:1": "b026490dfdb2e94cb84305335333d547f5e833b2d716d2d0c8082a4fc9761f04",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._archive_dossier:orm_write:2": "21b1526b550dfef3730545927d7976f9b6ccd72ff2e87344d614571c80a9c47a",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._archive_dossier:orm_write:3": "da41d0e3350e37f887f0b2f48aee92eb47970506e0ea2ff26188c47a7d2b666a",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._archive_dossier:sudo:1": "9ae59a661c4a9f2f99679fb8a4a8670440c4eb651049c9f319873109e7f1d925",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:1": "fa7111349423cc8bcffdca83f5b45da9eb0b995e2acbb930dff6013b87513079",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:10": "75a86f11dab688dd602b866500350f86178f88ea6bb7c92944f5841ebc56725b",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:2": "d528020968cfdb77b064b0eeac2e0a65a94bcef8a610daa85bce3ec712d14d66",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:3": "499d77bbf127e00aaf2b6fcc2099b68a747611dbf0cc3c8b52e9ba73ca8f0c0a",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:4": "591e15f77b82d9051b3d08111ce5a01cf09c7a7c9b8048afc082887804f22062",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:5": "568fa4b739679aed5f46c3c50a2da22382bad610e5428f60e2042cb018c44056",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:6": "f848ebdc9cef873e008db8730a3761810adc8f4febe7d53e2214067e2954f034",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:7": "9827a3eb1f7b773a3cba748c89d7b95abaa527657c13e4712f66b444e50d585c",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:8": "6e2b489b3fa5ebc4373b11b31e70c615ca291920ea823ba46d8494bd94f41886",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._build_completion_evidence:orm_write:9": "dc40590118a9c082f5b7106f7a7ec2d4a3b20091a2015a20ed8ecc94ce29b2e3",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_create:1": "c57e3a571dc2818c97f909e12fb5140afce62a99b529ae20ceecc97daada9089",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_write:1": "2ccde29d8ab46e4b1cd4caae4bf626aa9d27af5d2d78012713e2fea1a12ec6a7",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_write:2": "a3f2e1ae463361c042a170e4d1a58f719567b2001e084fde2b2f56b46d62a560",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_write:3": "ad5be07dec40a5dac22ad09a438126001f0d7cf0e2bcb7e761cc59ac7954526b",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_write:4": "10d3be443ba28d9ae250e320f4cd8adbe9d63b85a9a8f122797e3c5806ffabf5",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_write:5": "280173841ff7a63e790155ec085ef7c6734352f3741a0f477eaf92eef00efd47",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_write:6": "74425ab1dedd02fa2ecc90172cc0972b650cd44ca2c5b84cd5c62b462fda7b5e",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._complete_validated_document:orm_write:7": "14d07698adc962a019f6143c8e256e804fecfcf108defe40d8b35a002ceac527",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._cross_validate_pdf:orm_write:1": "8b9856371f5f4bfd3408df4b08a375e8895c00d0128cc78ab61288ac17d392a2",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:1": "cc133697cd0930c1a99af8dc1c95cf3a7ddcacc2a345c4c6203730dbbb312419",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:2": "0045997525c45d7709cd9632148554977c29324d207ada117d64beee5258ed5a",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:3": "33d071f5bc40e45625de0bba3ab9b4f03389840a4c28504f42afd97158c4b26e",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:4": "e3642ee9bf44ceb73bd80c54f4dadc312a33d1c64f477793af279435ed5c02d6",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:5": "5ebce605b17408440b1c2762b5c2345fa793b71fbf4d3542ff571dd50accc020",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:6": "d75dd3e14fc0ba3097f5e59d9d25536fec4a2db8776ede0fec8c01b4b9d45993",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:7": "69475419e82ea348ff7b89e819a832d3778504f2977f97c80d9ae26ffb8ce274",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:orm_write:8": "99a029d290cd46e2964b83e77f861c5dd1ebd9735bcaa045a8f2119c04f73bcc",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._reconcile_archive:sudo:1": "be08fbfcc09e12070170849624790ce1ab1d14954a4ab3055697b8b19e97ebdc",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._send_completed_dossier:sudo:1": "9735c776c3892d53b9fed546f9da80f054af82c02317d9cf7f1e297a32ec6d26",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._stamp_completion_renderer_provenance:orm_write:1": "bcf05411bfca3beaddd9b015f480ebeab72bbd8d838e1b64f560e3f0391ff93a",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._start_final_validation:orm_write:1": "181c6ec6b7dff8f7d4b26f1c714dc532dd14766c691e64f23852488ce8b1cc0c",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._store_dss_reports:orm_write:1": "8ab5e86673b7874e01256ba4fbb7df1634f89223d338436113296dbfe821ce24",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._store_dss_reports:orm_write:2": "eb082c316412f04afd8c3c51c91970b033fa28ebf773b2e6e464e3df701bde2a",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_completion.py:sign.oca.request._store_pdf_certificate_chains:orm_write:1": "17c4508883881943cac9dbe9f8f4d9062c118d931ac0374f19fdd03d05afddd9",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_editor.py:sign.oca.request._editor_store_result:orm_write:1": "0366141bf6e51ddbb0b3f3f122f55a81c9d3a75daf0e71019e1178bedffdeb35",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_editor.py:sign.oca.request._freeze_document:orm_write:1": "8e7f274ec65bc305f09ae247cd6028baca1d06335034977726bdb08b3d44dfc9",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_editor.py:sign.oca.request._freeze_document:orm_write:2": "9bce42dd7803db43eafd5243b4aacc9de8f1d8a768d53a34735e06238e7f0a7f",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_editor.py:sign.oca.request._freeze_document:orm_write:3": "38467670b0c64277fd70da6e63b9526eb196a71bc83be9e6baf2f1e8ddf91eb9",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._activate_next_signer_or_finish:orm_write:1": "e518eae767d59167a04636f767d46eee44395f8d88a00327e000b61314544eab",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._apply_standard_signature:orm_write:1": "7b304a582bb3dcfddaa155e5aeda2e01e9a12ae3be832df1d3b8859bb83d098e",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._apply_standard_signature:orm_write:2": "7e490f087ad09208af39c41f8f96ae5ffbbeaf7811fb38c93609293d76e83d35",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._apply_standard_signature:orm_write:3": "eec6b3801bf1309d46dc57046dc15119470b4a3e5c48f75f3cc22a03e2ae2b7c",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._check_exchange_rate_limit:orm_write:1": "ce84ffc1f5f7acf47e7681b79bbd8a80f8abf3b56ba2ec96e081ca0b56073dea",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._compute_invitation_delivery_state:sudo:1": "f8e3aa02bf495c486b285aa84140721dc0a66dd60e7d47c6d31dbd6e3745a9be",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._compute_is_allow_signature:sudo:1": "f42b8d762564ceabf05a78524fe76520e32200ad2a2a4126cc3882ebed8c71d9",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._compute_personal_presentation:sudo:1": "152ac9e13b37d1c2775888180d572990f5fbbc2e5dd48a3320acf1863d62244d",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._ensure_internal_signing_activities:orm_write:1": "735af636b68ebd35a9fabd327267fd09327d05085c94ba5f19825871cbd105fd",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._ensure_internal_signing_activities:sudo:1": "8752af0ac3182d49454d6ada1ab6b0e4ee212979bbe489b3b493cb0a05bbe549",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._exchange_access_token:orm_write:1": "b4475eaa014a0346cd927b444415dcf389456e97b3047da12247e2841458f78b",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._internal_signing_users:sudo:1": "bee18922ab871b0728e46b432e74b9a31dd73bb0e093e0904a89f9677c861b61",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._internal_signing_users:sudo:2": "62fa37c8eb89901e1906ff98ce5de708fc64e8203b38fa164ab36c50a865bbf9",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._issue_access_token:orm_write:1": "267d41fceca739ed26fa26d3d683eedd559d54a028441b78cef94b2d4880a585",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._issue_email_otp:orm_write:1": "73cc01cb69b2f1f0f73860bc544adf2fba9b03e681fb88dee3b5112efea04d64",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._issue_email_otp:orm_write:2": "63cefea59057c327b80141018fc82d971a9e2456d92a53fbb22da74081e35804",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._mark_viewed:orm_write:1": "376ff99644e7f91b11c091c667c87b6bf5cf4c30060095e9f207a6a3d2781d78",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._prepare_signing_candidate:orm_write:1": "7467e52cd43ab904c2421b7ec223a87cf0cda9af1ef5dcb2b23be030433e3f8b",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._prepare_signing_candidate:orm_write:2": "8ec6f88d18a464572ceb6f9b9db5162f05b89039cbcb4bcdb3f1a427a2bda394",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._prepare_signing_candidate:orm_write:3": "48e03d4bdbe158ed9288d77dc73f2271ee9eb5b8ece17ce1f956efd3aebaccda",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._record_exchange_failure:orm_write:1": "f0d0e22785c244ab83f9bede3f2e6a4d365d4966f05832c610c264832575b77f",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._send_ephemeral_email:message_send:1": "7617e5a945a35c6c5880b6ee6e2d2c6375652017db4266130cf38dfc794e6a84",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._send_ephemeral_email:orm_create:1": "257fd8252b99f18c8e236ee0f53d1d598b455fb219ee473d4285f5216f81d740",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._send_ephemeral_email:sudo:1": "f83969be86b7c632cf4b458b58a4ca04e45e9e78389f4ac09ffdb49e097c4832",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._send_signer_invitation:orm_write:1": "7eac6b7cf34b2c3010e79b886338ae6593b2e04cfaafe369cad9047eafcd836a",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._send_signer_invitation:orm_write:2": "93932993325deef1180d547f518b9bd148f52240f6355b4272c20526007e1369",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._store_signing_context_evidence:orm_write:1": "d923b4309ced6e49c9a756a7216424fff50570622a4afc0279576237f5c34ef3",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._verify_email_otp:orm_write:1": "fe6371f41a669e4345fa112ffbb1b4b74adea61502f8455beae5c74ef9db5481",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._verify_email_otp:orm_write:2": "bb9c5b183edbd03bc07ec99ffe26dffed78757910eb0122cb640d6f6ebac6dc7",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.action_decline:orm_write:1": "0e9bb41f9a8d41f54fef75fb12a5533f443d971e351ad4ba270442da4d510d69",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.action_decline:orm_write:2": "de46c89498e04e8bc5f89bd7d42d1c168146d93a80064e07168d878f17fb2df6",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.action_decline:orm_write:3": "c4845dc4eab8f69e9cf062ba1402259a40723e55b8023b08f3c7575d157417f3",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.create:orm_create:1": "2b08018c2751b2f331f8ca0137ddfe5479d9a048e856d157666700d35f92d491",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.get_info:sudo:1": "4d137acd4585269a5bd4805be9df715940f76530c7ceb93228686effa3c2a943",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.unlink:external_call:1": "8120adf7fe9490a58fc504e9ab3b4d138097fd369f7655d5a207476e5b286f0d",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.unlink:message_send:1": "64f863d687ec22fb4d5fe26fa4219cd9fe8afcd9184449d87392b36b130f372e",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.unlink:orm_unlink:1": "b5be1de50eabb745bbc03c944808cd6b77d71bf2167f19a48931a00e12ea0893",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.unlink:orm_write:1": "62c96a492d280db59f4d991d3adc31915c96147bc8bb25332fee48a2fd7db68e",
+        "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer.write:orm_write:1": "2c468f3749bebd95f278843ca14aded12ac592f0dba551d3705794342c23f812",
         "sink:usl_sign:custom-addons/usl_sign/models/service_status.py:usl.sign.service.health._capability_result:sudo:1": "8b745258ef7881eb807ff5969d2314807788daf39a21595dfe742bc1eb6f89d4",
         "sink:usl_sign:custom-addons/usl_sign/models/service_status.py:usl.sign.service.health._capability_result:sudo:2": "54def4938624bd54fceccc4cfb4756fb112dae9d55c44088e29a018d10a47548",
         "sink:usl_sign:custom-addons/usl_sign/models/service_status.py:usl.sign.service.health._ensure_company:orm_create:1": "6c86550b913bdb6d326b2bb66539de768edd4bb9e18a79bcb42d4c2a520bff31",
