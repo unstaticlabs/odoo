@@ -153835,27 +153835,12 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:orm_write:2",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:sudo:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_create:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_create:2",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:2",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:3",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:4",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:5",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:6",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:10",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:2",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:3",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:4",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:5",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:6",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:7",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:8",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:9",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_new_version:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.workspace_data:sudo:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.workspace_data:sudo:2",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.write:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/models/paperless_user_mapping.py:usl.paperless.user.mapping._identity_error:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/paperless_user_mapping.py:usl.paperless.user.mapping._mapped_user_documents:orm_write:1",
@@ -154274,7 +154259,16 @@
         "sink:web_unsplash:addons/web_unsplash/models/ir_attachment.py:ir.attachment._fetch_unsplash_images:external_call:1",
         "sink:web_unsplash:addons/web_unsplash/models/ir_attachment.py:ir.attachment._fetch_unsplash_images:orm_write:1",
         "sink:web_unsplash:addons/web_unsplash/models/ir_attachment.py:ir.attachment._fetch_unsplash_images:orm_write:2",
-        "sink:usl_sign:custom-addons/usl_sign/models/partner.py:res.partner._compute_signature_summary:sudo:1"
+        "sink:usl_sign:custom-addons/usl_sign/models/partner.py:res.partner._compute_signature_summary:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_decode_content:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_pending_operation:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_reuse_document:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_reuse_document:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_store_operation:orm_create:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_store_operation:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_store_operation:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_store_operation:sudo:2",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document._workspace_selected_view:sudo:1"
       ],
       "classification": "system_internal",
       "consequence": "Runs only as an internal helper, detected sink, or scheduler-owned job rather than an ordinary actor entry point.",
@@ -157921,6 +157915,30 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._queue_new_version:sudo:3": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_decode_content:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_pending_operation:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_reuse_document:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_reuse_document:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_store_operation:orm_create:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_store_operation:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_store_operation:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_store_operation:sudo:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.approve_permanent_deletion:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.approve_permanent_deletion"
         },
@@ -157978,59 +157996,17 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:sudo:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.update_archive_metadata"
         },
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_create:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.upload_from_odoo"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_create:2": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.upload_from_odoo"
-        },
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.upload_from_odoo"
         },
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:2": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.upload_from_odoo"
         },
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:4": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:5": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:6": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.upload_from_odoo"
         },
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:10": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:2": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.upload_from_odoo"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:3": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.upload_from_odoo"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:4": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.upload_from_odoo"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:5": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.upload_from_odoo"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:6": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:7": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:8": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:9": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_new_version:sudo:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.upload_new_version"
@@ -158347,6 +158323,9 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document._workspace_correspondent_values_by_id:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document._workspace_selected_view:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
         "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.document_detail:sudo:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.document_detail"
         },
@@ -158355,9 +158334,6 @@
         },
         "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.workspace_data:sudo:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.workspace_data"
-        },
-        "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.workspace_data:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document._canonical_download_base_url:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
@@ -160754,6 +160730,14 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._queue_new_version:sudo:1": "ec205ed97b8e07b364bec35cdef3eee9840db801e7bc5a07fa542b7e605805d7",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._queue_new_version:sudo:2": "cac138d4c15c798b4894f22ecb7164598ede28a23917243b9a02d15ba86247bf",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._queue_new_version:sudo:3": "70564ebf7b8d587838706a3acd144213b840803b8b2db75850708005909d46fa",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_decode_content:sudo:1": "8330a3e99cc9d2d7dad37ac8e1c1bf04a49ec05a27d3572909461169d44bb7ba",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_pending_operation:sudo:1": "8c85099c3dd39dccfdf690a0b4cde2ae2ef24ce1cb6971f491f5e5303e46f0c1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_reuse_document:orm_write:1": "5f4bf8265d6d6404a4c3cb3f6ae17d7064411e76bceda26f2481800d85c62f54",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_reuse_document:sudo:1": "93b7ee3af9dd15e2e9f84e95c95400c0014687d11291d7286cb773d6084161ef",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_store_operation:orm_create:1": "59d0362e959e164d8c620242b3be2c3e290623cb08558c41f4fb4d3963052ca7",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_store_operation:orm_write:1": "2fe7221f25ebe5065fa22248685d952d0ea4e46b8c47272829b555f57efc2430",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_store_operation:sudo:1": "8bc16ce1dea563d708af7d049607a7a062562c8e6f0e291474f4f77102cac9a5",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._upload_store_operation:sudo:2": "8cd983515523fcc86ecbd50dbb654c1629dbcfd4b323b6a661935bfbf1d154e4",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.approve_permanent_deletion:orm_write:1": "9496a9adf585cbffd7f8fa5f35147424968694f44ae9b836d77fb6ee029d09b4",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.approve_permanent_deletion:sudo:1": "38ad67a17c0a2cfa4e5572ddb90316135f1d26a6ede771385966e12df575b1bb",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.move_to_trash:message_send:1": "21d498ef9e1240c9d29be8b6a8c6e941f67365c780e6266cf32e64eeb78fa684",
@@ -160773,24 +160757,10 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:orm_write:1": "384e98004da0037aff29194ebf14f49a72687505fb67df33e92f99987efc5514",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:orm_write:2": "0f15298722e6f914f7be9a81e322118441190705a1089e7f125aa4bccc457442",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:sudo:1": "7afc77d0bcf8448fad884578157da4947abc0c7c49b39ef92e2f9045dc187211",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_create:1": "61c07cb56fb1697dc6766caaf7f8cb96a5820e89d02e916ca6ee10ff52ccb78b",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_create:2": "af0afccaa6a1e9758bf0d9b75728e8d08264113f39525ab86768ecaa190d6105",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:1": "d1a40f4e4154dcfc01daceed1b15aea50bcd7b33760cb73eaa14b6d34dc5ad19",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:2": "250b5cb6c67e02f1f9b0f8181e09e1f553db7cfac432e3ad91b9fda541dedfcb",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:3": "0fb434bd3ce374ffa8f45f4ddb032dccbd8fda7a5708ff9f4c0e2e566ed7622c",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:4": "60d7c9d95a60b6d04ba860d13cdd392ce9e27f8bf67bf8b96dcc869221e014eb",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:5": "fb4070f3ed8c00e62960cfd371a9da8e716e2a4fc6ea8939846693af2d360bf8",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:6": "2ddbf902068dfd3d2e9fbdebe307c45b2cf8267b86dcfca78490a58495309bb5",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:1": "3893648f35057ce9d80819bb756020496ac85c8de64eaa24f5bc2b0bff4feee5",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:10": "6d66fc3c903f15bf9b54c3e255dca3355f82abee16eff814149c7432c322bbdf",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:2": "0314c3ca60b25d3cc6bc1b389090489686089b839c4d7bb5e20a932158a65c4f",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:3": "b5e6b71cba5584d607e370cc12f74a853249a517aa7b716c53610149a164a74e",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:4": "29baf0afcf9180f415ce0d8305b1f97f2832467d2be389cb8b246180932a7f77",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:5": "bddaaa9dcd1fc9f139a4070b526598e403e3e7700b670f7f66596700f4d204cd",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:6": "91b3689cef8d8957003363dc8eb90df79725d731ab47a9a1983300b7b9277bd9",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:7": "cadba1243704d15c45a71550c41d1310d2a77689f3ce35f7f98024816fcbef07",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:8": "23b4d593ba3432b6edb5e2d40444c6d85f0e2a5a250ccff1a4d1b99f33a1765e",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:9": "5f6ddbd391ddf18f944d7229705853b1f3b0abd29b4fe8acfc6956d98c0783ba",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_new_version:sudo:1": "963c30d97836c96a2be38085262914508d7dbaf698f9603dedb5a91425d6c086",
         "sink:usl_documents:custom-addons/usl_documents/models/document_link.py:usl.document.link.create:orm_create:1": "3194c499fbfbc14d5ff4301860b3f28d1c22e45feceada97c60400701ad77d51",
         "sink:usl_documents:custom-addons/usl_documents/models/document_link.py:usl.document.link.create_for_record:orm_create:1": "6b5bb6e78a7504d0ec4a9ef59ea8a5a4fb198d8f67938cc62ee861f66d0243b8",
@@ -160896,10 +160866,10 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.unlink:orm_unlink:1": "2193304b9a07e9370883bfa7738d210db7ee7dc3bdc0695fa7d8bad0a302b146",
         "sink:usl_documents:custom-addons/usl_documents/models/document_views.py:usl.document.smart.view.write:orm_write:1": "5df0b4f975bcc3ad89129f34f93d9f2e59be40fda4368ff43687be04154c7d61",
         "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document._workspace_correspondent_values_by_id:sudo:1": "e312d2dc5e573ab7fa87504c55eada7f0782faaf34faf176e3af458fa696963b",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document._workspace_selected_view:sudo:1": "2c3efd5ccac4c26a37211d2e1735b920bbd3182bbb054d0fd0628e9003c2ddc5",
         "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.document_detail:sudo:1": "36b2b698b972405a74d437c129fe3a55a4d293048660243ca63c846accd47663",
         "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.document_detail:sudo:2": "9e5b4d0365731ad9ed5d52122cba120b046846b80abc8ec07f2e69f7360f1748",
         "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.workspace_data:sudo:1": "7932078872cc1e15fddbb6a420300357b477d6a742bc6df6c47774cc23a0f555",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.workspace_data:sudo:2": "a0874c3aa0d92f4b52c4cc786f125c7d3a12e96bce9a5989f64df91981238369",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document._canonical_download_base_url:sudo:1": "261582d4ba0b97b6771a23d36217c6b466cbd1084d41e364d4ffb29839236148",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._audit:orm_create:1": "5fb1d525c21789ef10860bb8cfd76bc645da0d3809763d3ac441c8e85fff998d",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._audit:sudo:1": "10c27722974a02ef9af93a4e46bd7abc48c6fda998c04d350949f63148a866af",

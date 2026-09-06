@@ -143,6 +143,149 @@ class UslDocument(models.Model):
         original_created_at=None,
         original_modified_at=None,
     ):
+        content = self._upload_decode_content(filename, content_base64, confidentiality)
+        source_record = self._upload_source_record(res_model, res_id)
+        operation = self._upload_pending_operation()
+        company = self._upload_company(source_record, res_model, company_id)
+        archive_context, original_created_at, original_modified_at = (
+            self._upload_archive_context(
+                source_record,
+                operation,
+                company,
+                confidentiality,
+                document_date=document_date,
+                document_type_id=document_type_id,
+                tag_ids=tag_ids,
+                original_created_at=original_created_at,
+                original_modified_at=original_modified_at,
+            )
+        )
+        confidentiality = archive_context.get("confidentiality") or confidentiality
+        checksum = hashlib.sha256(content).hexdigest()
+        metadata_hash = (
+            operation.metadata_hash
+            if operation and operation.metadata_hash
+            else self._archive_metadata_hash(archive_context)
+        )
+        retry_operation = self._upload_retry_operation(checksum, metadata_hash)
+        existing, matching_version = self._find_archive_fingerprint(
+            checksum,
+            metadata_hash,
+            company=company,
+            availability_state="available",
+        )
+        if existing:
+            retry_operation.acknowledge()
+            if source_record and self._paperless().configured:
+                archive_context = self._prepare_archive_context(
+                    source_record,
+                    operation.source_attachment_id if operation else None,
+                    context=archive_context,
+                )
+            return self._upload_reuse_document(
+                existing,
+                matching_version,
+                operation,
+                archive_context,
+                checksum,
+                metadata_hash,
+            )
+        trashed, _trashed_version = self._find_archive_fingerprint(
+            checksum,
+            metadata_hash,
+            company=company,
+            availability_state="trashed",
+        )
+        if trashed:
+            raise UserError(
+                _(
+                    "Identical content and classification are already in Trash. "
+                    "Restore that document before linking or uploading it again.",
+                ),
+            )
+        if source_record:
+            archive_context = self._prepare_archive_context(
+                source_record,
+                operation.source_attachment_id if operation else None,
+                context=archive_context,
+            )
+        mirrored, mirrored_version, unknown_remote_matches = (
+            self._upload_remote_matches(checksum, metadata_hash)
+        )
+        if mirrored:
+            retry_operation.acknowledge()
+            return self._upload_reuse_document(
+                mirrored,
+                mirrored_version,
+                operation,
+                archive_context,
+                checksum,
+                metadata_hash,
+            )
+        operation_values = self._upload_operation_values(
+            filename,
+            content_type,
+            company,
+            confidentiality,
+            res_model,
+            res_id,
+            source,
+            archive_context,
+            checksum,
+            metadata_hash,
+            retry_operation,
+            original_created_at,
+            original_modified_at,
+        )
+        if unknown_remote_matches:
+            operation_values.update(
+                {
+                    "state": "duplicate",
+                    "error_message": _(
+                        "Identical content exists outside your authorized Odoo archive "
+                        "view, but its classification fingerprint cannot be verified. "
+                        "A Documents administrator must classify it before reuse.",
+                    ),
+                },
+            )
+            operation = self._upload_store_operation(operation, operation_values)
+            return {
+                "state": "duplicate",
+                "operation_id": operation.id,
+                "message": operation.error_message,
+            }
+        operation = self._upload_store_operation(operation, operation_values)
+        try:
+            task_id = self._paperless().upload_multipart(
+                content,
+                filename,
+                content_type,
+                title=filename,
+                created=archive_context.get("document_date"),
+                correspondent_id=archive_context.get("correspondent_paperless_id"),
+                document_type_id=archive_context.get("document_type_paperless_id"),
+                tag_ids=archive_context.get("tag_paperless_ids"),
+            )
+            operation.sudo().write(
+                {"state": "processing", "paperless_task_id": task_id},
+            )
+            retry_operation.acknowledge()
+        except PaperlessError as error:
+            operation.sudo().write({"state": "failed", "error_message": str(error)})
+            raise
+        return {
+            "state": "processing",
+            "operation_id": operation.id,
+            "task_id": task_id,
+            "message": _(
+                "“%(document)s” was accepted and is being processed.",
+            )
+            % {"document": filename},
+        }
+
+    @api.model
+    def _upload_decode_content(self, filename, content_base64, confidentiality):
+        """Validate the upload request and return the decoded file content."""
         if not filename or not content_base64:
             raise ValidationError(_("Choose a non-empty file."))
         if confidentiality not in dict(CONFIDENTIALITIES):
@@ -159,23 +302,38 @@ class UslDocument(models.Model):
                 _("The file is empty or exceeds the %(size)s MB upload limit.")
                 % {"size": maximum // (1024 * 1024)},
             )
-        source_record = False
-        if res_model or res_id:
-            if (
-                res_model not in self.env["usl.document.link"]._allowed_models()
-                or not res_id
-            ):
-                raise ValidationError(_("Invalid source record for archive ingestion."))
-            source_record = self.env[res_model].browse(int(res_id)).exists()
-            if not source_record:
-                raise ValidationError(_("The source Odoo record no longer exists."))
-            source_record.check_access("read")
+        return content
+
+    @api.model
+    def _upload_source_record(self, res_model, res_id):
+        """Return the readable source record of the upload, or False."""
+        if not (res_model or res_id):
+            return False
+        if (
+            res_model not in self.env["usl.document.link"]._allowed_models()
+            or not res_id
+        ):
+            raise ValidationError(_("Invalid source record for archive ingestion."))
+        source_record = self.env[res_model].browse(int(res_id)).exists()
+        if not source_record:
+            raise ValidationError(_("The source Odoo record no longer exists."))
+        source_record.check_access("read")
+        return source_record
+
+    @api.model
+    def _upload_pending_operation(self):
+        """Return the pending operation a queued upload runs for, if any."""
         operation = self.env["usl.document.operation"]
         operation_id = self.env.context.get("usl_documents_operation_id")
         if operation_id and self.env.su:
             operation = operation.sudo().browse(int(operation_id)).exists()
             if not operation or operation.state != "pending":
                 raise ValidationError(_("The attachment archive request is no longer pending."))
+        return operation
+
+    @api.model
+    def _upload_company(self, source_record, res_model, company_id):
+        """Resolve the legal company of the upload and check it is allowed."""
         record_company = False
         if source_record:
             record_company = (
@@ -197,6 +355,23 @@ class UslDocument(models.Model):
             )
         if not self.env.su and company not in self.env.user.company_ids:
             raise AccessError(_("You cannot archive a document for this company."))
+        return company
+
+    @api.model
+    def _upload_archive_context(
+        self,
+        source_record,
+        operation,
+        company,
+        confidentiality,
+        *,
+        document_date=None,
+        document_type_id=None,
+        tag_ids=None,
+        original_created_at=None,
+        original_modified_at=None,
+    ):
+        """Build the archive context and return it with the original timestamps."""
         document_type = self.env["usl.paperless.document.type"]
         if document_type_id:
             document_type = document_type.browse(int(document_type_id)).exists()
@@ -235,7 +410,6 @@ class UslDocument(models.Model):
                 "related_records": [],
             }
         )
-        confidentiality = archive_context.get("confidentiality") or confidentiality
         if document_date:
             archive_context["document_date"] = fields.Date.to_string(document_date)
         if document_type:
@@ -284,13 +458,12 @@ class UslDocument(models.Model):
                 ),
             },
         )
-        checksum = hashlib.sha256(content).hexdigest()
-        metadata_hash = (
-            operation.metadata_hash
-            if operation and operation.metadata_hash
-            else self._archive_metadata_hash(archive_context)
-        )
-        retry_operation = self.env["usl.document.operation"].search(
+        return archive_context, original_created_at, original_modified_at
+
+    @api.model
+    def _upload_retry_operation(self, checksum, metadata_hash):
+        """Return the user's latest unacknowledged failed attempt for this file."""
+        return self.env["usl.document.operation"].search(
             [
                 ("checksum", "=", checksum),
                 ("metadata_hash", "=", metadata_hash),
@@ -301,80 +474,14 @@ class UslDocument(models.Model):
             order="create_date desc, id desc",
             limit=1,
         )
-        existing, matching_version = self._find_archive_fingerprint(
-            checksum,
-            metadata_hash,
-            company=company,
-            availability_state="available",
-        )
-        if existing:
-            retry_operation.acknowledge()
-            if source_record and self._paperless().configured:
-                archive_context = self._prepare_archive_context(
-                    source_record,
-                    operation.source_attachment_id if operation else None,
-                    context=archive_context,
-                )
-            if matching_version:
-                archive_context = {
-                    **archive_context,
-                    "related_records": [
-                        {
-                            **target,
-                            "version_id": matching_version.paperless_version_id,
-                        }
-                        for target in archive_context.get("related_records") or []
-                    ],
-                }
-            existing._apply_archive_context(
-                archive_context,
-                submitted_by=operation.user_id if operation else self.env.user,
-                access_user=(
-                    operation._archive_context_access_user()
-                    if operation
-                    else self.env.user
-                ),
-            )
-            if operation:
-                operation.sudo().write(
-                    {
-                        "state": "archived",
-                        "checksum": checksum,
-                        "metadata_hash": metadata_hash,
-                        "document_id": existing.id,
-                        "context_json": archive_context,
-                        "error_message": False,
-                        "next_attempt_at": False,
-                    },
-                )
-            return {
-                "state": "duplicate",
-                "document_id": existing.id,
-                "message": _(
-                    "“%(document)s” already contains this exact file and "
-                    "classification; the existing archive document was reused.",
-                )
-                % {"document": existing.name},
-            }
-        trashed, _trashed_version = self._find_archive_fingerprint(
-            checksum,
-            metadata_hash,
-            company=company,
-            availability_state="trashed",
-        )
-        if trashed:
-            raise UserError(
-                _(
-                    "Identical content and classification are already in Trash. "
-                    "Restore that document before linking or uploading it again.",
-                ),
-            )
-        if source_record:
-            archive_context = self._prepare_archive_context(
-                source_record,
-                operation.source_attachment_id if operation else None,
-                context=archive_context,
-            )
+
+    @api.model
+    def _upload_remote_matches(self, checksum, metadata_hash):
+        """Find a mirrored Paperless document with the same fingerprint.
+
+        Return the matching mirrored document and version, and the remote
+        matches that no authorized Odoo document mirrors.
+        """
         remote_candidates = self._paperless().search(
             "", page=1, page_size=2, filters={"checksum": checksum},
         ).get("results", [])
@@ -407,101 +514,80 @@ class UslDocument(models.Model):
                 mirrored_match = mirrored
                 mirrored_version = version
                 break
-        if mirrored_match:
-            mirrored = mirrored_match
-            if mirrored_version:
-                archive_context = {
-                    **archive_context,
-                    "related_records": [
-                        {
-                            **target,
-                            "version_id": mirrored_version.paperless_version_id,
-                        }
-                        for target in archive_context.get("related_records") or []
-                    ],
-                }
-            retry_operation.acknowledge()
-            mirrored._apply_archive_context(
-                archive_context,
-                submitted_by=operation.user_id if operation else self.env.user,
-                access_user=(
-                    operation._archive_context_access_user()
-                    if operation
-                    else self.env.user
-                ),
-            )
-            if operation:
-                operation.sudo().write(
+        return mirrored_match, mirrored_version, unknown_remote_matches
+
+    @api.model
+    def _upload_reuse_document(
+        self,
+        document,
+        version,
+        operation,
+        archive_context,
+        checksum,
+        metadata_hash,
+    ):
+        """Attach the upload's classification to an identical existing document."""
+        if version:
+            archive_context = {
+                **archive_context,
+                "related_records": [
                     {
-                        "state": "archived",
-                        "checksum": checksum,
-                        "metadata_hash": metadata_hash,
-                        "document_id": mirrored.id,
-                        "context_json": archive_context,
-                        "error_message": False,
-                        "next_attempt_at": False,
-                    },
-                )
-            return {
-                "state": "duplicate",
-                "document_id": mirrored.id,
-                "message": _(
-                    "“%(document)s” already contains this exact file and "
-                    "classification; the existing archive document was reused.",
-                )
-                % {"document": mirrored.name},
+                        **target,
+                        "version_id": version.paperless_version_id,
+                    }
+                    for target in archive_context.get("related_records") or []
+                ],
             }
-        if unknown_remote_matches:
-            operation_values = {
-                "name": filename,
-                "state": "duplicate",
-                "checksum": checksum,
-                "metadata_hash": metadata_hash,
-                "mime_type": content_type,
-                "company_id": company.id,
-                "confidentiality": confidentiality,
-                "res_model": res_model,
-                "res_id": int(res_id) if res_id else 0,
-                "source": source,
-                "accounting_evidence": bool(
-                    archive_context.get("accounting_evidence"),
-                ),
-                "access_scope": archive_context.get("access_scope") or "linked_record",
-                "archive_mode": archive_context.get("archive_mode") or "automatic",
-                "document_role": archive_context.get("document_role") or "library",
-                "attachment_origin": (
-                    archive_context.get("attachment_origin")
-                    or "documents_workspace"
-                ),
-                "policy_reason": (
-                    archive_context.get("policy_reason")
-                    or "generic_documents_upload"
-                ),
-                "context_json": archive_context,
-                "original_created_at": original_created_at,
-                "original_modified_at": original_modified_at,
-                "error_message": _(
-                    "Identical content exists outside your authorized Odoo archive "
-                    "view, but its classification fingerprint cannot be verified. "
-                    "A Documents administrator must classify it before reuse.",
-                ),
-                "retry_of_id": retry_operation.id,
-                "retry_count": (retry_operation.retry_count + 1)
-                if retry_operation
-                else 0,
-            }
-            if operation:
-                operation.sudo().write(operation_values)
-            else:
-                operation = self.env["usl.document.operation"].sudo().create(
-                    operation_values,
-                )
-            return {
-                "state": "duplicate",
-                "operation_id": operation.id,
-                "message": operation.error_message,
-            }
-        operation_values = {
+        document._apply_archive_context(
+            archive_context,
+            submitted_by=operation.user_id if operation else self.env.user,
+            access_user=(
+                operation._archive_context_access_user()
+                if operation
+                else self.env.user
+            ),
+        )
+        if operation:
+            operation.sudo().write(
+                {
+                    "state": "archived",
+                    "checksum": checksum,
+                    "metadata_hash": metadata_hash,
+                    "document_id": document.id,
+                    "context_json": archive_context,
+                    "error_message": False,
+                    "next_attempt_at": False,
+                },
+            )
+        return {
+            "state": "duplicate",
+            "document_id": document.id,
+            "message": _(
+                "“%(document)s” already contains this exact file and "
+                "classification; the existing archive document was reused.",
+            )
+            % {"document": document.name},
+        }
+
+    @api.model
+    def _upload_operation_values(
+        self,
+        filename,
+        content_type,
+        company,
+        confidentiality,
+        res_model,
+        res_id,
+        source,
+        archive_context,
+        checksum,
+        metadata_hash,
+        retry_operation,
+        original_created_at,
+        original_modified_at,
+    ):
+        """Return the operation values of a new upload in the uploading state."""
+        return {
             "name": filename,
             "state": "uploading",
             "checksum": checksum,
@@ -530,39 +616,14 @@ class UslDocument(models.Model):
             if retry_operation
             else 0,
         }
+
+    @api.model
+    def _upload_store_operation(self, operation, values):
+        """Write the values on the queued operation or create a new one."""
         if operation:
-            operation.sudo().write(operation_values)
-        else:
-            operation = self.env["usl.document.operation"].sudo().create(
-                operation_values,
-            )
-        try:
-            task_id = self._paperless().upload_multipart(
-                content,
-                filename,
-                content_type,
-                title=filename,
-                created=archive_context.get("document_date"),
-                correspondent_id=archive_context.get("correspondent_paperless_id"),
-                document_type_id=archive_context.get("document_type_paperless_id"),
-                tag_ids=archive_context.get("tag_paperless_ids"),
-            )
-            operation.sudo().write(
-                {"state": "processing", "paperless_task_id": task_id},
-            )
-            retry_operation.acknowledge()
-        except PaperlessError as error:
-            operation.sudo().write({"state": "failed", "error_message": str(error)})
-            raise
-        return {
-            "state": "processing",
-            "operation_id": operation.id,
-            "task_id": task_id,
-            "message": _(
-                "“%(document)s” was accepted and is being processed.",
-            )
-            % {"document": filename},
-        }
+            operation.sudo().write(values)
+            return operation
+        return self.env["usl.document.operation"].sudo().create(values)
 
     def link_to_record(
         self,

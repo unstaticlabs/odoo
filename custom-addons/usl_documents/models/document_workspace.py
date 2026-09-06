@@ -313,6 +313,191 @@ class UslDocument(models.Model):
             raise ValidationError(_("Unsupported archive visibility filter."))
         if not isinstance(include_workspace_metadata, bool):
             raise ValidationError(_("Invalid workspace metadata option."))
+        smart_views, selected_view = self._workspace_selected_view(workspace)
+        domain = list(selected_view.document_domain()) if selected_view else []
+        if search_domain:
+            if not isinstance(search_domain, list):
+                raise ValidationError(_("Invalid search filters."))
+        accessible_documents = self.search([])
+        authorized_documents = accessible_documents.filtered(
+            lambda document: document.availability_state
+            not in ("trashed", "permanently_deleted"),
+        )
+        authorized_scope = self._authorized_paperless_scope(authorized_documents)
+        search = self._workspace_broad_search(
+            search_domain,
+            search_mode,
+            scope=authorized_scope,
+            authorized_documents=authorized_documents,
+            local_documents=accessible_documents,
+        )
+        try:
+            native_domain = self._resolve_remote_search_domain(
+                Domain(search_domain or []),
+                resolved_ids=search["resolved_ids"],
+                authorized_scope=authorized_scope,
+                authorized_documents=authorized_documents,
+                local_documents=accessible_documents,
+            )
+        except PaperlessError as error:
+            return self._workspace_degraded(error)
+        if shortcut_tag_ids:
+            domain.append(
+                ("tag_ids", "in", [int(tag_id) for tag_id in shortcut_tag_ids]),
+            )
+        filters = {
+            "query": query,
+            "company_id": company_id,
+            "tag_ids": tag_ids,
+            "correspondent_id": correspondent_id,
+            "document_type_id": document_type_id,
+            "date_from": date_from,
+            "date_to": date_to,
+            "added_from": added_from,
+            "added_to": added_to,
+            "source": source,
+            "confidentiality": confidentiality,
+            "review_state": review_state,
+            "linked_state": linked_state,
+            "linked_model": linked_model,
+            "linked_id": linked_id,
+            "mapped_partner_id": mapped_partner_id,
+            "paperless_id": paperless_id,
+            "custom_field_id": custom_field_id,
+            "custom_field_value": custom_field_value,
+        }
+        if selected_view and selected_view.system_rule == "saved":
+            filters, sort = self._workspace_saved_view_filters(
+                selected_view, filters, sort,
+            )
+        query = filters["query"]
+        archive_search_requested = bool(search_domain) or any(filters.values())
+        if (
+            selected_view
+            and selected_view.system_rule == "archive_search"
+            and not archive_search_requested
+        ):
+            domain.append(("id", "=", 0))
+        if background_mode == "exclude":
+            domain.append(("is_prominent", "=", True))
+        elif background_mode == "only":
+            domain.append(("is_prominent", "=", False))
+        domain.extend(self._workspace_filter_domain(filters, selected_view))
+        custom_fields = json.loads(
+            self.env["ir.config_parameter"].sudo().get_str(
+                "usl_documents.paperless_custom_fields",
+                "[]",
+            ),
+        )
+        paperless_filters = self._workspace_custom_field_filters(
+            custom_fields,
+            filters["custom_field_id"],
+            filters["custom_field_value"],
+        )
+        truncated = search["truncated"]
+        if query or paperless_filters:
+            try:
+                ids, query_truncated = self._permission_scoped_paperless_search_ids(
+                    query,
+                    authorized_scope,
+                    filters=paperless_filters or None,
+                )
+                truncated = truncated or query_truncated
+                domain.append(("paperless_id", "in", ids))
+            except PaperlessError as error:
+                return self._workspace_degraded(error)
+        domain = Domain.AND([Domain(domain), native_domain])
+        order = self._workspace_order(order_by, sort)
+        try:
+            documents, count, ordered_ids = self._workspace_page(
+                domain,
+                order,
+                page,
+                page_size,
+                sort=sort,
+                order_by=order_by,
+                query=query,
+                search=search,
+            )
+        except PaperlessError as error:
+            return self._workspace_degraded(error)
+        link_facets = []
+        visible_links_by_document = None
+        if include_workspace_metadata:
+            link_facets, visible_links_by_document = self._workspace_link_facets(
+                accessible_documents,
+            )
+        result_window = self.browse()
+        if archive_search_requested:
+            result_window = (
+                self.browse(ordered_ids[:500])
+                if ordered_ids is not None
+                else self.search(domain, order=order, limit=500)
+            )
+        serialized_documents = documents | result_window
+        if visible_links_by_document is None:
+            visible_links_by_document = (
+                serialized_documents._accessible_active_links_by_document()
+            )
+        serialized_by_id = self._workspace_documents_values(
+            serialized_documents,
+            search["semantic_scores"],
+            visible_links_by_document=visible_links_by_document,
+        )
+        result = {
+            "documents": [serialized_by_id[item.id] for item in documents],
+            "result_window": [serialized_by_id[item.id] for item in result_window],
+            "result_window_offset": 0,
+            "result_window_complete": bool(
+                archive_search_requested and count <= len(result_window),
+            ),
+            "count": count,
+            "page": page,
+            "page_size": page_size,
+            "selected_workspace": (
+                selected_view.key or f"view:{selected_view.id}"
+                if selected_view
+                else workspace
+            ),
+            "degraded": False,
+            "warnings": search["warnings"],
+            "search_mode": search_mode,
+            "semantic_scores_loaded": search["semantic_scores_loaded"],
+            "background_mode": background_mode,
+            "truncated": truncated,
+            "metadata_included": include_workspace_metadata,
+            "can_upload": self.env.user.has_group(
+                "usl_documents.group_documents_user",
+            ),
+            "active_operation": self.env[
+                "usl.document.operation"
+            ].current_workspace_operation(),
+            "failed_operations": (
+                self.env["usl.document.operation"].workspace_failures()
+                if selected_view and selected_view.system_rule == "attention"
+                else []
+            ),
+        }
+        if not include_workspace_metadata:
+            return result
+        result.update(
+            self._workspace_catalog_values(custom_fields, smart_views, link_facets),
+        )
+        return result
+
+    @api.model
+    def _workspace_degraded(self, error):
+        """Return the empty workspace payload used when Paperless is unavailable."""
+        return {
+            "documents": [],
+            "count": 0,
+            "degraded": True,
+            "error": str(error),
+        }
+
+    @api.model
+    def _workspace_selected_view(self, workspace):
+        """Return the accessible smart views and the view the workspace key selects."""
         smart_views = self.env["usl.document.smart.view"].accessible_views()
         selected_view = smart_views.filtered(
             lambda item: (item.key or f"view:{item.id}") == workspace,
@@ -329,24 +514,26 @@ class UslDocument(models.Model):
             )
         if not selected_view:
             selected_view = smart_views.filtered(lambda item: item.key == "home")[:1]
-        domain = list(selected_view.document_domain()) if selected_view else []
-        if search_domain:
-            if not isinstance(search_domain, list):
-                raise ValidationError(_("Invalid search filters."))
-        accessible_documents = self.search([])
-        authorized_documents = accessible_documents.filtered(
-            lambda document: document.availability_state
-            not in ("trashed", "permanently_deleted"),
-        )
-        authorized_scope = self._authorized_paperless_scope(authorized_documents)
-        broad_terms = self._broad_search_terms(search_domain)
+        return smart_views, selected_view
+
+    @api.model
+    def _workspace_broad_search(
+        self,
+        search_domain,
+        search_mode,
+        *,
+        scope,
+        authorized_documents,
+        local_documents,
+    ):
+        """Resolve the free-text terms of a search domain through hybrid search."""
         resolved_ids = {}
         relevance_paperless_ids = []
         semantic_scores = {}
         semantic_scores_loaded = False
-        search_warnings = []
+        warnings = []
         truncated = False
-        for field_name, term in broad_terms:
+        for field_name, term in self._broad_search_terms(search_domain):
             (
                 ids,
                 term_truncated,
@@ -356,9 +543,9 @@ class UslDocument(models.Model):
             ) = self._hybrid_search_ids(
                 term,
                 mode="semantic" if field_name == "semantic_text" else search_mode,
-                scope=authorized_scope,
+                scope=scope,
                 authorized_documents=authorized_documents,
-                local_documents=accessible_documents,
+                local_documents=local_documents,
                 return_semantic_metadata=True,
             )
             semantic_scores_loaded = (
@@ -371,97 +558,65 @@ class UslDocument(models.Model):
                 )
             resolved_ids[field_name, term] = ids
             truncated = truncated or term_truncated
-            search_warnings.extend(term_warnings)
+            warnings.extend(term_warnings)
             for paperless_document_id in ids:
                 if paperless_document_id not in relevance_paperless_ids:
                     relevance_paperless_ids.append(paperless_document_id)
-        try:
-            native_domain = self._resolve_remote_search_domain(
-                Domain(search_domain or []),
-                resolved_ids=resolved_ids,
-                authorized_scope=authorized_scope,
-                authorized_documents=authorized_documents,
-                local_documents=accessible_documents,
-            )
-        except PaperlessError as error:
-            return {
-                "documents": [],
-                "count": 0,
-                "degraded": True,
-                "error": str(error),
-            }
-        if shortcut_tag_ids:
-            domain.append(
-                ("tag_ids", "in", [int(tag_id) for tag_id in shortcut_tag_ids]),
-            )
-        if selected_view and selected_view.system_rule == "saved":
-            saved = json.loads(selected_view.filter_json or "{}")
-            query = query or saved.get("query", "")
-            company_id = company_id or saved.get("company_id")
-            tag_ids = tag_ids or saved.get("tag_ids")
-            correspondent_id = correspondent_id or saved.get("correspondent_id")
-            document_type_id = document_type_id or saved.get("document_type_id")
-            date_from = date_from or saved.get("date_from")
-            date_to = date_to or saved.get("date_to")
-            added_from = added_from or saved.get("added_from")
-            added_to = added_to or saved.get("added_to")
-            source = source or saved.get("source")
-            confidentiality = confidentiality or saved.get("confidentiality")
-            review_state = review_state or saved.get("review_state")
-            linked_state = linked_state or saved.get("linked_state")
-            linked_record = saved.get("linked_record")
-            if linked_record and not (linked_model or linked_id):
-                linked_model, linked_id = linked_record.split(":", 1)
-            sort = saved.get("sort") or sort
-        archive_search_requested = any(
-            (
-                query,
-                search_domain,
-                company_id,
-                tag_ids,
-                correspondent_id,
-                document_type_id,
-                date_from,
-                date_to,
-                added_from,
-                added_to,
-                source,
-                confidentiality,
-                review_state,
-                linked_state,
-                linked_model,
-                linked_id,
-                mapped_partner_id,
-                paperless_id,
-                custom_field_id,
-                custom_field_value,
-            ),
-        )
-        if (
-            selected_view
-            and selected_view.system_rule == "archive_search"
-            and not archive_search_requested
+        return {
+            "resolved_ids": resolved_ids,
+            "relevance_paperless_ids": relevance_paperless_ids,
+            "semantic_scores": semantic_scores,
+            "semantic_scores_loaded": semantic_scores_loaded,
+            "warnings": warnings,
+            "truncated": truncated,
+        }
+
+    @api.model
+    def _workspace_saved_view_filters(self, selected_view, filters, sort):
+        """Fill the filters a saved view stores when the request leaves them empty."""
+        saved = json.loads(selected_view.filter_json or "{}")
+        filters = dict(filters)
+        filters["query"] = filters["query"] or saved.get("query", "")
+        for key in (
+            "company_id",
+            "tag_ids",
+            "correspondent_id",
+            "document_type_id",
+            "date_from",
+            "date_to",
+            "added_from",
+            "added_to",
+            "source",
+            "confidentiality",
+            "review_state",
+            "linked_state",
         ):
-            domain.append(("id", "=", 0))
-        if background_mode == "exclude":
-            domain.append(("is_prominent", "=", True))
-        elif background_mode == "only":
-            domain.append(("is_prominent", "=", False))
-        if company_id:
-            domain.append(("company_id", "=", int(company_id)))
-        if paperless_id:
-            domain.append(("paperless_id", "=", int(paperless_id)))
-        if tag_ids:
-            normalized_tag_ids = [int(tag_id) for tag_id in tag_ids]
+            filters[key] = filters[key] or saved.get(key)
+        linked_record = saved.get("linked_record")
+        if linked_record and not (filters["linked_model"] or filters["linked_id"]):
+            filters["linked_model"], filters["linked_id"] = linked_record.split(":", 1)
+        return filters, saved.get("sort") or sort
+
+    @api.model
+    def _workspace_filter_domain(self, filters, selected_view):
+        """Translate validated workspace filters into document domain terms."""
+        domain = []
+        if filters["company_id"]:
+            domain.append(("company_id", "=", int(filters["company_id"])))
+        if filters["paperless_id"]:
+            domain.append(("paperless_id", "=", int(filters["paperless_id"])))
+        if filters["tag_ids"]:
+            normalized_tag_ids = [int(tag_id) for tag_id in filters["tag_ids"]]
             domain.append(("tag_ids", "in", normalized_tag_ids))
-        if correspondent_id:
-            domain.append(("correspondent_id", "=", int(correspondent_id)))
-        if document_type_id:
-            domain.append(("document_type_id", "=", int(document_type_id)))
+        if filters["correspondent_id"]:
+            domain.append(("correspondent_id", "=", int(filters["correspondent_id"])))
+        if filters["document_type_id"]:
+            domain.append(("document_type_id", "=", int(filters["document_type_id"])))
+        added_to = filters["added_to"]
         for value, operator, field_name in (
-            (date_from, ">=", "document_date"),
-            (date_to, "<=", "document_date"),
-            (added_from, ">=", "archive_added_at"),
+            (filters["date_from"], ">=", "document_date"),
+            (filters["date_to"], "<=", "document_date"),
+            (filters["added_from"], ">=", "archive_added_at"),
             (added_to, "<", "archive_added_at"),
         ):
             if value:
@@ -472,27 +627,33 @@ class UslDocument(models.Model):
                 if value == added_to and field_name == "archive_added_at":
                     parsed += timedelta(days=1)
                 domain.append((field_name, operator, parsed))
+        source = filters["source"]
         if source:
             valid_sources = dict(self._fields["source"].selection)
             if source not in valid_sources:
                 raise ValidationError(_("Invalid document source filter."))
             domain.append(("source", "=", source))
+        confidentiality = filters["confidentiality"]
         if confidentiality:
             if confidentiality not in dict(CONFIDENTIALITIES):
                 raise ValidationError(_("Invalid confidentiality filter."))
             domain.append(("confidentiality", "=", confidentiality))
+        review_state = filters["review_state"]
         if review_state:
             if review_state not in ("needs_attention", "classified", "reviewed"):
                 raise ValidationError(_("Invalid review-state filter."))
             domain.append(("review_state", "=", review_state))
         mapped_partner = self.env["res.partner"]
-        if mapped_partner_id:
+        if filters["mapped_partner_id"]:
             mapped_partner = self.env["res.partner"].browse(
-                int(mapped_partner_id),
+                int(filters["mapped_partner_id"]),
             ).exists()
             if not mapped_partner:
                 raise ValidationError(_("Invalid Contact filter."))
             mapped_partner.check_access("read")
+        linked_model = filters["linked_model"]
+        linked_id = filters["linked_id"]
+        linked_state = filters["linked_state"]
         if linked_model or linked_id:
             if (
                 linked_model not in self.env["usl.document.link"]._allowed_models()
@@ -537,209 +698,142 @@ class UslDocument(models.Model):
             domain.append(
                 ("availability_state", "not in", ("trashed", "permanently_deleted")),
             )
-        custom_fields = json.loads(
-            self.env["ir.config_parameter"].sudo().get_str(
-                "usl_documents.paperless_custom_fields",
-                "[]",
+        return domain
+
+    @api.model
+    def _workspace_custom_field_filters(
+        self, custom_fields, custom_field_id, custom_field_value,
+    ):
+        """Return the Paperless custom-field query for a workspace filter."""
+        if not (custom_field_id or custom_field_value):
+            return {}
+        custom_field = next(
+            (
+                item
+                for item in custom_fields
+                if int(item["id"]) == int(custom_field_id or 0)
             ),
+            None,
         )
-        paperless_filters = {}
-        if custom_field_id or custom_field_value:
-            custom_field = next(
-                (
-                    item
-                    for item in custom_fields
-                    if int(item["id"]) == int(custom_field_id or 0)
-                ),
-                None,
-            )
-            if not custom_field or custom_field_value in (None, ""):
-                raise ValidationError(_("Choose a custom field and a value."))
-            data_type = custom_field["data_type"]
-            value = custom_field_value
-            operator = "icontains"
-            if data_type in ("integer", "float"):
-                try:
-                    value = float(value) if data_type == "float" else int(value)
-                except (TypeError, ValueError) as error:
-                    raise ValidationError(_("Enter a valid number.")) from error
-                operator = "exact"
-            elif data_type == "boolean":
-                value = str(value).lower() in ("1", "true", "yes")
-                operator = "exact"
-            elif data_type in ("date", "select", "documentlink"):
-                operator = "exact"
-            paperless_filters["custom_field_query"] = json.dumps(
-                [custom_field["name"], operator, value],
-            )
-        if query or paperless_filters:
+        if not custom_field or custom_field_value in (None, ""):
+            raise ValidationError(_("Choose a custom field and a value."))
+        data_type = custom_field["data_type"]
+        value = custom_field_value
+        operator = "icontains"
+        if data_type in ("integer", "float"):
             try:
-                ids, query_truncated = self._permission_scoped_paperless_search_ids(
-                    query,
-                    authorized_scope,
-                    filters=paperless_filters or None,
-                )
-                truncated = truncated or query_truncated
-                domain.append(("paperless_id", "in", ids))
-            except PaperlessError as error:
-                return {
-                    "documents": [],
-                    "count": 0,
-                    "degraded": True,
-                    "error": str(error),
-                }
-        domain = Domain.AND([Domain(domain), native_domain])
-        order = self._workspace_order(order_by, sort)
-        ordered_ids = None
-        try:
-            if sort == "semantic" and semantic_scores_loaded and not order_by:
-                matching = self.search(domain)
-                relevance_position = {
-                    paperless_id: position
-                    for position, paperless_id in enumerate(relevance_paperless_ids)
-                }
-                ordered_ids = [
-                    document.id
-                    for document in sorted(
-                        matching,
-                        key=lambda document: (
-                            -semantic_scores.get(document.paperless_id, -1.0),
-                            relevance_position.get(
-                                document.paperless_id,
-                                len(relevance_position),
-                            ),
-                            -document.id,
-                        ),
-                    )
-                ]
-                count = len(ordered_ids)
-                page_ids = ordered_ids[
-                    (page - 1) * page_size : page * page_size
-                ]
-                documents = self.browse(page_ids)
-            elif relevance_paperless_ids and not order_by and not query:
-                matching = self.search(domain)
-                by_paperless_id = {
-                    document.paperless_id: document.id
-                    for document in matching
-                }
-                ordered_ids = [
-                    by_paperless_id[paperless_id]
-                    for paperless_id in relevance_paperless_ids
-                    if paperless_id in by_paperless_id
-                ]
-                ordered_id_set = set(ordered_ids)
-                ordered_ids.extend(
-                    document.id
-                    for document in matching.sorted(
-                        key=lambda item: (
-                            item.document_date or fields.Date.from_string("1970-01-01"),
-                            item.id,
-                        ),
-                        reverse=True,
-                    )
-                    if document.id not in ordered_id_set
-                )
-                count = len(ordered_ids)
-                page_ids = ordered_ids[
-                    (page - 1) * page_size : page * page_size
-                ]
-                documents = self.browse(page_ids)
-            else:
-                count = self.search_count(domain)
-                documents = self.search(
-                    domain,
-                    order=order,
-                    offset=(page - 1) * page_size,
-                    limit=page_size,
-                )
-        except PaperlessError as error:
-            return {
-                "documents": [],
-                "count": 0,
-                "degraded": True,
-                "error": str(error),
-            }
-        link_facets = []
-        visible_links_by_document = None
-        if include_workspace_metadata:
-            visible_links_by_document = (
-                accessible_documents._accessible_active_links_by_document()
-            )
-            seen_links = set()
-            for document in accessible_documents:
-                for link in visible_links_by_document[document.id]:
-                    key = f"{link.res_model}:{link.res_id}"
-                    if key in seen_links:
-                        continue
-                    seen_links.add(key)
-                    model_label = self.env["ir.model"]._get(link.res_model).name
-                    link_facets.append(
-                        {
-                            "key": key,
-                            "model": link.res_model,
-                            "res_id": link.res_id,
-                            "label": f"{model_label} — {link.record_name}",
-                        },
-                    )
-                    if len(link_facets) >= 200:
-                        break
-                if len(link_facets) >= 200:
-                    break
-        result_window = self.browse()
-        if archive_search_requested:
-            result_window = (
-                self.browse(ordered_ids[:500])
-                if ordered_ids is not None
-                else self.search(domain, order=order, limit=500)
-            )
-        serialized_documents = documents | result_window
-        if visible_links_by_document is None:
-            visible_links_by_document = (
-                serialized_documents._accessible_active_links_by_document()
-            )
-        serialized_by_id = self._workspace_documents_values(
-            serialized_documents,
-            semantic_scores,
-            visible_links_by_document=visible_links_by_document,
-        )
-        result = {
-            "documents": [serialized_by_id[item.id] for item in documents],
-            "result_window": [serialized_by_id[item.id] for item in result_window],
-            "result_window_offset": 0,
-            "result_window_complete": bool(
-                archive_search_requested and count <= len(result_window),
-            ),
-            "count": count,
-            "page": page,
-            "page_size": page_size,
-            "selected_workspace": (
-                selected_view.key or f"view:{selected_view.id}"
-                if selected_view
-                else workspace
-            ),
-            "degraded": False,
-            "warnings": search_warnings,
-            "search_mode": search_mode,
-            "semantic_scores_loaded": semantic_scores_loaded,
-            "background_mode": background_mode,
-            "truncated": truncated,
-            "metadata_included": include_workspace_metadata,
-            "can_upload": self.env.user.has_group(
-                "usl_documents.group_documents_user",
-            ),
-            "active_operation": self.env[
-                "usl.document.operation"
-            ].current_workspace_operation(),
-            "failed_operations": (
-                self.env["usl.document.operation"].workspace_failures()
-                if selected_view and selected_view.system_rule == "attention"
-                else []
+                value = float(value) if data_type == "float" else int(value)
+            except (TypeError, ValueError) as error:
+                raise ValidationError(_("Enter a valid number.")) from error
+            operator = "exact"
+        elif data_type == "boolean":
+            value = str(value).lower() in ("1", "true", "yes")
+            operator = "exact"
+        elif data_type in ("date", "select", "documentlink"):
+            operator = "exact"
+        return {
+            "custom_field_query": json.dumps(
+                [custom_field["name"], operator, value],
             ),
         }
-        if not include_workspace_metadata:
-            return result
-        result.update({
+
+    @api.model
+    def _workspace_page(
+        self, domain, order, page, page_size, *, sort, order_by, query, search,
+    ):
+        """Return the page documents, the total count and the relevance order."""
+        relevance_paperless_ids = search["relevance_paperless_ids"]
+        semantic_scores = search["semantic_scores"]
+        ordered_ids = None
+        if sort == "semantic" and search["semantic_scores_loaded"] and not order_by:
+            matching = self.search(domain)
+            relevance_position = {
+                paperless_id: position
+                for position, paperless_id in enumerate(relevance_paperless_ids)
+            }
+            ordered_ids = [
+                document.id
+                for document in sorted(
+                    matching,
+                    key=lambda document: (
+                        -semantic_scores.get(document.paperless_id, -1.0),
+                        relevance_position.get(
+                            document.paperless_id,
+                            len(relevance_position),
+                        ),
+                        -document.id,
+                    ),
+                )
+            ]
+        elif relevance_paperless_ids and not order_by and not query:
+            matching = self.search(domain)
+            by_paperless_id = {
+                document.paperless_id: document.id
+                for document in matching
+            }
+            ordered_ids = [
+                by_paperless_id[paperless_id]
+                for paperless_id in relevance_paperless_ids
+                if paperless_id in by_paperless_id
+            ]
+            ordered_id_set = set(ordered_ids)
+            ordered_ids.extend(
+                document.id
+                for document in matching.sorted(
+                    key=lambda item: (
+                        item.document_date or fields.Date.from_string("1970-01-01"),
+                        item.id,
+                    ),
+                    reverse=True,
+                )
+                if document.id not in ordered_id_set
+            )
+        else:
+            count = self.search_count(domain)
+            documents = self.search(
+                domain,
+                order=order,
+                offset=(page - 1) * page_size,
+                limit=page_size,
+            )
+            return documents, count, ordered_ids
+        count = len(ordered_ids)
+        page_ids = ordered_ids[(page - 1) * page_size : page * page_size]
+        return self.browse(page_ids), count, ordered_ids
+
+    @api.model
+    def _workspace_link_facets(self, accessible_documents):
+        """Return up to 200 linked-record facets and the visible links per document."""
+        visible_links_by_document = (
+            accessible_documents._accessible_active_links_by_document()
+        )
+        link_facets = []
+        seen_links = set()
+        for document in accessible_documents:
+            for link in visible_links_by_document[document.id]:
+                key = f"{link.res_model}:{link.res_id}"
+                if key in seen_links:
+                    continue
+                seen_links.add(key)
+                model_label = self.env["ir.model"]._get(link.res_model).name
+                link_facets.append(
+                    {
+                        "key": key,
+                        "model": link.res_model,
+                        "res_id": link.res_id,
+                        "label": f"{model_label} — {link.record_name}",
+                    },
+                )
+                if len(link_facets) >= 200:
+                    break
+            if len(link_facets) >= 200:
+                break
+        return link_facets, visible_links_by_document
+
+    @api.model
+    def _workspace_catalog_values(self, custom_fields, smart_views, link_facets):
+        """Return the companies, catalogs, views and facets of the workspace."""
+        return {
             "companies": [
                 {"id": company.id, "name": company.display_name}
                 for company in self.env.companies
@@ -773,8 +867,7 @@ class UslDocument(models.Model):
             "custom_fields": custom_fields,
             "smart_views": [view.workspace_values() for view in smart_views],
             "link_facets": sorted(link_facets, key=lambda item: item["label"]),
-        })
-        return result
+        }
 
     @api.model
     def document_detail(self, document_id, check_archive=False):
