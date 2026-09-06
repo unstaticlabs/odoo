@@ -81,3 +81,10 @@ usl-online-dump
 /.pocket-id-*.env
 /.documents-personal-ai-keys.json
 /private/
+
+# Agent session configuration. The repository is public: allow the shared
+# permission grant and nothing else under `.claude/`, so a personal override or
+# a stray transcript can never be committed by accident.
+!/.claude/
+/.claude/*
+!/.claude/settings.json

@@ -79,5 +79,14 @@ documentation, reports, comments, and commit messages.
   (for example `Claude Fable 5.1 <noreply@anthropic.com>` or
   `Coding Agent <318050048+elio-usl@users.noreply.github.com>` for Codex).
   Never hard-code a person and never commit as the agent account.
-- Name the driving human and the agent in the pull request body.
+- Open pull requests directly, with whichever GitHub account the session holds.
+  An agent does not wait for a person to open a pull request on its behalf; the
+  merge queue and the qualification check are the gate, not the authorship.
+  Name the driving human and the agent in the pull request body.
+  `.claude/settings.json` carries the matching permission so a session does not
+  have to stop and ask; put personal overrides in `.claude/settings.local.json`,
+  which is ignored.
+- Never push directly to a release branch. The pre-push guard refuses it because
+  a direct push skips the qualification check and git pushes as an
+  administrator, so nothing on GitHub would stop it.
 - Use terminal Git and GitHub CLI. Do not use a browser for repository actions.
