@@ -173,6 +173,7 @@ deployed_run() {
         --volume "$filestore_volume:/var/lib/odoo" \
         --volume "$ROOT/custom-addons:/mnt/custom-addons:ro" \
         --volume "$ROOT/oca-addons:/mnt/oca-addons:ro" \
+        --volume "$ROOT/oca-src:/mnt/oca-src:ro" \
         --volume "$ROOT/migration/accounting_restore/addons:/mnt/accounting-migration-addons:ro" \
         --volume "$ROOT/migration/identity_restore/addons:/mnt/identity-migration-addons:ro" \
         --volume "$ROOT/migration/product_restore/addons:/mnt/product-migration-addons:ro" \
@@ -219,25 +220,37 @@ run_stage_script() {
         < "$script_path"
 }
 
+module_state() {
+    deployed_run --entrypoint psql \
+        -e PGPASSWORD="$target_db_password" \
+        "$odoo_image" \
+        -h "$target_db_host" -p "$target_db_port" -U "$target_db_user" \
+        -d "$target_database" -Atc \
+        "SELECT state FROM ir_module_module WHERE name='usl_b2c_restore'" \
+        2>/dev/null || true
+}
+
 install_module() {
-    local operation="--init=usl_b2c_restore" installed
-    installed="$(
-        deployed_run --entrypoint psql \
-            -e PGPASSWORD="$target_db_password" \
-            "$odoo_image" \
-            -h "$target_db_host" -p "$target_db_port" -U "$target_db_user" \
-            -d "$target_database" -Atc \
-            "SELECT 1 FROM ir_module_module WHERE name='usl_b2c_restore' AND state IN ('installed', 'to upgrade')" \
-            2>/dev/null || true
-    )"
-    if [[ "$installed" == 1 ]]; then
-        operation="--update=usl_b2c_restore"
-    fi
+    local operation="--init=usl_b2c_restore" state
+    state="$(module_state)"
+    case "$state" in
+        installed|"to upgrade") operation="--update=usl_b2c_restore" ;;
+    esac
     deployed_run "$odoo_image" \
         odoo --config=/etc/odoo/odoo.conf \
         --addons-path="$USL_MIGRATION_ADDONS_PATH" \
         --database="$target_database" \
         "$operation" --without-demo=true --stop-after-init
+    # Odoo exits 0 even when its module graph could not be satisfied, leaving
+    # the module in 'to install' and the database in a state its own server
+    # will trip over at the next boot. The exit code is not the outcome.
+    state="$(module_state)"
+    if [[ "$state" != installed ]]; then
+        echo "usl_b2c_restore is '${state:-absent}', not installed." >&2
+        echo "The database now carries a module state its server will act on." >&2
+        exit 1
+    fi
+    printf 'usl_b2c_restore is installed in %s\n' "$target_database" >&2
 }
 
 printf 'B2C %s against deployed database %s (%s, network %s, filestore %s)\n' \
