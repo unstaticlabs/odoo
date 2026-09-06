@@ -16,6 +16,15 @@ from operations.release_manifest import (
 COMMIT = "a" * 40
 
 
+def _sign(value: dict[str, object]) -> dict[str, object]:
+    """Recompute the manifest identity after a test edited its content."""
+    value["identity"] = hashlib.sha256(json.dumps(
+        {key: item for key, item in value.items() if key != "identity"},
+        sort_keys=True, separators=(",", ":"),
+    ).encode()).hexdigest()
+    return value
+
+
 def component(name: str) -> dict[str, object]:
     input_sha = ({"distribution": "1", "backup-tool": "2", "paperless": "3", "sign-dss": "4", "receipt-fetcher": "5", "receipt-egress": "6"}[name]) * 64
     image = f"ghcr.io/unstaticlabs/{name}"
@@ -236,6 +245,59 @@ class ReleaseManifestTests(unittest.TestCase):
         value["release_notes"]["changes"] = []
         with self.assertRaisesRegex(ReleaseManifestError, "release_notes.changes"):
             validate(value)
+
+    def test_accepts_v2_changelog_notes_built_from_pull_requests(self) -> None:
+        value = copy.deepcopy(manifest())
+        change = {
+            "type": "fix",
+            "scope": "release",
+            "title": "compare release definitions only with staging evidence",
+            "number": 111,
+            "url": "https://github.com/unstaticlabs/odoo/pull/111",
+            "author": "elio-usl",
+        }
+        value["release_notes"] = {
+            "schema": "usl-release-notes/v2",
+            "title": "USL Distribution release 2026-09-05",
+            "summary": "2 changes since the previous release, in release.",
+            "changes": [change, {**change, "scope": None, "type": "other", "author": None, "number": 44}],
+            "action_required": None,
+        }
+        value = _sign(value)
+        self.assertEqual(validate(value)["release_notes"]["schema"], "usl-release-notes/v2")
+
+    def test_rejects_malformed_v2_changes(self) -> None:
+        change = {
+            "type": "fix",
+            "scope": "release",
+            "title": "compare release definitions only with staging evidence",
+            "number": 111,
+            "url": "https://github.com/unstaticlabs/odoo/pull/111",
+            "author": "elio-usl",
+        }
+        for broken in (
+            "a plain string",
+            {**change, "type": "hotfix"},
+            {**change, "number": "111"},
+            {**change, "number": True},
+            {**change, "url": "http://example.com/pull/111"},
+            {**change, "title": " "},
+            {k: v for k, v in change.items() if k != "author"},
+        ):
+            value = copy.deepcopy(manifest())
+            value["release_notes"] = {
+                "schema": "usl-release-notes/v2",
+                "title": "USL Distribution release 2026-09-05",
+                "summary": "1 change since the previous release.",
+                "changes": [broken],
+                "action_required": None,
+            }
+            with self.assertRaisesRegex(ReleaseManifestError, "release_notes.changes"):
+                validate(_sign(value))
+        value = copy.deepcopy(manifest())
+        value["release_notes"]["schema"] = "usl-release-notes/v3"
+        with self.assertRaisesRegex(ReleaseManifestError, "schema"):
+            validate(_sign(value))
 
     def test_accepts_legacy_v2_only_for_historical_verification(self) -> None:
         value = manifest()

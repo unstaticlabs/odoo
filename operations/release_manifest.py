@@ -36,6 +36,11 @@ DIGEST = re.compile(r"sha256:[0-9a-f]{64}\Z")
 IMAGE = re.compile(r"ghcr\.io/[a-z0-9][a-z0-9._/-]*\Z")
 CONTENT_TAG = re.compile(r"content-[0-9a-f]{64}\Z")
 IMMUTABLE_IMAGE = re.compile(r"[a-z0-9][a-z0-9._/-]*@sha256:[0-9a-f]{64}\Z")
+RELEASE_NOTES_SCHEMAS = {"usl-release-notes/v1", "usl-release-notes/v2"}
+RELEASE_CHANGE_FIELDS = {"type", "scope", "title", "number", "url", "author"}
+RELEASE_CHANGE_TYPES = {
+    "feat", "fix", "perf", "refactor", "docs", "chore", "ci", "build", "test", "other",
+}
 
 
 class ReleaseManifestError(ValueError):
@@ -64,24 +69,52 @@ def _sorted_strings(value: object, label: str) -> list[str]:
     return value
 
 
+def _text(value: object, maximum: int) -> bool:
+    return isinstance(value, str) and bool(value.strip()) and len(value) <= maximum
+
+
+def _release_change(value: object) -> bool:
+    """A v2 change is one merged pull request with its Conventional Commit parts."""
+    if not isinstance(value, dict) or set(value) != RELEASE_CHANGE_FIELDS:
+        return False
+    return (
+        value["type"] in RELEASE_CHANGE_TYPES
+        and (value["scope"] is None or _text(value["scope"], 100))
+        and _text(value["title"], 300)
+        and isinstance(value["number"], int)
+        and not isinstance(value["number"], bool)
+        and value["number"] > 0
+        and _text(value["url"], 300)
+        and value["url"].startswith("https://github.com/")
+        and (value["author"] is None or _text(value["author"], 100))
+    )
+
+
 def _release_notes(value: object) -> dict[str, Any]:
     notes = _object(
         value,
         {"schema", "title", "summary", "changes", "action_required"},
         "release_notes",
     )
-    if notes["schema"] != "usl-release-notes/v1":
+    if notes["schema"] not in RELEASE_NOTES_SCHEMAS:
         raise ReleaseManifestError("release notes schema is invalid")
     for name, maximum in (("title", 100), ("summary", 500)):
-        text = notes[name]
-        if not isinstance(text, str) or not text.strip() or len(text) > maximum:
+        if not _text(notes[name], maximum):
             raise ReleaseManifestError(f"release_notes.{name} is invalid")
     changes = notes["changes"]
-    if (
-        not isinstance(changes, list)
-        or not 1 <= len(changes) <= 12
-        or not all(isinstance(item, str) and item.strip() and len(item) <= 300 for item in changes)
-    ):
+    if notes["schema"] == "usl-release-notes/v1":
+        valid = (
+            isinstance(changes, list)
+            and 1 <= len(changes) <= 12
+            and all(_text(item, 300) for item in changes)
+        )
+    else:
+        valid = (
+            isinstance(changes, list)
+            and 1 <= len(changes) <= 100
+            and all(_release_change(item) for item in changes)
+        )
+    if not valid:
         raise ReleaseManifestError("release_notes.changes is invalid")
     action = notes["action_required"]
     if action is not None and (

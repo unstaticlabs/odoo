@@ -146,13 +146,31 @@ class TestLinkedReceipt(TestExpenseCommon):
     def test_historical_scan_includes_approved_expenses(self):
         approved = self._historical_expense(token="historical-approved")
         approved.sudo().write({"state": "approved"})
+        before = (approved.state, approved.total_amount, approved.company_id)
+        manager = self.expense_user_manager
+        manager.sudo().write({
+            "group_ids": [Command.link(self.env.ref("account.group_account_manager").id)],
+        })
         with patch.dict("os.environ", {"USL_LINKED_PDF_DOWNLOAD_ENABLED": "1"}):
-            approved.with_user(self.expense_user_employee).action_scan_existing_receipt_emails()
+            with self.assertRaises(AccessError):
+                approved.with_user(self.expense_user_employee).action_scan_existing_receipt_emails()
+            approved.with_user(manager).action_scan_existing_receipt_emails()
 
         retrievals = self.env["usl.mail.pdf.retrieval"].sudo().search(
             [("expense_id", "=", approved.id)]
         )
         self.assertEqual(retrievals.state, "selection_required")
+        self.assertEqual((approved.state, approved.total_amount, approved.company_id), before)
+
+    def test_historical_scan_skips_posted_and_paid_expenses(self):
+        for state in ("posted", "paid"):
+            expense = self._historical_expense(token=f"historical-{state}")
+            expense.sudo().write({"state": state})
+            with patch.dict("os.environ", {"USL_LINKED_PDF_DOWNLOAD_ENABLED": "1"}):
+                expense.with_user(self.expense_user_employee).action_scan_existing_receipt_emails()
+            self.assertFalse(self.env["usl.mail.pdf.retrieval"].sudo().search([
+                ("expense_id", "=", expense.id),
+            ]))
 
     def test_historical_scan_checks_authority_and_feature_gate(self):
         expense = self._historical_expense(token="historical-authority")

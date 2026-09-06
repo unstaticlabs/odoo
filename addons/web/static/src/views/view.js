@@ -167,6 +167,7 @@ const STANDARD_PROPS = [
 
     "display",
     "globalState",
+    "urlState",
 
     "activateFavorite",
     "dynamicFilters",
@@ -377,6 +378,7 @@ export class View extends Component {
             fields,
             relatedModels,
             resModel,
+            urlState: props.urlState,
             useSampleModel: false,
             className,
         };

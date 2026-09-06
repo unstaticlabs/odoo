@@ -126,6 +126,7 @@ export class ListRenderer extends Component {
         "onOpenFormView?",
         "hasOpenFormViewButton?",
         "noContentHelp?",
+        "onOrderByChange?",
         "nestedKeyOptionalFieldsData?",
         "optionalActiveFields?",
         "readonly?",
@@ -1212,7 +1213,7 @@ export class ListRenderer extends Component {
         return optionalActiveFields;
     }
 
-    onClickSortColumn(column) {
+    async onClickSortColumn(column) {
         if (this.preventReorder) {
             this.preventReorder = false;
             return;
@@ -1223,7 +1224,8 @@ export class ListRenderer extends Component {
         const list = this.props.list;
         const fieldName = column.name;
         if (this.isSortable(column)) {
-            list.sortBy(fieldName);
+            await list.sortBy(fieldName);
+            this.props.onOrderByChange?.();
         }
     }
 
