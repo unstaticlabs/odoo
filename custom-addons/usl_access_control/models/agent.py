@@ -394,13 +394,6 @@ class UslAgent(models.Model):
         agent_group = self.env.ref("usl_access_control.group_ai_agent")
         return (delegated_groups | agent_group).all_implied_ids
 
-    def _groups_for_operation(self, operation):
-        self.ensure_one()
-        roots = self.delegated_group_ids
-        if operation != "read":
-            roots -= self.read_only_group_ids
-        return roots.all_implied_ids
-
     def _allows_model_operation(self, model_name, operation):
         self.ensure_one()
         if operation not in {"read", "create", "write", "unlink"}:
@@ -719,13 +712,6 @@ class UslAgent(models.Model):
             if group:
                 groups |= group
         return groups
-
-    def _owner_delegable_groups(self, groups):
-        self.ensure_one()
-        forbidden = self._forbidden_delegated_groups()
-        return (groups & self.owner_id.all_group_ids).filtered(
-            lambda group: not group.all_implied_ids & forbidden,
-        )
 
     def _all_read_groups(self):
         self.ensure_one()

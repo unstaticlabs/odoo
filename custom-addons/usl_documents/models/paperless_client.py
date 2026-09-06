@@ -632,10 +632,6 @@ class PaperlessClient:
             "GET", f"/api/documents/{int(document_id)}/suggestions/",
         )[0]
 
-    def get_versions(self, document_id):
-        payload = self.get_document(document_id)
-        return payload.get("versions") or []
-
     def get_user(self, user_id):
         return self._request("GET", f"/api/users/{int(user_id)}/")[0]
 

@@ -895,11 +895,6 @@ class SignRequest(models.Model):
             for request in self
         }
 
-    def _missing_strong_enrollments(self):
-        """Return strong signers without an active, company-scoped identity."""
-        self.ensure_one()
-        return self._missing_strong_enrollments_by_request()[self.id]
-
     def _user_can_coordinate(self):
         self.ensure_one()
         return bool(
