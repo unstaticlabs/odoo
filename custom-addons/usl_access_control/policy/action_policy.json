@@ -46,8 +46,8 @@
         "server_action:usl_accounting.ir_cron_bank_export_expected_activities_ir_actions_server",
         "server_action:usl_accounting.ir_cron_process_bank_exports_ir_actions_server",
         "server_action:usl_documents_accounting.ir_cron_archive_bank_statement_evidence_ir_actions_server",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:6",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:7",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_pdf:orm_write:6",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_pdf:orm_write:7",
         "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_configuration.py:account.move.configure_draft_vendor_bill:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_configuration.py:account.move.configure_draft_vendor_bill:orm_write:2",
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_ingestion_period.py:account.bank.ingestion.period.action_apply:message_send:1",
@@ -113,8 +113,8 @@
         "server_action:usl_accounting.ir_cron_bank_export_expected_activities_ir_actions_server": "5c7b54fd69cc4c2b90b85bb81787753521a7b351337d20b239648751401c19e4",
         "server_action:usl_accounting.ir_cron_process_bank_exports_ir_actions_server": "79190be92b6360c6d72790ad2442632886bdcff54368c375c12ed1db3b051e98",
         "server_action:usl_documents_accounting.ir_cron_archive_bank_statement_evidence_ir_actions_server": "efbfffc3414be448bbd5cd7664c7428cf05f95a4fc3536ce76a5e2e7a8bd7ae6",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:6": "1d3475be7f6f0c6950862d90419abec8f08227eb3e43ac520d4bfcbd7ab77d0b",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:7": "5c6f5e3268b4d702750955867e6560f42de38a7c20ada289b52b06c1f88c54f6",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_pdf:orm_write:6": "1d3475be7f6f0c6950862d90419abec8f08227eb3e43ac520d4bfcbd7ab77d0b",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_pdf:orm_write:7": "5c6f5e3268b4d702750955867e6560f42de38a7c20ada289b52b06c1f88c54f6",
         "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_configuration.py:account.move.configure_draft_vendor_bill:orm_write:1": "354d3e0a5dc713a00916b4a0d9b3c35178bdf543a394caa0c4f066478ba5a1c4",
         "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_configuration.py:account.move.configure_draft_vendor_bill:orm_write:2": "89674b9c78f636802deb32834e66fdbc4decb150a124d9f4e73f0084e717047c",
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_ingestion_period.py:account.bank.ingestion.period.action_apply:message_send:1": "2f98c2fb7919dc67667b30bdfba453989da10be7adf34c7ae5e68b40f29d6269",
@@ -134420,20 +134420,20 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion._finalize_retained_files:orm_write:2",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion._finalize_retained_files:sudo:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion._finalize_retained_files:sudo:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:5",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._finalize_supplemental_file:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._finalize_supplemental_file:orm_write:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._finalize_supplemental_file:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._finalize_supplemental_file:sudo:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:10",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:7",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:8",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:9",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:4",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:5",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:6"
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_pdf:orm_write:5",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_pdf:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._finalize_supplemental_file:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._finalize_supplemental_file:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._finalize_supplemental_file:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._finalize_supplemental_file:sudo:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:10",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:7",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:8",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:9",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:sudo:3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:sudo:4",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:sudo:5",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:sudo:6"
       ],
       "classification": "system_internal",
       "consequence": "Supports a reviewed workflow internally and has no independent ordinary-user entry point.",
@@ -134459,46 +134459,46 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion._finalize_retained_files:sudo:2": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:5": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_pdf:orm_write:5": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:sudo:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_pdf:sudo:1": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._finalize_supplemental_file:orm_write:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._finalize_supplemental_file:orm_write:1": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._finalize_supplemental_file:orm_write:2": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._finalize_supplemental_file:orm_write:2": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._finalize_supplemental_file:sudo:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._finalize_supplemental_file:sudo:1": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._finalize_supplemental_file:sudo:2": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._finalize_supplemental_file:sudo:2": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:10": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:10": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:7": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:7": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:8": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:8": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:9": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:9": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:3": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:sudo:3": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:4": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:sudo:4": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:5": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:sudo:5": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:6": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:sudo:6": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         }
       },
@@ -134510,20 +134510,20 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion._finalize_retained_files:orm_write:2": "ffe6a0e3f800ae647cbe82e1aa7af9d77f687c3749c9b74e70044d4ad7917ee8",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion._finalize_retained_files:sudo:1": "de7ea32af1766556fe310f53c87cf567af8dd59351e8df8a62db78ac911b77d6",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion._finalize_retained_files:sudo:2": "1cd10340918a6b22c3c514765e8242ea8ef42cb3eb68b83f5e7174df407e28fd",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:5": "18547aa62cfd4e4ce5aacba319a7381b7123dfd10dfdac19a9c60c67f107f7bb",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:sudo:1": "16610fb53ca034a72568e7a11747eb303db1c1a8d78248d3e748b3f7e699dba0",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._finalize_supplemental_file:orm_write:1": "d88f08bd383b201f4847dffd420e9d52f893b03497af5a12beaf160e436696d3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._finalize_supplemental_file:orm_write:2": "c1ae085db972f04a0618ae09411f70b481546ca9ef09313b634d9b274e6cfb6c",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._finalize_supplemental_file:sudo:1": "a8df312af08efa7bead2a6df9ced42ce0fdceb75c6c96200f3a09b404622f6f8",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._finalize_supplemental_file:sudo:2": "755dfa7eca1504315da3c8b942e04f228747a2595d42a2b09553809ce05c05ff",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:10": "208420fb8b9f3ac034a501bf6339eaf7891f02bd1cf31ae19f1a5ebcbb9f384f",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:7": "36ad1ccb75151619743ffb81317354c8ba47da740ff9ab987b0791051c0be30d",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:8": "7ba4788bd31d7a427f3066dedd89e6e9767047d8f6634ff68f3c408829931947",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:9": "d8d08c41b4374d68435bdd1933e331e83b0fea5c8ad52b9b8fd8520403ced8df",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:3": "4fc7aaae1d2a30306a0f46c61edf759603f3df22bb3bd0a813b694f372142faf",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:4": "08444e9118cb706b27ee26be9523dc2124be2257b45c4d3d3d56df0d2b86f8fb",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:5": "ee52f575e6180c1b4e423a463f82245b1430c714d0c6cec164abf5bb4eb7d2e0",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:6": "3d69839ea5ef3735362b64c9fb0ddb92a2863f11571233ecc8d6aee150cc1ccc"
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_pdf:orm_write:5": "18547aa62cfd4e4ce5aacba319a7381b7123dfd10dfdac19a9c60c67f107f7bb",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_pdf:sudo:1": "16610fb53ca034a72568e7a11747eb303db1c1a8d78248d3e748b3f7e699dba0",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._finalize_supplemental_file:orm_write:1": "d88f08bd383b201f4847dffd420e9d52f893b03497af5a12beaf160e436696d3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._finalize_supplemental_file:orm_write:2": "c1ae085db972f04a0618ae09411f70b481546ca9ef09313b634d9b274e6cfb6c",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._finalize_supplemental_file:sudo:1": "a8df312af08efa7bead2a6df9ced42ce0fdceb75c6c96200f3a09b404622f6f8",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._finalize_supplemental_file:sudo:2": "755dfa7eca1504315da3c8b942e04f228747a2595d42a2b09553809ce05c05ff",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:10": "208420fb8b9f3ac034a501bf6339eaf7891f02bd1cf31ae19f1a5ebcbb9f384f",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:7": "36ad1ccb75151619743ffb81317354c8ba47da740ff9ab987b0791051c0be30d",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:8": "7ba4788bd31d7a427f3066dedd89e6e9767047d8f6634ff68f3c408829931947",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:9": "d8d08c41b4374d68435bdd1933e331e83b0fea5c8ad52b9b8fd8520403ced8df",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:sudo:3": "4fc7aaae1d2a30306a0f46c61edf759603f3df22bb3bd0a813b694f372142faf",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:sudo:4": "08444e9118cb706b27ee26be9523dc2124be2257b45c4d3d3d56df0d2b86f8fb",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:sudo:5": "ee52f575e6180c1b4e423a463f82245b1430c714d0c6cec164abf5bb4eb7d2e0",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:sudo:6": "3d69839ea5ef3735362b64c9fb0ddb92a2863f11571233ecc8d6aee150cc1ccc"
       }
     },
     {
@@ -136358,45 +136358,45 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.config._check_email_processing_readiness:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.config._check_email_processing_readiness:orm_write:2",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.config._cron_update_expected_activities:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:message_send:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:orm_write:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:sudo:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:sudo:3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:sudo:4",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:4",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_period_pdfs:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._content:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._extract_zip:orm_create:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._extract_zip:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._extract_zip:orm_write:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._extract_zip:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._find_existing_transaction:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._from_attachment:orm_create:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._from_attachment:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:orm_create:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:orm_create:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:orm_write:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:orm_write:3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:orm_write:4",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:orm_write:5",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_isolated:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_create:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:4",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:5",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:6",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file.write:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._accept_evidence:message_send:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._accept_evidence:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._accept_evidence:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._accept_evidence:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._accept_evidence:sudo:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._accept_evidence:sudo:3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._accept_evidence:sudo:4",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_pdf:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_pdf:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_pdf:orm_write:3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_pdf:orm_write:4",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_period_pdfs:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._content:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._extract_zip:orm_create:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._extract_zip:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._extract_zip:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._extract_zip:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._find_existing_transaction:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._from_attachment:orm_create:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._from_attachment:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:orm_create:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:orm_create:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:orm_write:3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:orm_write:4",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:orm_write:5",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_isolated:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_create:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:4",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:5",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:6",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:sudo:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file.write:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.message_new:orm_create:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.message_new:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.message_new:orm_write:2",
@@ -136462,13 +136462,13 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:4",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate.action_open_confirmation:orm_create:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:_as_settlement_service:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.bank.statement.line._has_internal_settlement_token:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.bank.statement.line.action_undo_reconciliation:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.bank.statement.line.create:orm_create:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.bank.statement.line.create:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.bank.statement.line.unreconcile_bank_line:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.bank.statement.line.write:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.bank.statement.line.write:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line._has_internal_settlement_token:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.action_undo_reconciliation:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.create:orm_create:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.create:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.unreconcile_bank_line:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.write:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.write:orm_write:2",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._restore_payment_rate_document:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._restore_payment_rate_document:orm_write:2",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._reverse_bank_statement_settlement:orm_write:1",
@@ -136487,61 +136487,61 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement.create:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement.write:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement.write:orm_write:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._apply_payment_rate_to_document:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._apply_payment_rate_to_document:orm_write:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:message_send:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:message_send:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:message_send:3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_create:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:10",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:11",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:12",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:13",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:14",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:15",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:16",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:17",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:18",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:4",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:5",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:6",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:7",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:8",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:9",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._get_foreign_settlement_context:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._get_foreign_settlement_context:orm_write:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._get_foreign_settlement_context:orm_write:3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._get_immediate_settlement_eligibility:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._get_payment_rate_settlement_eligibility:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._get_payment_rate_settlement_eligibility:orm_write:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._unlink_immediate_settlement_adjustment:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.button_cancel:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.button_draft:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.js_settle_outstanding_line:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.js_use_payment_rate_outstanding_line:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.create:orm_create:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.create:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.unlink:orm_unlink:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.unlink:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.unlink:orm_write:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.write:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.write:orm_write:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.write:orm_write:3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.write:orm_write:4",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.write:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.write:orm_write:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.partial.reconcile.create:orm_create:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.partial.reconcile.create:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.partial.reconcile.unlink:orm_unlink:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.partial.reconcile.unlink:orm_unlink:2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.partial.reconcile.write:orm_write:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.partial.reconcile.write:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._apply_payment_rate_to_document:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._apply_payment_rate_to_document:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:message_send:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:message_send:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:message_send:3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_create:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:10",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:11",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:12",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:13",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:14",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:15",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:16",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:17",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:18",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:4",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:5",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:6",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:7",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:8",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:9",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_foreign_settlement_context:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_foreign_settlement_context:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_foreign_settlement_context:orm_write:3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_immediate_settlement_eligibility:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_payment_rate_settlement_eligibility:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_payment_rate_settlement_eligibility:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._unlink_immediate_settlement_adjustment:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.button_cancel:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.button_draft:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.js_settle_outstanding_line:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.js_use_payment_rate_outstanding_line:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.create:orm_create:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.create:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.unlink:orm_unlink:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.unlink:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.unlink:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.write:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.write:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.write:orm_write:3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.write:orm_write:4",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.write:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.write:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.partial.reconcile.create:orm_create:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.partial.reconcile.create:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.partial.reconcile.unlink:orm_unlink:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.partial.reconcile.unlink:orm_unlink:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.partial.reconcile.write:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.partial.reconcile.write:orm_write:2",
         "sink:usl_accounting:custom-addons/usl_accounting/models/multi_company_expenses.py:res.users._compute_usl_expense_company_profile_status:sudo:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/multi_company_expenses.py:res.users._usl_ensure_expense_company_profiles:orm_create:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/multi_company_expenses.py:res.users._usl_ensure_expense_company_profiles:orm_write:1",
@@ -142133,123 +142133,6 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.config._cron_update_expected_activities:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:message_send:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:sudo:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:sudo:4": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:4": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_period_pdfs:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._content:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._extract_zip:orm_create:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._extract_zip:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._extract_zip:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._extract_zip:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._find_existing_transaction:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._from_attachment:orm_create:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._from_attachment:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:orm_create:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:orm_create:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:orm_write:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:orm_write:4": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:orm_write:5": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_isolated:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_create:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:3": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:4": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:5": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:6": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:2": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file.write:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.message_new:orm_create:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -142290,6 +142173,123 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:mail.thread.message_process:sudo:5": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._accept_evidence:message_send:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._accept_evidence:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._accept_evidence:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._accept_evidence:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._accept_evidence:sudo:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._accept_evidence:sudo:3": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._accept_evidence:sudo:4": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_pdf:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_pdf:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_pdf:orm_write:3": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_pdf:orm_write:4": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_period_pdfs:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._content:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._extract_zip:orm_create:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._extract_zip:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._extract_zip:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._extract_zip:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._find_existing_transaction:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._from_attachment:orm_create:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._from_attachment:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:orm_create:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:orm_create:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:orm_write:3": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:orm_write:4": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:orm_write:5": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_isolated:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_create:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:3": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:4": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:5": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:6": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:sudo:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file.write:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement._compute_bank_review:orm_write:1": {
@@ -142445,27 +142445,6 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:_as_settlement_service:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.bank.statement.line._has_internal_settlement_token:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.bank.statement.line.action_undo_reconciliation:orm_write:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.bank.statement.line.action_undo_reconciliation"
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.bank.statement.line.create:orm_create:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.bank.statement.line.create"
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.bank.statement.line.create:orm_write:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.bank.statement.line.create"
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.bank.statement.line.unreconcile_bank_line:orm_write:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.bank.statement.line.unreconcile_bank_line"
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.bank.statement.line.write:orm_write:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.bank.statement.line.write"
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.bank.statement.line.write:orm_write:2": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.bank.statement.line.write"
-        },
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._restore_payment_rate_document:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -142520,169 +142499,190 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement.write:orm_write:2": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.immediate.settlement.write"
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._apply_payment_rate_to_document:orm_write:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line._has_internal_settlement_token:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._apply_payment_rate_to_document:orm_write:2": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.action_undo_reconciliation:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.bank.statement.line.action_undo_reconciliation"
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.bank.statement.line.create"
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.create:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.bank.statement.line.create"
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.unreconcile_bank_line:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.bank.statement.line.unreconcile_bank_line"
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.write:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.bank.statement.line.write"
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.write:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.bank.statement.line.write"
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._apply_payment_rate_to_document:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._apply_payment_rate_to_document:orm_write:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:2": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:3": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:message_send:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:3": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:message_send:2": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:message_send:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:message_send:3": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:message_send:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_create:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:message_send:3": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_create:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:10": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:11": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:10": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:12": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:11": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:13": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:12": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:14": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:13": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:15": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:14": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:16": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:15": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:17": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:16": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:18": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:17": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:2": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:18": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:3": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:4": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:3": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:5": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:4": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:6": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:5": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:7": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:6": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:8": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:7": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:9": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:8": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._get_foreign_settlement_context:orm_write:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:9": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._get_foreign_settlement_context:orm_write:2": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_foreign_settlement_context:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._get_foreign_settlement_context:orm_write:3": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_foreign_settlement_context:orm_write:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._get_immediate_settlement_eligibility:orm_write:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_foreign_settlement_context:orm_write:3": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._get_payment_rate_settlement_eligibility:orm_write:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_immediate_settlement_eligibility:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._get_payment_rate_settlement_eligibility:orm_write:2": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_payment_rate_settlement_eligibility:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._unlink_immediate_settlement_adjustment:orm_write:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_payment_rate_settlement_eligibility:orm_write:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.button_cancel:orm_write:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._unlink_immediate_settlement_adjustment:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.button_cancel:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.move.button_cancel"
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.button_draft:orm_write:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.button_draft:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.move.button_draft"
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.js_settle_outstanding_line:orm_write:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.js_settle_outstanding_line:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.move.js_settle_outstanding_line"
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.js_use_payment_rate_outstanding_line:orm_write:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.js_use_payment_rate_outstanding_line:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.move.js_use_payment_rate_outstanding_line"
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.create:orm_create:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.create:orm_create:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.move.line.create"
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.create:orm_write:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.create:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.move.line.create"
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.unlink:orm_unlink:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.unlink:orm_unlink:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.move.line.unlink"
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.unlink:orm_write:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.unlink:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.move.line.unlink"
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.unlink:orm_write:2": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.unlink:orm_write:2": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.move.line.unlink"
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.write:orm_write:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.write:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.move.line.write"
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.write:orm_write:2": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.write:orm_write:2": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.move.line.write"
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.write:orm_write:3": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.write:orm_write:3": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.move.line.write"
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.write:orm_write:4": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.write:orm_write:4": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.move.line.write"
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.write:orm_write:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.write:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.move.write"
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.write:orm_write:2": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.write:orm_write:2": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.move.write"
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.partial.reconcile.create:orm_create:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.partial.reconcile.create:orm_create:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.partial.reconcile.create"
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.partial.reconcile.create:orm_write:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.partial.reconcile.create:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.partial.reconcile.create"
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.partial.reconcile.unlink:orm_unlink:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.partial.reconcile.unlink:orm_unlink:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.partial.reconcile.unlink"
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.partial.reconcile.unlink:orm_unlink:2": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.partial.reconcile.unlink:orm_unlink:2": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.partial.reconcile.unlink"
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.partial.reconcile.write:orm_write:1": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.partial.reconcile.write:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.partial.reconcile.write"
         },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.partial.reconcile.write:orm_write:2": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.partial.reconcile.write:orm_write:2": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.partial.reconcile.write"
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/multi_company_expenses.py:res.users._compute_usl_expense_company_profile_status:sudo:1": {
@@ -144800,45 +144800,6 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.config._check_email_processing_readiness:orm_write:1": "f3401e4305f9beb665cf9e2c1068ea39c2be5ef492a99accc38341de29b58a68",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.config._check_email_processing_readiness:orm_write:2": "f833f8514828b3408f98be3fb3fafe5e9e89b1f051410d0d25f5ff1afac2a161",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.config._cron_update_expected_activities:orm_write:1": "97dda76f37cb905d8e948e28f9bb4bf4270102cfee87c1ff6b034232ed8abac7",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:message_send:1": "5724a2366c251ab633cee0932a4628348dc199df45e0d38f101e9502fd3ba409",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:orm_write:1": "84c342957b8a6c86b92979828180c8f36cf943da481a94a5d606f2c26e10d620",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:orm_write:2": "b4419957122a2eb49908bee6e73aacfe6df30f783f089394780bf99dfb265327",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:sudo:1": "e759ac27c930e404e5954f360e871d204b550364857ec511f0855323b47b234c",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:sudo:2": "5b182302162a3cddf8699baf540d447de2e738c9d4b76eea0960edb3f7b6ca74",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:sudo:3": "c54ab6975e9b1dd45a80e4e6353dbf4f6332c2e7d524f922d3ff0efd6330288b",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._accept_evidence:sudo:4": "02b7e0d667fa5ad152b37c313aea7efe6e83f50a2b12986a82f09cf2d6db83f6",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:1": "6a6b8ebcad1c8fdfaf94c68121a406d31a3e30726fbf2e54bb0ad553b6e2213d",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:2": "44bf1c271eff66a1fad48ab119e59ce0f0e40476b200886bb746ff6ce3d9c053",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:3": "bb4fd4b3bd2cdcbce753f3629534f05aa4bdc15628d5c2a796d6c54e42f5f21e",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_pdf:orm_write:4": "07d2c194ed0ae266bc5b7f21539f9c3b93a451790da269eeffc45250827241f2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._associate_period_pdfs:orm_write:1": "5e37d15d1a85becc41f6bf30f3fb69f9c8d85f10918d79e074be204ffbb895d4",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._content:sudo:1": "4d9b0354c527995f42e9be0674ff4f46f85061d323d3e557efb49da0976a4708",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._extract_zip:orm_create:1": "777bc27a109b899456f75f006dc368f398683f735e011cff2f97d5f20900ba2e",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._extract_zip:orm_write:1": "3d54a312e76cc453a213294f595cae7444351cff606848c00ce5da12ddaa0dce",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._extract_zip:orm_write:2": "751b2497e76845d7c78e65ac63d9ed8f6412f2a1f18ffe411f6ba13c6f43658f",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._extract_zip:sudo:1": "53020f5275522d030584342b0c864ad10a08abc89a3d913254c593fb72d5a0ff",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._find_existing_transaction:sudo:1": "a5f215f867ac8e5161cd3fbfb0f82a98a5794f8e42ef6e213b509bf35d7486a4",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._from_attachment:orm_create:1": "21c2c4be0dc71d618c926d480d10322f50b2b9b48c558270c38d55702df79136",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._from_attachment:sudo:1": "ecca29c530fb7b9d1846f375d338379b850dda98564e5bca48f7273acfa27e1e",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:orm_create:1": "5e2e9c07947aec440f506c3e9ee52062fc91e5a6d78d55e1c264f78b4eb250f9",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:orm_create:2": "29c5410745d6428381e887c67c316c1d593fe54f55144135225c9457536bebf4",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:orm_write:1": "d1d4e5efad12b50788f260644c7f046ff02107b4fa94e1f7a8a4feb4ec2e2fac",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:orm_write:2": "63ebda1707c1f1bbc4de9716e984270c229c14087828873021bf5e2bf09adc7d",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:orm_write:3": "e39492460267820ac7ee591572027d1ac6ce61013e9b1e3635a0de1a7483732f",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:orm_write:4": "e4c9460170f901ff8d7f14f5be5d0b36fc13ee06d6d787f0a9b9070e4200c294",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:orm_write:5": "a294b653f25420aa6bb5e1c04973405daa6dae35354700a706f2d3dd4d59f44d",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._get_or_create_statement:sudo:1": "a48d3361416bfc480ded59029423139c24f9ad6c8c161288d17a67c691e2a211",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_isolated:orm_write:1": "5328d3ffa898a25473f081112a1a69d82209945a0ee7338fd594ed72806c2fd2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_create:1": "ee3c7e9d6b01787730b26f84a6f126d95b85268154ae6f5c6f132a9c9f8f04f6",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:1": "1f69c489b7879ccfd7f385ecded7744ff7a78a833a1ca57424c3bc1d4e4113a5",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:2": "695d364ed99630f9064a9ac271699534a99896d2914a5e2c21eb455f0129aa84",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:3": "684a99abcace2bbc520450d653ec785b44b164e67136813baebde344873a9e6a",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:4": "76e5dbe096991f13c0fcfa176344bd43ec855d8362362a9af8893460b407b452",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:5": "8349bf63d3ec3887b73399ea0b228f5d8d03b1ae40d47c084b6b3068618506ca",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:orm_write:6": "030a3b4cc45c567280296f94f818e2f3e78193851a8f90ec13c072afe10f0be9",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:1": "17b7b706da8259592c0f253e940664a81ece9d5ef9e053b237d116bdeb35150a",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file._process_ofx:sudo:2": "5c87e32199c832e4d29dde42320f07df8284ec4801890666900920ffdd14ac21",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.file.write:orm_write:1": "4bcc7719f1f31b42ec695057a2ba58a3b8276f827b8af03200446fd92c2ad0a0",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.message_new:orm_create:1": "edeb93f8aab25f28f41cbd784e65c54a541b3fea44fdc22a2b7eb3e09226aca1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.message_new:orm_write:1": "d40e24999f906fc2259edfbb714e91927e046d6f728468f3cc4ae1a1050a3e48",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:account.bank.ingestion.message_new:orm_write:2": "2d1981abc89fff36c2ec4e0dba802f0a08b09c2ef17077f5286504ac0115b014",
@@ -144853,6 +144814,45 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:mail.thread.message_process:sudo:3": "203c1048aa152b3e98aa1284216342c357c7d79f6c580f50b63452e334cf2e50",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:mail.thread.message_process:sudo:4": "fedffcc6467a021aae32e946af71d8a2d390026f01d6e604d120e3a9299cdda6",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion.py:mail.thread.message_process:sudo:5": "4835af6d2b4d390131132882e477825477ed2c850c6efe2567ba811b98ccb937",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._accept_evidence:message_send:1": "5724a2366c251ab633cee0932a4628348dc199df45e0d38f101e9502fd3ba409",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._accept_evidence:orm_write:1": "84c342957b8a6c86b92979828180c8f36cf943da481a94a5d606f2c26e10d620",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._accept_evidence:orm_write:2": "b4419957122a2eb49908bee6e73aacfe6df30f783f089394780bf99dfb265327",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._accept_evidence:sudo:1": "e759ac27c930e404e5954f360e871d204b550364857ec511f0855323b47b234c",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._accept_evidence:sudo:2": "5b182302162a3cddf8699baf540d447de2e738c9d4b76eea0960edb3f7b6ca74",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._accept_evidence:sudo:3": "c54ab6975e9b1dd45a80e4e6353dbf4f6332c2e7d524f922d3ff0efd6330288b",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._accept_evidence:sudo:4": "02b7e0d667fa5ad152b37c313aea7efe6e83f50a2b12986a82f09cf2d6db83f6",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_pdf:orm_write:1": "6a6b8ebcad1c8fdfaf94c68121a406d31a3e30726fbf2e54bb0ad553b6e2213d",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_pdf:orm_write:2": "44bf1c271eff66a1fad48ab119e59ce0f0e40476b200886bb746ff6ce3d9c053",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_pdf:orm_write:3": "bb4fd4b3bd2cdcbce753f3629534f05aa4bdc15628d5c2a796d6c54e42f5f21e",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_pdf:orm_write:4": "07d2c194ed0ae266bc5b7f21539f9c3b93a451790da269eeffc45250827241f2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._associate_period_pdfs:orm_write:1": "5e37d15d1a85becc41f6bf30f3fb69f9c8d85f10918d79e074be204ffbb895d4",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._content:sudo:1": "4d9b0354c527995f42e9be0674ff4f46f85061d323d3e557efb49da0976a4708",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._extract_zip:orm_create:1": "777bc27a109b899456f75f006dc368f398683f735e011cff2f97d5f20900ba2e",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._extract_zip:orm_write:1": "3d54a312e76cc453a213294f595cae7444351cff606848c00ce5da12ddaa0dce",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._extract_zip:orm_write:2": "751b2497e76845d7c78e65ac63d9ed8f6412f2a1f18ffe411f6ba13c6f43658f",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._extract_zip:sudo:1": "53020f5275522d030584342b0c864ad10a08abc89a3d913254c593fb72d5a0ff",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._find_existing_transaction:sudo:1": "a5f215f867ac8e5161cd3fbfb0f82a98a5794f8e42ef6e213b509bf35d7486a4",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._from_attachment:orm_create:1": "21c2c4be0dc71d618c926d480d10322f50b2b9b48c558270c38d55702df79136",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._from_attachment:sudo:1": "ecca29c530fb7b9d1846f375d338379b850dda98564e5bca48f7273acfa27e1e",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:orm_create:1": "5e2e9c07947aec440f506c3e9ee52062fc91e5a6d78d55e1c264f78b4eb250f9",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:orm_create:2": "29c5410745d6428381e887c67c316c1d593fe54f55144135225c9457536bebf4",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:orm_write:1": "d1d4e5efad12b50788f260644c7f046ff02107b4fa94e1f7a8a4feb4ec2e2fac",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:orm_write:2": "63ebda1707c1f1bbc4de9716e984270c229c14087828873021bf5e2bf09adc7d",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:orm_write:3": "e39492460267820ac7ee591572027d1ac6ce61013e9b1e3635a0de1a7483732f",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:orm_write:4": "e4c9460170f901ff8d7f14f5be5d0b36fc13ee06d6d787f0a9b9070e4200c294",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:orm_write:5": "a294b653f25420aa6bb5e1c04973405daa6dae35354700a706f2d3dd4d59f44d",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._get_or_create_statement:sudo:1": "a48d3361416bfc480ded59029423139c24f9ad6c8c161288d17a67c691e2a211",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_isolated:orm_write:1": "5328d3ffa898a25473f081112a1a69d82209945a0ee7338fd594ed72806c2fd2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_create:1": "ee3c7e9d6b01787730b26f84a6f126d95b85268154ae6f5c6f132a9c9f8f04f6",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:1": "1f69c489b7879ccfd7f385ecded7744ff7a78a833a1ca57424c3bc1d4e4113a5",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:2": "695d364ed99630f9064a9ac271699534a99896d2914a5e2c21eb455f0129aa84",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:3": "684a99abcace2bbc520450d653ec785b44b164e67136813baebde344873a9e6a",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:4": "76e5dbe096991f13c0fcfa176344bd43ec855d8362362a9af8893460b407b452",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:5": "8349bf63d3ec3887b73399ea0b228f5d8d03b1ae40d47c084b6b3068618506ca",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:orm_write:6": "030a3b4cc45c567280296f94f818e2f3e78193851a8f90ec13c072afe10f0be9",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:sudo:1": "17b7b706da8259592c0f253e940664a81ece9d5ef9e053b237d116bdeb35150a",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file._process_ofx:sudo:2": "5c87e32199c832e4d29dde42320f07df8284ec4801890666900920ffdd14ac21",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_ingestion_file.py:account.bank.ingestion.file.write:orm_write:1": "4bcc7719f1f31b42ec695057a2ba58a3b8276f827b8af03200446fd92c2ad0a0",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement._compute_bank_review:orm_write:1": "1236d1288299236f825499cf278e6d3e3a1a3535ed64f4753d6565ab0b929f08",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.action_certify:message_send:1": "fd58dc560099b70ae7c21b616cb6e3340da49863b12f6d571501f909693d31be",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.bank.statement.action_certify:orm_create:1": "5450c69fbadaab44b603fea95d075517d8ba17637577aa80ee66b8e2a8daf462",
@@ -144904,13 +144904,6 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:4": "436363acc6c30888a940241824a1d163c6e5fec14b3f8d17952acf2f289d97fe",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate.action_open_confirmation:orm_create:1": "67062504254f638db41d8a9a718463ebfdd96155ef4cbec247e3d84b5bc502e0",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:_as_settlement_service:sudo:1": "c046d4cf41402742f11b795c47fcaaf65026f0c7e4237cb5a63484f3207e12f6",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.bank.statement.line._has_internal_settlement_token:orm_write:1": "c14a88264c8387fa299c60544bfe397532597ec0fb58f88da3101cb436982282",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.bank.statement.line.action_undo_reconciliation:orm_write:1": "a51c6cf567d3e095e61642df4aebf0fe2bb9b0dae7031d99240176e2e6bc92fd",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.bank.statement.line.create:orm_create:1": "b5b0a5644e5a673c4d669ab9926fae9051df462e2d7c918ba1947b2877c3c143",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.bank.statement.line.create:orm_write:1": "b0b645ebd5c4dd31add1d78c0d6bd754269fc3e92588a8a0fe00f4f6020cffba",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.bank.statement.line.unreconcile_bank_line:orm_write:1": "337e668b15fbff485fd3c97a22fa4da9ea7e726165b90f1164e521a40de7946d",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.bank.statement.line.write:orm_write:1": "077fd7822367968dac849f066bebfe59ac02b7a0c15be76bdb35907fe3ec62ca",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.bank.statement.line.write:orm_write:2": "b5437c82dd911bc25b124f2873a8f3a3a039268bf8b81f33ae1cfa35bb417a61",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._restore_payment_rate_document:orm_write:1": "669db424fb2044bbb6dba0d5d90e8f512f64b9b007cee536901085ae1bf11f3a",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._restore_payment_rate_document:orm_write:2": "f062255fec7c9e27bdfc87a75b625f6975ef39c4b8ba12b14bb159ff3e553ea3",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._reverse_bank_statement_settlement:orm_write:1": "57569656e76f2e40229c7936ec0c8200ea532728d5ac2bb659799277cc86e291",
@@ -144929,61 +144922,68 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement.create:orm_write:1": "d9eacae9ae9ba7d155e6cbe51207cf3dd104b91552678e38db9a644aeaca28de",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement.write:orm_write:1": "cb20cfdae2ff60d9243b98ab4287387e41448ad7c43df0e9de33e8c3b1b00fe1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement.write:orm_write:2": "ba9614909d35d4330eb6ee19bc185ac09fb2ef48b7adcc11c4c5824ac00e9ab2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._apply_payment_rate_to_document:orm_write:1": "61633b882d8ddee58c1c890a08984f0e982936cde2fbaa288dc98bce64e6de1b",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._apply_payment_rate_to_document:orm_write:2": "2801942aa1928eded22a23cd5acecb9efa066d248cb0c25a421a8445b0091bbf",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:1": "f34f2a34aaeab49f1bde7d59b4c4471f229bb08c86c70011a627712cf731bc21",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:2": "147225cc51868706b3c0f204e3bafe378d1a11b0c7e02eac7a433a6cc0fe814b",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:3": "93dd7f7668943b2efe904bc5f4947cb2fdf8eab5b9daa36f350db4e8a5a6801c",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:message_send:1": "9e93b1186038af2678b0facbf7b98f9547c4509fc0721573c3e7d68e7f6ab9e7",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:message_send:2": "df0c5ef2cd9c9ae3cdf406d9c1e4b8e626d51895d828d8f980516d1c210a9f8e",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:message_send:3": "4f9efeee8e1895de51b2fb17a82a1b6ebe2d1504ded08d65548cbab899bb743a",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_create:1": "3ca4ede9604e4d23cf0bfcc797ccbd7d8fa995737e7282d0451dae82545cb1d0",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:1": "2977e1e7ebc82b3ab4008717a30783dab820b0725f01117e22a0745d33072e00",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:10": "41437c3dc7dcf91dcc05b4fccbd3229a5bbdaad9a81d60d396b97e4df213f4a6",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:11": "079f65342d1d24b97c487e40af8c4ba1870889a54e3619c6f3c2a385122f8471",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:12": "ba2c66231a08b8a055094d5dc968a5733563b34c7fd4dfcb573f9ad683f15eb3",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:13": "871d0264379aaa8ad92a965abfe158f60af6c1f11efda7b16d9574724eaaa918",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:14": "00909c26f7b39ba44f6ac9d912e7c14fe26de1d009b8d297a261c11f01e1a540",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:15": "c72ab1e3f1e97591fead89afc1cf709241a792b1ba73ff5942265466f356f476",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:16": "48f125e3a1e4278b2f823250c81e213a58f0651b421351b7144d74a86379790e",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:17": "fa2fa6b673ee593365d7042646440006e8d66ed8ee2554cf2e09bf48f2f33182",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:18": "3cd96ed8f7318fcbe9b4da363b335f74f4a7377dfd10e0c12bb6b9011cecf1af",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:2": "00b84ac95581d8b382368301efa4763a16f687c9276ffff9a4ccea8a7e71d382",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:3": "5ee90136404010953634420c990600323c494272da70adc1b0bbfae4e03de22c",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:4": "929271671634860cb5c8121b08ae4edd353fe4430b353d221b762d5b978a2cfe",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:5": "a9ab7b73d32dff56121862ce1c6564140932fa1be4063bbebcdfd660bedc97c2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:6": "ad521029415f926be699914c6ad1d1404807b210ed5371d7ed8320a8230d8005",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:7": "e7f8b966f2e15bbdb85d191dce8690aa0eeaa8d02c01c66c82080b12aff1f8a8",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:8": "74a1731021905b69d1f2ea0d842dc4b3670c36561ffca0985689457bc8177c7b",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._execute_foreign_settlement:orm_write:9": "bf1edb95a0d3b99db344ee9538705b9327579101f9f2a1d0629126cd1e5dd7c6",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._get_foreign_settlement_context:orm_write:1": "0e908cd19b37549110df8992f68efdbefbd2183558ac76fed3b2c0731d863826",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._get_foreign_settlement_context:orm_write:2": "718a3739cf41d9aff34a7fc8b2a189aa0d307ad6b93dd7ec7945ee5378d1fd89",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._get_foreign_settlement_context:orm_write:3": "1201f71f09a5d42edd2b280c673f4e129f67482582f98511e3f21e389827afcf",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._get_immediate_settlement_eligibility:orm_write:1": "c6e92a1894e8b9eeae5610df307ae3d7c0b5243191160ebe4df56f9059bf58f8",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._get_payment_rate_settlement_eligibility:orm_write:1": "618321943ff24377996274262ffa402beb05c264263db51d0cdebd133c693af0",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._get_payment_rate_settlement_eligibility:orm_write:2": "64dd7d0fbd866b1333aa32271d21b982b5ac6b5dcc064c9d269e2570e7a00ef8",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move._unlink_immediate_settlement_adjustment:orm_write:1": "9dd72d5b5332609ceeb24e260d1b43c3070221d1e680808dd586a06a13a70c2c",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.button_cancel:orm_write:1": "e2fa3eb8b2203e4105ea927e7497cc65d2030c18453e18b8040f6ecbb8e42cbd",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.button_draft:orm_write:1": "9ffcadf0f8193e2557c95e65a51fb6725d034ce1b898c1b66dc7c1ce9123d620",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.js_settle_outstanding_line:orm_write:1": "60ea974cdaf0a045fb43f715fb281f422faaf25e4e355179b44359ca7f1a8c15",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.js_use_payment_rate_outstanding_line:orm_write:1": "7385c16698e64bdf1a0521deef9741803b3e195e3f546c3e1c9e39c561c09cf9",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.create:orm_create:1": "b28acdd20e2f23eae86b015389c0e6f92dfa2b336c920ad53ac60a235e709f96",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.create:orm_write:1": "a530f44ac8d3158eee097c1a525668d037ce66336a315f7a79a22c617539853d",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.unlink:orm_unlink:1": "600b32cba8fe7383521169812b9c49df10a7ca76a562fa8f872c7d130921e4dc",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.unlink:orm_write:1": "baaf45c0ce113a1fab7e27e39a209b0f215b052d148f9c628905b0adefb48785",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.unlink:orm_write:2": "911d9613c64122023b0bae28f5d19d26f7be222ee34f9fe15407a9940babb4fa",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.write:orm_write:1": "ab39d78beafdcc6aba0e1c2c1f28f311c224dc54142f396b9a3cfbb730af6bcb",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.write:orm_write:2": "43359ae2c8762fc35e226aae5de142d32b750be649339064987b301de858d723",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.write:orm_write:3": "ddc8f4c2bcea4f7c44adc5855510671f404689a2cc81eb8e6723e2d5f3601840",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.line.write:orm_write:4": "c66d7efa24ecb61a222833941b513613dbd1d762fbe34233b002da1b7033bd0b",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.write:orm_write:1": "a0b9b7f3acc591cf8675cdbac15f5522aa7346c7a36a5bee4155f366ea3a108d",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.move.write:orm_write:2": "f0b1b597078ff7367874294d4882ec1ae10d0fd61f1eed17609e10df082a5a9b",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.partial.reconcile.create:orm_create:1": "dd6015f518a9f8bfbf075473e70e3641e1e5bb96ea26add555578447fbac3eaf",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.partial.reconcile.create:orm_write:1": "ffba50355b0d00763fb7c2c6d191960b6d3f4227bdc3e02a6d6697a05ed843ae",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.partial.reconcile.unlink:orm_unlink:1": "606282189e04981a9de3a664252e2e958fb82256e4b311b88a67be1c480e491b",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.partial.reconcile.unlink:orm_unlink:2": "ac7559f9757a06939b70a0895d1972a86f2e82af2b6203addd7658e2f2bbb7bc",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.partial.reconcile.write:orm_write:1": "8c4b32f2ed7160900d0112484ce99c0117e23872448aeeae18da13a3a1338499",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.partial.reconcile.write:orm_write:2": "3cce2fadc4ca36824e6018d998d1249d04bd3bbdcf1ba796b9fc3a79857e3654",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line._has_internal_settlement_token:orm_write:1": "c14a88264c8387fa299c60544bfe397532597ec0fb58f88da3101cb436982282",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.action_undo_reconciliation:orm_write:1": "a51c6cf567d3e095e61642df4aebf0fe2bb9b0dae7031d99240176e2e6bc92fd",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.create:orm_create:1": "b5b0a5644e5a673c4d669ab9926fae9051df462e2d7c918ba1947b2877c3c143",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.create:orm_write:1": "b0b645ebd5c4dd31add1d78c0d6bd754269fc3e92588a8a0fe00f4f6020cffba",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.unreconcile_bank_line:orm_write:1": "337e668b15fbff485fd3c97a22fa4da9ea7e726165b90f1164e521a40de7946d",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.write:orm_write:1": "077fd7822367968dac849f066bebfe59ac02b7a0c15be76bdb35907fe3ec62ca",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.write:orm_write:2": "b5437c82dd911bc25b124f2873a8f3a3a039268bf8b81f33ae1cfa35bb417a61",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._apply_payment_rate_to_document:orm_write:1": "61633b882d8ddee58c1c890a08984f0e982936cde2fbaa288dc98bce64e6de1b",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._apply_payment_rate_to_document:orm_write:2": "2801942aa1928eded22a23cd5acecb9efa066d248cb0c25a421a8445b0091bbf",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:1": "f34f2a34aaeab49f1bde7d59b4c4471f229bb08c86c70011a627712cf731bc21",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:2": "147225cc51868706b3c0f204e3bafe378d1a11b0c7e02eac7a433a6cc0fe814b",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._compute_payments_widget_to_reconcile_info:orm_write:3": "93dd7f7668943b2efe904bc5f4947cb2fdf8eab5b9daa36f350db4e8a5a6801c",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:message_send:1": "9e93b1186038af2678b0facbf7b98f9547c4509fc0721573c3e7d68e7f6ab9e7",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:message_send:2": "df0c5ef2cd9c9ae3cdf406d9c1e4b8e626d51895d828d8f980516d1c210a9f8e",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:message_send:3": "4f9efeee8e1895de51b2fb17a82a1b6ebe2d1504ded08d65548cbab899bb743a",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_create:1": "3ca4ede9604e4d23cf0bfcc797ccbd7d8fa995737e7282d0451dae82545cb1d0",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:1": "2977e1e7ebc82b3ab4008717a30783dab820b0725f01117e22a0745d33072e00",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:10": "41437c3dc7dcf91dcc05b4fccbd3229a5bbdaad9a81d60d396b97e4df213f4a6",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:11": "079f65342d1d24b97c487e40af8c4ba1870889a54e3619c6f3c2a385122f8471",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:12": "ba2c66231a08b8a055094d5dc968a5733563b34c7fd4dfcb573f9ad683f15eb3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:13": "871d0264379aaa8ad92a965abfe158f60af6c1f11efda7b16d9574724eaaa918",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:14": "00909c26f7b39ba44f6ac9d912e7c14fe26de1d009b8d297a261c11f01e1a540",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:15": "c72ab1e3f1e97591fead89afc1cf709241a792b1ba73ff5942265466f356f476",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:16": "48f125e3a1e4278b2f823250c81e213a58f0651b421351b7144d74a86379790e",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:17": "fa2fa6b673ee593365d7042646440006e8d66ed8ee2554cf2e09bf48f2f33182",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:18": "3cd96ed8f7318fcbe9b4da363b335f74f4a7377dfd10e0c12bb6b9011cecf1af",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:2": "00b84ac95581d8b382368301efa4763a16f687c9276ffff9a4ccea8a7e71d382",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:3": "5ee90136404010953634420c990600323c494272da70adc1b0bbfae4e03de22c",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:4": "929271671634860cb5c8121b08ae4edd353fe4430b353d221b762d5b978a2cfe",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:5": "a9ab7b73d32dff56121862ce1c6564140932fa1be4063bbebcdfd660bedc97c2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:6": "ad521029415f926be699914c6ad1d1404807b210ed5371d7ed8320a8230d8005",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:7": "e7f8b966f2e15bbdb85d191dce8690aa0eeaa8d02c01c66c82080b12aff1f8a8",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:8": "74a1731021905b69d1f2ea0d842dc4b3670c36561ffca0985689457bc8177c7b",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._execute_foreign_settlement:orm_write:9": "bf1edb95a0d3b99db344ee9538705b9327579101f9f2a1d0629126cd1e5dd7c6",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_foreign_settlement_context:orm_write:1": "0e908cd19b37549110df8992f68efdbefbd2183558ac76fed3b2c0731d863826",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_foreign_settlement_context:orm_write:2": "718a3739cf41d9aff34a7fc8b2a189aa0d307ad6b93dd7ec7945ee5378d1fd89",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_foreign_settlement_context:orm_write:3": "1201f71f09a5d42edd2b280c673f4e129f67482582f98511e3f21e389827afcf",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_immediate_settlement_eligibility:orm_write:1": "c6e92a1894e8b9eeae5610df307ae3d7c0b5243191160ebe4df56f9059bf58f8",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_payment_rate_settlement_eligibility:orm_write:1": "618321943ff24377996274262ffa402beb05c264263db51d0cdebd133c693af0",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._get_payment_rate_settlement_eligibility:orm_write:2": "64dd7d0fbd866b1333aa32271d21b982b5ac6b5dcc064c9d269e2570e7a00ef8",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._unlink_immediate_settlement_adjustment:orm_write:1": "9dd72d5b5332609ceeb24e260d1b43c3070221d1e680808dd586a06a13a70c2c",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.button_cancel:orm_write:1": "e2fa3eb8b2203e4105ea927e7497cc65d2030c18453e18b8040f6ecbb8e42cbd",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.button_draft:orm_write:1": "9ffcadf0f8193e2557c95e65a51fb6725d034ce1b898c1b66dc7c1ce9123d620",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.js_settle_outstanding_line:orm_write:1": "60ea974cdaf0a045fb43f715fb281f422faaf25e4e355179b44359ca7f1a8c15",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.js_use_payment_rate_outstanding_line:orm_write:1": "7385c16698e64bdf1a0521deef9741803b3e195e3f546c3e1c9e39c561c09cf9",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.create:orm_create:1": "b28acdd20e2f23eae86b015389c0e6f92dfa2b336c920ad53ac60a235e709f96",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.create:orm_write:1": "a530f44ac8d3158eee097c1a525668d037ce66336a315f7a79a22c617539853d",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.unlink:orm_unlink:1": "600b32cba8fe7383521169812b9c49df10a7ca76a562fa8f872c7d130921e4dc",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.unlink:orm_write:1": "baaf45c0ce113a1fab7e27e39a209b0f215b052d148f9c628905b0adefb48785",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.unlink:orm_write:2": "911d9613c64122023b0bae28f5d19d26f7be222ee34f9fe15407a9940babb4fa",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.write:orm_write:1": "ab39d78beafdcc6aba0e1c2c1f28f311c224dc54142f396b9a3cfbb730af6bcb",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.write:orm_write:2": "43359ae2c8762fc35e226aae5de142d32b750be649339064987b301de858d723",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.write:orm_write:3": "ddc8f4c2bcea4f7c44adc5855510671f404689a2cc81eb8e6723e2d5f3601840",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.line.write:orm_write:4": "c66d7efa24ecb61a222833941b513613dbd1d762fbe34233b002da1b7033bd0b",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.write:orm_write:1": "a0b9b7f3acc591cf8675cdbac15f5522aa7346c7a36a5bee4155f366ea3a108d",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move.write:orm_write:2": "f0b1b597078ff7367874294d4882ec1ae10d0fd61f1eed17609e10df082a5a9b",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.partial.reconcile.create:orm_create:1": "dd6015f518a9f8bfbf075473e70e3641e1e5bb96ea26add555578447fbac3eaf",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.partial.reconcile.create:orm_write:1": "ffba50355b0d00763fb7c2c6d191960b6d3f4227bdc3e02a6d6697a05ed843ae",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.partial.reconcile.unlink:orm_unlink:1": "606282189e04981a9de3a664252e2e958fb82256e4b311b88a67be1c480e491b",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.partial.reconcile.unlink:orm_unlink:2": "ac7559f9757a06939b70a0895d1972a86f2e82af2b6203addd7658e2f2bbb7bc",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.partial.reconcile.write:orm_write:1": "8c4b32f2ed7160900d0112484ce99c0117e23872448aeeae18da13a3a1338499",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.partial.reconcile.write:orm_write:2": "3cce2fadc4ca36824e6018d998d1249d04bd3bbdcf1ba796b9fc3a79857e3654",
         "sink:usl_accounting:custom-addons/usl_accounting/models/multi_company_expenses.py:res.users._compute_usl_expense_company_profile_status:sudo:1": "e9d857f4751b11c7b75023b60252b84be527bb053c410068c4e72e58654c98e5",
         "sink:usl_accounting:custom-addons/usl_accounting/models/multi_company_expenses.py:res.users._usl_ensure_expense_company_profiles:orm_create:1": "98980f7f462f8920b3c6db292d56e03b6e04e85700d18057fd7b6fb3026b3048",
         "sink:usl_accounting:custom-addons/usl_accounting/models/multi_company_expenses.py:res.users._usl_ensure_expense_company_profiles:orm_write:1": "dfb3cb609becba05356dc3ce45e378602d8bdbfaea6b84c4eb03d4db412b9f56",
