@@ -9,7 +9,7 @@ from odoo import Command, fields, models
 from odoo.exceptions import UserError
 
 from odoo.addons.usl_b2c_restore.native_plan import (
-    ACQUISITIONS,
+    acquisitions,
     EXPECTED_THEORETICAL_STOCK,
     PACK_COMPONENTS,
     source_line_components,
@@ -17,7 +17,7 @@ from odoo.addons.usl_b2c_restore.native_plan import (
 )
 
 from .comparison import (
-    BILL_EVIDENCE_COUNTS,
+    bill_evidence_counts,
     assert_values,
     materialization_context,
 )
@@ -168,7 +168,7 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
                 return self.env["product.product"]
             template = self.env["product.template"].sudo().with_context(**self._ctx()).create(
                 {
-                    "name": "Quandun 40 mm prototype samples — October 2025",
+                    "name": "40 mm padlock prototype samples — October 2025",
                     "default_code": code,
                     "company_id": company.id,
                     "type": "consu",
@@ -222,7 +222,7 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
 
     def _validate_acquisitions(self, company, apply):
         result = []
-        for acquisition in ACQUISITIONS:
+        for acquisition in acquisitions():
             partners = (
                 self.env["res.partner"]
                 .sudo()
@@ -253,7 +253,7 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
         acquired = defaultdict(Decimal)
         consumed = defaultdict(Decimal)
         reserved = defaultdict(Decimal)
-        for acquisition in ACQUISITIONS:
+        for acquisition in acquisitions():
             if acquisition.get("internal_consumption"):
                 continue
             for line in acquisition["lines"]:
@@ -599,7 +599,7 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
                     f"Historical purchase line {line.display_name} unexpectedly has taxes.",
                 )
             if (
-                BILL_EVIDENCE_COUNTS[(item["bill_ref"], item["bill_label"])] == 1
+                bill_evidence_counts()[(item["bill_ref"], item["bill_label"])] == 1
                 and bill_line.purchase_line_id != line
             ):
                 raise UserError(
@@ -729,7 +729,7 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
                     "usl_source_bill_line_ids": [Command.link(bill_line.id)],
                 },
             )
-            if BILL_EVIDENCE_COUNTS[(item["bill_ref"], item["bill_label"])] == 1:
+            if bill_evidence_counts()[(item["bill_ref"], item["bill_label"])] == 1:
                 if bill_line.purchase_line_id and bill_line.purchase_line_id != line:
                     raise UserError(
                         f"Vendor-bill line {bill_line.display_name!r} is already linked "
@@ -1125,7 +1125,11 @@ class UslB2cNativeInventoryMaterializer(models.AbstractModel):
         evidenced_products = self.env["product.product"]
         for code in {
             *EXPECTED_THEORETICAL_STOCK,
-            *(line["code"] for acquisition in ACQUISITIONS for line in acquisition["lines"]),
+            *(
+                line["code"]
+                for acquisition in acquisitions()
+                for line in acquisition["lines"]
+            ),
         }:
             evidenced_products |= self._product(code)
         templates_to_mark = evidenced_products.product_tmpl_id.filtered(

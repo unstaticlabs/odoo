@@ -8,6 +8,7 @@ from pathlib import Path
 import psycopg2
 import psycopg2.extras
 
+from . import private_evidence
 from .parsers import (
     ETSY_ITEMS_HEADER,
     ETSY_STATEMENT_HEADER,
@@ -31,40 +32,8 @@ SUPPLEMENTAL_EVIDENCE_DIR = Path(
     ),
 ).resolve()
 
-SUPPLIER_NAME_MAP = {
-    "Amazon": "Amazon EU S.à r.l.",
-    "Amazon EU S.a.r.L., succursale française": (
-        "Amazon EU S.à r.l., Succursale Française"
-    ),
-    "Amazon EU Sarl - Italian Branch": (
-        "Amazon EU S.à r.l., Succursale Italiana"
-    ),
-    "Amazon EU Sarl, Spanish Branch": (
-        "Amazon EU S.à r.l., Sucursal en España"
-    ),
-    "Amazon Ireland": "Amazon EU S.à r.l., Irish Branch",
-    "Bosin Hardware Co., Ltd": "Bosin Hardware Co., Ltd",
-    "Chonghong Industries Ltd": "Chonghong Industries Ltd",
-    "FEDEX EXPRESS FR": "FEDEX EXPRESS FR",
-    "Focus Global Sourcing Services Co., Limited (Made-in-China.com)": (
-        "Focus Global Sourcing Services Co., Limited (Made-in-China.com)"
-    ),
-    "GROUPE TVA LA POSTE": "GROUPE TVA LA POSTE",
-    "Heinle Solution GmbH": "Heinle Solution GmbH",
-    "Heinle Solution GmbH - FR": (
-        "Heinle Solution GmbH — immatriculation TVA FR"
-    ),
-    "Heinle Solution GmbH - IT": (
-        "Heinle Solution GmbH — immatriculation TVA IT"
-    ),
-    "LA POSTE": "LA POSTE",
-    "Lockey Safety Products Co": "Lockey Safety Products Co",
-    "MIXAM UK LIMITED": "MIXAM UK LIMITED",
-    "Printful Inc.": "Printful Inc.",
-    "Zhejiang Quandun Import & Export Co., Ltd.": (
-        "Zhejiang Quandun Import & Export Co., Ltd."
-    ),
-}
+# Supplier identities are commercial evidence, pinned beside the source package.
+SUPPLIER_NAME_MAP = private_evidence.supplier_identities()
 SUPPLIER_NAMES = tuple(SUPPLIER_NAME_MAP)
 CANONICAL_SUPPLIER_NAMES = tuple(SUPPLIER_NAME_MAP.values())
 

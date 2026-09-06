@@ -5,6 +5,7 @@ import os
 from decimal import Decimal
 from pathlib import Path
 
+from odoo.addons.usl_b2c_restore import private_evidence
 from odoo.addons.usl_b2c_restore.models.relationships import EXPECTED_JOURNALS
 from odoo.addons.usl_b2c_restore.models.restore import UslB2cRestoreRun
 from odoo.addons.usl_b2c_restore.parsers import (
@@ -420,8 +421,14 @@ assert target_supplier_documents == source["supplier_documents"], (
     target_supplier_documents,
     source["supplier_documents"],
 )
+# The padlock supplier is named only in pinned commercial evidence.
+padlock_supplier = next(
+    acquisition["partner"]
+    for acquisition in private_evidence.acquisitions()
+    if any(line["code"].startswith("PADLOCK_") for line in acquisition["lines"])
+)
 quandun = env["res.partner"].sudo().search(
-    [("name", "=", "Zhejiang Quandun Import & Export Co., Ltd.")],
+    [("name", "=", padlock_supplier)],
 )
 assert len(quandun) == 1
 quandun_drafts = env["account.move"].sudo().search(

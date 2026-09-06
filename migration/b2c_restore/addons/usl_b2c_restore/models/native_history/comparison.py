@@ -14,7 +14,7 @@ from odoo.addons.usl_b2c.models.native_history import (
     MATERIALIZATION_CONTEXT,
     MATERIALIZATION_TOKEN,
 )
-from odoo.addons.usl_b2c_restore.native_plan import ACQUISITIONS
+from odoo.addons.usl_b2c_restore.native_plan import acquisitions
 
 
 def materialization_context():
@@ -28,11 +28,13 @@ def materialization_context():
     }
 
 
-BILL_EVIDENCE_COUNTS = Counter(
-    (line["bill_ref"], line["bill_label"])
-    for acquisition in ACQUISITIONS
-    for line in acquisition["lines"]
-)
+def bill_evidence_counts():
+    """Return how many acquisition lines share one vendor-bill line."""
+    return Counter(
+        (line["bill_ref"], line["bill_label"])
+        for acquisition in acquisitions()
+        for line in acquisition["lines"]
+    )
 
 
 def _digest(value):

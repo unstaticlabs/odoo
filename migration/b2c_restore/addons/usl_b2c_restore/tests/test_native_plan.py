@@ -3,8 +3,9 @@ from decimal import Decimal
 
 from odoo.tests import BaseCase, tagged
 
+from odoo.addons.usl_b2c_restore import private_evidence
 from odoo.addons.usl_b2c_restore.native_plan import (
-    ACQUISITIONS,
+    acquisitions,
     EXPECTED_SOURCE_FINGERPRINTS,
     EXPECTED_THEORETICAL_STOCK,
     PACK_COMPONENTS,
@@ -51,9 +52,11 @@ class TestNativeHistoryPlan(BaseCase):
             accepted_finalization_run(native_mode="dry_run", native_state="passed")
 
     def test_documented_acquisitions_have_the_reviewed_physical_totals(self):
+        if not private_evidence.available("supplier-acquisitions-2026-09-06.json"):
+            self.skipTest("The pinned supplier evidence is not mounted here.")
         acquired = defaultdict(Decimal)
         samples = Decimal()
-        for acquisition in ACQUISITIONS:
+        for acquisition in acquisitions():
             for line in acquisition["lines"]:
                 if acquisition.get("internal_consumption"):
                     samples += line["quantity"]

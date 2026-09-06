@@ -1350,7 +1350,7 @@ class CatalogNormalizer:
         categories = {"printful": pod_category, "own_stock": finished_category}
 
         _padlock_template, padlock_products = self._consolidate_existing(
-            "40 mm Quandun padlock",
+            "40 mm padlock",
             PADLOCK_CODES,
             "colour",
         )
