@@ -36,6 +36,7 @@
                                     type="object" icon="fa-minus"
                                     invisible="not selected"/>
                             <field name="selected" column_invisible="True"/>
+                            <field name="payout_id" column_invisible="True" force_save="1"/>
                             <field name="validation_status" string="Validation" widget="badge"
                                    decoration-success="validation_status == 'ok'"
                                    decoration-warning="validation_status == 'warning'"
@@ -65,7 +66,7 @@
                                    widget="boolean_icon"
                                    options="{'icon': 'fa-check'}"/>
                             <field name="bank_statement_line_id"
-                                   column_invisible="True"/>
+                                   column_invisible="True" force_save="1"/>
                             <field name="recommended" column_invisible="True"/>
                             <field name="confidence" column_invisible="True"/>
                             <field name="recommendation_marker" decoration-success="recommended"
@@ -79,7 +80,8 @@
                             <field name="bank_date"/>
                             <field name="bank_journal_id" optional="show"/>
                             <field name="bank_partner_id" optional="hide"/>
-                            <field name="platform_id" readonly="1" optional="hide"/>
+                            <field name="platform_id" readonly="1" force_save="1" optional="hide"/>
+                            <field name="extracted_reference" column_invisible="True"/>
                             <field name="bank_foreign_currency_id"
                                    column_invisible="True"/>
                             <field name="bank_foreign_amount" optional="hide"/>

@@ -264,9 +264,9 @@ class UslPlatformBillingPlatform(models.Model):
     @api.constrains("commission_rate")
     def _check_commission_rate(self):
         for platform in self:
-            if not 0.0 < platform.commission_rate < 100.0:
+            if not 0.0 <= platform.commission_rate < 100.0:
                 raise ValidationError(
-                    _("The commission rate must be strictly between 0% and 100%."),
+                    _("The commission rate must be at least 0% and below 100%."),
                 )
 
     @api.constrains("bank_match_days_tolerance", "bank_match_amount_tolerance")

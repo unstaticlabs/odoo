@@ -100363,6 +100363,8 @@
           "reversal_action": "rpc:usl.platform.billing.session.write"
         },
         "rpc:usl.platform.billing.session.action_prefill": {
+          "evidence_id": "platform-zero-commission-bank-import",
+          "rationale": "Preserves native financial workflow and company/operator checks. Explicit zero snapshots remain unchanged; generation validates partner country and omits rounded-zero commission bills while retaining contributing payout links. No posted document or account-direction guard is bypassed.",
           "reversal_action": "rpc:usl.platform.billing.session.write"
         },
         "rpc:usl.platform.billing.session.action_reconcile_bank": {
@@ -100387,7 +100389,7 @@
         "rpc:usl.platform.billing.session.action_open_bank_import": "d7c0a99a90dd2243259b59fd23d69e1d93a22fc58dfc99233b469e3413fd7801",
         "rpc:usl.platform.billing.session.action_open_documents_workspace": "a77c4b201439ce301a99985661cf9f8dbe058829d55d16ea62e0b5fcaaecbaad",
         "rpc:usl.platform.billing.session.action_post_documents": "62719785a40af61d7814f96d889c44a71dee1bec663c8b92c673929016ef73d9",
-        "rpc:usl.platform.billing.session.action_prefill": "7e1582f08893006bc9829095b978c48a8b4ccab475c946210256571fc22f873e",
+        "rpc:usl.platform.billing.session.action_prefill": "7141be138004845452fd6986045a7a1a4ff2a1f6c13ee1c14c1b817d6e057ba6",
         "rpc:usl.platform.billing.session.action_reconcile_bank": "ba2dcf528bd29931ee30ae97993370cf213acbe73bb930d23bb2b14b7f3e5f40",
         "rpc:usl.platform.billing.session.action_reset_drafts": "6d8fffe7d2d974882d3254ebf61dcf04f311bd543b151edb4e3e3480416f8cfd"
       }
@@ -162882,18 +162884,28 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._generate_platform_documents:orm_create:1": {
+          "evidence_id": "platform-zero-commission-bank-import",
+          "rationale": "Preserves native financial workflow and company/operator checks. Explicit zero snapshots remain unchanged; generation validates partner country and omits rounded-zero commission bills while retaining contributing payout links. No posted document or account-direction guard is bypassed.",
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._generate_platform_documents:orm_create:2": {
+          "evidence_id": "platform-zero-commission-bank-import",
+          "rationale": "Preserves native financial workflow and company/operator checks. Explicit zero snapshots remain unchanged; generation validates partner country and omits rounded-zero commission bills while retaining contributing payout links. No posted document or account-direction guard is bypassed.",
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._generate_platform_documents:orm_create:3": {
+          "evidence_id": "platform-zero-commission-bank-import",
+          "rationale": "Preserves native financial workflow and company/operator checks. Explicit zero snapshots remain unchanged; generation validates partner country and omits rounded-zero commission bills while retaining contributing payout links. No posted document or account-direction guard is bypassed.",
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._generate_platform_documents:orm_create:4": {
+          "evidence_id": "platform-zero-commission-bank-import",
+          "rationale": "Preserves native financial workflow and company/operator checks. Explicit zero snapshots remain unchanged; generation validates partner country and omits rounded-zero commission bills while retaining contributing payout links. No posted document or account-direction guard is bypassed.",
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._generate_platform_documents:orm_write:1": {
+          "evidence_id": "platform-zero-commission-bank-import",
+          "rationale": "Preserves native financial workflow and company/operator checks. Explicit zero snapshots remain unchanged; generation validates partner country and omits rounded-zero commission bills while retaining contributing payout links. No posted document or account-direction guard is bypassed.",
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:1": {
@@ -162966,9 +162978,13 @@
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.platform.billing.session.action_post_documents"
         },
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_prefill:orm_write:1": {
+          "evidence_id": "platform-zero-commission-bank-import",
+          "rationale": "Preserves native financial workflow and company/operator checks. Explicit zero snapshots remain unchanged; generation validates partner country and omits rounded-zero commission bills while retaining contributing payout links. No posted document or account-direction guard is bypassed.",
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.platform.billing.session.action_prefill"
         },
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_prefill:orm_write:2": {
+          "evidence_id": "platform-zero-commission-bank-import",
+          "rationale": "Preserves native financial workflow and company/operator checks. Explicit zero snapshots remain unchanged; generation validates partner country and omits rounded-zero commission bills while retaining contributing payout links. No posted document or account-direction guard is bypassed.",
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.platform.billing.session.action_prefill"
         },
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reconcile_bank:message_send:1": {
@@ -163061,11 +163077,11 @@
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._create_compensation_move:orm_create:2": "7e4e4f99952f61088f72cba74b9816d41952c5c404d50b3efc5be0cde8f9ac9c",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._create_compensation_move:orm_create:3": "7c4a21d08072e4724f11b709ef5ee38ac353e5643f358f88b0c9684080a7aef0",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._create_compensation_move:orm_write:1": "7fb2e9dd3df2dbce17070bbeea74280ce6ce976bd8079962f0103b5cf935691a",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._generate_platform_documents:orm_create:1": "5ff7771499b2aa78ca0bcfa16d1aaa7c1961c1824152ee93f3eb64111c702211",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._generate_platform_documents:orm_create:2": "3c4116713e4ef309ffd20eea7961540e6f41dc7d6e2b4d707e37b49438d340ce",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._generate_platform_documents:orm_create:3": "0b6d277a4f670b2f6d5099f11c6e73cd1fb277918cc0f4c176a72a7fffab867c",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._generate_platform_documents:orm_create:4": "7aab16428d441552280edd2f4126908004a6ec44f73daae77eee3f4855e49713",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._generate_platform_documents:orm_write:1": "d9f548f562076d883e5aa27be5bcafc85d19d2682a16fb34792b5d9dfbd45387",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._generate_platform_documents:orm_create:1": "812812a2bb6347895881304fdcf2cb2eac69df6a7c9593f5ce222ce8ca029338",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._generate_platform_documents:orm_create:2": "d9c3cad830a27d6441f69dc9f4176008e8a5690bb2950c47ed3565e917518c0c",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._generate_platform_documents:orm_create:3": "5c0d23fffd8e9f6ba51b71aceb5ea8b1efef148476f655028d0bcf2054137efe",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._generate_platform_documents:orm_create:4": "b231edf3f65590ce6861fb04ef133df490a10aafceb0ff2d98d6466fa0c5adc0",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._generate_platform_documents:orm_write:1": "394e98b0101a7733aec4812b2fce850af5b6c46e3e7fda2fc477c9537b498df0",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:1": "b30f7c04e6967d18c4d9f4f273a19fedf4d67efb425a622f126684ad72077336",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:2": "23f1e2dac5716124df4fa40c93f77e13b3d78f5e2523d5b33f8c305d3a3d4e7d",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session._refresh_state:orm_write:3": "6bb752c1d78e108eb8cb31dee5ca2de5cacefcc8fb274460e434ce29a91d618d",
@@ -163089,8 +163105,8 @@
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_post_documents:orm_write:1": "2803171716fc6ea532e439743ab098824b4f8c8b29552b27372e26b0b5e9614e",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_post_documents:orm_write:2": "66ecb386b6730f19383de4d79356b58dc4e3cb33802aca45afd20d3b3ba1b725",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_post_documents:orm_write:3": "ea9d55ea6cf554d1d95a601693e2c95f32aff0b7c92aa10ff445c3373f661da2",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_prefill:orm_write:1": "70ac4524abf2411ac66d12bba70559cd781e52944adcbc74f647be01145f79bd",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_prefill:orm_write:2": "55d4b92cb3d4049b89ddd052c92a188a0b5714b1da48068cb067dfb25eed0349",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_prefill:orm_write:1": "a0a061e17206664366b4c5e74ca4635130d0fb8309c81aaa5f2ca99a5a6d5f12",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_prefill:orm_write:2": "fc2e364a98e1bc7f08319d612476824ecf08254bd2b30660e9501be9c6ca6743",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reconcile_bank:message_send:1": "b6e80945c5cb1897c0ed351261ea40c6698536aa696d93b7e8bbe371f4daf20d",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reconcile_bank:orm_write:1": "e9fcaf329a5d92cd915c2d2b66db5c07b23a58336defe252e4073731ec3566c5",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.action_reconcile_bank:orm_write:2": "d1be2e053ff3e77ef7ed82008c4ec4099c0ebcc4cf432e95ab387ec9917e7a40",
@@ -193968,6 +193984,19 @@
         "custom-addons/rebuild_account_migration/tests/test_hygiene_structured_evidence.py::TestHygieneStructuredEvidence.test_accountant_without_platform_access_and_company_boundary"
       ]
     },
+    "platform-zero-commission-bank-import": {
+      "contract": "Zero and rounded-zero commission, mixed bill groups, tax-location denial, onchange import/reimport, bank-currency valuation defaults, FX direction with posting guards and existing access/company regressions.",
+      "tests": [
+        "custom-addons/usl_platform_billing/tests/test_platform_billing.py::TestPlatformBilling.test_zero_and_rounded_zero_commission_do_not_create_bills",
+        "custom-addons/usl_platform_billing/tests/test_platform_billing.py::TestPlatformBilling.test_prefill_preserves_explicit_zero_snapshot",
+        "custom-addons/usl_platform_billing/tests/test_platform_billing.py::TestPlatformBilling.test_monthly_bill_excludes_zero_commission_payouts",
+        "custom-addons/usl_platform_billing/tests/test_platform_billing.py::TestPlatformBilling.test_tax_country_required_before_generation",
+        "custom-addons/usl_platform_billing/tests/test_platform_billing.py::TestPlatformBilling.test_bank_wizard_onchange_roundtrip_preserves_candidate_links",
+        "custom-addons/usl_platform_billing/tests/test_platform_billing.py::TestPlatformBilling.test_foreign_bank_import_defaults_to_reference_rate",
+        "custom-addons/usl_platform_billing/tests/test_platform_billing.py::TestPlatformBilling.test_exchange_carryover_account_follows_actual_balance",
+        "custom-addons/usl_platform_billing/tests/test_platform_billing_browser.py::TestPlatformBillingBrowser.test_operator_imports_a_bank_transaction_as_a_new_payout"
+      ]
+    },
     "protected-deny-allow-audit-v1": {
       "contract": "Ordinary human, Agent, and Agent with sudo are denied before effects; an authorized human is allowed and immutable action/digest evidence is created.",
       "tests": [
@@ -194025,6 +194054,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "cc3bbae4af3a43f026635b1e843a17a75347b35de368b647561831d9edea38fa",
+  "qualified_policy_digest": "9dded3ea3c9de1cfa7656873247973a23297ffd8af359e55454faacc2599912c",
   "schema": "usl-action-risk-policy-v1"
 }

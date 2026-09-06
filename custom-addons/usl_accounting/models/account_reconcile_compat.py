@@ -160,6 +160,30 @@ class AccountAccountReconcile(models.Model):
 class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 
+    def _prepare_exchange_difference_move_vals(
+        self, amounts_list, company=None, exchange_date=None, **kwargs,
+    ):
+        result = super()._prepare_exchange_difference_move_vals(
+            amounts_list, company=company, exchange_date=exchange_date, **kwargs,
+        )
+        if not result:
+            return result
+        # Native reconciliation carries an earlier FX account per move into
+        # recursive rounding adjustments. That account may have the opposite
+        # direction to this new adjustment. Preserve custom account mappings,
+        # amounts and reconciliation links; only correct the configured FX pair.
+        commands = result["move_values"]["line_ids"]
+        for line, sequence in result["to_reconcile"]:
+            expense = line.company_id.expense_currency_exchange_account_id
+            income = line.company_id.income_currency_exchange_account_id
+            values = commands[sequence + 1][2]
+            balance = values.get("debit", 0) - values.get("credit", 0)
+            if balance and values["account_id"] in (expense | income).ids:
+                account = expense if balance > 0 else income
+                if account:
+                    values["account_id"] = account.id
+        return result
+
     def action_reconcile_manually(self):
         action = super().action_reconcile_manually()
         if not action:
