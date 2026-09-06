@@ -107,7 +107,7 @@ review record.
 ## Discovery and release gates
 
 `scripts/action_risk_inventory.py` provides `discover`, `refresh`,
-`compile-runtime-policy`, and `check-source`. The checker reports stable action
+`compile-runtime-policy`, `carry-moved-sinks`, and `check-source`. The checker reports stable action
 keys, source locations, module identity, normalized implementation digest,
 delegates and detected sinks. It fails for an added, removed, changed,
 multiply classified, unclassified or stale action; missing rationale/evidence;
@@ -141,6 +141,16 @@ The complete gate is enforced at four boundaries:
 Drift blocks finalization and the next release. It does not install a generic
 runtime interceptor or stop an already-qualified deployment; existing
 protected guards continue to enforce their boundaries.
+
+Sink keys embed the source file of their helper. When a refactor moves a
+method to another file of the same module without changing its code, the
+surface loses one key and gains another with the same module, qualified name,
+sink kind, ordinal and normalized digest. `carry-moved-sinks --candidate
+CANDIDATE [--module NAME]` renames exactly such pairs in the policy so the
+existing review follows the code; a removed key with no single identical
+successor is reported and stays a manual review. Run `refresh` afterwards so
+the sealed surface records the new locations. Moving an entry point still
+requires review because its sources change.
 
 ## Shared evidence contracts
 
