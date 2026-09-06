@@ -409,6 +409,16 @@ def normalize_printful_order_reference(value):
     return re.sub(r"\s+", "", normalize_order_id(normalized))
 
 
+def printful_order_evidence():
+    """Return the recovered Printful orders, or nothing when unavailable."""
+    try:
+        from . import private_evidence
+
+        return private_evidence.printful_orders()
+    except Exception:  # noqa: BLE001 - evidence is optional for parser tests
+        return {}
+
+
 def parse_legacy_delivery_address(value):
     """Split Printful's redacted legacy address without inventing missing data."""
     raw = (value or "").strip()
@@ -471,6 +481,8 @@ def build_canonical_orders(
                 "order_date": date,
                 "original_provider_state": state or "",
                 "state": "unknown",
+                "business_purpose": "sale",
+                "supplier_cost": None,
                 "source_payment_state": "",
                 "source_fulfilment_state": "",
                 "payment_date": None,
@@ -521,8 +533,12 @@ def build_canonical_orders(
             row["Status"],
             10,
         )
-        order["total"] = money(row["Total"])
-        order["revenue"] = order["total"]
+        # The legacy export is a Printful export: its "Total" is what Printful
+        # billed, never what a customer paid. An order raised by hand in
+        # Printful has no store order behind it and was never a sale.
+        supplier_cost = money(row["Total"], default=Decimal("0"))
+        recovered = printful_order_evidence().get(external_id)
+        is_marketing = recovered is not None and not recovered.get("external_id")
         order.update(
             {
                 "currency": "EUR",
@@ -534,6 +550,12 @@ def build_canonical_orders(
                 "source_payment_state": "unavailable",
                 "source_fulfilment_state": row["Status"].strip(),
                 "fulfilment_date": parsed_datetime(row["Date"]),
+                "business_purpose": (
+                    "marketing_prototype" if is_marketing else "sale"
+                ),
+                "supplier_cost": supplier_cost,
+                "total": Decimal("0") if is_marketing else supplier_cost,
+                "revenue": Decimal("0") if is_marketing else supplier_cost,
                 **parse_legacy_delivery_address(row["Address"]),
             },
         )

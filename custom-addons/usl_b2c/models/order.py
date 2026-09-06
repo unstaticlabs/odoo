@@ -2,6 +2,7 @@ from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
 from .constants import (
+    BUSINESS_PURPOSES,
     COMPLETENESS_STATES,
     CONVERSION_STATES,
     FULFILMENT_MODES,
@@ -43,6 +44,18 @@ class B2cOrder(models.Model):
         tracking=True,
     )
     origin = fields.Selection(ORIGINS, required=True, default="manual", index=True)
+    business_purpose = fields.Selection(
+        BUSINESS_PURPOSES,
+        required=True,
+        default="sale",
+        index=True,
+        tracking=True,
+        help=(
+            "What the order was for. Only a customer sale becomes native Sales "
+            "history; marketing, prototyping and internal consumption are cost, "
+            "and their recorded provider total is what the supplier billed."
+        ),
+    )
     external_order_id = fields.Char(index=True, copy=False)
     external_display_id = fields.Char(index=True, copy=False)
     original_provider_state = fields.Char(copy=False)
@@ -101,6 +114,13 @@ class B2cOrder(models.Model):
     revenue_amount = fields.Monetary(currency_field="currency_id")
     total_amount = fields.Monetary(currency_field="currency_id")
     net_amount = fields.Monetary(currency_field="currency_id")
+    supplier_cost_amount = fields.Monetary(
+        currency_field="currency_id",
+        help=(
+            "What the fulfilment supplier billed for this order. It is the only "
+            "amount a marketing or prototyping order has; it is never revenue."
+        ),
+    )
 
     subtotal_company_amount = fields.Monetary(currency_field="company_currency_id")
     shipping_company_amount = fields.Monetary(currency_field="company_currency_id")

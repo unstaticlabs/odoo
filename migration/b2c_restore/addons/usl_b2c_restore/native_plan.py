@@ -15,6 +15,9 @@ from odoo.addons.usl_b2c_restore import private_evidence
 
 EXPECTED_NATIVE_COUNTS = {
     "orders": 304,
+    # Only a customer sale becomes native Sales history.
+    "business_purposes": {"sale": 273, "marketing_prototype": 31},
+    "sales_orders": 273,
     "detailed_lines": 457,
     "etsy_orders": 173,
     "medusa_orders": 96,

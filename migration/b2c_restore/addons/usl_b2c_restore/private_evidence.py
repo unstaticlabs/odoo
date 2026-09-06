@@ -34,6 +34,9 @@ PINNED_EVIDENCE = {
     "supplier-identities-2026-09-06.json": (
         "46566ff9837ac29749834179721a4b03bca74e374e54e5a5f04e1b66fdf4f7f0"
     ),
+    "printful-order-items-2026-09-06.json": (
+        "7f22ff667369a7622a018c2ec612d107488382e79d6e02112699bfe6b974c8e7"
+    ),
 }
 
 MONEY_FIELDS = frozenset({"quantity", "price", "amount"})
@@ -93,6 +96,17 @@ def acquisitions():
     """Return the reviewed supplier acquisitions, with exact decimal amounts."""
     document = load("supplier-acquisitions-2026-09-06.json")
     return tuple(_decimals(entry) for entry in document["acquisitions"])
+
+
+@lru_cache(maxsize=1)
+def printful_orders():
+    """Return the recovered Printful orders, keyed by their merchant reference.
+
+    A Printful order with no `external_id` has no store order behind it: it was
+    raised by hand for marketing or prototyping and was never a customer sale.
+    """
+    document = load("printful-order-items-2026-09-06.json")
+    return {entry["legacy_order_id"]: entry for entry in document["orders"]}
 
 
 @lru_cache(maxsize=1)

@@ -401,6 +401,8 @@ class UslB2cRestoreRun(models.Model):
             "external_display_id": data["external_display_id"],
             "original_provider_state": data["original_provider_state"],
             "state": data["state"],
+            "business_purpose": data.get("business_purpose") or "sale",
+            "supplier_cost_amount": data.get("supplier_cost") or 0,
             "order_date": data["order_date"],
             "payment_date": data["payment_date"],
             "refund_date": data.get("refund_date"),

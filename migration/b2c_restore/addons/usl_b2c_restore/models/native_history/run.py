@@ -299,6 +299,12 @@ class UslB2cNativeHistoryRun(models.Model):
             )
         if dict(providers) != expected_providers:
             raise UserError(f"B2C provider order counts changed: {dict(providers)!r}.")
+        purposes = Counter(orders.mapped("business_purpose"))
+        if dict(purposes) != EXPECTED_NATIVE_COUNTS["business_purposes"]:
+            raise UserError(
+                f"B2C order purposes changed: {dict(purposes)!r}, expected "
+                f"{EXPECTED_NATIVE_COUNTS['business_purposes']!r}.",
+            )
         unmapped = lines.filtered(lambda line: not line.product_id or line.mapping_state != "verified")
         if unmapped:
             sample = ", ".join(f"{line.order_id.external_order_id}:{line.original_name}" for line in unmapped[:10])
@@ -338,7 +344,11 @@ class UslB2cNativeHistoryRun(models.Model):
             raise UserError(
                 f"B2C source evidence counts changed: {source_mismatches!r}.",
             )
-        return orders.sorted(lambda order: (order.order_date, order.id))
+        # Only a customer sale becomes native Sales history. Marketing,
+        # prototyping and internal consumption are cost: their evidence stays,
+        # and the supplier bill already carries the money.
+        sales = orders.filtered(lambda order: order.business_purpose == "sale")
+        return sales.sorted(lambda order: (order.order_date, order.id))
 
     @staticmethod
     def _joined_address(*parts):
@@ -1027,7 +1037,7 @@ class UslB2cNativeHistoryRun(models.Model):
     def _validate_native_counts(self, company, sales_report, inventory_report):
         expected = EXPECTED_NATIVE_COUNTS
         actual = {
-            "orders": sales_report["orders"],
+            "sales_orders": sales_report["orders"],
             "sale_lines": sales_report["lines"],
             "contacts": sales_report["contacts"],
             "partner_identities": sales_report["identities"],

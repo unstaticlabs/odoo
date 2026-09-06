@@ -14,6 +14,12 @@ HISTORICAL_B2C_COMMUNICATION_PARAMETER = (
 )
 HISTORICAL_B2C_MATERIALIZATION_CONTEXT = "usl_b2c_history_materialization"
 
+BUSINESS_PURPOSES = [
+    ("sale", "Customer sale"),
+    ("marketing_prototype", "Marketing or prototyping"),
+    ("internal_consumption", "Internal consumption"),
+]
+
 ORIGINS = [
     ("imported", "Imported"),
     ("manual", "Manual"),
