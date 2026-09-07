@@ -429,7 +429,15 @@ jobs:
         run: |
           test -n "$GITOPS_PIPELINE_TRIGGER_URL"
           test -n "$GITOPS_PIPELINE_TRIGGER_TOKEN"
-          curl --fail-with-body --silent --show-error --max-time 30 \
+          # A release is fully built and published by the time we get here; this
+          # call only tells GitOps to come and collect it. Without a retry a
+          # single slow response defers the next production release by a day,
+          # and the only symptom is a promotion pull request sitting open with
+          # a red check nobody is watching. That happened on 2026-09-07: the
+          # call timed out at 01:09 and production did not move until it was
+          # re-run by hand at 07:14.
+          curl --fail-with-body --silent --show-error \
+            --max-time 30 --retry 5 --retry-delay 10 --retry-all-errors \
             --request POST "$GITOPS_PIPELINE_TRIGGER_URL" \
             --form "token=$GITOPS_PIPELINE_TRIGGER_TOKEN" \
             --form "ref=main" \
