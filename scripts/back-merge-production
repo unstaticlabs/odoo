@@ -44,5 +44,16 @@ else
 fi
 
 # The head commit is production's tip, which qualification already ran on when
-# it was pushed to 19-usl, so the queue admits it without a fresh build.
-gh pr merge "$number" --repo "$GITHUB_REPOSITORY" --auto --merge
+# it was pushed to 19-usl, so the queue admits it without a fresh build. Keep
+# --merge: a merge commit is what restores the ancestry, and squashing or
+# rebasing would defeat the point of the back-merge.
+#
+# Enabling auto-merge needs a token with write access to the repository, and
+# every workflow here deliberately runs with `contents: read`. When the mutation
+# is refused the pull request is still open and still correct, so say what needs
+# doing and leave the run green: reporting a failure on the very pull request
+# this just opened reads as "the back-merge is broken" and teaches people to
+# ignore a red check that is usually worth reading.
+if ! gh pr merge "$number" --repo "$GITHUB_REPOSITORY" --auto --merge; then
+  echo "::warning::Opened #${number} but could not enable auto-merge, which needs a token with write access. Merge #${number} to keep 19-usl-staging from falling behind 19-usl."
+fi
