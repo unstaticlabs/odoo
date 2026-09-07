@@ -66,7 +66,7 @@ One narrow repair belongs to that list. A Chatter body is stored as HTML, so an
 Agent that sends markup without declaring it stores escaped tags that readers
 see as characters, and the ordinary write path cannot correct them.
 `mcp_revise_own_message` lets an identity rewrite the body of a comment or note
-it posted itself, on a record it can still read, within an hour of posting.
+it posted itself, on a record it can still read, within a day of posting.
 Odoo marks the message edited, the audit trail keeps the original body, and
 everything else -- another author's message, a tracking message, a message on a
 different record, an older one -- is refused. Rewriting history is not the

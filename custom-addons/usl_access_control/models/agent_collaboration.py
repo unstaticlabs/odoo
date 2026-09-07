@@ -19,7 +19,9 @@ from .agent_policy_tokens import (
 # mail.message is a governed side-effect model.  `mcp_revise_own_message`
 # below is that repair, and it is deliberately narrow: an identity may correct
 # what it wrote itself, on a record it can still read, while the note is new.
-_MESSAGE_REVISION_WINDOW = timedelta(hours=1)
+# A day covers a note noticed the next working morning and still stops an
+# identity rewording something people have long since read and acted on.
+_MESSAGE_REVISION_WINDOW = timedelta(hours=24)
 _REVISABLE_SUBTYPE_XMLIDS = ("mail.mt_comment", "mail.mt_note")
 _MAX_MESSAGE_BODY = 50_000
 
@@ -134,7 +136,7 @@ class MailThread(models.AbstractModel):
         if fields.Datetime.now() - posted_at > _MESSAGE_REVISION_WINDOW:
             raise UserError(
                 self.env._(
-                    "This message is older than %(hours)s hour(s) and can no longer be "
+                    "This message is older than %(hours)s hours and can no longer be "
                     "revised. Post a follow-up message instead.",
                     hours=int(_MESSAGE_REVISION_WINDOW.total_seconds() // 3600),
                 ),

@@ -593,7 +593,7 @@ class TestAutonomousAgents(TransactionCase):
             move,
             "&lt;p&gt;&lt;strong&gt;Nouveau&lt;/strong&gt;&lt;/p&gt;",
         )
-        self.assertIn("&amp;lt;p&amp;gt;", mangled.body)
+        self.assertIn("&lt;p&gt;&lt;strong&gt;Nouveau&lt;/strong&gt;", mangled.body)
 
         result = move.with_user(agent.user_id).mcp_revise_own_message(
             mangled.id,
@@ -620,7 +620,9 @@ class TestAutonomousAgents(TransactionCase):
             "Marge < 5% & en baisse\nRevoir vendredi",
         )
 
-        self.assertIn("Marge &lt; 5% &amp; en baisse<br>Revoir vendredi", message.body)
+        self.assertIn("Marge &lt; 5% &amp; en baisse", message.body)
+        self.assertIn("<br>Revoir vendredi", message.body)
+        self.assertIn("o-mail-Message-edited", message.body)
 
     def test_agent_revision_records_an_audit_event_with_the_original_body(self):
         agent = self._create_agent()
@@ -709,9 +711,11 @@ class TestAutonomousAgents(TransactionCase):
             {"move_type": "entry", "date": fields.Date.today()},
         )
         message = self._agent_note(agent, move, "<p>note</p>")
-        message.sudo().write(
-            {"create_date": fields.Datetime.now() - datetime.timedelta(days=1)},
+        self.env.cr.execute(
+            "UPDATE mail_message SET create_date = %s WHERE id = %s",
+            (fields.Datetime.now() - datetime.timedelta(days=2), message.id),
         )
+        message.invalidate_recordset(["create_date"])
 
         with self.assertRaises(UserError):
             move.with_user(agent.user_id).mcp_revise_own_message(
@@ -740,7 +744,12 @@ class TestAutonomousAgents(TransactionCase):
             {"move_type": "entry", "date": fields.Date.today()},
         )
         message = self._agent_note(agent, move, "<p>note</p>")
-        agent.with_user(self.owner).write({"delegated_group_ids": [Command.clear()]})
+        agent.with_user(self.owner).write(
+            {
+                "delegated_group_ids": [Command.set(self.group_user.ids)],
+                "read_only_group_ids": [Command.set(self.group_user.ids)],
+            },
+        )
 
         with self.assertRaises(AgentPolicyAccessError) as denied:
             move.with_user(agent.user_id).mcp_revise_own_message(
@@ -1637,6 +1646,7 @@ class TestAutonomousAgents(TransactionCase):
                 "action_feedback",
                 "action_feedback_schedule_next",
                 "mcp_create_download_grant",
+                "mcp_revise_own_message",
                 "mcp_revoke_download_grant",
                 "message_post",
                 "message_subscribe",
