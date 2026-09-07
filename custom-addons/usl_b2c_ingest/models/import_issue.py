@@ -23,6 +23,13 @@ ISSUE_KINDS = [
     ("fulfilment_unmatched", "A supplier fulfilment belongs to no known sale"),
     ("destination_unknown", "The export does not say where the goods went"),
     ("delivery_incomplete", "The delivery could not be completed"),
+    ("shadowed_destination", "A destination is taxed by the wrong fiscal position"),
+    ("product_tax_unclear", "A product does not state one sales tax"),
+    ("tax_added_to_price", "A tax would be added to the price already paid"),
+    ("carriage_unaccounted", "Carriage has nowhere of its own to go"),
+    ("revenue_unaccounted", "Revenue has nowhere of its own to go"),
+    ("destination_vat_misplaced", "Destination VAT does not accrue where it belongs"),
+    ("operator_untaxed", "A channel operator has no tax number"),
 ]
 
 

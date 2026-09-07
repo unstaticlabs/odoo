@@ -517,6 +517,9 @@ class B2cImportBatchMaterialise(models.Model):
         self._assert_destination_tax(sale)
         self._assert_total(sale, money, row)
         sale.action_confirm()
+        # Confirming stamps a quotation with the day it became an order, which
+        # for a sale that already happened is the day it happened.
+        sale.write({"date_order": row.occurred_at})
         self._deliver(sale, row)
         return sale
 

@@ -16,6 +16,14 @@ class TestImportBatch(TransactionCase):
         cls.company = cls.env["res.company"].create({"name": "Ingest Test Company"})
         cls.env.user.company_ids = [(4, cls.company.id)]
         cls.env = cls.env(context=dict(cls.env.context, allowed_company_ids=[cls.company.id]))
+        # A shop that invoices needs a chart: journals, receivables and payables
+        # are what an invoice is made of, and a company without them proves
+        # nothing about how one is posted.
+        cls.env["account.chart.template"].try_loading(
+            "generic_coa", company=cls.company, install_demo=False,
+        )
+        # The shop sells in euros, which is what its channels settle in.
+        cls.company.currency_id = cls.env.ref("base.EUR")
         plan = cls.env["account.analytic.plan"].create({"name": "Channel"})
         cls.channels = {
             code: cls.env["b2c.channel"].create(

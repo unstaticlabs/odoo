@@ -8,6 +8,9 @@
             <field name="default_fulfilment_mode" position="after">
                 <field name="printful_store_id"/>
                 <field name="shipping_product_id"/>
+                <field name="clearing_journal_ids" widget="many2many_tags"/>
+                <field name="operator_partner_id"/>
+                <field name="fee_product_id"/>
             </field>
         </field>
     </record>

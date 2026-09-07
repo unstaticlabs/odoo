@@ -20,6 +20,12 @@ class TestMaterialise(TestImportBatch):
         cls.france = cls.env.ref("base.fr")
         cls.germany = cls.env.ref("base.de")
         cls.company.account_fiscal_country_id = cls.france
+        # The generic chart ships positions that answer for every country. They
+        # are exactly what shadows a position built for one, so they are retired
+        # here for the same reason a real shop retires them.
+        cls.env["account.fiscal.position"].search(
+            [("company_id", "=", cls.company.id), ("auto_apply", "=", True)],
+        ).active = False
         cls.income = cls._account("Invented revenue", "income")
         cls.carriage_account = cls._account("Invented carriage", "income")
         cls.tax_due = cls._account("Invented VAT due", "liability_current")

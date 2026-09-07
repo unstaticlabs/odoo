@@ -388,7 +388,7 @@ class B2cImportBatch(models.Model):
             )
 
     def _raise_issue(self, kind, name, *, note=None, external_order_id=None, row=None,
-                     severity="blocking"):
+                     severity="blocking", proposal=None):
         self.ensure_one()
         return self.env["b2c.import.issue"].create(
             {
@@ -399,6 +399,7 @@ class B2cImportBatch(models.Model):
                 "name": name,
                 "external_order_id": external_order_id or False,
                 "note": note or False,
+                "proposal": proposal or False,
             },
         )
 
