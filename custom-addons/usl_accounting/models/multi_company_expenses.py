@@ -57,8 +57,13 @@ class ResUsers(models.Model):
         Employee = self.env["hr.employee"].sudo().with_context(
             active_test=False,
         )
-        profiles_by_user = {user.id: Employee for user in self}
+        # `self.ids` yields origin ids while `user.id` is a NewId whenever the
+        # form asks for an onchange, so the two sides of this mapping have to be
+        # keyed on the origin.  A NewId even hashes like the id it stands for,
+        # so keying on `user.id` finds the right bucket and then fails equality.
+        profiles_by_user = {}
         for profile in Employee.search([("user_id", "in", self.ids)]):
+            profiles_by_user.setdefault(profile.user_id.id, Employee)
             profiles_by_user[profile.user_id.id] |= profile
         for user in self:
             if not user.usl_expense_multi_company:
@@ -68,8 +73,13 @@ class ResUsers(models.Model):
                     "company.",
                 )
                 continue
-            expense_companies = user.company_ids - user.usl_expense_excluded_company_ids
-            profiles = profiles_by_user[user.id].filtered(
+            # `_origin` again: on a record under edit these relations hold NewId
+            # company records, so testing a saved company for membership below
+            # would never match and every company would be reported missing.
+            expense_companies = (
+                user.company_ids - user.usl_expense_excluded_company_ids
+            )._origin
+            profiles = profiles_by_user.get(user._origin.id, Employee).filtered(
                 lambda profile: profile.company_id in expense_companies,
             )
             ready_company_ids = set(
