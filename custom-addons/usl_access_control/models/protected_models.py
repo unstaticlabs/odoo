@@ -6,10 +6,11 @@ class ResCompany(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        self._usl_require_irreversible_action(
-            "authorization.company.create",
-            "create a company security boundary",
-        )
+        if vals_list:
+            self._usl_require_irreversible_action(
+                "authorization.company.create",
+                "create a company security boundary",
+            )
         return super().create(vals_list)
 
     def write(self, values):
@@ -20,7 +21,7 @@ class ResCompany(models.Model):
             "sale_lock_date",
             "tax_lock_date",
         }
-        if protected & set(values) and not self.env.context.get(
+        if self and protected & set(values) and not self.env.context.get(
             "usl_accounting_lock_guarded",
         ):
             self._usl_require_irreversible_action(
@@ -41,10 +42,11 @@ class AccountFiscalPosition(models.Model):
     _inherit = "account.fiscal.position"
 
     def action_create_foreign_taxes(self):
-        self._usl_require_irreversible_action(
-            "module.install",
-            "install a foreign localization and create its taxes",
-        )
+        if self:
+            self._usl_require_irreversible_action(
+                "module.install",
+                "install a foreign localization and create its taxes",
+            )
         return super().action_create_foreign_taxes()
 
 
