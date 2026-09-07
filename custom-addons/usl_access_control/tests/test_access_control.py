@@ -11,6 +11,7 @@ from odoo.tests import tagged
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.addons.usl_access_control.models.action_policy import load_agent_readonly_policy
+from odoo.addons.usl_access_control.models.base import Base as UslAccessControlBase
 
 
 @tagged("post_install", "-at_install", "usl_access_control")
@@ -206,6 +207,98 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
         with self.assertRaises(AccessError):
             self.env["res.users"].with_user(roger).create(
                 [{"name": "Unauthorised", "login": "access.unauthorised"}],
+            )
+
+    def test_empty_recordset_write_and_create_are_not_irreversible_actions(self):
+        """The same exemption, for the generic model-operation guards.
+
+        The tests above cover the semantic guards `usl_access_control` installs
+        on `res.users` and `res.company`.  This one covers the generic override
+        in every model's `write`/`create` chain, which reads its guard from the
+        qualified policy: `unlink` there already tested what it acts on, and
+        `write` and `create` did not.  Both calls return before Odoo reads an
+        ACL or touches a row -- `create([])` is what a values list built from a
+        comprehension that matched nothing produces -- so demanding the
+        Irreversible Actions permission refuses an operation with no
+        consequence.
+        """
+        policy = self.env["base"]._usl_qualified_action_policy()
+        for operation in ("create", "write"):
+            self.assertIsNotNone(
+                policy.model_operation_guard("ir.ui.view", operation),
+                f"ir.ui.view.{operation} is no longer a model-operation guard, "
+                f"so this test proves nothing; pick a guarded model.",
+            )
+        self.assertFalse(
+            self.roger.has_group("usl_access_control.group_irreversible_actions"),
+        )
+
+        views = self.env["ir.ui.view"].with_user(self.roger)
+        self.assertTrue(views.browse().write({}))
+        self.assertFalse(views.create([]))
+
+    def test_no_model_operation_guard_denies_a_call_that_stores_nothing(self):
+        """The whole guarded surface, not just the model that reported it.
+
+        Ordinary access control and each module's own refusals still apply to
+        these calls -- `usl.audit.event` is immutable, and Roger may create no
+        automation rule -- so the assertion is on the guard itself: it must not
+        be consulted at all for an operation that stores nothing.
+        """
+        policy = self.env["base"]._usl_qualified_action_policy()
+        guarded = {"create": set(), "write": set()}
+        for model_name, operation in policy.model_operation_guards:
+            if operation in guarded and model_name in self.env:
+                guarded[operation].add(model_name)
+        self.assertTrue(guarded["create"])
+        self.assertTrue(guarded["write"])
+
+        with patch.object(
+            UslAccessControlBase,
+            "_usl_require_irreversible_action",
+            autospec=True,
+        ) as guard:
+            for operation, model_names in guarded.items():
+                for model_name in sorted(model_names):
+                    records = self.env[model_name].with_user(self.roger)
+                    try:
+                        if operation == "write":
+                            records.browse().write({})
+                        else:
+                            records.create([])
+                    except UserError:
+                        pass
+            self.assertEqual(
+                [call.args[0]._name for call in guard.mock_calls],
+                [],
+            )
+
+            # An operation that does store something must still reach the
+            # guard through this same patch, or the assertion above would
+            # hold whether or not the defect is fixed.
+            self.env["ir.ui.view"].with_user(self.valentin).create(
+                [
+                    {
+                        "name": "Guard reachability probe",
+                        "model": "res.partner",
+                        "arch": '<form><field name="name"/></form>',
+                    },
+                ],
+            )
+            self.assertEqual(
+                [call.args[0]._name for call in guard.mock_calls],
+                ["ir.ui.view"],
+            )
+
+    def test_stored_write_and_create_still_require_the_permission(self):
+        """Exempting a call that stores nothing must not open the guard."""
+        view = self.env["ir.ui.view"].sudo().search([], limit=1)
+        self.assertTrue(view)
+        with self.assertRaisesRegex(AccessError, "Irreversible Actions"):
+            view.with_user(self.roger).write({"active": True})
+        with self.assertRaisesRegex(AccessError, "Irreversible Actions"):
+            self.env["ir.ui.view"].with_user(self.roger).create(
+                [{"name": "Guard probe", "model": "res.partner", "arch": "<form/>"}],
             )
 
     def test_role_matrix_is_explicit_and_attributable(self):
