@@ -393,6 +393,7 @@ class B2cImportBatch(models.Model):
         self.ensure_one()
         self.invalidate_recordset(["row_ids", "issue_ids"])
         self._compute_counts()
+        self._compute_mapping_counts()
         lines = [
             self.env._(
                 "%(files)s file(s) read, covering %(start)s to %(end)s.",
@@ -424,6 +425,14 @@ class B2cImportBatch(models.Model):
                     count=counts["conflicting"],
                 )
             lines.append(line)
+        if self.state in ("resolved", "applied"):
+            lines.append(
+                self.env._(
+                    "%(mapped)s line(s) map to a product, %(unmapped)s still need one.",
+                    mapped=self.mapped_line_count,
+                    unmapped=self.unmapped_line_count,
+                ),
+            )
         if self.blocking_issue_count or self.advisory_issue_count:
             lines.append(
                 self.env._(

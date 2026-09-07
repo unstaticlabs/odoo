@@ -11,6 +11,12 @@
                 <field name="external_order_id" optional="show"/>
                 <field name="note" optional="show"/>
                 <field name="row_id" optional="hide"/>
+                <field name="proposed_value" optional="show"
+                       readonly="kind != 'missing_variant'"/>
+                <button name="action_add_missing_value" type="object" icon="fa-plus"
+                        title="Add this value to the product's attribute and resolve again"
+                        invisible="kind != 'missing_variant'"
+                        groups="usl_b2c.group_b2c_manager"/>
             </list>
         </field>
     </record>

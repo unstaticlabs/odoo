@@ -32,6 +32,16 @@
                             title="Read the files again, replacing what this batch found."
                             invisible="state not in ('parsed', 'resolved')"
                             groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_resolve" type="object" string="Resolve products"
+                            title="Map every line to the product it sold. Nothing outside this batch is changed."
+                            class="btn-primary" invisible="state != 'parsed'"
+                            groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_resolve" type="object" string="Resolve again"
+                            title="Map the lines again after confirming a mapping or adding a product."
+                            invisible="state != 'resolved'" groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_confirm_mappings" type="object" string="Confirm mappings"
+                            title="Write the derived mappings as verified aliases, so the next sale of the same thing maps on its own."
+                            invisible="state != 'resolved'" groups="usl_b2c.group_b2c_operator"/>
                     <button name="action_reset" type="object" string="Reset"
                             title="Discard what this batch found and keep the dropped files."
                             invisible="state == 'draft'" groups="usl_b2c.group_b2c_operator"/>
@@ -53,6 +63,8 @@
                             <field name="known_order_count"/>
                             <field name="line_count"/>
                             <field name="conflicting_count"/>
+                            <field name="mapped_line_count"/>
+                            <field name="unmapped_line_count"/>
                         </group>
                     </group>
                     <field name="report" readonly="1" invisible="not report"/>

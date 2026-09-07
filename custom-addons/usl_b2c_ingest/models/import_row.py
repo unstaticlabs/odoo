@@ -9,6 +9,13 @@ GRAINS = [
     ("line", "Order line"),
 ]
 
+MAPPINGS = [
+    ("mapped", "A confirmed alias says so"),
+    ("derived", "Matched exactly, alias not written yet"),
+    ("unmapped", "No product yet"),
+    ("not_applicable", "Not a line"),
+]
+
 RESOLUTIONS = [
     ("new", "Not in Odoo yet"),
     ("known", "Already in Odoo"),
@@ -45,6 +52,9 @@ class B2cImportRow(models.Model):
         help="The unmodified source row. It can contain customer personal data.",
     )
     resolution = fields.Selection(RESOLUTIONS, readonly=True, index=True)
+    mapping = fields.Selection(MAPPINGS, readonly=True, index=True)
+    product_id = fields.Many2one("product.product", readonly=True, ondelete="set null")
+    alias_id = fields.Many2one("b2c.product.alias", readonly=True, ondelete="set null")
     order_id = fields.Many2one("b2c.order", readonly=True, ondelete="set null", index=True)
     note = fields.Char(readonly=True)
 
