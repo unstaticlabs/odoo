@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!--
+        Print-on-demand merchandise is never received into stock: the supplier
+        makes and ships each unit against an order. It sits beside the stocked
+        GBC categories so sales and margin reports can group it, and its cost
+        method stays the default because its cost comes from the fulfilment
+        events, not from valuation layers.
+    -->
+    <record id="product_category_gbc_print_on_demand" model="product.category">
+        <field name="name">GBC Print on Demand</field>
+        <field name="parent_id" ref="product.product_category_goods"/>
+    </record>
+
+    <!--
+        Products the company makes from its raw materials. A moving cost is
+        what makes a finished unit worth its components and a delivery worth
+        the unit it ships. The category already exists, without an external
+        id, on databases that went through the product reconstruction; the
+        saas~19.3.1.5.0 pre-migration binds this id to it there, so this
+        record only creates it on a fresh database.
+    -->
+    <record id="product_category_gbc_finished_products" model="product.category">
+        <field name="name">GBC Finished Products</field>
+        <field name="parent_id" ref="product.product_category_goods"/>
+        <field name="property_cost_method">average</field>
+    </record>
+</odoo>
