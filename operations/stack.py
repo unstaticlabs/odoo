@@ -5908,12 +5908,11 @@ GROUPING_THRESHOLD = 5
 
 
 def render_change(change):
-    # A change is one merged pull request: ``type(scope): title (#number)``.
-    label = change["type"]
-    if change.get("scope"):
-        label += "(%s)" % change["scope"]
-    return Markup('<li>%s: %s (<a href="%s">#%s</a>)</li>') % (
-        escape(label),
+    # A change is one merged pull request: its title, then its link. The
+    # Conventional Commit prefix is deliberately absent. The title may already
+    # be a plain-language sentence written for users, and the grouped view
+    # below names the type in words, so the prefix only added noise.
+    return Markup('<li>%s (<a href="%s">#%s</a>)</li>') % (
         escape(change["title"]),
         escape(change["url"]),
         escape(change["number"]),

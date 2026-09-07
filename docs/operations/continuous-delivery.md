@@ -220,10 +220,57 @@ writes the reviewed `operations/release-notes.json` (`usl-release-notes/v1`)
 instead and says so in the job log. The v3 builder accepts both schemas,
 rejects missing, empty, oversized, or structurally unknown notes, and binds
 the accepted content into the signed release identity. OdooBot renders a v2
-changelog as one list item per pull request, `type(scope): title` with a
-link to the pull request, grouped under a small bold heading per type when
-the release has more than five changes. The message uses no table so that it
-stays readable on a phone.
+changelog as one list item per pull request, the title with a link to the pull
+request, grouped under a small bold heading per type when the release has more
+than five changes. The message uses no table so that it stays readable on a
+phone.
+
+### Summarized for users
+
+The people reading the distribution channel run a business in Odoo. A
+Conventional Commit subject does not tell them what changed for them, so a
+production release rewrites the notes with Gemini before they are signed.
+
+`scripts/release-notes --summarize` sends the merged titles, numbers, types and
+scopes in one `generateContent` call, and writes the answer back into the notes
+it already built:
+
+- `summary` becomes a two-to-four-sentence overview of what the release means
+  for a user, replacing the mechanical count of changes.
+- each `changes[].title` becomes one sentence describing what the reader will
+  notice, replacing the Conventional Commit subject.
+- `number`, `url`, `type`, `scope` and `author` are never sent back to the
+  notes from the model. Links are rebuilt from the changelog, so every merged
+  pull request stays linked exactly once whatever the model returns.
+- `action_required` stays mechanical. It is the one safety-critical sentence in
+  the announcement and the model must not soften it.
+
+**The schema does not change.** The notes stay `usl-release-notes/v2` with the
+same fields and the same limits, so an operations image older than this change
+still validates and renders them. That is deliberate: `_object` in
+`operations/release_manifest.py` requires an exact field set, so a new notes
+schema would make `release plan`, `prepare` and `activate` fail on any
+operations image that predates it — blocking a healthy release. The only
+version-dependent behaviour left is cosmetic: an older image still prefixes
+each line with `type(scope):`.
+
+The workflow passes `--summarize` only when the `GEMINI_API_KEY` secret is set
+and the push is to `refs/heads/19-usl`. A staging release is never announced —
+`release notify` is production-only — so summarizing one would spend on notes
+nobody reads. Nothing else has to be enabled: removing the secret returns the
+changelog to its mechanical form.
+
+Every failure keeps the mechanical changelog and the job still succeeds. A
+missing key, an unreachable provider, an invalid answer, a sentence carrying
+markup or a link, a number that was never merged: each degrades that one field
+and leaves the rest. `--strict` does not cover the summary, because a missing
+summary loses no changelog, while fallback notes do.
+
+The key never reaches a command line or a URL: `operations/gemini.py` reads
+`GEMINI_API_KEY` from the environment and sends it in the `x-goog-api-key`
+header, refuses redirects so it is never replayed at another host, and never
+relays provider prose, which can echo prompts. The call carries no tools and no
+stored state, and merged titles are given to the model as untrusted data.
 
 The operations image includes a pinned Docker client and Compose plugin, so the
 fixed host launcher does not depend on whatever client happens to be installed
