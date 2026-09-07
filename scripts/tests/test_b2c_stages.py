@@ -1,5 +1,6 @@
 """A stage must mean the same thing locally and against a deployed database."""
 
+import os
 import subprocess
 import unittest
 from pathlib import Path
@@ -69,6 +70,25 @@ class TestSharedStages(unittest.TestCase):
         self.assertIn("Refusing '$stage' against a deployed database", self.deployed)
         for absent in ("cleanup_test_database", "dropdb", "test_parsers"):
             self.assertNotIn(absent, self.deployed, f"{absent} must not reach a live database")
+
+    def test_the_deployed_runner_accepts_every_stage_the_library_knows(self):
+        """The allowlist drifts silently: a stage can resolve to a script and still be refused.
+
+        The deployed runner names its acceptable stages a second time, so adding one
+        to the library and to both runners is not enough. Ask the runner itself.
+        """
+        for stage in (*SCRIPT_STAGES, "install", "product-validate"):
+            with self.subTest(stage=stage):
+                completed = subprocess.run(
+                    ["bash", str(DEPLOYED_RUNNER), stage],
+                    capture_output=True, text=True, check=False, cwd=ROOT,
+                    env={"PATH": os.environ.get("PATH", ""), "HOME": os.environ.get("HOME", "")},
+                )
+                self.assertNotIn(
+                    "Usage: migration/internal/b2c-restore-deployed",
+                    completed.stderr,
+                    f"{stage} falls through to the usage text: the allowlist is missing it",
+                )
 
     def test_the_deployed_runner_requires_its_confirmation_and_backup(self):
         for required in (

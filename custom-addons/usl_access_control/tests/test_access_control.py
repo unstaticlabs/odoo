@@ -96,6 +96,35 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
             {"ref": f"Created by {user.login}"},
         )
 
+    def test_editing_own_preferences_is_not_an_irreversible_action(self):
+        """Changing your own language must not demand irreversible permission.
+
+        A form recomputes onchanges by writing the whole payload onto a virtual
+        record, so this override runs with a NewId that never compares equal to
+        `env.user` and whose payload carries `name` and `email`.  Guarding that
+        write refused everyone without the irreversible permission their own
+        preferences, and the write never reached the database anyway.
+        """
+        roger = self.roger.with_user(self.roger)
+        self.assertFalse(
+            roger.has_group("usl_access_control.group_irreversible_actions"),
+        )
+
+        editing = roger.new(
+            {"name": roger.name, "email": roger.email}, origin=roger,
+        )
+        editing.write(
+            {"lang": "en_US", "name": roger.name, "email": roger.email},
+        )
+
+        self.assertEqual(editing.lang, "en_US")
+
+    def test_persisted_identity_changes_are_still_guarded(self):
+        """The virtual-record exemption must not weaken the real guard."""
+        roger = self.roger.with_user(self.roger)
+        with self.assertRaises(AccessError):
+            roger.write({"login": "access.roger.renamed"})
+
     def test_role_matrix_is_explicit_and_attributable(self):
         self.assertTrue(self.valentin.has_group("base.group_system"))
         self.assertTrue(self.valentin.has_group("api_doc.group_allow_doc"))

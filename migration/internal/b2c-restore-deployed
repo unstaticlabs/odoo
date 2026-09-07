@@ -57,7 +57,7 @@ case "$stage" in
         echo "Refusing '$stage' against a deployed database: run one reviewed stage at a time." >&2
         exit 2
         ;;
-    install|import|catalog|native-history|native-history-dry-run|reclassify-marketing|tag-assets|validate|finalize|product-validate)
+    install|import|catalog|native-history|native-history-dry-run|reclassify-marketing|tag-assets|manufacturing-access|validate|finalize|product-validate)
         ;;
     *)
         usage

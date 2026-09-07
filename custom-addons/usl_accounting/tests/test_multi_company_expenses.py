@@ -48,6 +48,35 @@ class TestMultiCompanyExpenses(TransactionCase):
             "ready",
         )
 
+    def test_status_computes_while_the_user_form_is_being_edited(self):
+        """Every onchange on the user form recomputes this, including the language.
+
+        A record being edited in a form is a NewId.  `record.id` is then that
+        NewId while `self.ids` and a searched profile's `user_id.id` are real
+        database ids, so a mapping keyed on one and read with the other misses.
+        A NewId hashes like the id it stands for, so the miss surfaced as a bare
+        `KeyError: <id>` and broke changing the language for everyone.
+        """
+        self.env["hr.employee"].sudo().create({
+            "name": "Existing employee identity",
+            "company_id": self.company_a.id,
+            "work_contact_id": self.user.partner_id.id,
+        })
+        self.user.usl_expense_multi_company = True
+        saved = self.user.usl_expense_company_profile_status
+
+        editing = self.env["res.users"].new(
+            {"usl_expense_multi_company": True}, origin=self.user,
+        )
+        self.assertNotEqual(
+            editing.id, self.user.id, "the record under edit must be a NewId",
+        )
+        self.assertEqual(editing.ids, self.user.ids, "ids resolve to the origin")
+
+        editing._compute_usl_expense_company_profile_status()
+
+        self.assertEqual(editing.usl_expense_company_profile_status, saved)
+
     def test_native_expense_defaults_to_active_company_profile(self):
         self.user.usl_expense_multi_company = True
         company_b_employee = self.env["hr.employee"].sudo().search([

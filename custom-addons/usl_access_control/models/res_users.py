@@ -267,6 +267,13 @@ class ResUsers(models.Model):
     def write(self, values):
         if self.filtered("usl_managed_agent_id") and not self.env.context.get("usl_agent_provisioning"):
             raise AccessError(_("Manage Agent identities from the Agent record."))
+        # A form recomputes onchanges by writing the whole payload onto a
+        # virtual record, so opening "My preferences" and changing the language
+        # reaches this override.  Such a write only updates the in-memory cache:
+        # nothing irreversible can happen, and a virtual record never compares
+        # equal to `env.user`, so guarding it refused people their own
+        # preferences.  Guard, and reconcile, only what is actually persisted.
+        persisted = all(self._ids)
         sensitive_fields = {
             "active",
             "company_id",
@@ -280,15 +287,15 @@ class ResUsers(models.Model):
             "usl_pocketid_email_link",
         }
         changing_another_identity = self != self.env.user and {"email", "name"} & set(values)
-        if sensitive_fields & set(values) or changing_another_identity:
+        if persisted and (sensitive_fields & set(values) or changing_another_identity):
             self._usl_require_irreversible_action(
                 "authorization.user.change",
                 "change user identity or authorization",
             )
         result = super().write(values)
-        if "group_ids" in values:
+        if persisted and "group_ids" in values:
             self._check_usl_agent_irreversible_incompatibility()
-        if {"active", "company_id", "company_ids", "group_ids"} & set(values):
+        if persisted and {"active", "company_id", "company_ids", "group_ids"} & set(values):
             self.env["usl.agent"]._reconcile_for_owners(self)
         return result
 

@@ -33,7 +33,9 @@ class ResPartner(models.Model):
 
     def _compute_signature_summary(self):
         request_model = self.env["sign.oca.request"]
-        requests_by_partner = {partner.id: request_model for partner in self}
+        # Keyed on origin ids: `self.ids` and `record.id` below are real ids,
+        # while `partner.id` is a NewId during an onchange.
+        requests_by_partner = {}
         if self.ids:
             partner_ids = set(self.ids)
             candidates = request_model.search(
@@ -49,9 +51,10 @@ class ResPartner(models.Model):
                 if record and record._name == "res.partner":
                     related_ids.add(record.id)
                 for partner_id in related_ids & partner_ids:
+                    requests_by_partner.setdefault(partner_id, request_model)
                     requests_by_partner[partner_id] |= request
         for partner in self:
-            requests = requests_by_partner[partner.id]
+            requests = requests_by_partner.get(partner._origin.id, request_model)
             partner.signature_request_count = len(requests)
             latest = requests.sorted(
                 lambda item: (item.create_date, item.id), reverse=True,
