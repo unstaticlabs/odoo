@@ -96,14 +96,13 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
             {"ref": f"Created by {user.login}"},
         )
 
-    def test_editing_own_preferences_is_not_an_irreversible_action(self):
-        """Changing your own language must not demand irreversible permission.
+    def test_writing_a_virtual_record_is_not_an_irreversible_action(self):
+        """A write onto the record under edit stores nothing, so it is not guarded.
 
-        A form recomputes onchanges by writing the whole payload onto a virtual
-        record, so this override runs with a NewId that never compares equal to
-        `env.user` and whose payload carries `name` and `email`.  Guarding that
-        write refused everyone without the irreversible permission their own
-        preferences, and the write never reached the database anyway.
+        This covers the `NewId` half of the exemption: such a record never
+        compares equal to `env.user`, so the identity test reads editing
+        yourself as changing someone else.  It is not the path that broke "My
+        preferences" in production -- see the onchange test below for that one.
         """
         roger = self.roger.with_user(self.roger)
         self.assertFalse(
@@ -119,11 +118,95 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
 
         self.assertEqual(editing.lang, "en_US")
 
+    def test_opening_and_editing_own_preferences_is_not_irreversible(self):
+        """The actual "My preferences" round trip, end to end.
+
+        Production denied this on `POST /web/dataset/call_kw/res.users/onchange`
+        with `record_ids: []`.  Reading `notification_type` for the snapshot
+        recomputes it, and mail's `_compute_notification_type` finishes on
+        `new_portal_users.write({"group_ids": ...})` -- an empty recordset for
+        an internal user.  `all(())` is True, so that no-op write read as
+        persisted and demanded the irreversible permission.
+        """
+        roger = self.roger.with_user(self.roger)
+        self.assertFalse(
+            roger.has_group("usl_access_control.group_irreversible_actions"),
+        )
+        # Drive the real preferences view: which fields the client sends is
+        # what decides whether `notification_type` is recomputed, so a
+        # hand-picked subset can traverse none of this and pass either way.
+        view = self.env.ref("base.view_users_form_simple_modif")
+        arch = etree.fromstring(roger.get_view(view.id, "form")["arch"])
+        names = [
+            node.get("name")
+            for node in arch.iter("field")
+            if not any(parent.tag == "field" for parent in node.iterancestors())
+            and node.get("name") in roger._fields
+        ]
+        fields_spec = {
+            name: {"fields": {}}
+            if roger._fields[name].type in ("one2many", "many2many")
+            else {}
+            for name in dict.fromkeys(names)
+        }
+        values = {}
+        for name in fields_spec:
+            field, value = roger._fields[name], roger[name]
+            if field.type == "many2one":
+                values[name] = value.id
+            elif field.type in ("one2many", "many2many"):
+                values[name] = [Command.set(value.ids)]
+            else:
+                values[name] = value
+        values["lang"] = "en_US"
+
+        # `notification_type` is a stored compute over the user's groups, and
+        # the snapshot an onchange takes recomputes whatever is pending.  That
+        # is the state production's request was in, and it is what reaches
+        # mail's `_compute_notification_type` and its empty write.  Values are
+        # built first on purpose: reading the field recomputes it, which would
+        # move the failure out of the call under test.
+        notification_type = roger._fields["notification_type"]
+        self.env.add_to_compute(notification_type, self.roger)
+        self.assertTrue(
+            self.env.is_to_compute(notification_type, self.roger),
+            "without a pending recompute this test proves nothing",
+        )
+
+        result = roger.onchange(values, ["lang"], fields_spec)
+
+        self.assertIn("value", result)
+
+    def test_an_operation_that_touches_no_record_is_not_irreversible(self):
+        """Guards must not deny what stores nothing.
+
+        Writing on the result of a `filtered` without testing it first is
+        ordinary Odoo, and core does exactly that on `res.users`.  An empty
+        recordset must therefore reach `super()` rather than raise.
+        """
+        roger = self.roger
+        users = self.env["res.users"].browse().with_user(roger)
+        inbox = self.env.ref("mail.group_mail_notification_type_inbox")
+
+        users.write({"group_ids": [Command.unlink(inbox.id)]})
+        users.unlink()
+        self.assertFalse(self.env["res.users"].with_user(roger).create([]))
+
+        companies = self.env["res.company"].browse().with_user(roger)
+        companies.write({"fiscalyear_lock_date": False})
+        self.assertFalse(self.env["res.company"].with_user(roger).create([]))
+
     def test_persisted_identity_changes_are_still_guarded(self):
-        """The virtual-record exemption must not weaken the real guard."""
+        """The exemptions must not weaken the real guard."""
         roger = self.roger.with_user(self.roger)
         with self.assertRaises(AccessError):
             roger.write({"login": "access.roger.renamed"})
+        with self.assertRaises(AccessError):
+            self.roger.with_user(roger).unlink()
+        with self.assertRaises(AccessError):
+            self.env["res.users"].with_user(roger).create(
+                [{"name": "Unauthorised", "login": "access.unauthorised"}],
+            )
 
     def test_role_matrix_is_explicit_and_attributable(self):
         self.assertTrue(self.valentin.has_group("base.group_system"))

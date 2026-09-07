@@ -3454,7 +3454,7 @@
       "rationale": "A stable semantic guard or exact model-operation enforcement denies ordinary humans and Agents before side effects while allowing the Irreversible Actions capability with immutable evidence.",
       "reviewed_digests": {
         "guard:accounting.b2c_session.unlock": "b135622d38bf25ddfc2ca8d4ccd2326ae23bdc14be31594b5d6986b542c45e5a",
-        "guard:accounting.lock.change": "4e41425f3e62a4dee2bf8ed01f7766f9995bb412f9b745a2799ccf982d32d59c",
+        "guard:accounting.lock.change": "7a926c34edc585a71e055817ef8ebdd6698999ad62150b4103d687c26215c386",
         "rpc:account.account.reconcile.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:account.account.tag.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:account.account.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
@@ -3465,7 +3465,7 @@
         "rpc:account.bank.ingestion.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
         "rpc:account.bank.statement.certification.unlink": "655b5162a82d8ca782ed4a41b09dfe24f8b4674d6c78afa3153d866bafc3a025",
         "rpc:account.bank.statement.exception.unlink": "9098cffe87e14a6762bcbcec2bc7d5b646e287d6526c88b26d352ab7f669915b",
-        "rpc:account.fiscal.position.action_create_foreign_taxes": "a0f7ca2692f58f482bd9ba31c806ac1144901a2007db14d172f9f05df9b9101c",
+        "rpc:account.fiscal.position.action_create_foreign_taxes": "89766f35181f8a1c7d9277a157f123b91fdd176439aecd68419c041dcf6a86b4",
         "rpc:account.fiscal.position.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:account.incoterms.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:account.journal.unlink": "fc109b775ac676ee46b06b8f6d4f97759b4c987516a8caf6ed513c89d5de5113",
@@ -3491,17 +3491,17 @@
         "rpc:rebuild.account.external.report.value.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:rebuild.account.report.account.presentation.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:rebuild.account.report.definition.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
-        "rpc:res.company.create": "086fc24754e0e58688b3cc292d68aca2481106eb425b8be2640220001bc9d468",
+        "rpc:res.company.create": "741fc31f50451d8651d33bb3f360f6780caf512679d30fb9d7f23096dbf55e07",
         "rpc:res.company.install_l10n_modules": "8f91a8a5dec057617d14f27ad7473b2a4f58f085566330122d1a45bf751e8c1b",
-        "rpc:res.company.write": "d513167fae8eb013aa851ceeed8bd27749c71a2ad45c756dfdba6882a3eeb275",
+        "rpc:res.company.write": "acfafcd8f9a640f17df1ae0f47a7ebe36dd457d54ae0189fe59097e314477025",
         "rpc:res.config.settings.action_eu_oss_tax_mapping": "8dad78de64ee287fa5ce2df312cc2e709c1cfe57d17785046059846fe770353c",
         "rpc:res.config.settings.button_disconnect_this_database": "4687c0607be62050eebb2eef3be94c9c441b2d81a4c31d32ec7401cd1bbd3cfa",
         "rpc:res.config.settings.button_peppol_deregister": "f3c90d64c91abafb6c060368dd49ab9ea3a1ebc586337b5dec6f223d480f8923",
         "rpc:res.config.settings.button_peppol_disconnect_branch_from_parent": "a1355648be9160642a237077035f311c282e74ac185584efa0e4cb14ac5397dd",
         "rpc:res.config.settings.button_peppol_reregister": "f3bfad36ebb81e00b28174212fa40786ec96fd36303732b2d1007473526b435b",
         "rpc:res.config.settings.button_reconnect_this_database": "8e85397db3f1633eaec17b735efaef554240f9fd00e08953dc729ce50281b024",
-        "rpc:res.users.create": "9bce97bcb26c651b2ee691e6af45797736b6fb94120237f535e9e192c185bc87",
-        "rpc:res.users.write": "11c89fbf2866fb7d31cdbe545eabb7fb4640e2d066504185e1348e9d967af4af",
+        "rpc:res.users.create": "4a62619e1333348ad33a2c8e76eb282f2518132a0450f6aa53661ad02b65ca57",
+        "rpc:res.users.write": "a2eb252c5dabcdf7a97d302b4c0293ace81e82fc1619220f3ebc46df7861254b",
         "server_action:account_peppol_response.ir_cron_peppol_auto_register_services_ir_actions_server": "fc327488428a5b7e8e82eb936c77e6b281e6e21cfd216f28556ea964f8f57ae5"
       }
     },
@@ -5117,10 +5117,10 @@
       },
       "rationale": "A stable semantic guard or exact model-operation enforcement denies ordinary humans and Agents before side effects while allowing the Irreversible Actions capability with immutable evidence.",
       "reviewed_digests": {
-        "guard:authorization.company.create": "624d72192086b868c67767e3f226f84c8b79ae5d64a72069cd1b3cfdb3066324",
-        "guard:authorization.user.change": "8023a9cf24083714e500c509a5f751cf7f9ef3d5bb0b7d0461dc1778d9a2b31c",
-        "guard:authorization.user.create": "3e799c1b058187c17e42c4a18bbadf83f5ec078e139d990d4d34788cc9bdb4e6",
-        "guard:authorization.user.delete": "3ecf26206539dfab13db08ef03fc2b8717fdc0a04570da176cd238d5829682ab",
+        "guard:authorization.company.create": "0afd269b21f5f03c647cdd2bb516686efd1235b6ce822f66a574f068fceafdfe",
+        "guard:authorization.user.change": "b1547abe9c0e374a9cd7110f795293eb14571d4356e04a3350468d19a245a5b1",
+        "guard:authorization.user.create": "0df0ee1a9641d4212897433183f71d743063e59a74e3cb9a4ae4a872535d6a9c",
+        "guard:authorization.user.delete": "7761b0119a86e1271e23ace600b15b287309f1327a36c0caf1e8f66a700f6985",
         "guard:automation.server_action.execute": "c854e12e8cbd4a6416bfefcbdd6c902fb70f1a2af861050d8ddcd0284104277d",
         "guard:documents.permanent_delete": "cf51bb1a00246cc929d137830c61409f9ec7905a973c6b02f83a3c2f6c8c97fc",
         "guard:documents.permanent_deletion.approve": "3fc1dea7d77a3e9abf192c8acfd7fd4fab45adf1d38e81ecd7eaaf6db6d33a2b",
@@ -5135,7 +5135,7 @@
         "guard:einvoice.peppol.reregister": "00fe1b531e260c3e37152413b62724bc98e2d6692f9f030bb1e6f954d35e37ff",
         "guard:einvoice.peppol.unregister": "14e1798d57857e9eb918f1cc544b9470e26541c603dfa91265bb853c49a21f51",
         "guard:evidence.attachment.delete": "d59ac4da75db6ddb62c96d2a584bc8de4b29746e176dba2d8a4d69868e5a6248",
-        "guard:module.install": "74a3166c9592835b27e909b069697ee8bc12fec9b7bb99002a6a15145057e8b1",
+        "guard:module.install": "8fc964c84bdc140223e2d42a7fe743199b0fec82308f22233bab450bda3247bd",
         "guard:module.uninstall": "509010a57ac9a9dc334e3038b593bbf3a930bad31c6dd54e81451766e7244506",
         "guard:module.upgrade": "8cee2f3e7419e9da637c577788da41e55e980dc772a8dc1b740135b3eeaa6feb",
         "rpc:auth.oauth.provider.create": "e01529fb01e0889fd6f4679a25ce6d1fcd327ded248fcd5e59cbcd4b0f6453e0",
@@ -5247,7 +5247,7 @@
         "rpc:res.lang.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:res.partner.bank.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
         "rpc:res.partner.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
-        "rpc:res.users.unlink": "f482db424176d7fd82f1a22b1d7aab60456fbf6ee0efd19507e9dff14ce4acc0",
+        "rpc:res.users.unlink": "a2b93d957d1b373b6ad2a1e43ed7afe7fb317ef58e7fb943ecf11bf977005c04",
         "rpc:resource.calendar.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:resource.resource.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:sale.order.template.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
@@ -5281,11 +5281,11 @@
         "rpc:utm.medium.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "server_action:auth_totp.action_disable_totp": "71dafc4cb3332592c617222ffd7e4677dca1d4e0cf0c096dcaeab5e39a3ae9f3",
         "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:ir.attachment.unlink:orm_unlink:1": "86a468e879ed4137c08dbb11bbaf62b92282c44edaea27ae110e625bdab70e44",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:res.company.create:orm_create:1": "d12782bb92f974f38facf3ac324772c85bcdc543ed4d675440f5e23e2d373031",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:res.company.write:orm_write:1": "27eb5e3cc821efb88c7e56130c397f482d15ac654d85f48b942f010eb5f55e99",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.create:orm_create:1": "ff39554ce426f2f0de96cbc74ec6888f26e46812fe0b3dc26566f9ca81b91640",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.unlink:orm_unlink:1": "bd5ece62a5736c3035eccd866ac01a2d31228b2e691a044a5bead0cf5bd40c36",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.write:orm_write:1": "b892dbfc757dc34f3e672e5aae5aa7aad9e1a1ecc69960b0cda52f9bfee783c7"
+        "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:res.company.create:orm_create:1": "488301f37b6bce843db50e2c17848a6a94bee97d1ec177637bc4b07449911e1c",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:res.company.write:orm_write:1": "9ccaf160dd2b3127bdcd98d23d2bc3d8f147c46d6bf32757e9387219aab5acf7",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.create:orm_create:1": "602074292e4aafc2077e78a4d67df8ed6043dceed3eebdd66b9d489092a774cf",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.unlink:orm_unlink:1": "6c47192f04b4d87e00476b149b36229108e4678ae24c770ba852026d5692ac40",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.write:orm_write:1": "3705636f30eabbd10d138670486c556c06cf71e7448e6fe5c043ec01742ba2a4"
       }
     },
     {
@@ -196553,6 +196553,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "366c607686c18e5ec6dd1714396457c7f1f31baddd67a61be764b7ae87af79bc",
+  "qualified_policy_digest": "d5bf920df21ca80bb43e7dc0dc72e6cd621daa369aed04b562ac9cd0caa84948",
   "schema": "usl-action-risk-policy-v1"
 }
