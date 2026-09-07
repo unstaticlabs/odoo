@@ -20,7 +20,8 @@ class TestProjectCompanyDomain(TransactionCase):
         cls.user = new_test_user(
             cls.env,
             login="project.company.user@example.invalid",
-            groups="base.group_user,project.group_project_user,base.group_multi_company",
+            # Creating a project needs the manager group; group_project_user is read-only.
+            groups="base.group_user,project.group_project_manager,base.group_multi_company",
             context={"no_reset_password": True},
         )
         cls.user.write({
