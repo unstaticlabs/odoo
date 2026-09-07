@@ -571,6 +571,188 @@ class TestAutonomousAgents(TransactionCase):
         )
         self.assertGreater(self.env["mail.mail"].sudo().search_count([]), mail_count)
 
+    def _agent_note(self, agent, record, body, body_is_html=True):
+        return record.with_user(agent.user_id).with_context(
+            mail_notify_force_send=False,
+        ).message_post(
+            body=body,
+            body_is_html=body_is_html,
+            subtype_xmlid="mail.mt_note",
+        )
+
+    def test_agent_repairs_a_body_it_stored_as_escaped_markup(self):
+        agent = self._create_agent()
+        agent.with_user(self.owner).action_grant_all_read()
+        move = self.env["account.move"].with_user(self.owner).create(
+            {"move_type": "entry", "date": fields.Date.today()},
+        )
+        # The MCP bug this repairs: HTML sent as plain text is escaped, so the
+        # reader sees the tags instead of the formatting.
+        mangled = self._agent_note(
+            agent,
+            move,
+            "&lt;p&gt;&lt;strong&gt;Nouveau&lt;/strong&gt;&lt;/p&gt;",
+        )
+        self.assertIn("&amp;lt;p&amp;gt;", mangled.body)
+
+        result = move.with_user(agent.user_id).mcp_revise_own_message(
+            mangled.id,
+            "<p><strong>Nouveau</strong></p>",
+            body_is_html=True,
+        )
+
+        self.assertEqual(result["message_id"], mangled.id)
+        self.assertEqual(result["res_id"], move.id)
+        self.assertIn("<strong>Nouveau</strong>", mangled.body)
+        self.assertNotIn("&lt;strong&gt;", mangled.body)
+        self.assertIn("o-mail-Message-edited", mangled.body)
+
+    def test_agent_revision_escapes_plain_text_and_keeps_line_breaks(self):
+        agent = self._create_agent()
+        agent.with_user(self.owner).action_grant_all_read()
+        move = self.env["account.move"].with_user(self.owner).create(
+            {"move_type": "entry", "date": fields.Date.today()},
+        )
+        message = self._agent_note(agent, move, "<p>first</p>")
+
+        move.with_user(agent.user_id).mcp_revise_own_message(
+            message.id,
+            "Marge < 5% & en baisse\nRevoir vendredi",
+        )
+
+        self.assertIn("Marge &lt; 5% &amp; en baisse<br>Revoir vendredi", message.body)
+
+    def test_agent_revision_records_an_audit_event_with_the_original_body(self):
+        agent = self._create_agent()
+        agent.with_user(self.owner).action_grant_all_read()
+        move = self.env["account.move"].with_user(self.owner).create(
+            {"move_type": "entry", "date": fields.Date.today()},
+        )
+        message = self._agent_note(agent, move, "<p>original</p>")
+
+        move.with_user(agent.user_id).mcp_revise_own_message(
+            message.id,
+            "<p>corrected</p>",
+            body_is_html=True,
+        )
+
+        event = self.env["usl.audit.event"].sudo().search(
+            [
+                ("model_name", "=", "mail.message"),
+                ("operation", "=", "write"),
+                ("agent_id", "=", agent.id),
+            ],
+            order="id desc",
+            limit=1,
+        )
+        self.assertTrue(event)
+        self.assertIn("original", event.changes_json)
+        self.assertIn("corrected", message.body)
+
+    def test_agent_cannot_revise_a_message_another_identity_wrote(self):
+        agent = self._create_agent()
+        agent.with_user(self.owner).action_grant_all_read()
+        move = self.env["account.move"].with_user(self.owner).create(
+            {"move_type": "entry", "date": fields.Date.today()},
+        )
+        owner_message = move.with_user(self.owner).with_context(
+            mail_notify_force_send=False,
+        ).message_post(body="Owner note", subtype_xmlid="mail.mt_note")
+
+        with self.assertRaises(AccessError):
+            move.with_user(agent.user_id).mcp_revise_own_message(
+                owner_message.id,
+                "<p>rewritten</p>",
+                body_is_html=True,
+            )
+        self.assertIn("Owner note", owner_message.body)
+
+    def test_agent_cannot_revise_a_message_on_another_record(self):
+        agent = self._create_agent()
+        agent.with_user(self.owner).action_grant_all_read()
+        moves = self.env["account.move"].with_user(self.owner).create(
+            [
+                {"move_type": "entry", "date": fields.Date.today()},
+                {"move_type": "entry", "date": fields.Date.today()},
+            ],
+        )
+        message = self._agent_note(agent, moves[0], "<p>first</p>")
+
+        with self.assertRaises(UserError):
+            moves[1].with_user(agent.user_id).mcp_revise_own_message(
+                message.id,
+                "<p>rewritten</p>",
+                body_is_html=True,
+            )
+        self.assertIn("first", message.body)
+
+    def test_agent_cannot_revise_a_tracking_message(self):
+        agent = self._create_agent()
+        agent.with_user(self.owner).action_grant_all_read()
+        move = self.env["account.move"].with_user(self.owner).create(
+            {"move_type": "entry", "date": fields.Date.today()},
+        )
+        message = self._agent_note(agent, move, "<p>note</p>")
+        message.sudo().write({"message_type": "tracking"})
+
+        with self.assertRaises(UserError):
+            move.with_user(agent.user_id).mcp_revise_own_message(
+                message.id,
+                "<p>rewritten</p>",
+                body_is_html=True,
+            )
+
+    def test_agent_cannot_rewrite_history_after_the_revision_window(self):
+        agent = self._create_agent()
+        agent.with_user(self.owner).action_grant_all_read()
+        move = self.env["account.move"].with_user(self.owner).create(
+            {"move_type": "entry", "date": fields.Date.today()},
+        )
+        message = self._agent_note(agent, move, "<p>note</p>")
+        message.sudo().write(
+            {"create_date": fields.Datetime.now() - datetime.timedelta(days=1)},
+        )
+
+        with self.assertRaises(UserError):
+            move.with_user(agent.user_id).mcp_revise_own_message(
+                message.id,
+                "<p>rewritten</p>",
+                body_is_html=True,
+            )
+        self.assertIn("note", message.body)
+
+    def test_agent_revision_refuses_an_empty_or_oversized_body(self):
+        agent = self._create_agent()
+        agent.with_user(self.owner).action_grant_all_read()
+        move = self.env["account.move"].with_user(self.owner).create(
+            {"move_type": "entry", "date": fields.Date.today()},
+        )
+        message = self._agent_note(agent, move, "<p>note</p>")
+
+        for body in ("   ", "x" * 50_001):
+            with self.assertRaises(ValidationError):
+                move.with_user(agent.user_id).mcp_revise_own_message(message.id, body)
+
+    def test_agent_without_read_access_cannot_revise_its_own_message(self):
+        agent = self._create_agent()
+        agent.with_user(self.owner).action_grant_all_read()
+        move = self.env["account.move"].with_user(self.owner).create(
+            {"move_type": "entry", "date": fields.Date.today()},
+        )
+        message = self._agent_note(agent, move, "<p>note</p>")
+        agent.with_user(self.owner).write({"delegated_group_ids": [Command.clear()]})
+
+        with self.assertRaises(AgentPolicyAccessError) as denied:
+            move.with_user(agent.user_id).mcp_revise_own_message(
+                message.id,
+                "<p>rewritten</p>",
+                body_is_html=True,
+            )
+        self.assertEqual(
+            denied.exception.context["usl_code"],
+            "agent_read_only_action_denied",
+        )
+
     def test_readonly_agent_denies_crud_and_sudo_retaining_agent_actor(self):
         agent = self._create_agent()
         agent.with_user(self.owner).action_grant_all_read()
