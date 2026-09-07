@@ -91,6 +91,47 @@ In the chart:
 The readiness check reports each of these against the drop in hand, and makes
 the corrections that are a matter of fact rather than judgement.
 
+**Correct the chart** settles all of them at once, across the chart rather than
+across the drop, because a chart defect is wrong whether or not anything is
+being imported. It is worth pressing once on a shop the tool has not run on
+before. Each correction states the fact it depends on and does nothing where
+that fact does not hold, so it is safe to press again, and each says in the log
+what it changed:
+
+| Correction | Acts only when |
+| --- | --- |
+| Retire the positions that answer for everyone | The position names no country, and a country with one of its own is being answered for by it. A position a partner has been pinned to is reported instead: that is somebody's decision, not a defect. |
+| State the price as including its tax | The rate has never been posted at. One the books have already used means something by being stated outside the price, and this cannot know what. |
+| Give each catalog product one rate | The chart tells a goods rate from a services rate. Where two rates are stated at the same amount and nothing says which is which, the choice is a person's. |
+| Name where each category's revenue goes | The category names no account yet. One that does has been decided. |
+| Reverse-charge the operator's commission | The operator is in another Member State, no position requiring a tax number answers for it, and none has been set by hand. |
+
+What it deliberately does **not** do is create master data or choose records for
+you — which product is the carriage, which partner is the marketplace, which
+journal a channel clears through. Those name this shop's own records, and a
+wrong guess there is exactly the kind of silent error the readiness check
+exists to prevent. They stay in the configuration above.
+
+## What a sale cost
+
+A drop states what was sold; the supplier states what it cost. Reading the
+supplier records each Printful order as a fulfilment event carrying the whole
+bill — items, shipping, tax and fees — and naming the sale lines it shipped.
+The event allocates that across those lines pro rata by revenue and writes each
+line's cost, and the last shipped unit cost becomes the print-on-demand
+product's standard price. So margin is native: no step of this writes a line's
+cost itself, because a second opinion would be silently overruled by the next
+fulfilment.
+
+Carriage is excluded from the allocation. What the customer paid to ship is
+revenue, not a cost, and spreading the supplier's bill over it would understate
+the goods.
+
+A refund is a fulfilment too, costing the negative of what was charged, and it
+usually arrives long after the sale. So a drop that holds no orders of its own
+still updates what earlier sales cost: fulfilment is matched to the order Odoo
+already has, not only to the orders in hand.
+
 ## Destination VAT
 
 **B2C → Destination VAT** holds one return per quarter. Computing it reads the

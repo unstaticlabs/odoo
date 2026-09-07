@@ -307,6 +307,53 @@ class B2cImportBatchReadiness(models.Model):
 
     # -- corrections -------------------------------------------------------
 
+    def action_correct_chart(self):
+        """Correct the chart itself, not just what this drop happens to touch.
+
+        The narrower corrections settle a finding.  These settle the chart the
+        findings come from, whose defects are wrong whether or not anything is
+        being imported.  Each one is stated separately because each is undone
+        separately, and each says in the log what it changed.
+        """
+        self.ensure_one()
+        self.action_retire_generic_positions()
+        self.action_include_tax_in_price()
+        self.action_settle_catalog_taxes()
+        self.action_account_for_revenue()
+        self.action_reverse_charge_operators()
+        self.action_check_readiness()
+        return True
+
+    def action_retire_generic_positions(self):
+        """Retire a position answering for a country that has one of its own."""
+        self.ensure_one()
+        self.company_id._usl_b2c_retire_shadowing_positions()
+        return True
+
+    def action_include_tax_in_price(self):
+        """State the rates a channel sale is charged at as inside the price."""
+        self.ensure_one()
+        self.company_id._usl_b2c_state_prices_tax_included()
+        return True
+
+    def action_settle_catalog_taxes(self):
+        """Give each catalog product the one rate its kind of thing is charged at."""
+        self.ensure_one()
+        self.company_id._usl_b2c_settle_product_taxes()
+        return True
+
+    def action_account_for_revenue(self):
+        """Say where the revenue of each kind of B2C good goes."""
+        self.ensure_one()
+        self.company_id._usl_b2c_account_for_revenue()
+        return True
+
+    def action_reverse_charge_operators(self):
+        """Let a channel operator's commission be reverse-charged."""
+        self.ensure_one()
+        self.company_id._usl_b2c_reverse_charge_operators()
+        return True
+
     def action_retire_shadowing_positions(self):
         """Retire the generic positions that answer for countries not their own.
 
@@ -363,40 +410,15 @@ class B2cImportBatchReadiness(models.Model):
         return True
 
     def _standard_tax(self, is_service):
-        """Return the company's standard sales tax for goods or for services.
-
-        A chart that states one rate for both leaves nothing to choose.  One
-        that states two at the same rate distinguishes them by what already
-        carries each, and if even that is silent the choice is a person's.
-        """
+        """Return the company's standard sales rate for goods or for services."""
         self.ensure_one()
-        taxes = self.env["account.tax"].search(
-            [
-                ("company_id", "=", self.company_id.id),
-                ("type_tax_use", "=", "sale"),
-                ("country_id", "=", self.company_id.account_fiscal_country_id.id),
-                ("amount_type", "=", "percent"),
-                ("amount", ">", 0),
-            ],
-        )
-        highest = max(taxes.mapped("amount"), default=0)
-        standard = taxes.filtered(lambda tax: tax.amount == highest)
-        if len(standard) < 2:
-            return standard[:1]
-        for_services = standard.filtered(
-            lambda tax: self.env["product.template"].search_count(
-                [("taxes_id", "in", tax.id), ("type", "=", "service")], limit=1,
-            ),
-        )
-        for_goods = standard - for_services
-        wanted = for_services if is_service else for_goods
-        if len(wanted) != 1:
+        wanted = self.company_id._usl_b2c_standard_sale_tax(is_service)
+        if not wanted:
             raise UserError(
                 self.env._(
-                    "The chart states %(rate)s per cent twice (%(taxes)s) and "
-                    "nothing tells the two apart. Say which is for goods.",
-                    rate=highest,
-                    taxes=", ".join(standard.mapped("name")),
+                    "The chart does not state one sales rate for %(kind)s, so which "
+                    "one a product is charged at is a decision to be made.",
+                    kind=self.env._("services") if is_service else self.env._("goods"),
                 ),
             )
         return wanted

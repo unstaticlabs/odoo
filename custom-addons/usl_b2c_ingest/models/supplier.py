@@ -10,7 +10,7 @@ from collections import defaultdict
 from datetime import timedelta
 from decimal import Decimal
 
-from odoo import api, fields, models
+from odoo import Command, api, fields, models
 from odoo.exceptions import UserError
 
 from odoo.addons.usl_b2c_ingest.parsers import (
@@ -176,6 +176,7 @@ class B2cImportBatchFulfilment(models.Model):
             ],
         )
         self._link_fulfilment(created)
+        self._record_known_fulfilment()
         self._report_unmatched_fulfilment(created)
         return created
 
@@ -280,6 +281,159 @@ class B2cImportBatchFulfilment(models.Model):
             "Same recipient and within %(days)s days of the sale.",
             days=MATCH_WINDOW.days,
         )
+
+    # -- what a fulfilment costs -------------------------------------------
+
+    def _record_fulfilment(self, fulfilment, order, channel):
+        """Record what the supplier shipped for a sale, and what it charged.
+
+        A B2C line's cost is decided in one place: the fulfilment event
+        allocates what the supplier billed across the lines it shipped, pro
+        rata by revenue, and carries the last shipped unit cost onto the
+        product.  So this states the cost and which lines it covers and lets
+        the allocation do the rest — writing a line's cost here instead would
+        be a second opinion the next fulfilment would silently overrule.
+        """
+        self.ensure_one()
+        # Carriage is what the customer paid to ship, not what shipping cost,
+        # so the supplier's bill is never spread over it.
+        goods = order.sale_order_id.order_line.filtered(
+            lambda line: line.product_id != channel.shipping_product_id,
+        )
+        if not goods:
+            return self.env["b2c.fulfilment.event"]
+        values = fulfilment.values or {}
+        key = f"printful:{values.get('printful_order_id') or fulfilment.external_order_id}"
+        Event = self._trusted("b2c.fulfilment.event")
+        found = Event.search(
+            [
+                ("company_id", "=", self.company_id.id),
+                ("source_provider", "=", "printful"),
+                ("provider_event_key", "=", key),
+            ],
+            limit=1,
+        )
+        stated = self._fulfilment_values(fulfilment, values, key, order, goods)
+        if found:
+            # A corrected or refunded fulfilment must still reach the lines,
+            # and writing the cost and the links is what makes the allocation
+            # run again.
+            found.write(stated)
+            return found
+        return Event.create(stated)
+
+    def _record_known_fulfilment(self):
+        """Record every fulfilment whose sale exists, in this drop or already.
+
+        A refund or a correction arrives long after the order it belongs to,
+        in a drop that covers the refund rather than the sale. Matching it only
+        against the orders in hand would leave the sale it actually changes
+        costed as though nothing had happened.
+        """
+        self.ensure_one()
+        channels = self._channels()
+        for fulfilment in self._fulfilment_rows().filtered(
+            lambda item: item.grain == ORDER_GRAIN,
+        ):
+            order = fulfilment.fulfilment_of_row_id.order_id or self._fulfilled_order(fulfilment)
+            channel = channels.get(order.channel_id.code) or channels.get(fulfilment.provider)
+            if order.sale_order_id and channel:
+                self._record_fulfilment(fulfilment, order, channel)
+        return True
+
+    def _fulfilled_order(self, fulfilment):
+        """Return the order a fulfilment names, whether or not it is in this drop."""
+        self.ensure_one()
+        reference = fulfilment.external_order_id
+        if not reference:
+            return self.env["b2c.order"]
+        return self.env["b2c.order"].search(
+            [
+                ("company_id", "=", self.company_id.id),
+                ("sale_order_id", "!=", False),
+                ("superseded_by_id", "=", False),
+                "|",
+                ("external_order_id", "=", reference),
+                ("external_display_id", "=", reference),
+            ],
+            limit=1,
+        )
+
+    def _fulfilment_values(self, fulfilment, values, key, order, goods):
+        """State one Printful order as the fulfilment event it is."""
+        self.ensure_one()
+        refunded = (values.get("original_provider_state") or "").casefold() == "refunded"
+        # A refund gives back what was charged, so it costs the negative of it.
+        sign = Decimal("-1") if refunded else Decimal("1")
+        billed = sign * self._cost(values, "costs_total")
+        currency = self._fulfilment_currency(values)
+        company_billed = billed
+        if currency and currency != self.company_id.currency_id:
+            company_billed = Decimal(
+                str(
+                    currency._convert(
+                        float(billed),
+                        self.company_id.currency_id,
+                        self.company_id,
+                        fulfilment.occurred_at or fields.Datetime.now(),
+                    ),
+                ),
+            )
+        return {
+            "name": self.env._(
+                "Printful %(reference)s",
+                reference=values.get("printful_order_id") or fulfilment.external_order_id,
+            ),
+            "company_id": self.company_id.id,
+            "channel_id": order.channel_id.id or False,
+            "order_id": order.id or False,
+            "source_provider": "printful",
+            "origin": "imported",
+            "provider_event_key": key,
+            "external_order_id": fulfilment.external_order_id,
+            "external_printful_id": values.get("printful_order_id") or False,
+            "original_provider_state": values.get("original_provider_state") or False,
+            "state": "refunded" if refunded else "fulfilled",
+            "fulfilment_mode": "printful",
+            "event_date": fulfilment.occurred_at,
+            "destination_country_id": self._country(values).id or False,
+            "currency_id": (currency or self.company_id.currency_id).id,
+            "product_cost_amount": float(sign * self._cost(values, "costs_subtotal")),
+            "discount_amount": float(sign * self._cost(values, "costs_discount")),
+            "shipping_cost_amount": float(sign * self._cost(values, "costs_shipping")),
+            "digitalization_cost_amount": float(sign * self._cost(values, "costs_digitization")),
+            "tax_amount": float(sign * self._cost(values, "costs_tax")),
+            "vat_amount": float(sign * self._cost(values, "costs_vat")),
+            "cogs_amount": float(billed),
+            "company_cogs_amount": float(company_billed),
+            "conversion_state": (
+                "not_needed"
+                if not currency or currency == self.company_id.currency_id
+                else "evidenced"
+            ),
+            "completeness_state": "complete",
+            "review_state": "pending",
+            "order_link_state": "verified",
+            "accounting_link_state": "pending",
+            "evidence_id": self._evidence(fulfilment).id,
+            # Which lines it shipped is what the allocation spreads the cost
+            # over, and it is provenance, so it is written with the token.
+            "sale_order_line_ids": [Command.set(goods.ids)],
+        }
+
+    def _fulfilment_currency(self, values):
+        """Return the currency the supplier billed in, if it names one."""
+        self.ensure_one()
+        code = (values.get("costs_currency") or "").strip().upper()
+        if not code:
+            return self.env["res.currency"]
+        return self.env["res.currency"].with_context(active_test=False).search(
+            [("name", "=", code)], limit=1,
+        )
+
+    @staticmethod
+    def _cost(values, field):
+        return Decimal(str(values.get(field) or "0"))
 
     # -- what a fulfilment proves ------------------------------------------
 

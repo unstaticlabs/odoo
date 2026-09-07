@@ -132,6 +132,7 @@ PRODUCT_MODULES = frozenset(
         "usl_access_control",
         "usl_accounting",
         "usl_b2c",
+        "usl_b2c_ingest",
         "usl_documents",
         "usl_documents_accounting",
         "usl_documents_b2c",

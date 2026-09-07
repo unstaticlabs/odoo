@@ -62,6 +62,10 @@
                             title="Bill each channel's commission for each month this drop touches."
                             invisible="state != 'applied'"
                             groups="usl_b2c.group_b2c_manager"/>
+                    <button name="action_correct_chart" type="object"
+                            string="Correct the chart" invisible="state == 'draft'"
+                            title="Correct every defect a B2C sale's numbers depend on, and report what changed."
+                            groups="usl_b2c.group_b2c_manager"/>
                     <button name="action_park_destination_vat" type="object"
                             string="Point destination VAT" invisible="state == 'draft'"
                             title="Point every destination rate at the account the shop's registration implies."

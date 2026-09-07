@@ -3,6 +3,7 @@
 # the same, so the import sorter never has to be argued with.
 from . import (
     channel,
+    chart,
     commerce,
     import_batch,
     import_file,
