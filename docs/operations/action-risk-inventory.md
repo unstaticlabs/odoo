@@ -71,6 +71,14 @@ surface:
 
 1. Run `make action-risk-discover` and inspect the candidate diff. Discovery
    reads the running `odoo_dev` registry and never creates policy decisions.
+   The surface takes its module set from that database, so check parity before
+   trusting a diff: the installed modules must equal `modules` in the tracked
+   `action_surface.json`. Initializing from the tracked `root_modules` is not
+   enough on its own, because Odoo also installs every `auto_install` module
+   whose dependencies are then present, and the delivered closure does not
+   carry them. Uninstall the extras and reload the registry first; a database
+   that is one module wide of the tracked set produces thousands of spurious
+   entries and hides the change under review.
 2. Trace each added or changed entry point through delegates to its mutation,
    `sudo()`, raw SQL, filesystem, messaging and provider sinks. Check its ACLs,
    record rules, company behavior and externally reachable callers.

@@ -62,6 +62,16 @@ normal Chatter notifications, and short-lived Documents download grants.
 Direct writes to messages, activities, followers, mail queues or grants remain
 blocked.
 
+One narrow repair belongs to that list. A Chatter body is stored as HTML, so an
+Agent that sends markup without declaring it stores escaped tags that readers
+see as characters, and the ordinary write path cannot correct them.
+`mcp_revise_own_message` lets an identity rewrite the body of a comment or note
+it posted itself, on a record it can still read, within a day of posting.
+Odoo marks the message edited, the audit trail keeps the original body, and
+everything else -- another author's message, a tracking message, a message on a
+different record, an older one -- is refused. Rewriting history is not the
+point; correcting your own fresh mistake is.
+
 Credential values and secret-bearing models or fields remain hidden even when
 Settings is visible. Agents can inspect safe configuration identity, status,
 expiry, digest and health metadata, but not passwords, private keys, API/OAuth

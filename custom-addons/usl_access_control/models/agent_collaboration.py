@@ -1,5 +1,9 @@
-from odoo import models
-from odoo.exceptions import AccessError
+from datetime import timedelta
+
+from markupsafe import Markup, escape
+
+from odoo import fields, models
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 from ..exceptions import AgentPolicyAccessError
 from .agent_policy_tokens import (
@@ -8,6 +12,25 @@ from .agent_policy_tokens import (
     get_agent_operation_scope,
     has_agent_collaboration_token,
 )
+
+# A Chatter body is stored as HTML, so a caller that sends markup without
+# saying so stores escaped tags that readers see as characters.  The author
+# cannot repair that afterwards through the ordinary write path, because
+# mail.message is a governed side-effect model.  `mcp_revise_own_message`
+# below is that repair, and it is deliberately narrow: an identity may correct
+# what it wrote itself, on a record it can still read, while the note is new.
+# A day covers a note noticed the next working morning and still stops an
+# identity rewording something people have long since read and acted on.
+_MESSAGE_REVISION_WINDOW = timedelta(hours=24)
+_REVISABLE_SUBTYPE_XMLIDS = ("mail.mt_comment", "mail.mt_note")
+_MAX_MESSAGE_BODY = 50_000
+
+
+def _plaintext_to_html(value):
+    """Escape plain text and keep its line breaks visible, as a post does."""
+    return Markup("<p>%s</p>") % Markup("<br>").join(
+        escape(line) for line in value.split("\n")
+    )
 
 
 class MailThread(models.AbstractModel):
@@ -72,6 +95,70 @@ class MailThread(models.AbstractModel):
                     "agent_read_only_action_denied",
                 )
         return super(MailThread, records).message_post(*args, **kwargs)
+
+    def mcp_revise_own_message(self, message_id, body, body_is_html=False):
+        """Correct the body of one Chatter message this identity posted itself.
+
+        Editing a message is normally avoided, because notifications have
+        already gone out.  This exists for one case the ordinary path cannot
+        serve: the author stored a body that reads as garbage and no one else
+        can be asked to fix it.  Odoo marks the result edited, keeps the
+        original in the audit trail, and refuses everything that is not the
+        caller's own recent note.
+        """
+        self.ensure_one()
+        if not isinstance(body, str) or not body.strip():
+            raise ValidationError(self.env._("A revised message body cannot be empty."))
+        if len(body) > _MAX_MESSAGE_BODY:
+            raise ValidationError(self.env._("A revised message body is too long."))
+
+        # Reading the record is the same bar as posting to it, and the
+        # returned recordset carries the collaboration token that lets a
+        # governed Agent write mail.message at all.
+        records = self._usl_agent_collaboration()
+        message = records.env["mail.message"].sudo().browse(
+            int(message_id or 0),
+        ).exists()
+        if not message or message.model != self._name or message.res_id != self.id:
+            raise UserError(
+                self.env._("That message does not belong to this record."),
+            )
+        if message.author_guest_id or message.author_id != self.env.user.partner_id:
+            raise AccessError(
+                self.env._("You may revise only a message you posted yourself."),
+            )
+        revisable = self._usl_revisable_subtypes()
+        if message.message_type == "tracking" or message.subtype_id not in revisable:
+            raise UserError(
+                self.env._("Only a Chatter comment or note can be revised."),
+            )
+        posted_at = message.create_date or fields.Datetime.now()
+        if fields.Datetime.now() - posted_at > _MESSAGE_REVISION_WINDOW:
+            raise UserError(
+                self.env._(
+                    "This message is older than %(hours)s hours and can no longer be "
+                    "revised. Post a follow-up message instead.",
+                    hours=int(_MESSAGE_REVISION_WINDOW.total_seconds() // 3600),
+                ),
+            )
+
+        revised = Markup(body) if body_is_html else _plaintext_to_html(body)
+        records._message_update_content(message, body=revised, strict=False)
+        return {
+            "message_id": message.id,
+            "model": self._name,
+            "res_id": self.id,
+            "revised_at": fields.Datetime.to_string(fields.Datetime.now()),
+        }
+
+    def _usl_revisable_subtypes(self):
+        """The Chatter subtypes a posting identity may also correct."""
+        subtypes = self.env["mail.message.subtype"].sudo().browse()
+        for xmlid in _REVISABLE_SUBTYPE_XMLIDS:
+            subtype = self.env.ref(xmlid, raise_if_not_found=False)
+            if subtype:
+                subtypes |= subtype.sudo()
+        return subtypes
 
     def message_notify(self, *args, **kwargs):
         records = self._usl_agent_collaboration(operation="write")
