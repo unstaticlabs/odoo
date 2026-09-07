@@ -27,8 +27,10 @@
                             title="Read the quarter's invoices for what each destination is owed."
                             class="btn-primary" groups="usl_b2c.group_b2c_operator"/>
                     <button name="action_mark_ready" type="object" string="Ready to file"
+                            title="Say this return states what each country is owed and is ready to be filed."
                             invisible="state != 'draft'" groups="usl_b2c.group_b2c_manager"/>
                     <button name="action_mark_filed" type="object" string="Filed"
+                            title="Record that this return has been filed with the tax authority."
                             invisible="state != 'ready'" groups="usl_b2c.group_b2c_manager"/>
                     <field name="state" widget="statusbar"/>
                 </header>
