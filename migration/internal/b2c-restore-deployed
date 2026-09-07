@@ -22,7 +22,8 @@ usage() {
 Usage: migration/internal/b2c-restore-deployed <stage>
 
 Stages: install | import | catalog | native-history-dry-run | native-history
-        reclassify-marketing | tag-assets | validate | finalize | product-validate
+        reclassify-marketing | tag-assets | manufacturing-access | validate
+        finalize | product-validate
 
 Required environment:
   B2C_DEPLOYED_ANCHOR      running container of the deployed stack, for example
@@ -38,6 +39,8 @@ Optional:
   B2C_MAX_BACKUP_AGE_MINUTES  default 120
   B2C_SOURCE_DB_HOST/PORT/USER/PASSWORD/DATABASE  frozen source database
   USL_B2C_MARKETING_COST_MODE default dry_run
+  USL_B2C_TAG_MODE            default dry_run
+  USL_B2C_MANUFACTURING_MODE  default dry_run
 
 The parser test and every database-dropping helper are deliberately absent.
 USAGE
