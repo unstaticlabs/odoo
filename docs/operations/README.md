@@ -27,6 +27,7 @@ activation or domain-specific response:
 - [Odoo MCP](odoo-mcp.md)
 - [Personal Gemini](personal-gemini-runbook.md)
 - [Shine bank export](shine-bank-export-runbook.md)
+- [Importing channel exports](b2c-channel-imports.md)
 - [Access controls](distribution-access-control-runbook.md)
 - [Product performance](product-performance.md)
 - [Action-risk inventory](action-risk-inventory.md)
