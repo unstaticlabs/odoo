@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_b2c_oss_return_list" model="ir.ui.view">
+        <field name="name">b2c.oss.return.list</field>
+        <field name="model">b2c.oss.return</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state == 'filed'">
+                <field name="name"/>
+                <field name="year"/>
+                <field name="quarter"/>
+                <field name="base_amount" sum="Taxable"/>
+                <field name="vat_amount" sum="VAT"/>
+                <field name="computed_at" optional="show"/>
+                <field name="state" widget="badge"/>
+                <field name="currency_id" column_invisible="1"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_b2c_oss_return_form" model="ir.ui.view">
+        <field name="name">b2c.oss.return.form</field>
+        <field name="model">b2c.oss.return</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_compute" type="object" string="Compute"
+                            title="Read the quarter's invoices for what each destination is owed."
+                            class="btn-primary" groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_mark_ready" type="object" string="Ready to file"
+                            invisible="state != 'draft'" groups="usl_b2c.group_b2c_manager"/>
+                    <button name="action_mark_filed" type="object" string="Filed"
+                            invisible="state != 'ready'" groups="usl_b2c.group_b2c_manager"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <div class="alert alert-warning" role="alert" invisible="registered">
+                        This shop is not registered for the One Stop Shop, so the VAT below
+                        is owed but not yet declared under it. It accrues to the account for
+                        liabilities to be regularised until registration.
+                    </div>
+                    <group>
+                        <group>
+                            <field name="year"/>
+                            <field name="quarter"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="base_amount"/>
+                            <field name="vat_amount"/>
+                            <field name="computed_at"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <field name="line_ids" readonly="1">
+                        <list>
+                            <field name="country_id"/>
+                            <field name="rate"/>
+                            <field name="base_amount" sum="Taxable"/>
+                            <field name="vat_amount" sum="VAT"/>
+                            <field name="currency_id" column_invisible="1"/>
+                        </list>
+                    </field>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_b2c_oss_return" model="ir.actions.act_window">
+        <field name="name">Destination VAT</field>
+        <field name="res_model">b2c.oss.return</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Declare what each country is owed</p>
+            <p>One return per quarter. Computing it reads the quarter's invoices for the
+               taxable amount and the VAT each destination bore.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_b2c_oss_return" name="Destination VAT" parent="usl_b2c.menu_b2c_root"
+              action="action_b2c_oss_return" sequence="7"/>
+</odoo>

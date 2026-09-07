@@ -1,5 +1,6 @@
 """Reading a drop of channel exports, end to end."""
 
+from odoo.exceptions import ValidationError
 from odoo.tests import TransactionCase, tagged
 from odoo.tools.binary import BinaryBytes
 
@@ -128,6 +129,63 @@ class TestImportBatch(TransactionCase):
         duplicate = batch.issue_ids.filtered(lambda issue: issue.kind == "duplicate_order")
         self.assertEqual(len(duplicate), 1)
         self.assertEqual(duplicate.external_order_id, "8000000001")
+
+    def test_the_fuller_of_two_records_of_one_sale_replaces_the_other(self):
+        thin = self._order("medusa", "8000000001")
+        full = self._order(
+            "medusa",
+            "order_internal_8000000001",
+            external_display_id="8000000001",
+            canonical_key="commerce:order_internal_8000000001",
+            total_amount=75.0,
+        )
+        self.env["b2c.order.line"].create(
+            {
+                "order_id": full.id,
+                "line_key": "medusa:8000000001:one",
+                "original_name": "Invented Chain",
+                "quantity": 1,
+            },
+        )
+        batch = self._full_drop()
+        batch.action_parse()
+        issue = batch.issue_ids.filtered(lambda item: item.kind == "duplicate_order")
+        issue.action_supersede_duplicate()
+        self.assertEqual(thin.state, "cancelled")
+        self.assertEqual(thin.superseded_by_id, full)
+        self.assertFalse(full.superseded_by_id)
+
+    def test_a_replaced_record_stops_being_the_sale(self):
+        thin = self._order("medusa", "8000000001")
+        full = self._order(
+            "medusa",
+            "order_internal_8000000001",
+            external_display_id="8000000001",
+            canonical_key="commerce:order_internal_8000000001",
+        )
+        thin.write({"state": "cancelled", "superseded_by_id": full.id})
+        batch = self._full_drop()
+        batch.action_parse()
+        self.assertNotIn(
+            "duplicate_order", {issue.kind for issue in batch.issue_ids},
+        )
+        self.assertEqual(batch.known_order_count, 1)
+
+    def test_a_record_cannot_replace_itself(self):
+        order = self._order("medusa", "8000000001")
+        with self.assertRaises(ValidationError):
+            order.write({"state": "cancelled", "superseded_by_id": order.id})
+
+    def test_a_replaced_record_is_cancelled(self):
+        thin = self._order("medusa", "8000000001")
+        full = self._order(
+            "medusa",
+            "order_internal_8000000001",
+            external_display_id="8000000001",
+            canonical_key="commerce:order_internal_8000000001",
+        )
+        with self.assertRaises(ValidationError):
+            thin.superseded_by_id = full
 
     def test_an_order_held_on_another_channel_is_reported(self):
         self._order("etsy", "8000000001")

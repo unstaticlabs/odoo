@@ -58,6 +58,44 @@ class B2cImportIssue(models.Model):
         help="The attribute value to add, spelled the way the catalogue spells its siblings.",
     )
 
+    def action_supersede_duplicate(self):
+        """Keep the fuller of two records of one sale and retire the other.
+
+        Which record is fuller is a matter of evidence, not preference: the one
+        stating the lines wins, and where both state them, the one stating more
+        of the money.  The retired record is cancelled and points at the one
+        that replaced it, so nothing is deleted and the ledger, which was never
+        posted from either, is untouched.
+        """
+        self.ensure_one()
+        if self.kind != "duplicate_order":
+            raise UserError(
+                self.env._("This finding does not name two records of one sale."),
+            )
+        batch = self.batch_id
+        duplicates = batch._known_orders({self.external_order_id}).get(
+            self.external_order_id,
+        )
+        if not duplicates or len(duplicates) < 2:
+            raise UserError(self.env._("Odoo no longer holds this sale twice."))
+        kept = max(
+            duplicates,
+            key=lambda order: (len(order.line_ids), order.total_amount, order.id),
+        )
+        retired = duplicates - kept
+        retired.sale_order_id.with_context(**batch._context()).sudo()._action_cancel()
+        retired.with_context(**batch._context()).sudo().write(
+            {"state": "cancelled", "superseded_by_id": kept.id},
+        )
+        batch.action_resolve()
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "b2c.order",
+            "view_mode": "list,form",
+            "domain": [("id", "in", (kept | retired).ids)],
+            "name": self.env._("One sale, two records"),
+        }
+
     def action_add_missing_value(self):
         """Add the attribute value a channel sold, so the variant can exist.
 

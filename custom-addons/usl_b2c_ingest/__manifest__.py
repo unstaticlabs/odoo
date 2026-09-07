@@ -15,6 +15,7 @@
         "views/import_batch_views.xml",
         "views/import_row_views.xml",
         "views/import_issue_views.xml",
+        "views/oss_return_views.xml",
         "views/menu_views.xml",
     ],
     "installable": True,

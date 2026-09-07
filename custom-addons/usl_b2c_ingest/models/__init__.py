@@ -3,6 +3,7 @@
 # the same, so the import sorter never has to be argued with.
 from . import (
     channel,
+    commerce,
     import_batch,
     import_file,
     import_issue,
@@ -11,6 +12,7 @@ from . import (
     mapping,
     materialise,
     oss,
+    oss_return,
     readiness,
     settlement,
     supplier,

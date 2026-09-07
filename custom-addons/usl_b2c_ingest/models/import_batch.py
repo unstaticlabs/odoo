@@ -291,6 +291,8 @@ class B2cImportBatch(models.Model):
         orders = self.env["b2c.order"].search(
             [
                 ("company_id", "=", self.company_id.id),
+                # A record another one replaced is no longer the sale.
+                ("superseded_by_id", "=", False),
                 "|",
                 ("external_order_id", "in", references),
                 ("external_display_id", "in", references),
