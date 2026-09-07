@@ -29,21 +29,6 @@ from odoo.addons.usl_b2c_ingest.services.printful import (
 MATCH_WINDOW = timedelta(days=10)
 
 
-class B2cChannel(models.Model):
-    _inherit = "b2c.channel"
-
-    printful_store_id = fields.Char(
-        index=True,
-        copy=False,
-        help="The Printful store that fulfils this channel. Configuration, not code.",
-    )
-
-    _company_printful_store_unique = models.Constraint(
-        "UNIQUE(company_id, printful_store_id)",
-        "A Printful store fulfils one B2C channel per company.",
-    )
-
-
 class B2cImportRowFulfilment(models.Model):
     _inherit = "b2c.import.row"
 
@@ -127,7 +112,6 @@ class B2cImportBatchFulfilment(models.Model):
             [
                 {
                     "batch_id": self.id,
-                    "file_id": self.file_ids[:1].id,
                     "format_id": row.format_id,
                     "provider": row.provider,
                     "grain": row.grain,

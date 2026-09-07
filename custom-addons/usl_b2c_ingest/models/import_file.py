@@ -28,6 +28,7 @@ class B2cImportFile(models.Model):
     name = fields.Char(required=True)
     content = fields.Binary(required=True, attachment=True)
     checksum = fields.Char(readonly=True, index=True, copy=False)
+    schema_digest = fields.Char(readonly=True, copy=False)
     format_id = fields.Selection(
         selection="_selection_format",
         readonly=True,
@@ -78,6 +79,7 @@ class B2cImportFile(models.Model):
                     "state": "recognised",
                     "note": False,
                     "format_id": fmt.format_id,
+                    "schema_digest": fmt.signature,
                     "provider": fmt.provider,
                     "row_count": len(document.rows),
                     "order_count": sum(1 for row in rows if row.grain == parsers.ORDER_GRAIN),

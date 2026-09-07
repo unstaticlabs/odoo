@@ -16,6 +16,7 @@ from odoo.addons.usl_b2c_ingest.parsers import variation
 #: Findings that describe the mapping, and are therefore replaced by each run.
 MAPPING_ISSUE_KINDS = (
     "alias_derived",
+    "destination_unknown",
     "ambiguous_product",
     "missing_variant",
     "unknown_product",
@@ -56,8 +57,41 @@ class B2cImportBatchMapping(models.Model):
             )
             (batch.row_ids - lines).mapping = "not_applicable"
             batch._map_lines(lines)
+            batch._check_destinations()
             batch.write({"state": "resolved", "report": batch._build_report()})
         return True
+
+    def _check_destinations(self):
+        """Refuse to price a sale whose destination no export states.
+
+        The rate a sale is taxed at is the rate of the country the goods went
+        to, so an export that omits the country omits the tax.  Medusa's item
+        exports do; its orders export does not.
+        """
+        self.ensure_one()
+        stranded = defaultdict(list)
+        for row in self.row_ids.filtered(
+            lambda item: item.grain == "order" and item.resolution == "new",
+        ):
+            if not self._country(row.values or {}):
+                stranded[row.provider].append(row)
+        for provider, rows in stranded.items():
+            self._raise_issue(
+                "destination_unknown",
+                self.env._(
+                    "%(count)s new %(provider)s order(s) do not say where the goods went",
+                    count=len(rows),
+                    provider=provider,
+                ),
+                row=rows[0],
+                note=self.env._(
+                    "Without the destination there is no rate to charge. Add the "
+                    "channel's orders export, which carries the shipping country "
+                    "alongside the carriage and discount its item export omits.\n"
+                    "Orders: %(orders)s",
+                    orders=", ".join(sorted(row.external_order_id for row in rows)),
+                ),
+            )
 
     def _map_lines(self, lines):
         """Resolve each line, reporting anything a person has to decide."""

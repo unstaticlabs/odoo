@@ -62,6 +62,15 @@ CSV_FORMATS = (
         delimiter=medusa.DELIMITER,
     ),
     CsvFormat(
+        "medusa_full_orders",
+        "Medusa — orders",
+        medusa.PROVIDER,
+        medusa.FULL_ORDERS_HEADER,
+        medusa.parse_full_orders,
+        precedence=5,
+        delimiter=medusa.DELIMITER,
+    ),
+    CsvFormat(
         "medusa_order_items",
         "Medusa — sold items",
         medusa.PROVIDER,

@@ -46,6 +46,81 @@ ITEMS_HEADER = _HEADER_COLUMNS + _ITEM_COLUMNS
 
 DELIMITER = ";"
 
+#: Medusa's full order export, the only one of its exports that carries the
+#: destination and the money charged on top of the items.
+FULL_ORDERS_HEADER = (
+    "Order_ID",
+    "Display_ID",
+    "Order status",
+    "Date",
+    "Customer First name",
+    "Customer Last name",
+    "Customer Email",
+    "Customer ID",
+    "Shipping Address 1",
+    "Shipping Address 2",
+    "Shipping Country Code",
+    "Shipping City",
+    "Shipping Postal Code",
+    "Shipping Region ID",
+    "Fulfillment Status",
+    "Payment Status",
+    "Subtotal",
+    "Shipping Total",
+    "Discount Total",
+    "Tax Total",
+    "Total",
+    "Currency Code",
+)
+
+
+def parse_full_orders(document):
+    """Yield the order a Medusa export states in full: destination and money.
+
+    This is the export that makes a Medusa sale taxable: the item exports name
+    neither the country the goods went to nor the carriage the customer paid,
+    and without the country there is no rate to charge.
+    """
+    for row in document.rows:
+        subtotal = money(row["Subtotal"], default=Decimal("0"))
+        shipping = money(row["Shipping Total"], default=Decimal("0"))
+        discount = money(row["Discount Total"], default=Decimal("0"))
+        tax = money(row["Tax Total"], default=Decimal("0"))
+        total = money(row["Total"], default=Decimal("0"))
+        first = text(row["Customer First name"])
+        last = text(row["Customer Last name"])
+        yield ParsedRow(
+            format_id="medusa_full_orders",
+            provider=PROVIDER,
+            grain=ORDER_GRAIN,
+            external_order_id=reference(row["Display_ID"]) or reference(row["Order_ID"]),
+            row_number=row["_row_number"],
+            payload=_payload(row),
+            occurred_at=parsed_datetime(row["Date"]),
+            values={
+                "currency": text(row["Currency Code"]) or "EUR",
+                "internal_order_id": reference(row["Order_ID"]),
+                "original_provider_state": text(row["Order status"]),
+                "source_payment_state": text(row["Payment Status"]),
+                "source_fulfilment_state": text(row["Fulfillment Status"]),
+                "customer_external_id": text(row["Customer ID"]),
+                "customer_email": text(row["Customer Email"]),
+                "customer_name": " ".join(part for part in (first, last) if part),
+                "shipping_name": " ".join(part for part in (first, last) if part),
+                "shipping_street": text(row["Shipping Address 1"]),
+                "shipping_street2": text(row["Shipping Address 2"]),
+                "shipping_city": text(row["Shipping City"]),
+                "shipping_zip": text(row["Shipping Postal Code"]),
+                "original_country": text(row["Shipping Country Code"]),
+                "subtotal_amount": subtotal,
+                "shipping_amount": shipping,
+                "discount_amount": discount,
+                "tax_amount": tax,
+                "total_amount": total,
+                "line_amount_residual": total - (subtotal - discount + shipping + tax),
+            },
+        )
+
 
 def _line_identity(order_id, item, seen):
     """Return a line identifier that both Medusa layouts agree on.

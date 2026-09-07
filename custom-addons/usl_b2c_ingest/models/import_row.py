@@ -36,7 +36,7 @@ class B2cImportRow(models.Model):
         ondelete="cascade",
         index=True,
     )
-    file_id = fields.Many2one("b2c.import.file", required=True, ondelete="cascade", index=True)
+    file_id = fields.Many2one("b2c.import.file", ondelete="cascade", index=True)
     format_id = fields.Char(required=True, readonly=True, index=True)
     provider = fields.Selection(SOURCE_PROVIDERS, required=True, readonly=True, index=True)
     grain = fields.Selection(GRAINS, required=True, readonly=True, index=True)

@@ -12,6 +12,26 @@ from odoo.exceptions import UserError
 
 from odoo.addons.usl_b2c_ingest import parsers
 
+#: The values two exports of the same sale must agree on. Everything else is
+#: vocabulary: one channel calls an order "completed" where another calls the
+#: same order "pending", and neither is stating a different fact.
+RECONCILED_VALUES = frozenset(
+    {
+        "currency",
+        "discount_amount",
+        "external_listing_id",
+        "fee_amount",
+        "net_amount",
+        "original_sku",
+        "quantity",
+        "shipping_amount",
+        "subtotal_amount",
+        "tax_amount",
+        "total_amount",
+        "unit_price",
+    },
+)
+
 BATCH_STATES = [
     ("draft", "Draft"),
     ("parsed", "Read"),
@@ -382,6 +402,17 @@ class B2cImportBatch(models.Model):
             },
         )
 
+    def _country(self, values):
+        name = (values.get("original_country") or "").strip()
+        if not name:
+            return self.env["res.country"]
+        Country = self.env["res.country"]
+        if len(name) == 2:
+            found = Country.search([("code", "=", name.upper())], limit=1)
+            if found:
+                return found
+        return Country.search([("name", "=ilike", name)], limit=1)
+
     def _period(self, rows):
         dates = [row.occurred_at for row in rows if row.occurred_at]
         if not dates:
@@ -459,9 +490,9 @@ class B2cImportBatch(models.Model):
 
 
 def _disagreement(held, other):
-    """Return the fields two layouts state differently about the same fact."""
+    """Return the facts two exports of the same sale state differently."""
     return [
         (name, held[name], other[name])
-        for name in sorted(held.keys() & other.keys())
+        for name in sorted(held.keys() & other.keys() & RECONCILED_VALUES)
         if held[name] != other[name]
     ]

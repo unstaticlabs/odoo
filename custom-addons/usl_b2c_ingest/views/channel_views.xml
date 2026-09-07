@@ -7,6 +7,7 @@
         <field name="arch" type="xml">
             <field name="default_fulfilment_mode" position="after">
                 <field name="printful_store_id"/>
+                <field name="shipping_product_id"/>
             </field>
         </field>
     </record>

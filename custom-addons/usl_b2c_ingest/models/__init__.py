@@ -2,10 +2,12 @@
 # the file declaring it.  Keeping the names in alphabetical order keeps the two
 # the same, so the import sorter never has to be argued with.
 from . import (
+    channel,
     import_batch,
     import_file,
     import_issue,
     import_row,
     mapping,
+    materialise,
     supplier,
 )

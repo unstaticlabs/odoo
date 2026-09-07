@@ -21,6 +21,8 @@ ISSUE_KINDS = [
     ("ambiguous_product", "The name points at more than one product"),
     ("alias_derived", "A mapping was derived from the catalogue"),
     ("fulfilment_unmatched", "A supplier fulfilment belongs to no known sale"),
+    ("destination_unknown", "The export does not say where the goods went"),
+    ("delivery_incomplete", "The delivery could not be completed"),
 ]
 
 

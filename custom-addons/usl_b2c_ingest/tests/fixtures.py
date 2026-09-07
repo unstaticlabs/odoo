@@ -40,6 +40,14 @@ def medusa_orders(rows=None):
     )
 
 
+def medusa_full_orders(rows=None):
+    return _csv(
+        medusa.FULL_ORDERS_HEADER,
+        rows if rows is not None else MEDUSA_FULL_ROWS,
+        delimiter=medusa.DELIMITER,
+    )
+
+
 def medusa_order_items(rows=None):
     return _csv(
         medusa.ITEMS_HEADER,
@@ -227,6 +235,54 @@ MEDUSA_ITEM_ROWS = tuple(
     {"order_number": order_number} | _MEDUSA_HEADERS[order_number] | item
     for order_number, items in _MEDUSA_ITEMS.items()
     for item in items
+)
+
+#: The export that states where the goods went and what was charged on top.
+MEDUSA_FULL_ROWS = (
+    {
+        "Order_ID": "order_invented_one",
+        "Display_ID": "8000000001",
+        "Order status": "completed",
+        "Date": "2026-03-04",
+        "Customer First name": "Ingrid",
+        "Customer Last name": "Notreal",
+        "Customer Email": "one@example.invalid",
+        "Customer ID": "cus_invented_one",
+        "Shipping Address 1": "3 Fictional Quay",
+        "Shipping Country Code": "DE",
+        "Shipping City": "Rostock",
+        "Shipping Postal Code": "18055",
+        "Fulfillment Status": "fulfilled",
+        "Payment Status": "captured",
+        "Subtotal": "67.00",
+        "Shipping Total": "8.00",
+        "Discount Total": "0.00",
+        "Tax Total": "0.00",
+        "Total": "75.00",
+        "Currency Code": "EUR",
+    },
+    {
+        "Order_ID": "order_invented_two",
+        "Display_ID": "8000000002",
+        "Order status": "completed",
+        "Date": "2026-03-09",
+        "Customer First name": "Percival",
+        "Customer Last name": "Madeup",
+        "Customer Email": "two@example.invalid",
+        "Customer ID": "cus_invented_two",
+        "Shipping Address 1": "12 Notional Road",
+        "Shipping Country Code": "US",
+        "Shipping City": "Cheyenne",
+        "Shipping Postal Code": "82001",
+        "Fulfillment Status": "fulfilled",
+        "Payment Status": "captured",
+        "Subtotal": "60.00",
+        "Shipping Total": "9.00",
+        "Discount Total": "0.00",
+        "Tax Total": "0.00",
+        "Total": "69.00",
+        "Currency Code": "GBP",
+    },
 )
 
 #: One Printful fulfilment for the first invented Etsy order.
