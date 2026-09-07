@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- These boards are primary views on project.task and are always reached
+         through their own actions. ir.ui.view._order is "priority,name,id", so at
+         the default priority "project.task.feedback.*" sorts ahead of the stock
+         "project.task.kanban" and default_view() would hand the read-only feedback
+         board to every project. Keep them out of that race. -->
     <record id="view_feedback_task_kanban_collaborator" model="ir.ui.view">
         <field name="name">project.task.feedback.collaborator.kanban</field>
+        <field name="priority">900</field>
         <field name="model">project.task</field>
         <field name="arch" type="xml">
             <kanban string="Product Feedback" default_group_by="stage_id" create="false" edit="false" delete="false" records_draggable="false" group_create="false" group_edit="false" group_delete="false" class="o_kanban_small_column o_usl_feedback_board">
@@ -32,6 +38,7 @@
 
     <record id="view_feedback_task_kanban_maintainer" model="ir.ui.view">
         <field name="name">project.task.feedback.maintainer.kanban</field>
+        <field name="priority">900</field>
         <field name="model">project.task</field>
         <field name="inherit_id" ref="view_feedback_task_kanban_collaborator"/>
         <field name="mode">primary</field>
@@ -50,6 +57,7 @@
 
     <record id="view_feedback_task_list_collaborator" model="ir.ui.view">
         <field name="name">project.task.feedback.collaborator.list</field>
+        <field name="priority">900</field>
         <field name="model">project.task</field>
         <field name="arch" type="xml">
             <list string="Product Feedback" create="false" edit="false" delete="false">
@@ -68,6 +76,7 @@
 
     <record id="view_feedback_task_list_maintainer" model="ir.ui.view">
         <field name="name">project.task.feedback.maintainer.list</field>
+        <field name="priority">900</field>
         <field name="model">project.task</field>
         <field name="inherit_id" ref="view_feedback_task_list_collaborator"/>
         <field name="mode">primary</field>
@@ -80,6 +89,7 @@
 
     <record id="view_feedback_task_form_collaborator" model="ir.ui.view">
         <field name="name">project.task.feedback.collaborator.form</field>
+        <field name="priority">900</field>
         <field name="model">project.task</field>
         <field name="arch" type="xml">
             <form string="Product Feedback" create="false" edit="false" delete="false">
@@ -129,6 +139,7 @@
 
     <record id="view_feedback_task_form_maintainer" model="ir.ui.view">
         <field name="name">project.task.feedback.maintainer.form</field>
+        <field name="priority">900</field>
         <field name="model">project.task</field>
         <field name="inherit_id" ref="view_feedback_task_form_collaborator"/>
         <field name="mode">primary</field>
@@ -154,6 +165,7 @@
 
     <record id="view_feedback_task_search" model="ir.ui.view">
         <field name="name">project.task.feedback.search</field>
+        <field name="priority">900</field>
         <field name="model">project.task</field>
         <field name="arch" type="xml">
             <search string="Product Feedback">
