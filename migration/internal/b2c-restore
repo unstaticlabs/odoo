@@ -93,6 +93,7 @@ run_shell() {
         -e USL_B2C_NATIVE_HISTORY_MODE="${B2C_NATIVE_HISTORY_MODE:-dry_run}" \
         -e USL_B2C_MARKETING_COST_MODE="${USL_B2C_MARKETING_COST_MODE:-dry_run}" \
         -e USL_B2C_TAG_MODE="${USL_B2C_TAG_MODE:-dry_run}" \
+        -e USL_B2C_MANUFACTURING_MODE="${USL_B2C_MANUFACTURING_MODE:-dry_run}" \
         b2c-migration odoo shell --config=/etc/odoo/odoo.conf \
         --addons-path="$migration_addons_path" --database="$target_database" \
         --shell-interface=python < "$script_path"
@@ -198,6 +199,9 @@ case "$command_name" in
             run_shell migration/b2c_restore/addons/usl_b2c_restore/scripts/materialize_native_history.py
         ;;
     tag-assets) run_shell migration/b2c_restore/addons/usl_b2c_restore/scripts/tag_gbc_assets.py ;;
+    manufacturing-access)
+        run_shell migration/b2c_restore/addons/usl_b2c_restore/scripts/grant_manufacturing_access.py
+        ;;
     validate) run_shell migration/b2c_restore/addons/usl_b2c_restore/scripts/validate_restore.py ;;
     product-validate) validate_product_boundary ;;
     test) test_parsers ;;
