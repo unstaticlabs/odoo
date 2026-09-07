@@ -134,3 +134,37 @@ database does not authorise writing to this one.
 
 Freeze user writes before a stage that writes, and unfreeze after verifying it.
 On failure, restore the snapshot the receipt names.
+
+## Cost of goods on the native history
+
+Print-on-demand merchandise is never received into stock, so nothing in
+Inventory knows what a unit cost. The cost lives on the fulfilment events: what
+the supplier billed for shipping an order. `usl_b2c` treats each event as the
+cost of goods of the native sale lines it is linked to, spreads it over those
+lines in proportion to their revenue (by quantity when none of them earned
+anything), and writes the result as the line's unit cost. Every event linked to
+a line takes part, so refunds and second shipments net out. The most recent
+shipped unit cost also becomes the product's standard price, which is what the
+margin on the next order assumes. Stocked products are left alone; they are
+valued by their receipts and manufacturing orders.
+
+This runs whenever an event is created or its lines, cost, state or date
+change, which includes the reconstruction's own linking step.
+
+Products made in house are costed by Odoo's own valuation. The chains and
+padlocks leave stock at their average cost when a manufacturing order consumes
+them; with a moving cost on the finished product, the unit produced is worth
+those components and the delivery that ships it is worth that unit. That
+moving cost comes from the "Goods / GBC Finished Products" category, which is
+why the catalog materializer files every product it creates for own stock
+there.
+
+Version `saas~19.3.1.5.0` of `usl_b2c` replayed both once over the existing
+history: it filed the print-on-demand products under "Goods / GBC Print on
+Demand" and allocated their fulfilment costs, and it filed the made products
+under "Goods / GBC Finished Products", valued each completed production at its
+components, each delivery at the unit made for it, and each product at its
+last production cost.
+
+Sales > Reporting > Sales, with Margin as the measure, is the place to read the
+result. The B2C monthly sessions show the same cost after fees and refunds.
