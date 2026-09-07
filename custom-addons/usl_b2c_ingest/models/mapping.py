@@ -28,10 +28,12 @@ class B2cImportBatchMapping(models.Model):
     mapped_line_count = fields.Integer(compute="_compute_mapping_counts", store=True)
     unmapped_line_count = fields.Integer(compute="_compute_mapping_counts", store=True)
 
-    @api.depends("row_ids.grain", "row_ids.mapping")
+    @api.depends("row_ids.grain", "row_ids.mapping", "row_ids.resolution")
     def _compute_mapping_counts(self):
         for batch in self:
-            lines = batch.row_ids.filtered(lambda row: row.grain == "line")
+            lines = batch.row_ids.filtered(
+                lambda row: row.grain == "line" and row.resolution != "supplier",
+            )
             batch.mapped_line_count = len(
                 lines.filtered(lambda row: row.mapping in ("mapped", "derived")),
             )
@@ -49,7 +51,9 @@ class B2cImportBatchMapping(models.Model):
             batch.issue_ids.filtered(
                 lambda issue: issue.kind in MAPPING_ISSUE_KINDS,
             ).unlink()
-            lines = batch.row_ids.filtered(lambda row: row.grain == "line")
+            lines = batch.row_ids.filtered(
+                lambda row: row.grain == "line" and row.resolution != "supplier",
+            )
             (batch.row_ids - lines).mapping = "not_applicable"
             batch._map_lines(lines)
             batch.write({"state": "resolved", "report": batch._build_report()})

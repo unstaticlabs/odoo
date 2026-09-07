@@ -72,6 +72,17 @@ def money(value, *, default=None):
     return -result if negative else result
 
 
+def amount(value, *, default=None):
+    """Return a Decimal for a value a JSON API states as a string, or not at all.
+
+    An API that omits a price sends ``null``, which is not the same as zero and
+    must not be read as the text "None".
+    """
+    if value is None:
+        return default
+    return money(str(value), default=default)
+
+
 def quantity(value):
     """Return a Decimal quantity, treating a blank cell as zero."""
     return money(value, default=Decimal("0"))

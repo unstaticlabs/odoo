@@ -12,6 +12,7 @@ from .common import (
     ParsedRow,
     SchemaError,
     SourceDocument,
+    amount,
     header_signature,
     jsonable,
     read_csv,

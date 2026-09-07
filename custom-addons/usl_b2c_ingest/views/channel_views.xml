@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_b2c_channel_form_printful" model="ir.ui.view">
+        <field name="name">b2c.channel.form.printful</field>
+        <field name="model">b2c.channel</field>
+        <field name="inherit_id" ref="usl_b2c.view_b2c_channel_form"/>
+        <field name="arch" type="xml">
+            <field name="default_fulfilment_mode" position="after">
+                <field name="printful_store_id"/>
+            </field>
+        </field>
+    </record>
+</odoo>

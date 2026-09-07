@@ -20,6 +20,7 @@ ISSUE_KINDS = [
     ("missing_variant", "The product exists but not in this variant"),
     ("ambiguous_product", "The name points at more than one product"),
     ("alias_derived", "A mapping was derived from the catalogue"),
+    ("fulfilment_unmatched", "A supplier fulfilment belongs to no known sale"),
 ]
 
 

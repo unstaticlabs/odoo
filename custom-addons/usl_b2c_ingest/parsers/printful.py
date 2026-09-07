@@ -13,7 +13,7 @@ from .common import (
     LINE_GRAIN,
     ORDER_GRAIN,
     ParsedRow,
-    money,
+    amount,
     parsed_datetime,
     reference,
     text,
@@ -39,7 +39,7 @@ COST_FIELDS = (
 def _costs(payload, key):
     costs = payload.get(key) or {}
     return {
-        f"{key}_{field}": money(str(costs.get(field, "")), default=Decimal("0"))
+        f"{key}_{field}": amount(costs.get(field), default=Decimal("0"))
         for field in COST_FIELDS
         if field in costs
     } | {f"{key}_currency": text(costs.get("currency"))}
@@ -92,9 +92,9 @@ def parse_orders(payload, store_channels):
                     "original_name": text(item.get("name")),
                     "original_sku": text(item.get("external_id")),
                     "printful_variant_id": reference(str(item.get("sync_variant_id") or "")),
-                    "quantity": Decimal(str(item.get("quantity") or 0)),
-                    "supplier_unit_cost": money(str(item.get("price", "")), default=Decimal("0")),
-                    "unit_price": money(str(item.get("retail_price", "")), default=Decimal("0")),
+                    "quantity": amount(item.get("quantity"), default=Decimal("0")),
+                    "supplier_unit_cost": amount(item.get("price"), default=Decimal("0")),
+                    "unit_price": amount(item.get("retail_price"), default=Decimal("0")),
                     "currency": text(item.get("currency")) or "EUR",
                 },
             )

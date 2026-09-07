@@ -71,7 +71,7 @@ class B2cImportBatch(models.Model):
     )
     def _compute_counts(self):
         for batch in self:
-            rows = batch.row_ids
+            rows = batch.row_ids.filtered(lambda row: row.resolution != "supplier")
             orders = rows.filtered(lambda row: row.grain == "order")
             batch.file_count = len(batch.file_ids)
             batch.row_count = len(rows)
@@ -394,6 +394,7 @@ class B2cImportBatch(models.Model):
         self.invalidate_recordset(["row_ids", "issue_ids"])
         self._compute_counts()
         self._compute_mapping_counts()
+        self._compute_fulfilment_count()
         lines = [
             self.env._(
                 "%(files)s file(s) read, covering %(start)s to %(end)s.",
@@ -410,7 +411,9 @@ class B2cImportBatch(models.Model):
             ),
         ]
         by_provider = defaultdict(Counter)
-        for row in self.row_ids.filtered(lambda item: item.grain == "order"):
+        for row in self.row_ids.filtered(
+            lambda item: item.grain == "order" and item.resolution != "supplier",
+        ):
             by_provider[row.provider][row.resolution] += 1
         for provider, counts in sorted(by_provider.items()):
             line = self.env._(
@@ -431,6 +434,15 @@ class B2cImportBatch(models.Model):
                     "%(mapped)s line(s) map to a product, %(unmapped)s still need one.",
                     mapped=self.mapped_line_count,
                     unmapped=self.unmapped_line_count,
+                ),
+            )
+        if self.fulfilment_count:
+            linked = len(self._fulfilment_rows().filtered("fulfilment_of_row_id"))
+            lines.append(
+                self.env._(
+                    "%(count)s supplier fulfilment(s) read, %(linked)s tied to a sale.",
+                    count=self.fulfilment_count,
+                    linked=linked,
                 ),
             )
         if self.blocking_issue_count or self.advisory_issue_count:

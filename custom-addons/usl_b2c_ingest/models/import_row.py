@@ -21,6 +21,7 @@ RESOLUTIONS = [
     ("known", "Already in Odoo"),
     ("conflicting", "Conflicts with what Odoo holds"),
     ("orphan_line", "Line without an order"),
+    ("supplier", "Supplier fulfilment"),
 ]
 
 
