@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_b2c_import" name="Channel Imports" parent="usl_b2c.menu_b2c_root"
+              action="action_b2c_import_batch" sequence="5"/>
+    <menuitem id="menu_b2c_import_issue" name="Import Findings" parent="usl_b2c.menu_b2c_root"
+              action="action_b2c_import_issue" sequence="6"/>
+</odoo>
