@@ -22,7 +22,7 @@ usage() {
 Usage: migration/internal/b2c-restore-deployed <stage>
 
 Stages: install | import | catalog | native-history-dry-run | native-history
-        reclassify-marketing | tag-assets | validate | finalize
+        reclassify-marketing | tag-assets | validate | finalize | product-validate
 
 Required environment:
   B2C_DEPLOYED_ANCHOR      running container of the deployed stack, for example
@@ -54,7 +54,7 @@ case "$stage" in
         echo "Refusing '$stage' against a deployed database: run one reviewed stage at a time." >&2
         exit 2
         ;;
-    install|import|catalog|native-history|native-history-dry-run|reclassify-marketing|tag-assets|validate|finalize)
+    install|import|catalog|native-history|native-history-dry-run|reclassify-marketing|tag-assets|validate|finalize|product-validate)
         ;;
     *)
         usage
@@ -257,9 +257,31 @@ install_module() {
 printf 'B2C %s against deployed database %s (%s, network %s, filestore %s)\n' \
     "$stage" "$target_database" "$anchor" "$stack_network" "$filestore_volume" >&2
 
+product_boundary() {
+    # The delivered add-ons path only. Proving that no migration module survives
+    # is meaningless from a path that carries them.
+    docker run --rm -i --network "$stack_network" \
+        --volume "$filestore_volume:/var/lib/odoo" \
+        --volume "$ROOT/custom-addons:/mnt/custom-addons:ro" \
+        --volume "$ROOT/oca-addons:/mnt/oca-addons:ro" \
+        --volume "$ROOT/oca-src:/mnt/oca-src:ro" \
+        -e ODOO_DB_HOST="$target_db_host" -e ODOO_DB_PORT="$target_db_port" \
+        -e ODOO_DB_USER="$target_db_user" -e ODOO_DB_PASSWORD="$target_db_password" \
+        -e ODOO_INIT_DB="$target_database" -e ODOO_MAX_CRON_THREADS=0 \
+        -e USL_EINVOICE_LIVE_ENABLED=0 -e USL_EREPORTING_LIVE_ENABLED=0 \
+        "$odoo_image" \
+        odoo shell --config=/etc/odoo/odoo.conf \
+        --addons-path=/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons \
+        --database="$target_database" --shell-interface=python \
+        < migration/b2c_restore/scripts/validate_product_boundary.py
+}
+
 case "$stage" in
     install)
         install_module
+        ;;
+    product-validate)
+        product_boundary
         ;;
     *)
         run_stage_script \
