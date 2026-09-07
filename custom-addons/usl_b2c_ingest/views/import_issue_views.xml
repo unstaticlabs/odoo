@@ -17,6 +17,10 @@
                         title="Add this value to the product's attribute and resolve again"
                         invisible="kind != 'missing_variant'"
                         groups="usl_b2c.group_b2c_manager"/>
+                <button name="action_supersede_duplicate" type="object" icon="fa-compress"
+                        title="Keep the fuller of the two records of this sale and retire the other"
+                        invisible="kind != 'duplicate_order'"
+                        groups="usl_b2c.group_b2c_manager"/>
             </list>
         </field>
     </record>
