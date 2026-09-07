@@ -2230,6 +2230,7 @@
         "rpc:queue.job.lock.web_save_multi",
         "rpc:queue.job.lock.web_search_read",
         "rpc:queue.job.lock.write",
+        "rpc:queue.job.mcp_revise_own_message",
         "rpc:queue.job.message_change_thread",
         "rpc:queue.job.message_mail_with_source",
         "rpc:queue.job.message_new",
@@ -2534,6 +2535,9 @@
         },
         "rpc:queue.job.lock.write": {
           "rationale": "Exact inherited implementation equivalence; classify writes, imports, chatter and pseudo-record helpers conservatively as operational. Native CRUD reaches applicable central semantic/configuration guards. Exact implementation equivalent: rpc:_unknown.write; runtime digest 69f77a443d835020f21d88d5d2cb0e1d7d0180f872163d1b2905b7b7d281a3d9."
+        },
+        "rpc:queue.job.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post."
         },
         "rpc:queue.job.message_change_thread": {
           "rationale": "Exact inherited implementation equivalence; classify writes, imports, chatter and pseudo-record helpers conservatively as operational. Native CRUD reaches applicable central semantic/configuration guards. Exact implementation equivalent: rpc:account.account.message_change_thread; runtime digest de159d81bcac4da2d1efcb4ff7ddbe4f794b5eade8deef2a954e25f60f7a6fe4."
@@ -2904,6 +2908,7 @@
         "rpc:queue.job.lock.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:queue.job.lock.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:queue.job.lock.write": "b0373b6633d99d657d81a9aca3ec6bb0ebad5e3e7b41420276488a6f1ce1c8f4",
+        "rpc:queue.job.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:queue.job.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:queue.job.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:queue.job.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
@@ -66858,6 +66863,7 @@
         "rpc:account.account.formatted_read_grouping_sets",
         "rpc:account.account.get_view",
         "rpc:account.account.get_views",
+        "rpc:account.account.mcp_revise_own_message",
         "rpc:account.account.message_change_thread",
         "rpc:account.account.message_mail_with_source",
         "rpc:account.account.message_new",
@@ -66994,6 +67000,7 @@
         "rpc:account.analytic.account.formatted_read_grouping_sets",
         "rpc:account.analytic.account.get_view",
         "rpc:account.analytic.account.get_views",
+        "rpc:account.analytic.account.mcp_revise_own_message",
         "rpc:account.analytic.account.message_change_thread",
         "rpc:account.analytic.account.message_mail_with_source",
         "rpc:account.analytic.account.message_new",
@@ -67150,6 +67157,7 @@
         "rpc:account.asset.line.web_save_multi",
         "rpc:account.asset.line.web_search_read",
         "rpc:account.asset.line.write",
+        "rpc:account.asset.mcp_revise_own_message",
         "rpc:account.asset.message_change_thread",
         "rpc:account.asset.message_mail_with_source",
         "rpc:account.asset.message_new",
@@ -67277,6 +67285,7 @@
         "rpc:account.bank.ingestion.config.formatted_read_grouping_sets",
         "rpc:account.bank.ingestion.config.get_view",
         "rpc:account.bank.ingestion.config.get_views",
+        "rpc:account.bank.ingestion.config.mcp_revise_own_message",
         "rpc:account.bank.ingestion.config.message_change_thread",
         "rpc:account.bank.ingestion.config.message_mail_with_source",
         "rpc:account.bank.ingestion.config.message_new",
@@ -67327,6 +67336,7 @@
         "rpc:account.bank.ingestion.formatted_read_grouping_sets",
         "rpc:account.bank.ingestion.get_view",
         "rpc:account.bank.ingestion.get_views",
+        "rpc:account.bank.ingestion.mcp_revise_own_message",
         "rpc:account.bank.ingestion.message_change_thread",
         "rpc:account.bank.ingestion.message_mail_with_source",
         "rpc:account.bank.ingestion.message_new",
@@ -67481,6 +67491,7 @@
         "rpc:account.bank.statement.line.web_save_multi",
         "rpc:account.bank.statement.line.web_search_read",
         "rpc:account.bank.statement.line.write",
+        "rpc:account.bank.statement.mcp_revise_own_message",
         "rpc:account.bank.statement.message_change_thread",
         "rpc:account.bank.statement.message_mail_with_source",
         "rpc:account.bank.statement.message_new",
@@ -68031,6 +68042,7 @@
         "rpc:account.journal.group.web_save_multi",
         "rpc:account.journal.group.web_search_read",
         "rpc:account.journal.group.write",
+        "rpc:account.journal.mcp_revise_own_message",
         "rpc:account.journal.message_change_thread",
         "rpc:account.journal.message_mail_with_source",
         "rpc:account.journal.message_new",
@@ -68162,6 +68174,7 @@
         "rpc:account.move.line.web_save_multi",
         "rpc:account.move.line.web_search_read",
         "rpc:account.move.line.write",
+        "rpc:account.move.mcp_revise_own_message",
         "rpc:account.move.message_change_thread",
         "rpc:account.move.message_mail_with_source",
         "rpc:account.move.message_new",
@@ -68294,6 +68307,7 @@
         "rpc:account.payment.get_view",
         "rpc:account.payment.get_views",
         "rpc:account.payment.mark_as_sent",
+        "rpc:account.payment.mcp_revise_own_message",
         "rpc:account.payment.message_change_thread",
         "rpc:account.payment.message_mail_with_source",
         "rpc:account.payment.message_new",
@@ -68501,6 +68515,7 @@
         "rpc:account.reconcile.model.line.web_save_multi",
         "rpc:account.reconcile.model.line.web_search_read",
         "rpc:account.reconcile.model.line.write",
+        "rpc:account.reconcile.model.mcp_revise_own_message",
         "rpc:account.reconcile.model.message_change_thread",
         "rpc:account.reconcile.model.message_mail_with_source",
         "rpc:account.reconcile.model.message_new",
@@ -68777,6 +68792,7 @@
         "rpc:account.tax.group.web_save_multi",
         "rpc:account.tax.group.web_search_read",
         "rpc:account.tax.group.write",
+        "rpc:account.tax.mcp_revise_own_message",
         "rpc:account.tax.message_change_thread",
         "rpc:account.tax.message_mail_with_source",
         "rpc:account.tax.message_new",
@@ -68888,6 +68904,7 @@
         "rpc:b2c.accounting.session.formatted_read_grouping_sets",
         "rpc:b2c.accounting.session.get_view",
         "rpc:b2c.accounting.session.get_views",
+        "rpc:b2c.accounting.session.mcp_revise_own_message",
         "rpc:b2c.accounting.session.message_change_thread",
         "rpc:b2c.accounting.session.message_mail_with_source",
         "rpc:b2c.accounting.session.message_new",
@@ -68923,16 +68940,24 @@
         "rpc:b2c.import.batch.action_reverse_charge_operators",
         "rpc:b2c.import.batch.action_settle_catalog_taxes",
         "rpc:b2c.import.batch.action_settle_product_taxes",
+        "rpc:b2c.import.batch.mcp_revise_own_message",
         "rpc:b2c.import.batch.message_post",
+        "rpc:b2c.order.mcp_revise_own_message",
         "rpc:b2c.order.message_post",
         "rpc:b2c.oss.return.action_compute",
         "rpc:b2c.oss.return.action_mark_filed",
         "rpc:b2c.oss.return.action_mark_ready",
+        "rpc:b2c.oss.return.mcp_revise_own_message",
         "rpc:b2c.oss.return.message_post",
+        "rpc:b2c.product.alias.mcp_revise_own_message",
         "rpc:b2c.product.alias.message_post",
+        "rpc:base.automation.mcp_revise_own_message",
         "rpc:base.automation.message_post",
+        "rpc:crm.team.mcp_revise_own_message",
+        "rpc:crm.team.member.mcp_revise_own_message",
         "rpc:crm.team.member.message_post",
         "rpc:crm.team.message_post",
+        "rpc:discuss.channel.mcp_revise_own_message",
         "rpc:discuss.channel.message_post",
         "rpc:general.ledger.report.wizard.button_export_html",
         "rpc:general.ledger.report.wizard.button_export_pdf",
@@ -68972,7 +68997,9 @@
         "rpc:hr.bank.account.allocation.wizard.web_save_multi",
         "rpc:hr.bank.account.allocation.wizard.web_search_read",
         "rpc:hr.bank.account.allocation.wizard.write",
+        "rpc:hr.department.mcp_revise_own_message",
         "rpc:hr.department.message_post",
+        "rpc:hr.employee.mcp_revise_own_message",
         "rpc:hr.employee.message_post",
         "rpc:hr.expense.action_approve",
         "rpc:hr.expense.action_post",
@@ -68980,10 +69007,13 @@
         "rpc:hr.expense.action_refresh_bank_match_candidates",
         "rpc:hr.expense.create",
         "rpc:hr.expense.get_view",
+        "rpc:hr.expense.mcp_revise_own_message",
         "rpc:hr.expense.message_post",
         "rpc:hr.expense.unlink",
         "rpc:hr.expense.write",
+        "rpc:hr.job.mcp_revise_own_message",
         "rpc:hr.job.message_post",
+        "rpc:hr.version.mcp_revise_own_message",
         "rpc:hr.version.message_post",
         "rpc:iap.account.action_buy_credits",
         "rpc:iap.account.copy",
@@ -68997,6 +69027,7 @@
         "rpc:iap.account.get_credits_url",
         "rpc:iap.account.get_view",
         "rpc:iap.account.get_views",
+        "rpc:iap.account.mcp_revise_own_message",
         "rpc:iap.account.message_change_thread",
         "rpc:iap.account.message_mail_with_source",
         "rpc:iap.account.message_new",
@@ -69024,9 +69055,11 @@
         "rpc:iap.account.web_save_multi",
         "rpc:iap.account.web_search_read",
         "rpc:iap.account.write",
+        "rpc:ir.actions.server.mcp_revise_own_message",
         "rpc:ir.actions.server.message_post",
         "rpc:ir.attachment.create",
         "rpc:ir.attachment.write",
+        "rpc:ir.cron.mcp_revise_own_message",
         "rpc:ir.cron.message_post",
         "rpc:journal.ledger.report.wizard.button_export_html",
         "rpc:journal.ledger.report.wizard.button_export_pdf",
@@ -69035,6 +69068,7 @@
         "rpc:l10n.fr.pdp.reports.flow.action_send",
         "rpc:l10n.fr.pdp.reports.flow.action_view_error_moves",
         "rpc:l10n.fr.pdp.reports.flow.action_view_moves",
+        "rpc:l10n.fr.pdp.reports.flow.mcp_revise_own_message",
         "rpc:l10n.fr.pdp.reports.flow.message_post",
         "rpc:l10n_fr.fec.export.wizard.copy",
         "rpc:l10n_fr.fec.export.wizard.copy_data",
@@ -69054,12 +69088,19 @@
         "rpc:l10n_fr.fec.export.wizard.web_save_multi",
         "rpc:l10n_fr.fec.export.wizard.web_search_read",
         "rpc:l10n_fr.fec.export.wizard.write",
+        "rpc:mail.blacklist.mcp_revise_own_message",
         "rpc:mail.blacklist.message_post",
+        "rpc:mail.thread.blacklist.mcp_revise_own_message",
         "rpc:mail.thread.blacklist.message_post",
+        "rpc:mail.thread.main.attachment.mcp_revise_own_message",
         "rpc:mail.thread.main.attachment.message_post",
+        "rpc:mail.thread.mcp_revise_own_message",
         "rpc:mail.thread.message_post",
+        "rpc:mail.thread.phone.mcp_revise_own_message",
         "rpc:mail.thread.phone.message_post",
+        "rpc:mail.thread.subject.suggested.mcp_revise_own_message",
         "rpc:mail.thread.subject.suggested.message_post",
+        "rpc:mail.tracking.duration.mixin.mcp_revise_own_message",
         "rpc:mail.tracking.duration.mixin.message_post",
         "rpc:mrp.account.wip.accounting.confirm",
         "rpc:mrp.account.wip.accounting.copy",
@@ -69096,14 +69137,20 @@
         "rpc:mrp.account.wip.accounting.web_save_multi",
         "rpc:mrp.account.wip.accounting.web_search_read",
         "rpc:mrp.account.wip.accounting.write",
+        "rpc:mrp.bom.mcp_revise_own_message",
         "rpc:mrp.bom.message_post",
         "rpc:mrp.production.action_confirm",
+        "rpc:mrp.production.mcp_revise_own_message",
         "rpc:mrp.production.message_post",
         "rpc:mrp.production.write",
+        "rpc:mrp.routing.workcenter.mcp_revise_own_message",
         "rpc:mrp.routing.workcenter.message_post",
+        "rpc:mrp.unbuild.mcp_revise_own_message",
         "rpc:mrp.unbuild.message_post",
+        "rpc:mrp.workcenter.mcp_revise_own_message",
         "rpc:mrp.workcenter.message_post",
         "rpc:mrp.workorder.action_cancel",
+        "rpc:mrp.workorder.mcp_revise_own_message",
         "rpc:mrp.workorder.message_post",
         "rpc:mrp.workorder.unlink",
         "rpc:open.items.report.wizard.button_export_html",
@@ -69112,23 +69159,33 @@
         "rpc:pdp.registration.button_refresh_authentication",
         "rpc:pdp.registration.display_status_notification_from_uuid",
         "rpc:peppol.registration.button_register_with_itsme",
+        "rpc:phone.blacklist.mcp_revise_own_message",
         "rpc:phone.blacklist.message_post",
+        "rpc:product.category.mcp_revise_own_message",
         "rpc:product.category.message_post",
         "rpc:product.category.write",
+        "rpc:product.pricelist.mcp_revise_own_message",
         "rpc:product.pricelist.message_post",
         "rpc:product.product.action_bom_cost",
         "rpc:product.product.button_bom_cost",
         "rpc:product.product.create",
+        "rpc:product.product.mcp_revise_own_message",
         "rpc:product.product.message_post",
         "rpc:product.product.write",
         "rpc:product.template.create",
+        "rpc:product.template.mcp_revise_own_message",
         "rpc:product.template.message_post",
         "rpc:product.template.write",
         "rpc:product.value.create",
+        "rpc:project.milestone.mcp_revise_own_message",
         "rpc:project.milestone.message_post",
+        "rpc:project.project.mcp_revise_own_message",
         "rpc:project.project.message_post",
+        "rpc:project.update.mcp_revise_own_message",
         "rpc:project.update.message_post",
+        "rpc:purchase.order.mcp_revise_own_message",
         "rpc:purchase.order.message_post",
+        "rpc:rating.mixin.mcp_revise_own_message",
         "rpc:rating.mixin.message_post",
         "rpc:rebuild.account.aged.partner.balance.line.copy",
         "rpc:rebuild.account.aged.partner.balance.line.copy_data",
@@ -70000,6 +70057,7 @@
         "rpc:res.company.action_rebuild_prepare_einvoice_activation",
         "rpc:res.company.action_rebuild_revoke_einvoice_activation",
         "rpc:res.company.action_rebuild_run_einvoice_acceptance_test",
+        "rpc:res.company.mcp_revise_own_message",
         "rpc:res.company.message_post",
         "rpc:res.company.reflect_code_prefix_change",
         "rpc:res.config.settings.action_open_pdp_form",
@@ -70010,13 +70068,16 @@
         "rpc:res.config.settings.reload_template",
         "rpc:res.currency.write",
         "rpc:res.partner.bank.create",
+        "rpc:res.partner.bank.mcp_revise_own_message",
         "rpc:res.partner.bank.message_post",
         "rpc:res.partner.bank.write",
         "rpc:res.partner.button_account_peppol_check_partner_endpoint",
         "rpc:res.partner.create",
+        "rpc:res.partner.mcp_revise_own_message",
         "rpc:res.partner.message_post",
         "rpc:res.partner.write",
         "rpc:res.users.action_usl_sync_expense_company_profiles",
+        "rpc:sale.order.mcp_revise_own_message",
         "rpc:sale.order.message_post",
         "rpc:sequence.mixin.write",
         "rpc:sign.oca.request.rating_apply",
@@ -70077,11 +70138,13 @@
         "rpc:sms.account.sender.web_search_read",
         "rpc:sms.account.sender.write",
         "rpc:stock.lot.create",
+        "rpc:stock.lot.mcp_revise_own_message",
         "rpc:stock.lot.message_post",
         "rpc:stock.lot.write",
         "rpc:stock.move.line.create",
         "rpc:stock.move.line.unlink",
         "rpc:stock.move.line.write",
+        "rpc:stock.picking.mcp_revise_own_message",
         "rpc:stock.picking.message_post",
         "rpc:stock_account.stock.valuation.report.copy",
         "rpc:stock_account.stock.valuation.report.copy_data",
@@ -70103,18 +70166,28 @@
         "rpc:trial.balance.report.wizard.button_export_html",
         "rpc:trial.balance.report.wizard.button_export_pdf",
         "rpc:trial.balance.report.wizard.button_export_xlsx",
+        "rpc:usl.document.link.mcp_revise_own_message",
         "rpc:usl.document.link.message_post",
+        "rpc:usl.document.mcp_revise_own_message",
         "rpc:usl.document.message_post",
         "rpc:usl.expense.bank.match.candidate.action_open_confirmation",
+        "rpc:usl.expense.batch.mcp_revise_own_message",
         "rpc:usl.expense.batch.message_post",
+        "rpc:usl.oidc.identity.mcp_revise_own_message",
         "rpc:usl.oidc.identity.message_post",
+        "rpc:usl.platform.billing.bank.allocation.mcp_revise_own_message",
         "rpc:usl.platform.billing.bank.allocation.message_post",
+        "rpc:usl.platform.billing.payout.mcp_revise_own_message",
         "rpc:usl.platform.billing.payout.message_post",
+        "rpc:usl.platform.billing.platform.mcp_revise_own_message",
         "rpc:usl.platform.billing.platform.message_post",
+        "rpc:usl.platform.billing.session.mcp_revise_own_message",
         "rpc:usl.platform.billing.session.message_post",
         "rpc:usl.sign.enrollment.rating_apply",
         "rpc:usl.sign.external.journey.rating_apply",
+        "rpc:usl.tese.payslip.mcp_revise_own_message",
         "rpc:usl.tese.payslip.message_post",
+        "rpc:usl.tese.profile.mcp_revise_own_message",
         "rpc:usl.tese.profile.message_post",
         "rpc:validate.account.move.copy",
         "rpc:validate.account.move.copy_data",
@@ -70199,6 +70272,10 @@
           "reversal_action": "rpc:account.account.write"
         },
         "rpc:account.account.get_views": {
+          "reversal_action": "rpc:account.account.write"
+        },
+        "rpc:account.account.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
           "reversal_action": "rpc:account.account.write"
         },
         "rpc:account.account.message_change_thread": {
@@ -70607,6 +70684,10 @@
           "reversal_action": "rpc:account.analytic.account.write"
         },
         "rpc:account.analytic.account.get_views": {
+          "reversal_action": "rpc:account.analytic.account.write"
+        },
+        "rpc:account.analytic.account.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
           "reversal_action": "rpc:account.analytic.account.write"
         },
         "rpc:account.analytic.account.message_change_thread": {
@@ -71077,6 +71158,10 @@
         "rpc:account.asset.line.write": {
           "reversal_action": "rpc:account.asset.line.write"
         },
+        "rpc:account.asset.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:account.asset.write"
+        },
         "rpc:account.asset.message_change_thread": {
           "reversal_action": "rpc:account.asset.write"
         },
@@ -71458,6 +71543,10 @@
         "rpc:account.bank.ingestion.config.get_views": {
           "reversal_action": "rpc:account.bank.ingestion.config.write"
         },
+        "rpc:account.bank.ingestion.config.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:account.bank.ingestion.config.write"
+        },
         "rpc:account.bank.ingestion.config.message_change_thread": {
           "reversal_action": "rpc:account.bank.ingestion.config.write"
         },
@@ -71606,6 +71695,10 @@
           "reversal_action": "rpc:account.bank.ingestion.write"
         },
         "rpc:account.bank.ingestion.get_views": {
+          "reversal_action": "rpc:account.bank.ingestion.write"
+        },
+        "rpc:account.bank.ingestion.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
           "reversal_action": "rpc:account.bank.ingestion.write"
         },
         "rpc:account.bank.ingestion.message_change_thread": {
@@ -72069,6 +72162,10 @@
         },
         "rpc:account.bank.statement.line.write": {
           "reversal_action": "rpc:account.bank.statement.line.write"
+        },
+        "rpc:account.bank.statement.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:account.bank.statement.write"
         },
         "rpc:account.bank.statement.message_change_thread": {
           "reversal_action": "rpc:account.bank.statement.write"
@@ -73720,6 +73817,10 @@
         "rpc:account.journal.group.write": {
           "reversal_action": "rpc:account.journal.group.write"
         },
+        "rpc:account.journal.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:account.journal.write"
+        },
         "rpc:account.journal.message_change_thread": {
           "reversal_action": "rpc:account.journal.write"
         },
@@ -74112,6 +74213,10 @@
         },
         "rpc:account.move.line.write": {
           "reversal_action": "rpc:account.move.line.write"
+        },
+        "rpc:account.move.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:account.move.write"
         },
         "rpc:account.move.message_change_thread": {
           "reversal_action": "rpc:account.move.write"
@@ -74507,6 +74612,10 @@
           "reversal_action": "rpc:account.payment.write"
         },
         "rpc:account.payment.mark_as_sent": {
+          "reversal_action": "rpc:account.payment.write"
+        },
+        "rpc:account.payment.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
           "reversal_action": "rpc:account.payment.write"
         },
         "rpc:account.payment.message_change_thread": {
@@ -75129,6 +75238,10 @@
         },
         "rpc:account.reconcile.model.line.write": {
           "reversal_action": "rpc:account.reconcile.model.line.write"
+        },
+        "rpc:account.reconcile.model.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:account.reconcile.model.write"
         },
         "rpc:account.reconcile.model.message_change_thread": {
           "reversal_action": "rpc:account.reconcile.model.write"
@@ -75958,6 +76071,10 @@
         "rpc:account.tax.group.write": {
           "reversal_action": "rpc:account.tax.group.write"
         },
+        "rpc:account.tax.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:account.tax.write"
+        },
         "rpc:account.tax.message_change_thread": {
           "reversal_action": "rpc:account.tax.write"
         },
@@ -76291,6 +76408,10 @@
         "rpc:b2c.accounting.session.get_views": {
           "reversal_action": "rpc:b2c.accounting.session.write"
         },
+        "rpc:b2c.accounting.session.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:b2c.accounting.session.write"
+        },
         "rpc:b2c.accounting.session.message_change_thread": {
           "reversal_action": "rpc:b2c.accounting.session.write"
         },
@@ -76396,8 +76517,16 @@
         "rpc:b2c.import.batch.action_settle_product_taxes": {
           "reversal_action": "rpc:product.template.write"
         },
+        "rpc:b2c.import.batch.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:b2c.import.batch.write"
+        },
         "rpc:b2c.import.batch.message_post": {
           "reversal_action": "rpc:b2c.import.batch.write"
+        },
+        "rpc:b2c.order.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:b2c.order.write"
         },
         "rpc:b2c.order.message_post": {
           "reversal_action": "rpc:b2c.order.write"
@@ -76411,20 +76540,44 @@
         "rpc:b2c.oss.return.action_mark_ready": {
           "reversal_action": "rpc:b2c.oss.return.write"
         },
+        "rpc:b2c.oss.return.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:b2c.oss.return.write"
+        },
         "rpc:b2c.oss.return.message_post": {
           "reversal_action": "rpc:b2c.oss.return.write"
+        },
+        "rpc:b2c.product.alias.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:b2c.product.alias.write"
         },
         "rpc:b2c.product.alias.message_post": {
           "reversal_action": "rpc:b2c.product.alias.write"
         },
+        "rpc:base.automation.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:base.automation.write"
+        },
         "rpc:base.automation.message_post": {
           "reversal_action": "rpc:base.automation.write"
+        },
+        "rpc:crm.team.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:crm.team.write"
+        },
+        "rpc:crm.team.member.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:crm.team.member.write"
         },
         "rpc:crm.team.member.message_post": {
           "reversal_action": "rpc:crm.team.member.write"
         },
         "rpc:crm.team.message_post": {
           "reversal_action": "rpc:crm.team.write"
+        },
+        "rpc:discuss.channel.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:discuss.channel.write"
         },
         "rpc:discuss.channel.message_post": {
           "reversal_action": "rpc:discuss.channel.write"
@@ -76543,8 +76696,16 @@
         "rpc:hr.bank.account.allocation.wizard.write": {
           "reversal_action": "rpc:hr.bank.account.allocation.wizard.write"
         },
+        "rpc:hr.department.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:hr.department.write"
+        },
         "rpc:hr.department.message_post": {
           "reversal_action": "rpc:hr.department.write"
+        },
+        "rpc:hr.employee.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:hr.employee.write"
         },
         "rpc:hr.employee.message_post": {
           "reversal_action": "rpc:hr.employee.write"
@@ -76567,6 +76728,10 @@
         "rpc:hr.expense.get_view": {
           "reversal_action": "rpc:hr.expense.write"
         },
+        "rpc:hr.expense.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:hr.expense.write"
+        },
         "rpc:hr.expense.message_post": {
           "reversal_action": "rpc:hr.expense.write"
         },
@@ -76576,8 +76741,16 @@
         "rpc:hr.expense.write": {
           "reversal_action": "rpc:hr.expense.write"
         },
+        "rpc:hr.job.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:hr.job.write"
+        },
         "rpc:hr.job.message_post": {
           "reversal_action": "rpc:hr.job.write"
+        },
+        "rpc:hr.version.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:hr.version.write"
         },
         "rpc:hr.version.message_post": {
           "reversal_action": "rpc:hr.version.write"
@@ -76616,6 +76789,10 @@
           "reversal_action": "rpc:iap.account.write"
         },
         "rpc:iap.account.get_views": {
+          "reversal_action": "rpc:iap.account.write"
+        },
+        "rpc:iap.account.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
           "reversal_action": "rpc:iap.account.write"
         },
         "rpc:iap.account.message_change_thread": {
@@ -76699,6 +76876,10 @@
         "rpc:iap.account.write": {
           "reversal_action": "rpc:iap.account.write"
         },
+        "rpc:ir.actions.server.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:ir.actions.server.write"
+        },
         "rpc:ir.actions.server.message_post": {
           "reversal_action": "rpc:ir.actions.server.write"
         },
@@ -76707,6 +76888,10 @@
         },
         "rpc:ir.attachment.write": {
           "reversal_action": "rpc:ir.attachment.write"
+        },
+        "rpc:ir.cron.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:ir.cron.write"
         },
         "rpc:ir.cron.message_post": {
           "reversal_action": "rpc:ir.cron.write"
@@ -76730,6 +76915,10 @@
           "reversal_action": "rpc:l10n.fr.pdp.reports.flow.write"
         },
         "rpc:l10n.fr.pdp.reports.flow.action_view_moves": {
+          "reversal_action": "rpc:l10n.fr.pdp.reports.flow.write"
+        },
+        "rpc:l10n.fr.pdp.reports.flow.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
           "reversal_action": "rpc:l10n.fr.pdp.reports.flow.write"
         },
         "rpc:l10n.fr.pdp.reports.flow.message_post": {
@@ -76789,23 +76978,51 @@
         "rpc:l10n_fr.fec.export.wizard.write": {
           "reversal_action": "rpc:l10n_fr.fec.export.wizard.write"
         },
+        "rpc:mail.blacklist.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:mail.blacklist.write"
+        },
         "rpc:mail.blacklist.message_post": {
           "reversal_action": "rpc:mail.blacklist.write"
+        },
+        "rpc:mail.thread.blacklist.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:mail.thread.blacklist.write"
         },
         "rpc:mail.thread.blacklist.message_post": {
           "reversal_action": "rpc:mail.thread.blacklist.write"
         },
+        "rpc:mail.thread.main.attachment.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:mail.thread.main.attachment.write"
+        },
         "rpc:mail.thread.main.attachment.message_post": {
           "reversal_action": "rpc:mail.thread.main.attachment.write"
+        },
+        "rpc:mail.thread.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:mail.thread.write"
         },
         "rpc:mail.thread.message_post": {
           "reversal_action": "rpc:mail.thread.write"
         },
+        "rpc:mail.thread.phone.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:mail.thread.phone.write"
+        },
         "rpc:mail.thread.phone.message_post": {
           "reversal_action": "rpc:mail.thread.phone.write"
         },
+        "rpc:mail.thread.subject.suggested.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:mail.thread.subject.suggested.write"
+        },
         "rpc:mail.thread.subject.suggested.message_post": {
           "reversal_action": "rpc:mail.thread.subject.suggested.write"
+        },
+        "rpc:mail.tracking.duration.mixin.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:mail.tracking.duration.mixin.write"
         },
         "rpc:mail.tracking.duration.mixin.message_post": {
           "reversal_action": "rpc:mail.tracking.duration.mixin.write"
@@ -76915,10 +77132,18 @@
         "rpc:mrp.account.wip.accounting.write": {
           "reversal_action": "rpc:mrp.account.wip.accounting.write"
         },
+        "rpc:mrp.bom.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:mrp.bom.write"
+        },
         "rpc:mrp.bom.message_post": {
           "reversal_action": "rpc:mrp.bom.write"
         },
         "rpc:mrp.production.action_confirm": {
+          "reversal_action": "rpc:mrp.production.write"
+        },
+        "rpc:mrp.production.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
           "reversal_action": "rpc:mrp.production.write"
         },
         "rpc:mrp.production.message_post": {
@@ -76927,16 +77152,32 @@
         "rpc:mrp.production.write": {
           "reversal_action": "rpc:mrp.production.write"
         },
+        "rpc:mrp.routing.workcenter.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:mrp.routing.workcenter.write"
+        },
         "rpc:mrp.routing.workcenter.message_post": {
           "reversal_action": "rpc:mrp.routing.workcenter.write"
         },
+        "rpc:mrp.unbuild.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:mrp.unbuild.write"
+        },
         "rpc:mrp.unbuild.message_post": {
           "reversal_action": "rpc:mrp.unbuild.write"
+        },
+        "rpc:mrp.workcenter.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:mrp.workcenter.write"
         },
         "rpc:mrp.workcenter.message_post": {
           "reversal_action": "rpc:mrp.workcenter.write"
         },
         "rpc:mrp.workorder.action_cancel": {
+          "reversal_action": "rpc:mrp.workorder.write"
+        },
+        "rpc:mrp.workorder.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
           "reversal_action": "rpc:mrp.workorder.write"
         },
         "rpc:mrp.workorder.message_post": {
@@ -76963,14 +77204,26 @@
         "rpc:peppol.registration.button_register_with_itsme": {
           "reversal_action": "rpc:peppol.registration.write"
         },
+        "rpc:phone.blacklist.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:phone.blacklist.write"
+        },
         "rpc:phone.blacklist.message_post": {
           "reversal_action": "rpc:phone.blacklist.write"
+        },
+        "rpc:product.category.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:product.category.write"
         },
         "rpc:product.category.message_post": {
           "reversal_action": "rpc:product.category.write"
         },
         "rpc:product.category.write": {
           "reversal_action": "rpc:product.category.write"
+        },
+        "rpc:product.pricelist.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:product.pricelist.write"
         },
         "rpc:product.pricelist.message_post": {
           "reversal_action": "rpc:product.pricelist.write"
@@ -76984,6 +77237,10 @@
         "rpc:product.product.create": {
           "reversal_action": "rpc:product.product.unlink"
         },
+        "rpc:product.product.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:product.product.write"
+        },
         "rpc:product.product.message_post": {
           "reversal_action": "rpc:product.product.write"
         },
@@ -76992,6 +77249,10 @@
         },
         "rpc:product.template.create": {
           "reversal_action": "rpc:product.template.unlink"
+        },
+        "rpc:product.template.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:product.template.write"
         },
         "rpc:product.template.message_post": {
           "reversal_action": "rpc:product.template.write"
@@ -77002,17 +77263,37 @@
         "rpc:product.value.create": {
           "reversal_action": "rpc:product.value.unlink"
         },
+        "rpc:project.milestone.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:project.milestone.write"
+        },
         "rpc:project.milestone.message_post": {
           "reversal_action": "rpc:project.milestone.write"
+        },
+        "rpc:project.project.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:project.project.write"
         },
         "rpc:project.project.message_post": {
           "reversal_action": "rpc:project.project.write"
         },
+        "rpc:project.update.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:project.update.write"
+        },
         "rpc:project.update.message_post": {
           "reversal_action": "rpc:project.update.write"
         },
+        "rpc:purchase.order.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:purchase.order.write"
+        },
         "rpc:purchase.order.message_post": {
           "reversal_action": "rpc:purchase.order.write"
+        },
+        "rpc:rating.mixin.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:rating.mixin.write"
         },
         "rpc:rating.mixin.message_post": {
           "reversal_action": "rpc:rating.mixin.write"
@@ -79627,6 +79908,10 @@
         "rpc:res.company.action_rebuild_run_einvoice_acceptance_test": {
           "reversal_action": "rpc:res.company.write"
         },
+        "rpc:res.company.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:res.company.write"
+        },
         "rpc:res.company.message_post": {
           "reversal_action": "rpc:res.company.write"
         },
@@ -79657,6 +79942,10 @@
         "rpc:res.partner.bank.create": {
           "reversal_action": "rpc:res.partner.bank.unlink"
         },
+        "rpc:res.partner.bank.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:res.partner.bank.write"
+        },
         "rpc:res.partner.bank.message_post": {
           "reversal_action": "rpc:res.partner.bank.write"
         },
@@ -79669,6 +79958,10 @@
         "rpc:res.partner.create": {
           "reversal_action": "rpc:res.partner.unlink"
         },
+        "rpc:res.partner.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:res.partner.write"
+        },
         "rpc:res.partner.message_post": {
           "reversal_action": "rpc:res.partner.write"
         },
@@ -79677,6 +79970,10 @@
         },
         "rpc:res.users.action_usl_sync_expense_company_profiles": {
           "reversal_action": "rpc:res.users.write"
+        },
+        "rpc:sale.order.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:sale.order.write"
         },
         "rpc:sale.order.message_post": {
           "reversal_action": "rpc:sale.order.write"
@@ -79858,6 +80155,10 @@
         "rpc:stock.lot.create": {
           "reversal_action": "rpc:stock.lot.unlink"
         },
+        "rpc:stock.lot.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:stock.lot.write"
+        },
         "rpc:stock.lot.message_post": {
           "reversal_action": "rpc:stock.lot.write"
         },
@@ -79872,6 +80173,10 @@
         },
         "rpc:stock.move.line.write": {
           "reversal_action": "rpc:stock.move.line.write"
+        },
+        "rpc:stock.picking.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:stock.picking.write"
         },
         "rpc:stock.picking.message_post": {
           "reversal_action": "rpc:stock.picking.write"
@@ -79936,8 +80241,16 @@
         "rpc:trial.balance.report.wizard.button_export_xlsx": {
           "reversal_action": "rpc:trial.balance.report.wizard.write"
         },
+        "rpc:usl.document.link.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:usl.document.link.write"
+        },
         "rpc:usl.document.link.message_post": {
           "reversal_action": "rpc:usl.document.link.write"
+        },
+        "rpc:usl.document.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:usl.document.write"
         },
         "rpc:usl.document.message_post": {
           "reversal_action": "rpc:usl.document.write"
@@ -79945,20 +80258,44 @@
         "rpc:usl.expense.bank.match.candidate.action_open_confirmation": {
           "reversal_action": "rpc:usl.expense.bank.match.candidate.write"
         },
+        "rpc:usl.expense.batch.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:usl.expense.batch.write"
+        },
         "rpc:usl.expense.batch.message_post": {
           "reversal_action": "rpc:usl.expense.batch.write"
+        },
+        "rpc:usl.oidc.identity.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:usl.oidc.identity.write"
         },
         "rpc:usl.oidc.identity.message_post": {
           "reversal_action": "rpc:usl.oidc.identity.write"
         },
+        "rpc:usl.platform.billing.bank.allocation.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:usl.platform.billing.bank.allocation.write"
+        },
         "rpc:usl.platform.billing.bank.allocation.message_post": {
           "reversal_action": "rpc:usl.platform.billing.bank.allocation.write"
+        },
+        "rpc:usl.platform.billing.payout.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:usl.platform.billing.payout.write"
         },
         "rpc:usl.platform.billing.payout.message_post": {
           "reversal_action": "rpc:usl.platform.billing.payout.write"
         },
+        "rpc:usl.platform.billing.platform.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:usl.platform.billing.platform.write"
+        },
         "rpc:usl.platform.billing.platform.message_post": {
           "reversal_action": "rpc:usl.platform.billing.platform.write"
+        },
+        "rpc:usl.platform.billing.session.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:usl.platform.billing.session.write"
         },
         "rpc:usl.platform.billing.session.message_post": {
           "reversal_action": "rpc:usl.platform.billing.session.write"
@@ -79969,8 +80306,16 @@
         "rpc:usl.sign.external.journey.rating_apply": {
           "reversal_action": "rpc:usl.sign.external.journey.rating_apply"
         },
+        "rpc:usl.tese.payslip.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:usl.tese.payslip.write"
+        },
         "rpc:usl.tese.payslip.message_post": {
           "reversal_action": "rpc:usl.tese.payslip.write"
+        },
+        "rpc:usl.tese.profile.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:usl.tese.profile.write"
         },
         "rpc:usl.tese.profile.message_post": {
           "reversal_action": "rpc:usl.tese.profile.write"
@@ -80108,6 +80453,7 @@
         "rpc:account.account.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:account.account.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:account.account.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
+        "rpc:account.account.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:account.account.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:account.account.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:account.account.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
@@ -80244,6 +80590,7 @@
         "rpc:account.analytic.account.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:account.analytic.account.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:account.analytic.account.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
+        "rpc:account.analytic.account.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:account.analytic.account.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:account.analytic.account.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:account.analytic.account.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
@@ -80400,6 +80747,7 @@
         "rpc:account.asset.line.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:account.asset.line.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:account.asset.line.write": "1aa5af8073b1a7242b7160c6c25a2c70d7dad6ad83c8c3357c34e3652c3c9d4e",
+        "rpc:account.asset.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:account.asset.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:account.asset.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:account.asset.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
@@ -80527,6 +80875,7 @@
         "rpc:account.bank.ingestion.config.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:account.bank.ingestion.config.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:account.bank.ingestion.config.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
+        "rpc:account.bank.ingestion.config.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:account.bank.ingestion.config.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:account.bank.ingestion.config.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:account.bank.ingestion.config.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
@@ -80577,6 +80926,7 @@
         "rpc:account.bank.ingestion.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:account.bank.ingestion.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:account.bank.ingestion.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
+        "rpc:account.bank.ingestion.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:account.bank.ingestion.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:account.bank.ingestion.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:account.bank.ingestion.message_new": "e782b346a6a72ad6003500138632de990c3bce1ecf2cf90973183d7b3fb3d74b",
@@ -80731,6 +81081,7 @@
         "rpc:account.bank.statement.line.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:account.bank.statement.line.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:account.bank.statement.line.write": "cda5b592b38841dba0b903836394b9b272d9f2ff87f3b1c0c22e87498aa0717c",
+        "rpc:account.bank.statement.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:account.bank.statement.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:account.bank.statement.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:account.bank.statement.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
@@ -81281,6 +81632,7 @@
         "rpc:account.journal.group.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:account.journal.group.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:account.journal.group.write": "b0373b6633d99d657d81a9aca3ec6bb0ebad5e3e7b41420276488a6f1ce1c8f4",
+        "rpc:account.journal.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:account.journal.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:account.journal.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:account.journal.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
@@ -81412,6 +81764,7 @@
         "rpc:account.move.line.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:account.move.line.web_search_read": "d448bc7377b0ef7737c803e83eafa1b09feccdbc7435f0bcd67ac4f3158df5c4",
         "rpc:account.move.line.write": "a943e718d6b2ee3debf2e9f702f7ba2038dabcf9e0e10febe22260e1689a3309",
+        "rpc:account.move.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:account.move.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:account.move.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:account.move.message_new": "075669be35666dd58b3f9ab6422109ba51045c03b50c803e403647daede27f69",
@@ -81544,6 +81897,7 @@
         "rpc:account.payment.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:account.payment.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
         "rpc:account.payment.mark_as_sent": "7292f94dfe319dbb91f77380e4f8319bde472f0b376dea77f660cd4f5a8e25c6",
+        "rpc:account.payment.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:account.payment.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:account.payment.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:account.payment.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
@@ -81751,6 +82105,7 @@
         "rpc:account.reconcile.model.line.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:account.reconcile.model.line.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:account.reconcile.model.line.write": "4b20375106030fbee2fe853e3a21d0e666786885f89cb655f65a409dc32e762f",
+        "rpc:account.reconcile.model.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:account.reconcile.model.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:account.reconcile.model.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:account.reconcile.model.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
@@ -82027,6 +82382,7 @@
         "rpc:account.tax.group.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:account.tax.group.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:account.tax.group.write": "b0373b6633d99d657d81a9aca3ec6bb0ebad5e3e7b41420276488a6f1ce1c8f4",
+        "rpc:account.tax.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:account.tax.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:account.tax.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:account.tax.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
@@ -82138,6 +82494,7 @@
         "rpc:b2c.accounting.session.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:b2c.accounting.session.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:b2c.accounting.session.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
+        "rpc:b2c.accounting.session.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:b2c.accounting.session.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:b2c.accounting.session.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:b2c.accounting.session.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
@@ -82173,16 +82530,24 @@
         "rpc:b2c.import.batch.action_reverse_charge_operators": "da744d32af8abd79e014caa482601012a71edaee185e85bce24446eef64d7645",
         "rpc:b2c.import.batch.action_settle_catalog_taxes": "0089dd63fd23145c57f7afbcf2739af1195c92fd07bccea36562ad33fc926a3b",
         "rpc:b2c.import.batch.action_settle_product_taxes": "b67d02c24b3c43f8a7cc00dfb44e6eaf44b92d777c03fe29b1df7fe44ebb88d5",
+        "rpc:b2c.import.batch.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:b2c.import.batch.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:b2c.order.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:b2c.order.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:b2c.oss.return.action_compute": "6d4df5fa615f4996f9f6dc6b8837a51f39e6aa0e77dccf4da00f247243fe0ead",
         "rpc:b2c.oss.return.action_mark_filed": "afb94fb32243df6ba37bc0459216fca43003c8f7ba954b408ce6ac57ec718ddd",
         "rpc:b2c.oss.return.action_mark_ready": "8b61f071fd7785413a1565b9c92947e5dfbda81c56f8e712d781ed0240a4699c",
+        "rpc:b2c.oss.return.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:b2c.oss.return.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:b2c.product.alias.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:b2c.product.alias.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:base.automation.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:base.automation.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:crm.team.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
+        "rpc:crm.team.member.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:crm.team.member.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:crm.team.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:discuss.channel.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:discuss.channel.message_post": "905d909bf6be270f02c55e730a2155dc71722a0214ea824ba6aa9d8bae49957b",
         "rpc:general.ledger.report.wizard.button_export_html": "3a6774d41ac8f24c4b2757e46f7b6dd893519b4e56770844bb43444629531fe9",
         "rpc:general.ledger.report.wizard.button_export_pdf": "251d040c413f2804eccf24b55f5d693d271a0f9bb311aca44d00325860f5a04b",
@@ -82222,7 +82587,9 @@
         "rpc:hr.bank.account.allocation.wizard.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:hr.bank.account.allocation.wizard.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:hr.bank.account.allocation.wizard.write": "b0373b6633d99d657d81a9aca3ec6bb0ebad5e3e7b41420276488a6f1ce1c8f4",
+        "rpc:hr.department.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:hr.department.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:hr.employee.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:hr.employee.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:hr.expense.action_approve": "1c5ac92f4e60de5d22469b23fbadc8bf0d27d8d1d48a2e6e9af434993b0205ed",
         "rpc:hr.expense.action_post": "966aac07eb839e4dd47962cfdaac11f44154e4fdabd630e9a0ada9037004bcde",
@@ -82230,10 +82597,13 @@
         "rpc:hr.expense.action_refresh_bank_match_candidates": "52ba6d0bd98f5a482ae99e7e69a58fd06866a8019c2a075b22ed369f8075bbab",
         "rpc:hr.expense.create": "71ecce147d60d9b06c23dda1aa68554618f1dbdcbe4458926cc43db6fc0a0d5b",
         "rpc:hr.expense.get_view": "829ead50476916a75b5a15b02576065008a75e42e189f8bf5a708413c61a6762",
+        "rpc:hr.expense.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:hr.expense.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:hr.expense.unlink": "396221741fb0ae97c15e29174299a517f985d8f5ebdb97a9a8deb266bf4d40df",
         "rpc:hr.expense.write": "69e4993f80e8f0a92d58e8356e71332b855eb7d8c42ce3b28422fb7c725a75ad",
+        "rpc:hr.job.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:hr.job.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:hr.version.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:hr.version.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:iap.account.action_buy_credits": "88264d92a75439cf8c8f447a696781c521b6317b3d0b90ff44893b2683ed0a10",
         "rpc:iap.account.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
@@ -82247,6 +82617,7 @@
         "rpc:iap.account.get_credits_url": "c3387989339df6373e06c05516d66a9fa552f0852de427f643d215ac1c3366e4",
         "rpc:iap.account.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:iap.account.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
+        "rpc:iap.account.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:iap.account.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:iap.account.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:iap.account.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
@@ -82274,9 +82645,11 @@
         "rpc:iap.account.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:iap.account.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:iap.account.write": "e4e55b742596fc95073aab2159b92656b1cfa33a5fb4a18ff8dcefb8a01d6304",
+        "rpc:ir.actions.server.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:ir.actions.server.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:ir.attachment.create": "6f59fc518078ab3a355725e477a5b8dc55f661207260318aad17dd68938e1c95",
         "rpc:ir.attachment.write": "d7f0beca42ad19928a92f74e2d492ab48eb68e51a0b5178271853c057c14d6da",
+        "rpc:ir.cron.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:ir.cron.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:journal.ledger.report.wizard.button_export_html": "3a6774d41ac8f24c4b2757e46f7b6dd893519b4e56770844bb43444629531fe9",
         "rpc:journal.ledger.report.wizard.button_export_pdf": "251d040c413f2804eccf24b55f5d693d271a0f9bb311aca44d00325860f5a04b",
@@ -82285,6 +82658,7 @@
         "rpc:l10n.fr.pdp.reports.flow.action_send": "e0209206119ba80ff4ae1381e9c62f13de6c82f7a77f25bc68503889c7f2746a",
         "rpc:l10n.fr.pdp.reports.flow.action_view_error_moves": "fadda46362e71b9d96b94b517a000bad97dfaea45f2b8f93d3b7be57b058ed82",
         "rpc:l10n.fr.pdp.reports.flow.action_view_moves": "d0f1ec5ab5ecca4febb85a2f4dc337f62991a17eaa2fa0015ffaf2ad46fe8072",
+        "rpc:l10n.fr.pdp.reports.flow.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:l10n.fr.pdp.reports.flow.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:l10n_fr.fec.export.wizard.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:l10n_fr.fec.export.wizard.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
@@ -82304,12 +82678,19 @@
         "rpc:l10n_fr.fec.export.wizard.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:l10n_fr.fec.export.wizard.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:l10n_fr.fec.export.wizard.write": "e3041eb9264c1c781497eb7302980f2407175d187ae764f266580eb96e841d39",
+        "rpc:mail.blacklist.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:mail.blacklist.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:mail.thread.blacklist.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:mail.thread.blacklist.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:mail.thread.main.attachment.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:mail.thread.main.attachment.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:mail.thread.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:mail.thread.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:mail.thread.phone.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:mail.thread.phone.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:mail.thread.subject.suggested.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:mail.thread.subject.suggested.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:mail.tracking.duration.mixin.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:mail.tracking.duration.mixin.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:mrp.account.wip.accounting.confirm": "401fe48f29deac19891a2abf3cc7b9eb19b33e3fae4a73a5ae26a2030566e503",
         "rpc:mrp.account.wip.accounting.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
@@ -82346,14 +82727,20 @@
         "rpc:mrp.account.wip.accounting.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:mrp.account.wip.accounting.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:mrp.account.wip.accounting.write": "b0373b6633d99d657d81a9aca3ec6bb0ebad5e3e7b41420276488a6f1ce1c8f4",
+        "rpc:mrp.bom.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:mrp.bom.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:mrp.production.action_confirm": "9e7b87b04197c9ca078c83abe8acf73e84bdfb8373e0d285e6ea029302478c44",
+        "rpc:mrp.production.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:mrp.production.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:mrp.production.write": "5adbd6d331d13213f15936372eb7735d78110f146c24a5051d3e736044305ed1",
+        "rpc:mrp.routing.workcenter.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:mrp.routing.workcenter.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:mrp.unbuild.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:mrp.unbuild.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:mrp.workcenter.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:mrp.workcenter.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:mrp.workorder.action_cancel": "6b184b2c59e38738ab59b1a5aef4297f68dec2c47875c43f125f074a1e8e9a88",
+        "rpc:mrp.workorder.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:mrp.workorder.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:mrp.workorder.unlink": "a426535faffb660576f790a7bc4d3060a678046671becf42346319e152353cef",
         "rpc:open.items.report.wizard.button_export_html": "3a6774d41ac8f24c4b2757e46f7b6dd893519b4e56770844bb43444629531fe9",
@@ -82362,23 +82749,33 @@
         "rpc:pdp.registration.button_refresh_authentication": "4985369823b93989a6a0f0fec27aed4a72c0d87fab2ccef1ffec1435ef7940b7",
         "rpc:pdp.registration.display_status_notification_from_uuid": "a9570794442947571bdecde94d71fb4cd1e031bfe8ae33300ba2e4103526e3f8",
         "rpc:peppol.registration.button_register_with_itsme": "cd40f3fd36dcf64a3f1cbba6832bf4a370cf4930809bbfbdea6a76d9b8df7548",
+        "rpc:phone.blacklist.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:phone.blacklist.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:product.category.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:product.category.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:product.category.write": "2e31d4c8fff43a482fdb43f6f62fd172f6ca553e660bf87d5deb66059421681f",
+        "rpc:product.pricelist.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:product.pricelist.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:product.product.action_bom_cost": "c26d6ec315aee11814fb68f1c7650f4d0cf12ad6eee9425768085830b3c59f29",
         "rpc:product.product.button_bom_cost": "ff40de523809b40b59a595ee401db6ccee4b27591a452afe21d9bc6787759b8a",
         "rpc:product.product.create": "9ca01c84c69cd325f6653a705ad99ef19c2ca94bee389fd443f1ed6b8013f848",
+        "rpc:product.product.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:product.product.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:product.product.write": "fe7a541445bd898b7d3fb72a2f8ab83d4267fefb02c6d4885e7ef414ab23469d",
         "rpc:product.template.create": "cae4bda50ed085d225838d72ec09ffe216ba45f1429f5ec1127eb9813951350d",
+        "rpc:product.template.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:product.template.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:product.template.write": "9c2fac8207cc005e793d9a0c2bf587864a72124fe5178e9debdad6edc26a201c",
         "rpc:product.value.create": "4485e8573153f0ddaf1ca75badbd438bad20915134ceab1d54cec891d83b80a0",
+        "rpc:project.milestone.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:project.milestone.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:project.project.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:project.project.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:project.update.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:project.update.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:purchase.order.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:purchase.order.message_post": "3b7be4636b580f0f089f3b740e9b5ec720b91497dd0f0eed44d929b40389e3d8",
+        "rpc:rating.mixin.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:rating.mixin.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:rebuild.account.aged.partner.balance.line.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:rebuild.account.aged.partner.balance.line.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
@@ -83250,6 +83647,7 @@
         "rpc:res.company.action_rebuild_prepare_einvoice_activation": "423a9b27f61b60009b7c4e2ca7b6a8d09d291f68f6a6674963378473a63b3962",
         "rpc:res.company.action_rebuild_revoke_einvoice_activation": "05547d54f941a871b8fb634a2493656fc56a785daaf4f8162d5b981b8195c8a5",
         "rpc:res.company.action_rebuild_run_einvoice_acceptance_test": "91ef743b94082c67ec247025646ae5e55a64c11d48eaff17990ed59539f07eba",
+        "rpc:res.company.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:res.company.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:res.company.reflect_code_prefix_change": "a625db94765b4d8bd3b8648624bc6c808df8d0c462decb7e913f8879345c9749",
         "rpc:res.config.settings.action_open_pdp_form": "bccfe7f4d7bece0616494948a7158cb95cde0e65823dd36132be158d4c323a1a",
@@ -83260,13 +83658,16 @@
         "rpc:res.config.settings.reload_template": "c10b6814f5e8611749eb708afb2089789074589ad706ce0a2c311a08aa09fbcc",
         "rpc:res.currency.write": "1f51a952443fdbb55298d7bb3e8d084478ceb4da67423bf37959ba5efdd25c1b",
         "rpc:res.partner.bank.create": "cac16e66bcb1f7b7957bd4a443e27bfa98dd893aed856b7924a37f1811c4db53",
+        "rpc:res.partner.bank.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:res.partner.bank.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:res.partner.bank.write": "448244e63febb5f54022a7a39e01604c1da0d793bc54a797747897ad7481a492",
         "rpc:res.partner.button_account_peppol_check_partner_endpoint": "2c25d46173573de97d2251cd6b3401b84199b15786acdc7547b81c56d732ce9e",
         "rpc:res.partner.create": "2b1a45fde881848495c2c909c846213381db0bde33003bfd09c54075c4a29798",
+        "rpc:res.partner.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:res.partner.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:res.partner.write": "aa100b03fd8719cd5adb79bcd2d42511b351933872f98960765fc5266912037b",
         "rpc:res.users.action_usl_sync_expense_company_profiles": "4c12b196fcf3edfc27b3f2eec6651bd4416ede5143db0bcdf34470ad978f2c21",
+        "rpc:sale.order.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:sale.order.message_post": "e90513d80b72e72ec114bb28ee48200cd6dd5ad36c40beb099af9ec865b7c3a4",
         "rpc:sequence.mixin.write": "bf1a4583fe4c184ff1a29c6856118d08ef5c047740d1dc9037dfdfad63abcdab",
         "rpc:sign.oca.request.rating_apply": "67733772bfcfdda678ce0f33c63ce533bfce800bccc0212f07eeae88413c7cb4",
@@ -83327,11 +83728,13 @@
         "rpc:sms.account.sender.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:sms.account.sender.write": "b0373b6633d99d657d81a9aca3ec6bb0ebad5e3e7b41420276488a6f1ce1c8f4",
         "rpc:stock.lot.create": "40802af9c2b1c3e02e1af995b461f24b7c72e1ea50fa27b1b2667ce6cf98d854",
+        "rpc:stock.lot.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:stock.lot.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:stock.lot.write": "af808762c76457d024d45334a7f2a9b04ba10ec80f169e5b66f387cf1df982dd",
         "rpc:stock.move.line.create": "2224736a764b336896eb557ade25554ecc654b4712a30b5535cb61fb303809cf",
         "rpc:stock.move.line.unlink": "1ddc7183d9b99e65480e27afcc152d0a2b021c2c11c2c7fab0dcab20756798fc",
         "rpc:stock.move.line.write": "6e4835865f28e67448b40cd94cf547b83e4075b3c27edfe69982f103cab99076",
+        "rpc:stock.picking.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:stock.picking.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:stock_account.stock.valuation.report.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:stock_account.stock.valuation.report.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
@@ -83353,18 +83756,28 @@
         "rpc:trial.balance.report.wizard.button_export_html": "3a6774d41ac8f24c4b2757e46f7b6dd893519b4e56770844bb43444629531fe9",
         "rpc:trial.balance.report.wizard.button_export_pdf": "251d040c413f2804eccf24b55f5d693d271a0f9bb311aca44d00325860f5a04b",
         "rpc:trial.balance.report.wizard.button_export_xlsx": "eed0104423af13e990935ba50ddef25fbe506b475fddb5a4fd6928079fd7b356",
+        "rpc:usl.document.link.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:usl.document.link.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:usl.document.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:usl.document.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:usl.expense.bank.match.candidate.action_open_confirmation": "6f43d41e77760eaba08843f84dadca77e3ca8942e6523cf5cab166b7e8d80674",
+        "rpc:usl.expense.batch.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:usl.expense.batch.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:usl.oidc.identity.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:usl.oidc.identity.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:usl.platform.billing.bank.allocation.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:usl.platform.billing.bank.allocation.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:usl.platform.billing.payout.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:usl.platform.billing.payout.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:usl.platform.billing.platform.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:usl.platform.billing.platform.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:usl.platform.billing.session.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:usl.platform.billing.session.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:usl.sign.enrollment.rating_apply": "67733772bfcfdda678ce0f33c63ce533bfce800bccc0212f07eeae88413c7cb4",
         "rpc:usl.sign.external.journey.rating_apply": "67733772bfcfdda678ce0f33c63ce533bfce800bccc0212f07eeae88413c7cb4",
+        "rpc:usl.tese.payslip.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:usl.tese.payslip.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
+        "rpc:usl.tese.profile.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:usl.tese.profile.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:validate.account.move.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:validate.account.move.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
@@ -85063,6 +85476,7 @@
         "rpc:stock.landed.cost.lines.web_save_multi",
         "rpc:stock.landed.cost.lines.web_search_read",
         "rpc:stock.landed.cost.lines.write",
+        "rpc:stock.landed.cost.mcp_revise_own_message",
         "rpc:stock.landed.cost.message_change_thread",
         "rpc:stock.landed.cost.message_mail_with_source",
         "rpc:stock.landed.cost.message_new",
@@ -90250,6 +90664,10 @@
         "rpc:stock.landed.cost.lines.write": {
           "reversal_action": "rpc:stock.landed.cost.lines.write"
         },
+        "rpc:stock.landed.cost.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:stock.landed.cost.write"
+        },
         "rpc:stock.landed.cost.message_change_thread": {
           "reversal_action": "rpc:stock.landed.cost.write"
         },
@@ -93385,6 +93803,7 @@
         "rpc:stock.landed.cost.lines.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:stock.landed.cost.lines.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:stock.landed.cost.lines.write": "b266bee9e4ccab0802db86642ae0eba951b19a6545511c872a025e4bba555a06",
+        "rpc:stock.landed.cost.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:stock.landed.cost.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:stock.landed.cost.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:stock.landed.cost.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
@@ -95352,6 +95771,7 @@
         "rpc:rating.mixin.message_update",
         "rpc:rating.mixin.notify_cancel_by_type",
         "rpc:rating.mixin.set_message_pin",
+        "rpc:rebuild.account.declaration.mcp_revise_own_message",
         "rpc:rebuild.account.declaration.message_change_thread",
         "rpc:rebuild.account.declaration.message_mail_with_source",
         "rpc:rebuild.account.declaration.message_new",
@@ -95366,6 +95786,7 @@
         "rpc:rebuild.account.declaration.message_update",
         "rpc:rebuild.account.declaration.notify_cancel_by_type",
         "rpc:rebuild.account.declaration.rating_apply",
+        "rpc:rebuild.account.declaration.rule.mcp_revise_own_message",
         "rpc:rebuild.account.declaration.rule.message_change_thread",
         "rpc:rebuild.account.declaration.rule.message_mail_with_source",
         "rpc:rebuild.account.declaration.rule.message_new",
@@ -95460,6 +95881,7 @@
         "rpc:sign.oca.request.cancel",
         "rpc:sign.oca.request.create",
         "rpc:sign.oca.request.delete_item",
+        "rpc:sign.oca.request.mcp_revise_own_message",
         "rpc:sign.oca.request.message_change_thread",
         "rpc:sign.oca.request.message_mail_with_source",
         "rpc:sign.oca.request.message_new",
@@ -95478,6 +95900,7 @@
         "rpc:sign.oca.request.signer.activity_schedule",
         "rpc:sign.oca.request.signer.activity_send_mail",
         "rpc:sign.oca.request.signer.create",
+        "rpc:sign.oca.request.signer.mcp_revise_own_message",
         "rpc:sign.oca.request.signer.message_change_thread",
         "rpc:sign.oca.request.signer.message_mail_with_source",
         "rpc:sign.oca.request.signer.message_new",
@@ -95504,6 +95927,7 @@
         "rpc:sign.oca.template.item.create",
         "rpc:sign.oca.template.item.unlink",
         "rpc:sign.oca.template.item.write",
+        "rpc:sign.oca.template.mcp_revise_own_message",
         "rpc:sign.oca.template.message_change_thread",
         "rpc:sign.oca.template.message_mail_with_source",
         "rpc:sign.oca.template.message_new",
@@ -95853,6 +96277,7 @@
         "rpc:usl.sign.enrollment.activity_schedule",
         "rpc:usl.sign.enrollment.activity_send_mail",
         "rpc:usl.sign.enrollment.create",
+        "rpc:usl.sign.enrollment.mcp_revise_own_message",
         "rpc:usl.sign.enrollment.message_change_thread",
         "rpc:usl.sign.enrollment.message_mail_with_source",
         "rpc:usl.sign.enrollment.message_new",
@@ -95879,6 +96304,7 @@
         "rpc:usl.sign.external.journey.activity_schedule",
         "rpc:usl.sign.external.journey.activity_send_mail",
         "rpc:usl.sign.external.journey.create",
+        "rpc:usl.sign.external.journey.mcp_revise_own_message",
         "rpc:usl.sign.external.journey.message_change_thread",
         "rpc:usl.sign.external.journey.message_mail_with_source",
         "rpc:usl.sign.external.journey.message_new",
@@ -100143,6 +100569,10 @@
         "rpc:rating.mixin.set_message_pin": {
           "reversal_action": "rpc:rating.mixin.write"
         },
+        "rpc:rebuild.account.declaration.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:rebuild.account.declaration.write"
+        },
         "rpc:rebuild.account.declaration.message_change_thread": {
           "reversal_action": "rpc:rebuild.account.declaration.write"
         },
@@ -100184,6 +100614,10 @@
         },
         "rpc:rebuild.account.declaration.rating_apply": {
           "reversal_action": "rpc:rebuild.account.declaration.write"
+        },
+        "rpc:rebuild.account.declaration.rule.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:rebuild.account.declaration.rule.write"
         },
         "rpc:rebuild.account.declaration.rule.message_change_thread": {
           "reversal_action": "rpc:rebuild.account.declaration.rule.write"
@@ -100467,6 +100901,10 @@
         "rpc:sign.oca.request.delete_item": {
           "reversal_action": "rpc:sign.oca.request.delete_item"
         },
+        "rpc:sign.oca.request.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:sign.oca.request.message_post"
+        },
         "rpc:sign.oca.request.message_change_thread": {
           "reversal_action": "rpc:sign.oca.request.message_change_thread"
         },
@@ -100520,6 +100958,10 @@
         },
         "rpc:sign.oca.request.signer.create": {
           "reversal_action": "rpc:sign.oca.request.signer.create"
+        },
+        "rpc:sign.oca.request.signer.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:sign.oca.request.signer.message_post"
         },
         "rpc:sign.oca.request.signer.message_change_thread": {
           "reversal_action": "rpc:sign.oca.request.signer.message_change_thread"
@@ -100598,6 +101040,10 @@
         },
         "rpc:sign.oca.template.item.write": {
           "reversal_action": "rpc:sign.oca.template.item.write"
+        },
+        "rpc:sign.oca.template.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:sign.oca.template.message_post"
         },
         "rpc:sign.oca.template.message_change_thread": {
           "reversal_action": "rpc:sign.oca.template.message_change_thread"
@@ -101646,6 +102092,10 @@
         "rpc:usl.sign.enrollment.create": {
           "reversal_action": "rpc:usl.sign.enrollment.create"
         },
+        "rpc:usl.sign.enrollment.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:usl.sign.enrollment.message_post"
+        },
         "rpc:usl.sign.enrollment.message_change_thread": {
           "reversal_action": "rpc:usl.sign.enrollment.message_change_thread"
         },
@@ -101723,6 +102173,10 @@
         },
         "rpc:usl.sign.external.journey.create": {
           "reversal_action": "rpc:usl.sign.external.journey.create"
+        },
+        "rpc:usl.sign.external.journey.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:usl.sign.external.journey.message_post"
         },
         "rpc:usl.sign.external.journey.message_change_thread": {
           "reversal_action": "rpc:usl.sign.external.journey.message_change_thread"
@@ -103322,6 +103776,7 @@
         "rpc:rating.mixin.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
         "rpc:rating.mixin.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:rating.mixin.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
+        "rpc:rebuild.account.declaration.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:rebuild.account.declaration.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:rebuild.account.declaration.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:rebuild.account.declaration.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
@@ -103336,6 +103791,7 @@
         "rpc:rebuild.account.declaration.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
         "rpc:rebuild.account.declaration.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:rebuild.account.declaration.rating_apply": "67733772bfcfdda678ce0f33c63ce533bfce800bccc0212f07eeae88413c7cb4",
+        "rpc:rebuild.account.declaration.rule.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:rebuild.account.declaration.rule.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:rebuild.account.declaration.rule.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:rebuild.account.declaration.rule.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
@@ -103430,6 +103886,7 @@
         "rpc:sign.oca.request.cancel": "1fb5bf2e6a10331b7dd64d5bbe8b6358e272174c71ac4b1bb79cda0fca04668d",
         "rpc:sign.oca.request.create": "cec24877c146ee1f91a98cc626118ae38abe9e214678c3e103b939df6f1e8ecb",
         "rpc:sign.oca.request.delete_item": "62899f94e5b3f4aba73c227d5bfd797384d338d181b7f248edbf3a5cec5c5fdd",
+        "rpc:sign.oca.request.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:sign.oca.request.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:sign.oca.request.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:sign.oca.request.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
@@ -103448,6 +103905,7 @@
         "rpc:sign.oca.request.signer.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:sign.oca.request.signer.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:sign.oca.request.signer.create": "fc2ae7ea2853bb1fc0fce44aabc29cb61422e669dd90864cef5c7d0c7881d85f",
+        "rpc:sign.oca.request.signer.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:sign.oca.request.signer.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:sign.oca.request.signer.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:sign.oca.request.signer.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
@@ -103474,6 +103932,7 @@
         "rpc:sign.oca.template.item.create": "dbda8627a1a7864f524e9932b45d769c70419c2bb5faaaf3f730908b4d28651f",
         "rpc:sign.oca.template.item.unlink": "b91eac93bd1b0470f8bf8befae880e4383fe00aedbe12b8cad9243fa8f5b96eb",
         "rpc:sign.oca.template.item.write": "669c28b73a8bde153ca2a85d9b7b6111ac1f11bce5c2b3567607e1c319ba2cc2",
+        "rpc:sign.oca.template.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:sign.oca.template.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:sign.oca.template.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:sign.oca.template.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
@@ -103823,6 +104282,7 @@
         "rpc:usl.sign.enrollment.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:usl.sign.enrollment.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:usl.sign.enrollment.create": "7a029bf0ca4da0d0d70801cae70e1f8f871a83846ad1ac7a5816f7d9b1cbef29",
+        "rpc:usl.sign.enrollment.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:usl.sign.enrollment.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:usl.sign.enrollment.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:usl.sign.enrollment.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
@@ -103849,6 +104309,7 @@
         "rpc:usl.sign.external.journey.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:usl.sign.external.journey.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:usl.sign.external.journey.create": "b08f1f2a8165e6359e5445ee2bbb7b232cae8a8b60b9e31f24ba5303d925631e",
+        "rpc:usl.sign.external.journey.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:usl.sign.external.journey.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:usl.sign.external.journey.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:usl.sign.external.journey.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
@@ -104139,6 +104600,7 @@
         "rpc:usl.document.letter.formatted_read_grouping_sets",
         "rpc:usl.document.letter.get_view",
         "rpc:usl.document.letter.get_views",
+        "rpc:usl.document.letter.mcp_revise_own_message",
         "rpc:usl.document.letter.message_change_thread",
         "rpc:usl.document.letter.message_mail_with_source",
         "rpc:usl.document.letter.message_new",
@@ -104234,6 +104696,10 @@
           "reversal_action": "rpc:usl.document.letter.write"
         },
         "rpc:usl.document.letter.get_views": {
+          "reversal_action": "rpc:usl.document.letter.write"
+        },
+        "rpc:usl.document.letter.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
           "reversal_action": "rpc:usl.document.letter.write"
         },
         "rpc:usl.document.letter.message_change_thread": {
@@ -104421,6 +104887,7 @@
         "rpc:usl.document.letter.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:usl.document.letter.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:usl.document.letter.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
+        "rpc:usl.document.letter.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:usl.document.letter.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:usl.document.letter.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
         "rpc:usl.document.letter.message_new": "d9ff99059d6b211023ac5a18e43f6c78eb14ab3618246579c40a5fd2e3ce56d3",
@@ -108998,6 +109465,7 @@
         "rpc:project.tags.unlink",
         "rpc:project.tags.write",
         "rpc:project.task.create",
+        "rpc:project.task.mcp_revise_own_message",
         "rpc:project.task.message_post",
         "rpc:project.task.message_subscribe",
         "rpc:project.task.message_unsubscribe",
@@ -109048,6 +109516,10 @@
           "rationale": "Reviewed feedback override preserves prior native consequence and enforcement/reversal; adds maintainer checks, restricted follows/activities, or immutable per-task identity consolidation.",
           "reversal_action": "rpc:project.task.unlink"
         },
+        "rpc:project.task.mcp_revise_own_message": {
+          "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
+          "reversal_action": "rpc:project.task.write"
+        },
         "rpc:project.task.message_post": {
           "rationale": "Reviewed feedback override preserves prior native consequence and enforcement/reversal; adds maintainer checks, restricted follows/activities, or immutable per-task identity consolidation.",
           "reversal_action": "rpc:project.task.write"
@@ -109088,6 +109560,7 @@
         "rpc:project.tags.unlink": "81303435fdb5c1a1aa1fd0296c8790e27bcc7aac69d4f4dbbdbc7b7ec76c9811",
         "rpc:project.tags.write": "e9986760c3f1f03e4b8e1e715d234c58fe06a0036a9490d791947a829f4d98cf",
         "rpc:project.task.create": "61ab315785cf3900d204e73deb8fe5a7fb2f691032b93c2193c356a3469467ee",
+        "rpc:project.task.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:project.task.message_post": "25970b083c3f682f81765f5b89e6b1e380f54ddc8793af0ac24d27a15840b892",
         "rpc:project.task.message_subscribe": "fb69afbc3b3f58d31a4a6a43b209e24ca6262d82bcf01661ce2ca96886a5f80a",
         "rpc:project.task.message_unsubscribe": "71470054c0af3f1c444c8c6e4dbb508f13ab8e628264a8db7b0e7636d1e4467b",
@@ -175085,6 +175558,10 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:3",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:4",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:5",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.thread._usl_revisable_subtypes:sudo:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.thread._usl_revisable_subtypes:sudo:2",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.thread.mcp_revise_own_message:orm_write:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.thread.mcp_revise_own_message:sudo:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.thread.message_post:message_send:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:usl.document.mcp_revoke_download_grant:sudo:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential._search_status:sudo:1",
@@ -175189,6 +175666,18 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:5": {
           "reachability_proof": "Internal per-record recursion used only after the same owner and authority validation as the public Agent write; it has no independent entry point."
         },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.thread._usl_revisable_subtypes:sudo:1": {
+          "reachability_proof": "Internal implementation sink reachable only through its separately reviewed guarded collaboration method; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.thread._usl_revisable_subtypes:sudo:2": {
+          "reachability_proof": "Internal implementation sink reachable only through its separately reviewed guarded collaboration method; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.thread.mcp_revise_own_message:orm_write:1": {
+          "reachability_proof": "Internal implementation sink reachable only through its separately reviewed guarded collaboration method; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.thread.mcp_revise_own_message:sudo:1": {
+          "reachability_proof": "Internal implementation sink reachable only through its separately reviewed guarded collaboration method; it has no independent RPC, controller, UI, or scheduled entry point."
+        },
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.thread.message_post:message_send:1": {
           "reachability_proof": "Internal implementation sink reachable only through its separately reviewed guarded collaboration method; it has no independent RPC, controller, UI, or scheduled entry point."
         },
@@ -175283,6 +175772,10 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:3": "8d89c2cf31a264209e939ec5686383db2123878c93dcd586b536f3dd58419319",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:4": "60c8c10681f913b891096cf5d00024ce9b3a9e8789805dfcc3c39a5d4dea4fc3",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:5": "fc4890618e8c15eaca737f2e449137d4c0d4060eadf465e3a73e70e4518b56dd",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.thread._usl_revisable_subtypes:sudo:1": "abea34e3010f09837042a620684342daf14aeabe3fd76d6e1001083e297a7aea",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.thread._usl_revisable_subtypes:sudo:2": "e552987c9045b0ce2937cccb1e8c1a863cf8bc45b9568269f2e659d8eb255d2a",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.thread.mcp_revise_own_message:orm_write:1": "09327e112fbdc4c0c3b2fea1a1be72979e336d04a0c8a77206d2a02e748d6578",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.thread.mcp_revise_own_message:sudo:1": "c8b02656bcb78f3f512b7000f5f69b42e317a553e825ac6f5ebc1d9068c58ad9",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.thread.message_post:message_send:1": "6756fdc9d85dca4068c4c35f56ea34595fca28b61f4aa7d782b8b9133bb35a0d",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:usl.document.mcp_revoke_download_grant:sudo:1": "8db24acee12b1a793ea5c1c57fe1a0fd921ba7733fc83b245a93736b4a0b45d4",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential._search_status:sudo:1": "12716b0c6d5da91e9bc48d74d4179edb5e7496281ee0bd1447197427d08b51de",
@@ -196553,6 +197046,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "d285a754e70e8ee8b6d17a84123fd95b9e661c6700fed674161101d822f38f90",
+  "qualified_policy_digest": "37f5d641340e5ffd505f541254f9ffd0d460a9d9091472014a652a6a4902d1b8",
   "schema": "usl-action-risk-policy-v1"
 }
