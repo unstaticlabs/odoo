@@ -109,6 +109,9 @@
                             <field name="mapped_line_count"/>
                             <field name="unmapped_line_count"/>
                             <field name="fulfilment_count"/>
+                            <field name="supplier_sales_cost"/>
+                            <field name="supplier_internal_cost"/>
+                            <field name="supplier_currency_id" invisible="1"/>
                         </group>
                     </group>
                     <field name="report" readonly="1" invisible="not report"/>

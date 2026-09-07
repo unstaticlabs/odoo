@@ -6,6 +6,7 @@ usually stated outright; where it is not, it is proved from the recipient and
 the date, never assumed.
 """
 
+from collections import defaultdict
 from datetime import timedelta
 from decimal import Decimal
 
@@ -47,11 +48,58 @@ class B2cImportBatchFulfilment(models.Model):
     _inherit = "b2c.import.batch"
 
     fulfilment_count = fields.Integer(compute="_compute_fulfilment_count", store=True)
+    supplier_sales_cost = fields.Monetary(
+        compute="_compute_supplier_cost",
+        currency_field="supplier_currency_id",
+        help="What the supplier charged to fulfil sales in this drop.",
+    )
+    supplier_internal_cost = fields.Monetary(
+        compute="_compute_supplier_cost",
+        currency_field="supplier_currency_id",
+        help="What the supplier charged for orders no sale in this drop matched. "
+             "An order that fulfils no sale at all is marketing or prototyping, "
+             "which is a cost and never revenue; check the untied fulfilments "
+             "before reading this as that.",
+    )
+    supplier_currency_id = fields.Many2one(
+        related="company_id.currency_id",
+        string="Supplier currency",
+    )
 
     @api.depends("row_ids.resolution", "row_ids.grain")
     def _compute_fulfilment_count(self):
         for batch in self:
             batch.fulfilment_count = len(batch._fulfilment_rows())
+
+    @api.depends("row_ids.fulfilment_of_row_id", "row_ids.resolution")
+    def _compute_supplier_cost(self):
+        for batch in self:
+            sales = internal = Decimal("0")
+            for row in batch._fulfilment_rows():
+                cost = Decimal(str((row.values or {}).get("costs_total") or "0"))
+                if row.fulfilment_of_row_id:
+                    sales += cost
+                else:
+                    internal += cost
+            batch.supplier_sales_cost = float(sales)
+            batch.supplier_internal_cost = float(internal)
+
+    def _supplier_cost_by_month(self):
+        """Return what the supplier charged each month, for sales and for neither.
+
+        An order the supplier fulfilled that answers to no sale is marketing or
+        prototyping: a cost of finding out what to sell, never the cost of
+        something sold. Which month it falls in is what the wallet is settled by.
+        """
+        self.ensure_one()
+        found = defaultdict(lambda: {"sales": Decimal("0"), "internal": Decimal("0")})
+        for row in self._fulfilment_rows():
+            if not row.occurred_at:
+                continue
+            cost = Decimal(str((row.values or {}).get("costs_total") or "0"))
+            period = row.occurred_at.date().replace(day=1)
+            found[period]["sales" if row.fulfilment_of_row_id else "internal"] += cost
+        return dict(sorted(found.items()))
 
     def _fulfilment_rows(self):
         return self.row_ids.filtered(

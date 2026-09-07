@@ -161,5 +161,17 @@ class TestSupplier(TestImportBatch):
         with self.assertRaises(UserError):
             batch.action_fetch_fulfilment()
 
+    def test_what_the_supplier_charged_is_split_by_what_it_fulfilled(self):
+        tied = fixtures.PRINTFUL_ORDERS[0]
+        untied = dict(tied, id=5000000002, external_id="unknown-reference")
+        batch = self._read([tied, untied])
+        self.assertAlmostEqual(batch.supplier_sales_cost, 20.00, places=2)
+        self.assertAlmostEqual(batch.supplier_internal_cost, 20.00, places=2)
+        by_month = batch._supplier_cost_by_month()
+        self.assertEqual(len(by_month), 1)
+        month = next(iter(by_month.values()))
+        self.assertEqual(float(month["sales"]), 20.00)
+        self.assertEqual(float(month["internal"]), 20.00)
+
     def test_a_window_of_ten_days_is_what_the_recipient_evidence_allows(self):
         self.assertEqual(MATCH_WINDOW, timedelta(days=10))

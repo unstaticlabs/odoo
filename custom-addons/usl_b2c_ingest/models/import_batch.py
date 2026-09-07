@@ -479,6 +479,16 @@ class B2cImportBatch(models.Model):
                     linked=linked,
                 ),
             )
+        for period, cost in self._supplier_cost_by_month().items():
+            lines.append(
+                self.env._(
+                    "  %(period)s: the supplier charged %(sales)s against sales this "
+                    "drop names, and %(internal)s against none of them.",
+                    period=f"{period:%B %Y}",
+                    sales=cost["sales"],
+                    internal=cost["internal"],
+                ),
+            )
         if self.blocking_issue_count or self.advisory_issue_count:
             lines.append(
                 self.env._(
