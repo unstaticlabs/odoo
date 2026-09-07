@@ -102230,7 +102230,7 @@
         "rpc:ir.cron.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
         "rpc:ir.cron.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:ir.cron.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
-        "rpc:ir.http.session_info": "680d33ae473da31ac13df00d19fb199f848b8dacc2419ad7a0ff9aee5559ab21",
+        "rpc:ir.http.session_info": "67dab0ad556c95ce01a93ab2ad26fa450b13a7228bb10b005c08a200558e1caf",
         "rpc:ir.mail_server.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:ir.mail_server.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
         "rpc:ir.mail_server.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
@@ -182938,7 +182938,7 @@
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:usl.expense.batch.create.wizard.action_create_batch:orm_write:1": "b1e87a2e33ff856f53565e20cd733345ad4bcefae4c53c547d452cdf057e9122",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:usl.expense.batch.create.wizard.create:orm_create:1": "2afdd745fbe4b63f9e0df585578c08a8b911da9b7357e00e717f7d995f6dd941",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:usl.expense.batch.create.wizard.create:orm_write:1": "7f317d1bdf0765b73d7be1d47ef499a26a28a46b49501a612eff1f9aab1e87d6",
-        "sink:usl_locale:custom-addons/usl_locale/models/ir_http.py:ir.http.session_info:sudo:1": "36dd89f4b90e6616a24da36d190be7aaba976e7d9a1040095005d27d016b110a",
+        "sink:usl_locale:custom-addons/usl_locale/models/ir_http.py:ir.http.session_info:sudo:1": "65094166fbdbf36deef55be8f6084f65434467b84fe672317799accc4bc16097",
         "sink:usl_locale:custom-addons/usl_locale/models/res_company.py:res.company.action_use_automatic_usl_ui_theme_color:orm_write:1": "52e3777cf81ba66b4e41be84cad6314f7ca4807c78791b4641e692c6f54c5603",
         "sink:usl_pocketid:custom-addons/usl_pocketid/controllers/main.py:PocketIDDatabase.create:orm_create:1": "b939a04345472ea27eae11bbafcef40e4a4ab9aa3c6d757f80dc462e6c50a188",
         "sink:usl_pocketid:custom-addons/usl_pocketid/controllers/main.py:PocketIDLogin.emergency_login:sudo:1": "fb96ac56e556b39f2bc4007fddc421f31872b6623a436c3d9832c32db78a4df8",
@@ -196553,6 +196553,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "42bf9a4ef54c8adee21805964cf29ba7373eaa4ed38be031ef532f874ea85d5d",
+  "qualified_policy_digest": "d285a754e70e8ee8b6d17a84123fd95b9e661c6700fed674161101d822f38f90",
   "schema": "usl-action-risk-policy-v1"
 }
