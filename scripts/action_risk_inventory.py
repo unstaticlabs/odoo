@@ -80,6 +80,7 @@ AGENT_COLLABORATION_METHODS = frozenset(
         "action_feedback_schedule_next",
         "activity_schedule",
         "mcp_create_download_grant",
+        "mcp_revise_own_message",
         "mcp_revoke_download_grant",
         "message_post",
         "message_subscribe",
