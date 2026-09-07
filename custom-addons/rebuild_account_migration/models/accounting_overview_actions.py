@@ -179,9 +179,12 @@ class RebuildAccountOverview(models.Model):
         return action
 
     def action_open_expenses(self):
+        # The stat button above this action shows `draft_expense_count`, which
+        # counts exactly these three states.  Opening every expense ever
+        # recorded would not be the list the number promises.
         action = self._standard_company_action(
             "hr_expense.hr_expense_actions_all",
-            [],
+            [("state", "in", ["draft", "submitted", "approved"])],
         )
         action.update({
             "view_mode": "list,form,graph,pivot",

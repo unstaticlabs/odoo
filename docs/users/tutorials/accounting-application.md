@@ -18,6 +18,11 @@ Read it from top to bottom:
 6. the next closing workspace and declaration;
 7. prepared review work.
 
+The **Tax returns** card lists the next three pending declarations in deadline
+order. An overdue return always appears before a future one. Open a row for its
+name, type, deadline and current preparation status, or use **All declarations**
+for the complete company schedule.
+
 Open either matching indicator to inspect Bank Matching, then return with the
 browser Back button. Blocking alerts link directly to their issues; green
 **Ready** chips identify sections with no current action. Expand **View
@@ -30,6 +35,11 @@ Open **Journals** to see native journal cards. Open a bank journal and compare:
 
 - **Transactions**, the complete statement-line list; and
 - **Bank Matching**, the focused matching queue.
+
+Sales and Purchases cards show six calendar months of posted document totals
+in company currency. Refunds reduce the month, empty months remain at zero and
+the final bar is the current month to date. These bars describe invoicing
+activity—not cash received, cash paid or the remaining balance.
 
 Open **Vendors > Bills** and choose a bill. Its business lines, taxes, journal
 items, residual, payment state and attachments remain on the normal Odoo
