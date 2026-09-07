@@ -420,12 +420,32 @@
       }
     },
     {
+      "action_key": "rpc:b2c.import.batch.unlink",
+      "action_name": "permanently delete b2c.import.batch",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "b2c.import.batch",
+        "operation": "unlink"
+      }
+    },
+    {
       "action_key": "rpc:b2c.order.unlink",
       "action_name": "permanently delete b2c.order",
       "classification": "protected",
       "enforcement": {
         "kind": "model_operation",
         "model": "b2c.order",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:b2c.oss.return.unlink",
+      "action_name": "permanently delete b2c.oss.return",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "b2c.oss.return",
         "operation": "unlink"
       }
     },
@@ -2081,8 +2101,8 @@
       "classification": "protected"
     }
   ],
-  "qualified_policy_digest": "8d0a0f03cc568d6136bf50e47f44e5d23b5d99c3f9a6739d9d554914216459c3",
-  "runtime_policy_sha256": "e328766dde58e87e9994e88cb9f97f13b4e34d5055021d4e0534c9b8c21e57b4",
+  "qualified_policy_digest": "366c607686c18e5ec6dd1714396457c7f1f31baddd67a61be764b7ae87af79bc",
+  "runtime_policy_sha256": "639a17e3b9833d2f795713af1bb37a8887e2b8890054e37024d1bfe99c4061aa",
   "schema": "usl-action-risk-protected-runtime-v2",
   "server_actions": [
     {
