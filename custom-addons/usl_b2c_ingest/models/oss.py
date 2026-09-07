@@ -1,10 +1,16 @@
-"""Where the VAT of another Member State goes before there is a scheme to pay it.
+"""Which VAT treatment a B2C sale is taxed under, and where that VAT goes.
 
 Goods dispatched from a Member State the shop is not established in owe the
 destination's VAT from the first euro, so the liability exists whether or not
 the shop has registered to remit it.  Until it has, that VAT is a liability to
 be regularised, not one collected under a scheme, and saying otherwise in the
 ledger would claim a registration that does not exist.
+
+Outside the Union nothing is owed, but "nothing is owed" is the answer to more
+than one question: a consumer buying goods and a business buying services are
+untaxed for entirely different reasons.  A position built for one of them
+cannot be told from the other by anything the customer record holds, so which
+one applies is stated here rather than guessed at.
 """
 
 from odoo import fields, models
@@ -34,6 +40,16 @@ class ResCompany(models.Model):
         ondelete="restrict",
         help="Where VAT owed to another Member State goes once the shop is "
              "registered to remit it.",
+    )
+    usl_b2c_export_position_id = fields.Many2one(
+        "account.fiscal.position",
+        string="Position for B2C sales outside the Union",
+        check_company=True,
+        ondelete="restrict",
+        help="A sale outside the Union bears no VAT, but so does a business "
+             "buying services there, for a different reason. Naming the "
+             "position for consumer goods keeps the two apart on the invoice. "
+             "Leave it empty to let the fiscal positions decide.",
     )
 
 

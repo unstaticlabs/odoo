@@ -67,6 +67,13 @@ Per company:
   reaches before and after registration. Until registration it accrues as a
   liability to be regularised rather than as VAT collected under a scheme the
   shop is not in.
+- **Position for B2C sales outside the Union.** Nothing is owed outside the
+  Union, but that is the answer to more than one question: a consumer buying
+  goods and a business buying services are both untaxed, for entirely different
+  reasons, at the same rate. Nothing in a customer record tells the two apart,
+  so the position for consumer goods is named here rather than deduced, and a
+  sale outside the Union is stated under it. Leave it empty to let the fiscal
+  positions decide. Inside the Union the destination still decides.
 
 In the chart:
 
@@ -77,6 +84,9 @@ In the chart:
   a German sale at nothing.
 - Every product sold states **one** sales tax, and every sold product's
   category names a usable income account.
+- No position a sale would be stated under maps to a **retired rate**. Removing
+  one needs the archived records to be visible: write the mapping with
+  `active_test` disabled, or the ORM keeps it and says nothing.
 
 The readiness check reports each of these against the drop in hand, and makes
 the corrections that are a matter of fact rather than judgement.

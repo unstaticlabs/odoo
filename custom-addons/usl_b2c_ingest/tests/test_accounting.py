@@ -215,6 +215,20 @@ class TestAccounting(TestMaterialise):
             batch.issue_ids.filtered(lambda issue: issue.kind == "product_tax_unclear"),
         )
 
+    def test_a_position_stating_a_retired_rate_is_reported(self):
+        retired = self._tax("Invented retired 0% export", 0, self.france)
+        position = self.env["account.fiscal.position"].search(
+            [("company_id", "=", self.company.id), ("name", "=", "Invented export")],
+        )
+        retired.original_tax_ids = [(6, 0, self.home_tax.ids)]
+        position.tax_ids = [(4, retired.id)]
+        retired.active = False
+        batch, _jersey, _cap = self._etsy_drop()
+        batch.action_check_readiness()
+        issue = batch.issue_ids.filtered(lambda item: item.kind == "retired_rate")
+        self.assertTrue(issue)
+        self.assertIn("Invented retired 0% export", issue[0].note)
+
     def test_carriage_without_a_product_is_reported(self):
         self.channels["etsy"].shipping_product_id = False
         batch, _jersey, _cap = self._etsy_drop()

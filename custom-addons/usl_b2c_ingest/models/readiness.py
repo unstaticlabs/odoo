@@ -14,6 +14,7 @@ from odoo.exceptions import UserError
 BLOCKS_APPLY = ("shadowed_destination", "product_tax_unclear")
 BLOCKS_INVOICING = (
     *BLOCKS_APPLY,
+    "retired_rate",
     "carriage_unaccounted",
     "destination_vat_misplaced",
     "revenue_unaccounted",
@@ -33,6 +34,7 @@ class B2cImportBatchReadiness(models.Model):
             batch._check_product_taxes()
             batch._check_carriage()
             batch._check_revenue_accounts()
+            batch._check_position_rates()
             batch._check_destination_vat()
             batch._check_channel_operators()
             batch.issue_ids.filtered(
@@ -110,6 +112,50 @@ class B2cImportBatchReadiness(models.Model):
                     own=own[:1].display_name,
                 ),
                 proposal={"shadowing_id": answering.id},
+            )
+
+    def _positions_in_use(self):
+        """Return the fiscal positions this drop's sales would be stated under."""
+        self.ensure_one()
+        Position = self.env["account.fiscal.position"]
+        found = self.company_id.usl_b2c_export_position_id
+        for country in self._destinations():
+            partner = self.env["res.partner"].new(
+                {"name": "readiness", "country_id": country.id},
+            )
+            found |= Position._get_fiscal_position(partner)
+        return found
+
+    def _check_position_rates(self):
+        """Report a position that would state a sale at a retired rate.
+
+        A rate keeps answering for a position long after it stops being usable,
+        and the invoice only says so when it is posted. A position that maps a
+        sale to an archived rate is the same defect as a product pointing at an
+        archived account, and just as quiet.
+        """
+        self.ensure_one()
+        for position in self._positions_in_use():
+            retired = position.with_context(active_test=False).tax_ids.filtered(
+                lambda tax: not tax.active,
+            )
+            if not retired:
+                continue
+            self._raise_issue(
+                "retired_rate",
+                self.env._(
+                    "%(position)s states %(count)s retired rate(s)",
+                    position=position.display_name,
+                    count=len(retired),
+                ),
+                note=self.env._(
+                    "%(taxes)s no longer exist to post to, so a sale this "
+                    "position answers for would refuse to post. Removing one "
+                    "needs the archived records to be visible: write the "
+                    "mapping with active_test disabled, or the ORM keeps it.",
+                    taxes=", ".join(retired.mapped("name")),
+                ),
+                proposal={"position_id": position.id},
             )
 
     def _check_product_taxes(self):

@@ -186,6 +186,36 @@ class TestMaterialise(TestImportBatch):
         self.assertTrue(sources.evidence_id)
         self.assertEqual(order.country_id, self.germany)
 
+    def test_a_sale_outside_the_union_is_stated_under_the_named_position(self):
+        """Untaxed is the answer to more than one question.
+
+        A consumer buying goods outside the Union and a business buying
+        services there both bear nothing, for entirely different reasons, and
+        no customer record tells the two apart. Naming the position is the only
+        way the invoice can say which supply it was.
+        """
+        consumer_goods = self._position(
+            "Invented consumer export", False, self.env["account.tax"], sequence=95,
+        )
+        consumer_goods.auto_apply = False
+        self.company.usl_b2c_export_position_id = consumer_goods
+        batch, _jersey, _cap = self._etsy_drop()
+        batch.action_apply()
+        american = self._sale(batch, "9000000002")
+        self.assertEqual(american.fiscal_position_id, consumer_goods)
+        self.assertEqual(american.amount_tax, 0)
+        # Inside the Union the destination still decides, not this.
+        german = self._sale(batch, "9000000001")
+        self.assertEqual(german.fiscal_position_id.name, "Invented Germany")
+
+    def test_naming_no_export_position_leaves_the_choice_to_odoo(self):
+        self.assertFalse(self.company.usl_b2c_export_position_id)
+        batch, _jersey, _cap = self._etsy_drop()
+        batch.action_apply()
+        american = self._sale(batch, "9000000002")
+        self.assertEqual(american.fiscal_position_id.name, "Invented export")
+        self.assertEqual(american.amount_tax, 0)
+
     def test_a_destination_taxed_by_the_wrong_position_is_refused(self):
         batch, _jersey, _cap = self._etsy_drop()
         self.env["account.fiscal.position"].search(

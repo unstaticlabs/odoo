@@ -30,6 +30,7 @@ ISSUE_KINDS = [
     ("revenue_unaccounted", "Revenue has nowhere of its own to go"),
     ("destination_vat_misplaced", "Destination VAT does not accrue where it belongs"),
     ("operator_untaxed", "A channel operator has no tax number"),
+    ("retired_rate", "A fiscal position states a retired rate"),
 ]
 
 

@@ -465,6 +465,23 @@ class B2cImportBatchMaterialise(models.Model):
 
     # -- native sales ------------------------------------------------------
 
+    def _export_position(self, partner):
+        """Return the position a sale outside the Union is stated under.
+
+        Every position that could answer outside the Union charges nothing, so
+        which one answers changes no number; it changes whether the invoice can
+        say what kind of supply it was.  Odoo picks a position from the
+        customer, and no customer record distinguishes a consumer buying goods
+        from a business buying services, so this is named rather than deduced.
+        """
+        self.ensure_one()
+        position = self.company_id.usl_b2c_export_position_id
+        if not position:
+            return self.env["account.fiscal.position"]
+        if partner.country_id in self.env.ref("base.europe").country_ids:
+            return self.env["account.fiscal.position"]
+        return position
+
     def _sale_order(self, row, order, partner, money):
         """Return the confirmed sales order, totalling what the customer paid."""
         self.ensure_one()
@@ -482,7 +499,12 @@ class B2cImportBatchMaterialise(models.Model):
                 "client_order_ref": row.external_order_id,
                 "origin": self.env._("Channel import %(batch)s", batch=self.name),
                 "usl_b2c_order_id": order.id,
-            },
+            }
+            | (
+                {"fiscal_position_id": position.id}
+                if (position := self._export_position(partner))
+                else {}
+            ),
         )
         discount = float(self._discount_percent(money))
         costs = {
