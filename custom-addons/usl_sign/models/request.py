@@ -118,7 +118,9 @@ class SignRequest(models.Model):
         # exact identity under sudo, then let normal rules protect any
         # later access to the selected row.
         Signer = self.env["sign.oca.request.signer"].sudo()
-        assigned_by_request = {request.id: Signer for request in self}
+        # Keyed on origin ids: `signer.request_id.id` is always a real id while
+        # `request.id` is a NewId during an onchange.
+        assigned_by_request = {}
         for signer in Signer.search(
             [
                 ("request_id", "in", self.ids),
@@ -126,9 +128,10 @@ class SignRequest(models.Model):
             ],
             order="sequence, id",
         ):
+            assigned_by_request.setdefault(signer.request_id.id, Signer)
             assigned_by_request[signer.request_id.id] |= signer
         for request in self:
-            assigned = assigned_by_request[request.id]
+            assigned = assigned_by_request.get(request._origin.id, Signer)
             allowed = assigned.filtered("is_allow_signature")
             request.signer_id = allowed[:1] if allowed else assigned[:1]
 

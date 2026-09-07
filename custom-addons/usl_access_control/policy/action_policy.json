@@ -3501,7 +3501,7 @@
         "rpc:res.config.settings.button_peppol_reregister": "f3bfad36ebb81e00b28174212fa40786ec96fd36303732b2d1007473526b435b",
         "rpc:res.config.settings.button_reconnect_this_database": "8e85397db3f1633eaec17b735efaef554240f9fd00e08953dc729ce50281b024",
         "rpc:res.users.create": "9bce97bcb26c651b2ee691e6af45797736b6fb94120237f535e9e192c185bc87",
-        "rpc:res.users.write": "030b4a965134c3764c7731f5e49de38e86a5843cb6e074c15d1be7e9877cef1c",
+        "rpc:res.users.write": "11c89fbf2866fb7d31cdbe545eabb7fb4640e2d066504185e1348e9d967af4af",
         "server_action:account_peppol_response.ir_cron_peppol_auto_register_services_ir_actions_server": "fc327488428a5b7e8e82eb936c77e6b281e6e21cfd216f28556ea964f8f57ae5"
       }
     },
@@ -5100,7 +5100,7 @@
       "rationale": "A stable semantic guard or exact model-operation enforcement denies ordinary humans and Agents before side effects while allowing the Irreversible Actions capability with immutable evidence.",
       "reviewed_digests": {
         "guard:authorization.company.create": "624d72192086b868c67767e3f226f84c8b79ae5d64a72069cd1b3cfdb3066324",
-        "guard:authorization.user.change": "ecab3604cd308bb366971356fc804b01cf7b6ea71a74d24dbf66a2aff5a987f1",
+        "guard:authorization.user.change": "8023a9cf24083714e500c509a5f751cf7f9ef3d5bb0b7d0461dc1778d9a2b31c",
         "guard:authorization.user.create": "3e799c1b058187c17e42c4a18bbadf83f5ec078e139d990d4d34788cc9bdb4e6",
         "guard:authorization.user.delete": "3ecf26206539dfab13db08ef03fc2b8717fdc0a04570da176cd238d5829682ab",
         "guard:automation.server_action.execute": "c854e12e8cbd4a6416bfefcbdd6c902fb70f1a2af861050d8ddcd0284104277d",
@@ -5265,7 +5265,7 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:res.company.write:orm_write:1": "27eb5e3cc821efb88c7e56130c397f482d15ac654d85f48b942f010eb5f55e99",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.create:orm_create:1": "ff39554ce426f2f0de96cbc74ec6888f26e46812fe0b3dc26566f9ca81b91640",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.unlink:orm_unlink:1": "bd5ece62a5736c3035eccd866ac01a2d31228b2e691a044a5bead0cf5bd40c36",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.write:orm_write:1": "649ee3c1306199140fa524aef6a68e0d86bdd063d4ae74bef7605d6f3c1fd423"
+        "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.write:orm_write:1": "b892dbfc757dc34f3e672e5aae5aa7aad9e1a1ecc69960b0cda52f9bfee783c7"
       }
     },
     {
@@ -151146,7 +151146,7 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.partial.reconcile.unlink:orm_unlink:2": "ac7559f9757a06939b70a0895d1972a86f2e82af2b6203addd7658e2f2bbb7bc",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.partial.reconcile.write:orm_write:1": "8c4b32f2ed7160900d0112484ce99c0117e23872448aeeae18da13a3a1338499",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.partial.reconcile.write:orm_write:2": "3cce2fadc4ca36824e6018d998d1249d04bd3bbdcf1ba796b9fc3a79857e3654",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/multi_company_expenses.py:res.users._compute_usl_expense_company_profile_status:sudo:1": "e59adf94ca542f88ff84801ac0bd3242231ee95df0512b8692e9a40b1ee7c41a",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/multi_company_expenses.py:res.users._compute_usl_expense_company_profile_status:sudo:1": "2206b5c2db3f79b3d27e2b04cea1ce82a8b6ade00e6c4cad9a7fc11f5bef5837",
         "sink:usl_accounting:custom-addons/usl_accounting/models/multi_company_expenses.py:res.users._usl_ensure_expense_company_profiles:orm_create:1": "98980f7f462f8920b3c6db292d56e03b6e04e85700d18057fd7b6fb3026b3048",
         "sink:usl_accounting:custom-addons/usl_accounting/models/multi_company_expenses.py:res.users._usl_ensure_expense_company_profiles:orm_write:1": "dfb3cb609becba05356dc3ce45e378602d8bdbfaea6b84c4eb03d4db412b9f56",
         "sink:usl_accounting:custom-addons/usl_accounting/models/multi_company_expenses.py:res.users._usl_ensure_expense_company_profiles:sudo:1": "9edd80110f8929ac1cb208f191b19d400de97421198ad4dc1b13ff2c5178e7ca",
@@ -169115,12 +169115,12 @@
         "sink:usl_sign:custom-addons/usl_sign/models/external.py:usl.sign.external.journey.action_import:orm_write:1": "411fa78c2457e0d0cfffd73465527783417eebd267579ce39ef7ce0f61c24454",
         "sink:usl_sign:custom-addons/usl_sign/models/external.py:usl.sign.external.journey.create:orm_create:1": "acfcdf2e06f048bf655b0023d2560f8118e83b3b9725ba6c413880ce5e0e3438",
         "sink:usl_sign:custom-addons/usl_sign/models/external.py:usl.sign.external.journey.write:orm_write:1": "5391ec149215444194db4501fe2678a2c61ad9bd32d55fe4750d5ad811c1f1a0",
-        "sink:usl_sign:custom-addons/usl_sign/models/partner.py:res.partner._compute_signature_summary:external_call:1": "41243402065662745a0f792ec3663b4376e8e32125557784693ae920783a3a44",
-        "sink:usl_sign:custom-addons/usl_sign/models/partner.py:res.partner._compute_signature_summary:sudo:1": "7a8b6eec97b53466411a6c91bb53aba8555cb753ce90ac3f9b82b70b6d593a82",
+        "sink:usl_sign:custom-addons/usl_sign/models/partner.py:res.partner._compute_signature_summary:external_call:1": "1fa8c198a663cbe1c4d54fdd7b4e533c3c92b5fe639aa43f81e5d058e83839ef",
+        "sink:usl_sign:custom-addons/usl_sign/models/partner.py:res.partner._compute_signature_summary:sudo:1": "00def63d052e0611fcec0f14c7a90fd1ed7222ca60b1fc8204b33647fd2310d7",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._close_outstanding_work:orm_write:1": "7480f225339d0333c9d3d06eca6ee4f9747f8fbe5c25317aa4c33c6110ee32e7",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._close_outstanding_work:orm_write:2": "a6e109e202e30ee5bc785560a4ff5b9b881e937e344100ce6afe23f45f736cae",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._compute_next_step:sudo:1": "93b9bd3176263eb5f92a465d028f9a0e4d260da771375ebcfa45ab6b42224735",
-        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._compute_signer_id:sudo:1": "7f9606acdb1cd3222aef54c8f3e8d548ede2b1fb067837f622ec2fcd0d0625fa",
+        "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._compute_signer_id:sudo:1": "212821c28fde23df5410760e6073de716f71f8dc5818d76970b581d61e7a798d",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._compute_workspace_presentation:sudo:1": "bcb4881f5da4935c2da080eb2922a7fbdd5d56913e6a0fe7b06570c8ff3f20e0",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._create_evidence:orm_create:1": "664bb3fe151ebe44e3c91d92549b8d334f70fcfac8b39f94a12bbcd332a6849e",
         "sink:usl_sign:custom-addons/usl_sign/models/request.py:sign.oca.request._create_external_archive:orm_create:1": "f2d7000725b31e618d6967bffa59dddf9e7d1ddfcb7d01437b570c33c73bbdc5",
@@ -194750,6 +194750,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "694a93d69cd4b3422af4b55772877d3a98472589bc46346157093b557727896e",
+  "qualified_policy_digest": "463665063254ee30592f5e02e29ba71ff8aade1e5f7ca232bcb825b77dd5b181",
   "schema": "usl-action-risk-policy-v1"
 }
