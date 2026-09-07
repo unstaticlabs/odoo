@@ -569,15 +569,8 @@ class RebuildAccountOverview(models.Model):
                              'not_applicable'
                          )
                        ORDER BY
-                             (declaration.deadline_date < CURRENT_DATE),
-                             CASE
-                                 WHEN declaration.deadline_date >= CURRENT_DATE
-                                 THEN declaration.deadline_date
-                             END ASC NULLS LAST,
-                             CASE
-                                 WHEN declaration.deadline_date < CURRENT_DATE
-                                 THEN declaration.deadline_date
-                             END DESC NULLS LAST,
+                             (declaration.deadline_date < CURRENT_DATE) DESC,
+                             declaration.deadline_date,
                              declaration.id
                        LIMIT 1
                   ) next_declaration ON TRUE
