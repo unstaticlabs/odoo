@@ -3,6 +3,7 @@ from odoo.tests import TransactionCase, tagged
 from odoo.addons.usl_locale.models.ir_ui_menu import (
     DEEMPHASIZED_ROOT_MENU_XMLIDS,
     PRIMARY_ROOT_MENU_XMLIDS,
+    SECONDARY_ROOT_MENU_XMLIDS,
     TRAILING_ROOT_MENU_XMLIDS,
     order_root_menu_items,
 )
@@ -14,10 +15,11 @@ class TestFocusedAppLauncher(TransactionCase):
         self.assertEqual(PRIMARY_ROOT_MENU_XMLIDS[0], "usl_home.menu_usl_home_root")
 
     def test_distribution_root_menu_order_preserves_unspecified_apps(self):
-        unspecified = "usl_tese_payroll.menu_tese_payroll_root"
+        unspecified = "an_unranked_module.menu_root"
         unordered = [
             *reversed(PRIMARY_ROOT_MENU_XMLIDS),
             TRAILING_ROOT_MENU_XMLIDS[2],
+            *reversed(SECONDARY_ROOT_MENU_XMLIDS),
             unspecified,
             TRAILING_ROOT_MENU_XMLIDS[0],
             TRAILING_ROOT_MENU_XMLIDS[1],
@@ -28,8 +30,57 @@ class TestFocusedAppLauncher(TransactionCase):
             [
                 *PRIMARY_ROOT_MENU_XMLIDS,
                 unspecified,
+                *SECONDARY_ROOT_MENU_XMLIDS,
                 *TRAILING_ROOT_MENU_XMLIDS,
             ],
+        )
+
+    def test_commerce_apps_are_contiguous(self):
+        """B2C, stock, purchase, sales and manufacturing must not be split."""
+        commerce = (
+            "usl_b2c.menu_b2c_root",
+            "stock.menu_stock_root",
+            "purchase.menu_purchase_root",
+            "sale.sale_menu_root",
+            "mrp.menu_mrp_root",
+        )
+        positions = [PRIMARY_ROOT_MENU_XMLIDS.index(xmlid) for xmlid in commerce]
+
+        self.assertEqual(positions, list(range(positions[0], positions[0] + len(commerce))))
+
+    def test_sign_immediately_precedes_tese_payroll(self):
+        sign_position = SECONDARY_ROOT_MENU_XMLIDS.index("sign_oca.sign_oca_root_menu")
+        tese_position = SECONDARY_ROOT_MENU_XMLIDS.index(
+            "usl_tese_payroll.menu_tese_payroll_root"
+        )
+
+        self.assertEqual(sign_position + 1, tese_position)
+
+    def test_loaded_launcher_keeps_commerce_before_supporting_apps(self):
+        """End-to-end: the order the web client receives, not just the constants."""
+        menus = self.env["ir.ui.menu"].load_menus(debug=False)
+        loaded = [
+            menus[menu_id].get("xmlid")
+            for menu_id in menus["root"]["children"]
+            if menus.get(menu_id, {}).get("xmlid")
+        ]
+        ranked = [
+            xmlid
+            for xmlid in loaded
+            if xmlid in PRIMARY_ROOT_MENU_XMLIDS + SECONDARY_ROOT_MENU_XMLIDS
+        ]
+        expected = [
+            xmlid
+            for xmlid in PRIMARY_ROOT_MENU_XMLIDS + SECONDARY_ROOT_MENU_XMLIDS
+            if xmlid in set(ranked)
+        ]
+
+        self.assertEqual(ranked, expected)
+        self.assertIn("sale.sale_menu_root", ranked)
+        self.assertIn("sign_oca.sign_oca_root_menu", ranked)
+        self.assertLess(
+            ranked.index("sale.sale_menu_root"),
+            ranked.index("sign_oca.sign_oca_root_menu"),
         )
 
     def test_contacts_immediately_precede_employees(self):
