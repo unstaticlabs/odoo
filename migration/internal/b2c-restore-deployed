@@ -214,6 +214,7 @@ run_stage_script() {
         -e USL_B2C_NATIVE_HISTORY_MODE="${history_mode:-dry_run}" \
         -e USL_B2C_MARKETING_COST_MODE="${USL_B2C_MARKETING_COST_MODE:-dry_run}" \
         -e USL_B2C_TAG_MODE="${USL_B2C_TAG_MODE:-dry_run}" \
+        -e USL_B2C_MANUFACTURING_MODE="${USL_B2C_MANUFACTURING_MODE:-dry_run}" \
         "$odoo_image" \
         odoo shell --config=/etc/odoo/odoo.conf \
         --addons-path="$USL_MIGRATION_ADDONS_PATH" \
