@@ -110,6 +110,33 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         publish = caller[caller.index("  publish:\n"):]
         self.assertIn("pull-requests: read", publish)
 
+    def test_release_notes_are_summarized_for_users_on_production_only(self) -> None:
+        notes_step = self.workflow.index("name: Build release notes from merged pull requests")
+        manifest_step = self.workflow.index("name: Create release manifest from published components")
+        step = self.workflow[notes_step:manifest_step]
+        self.assertIn("GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}", step)
+        self.assertIn("summarize=(--summarize)", step)
+        # Only a production release is announced, so only it is summarized.
+        self.assertIn('[ "$GITHUB_REF" = \'refs/heads/19-usl\' ]', step)
+        self.assertIn('[ -n "$GEMINI_API_KEY" ]', step)
+        # The key must never reach a command line, where ``ps`` and ``set -x``
+        # would expose it.
+        self.assertNotIn("--gemini-api-key", self.workflow)
+        # ``secrets: inherit`` already carries the secret into this reusable
+        # workflow. A declared ``secrets:`` input would break recovery
+        # dispatches until the secret exists.
+        self.assertNotIn("secrets:\n", self.workflow[:self.workflow.index("jobs:")])
+        caller = (ROOT / ".github/workflows/qualification.yml").read_text(encoding="utf-8")
+        self.assertIn("secrets: inherit", caller)
+
+    def test_the_release_job_installs_no_python_dependencies(self) -> None:
+        """Release tooling runs on the runner's bare ``python3``."""
+        # ``release`` is the last job, so its text runs to the end of the file.
+        release_job = self.workflow[self.workflow.index("  release:\n"):]
+        self.assertNotIn("pip install", release_job)
+        self.assertNotIn("setup-python", release_job)
+        self.assertIn("timeout-minutes:", release_job)
+
     def test_release_attests_the_exact_verified_renderer_digest(self) -> None:
         self.assertIn(
             "name: Attest verified renderer as distribution integrator",

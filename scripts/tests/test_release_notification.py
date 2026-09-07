@@ -264,16 +264,20 @@ class ReleaseChangelogRenderingTests(unittest.TestCase):
         )
         body = str(database.committed[result["message_id"]]["body"])
         self.assertIn("<h3>USL Distribution release 2026-09-05</h3>", body)
+        # The Conventional Commit prefix is gone: a title may already be a
+        # plain-language sentence written for the people reading this channel.
         self.assertIn(
-            '<li>fix(release): compare definitions &lt;script&gt;x&lt;/script&gt; '
+            '<li>compare definitions &lt;script&gt;x&lt;/script&gt; '
             '(<a href="https://github.com/unstaticlabs/odoo/pull/111">#111</a>)</li>',
             body,
         )
         self.assertIn(
-            '<li>other: Contributors can understand a pull request '
+            '<li>Contributors can understand a pull request '
             '(<a href="https://github.com/unstaticlabs/odoo/pull/44">#44</a>)</li>',
             body,
         )
+        self.assertNotIn("fix(release):", body)
+        self.assertNotIn("<li>other:", body)
         self.assertNotIn("<script>", body)
         self.assertNotIn("<strong>Fixes</strong>", body)
         self.assertNotIn("<table", body)
@@ -303,6 +307,40 @@ class ReleaseChangelogRenderingTests(unittest.TestCase):
         self.assertEqual(body.count("<li>"), 6)
         self.assertLess(body.index("#2</a>"), body.index("#3</a>"))
         self.assertIn("<p><strong>Action required:</strong> Rotate the keys</p>", body)
+        self.assertNotIn("<table", body)
+
+    def test_summarized_notes_link_every_pull_request_exactly_once(self) -> None:
+        """A summary rewrites titles; it never touches a number or a link."""
+        database = _Database()
+        changes = [
+            change(200 + index, "chore", None, f"Background work you will not notice, {index}.")
+            for index in range(12)
+        ]
+        changes[0] = change(
+            111, "feat", "b2c",
+            "Your shop orders now show the real cost of each item.",
+        )
+        result = run_program(
+            database,
+            self.notes(
+                changes,
+            ) | {"summary": "This release makes invoicing quicker. You need to do nothing."},
+        )
+        body = str(database.committed[result["message_id"]]["body"])
+        self.assertIn(
+            "<p>This release makes invoicing quicker. You need to do nothing.</p>", body,
+        )
+        self.assertIn(
+            "<li>Your shop orders now show the real cost of each item. "
+            '(<a href="https://github.com/unstaticlabs/odoo/pull/111">#111</a>)</li>',
+            body,
+        )
+        prefix = 'href="https://github.com/unstaticlabs/odoo/pull/'
+        self.assertEqual(body.count(prefix), len(changes))
+        for item in changes:
+            self.assertEqual(body.count(f">#{item['number']}</a>"), 1)
+        self.assertNotIn("chore", body)
+        self.assertNotIn("feat(b2c)", body)
         self.assertNotIn("<table", body)
 
     def test_v1_notes_still_render_as_plain_items(self) -> None:
