@@ -507,10 +507,6 @@ class B2cImportBatchMaterialise(models.Model):
             ),
         )
         discount = float(self._discount_percent(money))
-        costs = {
-            (cost["sku"], cost["name"]): cost
-            for cost in self._supplier_costs().get(row.id, ())
-        }
         for sequence, line in enumerate(self._lines_of(row), start=1):
             values = line.values or {}
             self._trusted("sale.order.line").create(
@@ -522,7 +518,6 @@ class B2cImportBatchMaterialise(models.Model):
                     "price_unit": float(self._decimal(values, "unit_price")),
                     "discount": discount,
                     "sequence": sequence * 10,
-                    "purchase_price": float(self._supplier_unit_cost(costs, values)),
                 },
             )
         if money["shipping"]:
@@ -543,6 +538,10 @@ class B2cImportBatchMaterialise(models.Model):
         # for a sale that already happened is the day it happened.
         sale.write({"date_order": row.occurred_at})
         self._deliver(sale, row)
+        # What the sale cost is not this module's to state. Recording what the
+        # supplier shipped lets the fulfilment event allocate it, which is the
+        # one place a B2C line's cost is decided.
+        self._record_known_fulfilment()
         return sale
 
     def _deliver(self, sale, row):
@@ -588,20 +587,6 @@ class B2cImportBatchMaterialise(models.Model):
             if fulfilment.fulfilment_of_row_id == row:
                 return fulfilment.occurred_at
         return None
-
-    def _supplier_unit_cost(self, costs, values):
-        """Return what the supplier charged for one of this line, if it says."""
-        sku = (values.get("original_sku") or "").strip()
-        name = (values.get("original_name") or "").strip()
-        for key, cost in costs.items():
-            if sku and key[0] == sku:
-                return cost["unit_cost"]
-        for key, cost in costs.items():
-            if name and key[1].startswith(name[:20]):
-                return cost["unit_cost"]
-        if len(costs) == 1:
-            return next(iter(costs.values()))["unit_cost"]
-        return Decimal("0")
 
     def _assert_total(self, sale, money, row):
         """Prove the sale totals exactly what the channel says was paid."""

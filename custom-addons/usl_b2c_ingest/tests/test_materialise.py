@@ -279,7 +279,60 @@ class TestMaterialise(TestImportBatch):
         goods = self._sale(batch, "9000000001").order_line.filtered(
             lambda line: line.product_id != self.carriage,
         )
-        self.assertAlmostEqual(goods.purchase_price, 16.00, places=2)
+        event = self.env["b2c.fulfilment.event"].search(
+            [("external_order_id", "=", "9000000001")],
+        )
+        self.assertEqual(event.sale_order_line_ids, goods, "carriage bore part of the cost")
+        self.assertAlmostEqual(event.company_cogs_amount, 20.00, places=2)
+        # The whole supplier bill, not just the item price: shipping the goods
+        # is part of what they cost.
+        self.assertAlmostEqual(goods.purchase_price, 20.00, places=2)
+
+    def test_the_margin_is_what_was_sold_less_what_it_cost(self):
+        batch, _jersey, _cap = self._etsy_drop()
+        self.channels["etsy"].printful_store_id = "11111111"
+        with patch(f"{MODEL}._printful_client", return_value=_Supplier(fixtures.PRINTFUL_ORDERS)):
+            batch.action_fetch_fulfilment()
+        batch.action_apply()
+        goods = self._sale(batch, "9000000001").order_line.filtered(
+            lambda line: line.product_id != self.carriage,
+        )
+
+        self.assertAlmostEqual(
+            goods.margin,
+            goods.price_subtotal - goods.purchase_price * goods.product_uom_qty,
+            places=2,
+        )
+        self.assertGreater(goods.margin, 0, "a sale that cost less than it sold for")
+
+    def test_a_refund_afterwards_nets_the_cost_out(self):
+        batch, _jersey, _cap = self._etsy_drop()
+        self.channels["etsy"].printful_store_id = "11111111"
+        with patch(f"{MODEL}._printful_client", return_value=_Supplier(fixtures.PRINTFUL_ORDERS)):
+            batch.action_fetch_fulfilment()
+        batch.action_apply()
+        goods = self._sale(batch, "9000000001").order_line.filtered(
+            lambda line: line.product_id != self.carriage,
+        )
+        self.assertAlmostEqual(goods.purchase_price, 20.00, places=2)
+
+        # The supplier refunds it a fortnight later. That arrives in a drop
+        # about the refund, which holds no sale of its own: the order it
+        # changes the cost of is one Odoo already has.
+        later = self.env["b2c.import.batch"].create(
+            {"name": "Refund", "company_id": self.company.id},
+        )
+        later.state = "parsed"
+        with patch(f"{MODEL}._printful_client", return_value=_Supplier(fixtures.PRINTFUL_REFUNDED)):
+            later.action_fetch_fulfilment()
+
+        events = self.env["b2c.fulfilment.event"].search(
+            [("external_order_id", "=", "9000000001")],
+        )
+        self.assertEqual(len(events), 2)
+        self.assertEqual(sorted(events.mapped("state")), ["fulfilled", "refunded"])
+        self.assertAlmostEqual(sum(events.mapped("company_cogs_amount")), 0.00, places=2)
+        self.assertAlmostEqual(goods.purchase_price, 0.00, places=2)
 
     def test_a_medusa_drop_states_its_destination_and_its_carriage(self):
         collar = self._product("Invented Chain")

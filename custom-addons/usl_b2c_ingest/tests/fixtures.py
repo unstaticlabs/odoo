@@ -331,3 +331,34 @@ PRINTFUL_ORDERS = (
         ],
     },
 )
+
+#: The same order, refunded afterwards. Printful states a refund as its own
+#: order record, so it is a second event against the same lines.
+PRINTFUL_REFUNDED = (
+    *PRINTFUL_ORDERS,
+    {
+        "id": 5000000009,
+        "external_id": "9000000001",
+        "store_id": 11111111,
+        "status": "Refunded",
+        "created_at": "2026-03-20T09:00:00Z",
+        "recipient": {
+            "name": "Wilhelmina Fabricant",
+            "address1": "1 Invented Way",
+            "city": "Bremen",
+            "zip": "28195",
+            "country_code": "DE",
+            "email": "one@example.invalid",
+        },
+        "costs": {
+            "currency": "EUR",
+            "subtotal": "16.00",
+            "discount": "0.00",
+            "shipping": "4.00",
+            "tax": "0.00",
+            "vat": "0.00",
+            "total": "20.00",
+        },
+        "order_items": [],
+    },
+)

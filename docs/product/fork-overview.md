@@ -26,6 +26,7 @@ production-admission work.
 | Pocket ID OIDC authentication and named-user governance | `usl_pocketid`, `usl_access_control` | Odoo sign-in and **Settings** | Operational in production |
 | Company-scoped roles, owned autonomous Agents, irreversible-action controls and immutable audit events | `usl_access_control` | **My Agents**, access rights and protected actions | Operational |
 | Historical commerce evidence and native future sales/inventory foundations | `usl_b2c`, `usl_documents_b2c` | **B2C**, **Sales**, **Inventory** | Variants, locations, traceability, UoM and Landed Costs available; physical opening inventory and advanced automation remain |
+| Channel export ingestion into native sales, deliveries, invoices, destination VAT and settlement | `usl_b2c_ingest`, `usl_b2c` | **B2C > Channel Imports** | Delivered and proven against a production clone; the chart corrections it requires and the first production drop remain |
 | French-first terminology, European dates and company-aware presentation | `usl_locale` | All affected backend views | Operational |
 | French electronic-invoice reception for UBL, CII and Factur-X | `rebuild_account_migration`, native Accounting/localization | **Vendors > Incoming E-Invoices** | Ready but inactive pending approved-platform production onboarding |
 | Agent-authenticated Odoo automation endpoint and tool contract | separately built `odoo-mcp` image admitted by its environment GitOps ledger | **My Agents** and the MCP service endpoint | MCP operational; governed Agent identities are qualified for compatibility, while MCP advances independently |
@@ -43,6 +44,7 @@ Only `custom-addons/` is part of the normal USL add-ons path.
 | `usl_access_control` | Named roles, owned autonomous identities, delegated-authority enforcement, governed API credentials, irreversible-action enforcement and security audit evidence. |
 | `usl_accounting` | Native/OCA Accounting extensions, expense and bank matching, foreign-currency settlement, fiscal-year behavior, scheduled statements, analytics and evidence security. |
 | `usl_b2c` | Commerce channels, orders, events, SKU aliases, accounting sessions, controls and analytics. |
+| `usl_b2c_ingest` | Etsy, Medusa and Printful ingestion: format detection, deduplication, product mapping, supplier cost, readiness checks, native sales and deliveries, invoicing, commission billing and the OSS return. |
 | `usl_document_templates` | Governed report bindings, renderer integration, immutable correspondence and PDF provenance. |
 | `usl_documents` | Paperless-backed Documents application, cached metadata, links, versions, operations, access policy and browser client. |
 | `usl_documents_accounting` | Authorized Accounting evidence links and exact-version archive controls. |
