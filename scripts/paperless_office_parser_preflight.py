@@ -6,7 +6,6 @@ from pathlib import Path
 
 from paperless.parsers.tika import TikaDocumentParser
 
-
 MARKER = "USL Paperless Office parser compatibility probe"
 RTF_PAYLOAD = (
     r"{\rtf1\ansi\deff0 {\fonttbl {\f0 Arial;}}"

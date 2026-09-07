@@ -2,7 +2,6 @@
 
 from odoo.exceptions import UserError
 
-
 admin = env.ref("base.user_admin")
 documents = env["usl.document"].with_user(admin)
 result = documents.workspace_data(query="outage acceptance")

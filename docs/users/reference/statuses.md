@@ -30,8 +30,9 @@ later lines backwards.
 
 Batch readiness is separate from workflow status and is not a permanent
 column in the main expense list. At batch level, **Ready** means every line has
-the required description, category, non-zero amount and receipt. **Needs
-information** identifies one or more exceptions. Only an incomplete Draft
+the required description, category, non-zero amount and receipt, or a
+documented decision to continue without a receipt. **Needs information**
+identifies one or more exceptions. Only an incomplete Draft
 line blocks submission; an Approved or Posted exception stays visible for
 review without being resubmitted.
 

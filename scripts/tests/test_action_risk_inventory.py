@@ -1077,6 +1077,90 @@ class TestDrift(ActionRiskInventoryTestCase):
             ["Changed action requires review: rpc:x.changed (sources)"],
         )
 
+    def test_carry_moved_sinks_renames_only_identical_relocated_helpers(self):
+        moved = self.action(
+            "sink:app:custom-addons/app/models/old.py:app.thing._helper:sudo:1",
+            "sink",
+            digest=ONE,
+        )
+        changed = self.action(
+            "sink:app:custom-addons/app/models/old.py:app.thing._edited:orm_write:1",
+            "sink",
+            digest=ONE,
+        )
+        kept = self.action("rpc:app.thing.action_run", "rpc")
+        expected = self.surface([moved, changed, kept])
+        relocated = self.action(
+            "sink:app:custom-addons/app/models/new.py:app.thing._helper:sudo:1",
+            "sink",
+            digest=ONE,
+        )
+        rewritten = self.action(
+            "sink:app:custom-addons/app/models/new.py:app.thing._edited:orm_write:1",
+            "sink",
+            digest=ZERO,
+        )
+        candidate = self.surface([relocated, rewritten, kept])
+        policy = self.policy(
+            [
+                {
+                    "id": "internal",
+                    "classification": "system_internal",
+                    "domain": "test",
+                    "consequence": "Test consequence.",
+                    "rationale": "Test rationale.",
+                    "evidence_id": "test-contract",
+                    "action_keys": [moved["key"], changed["key"]],
+                    "reviewed_digests": {moved["key"]: ONE, changed["key"]: ONE},
+                    "overrides": {moved["key"]: {"reachability_proof": "internal"}},
+                },
+                {
+                    "id": "public",
+                    "classification": "operational",
+                    "domain": "test",
+                    "consequence": "Test consequence.",
+                    "rationale": "Test rationale.",
+                    "evidence_id": "test-contract",
+                    "action_keys": [kept["key"]],
+                    "reviewed_digests": {kept["key"]: ZERO},
+                },
+            ],
+        )
+
+        renames, unmatched = inventory.carry_moved_sinks(expected, candidate, policy)
+
+        self.assertEqual(renames, {moved["key"]: relocated["key"]})
+        self.assertEqual(
+            unmatched,
+            [f"Removed sink has no single moved successor: {changed['key']}"],
+        )
+        internal = policy["actions"][0]
+        self.assertEqual(internal["action_keys"], [relocated["key"], changed["key"]])
+        self.assertEqual(internal["reviewed_digests"], {relocated["key"]: ONE, changed["key"]: ONE})
+        self.assertEqual(internal["overrides"], {relocated["key"]: {"reachability_proof": "internal"}})
+        self.assertEqual(policy["actions"][1]["action_keys"], [kept["key"]])
+        normalized = inventory.normalize_policy_actions(policy, [])
+        self.assertEqual(normalized[relocated["key"]]["reviewed_digest"], ONE)
+        self.assertEqual(
+            inventory.compare_surfaces(
+                expected,
+                candidate,
+                action_kinds={"sink"},
+            ),
+            [
+                f"Added action requires classification: {rewritten['key']}",
+                f"Added action requires classification: {relocated['key']}",
+                f"Removed action leaves stale review: {changed['key']}",
+                f"Removed action leaves stale review: {moved['key']}",
+            ],
+        )
+
+    def test_carry_moved_sinks_is_a_cli_subcommand(self):
+        args = inventory._parser().parse_args(
+            ["carry-moved-sinks", "--candidate", "c.json", "--module", "app"],
+        )
+        self.assertEqual((args.command, args.module), ("carry-moved-sinks", ["app"]))
+
 
 if __name__ == "__main__":
     unittest.main()

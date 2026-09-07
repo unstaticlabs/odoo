@@ -16,6 +16,7 @@ from ..controllers import attachment as attachment_controller_module
 from ..controllers.attachment import DocumentsAttachmentController
 from ..controllers.documents import DocumentsController
 from ..models.document import UslDocument
+from ..models.document_sync import UslDocument as UslDocumentSync
 from ..models.paperless_client import (
     PaperlessClient,
     PaperlessCompatibilityError,
@@ -2094,7 +2095,7 @@ class TestDocuments(TransactionCase):
         }
         with (
             patch.object(PaperlessClient, "compatibility", return_value={"ok": True}),
-            patch.object(UslDocument, "_sync_metadata_catalogs", return_value=None),
+            patch.object(UslDocumentSync, "_sync_metadata_catalogs", return_value=None),
             patch.object(UslDocument, "action_sync_permissions", return_value=True),
             patch.object(PaperlessClient, "list_documents", return_value=payload),
             patch.object(PaperlessClient, "list_trashed_documents", return_value=[]),
@@ -2149,7 +2150,7 @@ class TestDocuments(TransactionCase):
         }
         with (
             patch.object(PaperlessClient, "compatibility", return_value={"ok": True}),
-            patch.object(UslDocument, "_sync_metadata_catalogs", return_value=None),
+            patch.object(UslDocumentSync, "_sync_metadata_catalogs", return_value=None),
             patch.object(PaperlessClient, "list_documents", return_value=payload),
             patch.object(PaperlessClient, "list_trashed_documents", return_value=[]),
             patch.object(
@@ -2174,7 +2175,7 @@ class TestDocuments(TransactionCase):
 
         with (
             patch.object(PaperlessClient, "compatibility", return_value={"ok": True}),
-            patch.object(UslDocument, "_sync_metadata_catalogs", return_value=None),
+            patch.object(UslDocumentSync, "_sync_metadata_catalogs", return_value=None),
             patch.object(PaperlessClient, "list_documents", return_value=payload),
             patch.object(PaperlessClient, "list_trashed_documents", return_value=[]),
         ):
@@ -2205,7 +2206,7 @@ class TestDocuments(TransactionCase):
         }
         with (
             patch.object(PaperlessClient, "compatibility", return_value={"ok": True}),
-            patch.object(UslDocument, "_sync_metadata_catalogs", return_value=None),
+            patch.object(UslDocumentSync, "_sync_metadata_catalogs", return_value=None),
             patch.object(
                 PaperlessClient,
                 "list_documents",
@@ -2231,7 +2232,7 @@ class TestDocuments(TransactionCase):
         document = self._document(177, source="odoo_upload")
         with (
             patch.object(PaperlessClient, "compatibility", return_value={"ok": True}),
-            patch.object(UslDocument, "_sync_metadata_catalogs", return_value=None),
+            patch.object(UslDocumentSync, "_sync_metadata_catalogs", return_value=None),
             patch.object(
                 PaperlessClient,
                 "list_documents",
@@ -2271,7 +2272,7 @@ class TestDocuments(TransactionCase):
         }
         with (
             patch.object(PaperlessClient, "compatibility", return_value={"ok": True}),
-            patch.object(UslDocument, "_sync_metadata_catalogs", return_value=None),
+            patch.object(UslDocumentSync, "_sync_metadata_catalogs", return_value=None),
             patch.object(PaperlessClient, "list_documents", return_value=payload),
             patch.object(PaperlessClient, "list_trashed_documents", return_value=[]),
             patch.object(
@@ -3291,7 +3292,7 @@ class TestDocuments(TransactionCase):
         client.list_trashed_documents.return_value = []
 
         with (
-            patch.object(UslDocument, "_sync_metadata_catalogs", return_value=None),
+            patch.object(UslDocumentSync, "_sync_metadata_catalogs", return_value=None),
             patch.object(
                 UslDocument,
                 "_paperless",
@@ -3321,7 +3322,7 @@ class TestDocuments(TransactionCase):
         empty_page = {"next": None, "results": []}
         with (
             patch.object(PaperlessClient, "compatibility", return_value={"ok": True}),
-            patch.object(UslDocument, "_sync_metadata_catalogs", return_value=None),
+            patch.object(UslDocumentSync, "_sync_metadata_catalogs", return_value=None),
             patch.object(PaperlessClient, "list_documents", return_value=empty_page),
             patch.object(
                 PaperlessClient,
@@ -3399,7 +3400,7 @@ class TestDocuments(TransactionCase):
         active_page = {"next": None, "results": [active_payload]}
         with (
             patch.object(PaperlessClient, "compatibility", return_value={"ok": True}),
-            patch.object(UslDocument, "_sync_metadata_catalogs", return_value=None),
+            patch.object(UslDocumentSync, "_sync_metadata_catalogs", return_value=None),
             patch.object(PaperlessClient, "list_documents", return_value=active_page),
             patch.object(PaperlessClient, "list_trashed_documents", return_value=[]),
             patch.object(UslDocument, "action_sync_permissions", return_value=True),
@@ -3422,7 +3423,7 @@ class TestDocuments(TransactionCase):
         }
         with (
             patch.object(PaperlessClient, "compatibility", return_value={"ok": True}),
-            patch.object(UslDocument, "_sync_metadata_catalogs", return_value=None),
+            patch.object(UslDocumentSync, "_sync_metadata_catalogs", return_value=None),
             patch.object(
                 PaperlessClient,
                 "list_documents",
@@ -3471,7 +3472,7 @@ class TestDocuments(TransactionCase):
         }
         with (
             patch.object(PaperlessClient, "compatibility", return_value={"ok": True}),
-            patch.object(UslDocument, "_sync_metadata_catalogs", return_value=None),
+            patch.object(UslDocumentSync, "_sync_metadata_catalogs", return_value=None),
             patch.object(
                 PaperlessClient,
                 "list_documents",

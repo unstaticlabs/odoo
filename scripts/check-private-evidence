@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+"""Refuse business data in a public repository.
+
+The check cannot hard-code what it looks for — that would be the very leak it
+prevents. It reads the pinned evidence instead and proves that none of those
+values appear in any tracked file. Without the evidence it reports honestly
+rather than passing silently.
+"""
+
+from __future__ import annotations
+
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+EVIDENCE = ROOT / "usl-online-dump" / "supplemental" / "b2c"
+# Short or numeric values collide with ordinary code; identities and references
+# are what actually identify a counterparty.
+MINIMUM_LENGTH = 6
+
+
+def evidence_values():
+    """Return every distinctive string the evidence considers confidential."""
+    values: set[str] = set()
+
+    def walk(node, key=None):
+        if isinstance(node, dict):
+            for name, item in node.items():
+                walk(item, name)
+        elif isinstance(node, list):
+            for item in node:
+                walk(item, key)
+        elif isinstance(node, str) and key in {
+            "partner", "bill_ref", "identities", "name", "label", "bill_label",
+        }:
+            values.add(node)
+
+    for path in sorted(EVIDENCE.glob("*.json")):
+        document = json.loads(path.read_text(encoding="utf-8"))
+        if not str(document.get("schema", "")).startswith("usl-b2c-supplier"):
+            continue
+        identities = document.get("identities") or {}
+        values.update(identities)
+        values.update(identities.values())
+        walk(document.get("acquisitions"))
+    return {
+        value.strip()
+        for value in values
+        if len(value.strip()) >= MINIMUM_LENGTH and not value.strip().isdigit()
+    }
+
+
+# Only paths this distribution authors. Upstream Odoo and vendored OCA code
+# cannot carry our counterparties, and scanning them makes the check unusable.
+AUTHORED = (
+    "AGENTS.md", "Makefile", "README.md", "ROADMAP.md", "compose.yaml",
+    "accounting_compat", "custom-addons", "deploy", "docs", "migration",
+    "operations", "scripts",
+)
+
+
+def tracked_hits(values):
+    """Return {value: [files]} for every pinned value found in authored code."""
+    patterns = []
+    for value in values:
+        patterns.extend(["-e", value])
+    result = subprocess.run(
+        ["git", "grep", "-n", "--fixed-strings", "--no-color", *patterns, "--", *AUTHORED],
+        cwd=ROOT, capture_output=True, text=True, check=False,
+    )
+    hits: dict[str, list[str]] = {}
+    for line in result.stdout.splitlines():
+        path, _, text = line.partition(":")
+        for value in values:
+            if value in text:
+                hits.setdefault(value, [])
+                if path not in hits[value]:
+                    hits[value].append(path)
+    return hits
+
+
+def main() -> int:
+    if not EVIDENCE.is_dir():
+        print(
+            "Private-evidence check: SKIPPED — "
+            f"no evidence under {EVIDENCE.relative_to(ROOT)} to check against.",
+        )
+        return 0
+    values = evidence_values()
+    if not values:
+        print("Private-evidence check: SKIPPED — the evidence names no counterparties.")
+        return 0
+    leaks = tracked_hits(sorted(values))
+    if leaks:
+        print("Private-evidence check: FAIL", file=sys.stderr)
+        for value, hits in leaks.items():
+            # Name the file, never the value: this output reaches CI logs.
+            print(f"- a pinned evidence value appears in: {', '.join(hits)}", file=sys.stderr)
+        print(
+            "\nMove the value into the evidence package and read it through "
+            "usl_b2c_restore.private_evidence.",
+            file=sys.stderr,
+        )
+        return 1
+    print(f"Private-evidence check: PASS ({len(values)} pinned values, none committed)")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

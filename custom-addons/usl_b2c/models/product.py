@@ -32,18 +32,19 @@ class ProductTemplate(models.Model):
         [
             ("not_applicable", "Not applicable"),
             ("not_evidenced", "Not evidenced"),
+            ("theoretical_reconstructed", "Theoretical history reconstructed"),
             ("approved", "Approved count received"),
             ("entered", "Opening adjustment entered"),
         ],
-        string="Opening Stock Evidence",
+        string="Inventory Evidence",
         default="not_applicable",
         index=True,
         copy=False,
         groups="usl_b2c.group_b2c_reader",
         help=(
-            "The source contains no stock history. Storable products remain "
-            "not evidenced until an approved dated count is entered through "
-            "a native inventory adjustment."
+            "Shows whether stock is unsupported, reconstructed from dated "
+            "acquisitions and evidenced consumption, or reconciled to an approved "
+            "physical count through a native inventory adjustment."
         ),
     )
     b2c_inventory_role = fields.Selection(
@@ -94,7 +95,7 @@ class ProductTemplate(models.Model):
             raise UserError(
                 self.env._(
                     "Select the exact supplier-pack variant to unpack when a "
-                    "purchasing product has more than one variant."
+                    "purchasing product has more than one variant.",
                 ),
             )
         return variants.action_usl_unpack_supplier_pack()
@@ -131,7 +132,7 @@ class ProductProduct(models.Model):
             raise UserError(
                 self.env._(
                     "This supplier pack needs exactly one active unpacking recipe "
-                    "before it can be processed."
+                    "before it can be processed.",
                 ),
             )
         return {

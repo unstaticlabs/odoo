@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from collections import defaultdict, deque
+from collections.abc import Iterable
 from pathlib import PurePosixPath
-from typing import Any, Iterable
+from typing import Any
 
 from operations.module_release import validate_inventory
-
 
 FOUNDATION_PATHS = (
     "addons/",

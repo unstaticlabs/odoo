@@ -6,7 +6,6 @@ from odoo import _, fields, models
 
 from odoo.addons.account.tools import normalize_account_number
 
-
 _GENERIC_BANK_LABEL_TOKENS = {
     "achat",
     "card",
@@ -114,10 +113,10 @@ class AccountBankStatementLine(models.Model):
             }:
                 if normalized_name := _normalize_text(name):
                     partner_names[
-                        (
+
                             commercial_partner.company_id.id or False,
                             normalized_name,
-                        )
+
                     ].add(commercial_partner.id)
 
         bank_accounts = defaultdict(set)
@@ -139,7 +138,7 @@ class AccountBankStatementLine(models.Model):
                 )
                 if normalized_account:
                     bank_accounts[
-                        (bank_account.company_id.id or False, normalized_account)
+                        bank_account.company_id.id or False, normalized_account,
                     ].add(commercial_partner.id)
 
         history_exact = defaultdict(list)
@@ -156,11 +155,11 @@ class AccountBankStatementLine(models.Model):
             stable_label = _stable_label(historical_line.payment_ref)
             if exact_label:
                 history_exact[
-                    (historical_line.company_id.id, exact_label)
+                    historical_line.company_id.id, exact_label,
                 ].append(partner_id)
             if stable_label:
                 history_pattern[
-                    (historical_line.company_id.id, stable_label)
+                    historical_line.company_id.id, stable_label,
                 ].append(partner_id)
 
         return {
@@ -331,7 +330,7 @@ class AccountBankStatementLine(models.Model):
 
     def _rebuild_refresh_partner_suggestions(self):
         eligible = self.filtered(
-            lambda line: not line.is_reconciled and not line.partner_id
+            lambda line: not line.is_reconciled and not line.partner_id,
         )
         stats = {"reviewed": len(self), "suggested": 0, "assigned": 0}
         if not eligible:
@@ -368,7 +367,7 @@ class AccountBankStatementLine(models.Model):
 
     def _retrieve_partner(self):
         if self.env.context.get("skip_retrieve_partner"):
-            return
+            return None
         return self._rebuild_refresh_partner_suggestions()
 
     def action_rebuild_refresh_partner_suggestions(self):
@@ -419,7 +418,7 @@ class AccountBankStatementLine(models.Model):
         manual_partner_change = "partner_id" in values
         identity_change = bool(
             {"account_number", "company_id", "partner_name", "payment_ref"}
-            & values.keys()
+            & values.keys(),
         )
         result = super().write(values)
         if manual_partner_change:

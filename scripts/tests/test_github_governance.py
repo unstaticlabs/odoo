@@ -10,7 +10,8 @@ from operations.github_governance import GovernanceError, load, validate, valida
 ROOT = Path(__file__).resolve().parents[2]
 RULESET = ROOT / "operations/contracts/github-usl-distribution-ruleset.json"
 PRODUCTION_RULESET = ROOT / "operations/contracts/github-usl-production-ruleset.json"
-URGENT_MIRROR = ROOT / ".github/workflows/urgent-staging-mirror.yml"
+BACK_MERGE_WORKFLOW = ROOT / ".github/workflows/staging-back-merge.yml"
+BACK_MERGE_SCRIPT = ROOT / "scripts/back-merge-production"
 
 
 class GithubGovernanceTests(unittest.TestCase):
@@ -73,9 +74,21 @@ class GithubGovernanceTests(unittest.TestCase):
         with self.assertRaisesRegex(GovernanceError, "promotion"):
             validate_production(value)
 
-    def test_rejected_urgent_fix_closes_its_staging_mirror(self):
-        workflow = URGENT_MIRROR.read_text(encoding="utf-8")
-        self.assertIn("SOURCE_MERGED: ${{ github.event.pull_request.merged }}", workflow)
-        self.assertIn('if [ "$EVENT_ACTION" = closed ] && [ "$SOURCE_MERGED" != true ]', workflow)
-        self.assertIn('gh pr close "$number"', workflow)
-        self.assertIn('gh pr reopen "$number"', workflow)
+    def test_production_advance_triggers_the_staging_back_merge(self):
+        workflow = BACK_MERGE_WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn("branches: [19-usl]", workflow)
+        # The schedule is the safety net for a push-triggered run that failed.
+        self.assertIn("schedule:", workflow)
+        self.assertIn("scripts/back-merge-production", workflow)
+
+    def test_back_merge_acts_only_while_staging_is_behind_production(self):
+        script = BACK_MERGE_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            'git merge-base --is-ancestor "origin/$production" "origin/$staging"',
+            script,
+        )
+        self.assertIn('--base "$staging" --head "$production"', script)
+        # A conflicting back-merge must stop rather than leave staging behind.
+        self.assertIn("::error::", script)
+        # Merge commits are what restore the ancestry; never squash or rebase.
+        self.assertIn("--auto --merge", script)

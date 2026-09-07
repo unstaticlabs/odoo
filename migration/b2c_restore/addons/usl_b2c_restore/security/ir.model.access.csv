@@ -1,2 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_usl_b2c_restore_run_system,usl.b2c.restore.run system,model_usl_b2c_restore_run,base.group_system,1,1,1,1
+access_usl_b2c_native_history_run_system,usl.b2c.native.history.run system,model_usl_b2c_native_history_run,base.group_system,1,1,1,1

@@ -32,8 +32,17 @@ def validate(
             raise SourcePolicyError("production pull requests must originate in the protected repository")
         if head != "19-usl-staging" and not head.startswith("urgent/"):
             raise SourcePolicyError("19-usl accepts only 19-usl-staging or urgent/**")
-    if base == "19-usl-staging" and head in {"19-usl", "19-usl-staging"}:
-        raise SourcePolicyError("the staging source branch is invalid")
+    if base == "19-usl-staging":
+        if head == "19-usl-staging":
+            raise SourcePolicyError("the staging source branch is invalid")
+        if head == "19-usl":
+            # The production back-merge is the only operation that restores the
+            # shared ancestry once production advances on its own. Refusing it
+            # is what allowed staging to sit permanently behind production.
+            if not head_repository or not expected_repository:
+                raise SourcePolicyError("production back-merges require repository identity")
+            if head_repository != expected_repository:
+                raise SourcePolicyError("production back-merges must originate in the protected repository")
 
 
 def validate_merge_group(

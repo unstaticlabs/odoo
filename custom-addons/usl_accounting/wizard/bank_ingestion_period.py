@@ -1,7 +1,7 @@
 from odoo import _, fields, models
 from odoo.exceptions import AccessError, UserError
-from odoo.addons.usl_accounting.models.bank_statement_ingestion import _month_end
 
+from odoo.addons.usl_accounting.models.bank_statement_ingestion import _month_end
 from odoo.addons.usl_accounting.models.bank_statement_review import (
     is_accounting_operator,
 )
@@ -12,7 +12,7 @@ class BankIngestionPeriod(models.TransientModel):
     _description = "Correct Bank Export Period"
 
     ingestion_id = fields.Many2one(
-        "account.bank.ingestion", required=True, readonly=True
+        "account.bank.ingestion", required=True, readonly=True,
     )
     period_start = fields.Date(required=True)
     period_end = fields.Date(required=True)
@@ -26,7 +26,7 @@ class BankIngestionPeriod(models.TransientModel):
         ingestion.check_access("read")
         if ingestion.company_id not in self.env.companies:
             raise AccessError(
-                _("Select the export's company before correcting its period.")
+                _("Select the export's company before correcting its period."),
             )
         self.env.cr.execute(
             "SELECT id FROM account_bank_ingestion WHERE id = %s FOR UPDATE",
@@ -35,7 +35,7 @@ class BankIngestionPeriod(models.TransientModel):
         ingestion.invalidate_recordset()
         if ingestion.state not in ("attention", "failed"):
             raise UserError(
-                _("This export no longer needs correction. Refresh the record.")
+                _("This export no longer needs correction. Refresh the record."),
             )
         if not self.reason or not self.reason.strip():
             raise UserError(_("Explain how you verified the statement period."))
@@ -58,12 +58,12 @@ class BankIngestionPeriod(models.TransientModel):
         ):
             raise UserError(
                 _(
-                    "These dates conflict with the retained bank statement. Check the source files."
-                )
+                    "These dates conflict with the retained bank statement. Check the source files.",
+                ),
             )
         old_start, old_end = ingestion.period_start, ingestion.period_end
         ingestion.sudo().write(
-            {"period_start": self.period_start, "period_end": self.period_end}
+            {"period_start": self.period_start, "period_end": self.period_end},
         )
         ingestion.sudo().message_post(
             body=_(
@@ -78,7 +78,7 @@ class BankIngestionPeriod(models.TransientModel):
         )
         # Reuse retained PDFs only: do not download email links or import transactions.
         for source in ingestion.sudo().file_ids.filtered(
-            lambda item: item.classification == "pdf"
+            lambda item: item.classification == "pdf",
         ):
             source._associate_pdf()
         ingestion.sudo()._refresh_processing_state()

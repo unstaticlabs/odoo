@@ -7,7 +7,6 @@ from decimal import Decimal
 
 from odoo.exceptions import AccessError
 
-
 manager_group = env.ref("usl_documents.group_documents_manager")
 manager = env["res.users"].sudo().search(
     [("active", "=", True), ("all_group_ids", "in", manager_group.id)],
@@ -23,11 +22,11 @@ actual_documents = documents.search_count([])
 actual_relationships = env["usl.document.link"].search_count([("active", "=", True)])
 if actual_documents != expected_documents:
     raise AssertionError(
-        f"restored document count {actual_documents} != {expected_documents}"
+        f"restored document count {actual_documents} != {expected_documents}",
     )
 if actual_relationships != expected_relationships:
     raise AssertionError(
-        f"restored relationship count {actual_relationships} != {expected_relationships}"
+        f"restored relationship count {actual_relationships} != {expected_relationships}",
     )
 
 
@@ -114,14 +113,14 @@ evidence = documents.search(
 if not evidence:
     raise AssertionError("restored archive has no representative accounting evidence")
 content, _headers = evidence._paperless().download(
-    evidence.paperless_id, original=True
+    evidence.paperless_id, original=True,
 )
 restored_checksum = hashlib.sha256(content).hexdigest()
 if restored_checksum != evidence.checksum:
     raise AssertionError(
         "restored current-original checksum mismatch "
         f"for Paperless {evidence.paperless_id}: "
-        f"download={restored_checksum}, cache={evidence.checksum}"
+        f"download={restored_checksum}, cache={evidence.checksum}",
     )
 received_version = evidence.version_ids.filtered("is_received_original")[:1]
 if not received_version:
@@ -135,13 +134,13 @@ if hashlib.sha256(received_content).hexdigest() != received_version.checksum:
     raise AssertionError("restored received-original version checksum mismatch")
 
 bill_link = evidence.link_ids.filtered(
-    lambda item: item.active and item.res_model == "account.move"
+    lambda item: item.active and item.res_model == "account.move",
 )[:1]
 if not bill_link or not env["account.move"].browse(bill_link.res_id).exists():
     raise AssertionError("restored accounting relationship does not resolve")
 
 restricted = env["res.users"].search(
-    [("login", "=", "documents-restricted")], limit=1
+    [("login", "=", "documents-restricted")], limit=1,
 )
 if restricted:
     try:
@@ -181,7 +180,7 @@ if actual_permission_failures != expected_permission_failures:
     raise AssertionError(
         "restored Paperless permission failures differ from the recovery point: "
         f"actual={sorted(actual_permission_failures)}, "
-        f"expected={sorted(expected_permission_failures)}"
+        f"expected={sorted(expected_permission_failures)}",
     )
 for failure_key in (
     "missing_document_ids",
@@ -191,7 +190,7 @@ for failure_key in (
 ):
     if manifest[failure_key]:
         raise AssertionError(
-            f"restored archive has unexpected {failure_key}: {manifest[failure_key]}"
+            f"restored archive has unexpected {failure_key}: {manifest[failure_key]}",
         )
 if source_integrity_ok and not manifest["integrity_ok"]:
     raise AssertionError(json.dumps(manifest, sort_keys=True))

@@ -109,6 +109,12 @@ class RebuildAccountOverview(models.Model):
     def _compute_bank_checkpoint(self):
         Config = self.env["account.bank.ingestion.config"]
         can_read_config = Config.has_access("read")
+        configs_by_company = {company.id: Config for company in self.company_id}
+        if can_read_config:
+            for config in Config.search(
+                [("company_id", "in", self.company_id.ids), ("active", "=", True)],
+            ):
+                configs_by_company[config.company_id.id] |= config
         for overview in self:
             if not can_read_config:
                 # The monthly setup contains routing and sender policy reserved
@@ -120,9 +126,7 @@ class RebuildAccountOverview(models.Model):
                 overview.bank_checkpoint_period = False
                 overview.bank_checkpoint_next_action = False
                 continue
-            configs = Config.search(
-                [("company_id", "=", overview.company_id.id), ("active", "=", True)],
-            )
+            configs = configs_by_company.get(overview.company_id.id, Config)
             config = configs.sorted(
                 lambda item: (
                     item.expected_period_start or fields.Date.today(),

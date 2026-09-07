@@ -1171,3 +1171,36 @@ class TestLinkedReceipt(TestExpenseCommon):
         self.assertFalse(retrieval.attachment_id)
         self.assertFalse(expense.message_main_attachment_id)
         self.assertEqual(retrieval.pattern_id.success_count, 0)
+
+    def test_linked_receipt_status_has_bounded_query_count(self):
+        """List views compute the receipt status for a page at once."""
+        expenses = self.create_expenses([{"name": f"Receipt status {index}"} for index in range(20)])
+        expenses.invalidate_recordset()
+        query_start = self.env.cr.sql_log_count
+        values = expenses.read(
+            ["linked_receipt_state", "linked_receipt_message", "linked_receipt_authentication_required"],
+        )
+        queries = self.env.cr.sql_log_count - query_start
+
+        self.assertEqual(len(values), 20)
+        self.assertTrue(all(value["linked_receipt_state"] is False for value in values))
+        self.assertLessEqual(queries, 6)
+
+    def test_expense_company_profile_status_has_bounded_query_count(self):
+        """The Settings user list resolves employee profiles in one query."""
+        users = self.env["res.users"].search([("share", "=", False)])
+        self.assertGreaterEqual(len(users), 4)
+
+        def measure(records):
+            records.invalidate_recordset()
+            query_start = self.env.cr.sql_log_count
+            values = records.read(["usl_expense_company_profile_status"])
+            self.assertEqual(len(values), len(records))
+            return self.env.cr.sql_log_count - query_start
+
+        half = measure(users[: len(users) // 2])
+        everyone = measure(users)
+
+        self.assertLessEqual(everyone, 20)
+        # Doubling the page must not add one query per extra user.
+        self.assertLessEqual(everyone - half, 2)

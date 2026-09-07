@@ -7,15 +7,13 @@ stays unchanged except for documented, distribution-level patches.
 
 The product includes multi-company Accounting, Projects, Expenses, Platform
 Billing, TESE payroll evidence, Documents backed by Paperless-ngx, Sign,
-Pocket ID authentication, governed PDF rendering, and offline-validated French
-electronic-invoice reception.
+Pocket ID authentication, governed PDF rendering, and French electronic-invoice reception.
 
-Electronic-invoice reception and e-reporting remain disabled outside an
-explicit production activation:
+Electronic-invoice reception and e-reporting can be enabled using:
 
 ```text
-USL_EINVOICE_LIVE_ENABLED=0
-USL_EREPORTING_LIVE_ENABLED=0
+USL_EINVOICE_LIVE_ENABLED=1
+USL_EREPORTING_LIVE_ENABLED=1
 ```
 
 ## Repository boundaries

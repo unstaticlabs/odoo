@@ -36,3 +36,5 @@ access_b2c_stock_picking_reader,b2c native stock picking reader,stock.model_stoc
 access_b2c_stock_move_reader,b2c native stock move reader,stock.model_stock_move,group_b2c_reader,1,0,0,0
 access_b2c_stock_quant_reader,b2c native stock quant reader,stock.model_stock_quant,group_b2c_reader,1,0,0,0
 access_b2c_payment_transaction_reader,b2c native payment transaction reader,payment.model_payment_transaction,group_b2c_reader,1,0,0,0
+access_b2c_partner_identity_reader,b2c partner identity reader,model_b2c_partner_identity,group_b2c_reader,1,0,0,0
+access_b2c_partner_identity_manager,b2c partner identity manager,model_b2c_partner_identity,group_b2c_manager,1,0,0,0

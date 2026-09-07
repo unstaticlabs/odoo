@@ -1,8 +1,7 @@
 import base64
 from datetime import date, timedelta
 
-from odoo import Command, SUPERUSER_ID, api
-
+from odoo import SUPERUSER_ID, Command, api
 
 MODULE = "usl_bootstrap"
 FRENCH_COMPANY_CHART = "fr_comp"

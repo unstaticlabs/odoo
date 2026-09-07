@@ -6,10 +6,11 @@
    the expense in the company selector. Odoo uses your employee profile for
    that company automatically. Then check the employee, description, date,
    category, paid-by method, currency and analytic distribution.
-4. Use the compact **Receipt** status (**Attached**, **Missing** or **Not
-   required**) to find missing evidence. Open an expense to see its contextual
-   next-step guidance; a required missing receipt blocks
-   submission, approval and posting.
+4. Use the compact **Receipt** status (**Attached**, **Missing**, **Waived**
+   or **Not required**) to find missing evidence. Open an expense to see its
+   contextual next-step guidance; a required missing receipt blocks
+   submission, approval and posting until you either attach it or record a
+   documented decision to continue without it (see below).
 5. When an emailed receipt contains a PDF link instead of an attachment, open
    the expense. For an unfamiliar email format, choose **Choose receipt link**
    and select the sanitized option that describes the receipt. Your choice
@@ -51,6 +52,16 @@ stores your provider password, verification code, cookies, or browser session.
 The manual receipt immediately supersedes pending downloads.
 
 Use the **Missing receipt** filter to prepare incomplete drafts. A category such as a configured fixed allowance can explicitly say **Receipt not required**; this is a category policy, not an exception hidden in the workflow.
+
+When a receipt genuinely cannot be obtained, for example a lost paper ticket or
+a provider that issues none, open the expense, write the reason in the
+**Receipt** section and select **Confirm: continue without a receipt**. Odoo
+asks you to confirm, then records the reason, your name and the time on the
+expense and in its history, and the receipt status becomes **Waived**. The
+expense can then be submitted, approved and posted; the reviewer sees the
+decision, the **Receipt waived** filter lists such expenses, and the Accounting
+overview and hygiene checks no longer count them as missing evidence. Attach
+the receipt if it turns up later, or clear the reason to withdraw the decision.
 
 If the active company has no employee profile, ask an administrator to open
 your user under **Settings > Users & Companies > Users**, enable **Expenses in

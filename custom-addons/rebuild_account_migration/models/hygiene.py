@@ -255,12 +255,12 @@ class RebuildAccountHygieneIssue(models.Model):
             ("state", "!=", "cancel"),
         ])
         vendor_documents = documents.filtered(
-            lambda item: item.move_type in {"in_invoice", "in_refund", "in_receipt"}
+            lambda item: item.move_type in {"in_invoice", "in_refund", "in_receipt"},
         )
         structured_evidence_ids = self._structured_evidence_move_ids(vendor_documents)
         missing_vendor_evidence = vendor_documents.filtered(
             lambda item: not item.message_main_attachment_id
-            and item.id not in structured_evidence_ids
+            and item.id not in structured_evidence_ids,
         )
         if missing_vendor_evidence:
             move = missing_vendor_evidence.sorted("id")[0]
@@ -294,7 +294,7 @@ class RebuildAccountHygieneIssue(models.Model):
                 target_res_ids=missing_vendor_evidence.ids,
             ))
         stale_documents = documents.filtered(
-            lambda item: item.state == "draft" and item.date and item.date < cutoff
+            lambda item: item.state == "draft" and item.date and item.date < cutoff,
         )
         if stale_documents:
             move = stale_documents.sorted("id")[0]
@@ -330,7 +330,10 @@ class RebuildAccountHygieneIssue(models.Model):
             ("state", "!=", "refused"),
         ])
         missing_expense_evidence = expenses.filtered(
-            lambda item: not item.message_main_attachment_id
+            lambda item: (
+                not item.message_main_attachment_id
+                and not item.rebuild_receipt_waived_at
+            ),
         )
         if missing_expense_evidence:
             expense = missing_expense_evidence.sorted("id")[0]
@@ -363,7 +366,7 @@ class RebuildAccountHygieneIssue(models.Model):
         stale_expenses = expenses.filtered(
             lambda item: item.state in {"draft", "submitted", "approved"}
             and item.date
-            and item.date < cutoff
+            and item.date < cutoff,
         )
         if stale_expenses:
             expense = stale_expenses.sorted("id")[0]
@@ -434,7 +437,7 @@ class RebuildAccountHygieneIssue(models.Model):
             lambda item: item.state == "posted"
             and item.move_type in {"in_invoice", "in_refund"}
             and item.partner_id
-            and (item.ref or item.payment_reference)
+            and (item.ref or item.payment_reference),
         ):
             key = (
                 move.move_type,

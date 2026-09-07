@@ -9,7 +9,6 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-
 SCHEMA = "usl-odoo-mcp-release-v2"
 COMPATIBILITY_SCHEMA = "usl-odoo-mcp-compatibility-v1"
 COMMIT = re.compile(r"[0-9a-f]{40}\Z")

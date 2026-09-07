@@ -33,8 +33,25 @@ class ResPartner(models.Model):
 
     def _compute_signature_summary(self):
         request_model = self.env["sign.oca.request"]
+        requests_by_partner = {partner.id: request_model for partner in self}
+        if self.ids:
+            partner_ids = set(self.ids)
+            candidates = request_model.search(
+                [
+                    "|",
+                    ("record_ref", "in", [f"res.partner,{partner_id}" for partner_id in self.ids]),
+                    ("signer_ids.partner_id", "in", self.ids),
+                ],
+            )
+            for request in candidates:
+                related_ids = set(request.sudo().signer_ids.partner_id.ids)
+                record = request.record_ref
+                if record and record._name == "res.partner":
+                    related_ids.add(record.id)
+                for partner_id in related_ids & partner_ids:
+                    requests_by_partner[partner_id] |= request
         for partner in self:
-            requests = request_model.search(partner._signature_request_domain())
+            requests = requests_by_partner[partner.id]
             partner.signature_request_count = len(requests)
             latest = requests.sorted(
                 lambda item: (item.create_date, item.id), reverse=True,

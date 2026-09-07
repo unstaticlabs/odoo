@@ -2250,6 +2250,95 @@ def compare_surfaces(
     return errors
 
 
+SINK_KEY = re.compile(r"^sink:([^:]+):(.+?):([^:]+):([^:]+):(\d+)$")
+
+
+def carry_moved_sinks(
+    expected: Mapping[str, object],
+    candidate: Mapping[str, object],
+    policy: dict[str, object],
+) -> tuple[dict[str, str], list[str]]:
+    """Rename reviewed sink keys whose source file changed but not their code.
+
+    A sink key embeds the file path of its helper.  Moving a method to another
+    file of the same module therefore removes one key and adds another with the
+    same module, qualified name, sink kind, ordinal and normalized digest.  Such
+    a pair is the same reviewed implementation at a new location; carrying its
+    classification forward keeps the review record while ``refresh`` re-seals
+    the surface.  Any removed key without exactly one such successor is
+    reported and left for manual review.
+    """
+
+    def identity(key: str) -> tuple[str, str, str, str] | None:
+        match = SINK_KEY.match(key)
+        if match is None:
+            return None
+        return match.group(1), match.group(3), match.group(4), match.group(5)
+
+    old = {
+        action["key"]: action
+        for action in expected.get("actions", [])
+        if isinstance(action, dict) and action.get("kind") == "sink"
+    }
+    new = {
+        action["key"]: action
+        for action in candidate.get("actions", [])
+        if isinstance(action, dict) and action.get("kind") == "sink"
+    }
+    successors: dict[tuple[object, object], list[str]] = defaultdict(list)
+    for key in sorted(set(new) - set(old)):
+        successors[identity(key), new[key].get("digest")].append(key)
+    renames: dict[str, str] = {}
+    unmatched: list[str] = []
+    for key in sorted(set(old) - set(new)):
+        matches = successors.get((identity(key), old[key].get("digest")), [])
+        if len(matches) == 1:
+            renames[key] = matches[0]
+        else:
+            unmatched.append(f"Removed sink has no single moved successor: {key}")
+    if not renames:
+        return renames, unmatched
+    groups = policy.get("actions")
+    if isinstance(groups, dict):
+        policy["actions"] = {renames.get(key, key): value for key, value in groups.items()}
+        return renames, unmatched
+    for group in groups if isinstance(groups, list) else []:
+        if not isinstance(group, dict):
+            continue
+        keys = group.get("action_keys")
+        if not isinstance(keys, list) or not any(key in renames for key in keys):
+            continue
+        group["action_keys"] = [renames.get(key, key) for key in keys]
+        for field in ("reviewed_digests", "overrides"):
+            mapping = group.get(field)
+            if isinstance(mapping, dict):
+                group[field] = {
+                    renames.get(key, key): value for key, value in mapping.items()
+                }
+    return renames, unmatched
+
+
+def _sink_module_scope(
+    surface: Mapping[str, object], modules: set[str],
+) -> dict[str, object]:
+    """Keep only sink actions owned by ``modules`` so a carry-over stays scoped."""
+
+    def keep(action: Mapping[str, object]) -> bool:
+        if action.get("kind") != "sink":
+            return True
+        match = SINK_KEY.match(str(action.get("key", "")))
+        return match is not None and match.group(1) in modules
+
+    return {
+        **surface,
+        "actions": [
+            action
+            for action in surface.get("actions", [])
+            if isinstance(action, dict) and keep(action)
+        ],
+    }
+
+
 def _print_errors(title: str, errors: Sequence[str]) -> int:
     if not errors:
         print(f"{title}: PASS")
@@ -2344,6 +2433,12 @@ def _parser() -> argparse.ArgumentParser:
     digest.add_argument("--surface", type=Path, default=DEFAULT_SURFACE)
     digest.add_argument("--policy", type=Path, default=DEFAULT_POLICY)
 
+    carry = subparsers.add_parser("carry-moved-sinks")
+    carry.add_argument("--candidate", type=Path, required=True)
+    carry.add_argument("--surface", type=Path, default=DEFAULT_SURFACE)
+    carry.add_argument("--policy", type=Path, default=DEFAULT_POLICY)
+    carry.add_argument("--module", action="append", default=[])
+
     compare = subparsers.add_parser("compare-runtime")
     compare.add_argument("--root", type=Path, default=ROOT)
     compare.add_argument("--surface", type=Path, default=DEFAULT_SURFACE)
@@ -2424,6 +2519,17 @@ def main(argv: Sequence[str] | None = None) -> int:
                 return _print_errors("Action-risk digest", errors)
             print(qualified_policy_digest(surface, policy))
             return 0
+        if args.command == "carry-moved-sinks":
+            expected = load_json(args.surface)
+            candidate = load_json(args.candidate)
+            policy = load_json(args.policy)
+            if args.module:
+                expected = _sink_module_scope(expected, set(args.module))
+                candidate = _sink_module_scope(candidate, set(args.module))
+            renames, unmatched = carry_moved_sinks(expected, candidate, policy)
+            write_json(args.policy, policy)
+            print(f"Carried {len(renames)} moved sink keys forward in the policy.")
+            return _print_errors("Moved sink review", unmatched)
         if args.command == "compare-runtime":
             expected = load_json(args.surface)
             runtime = load_json(args.runtime)

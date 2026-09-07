@@ -6018,6 +6018,10 @@ msgid "The receipt provider returned an error."
 msgstr "Le fournisseur du justificatif a renvoyé une erreur."
 
 #. module: usl_accounting
+msgid "The receipt provider is limiting download attempts."
+msgstr "Le fournisseur du justificatif limite les tentatives de téléchargement."
+
+#. module: usl_accounting
 msgid "The downloaded file is not a structurally valid PDF."
 msgstr "Le fichier téléchargé n’est pas un PDF structurellement valide."
 

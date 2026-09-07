@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-
 SCHEMA = "usl-production-cron-policy-v1"
 MODES = frozenset({"managed", "neutralized", "unmanaged"})
 

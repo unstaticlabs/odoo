@@ -4,7 +4,6 @@ from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.fields import Domain
 
-
 PAYROLL_DOCUMENT_TYPE = "Payroll record"
 PAYROLL_TAG = "Payroll"
 

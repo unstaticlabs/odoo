@@ -7,7 +7,7 @@ from lxml import etree
 from markupsafe import Markup, escape
 
 from odoo import Command, _, api, fields, models
-from odoo.exceptions import AccessError, UserError, ValidationError
+from odoo.exceptions import AccessError, ValidationError
 
 RELEASE_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 MAX_ATTACHMENTS = 10

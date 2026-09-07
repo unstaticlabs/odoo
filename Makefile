@@ -50,7 +50,7 @@ help:
 	  '  make recovery-cleanup-plan TARGET=staging  Preview obsolete generations' \
 	  '  make health TARGET=production       Run fast read-only runtime checks' \
 	  '  make smoke TARGET=staging           Run read-only business controls' \
-	  '  make product-migration-boundary     Check the delivered product boundary' \
+	  '  make product-migration-boundary     Check the product and private-data boundary' \
 	  '  make accounting-addon-tests         Run focused Accounting module tests' \
 	  '  make user-docs-build                Render user documentation' \
 	  '' \
@@ -141,6 +141,7 @@ document-renderer-check:
 
 product-migration-source-boundary:
 	@scripts/check-product-migration-boundary
+	@scripts/check-private-evidence
 
 product-migration-boundary: product-migration-source-boundary
 	@scripts/check-product-database-boundary

@@ -12,6 +12,7 @@
                 <field name="external_checkout_session_id"/>
                 <field name="external_payout_id"/>
                 <field name="order_id"/>
+                <field name="sale_order_id"/>
                 <filter name="pending" string="Pending Review" domain="[('review_state', '=', 'pending')]"/>
                 <filter name="refunds" string="Refunds" domain="[('event_type', '=', 'refund')]"/>
                 <filter name="fees" string="Fees" domain="[('event_type', '=', 'fee')]"/>
@@ -37,6 +38,7 @@
                 <field name="source_provider"/>
                 <field name="event_type"/>
                 <field name="order_id" optional="show"/>
+                <field name="sale_order_id" optional="show"/>
                 <field name="currency_id"/>
                 <field name="amount" sum="Transaction Amount"/>
                 <field name="fee_amount" sum="Fees"/>
@@ -79,6 +81,7 @@
                             <field name="company_id" groups="base.group_multi_company"/>
                             <field name="channel_id"/>
                             <field name="order_id"/>
+                            <field name="sale_order_id" readonly="1"/>
                             <field name="event_date"/>
                             <field name="original_provider_state"/>
                             <field name="state"/>
@@ -178,6 +181,7 @@
                 <field name="external_fulfilment_id"/>
                 <field name="external_printful_id"/>
                 <field name="order_id"/>
+                <field name="sale_order_id"/>
                 <filter name="pending" string="Pending Review" domain="[('review_state', '=', 'pending')]"/>
                 <filter name="unknown_cogs" string="Unknown / Partial COGS" domain="[('completeness_state', '!=', 'complete')]"/>
                 <filter name="event_date" string="Event Date" date="event_date"/>
@@ -201,6 +205,7 @@
                 <field name="name"/>
                 <field name="source_provider"/>
                 <field name="order_id" optional="show"/>
+                <field name="sale_order_id" optional="show"/>
                 <field name="external_printful_id" optional="show"/>
                 <field name="state" widget="badge"/>
                 <field name="fulfilment_mode"/>
@@ -228,6 +233,7 @@
                             <field name="origin"/>
                             <field name="provider_event_key" readonly="1"/>
                             <field name="order_id"/>
+                            <field name="sale_order_id" readonly="1"/>
                             <field name="external_order_id"/>
                             <field name="external_fulfilment_id"/>
                             <field name="external_printful_id"/>

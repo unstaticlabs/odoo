@@ -459,7 +459,7 @@ class UslHomeService(models.AbstractModel):
             raise UserError(self.env._("This task metric is not available."))
 
         action = self.env["ir.actions.actions"]._for_xml_id(
-            "project.action_view_my_task"
+            "project.action_view_my_task",
         )
         action["name"] = self.env._("My Tasks — %s", label)
         action["usl_home_filter"] = {

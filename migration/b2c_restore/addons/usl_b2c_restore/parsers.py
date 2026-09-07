@@ -5,7 +5,7 @@ import json
 import re
 from collections import Counter, defaultdict
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 
 try:
@@ -318,14 +318,20 @@ def load_csv(name, checksum, content, expected_header, *, delimiter=","):
 
 
 def money(value, *, default=None):
-    raw = (value or "").strip().replace("\u00a0", "").replace(" ", "")
+    raw = (value or "").strip().replace("\u00a0", " ")
     if not raw or raw in {"-", "--", "—"}:
         return default
     negative = raw.startswith("(") and raw.endswith(")")
     raw = raw.strip("()").replace("€", "").replace("£", "").replace("$", "")
-    raw = re.sub(r"\b(?:EUR|GBP|USD)\b", "", raw, flags=re.IGNORECASE)
+    raw = re.sub(r"(?:EUR|GBP|USD)", "", raw, flags=re.IGNORECASE)
+    raw = raw.replace(" ", "")
     if "," in raw and "." in raw:
-        raw = raw.replace(",", "")
+        # The final separator is the decimal separator. This accepts both
+        # 1,234.56 and 1.234,56 without guessing from the caller's locale.
+        if raw.rfind(",") > raw.rfind("."):
+            raw = raw.replace(".", "").replace(",", ".")
+        else:
+            raw = raw.replace(",", "")
     elif "," in raw:
         raw = raw.replace(",", ".")
     try:
@@ -345,7 +351,10 @@ def parsed_datetime(value):
         return None
     normalized = raw.replace("Z", "+00:00")
     try:
-        return datetime.fromisoformat(normalized).replace(tzinfo=None)
+        parsed = datetime.fromisoformat(normalized)
+        if parsed.tzinfo:
+            parsed = parsed.astimezone(timezone.utc).replace(tzinfo=None)
+        return parsed
     except ValueError:
         pass
     for pattern in (
@@ -386,6 +395,68 @@ def normalize_order_id(value):
     return (value or "").strip().lstrip("#").strip()
 
 
+def normalize_printful_order_reference(value):
+    """Return the immutable merchant order identifier from Printful's label."""
+    normalized = re.sub(
+        r"^(?:refund\s+to\s+wallet\s+|order\s+)",
+        "",
+        (value or "").strip(),
+        flags=re.IGNORECASE,
+    )
+    # Printful's CSV export inserts a display space before the final ULID
+    # segment.  Merchant order references are identifiers, so whitespace is
+    # never significant and must not prevent an exact Medusa relationship.
+    return re.sub(r"\s+", "", normalize_order_id(normalized))
+
+
+def printful_order_evidence():
+    """Return the recovered Printful orders, or nothing when unavailable."""
+    try:
+        from . import private_evidence
+
+        return private_evidence.printful_orders()
+    except Exception:  # noqa: BLE001 - evidence is optional for parser tests
+        return {}
+
+
+def parse_legacy_delivery_address(value):
+    """Split Printful's redacted legacy address without inventing missing data."""
+    raw = (value or "").strip()
+    parts = [part.strip() for part in raw.split(",") if part.strip()]
+    result = {
+        "shipping_name": parts[0] if parts else "",
+        "shipping_street": "",
+        "shipping_street2": "",
+        "shipping_city": "",
+        "shipping_state": "",
+        "shipping_zip": "",
+        "country": parts[-1].upper() if len(parts) >= 2 else "",
+        "shipping_address_raw": raw,
+    }
+    body = parts[1:-1]
+    if not body:
+        return result
+    postal = body[-1]
+    us_postal = re.fullmatch(r"([A-Z]{2})\s+(\d{5}(?:-\d{4})?)", postal, re.I)
+    if us_postal:
+        result["shipping_state"] = us_postal.group(1).upper()
+        result["shipping_zip"] = us_postal.group(2)
+    elif any(character.isdigit() for character in postal):
+        result["shipping_zip"] = postal
+    else:
+        postal = ""
+    if postal:
+        body = body[:-1]
+    if body:
+        result["shipping_city"] = body[-1]
+        body = body[:-1]
+    if body:
+        result["shipping_street"] = body[0]
+    if len(body) > 1:
+        result["shipping_street2"] = ", ".join(body[1:])
+    return result
+
+
 def build_canonical_orders(
     etsy_documents,
     legacy_document,
@@ -410,6 +481,22 @@ def build_canonical_orders(
                 "order_date": date,
                 "original_provider_state": state or "",
                 "state": "unknown",
+                "business_purpose": "sale",
+                "supplier_cost": None,
+                "source_payment_state": "",
+                "source_fulfilment_state": "",
+                "payment_date": None,
+                "fulfilment_date": None,
+                "customer_external_id": "",
+                "customer_name": "",
+                "customer_email": "",
+                "shipping_name": "",
+                "shipping_street": "",
+                "shipping_street2": "",
+                "shipping_city": "",
+                "shipping_state": "",
+                "shipping_zip": "",
+                "shipping_address_raw": "",
                 "country": "",
                 "currency": "",
                 "subtotal": None,
@@ -446,8 +533,32 @@ def build_canonical_orders(
             row["Status"],
             10,
         )
-        order["total"] = money(row["Total"])
-        order["revenue"] = order["total"]
+        # The legacy export is a Printful export: its "Total" is what Printful
+        # billed, never what a customer paid. An order raised by hand in
+        # Printful has no store order behind it and was never a sale.
+        supplier_cost = money(row["Total"], default=Decimal("0"))
+        recovered = printful_order_evidence().get(external_id)
+        is_marketing = recovered is not None and not recovered.get("external_id")
+        order.update(
+            {
+                "currency": "EUR",
+                "state": (
+                    "cancelled"
+                    if "cancel" in row["Status"].strip().lower()
+                    else "fulfilled"
+                ),
+                "source_payment_state": "unavailable",
+                "source_fulfilment_state": row["Status"].strip(),
+                "fulfilment_date": parsed_datetime(row["Date"]),
+                "business_purpose": (
+                    "marketing_prototype" if is_marketing else "sale"
+                ),
+                "supplier_cost": supplier_cost,
+                "total": Decimal("0") if is_marketing else supplier_cost,
+                "revenue": Decimal("0") if is_marketing else supplier_cost,
+                **parse_legacy_delivery_address(row["Address"]),
+            },
+        )
         sources.append(
             (external_id, "medusa_legacy", legacy_document, (row,), original_id),
         )
@@ -487,6 +598,54 @@ def build_canonical_orders(
                 "total": money(row["Total"], default=Decimal("0")),
                 "revenue": money(row["Total"], default=Decimal("0")),
                 "amount_completeness": "header_only",
+                "source_payment_state": row["Payment Status"].strip(),
+                "source_fulfilment_state": row["Fulfillment Status"].strip(),
+                "state": {
+                    "delivered": "fulfilled",
+                    "partially_delivered": "partially_fulfilled",
+                    "not_fulfilled": (
+                        "cancelled"
+                        if row["Payment Status"].strip().lower() == "canceled"
+                        else "confirmed"
+                    ),
+                }.get(row["Fulfillment Status"].strip().lower(), "unknown"),
+                "customer_external_id": row["Customer ID"].strip(),
+                "customer_name": " ".join(
+                    value
+                    for value in (
+                        row["Customer First name"].strip(),
+                        row["Customer Last name"].strip(),
+                    )
+                    if value
+                ),
+                "customer_email": row["Customer Email"].strip(),
+                "shipping_name": " ".join(
+                    value
+                    for value in (
+                        row["Customer First name"].strip(),
+                        row["Customer Last name"].strip(),
+                    )
+                    if value
+                ),
+                "shipping_street": row["Shipping Address 1"].strip(),
+                "shipping_street2": row["Shipping Address 2"].strip(),
+                "shipping_city": row["Shipping City"].strip(),
+                "shipping_state": row["Shipping Region ID"].strip(),
+                "shipping_zip": row["Shipping Postal Code"].strip(),
+                "shipping_address_raw": ", ".join(
+                    value
+                    for value in (
+                        row["Customer First name"].strip(),
+                        row["Customer Last name"].strip(),
+                        row["Shipping Address 1"].strip(),
+                        row["Shipping Address 2"].strip(),
+                        row["Shipping City"].strip(),
+                        row["Shipping Region ID"].strip(),
+                        row["Shipping Postal Code"].strip(),
+                        row["Shipping Country Code"].strip(),
+                    )
+                    if value
+                ),
             },
         )
         sources.append((external_id, "medusa", medusa_document, (row,), original_id))
@@ -566,13 +725,69 @@ def build_canonical_orders(
             (money(row["Item Total"], default=Decimal("0")) for row in rows),
             Decimal("0"),
         )
+        gross = sum(
+            (
+                money(row["Price"], default=Decimal("0"))
+                * quantity(row["Quantity"])
+                for row in rows
+            ),
+            Decimal("0"),
+        )
+        discount = -sum(
+            (abs(money(row["Discount Amount"], default=Decimal("0"))) for row in rows),
+            Decimal("0"),
+        )
+        shipping = sum(
+            (money(row["Order Shipping"], default=Decimal("0")) for row in rows),
+            Decimal("0"),
+        )
+        tax = sum(
+            (money(row["Order Sales Tax"], default=Decimal("0")) for row in rows),
+            Decimal("0"),
+        )
+        payment_dates = [parsed_datetime(row["Date Paid"]) for row in rows if row["Date Paid"].strip()]
+        fulfilment_dates = [
+            parsed_datetime(row["Date Shipped"])
+            for row in rows
+            if row["Date Shipped"].strip()
+        ]
         order.update(
             {
                 "currency": currency,
                 "country": country,
-                "revenue": line_revenue,
-                "amount_completeness": "partial",
+                "subtotal": gross,
+                "shipping": shipping,
+                "discount": discount,
+                "tax": tax,
+                "total": line_revenue + discount + shipping + tax,
+                "revenue": line_revenue + discount + shipping + tax,
+                "amount_completeness": "complete",
                 "fulfilment_mode": "unknown",
+                "state": "fulfilled" if fulfilment_dates else "confirmed",
+                "source_payment_state": "paid" if payment_dates else "unavailable",
+                "source_fulfilment_state": "shipped" if fulfilment_dates else "unavailable",
+                "payment_date": min(payment_dates) if payment_dates else None,
+                "fulfilment_date": max(fulfilment_dates) if fulfilment_dates else None,
+                "customer_name": _first_consistent(rows, "Buyer"),
+                "shipping_name": _first_consistent(rows, "Ship Name"),
+                "shipping_street": _first_consistent(rows, "Ship Address1"),
+                "shipping_street2": _first_consistent(rows, "Ship Address2"),
+                "shipping_city": _first_consistent(rows, "Ship City"),
+                "shipping_state": _first_consistent(rows, "Ship State"),
+                "shipping_zip": _first_consistent(rows, "Ship Zipcode"),
+                "shipping_address_raw": ", ".join(
+                    value
+                    for value in (
+                        _first_consistent(rows, "Ship Name"),
+                        _first_consistent(rows, "Ship Address1"),
+                        _first_consistent(rows, "Ship Address2"),
+                        _first_consistent(rows, "Ship City"),
+                        _first_consistent(rows, "Ship State"),
+                        _first_consistent(rows, "Ship Zipcode"),
+                        country,
+                    )
+                    if value
+                ),
             },
         )
         source_groups = {}
@@ -659,6 +874,29 @@ def parse_etsy_statement_events(documents):
                 },
             )
     return tuple(events)
+
+
+def apply_etsy_refunds(canonical, events):
+    """Attach order-level Etsy refund evidence without changing gross order totals."""
+    refunds_by_order = defaultdict(list)
+    for event in events:
+        if event["event_type"] == "refund" and event["external_order_id"]:
+            refunds_by_order[event["external_order_id"]].append(event)
+    linked_orders = set()
+    for external_id, refunds in refunds_by_order.items():
+        order = canonical["orders"].get(external_id)
+        if not order:
+            continue
+        refund_amount = sum(
+            (event["refund"] for event in refunds),
+            Decimal("0"),
+        )
+        order["refund"] = refund_amount
+        order["net"] = (order["revenue"] or Decimal("0")) + refund_amount
+        order["refund_date"] = max(event["event_date"] for event in refunds)
+        order["state"] = "partially_refunded"
+        linked_orders.add(external_id)
+    return linked_orders
 
 
 def parse_stripe_events(payment_document, payout_document):

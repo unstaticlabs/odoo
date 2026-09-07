@@ -155,7 +155,7 @@ def _mcp_contract(value: object) -> dict[str, Any]:
     ):
         raise ReleaseManifestError("MCP Agent identity contract is invalid")
     identity_fields = _sorted_strings(
-        identity["fields"], "mcp_contract.agent_identity.fields"
+        identity["fields"], "mcp_contract.agent_identity.fields",
     )
     required_identity_fields = {
         "access_mode",
@@ -172,7 +172,7 @@ def _mcp_contract(value: object) -> dict[str, Any]:
     if missing_identity_fields:
         raise ReleaseManifestError(
             "MCP Agent identity contract omits required fields: "
-            + ", ".join(missing_identity_fields)
+            + ", ".join(missing_identity_fields),
         )
     body = {key: item for key, item in contract.items() if key != "sha256"}
     if contract["sha256"] != _sha256(body):
@@ -379,7 +379,7 @@ def _mcp_public_methods(identity_contract: dict[str, Any]) -> list[str]:
     if missing:
         raise ReleaseManifestError(
             "MCP public methods are absent from the qualified Odoo action surface: "
-            + ", ".join(missing)
+            + ", ".join(missing),
         )
     return methods
 
@@ -404,7 +404,7 @@ def create(arguments: argparse.Namespace) -> int:
     if renderer.get("schema") != "usl-external-oci-image/v2":
         raise ReleaseManifestError("renderer release has the wrong schema")
     release_notes = _release_notes(
-        _read_json(Path(arguments.release_notes), "release notes")
+        _read_json(Path(arguments.release_notes), "release notes"),
     )
     foundation_body = {
         "odoo_series": arguments.odoo_series,

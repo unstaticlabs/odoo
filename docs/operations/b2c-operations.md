@@ -58,3 +58,79 @@ order allocation.
 
 Platform Billing sessions are separate and must not be used for Etsy, Medusa,
 Stripe, Revolut, or Printful commerce.
+
+## One-off native reconstruction
+
+The historical reconstruction runs once, through
+`migration/internal/b2c-restore`, and is then removed. Each stage is idempotent
+and refuses to continue on drift, so a stage can be repeated safely.
+
+```bash
+migration/internal/b2c-restore install
+migration/internal/b2c-restore import
+migration/internal/b2c-restore catalog
+migration/internal/b2c-restore native-history-dry-run
+migration/internal/b2c-restore native-history
+migration/internal/b2c-restore finalize
+```
+
+`import` rebuilds the canonical evidence from the frozen source. `catalog`
+creates the reviewed products, their variants, one alias per channel identity
+and the bills of materials, then points every order line at its variant.
+`native-history` promotes the customer sales into native Sales, Purchase, stock
+and manufacturing records, and refuses to run unless the evidence still matches
+its pinned fingerprints.
+
+Marketing and prototyping spend is corrected separately, because the promotion
+asserts that it changes no Accounting at all:
+
+```bash
+USL_B2C_MARKETING_COST_MODE=dry_run migration/internal/b2c-restore reclassify-marketing
+```
+
+It moves what the print supplier billed for orders that were never sales out of
+purchases of goods and into samples, one entry per month, and declines any month
+inside a closed financial year.
+
+Run the whole sequence, verify it, and finalize before warehouse work resumes.
+The promotion proves a repeat by re-reading every record it created against the
+same evidence, so ordinary operations afterwards make that proof fail — which is
+deliberate: after finalization the reconstruction is history.
+
+### Against a deployed database
+
+`migration/internal/b2c-restore` writes to a disposable database inside its own
+Compose project. To reconstruct into a database that is serving users, use
+`migration/internal/b2c-restore-deployed`. It is a separate command rather than
+a flag on the first one, because a deployed run is a different act and should
+not be reachable by forgetting to unset something.
+
+It takes one stage at a time. `all` and `test` are refused: `all` hides a chain
+of writes behind one word, and `test` builds and drops databases.
+
+Everything about the target is derived from one running container, the stack
+anchor, because the parts that matter are generation-scoped and change on every
+deploy — the filestore volume above all. Naming them by hand is how a run ends
+up writing attachments into a volume nobody reads.
+
+```bash
+scripts/usl-stack --target staging backup create --run-id b2c-$(date -u +%Y%m%dT%H%M%SZ) --json
+
+B2C_DEPLOYED_ANCHOR=usl-odoo-staging-main-odoo-staging-1 \
+ODOO_DEV_DB=odoo_staging \
+B2C_TARGET_CONFIRM=odoo_staging \
+B2C_BACKUP_RECEIPT=/var/lib/usl-odoo/runtime/staging/backup-runs/<run>/receipt.json \
+USL_ONLINE_DUMP_DIR=/var/lib/usl-odoo/b2c-source \
+USL_MIGRATION_SOURCE_SHA256=<pinned source digest> \
+ODOO_IMAGE=<the digest the stack runs> \
+  migration/internal/b2c-restore-deployed catalog
+```
+
+The run refuses unless `B2C_TARGET_CONFIRM` repeats the database name, the
+frozen source still matches its pinned digest, and `B2C_BACKUP_RECEIPT` names a
+`usl-backup-run` receipt that qualified, captured that same database, and is
+less than `B2C_MAX_BACKUP_AGE_MINUTES` old (120 by default). A backup of another
+database does not authorise writing to this one.
+
+Freeze user writes before a stage that writes, and unfreeze after verifying it.
+On failure, restore the snapshot the receipt names.

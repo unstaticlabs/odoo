@@ -8,7 +8,6 @@ import re
 from pathlib import Path
 from typing import Any
 
-
 SCHEMA = "usl-qualification-evidence/v1"
 SHA = re.compile(r"^[0-9a-f]{40}$")
 TREE = re.compile(r"^[0-9a-f]{40}$")
@@ -26,7 +25,7 @@ class QualificationEvidenceError(ValueError):
 
 def _digest(value: dict[str, Any]) -> str:
     return hashlib.sha256(
-        json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
+        json.dumps(value, sort_keys=True, separators=(",", ":")).encode(),
     ).hexdigest()
 
 

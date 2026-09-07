@@ -35,6 +35,14 @@ and its upgrade cost is documented.
   manifests, source bindings, or finalization behavior change.
 - Preserve foreign Docker projects and persistent resources. Delete only
   resources whose ownership and scope are proven.
+- This repository is public. Business data never enters it: supplier and
+  customer identities, order and invoice references, unit prices, margins,
+  freight, personal data and access credentials. Code carries the contract and
+  the exact SHA-256 of the evidence; the values live with the frozen source
+  package under `usl-online-dump/supplemental/`, loaded through
+  `usl_b2c_restore.private_evidence`. When a reviewed fact is needed to make a
+  decision, pin the file and read it at run time. Never inline it, not even in a
+  test fixture, a docstring, a comment, a commit message or a runbook example.
 - Protected CI/GitOps is the default delivery path, not an exclusive one. When
   the user explicitly authorizes it, an operator may deploy staging or
   production manually and may bypass CI. Before a production mutation, verify
@@ -71,7 +79,14 @@ documentation, reports, comments, and commit messages.
   (for example `Claude Fable 5.1 <noreply@anthropic.com>` or
   `Coding Agent <318050048+elio-usl@users.noreply.github.com>` for Codex).
   Never hard-code a person and never commit as the agent account.
-- Open pull requests with the GitHub account of the driving human. Agent
-  service accounts such as `@elio-usl` are for automation that no person
-  drives. Name the agent in the PR body.
+- Open pull requests directly, with whichever GitHub account the session holds.
+  An agent does not wait for a person to open a pull request on its behalf; the
+  merge queue and the qualification check are the gate, not the authorship.
+  Name the driving human and the agent in the pull request body.
+  `.claude/settings.json` carries the matching permission so a session does not
+  have to stop and ask; put personal overrides in `.claude/settings.local.json`,
+  which is ignored.
+- Never push directly to a release branch. The pre-push guard refuses it because
+  a direct push skips the qualification check and git pushes as an
+  administrator, so nothing on GitHub would stop it.
 - Use terminal Git and GitHub CLI. Do not use a browser for repository actions.
