@@ -23,6 +23,15 @@ PRIMARY_ROOT_MENU_XMLIDS = (
     "stock.menu_stock_root",
     "purchase.menu_purchase_root",
     "sale.sale_menu_root",
+    "mrp.menu_mrp_root",
+)
+
+# Supporting apps, kept together after the workflow block so they never split
+# the commerce apps above.
+SECONDARY_ROOT_MENU_XMLIDS = (
+    "usl_feedback.menu_feedback_root",
+    "sign_oca.sign_oca_root_menu",
+    "usl_tese_payroll.menu_tese_payroll_root",
 )
 
 TRAILING_ROOT_MENU_XMLIDS = (
@@ -37,6 +46,9 @@ def order_root_menu_items(items, xmlid_getter):
     primary_ranks = {
         xmlid: rank for rank, xmlid in enumerate(PRIMARY_ROOT_MENU_XMLIDS)
     }
+    secondary_ranks = {
+        xmlid: rank for rank, xmlid in enumerate(SECONDARY_ROOT_MENU_XMLIDS)
+    }
     trailing_ranks = {
         xmlid: rank for rank, xmlid in enumerate(TRAILING_ROOT_MENU_XMLIDS)
     }
@@ -45,8 +57,10 @@ def order_root_menu_items(items, xmlid_getter):
         xmlid = xmlid_getter(item)
         if xmlid in primary_ranks:
             return (0, primary_ranks[xmlid])
+        if xmlid in secondary_ranks:
+            return (2, secondary_ranks[xmlid])
         if xmlid in trailing_ranks:
-            return (2, trailing_ranks[xmlid])
+            return (3, trailing_ranks[xmlid])
         return (1, 0)
 
     return sorted(items, key=sort_key)
