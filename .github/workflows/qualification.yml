@@ -66,18 +66,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v6.0.0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.13"
       - name: Resolve pinned OCA sources
         run: scripts/sync-oca-addons
       - name: Validate source, contracts, governance, XML and migrations
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           python3 -m compileall -q operations scripts custom-addons
           python3 -m unittest discover -s scripts/tests -p 'test_*.py'
           make product-migration-source-boundary
           make action-risk-inventory
           scripts/check-github-governance
+          scripts/check-action-pins
           find custom-addons -name '*.xml' -print0 | xargs -0 -n1 python3 -c 'import sys,xml.etree.ElementTree as E; E.parse(sys.argv[1])'
           git diff --check
 

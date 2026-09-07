@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+"""Verify that SHA-pinned GitHub Actions state their real version."""
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from operations.action_pins import audit, github_tags
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+if __name__ == "__main__":
+    pins, problems = audit(ROOT / ".github/workflows", github_tags)
+    for problem in problems:
+        print(problem, file=sys.stderr)
+    if problems:
+        raise SystemExit(1)
+    actions = len({pin.action for pin in pins})
+    print(f"Pinned GitHub Actions: {len(pins)} pins of {actions} actions name their real version")
