@@ -1328,3 +1328,313 @@ class TestB2cFoundation(TransactionCase):
                     "refund_amount": 10,
                 },
             )
+
+    def _printful_product(self, name, standard_price=0.0):
+        template = self.env["product.template"].create(
+            {
+                "name": name,
+                "list_price": 1,
+                "b2c_catalog_classification": "operational",
+                "b2c_fulfilment_mode": "printful",
+                "standard_price": standard_price,
+            },
+        )
+        return template.product_variant_id
+
+    def _historical_sale(self, suffix, lines):
+        """Create a locked historical sale with (product, quantity, unit price) lines."""
+        source = self.env["b2c.order"].create(self._order_values(suffix))
+        partner = self.env["res.partner"].create({"name": f"Recipient {suffix}"})
+        context = {HISTORICAL_B2C_MATERIALIZATION_CONTEXT: MATERIALIZATION_TOKEN}
+        sale = self.env["sale.order"].sudo().with_context(**context).create(
+            {
+                "partner_id": partner.id,
+                "company_id": self.company.id,
+                "usl_b2c_order_id": source.id,
+                "usl_historical_b2c": True,
+                "usl_historical_b2c_completed": True,
+            },
+        )
+        sale_lines = self.env["sale.order.line"].sudo().with_context(**context).create(
+            [
+                {
+                    "order_id": sale.id,
+                    "product_id": product.id,
+                    "product_uom_qty": quantity,
+                    "price_unit": price,
+                    "tax_ids": [Command.clear()],
+                }
+                for product, quantity, price in lines
+            ],
+        )
+        return source, sale, sale_lines
+
+    def _fulfilment(self, source, key, cost, lines, state="fulfilled", day=6):
+        # Linking an event to native lines is provenance, so only the audited
+        # importer may do it; the cost allocation itself needs no privilege.
+        context = {HISTORICAL_B2C_MATERIALIZATION_CONTEXT: MATERIALIZATION_TOKEN}
+        return self.env["b2c.fulfilment.event"].with_context(**context).create(
+            {
+                "name": f"Printful {key}",
+                "company_id": self.company.id,
+                "channel_id": self.channel.id,
+                "order_id": source.id,
+                "source_provider": "printful",
+                "provider_event_key": f"printful:{key}",
+                "state": state,
+                "fulfilment_mode": "printful",
+                "event_date": datetime(2026, 8, day, 10, 0),
+                "currency_id": self.company.currency_id.id,
+                "cogs_amount": cost,
+                "company_cogs_amount": cost,
+                "conversion_state": "not_needed",
+                "completeness_state": "complete",
+                "review_state": "reviewed",
+                "sale_order_line_ids": [Command.set(lines.ids)],
+            },
+        )
+
+    def test_fulfilment_cost_is_allocated_to_native_sale_lines(self):
+        hoodie = self._printful_product("Hoodie")
+        cap = self._printful_product("Cap")
+        chain = self.env["product.product"].create(
+            {"name": "Stocked chain", "is_storable": True, "standard_price": 3},
+        )
+        chain.product_tmpl_id.b2c_fulfilment_mode = "own_stock"
+        source, sale, lines = self._historical_sale(
+            "cogs", [(hoodie, 1, 30), (cap, 2, 5), (chain, 1, 10)],
+        )
+        hoodie_line, cap_line, chain_line = lines
+        self.assertEqual(sale.margin, 50 - 3)
+
+        shipment = self._fulfilment(source, "ship-1", 25, lines)
+
+        # 25 spread over 30, 10 and 10 of revenue: 15, 5 and 5.
+        self.assertAlmostEqual(hoodie_line.purchase_price, 15)
+        self.assertAlmostEqual(cap_line.purchase_price, 2.5)
+        self.assertAlmostEqual(chain_line.purchase_price, 5)
+        self.assertAlmostEqual(sale.margin, 50 - 25)
+        self.assertAlmostEqual(hoodie.standard_price, 15)
+        self.assertAlmostEqual(cap.standard_price, 2.5)
+        # A stocked product is valued by its receipts, never by a shipment.
+        self.assertAlmostEqual(chain.standard_price, 3)
+
+        # A refund nets out of the lines but does not become the observed cost.
+        self._fulfilment(source, "refund-1", -5, lines, state="refunded", day=7)
+        self.assertAlmostEqual(hoodie_line.purchase_price, 12)
+        self.assertAlmostEqual(cap_line.purchase_price, 2)
+        self.assertAlmostEqual(hoodie.standard_price, 15)
+
+        # A later shipment of one line adds to that line only. The product's
+        # standard price is what shipping one unit cost in total, refunds
+        # aside, since that is what the next order should assume.
+        self._fulfilment(source, "ship-2", 8, hoodie_line, day=8)
+        self.assertAlmostEqual(hoodie_line.purchase_price, 20)
+        self.assertAlmostEqual(cap_line.purchase_price, 2)
+        self.assertAlmostEqual(hoodie.standard_price, 23)
+
+        # Correcting the evidence corrects the lines.
+        shipment.write({"company_cogs_amount": 35})
+        self.assertAlmostEqual(hoodie_line.purchase_price, 26)
+        self.assertAlmostEqual(cap_line.purchase_price, 3)
+        self.assertAlmostEqual(sale.margin, 50 - 38)
+
+    def test_fulfilment_cost_falls_back_to_quantity_when_lines_earned_nothing(self):
+        tee = self._printful_product("Giveaway tee")
+        sticker = self._printful_product("Giveaway sticker")
+        source, _sale, lines = self._historical_sale(
+            "giveaway", [(tee, 1, 0), (sticker, 3, 0)],
+        )
+        self._fulfilment(source, "ship-free", 8, lines)
+        self.assertAlmostEqual(lines[0].purchase_price, 2)
+        self.assertAlmostEqual(lines[1].purchase_price, 2)
+
+    def test_cogs_allocation_migration_files_products_and_replays_allocation(self):
+        category = self.env.ref("usl_b2c.product_category_gbc_print_on_demand")
+        hoodie = self._printful_product("Unfiled hoodie")
+        self.assertNotEqual(hoodie.categ_id, category)
+        source, _sale, lines = self._historical_sale("replay", [(hoodie, 2, 20)])
+        self._fulfilment(source, "ship-replay", 12, lines)
+        # Lines promoted before the allocation existed carry no cost at all.
+        lines.write({"purchase_price": 0})
+        hoodie.write({"standard_price": 0})
+        migration = run_path(
+            Path(__file__).parents[1]
+            / "migrations"
+            / "saas~19.3.1.5.0"
+            / "post-cogs-allocation.py",
+        )
+
+        migration["migrate"](self.env.cr, "saas~19.3.1.4.1")
+        self.env.invalidate_all()
+
+        self.assertEqual(hoodie.categ_id, category)
+        self.assertAlmostEqual(lines.purchase_price, 6)
+        self.assertAlmostEqual(hoodie.standard_price, 6)
+
+    def test_cogs_allocation_migration_values_manufactured_goods(self):
+        finished_category = self.env.ref("usl_b2c.product_category_gbc_finished_products")
+        raw_category = self.env.ref("product.product_category_goods").copy(
+            {"name": "Migration raw materials", "property_cost_method": "average"},
+        )
+        warehouse = self.env["stock.warehouse"].search(
+            [("company_id", "=", self.company.id)], limit=1,
+        )
+        supplier_location = self.env.ref("stock.stock_location_suppliers")
+        customer_location = self.env.ref("stock.stock_location_customers")
+        context = {HISTORICAL_B2C_MATERIALIZATION_CONTEXT: MATERIALIZATION_TOKEN}
+
+        chain = self.env["product.product"].create(
+            {
+                "name": "Migration chain",
+                "is_storable": True,
+                "categ_id": raw_category.id,
+                "standard_price": 4,
+            },
+        )
+        collar = self.env["product.product"].create(
+            {"name": "Migration collar", "is_storable": True, "categ_id": False},
+        )
+        collar.product_tmpl_id.write(
+            {
+                "b2c_catalog_classification": "operational",
+                "b2c_fulfilment_mode": "own_stock",
+                "b2c_inventory_role": "saleable_unit",
+            },
+        )
+        bom = self.env["mrp.bom"].create(
+            {
+                "product_tmpl_id": collar.product_tmpl_id.id,
+                "product_id": collar.id,
+                "product_qty": 1,
+                "uom_id": collar.uom_id.id,
+                "type": "normal",
+                "bom_line_ids": [
+                    Command.create(
+                        {
+                            "product_id": chain.id,
+                            "product_qty": 1,
+                            "uom_id": chain.uom_id.id,
+                        },
+                    ),
+                ],
+            },
+        )
+        receipt = self.env["stock.picking"].create(
+            {
+                "picking_type_id": warehouse.in_type_id.id,
+                "location_id": supplier_location.id,
+                "location_dest_id": warehouse.lot_stock_id.id,
+                "move_ids": [
+                    Command.create(
+                        {
+                            "product_id": chain.id,
+                            "product_uom_qty": 1,
+                            "uom_id": chain.uom_id.id,
+                            "location_id": supplier_location.id,
+                            "location_dest_id": warehouse.lot_stock_id.id,
+                        },
+                    ),
+                ],
+            },
+        )
+        receipt.action_confirm()
+        receipt.move_ids.quantity = 1
+        receipt.move_ids.picked = True
+        receipt.button_validate()
+        self.assertAlmostEqual(receipt.move_ids.value, 4)
+
+        source, _sale, sale_lines = self._historical_sale("made", [(collar, 1, 30)])
+        sale_line = sale_lines
+        b2c_line = self.env["b2c.order.line"].create(
+            {
+                "order_id": source.id,
+                "line_key": "manual:line:made",
+                "original_name": "Collar",
+                "quantity": 1,
+                "product_id": collar.id,
+                "revenue_amount": 30,
+                "revenue_company_amount": 30,
+                "mapping_state": "verified",
+                "amount_completeness": "complete",
+            },
+        )
+        sale_line.sudo().with_context(**context).write(
+            {"usl_b2c_order_line_id": b2c_line.id},
+        )
+        production = self.env["mrp.production"].sudo().with_context(**context).create(
+            {
+                "product_id": collar.id,
+                "product_qty": 1,
+                "uom_id": collar.uom_id.id,
+                "bom_id": bom.id,
+                "company_id": self.company.id,
+                "location_src_id": warehouse.lot_stock_id.id,
+                "location_dest_id": warehouse.lot_stock_id.id,
+                "usl_b2c_order_line_id": b2c_line.id,
+                "usl_b2c_source_key": "test:made-production",
+            },
+        )
+        production.action_confirm()
+        production.action_assign()
+        production.qty_producing = 1
+        production._set_qty_producing()
+        self.assertTrue(
+            production.with_context(skip_backorder=True, skip_redirection=True).button_mark_done(),
+        )
+        production = production.sudo().with_context({})
+        b2c_line.sudo().with_context(**context).write(
+            {"production_ids": [Command.set([production.id])]},
+        )
+        finished = production.move_finished_ids
+        self.assertEqual(finished.state, "done")
+        self.assertAlmostEqual(production.move_raw_ids.value, 4)
+        # Standard costing at a zero standard price: the unit entered stock at nothing.
+        self.assertAlmostEqual(finished.value, 0)
+
+        delivery = self.env["stock.picking"].sudo().with_context(**context).create(
+            {
+                "picking_type_id": warehouse.out_type_id.id,
+                "location_id": warehouse.lot_stock_id.id,
+                "location_dest_id": customer_location.id,
+                "usl_historical_b2c": True,
+                "usl_b2c_source_key": "test:made-delivery",
+                "move_ids": [
+                    Command.create(
+                        {
+                            "product_id": collar.id,
+                            "product_uom_qty": 1,
+                            "uom_id": collar.uom_id.id,
+                            "location_id": warehouse.lot_stock_id.id,
+                            "location_dest_id": customer_location.id,
+                            "sale_line_id": sale_line.id,
+                            "usl_b2c_order_line_id": b2c_line.id,
+                        },
+                    ),
+                ],
+            },
+        )
+        delivery.action_confirm()
+        delivery.move_ids.quantity = 1
+        delivery.move_ids.picked = True
+        delivery.button_validate()
+        shipped = delivery.move_ids.sudo().with_context({})
+        self.assertAlmostEqual(shipped.value, 0)
+        self.assertAlmostEqual(sale_line.purchase_price, 0)
+
+        migration = run_path(
+            Path(__file__).parents[1]
+            / "migrations"
+            / "saas~19.3.1.5.0"
+            / "post-cogs-allocation.py",
+        )
+        migration["migrate"](self.env.cr, "saas~19.3.1.4.1")
+        self.env.invalidate_all()
+
+        self.assertEqual(collar.categ_id, finished_category)
+        self.assertEqual(collar.cost_method, "average")
+        self.assertAlmostEqual(finished.value, 4)
+        self.assertAlmostEqual(shipped.value, 4)
+        self.assertAlmostEqual(collar.standard_price, 4)
+        self.assertAlmostEqual(sale_line.purchase_price, 4)
+        self.assertAlmostEqual(sale_line.margin, 26)

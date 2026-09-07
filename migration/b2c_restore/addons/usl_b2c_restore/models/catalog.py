@@ -183,6 +183,15 @@ class UslB2cCatalogMaterializer(models.AbstractModel):
             "company_id": False,
             "type": "consu",
             "is_storable": own_stock,
+            # The category decides the cost method. A product made in house
+            # needs a moving cost so its productions and deliveries carry the
+            # cost of its components; print-on-demand merchandise is costed
+            # from the fulfilment events and only needs a place in reports.
+            "categ_id": self.env.ref(
+                "usl_b2c.product_category_gbc_finished_products"
+                if own_stock
+                else "usl_b2c.product_category_gbc_print_on_demand",
+            ).id,
             "sale_ok": True,
             "purchase_ok": own_stock,
             "b2c_catalog_classification": "operational",

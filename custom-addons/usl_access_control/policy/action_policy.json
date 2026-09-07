@@ -117358,9 +117358,9 @@
         "rpc:b2c.channel.create": "e01529fb01e0889fd6f4679a25ce6d1fcd327ded248fcd5e59cbcd4b0f6453e0",
         "rpc:b2c.channel.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:b2c.channel.write": "010ab28dd1877e9843e54acd846e0ab610a1d9b9dd59117f5f93494efba41b4f",
-        "rpc:b2c.fulfilment.event.create": "ed7fb9da93021b832c891ed01cde7812cda526965bb5f11dd3b6a51a8d6017f2",
+        "rpc:b2c.fulfilment.event.create": "c5917be41eb16f65dfe4b1e6a41d56e7d3bbb16e1063a45216b5d0229b6b3ddb",
         "rpc:b2c.fulfilment.event.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
-        "rpc:b2c.fulfilment.event.write": "bbbc9c35a2cecebaada88a5a113b3510c630e3cfb160a306d15307e04782dfa0",
+        "rpc:b2c.fulfilment.event.write": "272f7c18989ab06ab9d6e4d9c14e0ab7a004555b49447fd6c528861dda98f54a",
         "rpc:b2c.order.create": "54bfee1a489ad47cb431ce5357e90328b7115fd9b80c4a7118f7d2cba350d472",
         "rpc:b2c.order.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:b2c.order.line.create": "ed7fb9da93021b832c891ed01cde7812cda526965bb5f11dd3b6a51a8d6017f2",
@@ -152660,6 +152660,14 @@
     },
     {
       "action_keys": [
+        "sink:usl_b2c:custom-addons/usl_b2c/models/event.py:b2c.fulfilment.event._usl_allocate_cogs:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/event.py:b2c.fulfilment.event._usl_refresh_standard_prices:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/event.py:b2c.fulfilment.event.create:orm_create:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/event.py:b2c.fulfilment.event.write:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/manufactured_cost.py:mrp.production._usl_value_finished_from_components:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/manufactured_cost.py:mrp.production._usl_value_finished_from_components:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/manufactured_cost.py:product.product._usl_refresh_manufactured_cost:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/manufactured_cost.py:stock.move._usl_value_from_source_production:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.fulfilment.event.create:orm_create:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.fulfilment.event.create:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.fulfilment.event.write:orm_write:1",
@@ -152758,6 +152766,30 @@
       "evidence_id": "internal-reachability-v1",
       "id": "system_internal.commerce_and_fulfilment.native_b2c_history_sinks",
       "overrides": {
+        "sink:usl_b2c:custom-addons/usl_b2c/models/event.py:b2c.fulfilment.event._usl_allocate_cogs:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/event.py:b2c.fulfilment.event._usl_refresh_standard_prices:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/event.py:b2c.fulfilment.event.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:b2c.fulfilment.event.create"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/event.py:b2c.fulfilment.event.write:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:b2c.fulfilment.event.write"
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/manufactured_cost.py:mrp.production._usl_value_finished_from_components:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/manufactured_cost.py:mrp.production._usl_value_finished_from_components:orm_write:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/manufactured_cost.py:product.product._usl_refresh_manufactured_cost:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/manufactured_cost.py:stock.move._usl_value_from_source_production:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.fulfilment.event.create:orm_create:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:b2c.fulfilment.event.create"
         },
@@ -153034,6 +153066,14 @@
       },
       "rationale": "Runtime registry and source reachability facts provide no direct ordinary RPC/controller access; any reviewed parent or manual scheduler entry is classified separately.",
       "reviewed_digests": {
+        "sink:usl_b2c:custom-addons/usl_b2c/models/event.py:b2c.fulfilment.event._usl_allocate_cogs:orm_write:1": "84d87099ffb20ab7ed84c410e366e6dcbb811a48d943f6f40a0bf97b38e578bc",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/event.py:b2c.fulfilment.event._usl_refresh_standard_prices:orm_write:1": "7d5ef8ce04538e8766bd43dda081f275560404a4c94fe1b9a1b05c3fc4470f8c",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/event.py:b2c.fulfilment.event.create:orm_create:1": "3373e18c3779ac10c422e47a08c6dd45765c58e3444583038321c29f155c3f93",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/event.py:b2c.fulfilment.event.write:orm_write:1": "b5d975a3e34d9e6045e028de902416152bb3882936fc871f65f978f703e93bef",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/manufactured_cost.py:mrp.production._usl_value_finished_from_components:orm_write:1": "1ea8ab9b405c98b67d801bf53fb1f329659c3cc46433fbc8b17e5dea1b04fb2d",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/manufactured_cost.py:mrp.production._usl_value_finished_from_components:orm_write:2": "f3fc3850487d7b810ff5b5939a78e3510730da0bc36d47ab73d06bc0ce461932",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/manufactured_cost.py:product.product._usl_refresh_manufactured_cost:orm_write:1": "0dcbfbd6ebe192e2a8e4bfb9b277168929cf96301aa5bbe4ac386fd671e1b19f",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/manufactured_cost.py:stock.move._usl_value_from_source_production:orm_write:1": "10d79f3be7197fc4b72bd74f736b83335429ff01800e3a0a82596bf4845ce4f4",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.fulfilment.event.create:orm_create:1": "0630e8c345904ade618e11acba05297dbd5c1923309f44cc539ab2176dd5d6e4",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.fulfilment.event.create:orm_write:1": "f38f8ef34409d700f18a51078d0a812ef567b0e41db0450f0686f8222e3c0d23",
         "sink:usl_b2c:custom-addons/usl_b2c/models/native_history.py:b2c.fulfilment.event.write:orm_write:1": "8efe912546c5d9b8d985acfdd4c4a96a3f42c71a5f1c35c813625ab3bd8ff955",
@@ -194750,6 +194790,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "463665063254ee30592f5e02e29ba71ff8aade1e5f7ca232bcb825b77dd5b181",
+  "qualified_policy_digest": "6b45d03dc573d60d46fba75028ac482bce6f253b35ca70c4bec1b661b2cb287b",
   "schema": "usl-action-risk-policy-v1"
 }
