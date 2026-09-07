@@ -38,6 +38,7 @@ FETCH_FAILURE_CODES = {
     "pdf_active_content",
     "pdf_encrypted",
     "pdf_too_large",
+    "rate_limited",
     "unsafe_url",
 }
 
@@ -194,6 +195,7 @@ def _safe_fetch_failure_message(code):
         "pdf_active_content": "The PDF contains unsupported active content.",
         "pdf_encrypted": "The PDF is encrypted.",
         "pdf_too_large": "The PDF exceeds the 20 MB safety limit.",
+        "rate_limited": "The receipt provider is limiting download attempts.",
         "unsafe_url": "The receipt link is not an allowed public HTTPS URL.",
     }
     return messages.get(code, messages["fetch_failed"])

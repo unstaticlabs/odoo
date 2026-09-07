@@ -356,6 +356,98 @@ class DirectFetchTests(unittest.IsolatedAsyncioTestCase):
         ):
             await app._direct_fetch(request)
 
+    async def test_a_purged_link_is_reported_as_expired_not_as_a_provider_error(self) -> None:
+        # Email click-tracking wrappers are purged after a few months and then
+        # answer 404.  Reporting that as "the provider returned an error" hid a
+        # permanently dead link behind a message that invites more retries.
+        for status in (404, 410):
+            with self.subTest(status=status):
+                responses = [
+                    _FakeResponse(
+                        "https://tracking.example/tracking/1/click/abcdef1234567890",
+                        status,
+                        {"content-type": "application/json"},
+                        [],
+                    ),
+                ]
+                request = app.FetchRequest(
+                    url="https://tracking.example/tracking/1/click/abcdef1234567890",
+                )
+
+                with (
+                    patch.object(app.httpx, "AsyncClient", return_value=_FakeClient(responses)),
+                    self.assertRaises(app.FetchFailure) as caught,
+                ):
+                    await app._direct_fetch(request)
+
+                self.assertEqual(caught.exception.code, "expired_or_forbidden")
+                self.assertEqual(caught.exception.status, 422)
+                self.assertEqual(caught.exception.upstream_status, status)
+
+    async def test_throttling_is_reported_as_rate_limiting_and_stays_retryable(self) -> None:
+        responses = [
+            _FakeResponse(
+                "https://receipts.example/invoice/abcdef1234567890",
+                429,
+                {"content-type": "application/json"},
+                [],
+            ),
+        ]
+        request = app.FetchRequest(url="https://receipts.example/invoice/abcdef1234567890")
+
+        with (
+            patch.object(app.httpx, "AsyncClient", return_value=_FakeClient(responses)),
+            self.assertRaises(app.FetchFailure) as caught,
+        ):
+            await app._direct_fetch(request)
+
+        self.assertEqual(caught.exception.code, "rate_limited")
+        self.assertEqual(caught.exception.status, 503)
+        self.assertEqual(caught.exception.upstream_status, 429)
+
+    async def test_a_server_fault_is_still_reported_as_a_provider_error(self) -> None:
+        responses = [
+            _FakeResponse(
+                "https://receipts.example/invoice/abcdef1234567890",
+                503,
+                {"content-type": "text/html"},
+                [],
+            ),
+        ]
+        request = app.FetchRequest(url="https://receipts.example/invoice/abcdef1234567890")
+
+        with (
+            patch.object(app.httpx, "AsyncClient", return_value=_FakeClient(responses)),
+            self.assertRaises(app.FetchFailure) as caught,
+        ):
+            await app._direct_fetch(request)
+
+        self.assertEqual(caught.exception.code, "http_error")
+        self.assertEqual(caught.exception.status, 503)
+
+
+class FailureLoggingTests(unittest.IsolatedAsyncioTestCase):
+    async def test_the_failure_log_line_carries_diagnosis_without_the_signed_url(self) -> None:
+        signed_url = "https://tracking.example/tracking/1/click/abcdef1234567890?token=supersecrettoken"
+        responses = [_FakeResponse(signed_url, 404, {"content-type": "application/json"}, [])]
+        request = app.FetchRequest(url=signed_url)
+
+        with (
+            patch.object(app.httpx, "AsyncClient", return_value=_FakeClient(responses)),
+            self.assertRaises(app.FetchFailure) as caught,
+        ):
+            await app._direct_fetch(request)
+
+        with self.assertLogs("usl.receipt.fetcher", level="WARNING") as logs:
+            await app._fetch_failure(None, caught.exception)
+
+        line = "\n".join(logs.output)
+        self.assertIn("code=expired_or_forbidden", line)
+        self.assertIn("upstream_status=404", line)
+        self.assertIn("host=tracking.example", line)
+        self.assertNotIn("supersecrettoken", line)
+        self.assertNotIn("abcdef1234567890", line)
+
 
 if __name__ == "__main__":
     unittest.main()
