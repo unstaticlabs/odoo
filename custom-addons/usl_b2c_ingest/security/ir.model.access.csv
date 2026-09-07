@@ -1,0 +1,13 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_b2c_import_batch_reader,b2c import batch reader,model_b2c_import_batch,usl_b2c.group_b2c_reader,1,0,0,0
+access_b2c_import_batch_operator,b2c import batch operator,model_b2c_import_batch,usl_b2c.group_b2c_operator,1,1,1,0
+access_b2c_import_batch_manager,b2c import batch manager,model_b2c_import_batch,usl_b2c.group_b2c_manager,1,1,1,1
+access_b2c_import_file_reader,b2c import file reader,model_b2c_import_file,usl_b2c.group_b2c_reader,1,0,0,0
+access_b2c_import_file_operator,b2c import file operator,model_b2c_import_file,usl_b2c.group_b2c_operator,1,1,1,1
+access_b2c_import_file_manager,b2c import file manager,model_b2c_import_file,usl_b2c.group_b2c_manager,1,1,1,1
+access_b2c_import_row_reader,b2c import row reader,model_b2c_import_row,usl_b2c.group_b2c_reader,1,0,0,0
+access_b2c_import_row_operator,b2c import row operator,model_b2c_import_row,usl_b2c.group_b2c_operator,1,0,0,0
+access_b2c_import_row_manager,b2c import row manager,model_b2c_import_row,usl_b2c.group_b2c_manager,1,1,1,1
+access_b2c_import_issue_reader,b2c import issue reader,model_b2c_import_issue,usl_b2c.group_b2c_reader,1,0,0,0
+access_b2c_import_issue_operator,b2c import issue operator,model_b2c_import_issue,usl_b2c.group_b2c_operator,1,1,0,0
+access_b2c_import_issue_manager,b2c import issue manager,model_b2c_import_issue,usl_b2c.group_b2c_manager,1,1,1,1
