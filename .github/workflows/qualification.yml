@@ -276,6 +276,25 @@ jobs:
             echo "pr_head_sha=$PR_HEAD_SHA"
             echo "pr_head_ref=$PR_HEAD_REF"
           } >> "$GITHUB_OUTPUT"
+      - name: Require that staging already deployed this tree
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_HEAD_SHA: ${{ steps.source.outputs.pr_head_sha }}
+          PR_HEAD_REF: ${{ steps.source.outputs.pr_head_ref }}
+        run: |
+          # Qualification proves the tree builds and passes tests. Staging
+          # proves it deploys, which is a different claim and was never
+          # consulted: on 2026-09-08 this promotion merged green at 08:49
+          # while the same commit's staging deployment had read failure since
+          # 04:55, and production then failed identically. GitHub already
+          # records that outcome; this reads it.
+          # urgent/** is exempt by design: an urgent fix reaches staging after
+          # it merges to production, so it can never carry a staging
+          # deployment here, and requiring one would break the emergency path.
+          scripts/check-staging-deployment \
+            --repository "$GITHUB_REPOSITORY" \
+            --sha "$PR_HEAD_SHA" \
+            --head-ref "$PR_HEAD_REF"
       - name: Bind the PR-qualified tree to this event
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
