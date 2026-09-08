@@ -2363,9 +2363,16 @@ class TestAgentDraftVendorBillConfiguration(AccountTestInvoicingCommon):
             [{"name": "   ", "price_unit": 10.0}],
             [{"name": "No price"}],
             [{"name": "Unknown field", "price_unit": 10.0, "display_type": "line_note"}],
-            [{"name": "Foreign tax", "price_unit": 10.0, "tax_ids": other_company_tax.ids}],
             [{"name": "Missing account", "price_unit": 10.0, "account_id": 0}],
         ):
             with self.assertRaises(ValidationError):
                 self._configure(bill, line_creates=line_creates)
+        # A tax of another company is refused by Odoo's own access check.
+        with self.assertRaises(AccessError):
+            self._configure(
+                bill,
+                line_creates=[
+                    {"name": "Foreign tax", "price_unit": 10.0, "tax_ids": other_company_tax.ids},
+                ],
+            )
         self.assertEqual(len(bill.invoice_line_ids), 1)

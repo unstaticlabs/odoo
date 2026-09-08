@@ -33,7 +33,8 @@ class TestOrmPayloadContract(BaseCase):
     def test_custom_addons_keep_the_canonical_orm_payload_names(self):
         offenders = []
         for path in sorted(CUSTOM_ADDONS.rglob("*.py")):
-            if "__pycache__" in path.parts:
+            # Test fixtures deliberately model the signatures this refuses.
+            if {"__pycache__", "tests"} & set(path.parts):
                 continue
             tree = ast.parse(path.read_text(encoding="utf-8"))
             for node in ast.walk(tree):
