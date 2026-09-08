@@ -11,6 +11,12 @@ ROOT = Path(__file__).resolve().parents[2]
 ODOO_DEV = ROOT / "scripts" / "odoo-dev"
 COMPOSE_SCOPE = ROOT / "scripts" / "lib" / "compose-scope.sh"
 POCKET_ID_DEV = ROOT / "scripts" / "pocket-id-dev"
+# The three spellings the Makefile and scripts/odoo-dev both accept.
+PROJECT_VARIABLES = (
+    "COMPOSE_PROJECT",
+    "COMPOSE_PROJECT_NAME",
+    "ODOO_SAAS_COMPOSE_PROJECT",
+)
 
 
 class DeveloperCommandUXTest(unittest.TestCase):
@@ -337,12 +343,30 @@ esac
         )
         self.assertIn("Deploy updates an existing reconstructed target", helper)
 
-    def make_project(self, **environment):
-        """Report the Compose project a `make` invocation actually resolves."""
+    def make_project(self, *, dotenv="", **environment):
+        """Report the Compose project a `make` invocation actually resolves.
+
+        The answer must come from this call, not from the checkout it runs in.
+        `make worktree-env >> .env` is a documented step, and the Makefile
+        deliberately reads that file as its last fallback, so a developer who
+        followed the instruction would otherwise fail the default assertion
+        below on a checkout that is working perfectly. Pin the fallback on the
+        command line, where it overrides the Makefile, and drop the three
+        documented variables from the inherited environment for the same
+        reason. Pass `dotenv` to exercise the fallback itself.
+        """
+        environment = {
+            **{
+                name: value
+                for name, value in os.environ.items()
+                if name not in PROJECT_VARIABLES
+            },
+            **environment,
+        }
         completed = subprocess.run(
-            ["make", "doctor"],
+            ["make", f"DOTENV_COMPOSE_PROJECT={dotenv}", "doctor"],
             cwd=ROOT,
-            env={**os.environ, **environment},
+            env=environment,
             check=False,
             capture_output=True,
             text=True,
@@ -354,11 +378,7 @@ esac
 
     def test_make_accepts_every_documented_compose_project_variable(self):
         """COMPOSE_PROJECT_NAME used to be silently replaced by the default."""
-        for variable in (
-            "COMPOSE_PROJECT",
-            "COMPOSE_PROJECT_NAME",
-            "ODOO_SAAS_COMPOSE_PROJECT",
-        ):
+        for variable in PROJECT_VARIABLES:
             with self.subTest(variable=variable):
                 self.assertEqual(
                     self.make_project(**{variable: "usl-probe"}),
@@ -366,6 +386,21 @@ esac
                 )
 
         self.assertEqual(self.make_project(), "usl-odoo-saas-19-3")
+
+    def test_dotenv_supplies_the_project_but_never_outranks_a_variable(self):
+        """Compose reads .env by itself; make must agree, and yield to a variable."""
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+        self.assertIn("test -f .env", makefile)
+
+        self.assertEqual(self.make_project(dotenv="usl-dotenv"), "usl-dotenv")
+        for variable in PROJECT_VARIABLES:
+            with self.subTest(variable=variable):
+                self.assertEqual(
+                    self.make_project(
+                        dotenv="usl-dotenv", **{variable: "usl-probe"},
+                    ),
+                    "usl-probe",
+                )
 
     def test_compose_project_precedence_is_the_same_everywhere(self):
         """`make`, odoo-dev and accounting_compat must not disagree."""
