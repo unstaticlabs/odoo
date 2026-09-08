@@ -99,6 +99,16 @@ produces thousands of spurious entries that hide the change under review:
 make action-risk-db
 ```
 
+It builds in its own `odoo_action_risk` database, dropped and recreated on
+every run. The closure is never installed over an existing registry, because a
+few Odoo action records store a raw database row id that is fixed on first
+install and never rewritten: `base.ir_cron_act` embeds the id of
+`mail.ir_cron_module_update_notification`, and the two account payment-receipt
+actions embed the id of the receipt mail template. A database that inherits
+another one's row ids reports exactly those entries as changed while its module
+set still matches, which reads as an accounting change nobody made. Your own
+`odoo_dev` is left alone.
+
 It installs the surface's own `root_modules` — read from the tracked file, so
 the database cannot drift from what the check compares against — then removes
 the reviewed optional auto-installs with the same
@@ -106,14 +116,17 @@ the reviewed optional auto-installs with the same
 because the delivered closure does not carry them. Finally it checks the
 resulting module set against the delivered surface and refuses if it differs in
 either direction, so a module that starts auto-installing is reported here
-rather than as spurious action entries later.
+rather than as spurious action entries later. That check compares the module
+set only; it cannot see where the rows came from, which is why the database is
+recreated rather than reused.
 
 Between those steps it updates the closure twice, matching
 `scripts/ci-product-database`. The second pass is not redundant: removing the
 optional auto-installs leaves records the first update rewrites, so
 data-defined actions only settle on the second. A database built without them
 reports digest drift in modules the branch never touched. Afterwards
-`make action-risk-discover` works from this checkout. See
+`make action-risk-discover` and `make action-risk-runtime` read that same
+`odoo_action_risk` database from this checkout. See
 [the action-risk review procedure](action-risk-inventory.md) for what to do
 with the resulting diff.
 
