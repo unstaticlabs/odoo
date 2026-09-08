@@ -63,3 +63,19 @@ Same page on a 390x844 viewport: pills wrap, the screenshot scales, the
 content comes before the navigation.
 
 ![Mobile layout of the generated how-to](user-guide-generated-how-to-mobile.png)
+
+## A generated reference page, desktop
+
+Captured on the rebuilt action-risk closure as `qa.docs.reader` after
+`make docs-reference`. The pill reads "Generated from the code": the page
+lists the fields `usl_expense_batch` defines or adds, by model, with the label,
+type and `help` text the screen shows.
+
+![Generated fields reference for usl_expense_batch](user-guide-reference-fields-desktop.png)
+
+## The help coverage page, desktop
+
+The same run's `help-coverage.md`: per module, how many stored fields explain
+themselves with a tooltip. The number is the reference quadrant's backlog.
+
+![Help coverage per module](user-guide-reference-coverage-desktop.png)

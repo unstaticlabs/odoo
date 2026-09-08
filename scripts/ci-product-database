@@ -174,6 +174,10 @@ printf 'Running the documented journeys\n'
   --update="$modules" \
   --log-level=test
 python3 scripts/docs-generate check --records artifacts/usl-docs
+# The reference pages are read from this database's registry and must match
+# what is committed; a field, group or menu change without a regenerate fails.
+odoo_shell < scripts/odoo/docs_reference.py | tail -n 1 > artifacts/usl-docs/reference.json
+python3 scripts/docs-reference check --reference artifacts/usl-docs/reference.json
 python3 scripts/docs-evidence create \
   --records artifacts/usl-docs \
   --repository "${GITHUB_REPOSITORY:-unstaticlabs/odoo}" \

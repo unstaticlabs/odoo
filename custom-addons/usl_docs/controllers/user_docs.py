@@ -396,6 +396,8 @@ def evidence_state(page, evidence, release_commit, now=None):
     if page["type"] == "home":
         return None
     if not page.get("journey"):
+        if page.get("generated"):
+            return {"kind": "generated", "label": "Generated from the code", "detail": "This page is derived from the product's own definitions; it cannot drift from them."}
         return {"kind": "not-test-backed", "label": "Not test-backed", "detail": ""}
     if not evidence:
         return {"kind": "unverified", "label": "Unverified build", "detail": "No test evidence shipped with this build."}
@@ -524,10 +526,14 @@ def _footer_html(page):
     if page["type"] == "home":
         return ""
     if page["generated"]:
-        what = f"the journey <code>{html.escape(page['journey'])}</code>" if page["journey"] else "its source"
+        if page["journey"]:
+            return (
+                f'<div class="doc-footer">This page is generated from the journey <code>{html.escape(page["journey"])}</code>. '
+                f"Change the test, then run <code>make docs</code>; edits to the page itself are overwritten.</div>"
+            )
         return (
-            f'<div class="doc-footer">This page is generated from {what}. '
-            f"Change the test, then run <code>make docs</code>; edits to the page itself are overwritten.</div>"
+            '<div class="doc-footer">This page is generated from the product\'s code. '
+            "Change the field, group, menu or setting, then run <code>make docs-reference</code>; edits to the page itself are overwritten.</div>"
         )
     return (
         f'<div class="doc-footer">This page is written by hand: <code>docs/users/{html.escape(page["path"])}</code> '
@@ -585,6 +591,7 @@ def _page_html(page, body_html, records, state, release_commit):
     .pill-tested {{ background: var(--ok-wash); color: var(--ok); }}
     a.pill-tested:hover {{ border-color: var(--ok); }}
     .pill-unverified, .pill-untested-release, .pill-recovery {{ background: var(--warn-wash); color: var(--warn); }}
+    .pill-generated {{ background: var(--accent-wash); color: var(--accent); }}
     .doc-sources {{ color: var(--muted); font-size: 13px; }}
     .doc-footer {{ margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }}
     h1 {{ font-size: 30px; line-height: 1.2; margin: 0 0 16px; }}

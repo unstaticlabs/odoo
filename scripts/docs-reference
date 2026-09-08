@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+"""Render the generated reference pages, or prove they are current.
+
+  scripts/docs-reference render [--reference FILE]
+  scripts/docs-reference check  [--reference FILE]
+
+FILE is the usl-docs-reference/v1 document scripts/odoo/docs_reference.py
+prints from an Odoo shell on the product database (default
+artifacts/usl-docs/reference.json).
+"""
+
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from operations.docs_reference import ROOT, check_all, render_all  # noqa: E402
+from operations.user_docs import write_indexes  # noqa: E402
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("command", choices=("render", "check"))
+    parser.add_argument("--reference", default=str(ROOT / "artifacts" / "usl-docs" / "reference.json"))
+    arguments = parser.parse_args()
+    if arguments.command == "render":
+        written = render_all(arguments.reference)
+        for path in written + write_indexes():
+            print(f"wrote {path.relative_to(ROOT).as_posix()}")
+        if not written:
+            print("Generated reference: current")
+        return 0
+    findings = check_all(arguments.reference)
+    for path, problem in findings:
+        print(f"{path}: {problem}")
+    if findings:
+        print(f"Generated reference check: FAIL ({len(findings)} finding(s))")
+        return 1
+    print("Generated reference check: PASS")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

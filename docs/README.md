@@ -42,6 +42,7 @@ journey lands; that is the conversion backlog, measured by
 make docs            # run the journeys in the test container, render pages and screenshots, refresh the indexes
 make docs-journeys   # only run the journeys (MODULE=name limits the installed modules); records land in artifacts/usl-docs
 make docs-render     # only render from recorded journeys (scripts/docs-generate render)
+make docs-reference  # extract the registry from the action-risk closure and render reference/generated/
 make docs-check      # front matter, directories, links, images, sources, decision numbering, stale indexes
 ```
 
@@ -77,8 +78,11 @@ them at once, and that is a normal, one-off pull request.
 - **A how-to or the tutorial**: write a journey (a native Odoo tour plus a
   `usl_docs.journeys` entry), run `make docs`, commit the page and its
   screenshots. The skill `.claude/skills/usl-docs-authoring` walks through it.
-- **A reference page**: extend the generator's sources (`help=` on fields,
-  `_description` on models) rather than the page.
+- **A reference page**: the pages under `users/reference/generated/` come from
+  the product's registry (`make docs-reference`, checked in CI): fields per
+  module, states, roles, menus, settings and the `help=` coverage. Change the
+  field, group, menu or setting, never the page. The hand-written reference
+  pages beside them explain; the generated ones enumerate.
 - **An explanation**: write it by hand, with front matter and `source` links.
 - **A decision**: `product/decisions/NNNN-title.md`, next free number, sections
   Context, Decision, Consequences, Alternatives considered. Run `make docs`.
