@@ -109,6 +109,19 @@ class UslAgent(models.Model):
         readonly=True,
         copy=False,
     )
+    expense_receipt_waiver_authority = fields.Boolean(
+        string="May record receipt decisions",
+        default=False,
+        copy=False,
+        help=(
+            "Continuing an expense without a receipt is a documented decision "
+            "rather than ordinary data entry, so an Agent cannot take it on "
+            "its own. Enabling this is the owner's explicit acceptance that "
+            "this Agent may record the decision on their authority. The Agent "
+            "still has to preview the decision and confirm it in a second "
+            "call, and the owner stays accountable for what it records."
+        ),
+    )
     view_group_hierarchy = fields.Json(
         string="Available application access",
         compute="_compute_view_group_hierarchy",
@@ -377,6 +390,27 @@ class UslAgent(models.Model):
         if not read_only_groups <= groups:
             raise ValidationError(_("Read-only access must be part of the Agent's delegated access."))
 
+    def _check_receipt_waiver_authority(self):
+        """A receipt decision the Agent could not write is not an authority.
+
+        The owner grants this on top of ordinary Expenses access, never
+        instead of it, so the flag is refused while the Agent cannot write
+        an expense at all.
+        """
+        for agent in self:
+            if agent.expense_receipt_waiver_authority and not agent._allows_model_operation(
+                "hr.expense",
+                "write",
+            ):
+                raise ValidationError(
+                    _(
+                        "Give %s write access to Expenses before allowing it "
+                        "to record receipt decisions.",
+                        agent.name,
+                    ),
+                )
+        return True
+
     @api.model
     def _access_mode_from_groups(self, groups, read_only_groups):
         if not groups or groups <= read_only_groups:
@@ -506,6 +540,7 @@ class UslAgent(models.Model):
                 access_mode=self._access_mode_from_groups(groups, read_only_groups),
             )
             records |= super().create(clean)
+        records._check_receipt_waiver_authority()
         return records
 
     @api.model
@@ -590,6 +625,7 @@ class UslAgent(models.Model):
                     {"approved_effective_group_ids": [Command.set(effective_group_ids)]},
                 )
             agent._sync_backing_user()
+        self._check_receipt_waiver_authority()
         return result
 
     def unlink(self):
@@ -669,6 +705,20 @@ class UslAgent(models.Model):
                 updates["company_id"] = companies[0].id
             if updates:
                 agent.with_user(SUPERUSER_ID).with_context(usl_agent_internal=True).write(updates)
+            if agent.expense_receipt_waiver_authority and not agent._allows_model_operation(
+                "hr.expense",
+                "write",
+            ):
+                agent.with_user(SUPERUSER_ID).with_context(usl_agent_internal=True).write(
+                    {
+                        "expense_receipt_waiver_authority": False,
+                        "authority_reduced_at": fields.Datetime.now(),
+                        "authority_reduction_reason": _(
+                            "Expense access was reduced; the Agent can no longer "
+                            "record receipt decisions.",
+                        ),
+                    },
+                )
             agent._sync_backing_user()
         return True
 

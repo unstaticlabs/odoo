@@ -1,7 +1,7 @@
 {
     "name": "USL Distribution Access Control",
     "summary": "Recoverability-based roles, protected actions, and agent auditability",
-    "version": "saas~19.3.1.6.7",
+    "version": "saas~19.3.1.7.0",
     "category": "Administration/Access Rights",
     "author": "Unstatic Labs",
     "license": "LGPL-3",

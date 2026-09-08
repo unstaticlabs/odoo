@@ -88,6 +88,12 @@
                             <field name="approved_effective_group_ids" invisible="1"/>
                             <field name="read_only_group_ids" invisible="1"/>
                             <field name="delegated_group_ids" widget="usl_agent_access" nolabel="1" colspan="2"/>
+                            <group name="documented_decisions" string="Decisions this Agent may record on your behalf" colspan="2">
+                                <div class="text-muted mb-2" colspan="2">
+                                    Some steps are decisions a person is accountable for rather than data entry. An Agent is refused them unless you accept that responsibility here. It still has to show you what it would record and confirm it in a second call.
+                                </div>
+                                <field name="expense_receipt_waiver_authority" widget="boolean_toggle"/>
+                            </group>
                         </page>
                         <page name="credentials" string="Credentials" invisible="not id">
                             <button name="action_new_credential" type="object" string="New API Key" class="btn-primary mb-3" invisible="state != 'active'"/>
