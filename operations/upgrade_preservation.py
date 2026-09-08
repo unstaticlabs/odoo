@@ -8,6 +8,29 @@ import re
 TABLES = {"ir_attachment": "id", "mail_message": "id", "project_project": "id", "res_groups_users_rel": "gid"}
 SCHEMA = "usl-upgrade-preservation/v1"
 
+# Rows a release is allowed to rewrite, because they are regenerated from module
+# source on upgrade and hold no business evidence.  An application icon lives in
+# ir_attachment as the binary backing ir.ui.menu.web_icon_data, so freezing it
+# means no release can ever change an icon: the upgrade rewrites the row, the
+# gate refuses, the rollback restores the old icon, and the next attempt repeats
+# it forever.  The exclusion is written so a NULL res_field still evaluates, and
+# so it cannot widen to a user-uploaded document, which never carries res_field.
+EXCLUDED_ROWS = {
+    "ir_attachment": (
+        "coalesce(r.res_model, '') = 'ir.ui.menu' "
+        "AND coalesce(r.res_field, '') = 'web_icon_data'"
+    ),
+}
+
+
+def _row_scope(table: str, key: str, maximum: int) -> str:
+    """SQL predicate selecting the rows a release must preserve unchanged."""
+    predicate = f"{key} <= {maximum}"
+    excluded = EXCLUDED_ROWS.get(table)
+    if excluded:
+        predicate += f" AND NOT ({excluded})"
+    return predicate
+
 
 def scope_sql() -> str:
     sections = []
@@ -41,13 +64,17 @@ def fingerprint_sql(scope: dict) -> str:
         row = f"(SELECT jsonb_object_agg(c.key, c.value ORDER BY c.key) FROM jsonb_each(to_jsonb(r)) c WHERE c.key = ANY(ARRAY[{columns}]))"
         order = 'r.uid,r.gid' if table == 'res_groups_users_rel' else 'r.id'
         row_hash = f"encode(sha256(convert_to(({row})::text, 'UTF8')), 'hex')"
-        sections.append(f"'{table}', (SELECT json_build_object('count', count(*), 'sha256', encode(sha256(convert_to(coalesce(string_agg({row_hash}, E'\\n' ORDER BY {order}), ''), 'UTF8')), 'hex')) FROM public.{table} r WHERE {key} <= {item['maximum']})")
+        scoped = _row_scope(table, key, item['maximum'])
+        sections.append(f"'{table}', (SELECT json_build_object('count', count(*), 'sha256', encode(sha256(convert_to(coalesce(string_agg({row_hash}, E'\\n' ORDER BY {order}), ''), 'UTF8')), 'hex')) FROM public.{table} r WHERE {scoped})")
     return "SELECT json_build_object(" + ','.join(sections) + ");"
 
 
 def scoped_controls_sql(sql: str, scope: dict) -> str:
     validate_scope(scope)
-    ctes = [f"{table} AS (SELECT * FROM public.{table} WHERE {key} <= {scope[table]['maximum']})" for table, key in TABLES.items()]
+    ctes = [
+        f"{table} AS (SELECT * FROM public.{table} r WHERE {_row_scope(table, key, scope[table]['maximum'])})"
+        for table, key in TABLES.items()
+    ]
     return 'WITH ' + ', '.join(ctes) + '\n' + sql
 
 
