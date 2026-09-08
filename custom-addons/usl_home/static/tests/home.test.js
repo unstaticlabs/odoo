@@ -281,3 +281,70 @@ test("dense destination rows keep icons, content, and status on shared tracks", 
         expect(Math.round(iconRect.height)).toBe(32);
     }
 });
+
+test("every Home shortcut clears breadcrumbs like a native menu click", async () => {
+    const calls = [];
+    onRpc("usl.home.service", "get_my_tasks_action", ({ args }) => ({
+        type: "ir.actions.act_window",
+        name: `My Tasks — ${args[1]}`,
+        res_model: "project.task",
+        domain: [],
+        usl_home_filter: {
+            description: `${args[1]}`,
+            domain: [[args[0], "=", args[1]]],
+            is_default: true,
+        },
+    }));
+    onRpc("usl.home.service", "get_ai_workspace_action", () => ({
+        type: "ir.actions.act_window",
+        name: "AI Pipelines",
+        res_model: "project.task",
+        domain: [],
+    }));
+    onRpc("usl.home.service", "get_accounting_alert_action", () => ({
+        type: "ir.actions.act_window",
+        name: "Bank items to review",
+        res_model: "account.bank.statement.line",
+        domain: [],
+    }));
+    onRpc("usl.home.service", "resolve_favorite", () => ({
+        available: true,
+        company_id: false,
+        action: {
+            type: "ir.actions.act_window",
+            name: "My Tasks",
+            res_model: "project.task",
+            domain: [],
+        },
+    }));
+    mockService("action", {
+        doAction(action, options) {
+            calls.push({ action, options });
+        },
+    });
+
+    await mountWithCleanup(UslHome);
+    await animationFrame();
+
+    // Activities: open a specific record, and "Show all activities".
+    await contains(".o_usl_home_widget[data-widget='activities'] .o_usl_home_attention_list button").click();
+    await contains(".o_usl_home_widget[data-widget='activities'] footer button").click();
+
+    // My Tasks: a filtered signal and the primary "Open My Tasks" shortcut.
+    await contains(".o_usl_home_task_signals button[data-signal='overdue']").click();
+    await contains(".o_usl_home_widget[data-widget='my_tasks'] footer button").click();
+
+    // Favorite Views: resume an exact saved destination.
+    await contains(".o_usl_home_favorite_open").click();
+
+    // AI Pipelines.
+    await contains(".o_usl_home_widget[data-widget='ai_pipelines'] footer button").click();
+
+    // Accounting & Compliance Alerts.
+    await contains(".o_usl_home_widget[data-widget='accounting'] .o_usl_home_accounting_alerts button").click();
+
+    expect(calls.length).toBe(7);
+    for (const { options } of calls) {
+        expect(options?.clearBreadcrumbs).toBe(true);
+    }
+});

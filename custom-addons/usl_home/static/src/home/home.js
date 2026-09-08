@@ -285,22 +285,29 @@ export class UslHome extends Component {
     }
 
     async openRecord(resModel, resId) {
-        await this.action.doAction({
-            type: "ir.actions.act_window",
-            res_model: resModel,
-            res_id: resId,
-            views: [[false, "form"]],
-            view_mode: "form",
-            target: "current",
-        });
+        await this.action.doAction(
+            {
+                type: "ir.actions.act_window",
+                res_model: resModel,
+                res_id: resId,
+                views: [[false, "form"]],
+                view_mode: "form",
+                target: "current",
+            },
+            { clearBreadcrumbs: true }
+        );
     }
 
     openAllActivities() {
-        return this.action.doAction("mail.mail_activity_action_my");
+        return this.action.doAction("mail.mail_activity_action_my", {
+            clearBreadcrumbs: true,
+        });
     }
 
     openMyTasks() {
-        return this.action.doAction("project.action_view_my_task");
+        return this.action.doAction("project.action_view_my_task", {
+            clearBreadcrumbs: true,
+        });
     }
 
     taskMetricAriaLabel(label, count) {
@@ -315,12 +322,15 @@ export class UslHome extends Component {
         );
         const dynamicFilters = [action.usl_home_filter];
         delete action.usl_home_filter;
-        return this.action.doAction(action, { props: { dynamicFilters } });
+        return this.action.doAction(action, {
+            clearBreadcrumbs: true,
+            props: { dynamicFilters },
+        });
     }
 
     async openAiPipelines() {
         const action = await this.orm.call("usl.home.service", "get_ai_workspace_action", []);
-        return this.action.doAction(action);
+        return this.action.doAction(action, { clearBreadcrumbs: true });
     }
 
     async openAccountingAlert(key) {
@@ -329,7 +339,7 @@ export class UslHome extends Component {
             "get_accounting_alert_action",
             [key]
         );
-        return this.action.doAction(action);
+        return this.action.doAction(action, { clearBreadcrumbs: true });
     }
 
     async openFavorite(favorite) {
@@ -351,7 +361,7 @@ export class UslHome extends Component {
                 { includeChildCompanies: false, reload: false }
             );
         }
-        return this.action.doAction(target.action);
+        return this.action.doAction(target.action, { clearBreadcrumbs: true });
     }
 
     async removeFavorite(favorite) {
