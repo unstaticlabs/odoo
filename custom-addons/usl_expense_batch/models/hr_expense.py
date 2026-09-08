@@ -5,6 +5,10 @@ from odoo.exceptions import UserError, ValidationError
 
 EXPENSE_BATCH_ELIGIBLE_STATES = ("draft", "approved", "posted")
 
+# States a reviewer can no longer act on: the accounting is booked, or the
+# expense was refused. Advisory notes on these lines are history, not work.
+SETTLED_EXPENSE_STATES = ("posted", "in_payment", "paid", "refused")
+
 CONTEXT_SOURCES = [
     ("product", "Category default"),
     ("batch", "Batch context"),
@@ -304,6 +308,7 @@ class HrExpense(models.Model):
         "batch_context_status",
         "batch_warning_reason",
         "batch_incomplete_reason",
+        "state",
         "account_id",
         "analytic_distribution",
         "expense_batch_id.account_override_id",
@@ -367,7 +372,17 @@ class HrExpense(models.Model):
                 level = "warning"
                 details.append(expense.batch_incomplete_reason)
             if expense.batch_warning_reason:
-                level = "warning"
+                # Duplicate-receipt heuristics and the date-boundary note are
+                # advisory: they ask the reviewer to look, not to correct a
+                # defect.  Acting on them is still possible while the expense is
+                # awaiting approval, so they keep asking for attention until the
+                # accounting is booked or the expense is refused.  After that
+                # the note stays on the line as information and stops presenting
+                # the Batch as unfinished work.
+                if expense.state in SETTLED_EXPENSE_STATES:
+                    level = level or "info"
+                else:
+                    level = "warning"
                 details.append(expense.batch_warning_reason)
 
             expense.batch_attention_level = level
