@@ -53,11 +53,18 @@ class UpgradePreservationTests(unittest.TestCase):
             predicate = sql.split(f'FROM public.{table} r WHERE ')[1].split(')')[0]
             self.assertNotIn('NOT', predicate)
 
-    def test_scoped_controls_use_the_same_row_scope(self):
-        """Controls and the fingerprint must agree on which rows are frozen."""
+    def test_controls_keep_every_row_inside_the_boundary(self):
+        """The controls count rows; the fingerprint asks if rows changed.
+
+        Excluding menu icons from the control CTEs made the post-upgrade
+        attachment count 23 lower than the pre-upgrade one, so the restore
+        comparison rejected the release. The exclusion belongs to the
+        fingerprint alone.
+        """
         controls = p.scoped_controls_sql('SELECT 1', self.scope)
-        self.assertIn("coalesce(r.res_model, '') = 'ir.ui.menu'", controls)
-        self.assertEqual(controls.count('AND NOT ('), 1)
+        self.assertIn('public.ir_attachment WHERE id <= 7', controls)
+        self.assertNotIn('NOT (', controls)
+        self.assertNotIn('res_field', controls)
 
     def test_a_user_document_is_still_frozen(self):
         """A real attachment carries no res_field, so it stays in scope."""
@@ -94,11 +101,8 @@ class UpgradePreservationTests(unittest.TestCase):
 
     def test_sql_scopes_only_additive_business_tables_and_group_boundaries(self):
         sql=p.scoped_controls_sql('SELECT 1',self.scope)
-        # The boundary still scopes every table; ir_attachment additionally
-        # excludes menu icons, so match the boundary rather than the whole
-        # clause.
-        self.assertIn('public.ir_attachment r WHERE id <= 7',sql)
-        self.assertIn('public.res_groups_users_rel r WHERE gid <= 7',sql)
+        self.assertIn('public.ir_attachment WHERE id <= 7',sql)
+        self.assertIn('public.res_groups_users_rel WHERE gid <= 7',sql)
         self.assertNotIn('account_move',sql)
         self.assertNotIn('res_users AS',sql)
         fingerprints=p.fingerprint_sql(self.scope)
