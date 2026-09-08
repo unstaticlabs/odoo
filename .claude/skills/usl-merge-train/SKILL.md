@@ -67,6 +67,27 @@ event and ref, never the name alone:
 Only the third is a real gate. The full database job runs *after* the merge lands,
 so a bad batch is already on the integration branch when you find out.
 
+**A cancelled run on your own merge commit is not a failure.** `qualification.yml`
+sets `cancel-in-progress: true` keyed on the branch, so when merges land in a burst
+every run but the newest is killed. On 2026-09-08 four landed in six minutes and the
+day's tally was 6 successful push runs against 8 cancelled — while releases
+published normally throughout. The survivor qualifies the cumulative tree; the
+cancelled ones were redundant, not lost.
+
+So the assertion is **not** about your commit's own run:
+
+> wait for a push run on `19-usl-staging` that is `status == "completed"` **and**
+> `conclusion == "success"`, whose `head_sha` has your merge commit as an ancestor
+> (`git merge-base --is-ancestor <your sha> <run head_sha>`).
+
+Reverting on a cancelled run would revert healthy work because somebody merged
+behind you — the worst thing this skill's revert authority could do unattended.
+
+And assert the terminal state you want, never the absence of the in-flight states
+you happen to remember: statuses include `queued`, `pending`, `waiting`,
+`requested` and `in_progress`, and a test written as a negation will call an
+unstarted run finished.
+
 After that, `publish / Assemble coordinated release` builds the components and
 publishes an immutable release artifact. Release publication is provable without
 any server access:
@@ -93,6 +114,19 @@ scripts/usl-stack --target staging release status --json   # status == "admitted
 scripts/usl-stack --target staging health --json
 scripts/usl-stack --target staging smoke  --json
 ```
+
+**Staging's runtime lookup is currently broken, and it is not staging that is
+broken.** As of 2026-09-08 `usl-stack-observe staging runtime` returns
+`expected one usl-odoo-staging-main/odoo container, found 0` while
+`https://odoo-staging.unstaticlabs.com/web/health` answers Odoo's own
+`{"status": "pass"}` from origin. `operations/targets/staging.json` names a compose
+project nothing on the host answers to; the identical lookup resolves for
+production. Do not read that failure as "not deployed", and do not revert anything
+over it. Say which signal you actually used, and note that none of the fallbacks —
+release artifact published, health endpoint passing, `release status` admitted —
+establishes *which commit* staging runs. Only the generation's release manifest
+does, which is why production stays the only environment whose running commit can
+be proved.
 
 `release status` reports `admitted` only when all sixteen stages completed. The
 generation maps back to a commit through
@@ -123,9 +157,10 @@ that is always safe — and say so.
 
 ## Closing the loop on the board
 
-Stage first, then state, as two separate writes. Odoo resets `state` to *In
-Progress* whenever `stage_id` changes, so a combined write silently loses the
-approval.
+Write `stage_id` and `state` in the same call. Odoo's `write()` resets `state` to
+*In Progress* only when the stage changes with no state alongside it
+(`addons/project/models/project_task.py:1375`); writing the stage alone is what
+loses an approval.
 
 | Moment | Stage | State |
 |---|---|---|

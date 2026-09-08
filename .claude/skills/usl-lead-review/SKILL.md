@@ -64,8 +64,10 @@ rejection without a concrete next step just costs another cycle.
 
 ## Closing the loop on the card
 
-Stage first, then state, two separate calls — Odoo resets `state` on a stage
-change and a combined write loses the approval.
+Write `stage_id` and `state` in a single call: Odoo's `write()` resets `state`
+only when the stage changes *without* a state in the same values
+(`addons/project/models/project_task.py:1375`). Writing the stage alone is what
+loses an approval.
 
 | Moment | Stage | State | Also |
 |---|---|---|---|
