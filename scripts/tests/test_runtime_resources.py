@@ -26,14 +26,23 @@ class RuntimeResourceTests(unittest.TestCase):
                 self.assertEqual(set(limits), RESOURCE_FIELDS)
 
     def test_staging_yields_to_production_under_contention(self) -> None:
+        # Compare by role, not by service name: the two environments name the
+        # same role differently (production runs `odoo`, staging `odoo-staging`),
+        # so indexing one environment's policy with the other's service name
+        # compares the wrong pair, or raises.
         production = self.policy("production")
         staging = self.policy("staging")
-        for service in production:
-            self.assertLess(staging[service]["cpu_shares"], production[service]["cpu_shares"])
-            self.assertLessEqual(staging[service]["cpus"], production[service]["cpus"])
-            self.assertGreater(staging[service]["oom_score_adj"], production[service]["oom_score_adj"])
-            self.assertEqual(staging[service]["mem_swappiness"], 0)
-            self.assertEqual(staging[service]["mem_limit"], staging[service]["memswap_limit"])
+        production_services = load_target("production", TARGETS).value["services"]
+        staging_services = load_target("staging", TARGETS).value["services"]
+        self.assertEqual(set(production_services), set(staging_services))
+        for role, production_service in production_services.items():
+            here = staging[staging_services[role]]
+            there = production[production_service]
+            self.assertLess(here["cpu_shares"], there["cpu_shares"], role)
+            self.assertLessEqual(here["cpus"], there["cpus"], role)
+            self.assertGreater(here["oom_score_adj"], there["oom_score_adj"], role)
+            self.assertEqual(here["mem_swappiness"], 0, role)
+            self.assertEqual(here["mem_limit"], here["memswap_limit"], role)
 
     def test_local_runtime_does_not_inherit_vps_limits(self) -> None:
         target = load_target("local", TARGETS)
