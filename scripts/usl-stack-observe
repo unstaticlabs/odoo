@@ -1,0 +1,69 @@
+#!/usr/bin/env python3
+"""Read-only observation of a deployed USL runtime.
+
+`scripts/usl-stack` opens the SSH connection itself, so a permission rule that
+allows it also allows `restore`, `backup` and `release run` against production.
+An unattended agent needs to see what is deployed; it must never be able to
+change it.
+
+This wrapper closes that gap by construction rather than by string matching. It
+accepts a target and one of five observations, builds its own argument list, and
+passes nothing else through. There is no argument by which a caller can reach a
+mutating verb.
+
+    scripts/usl-stack-observe <target> <observation>
+
+    targets       staging | production | local
+    observations  runtime | release | health | smoke | storage
+
+Every observation prints JSON on stdout.
+"""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from operations.stack import main  # noqa: E402
+
+TARGETS = ("staging", "production", "local")
+
+# Only the read-only side of each subcommand. `runtime` also accepts start,
+# stop and adopt-gateway; `release` also accepts run, abort and restore. Those
+# are deliberately unreachable from here.
+OBSERVATIONS = {
+    "runtime": ("runtime", "status"),
+    "release": ("release", "status"),
+    "health": ("health",),
+    "smoke": ("smoke",),
+    "storage": ("storage", "status"),
+}
+
+
+def usage(problem: str) -> int:
+    print(f"{problem}\n", file=sys.stderr)
+    print(__doc__, file=sys.stderr)
+    return 2
+
+
+def run(argv: list[str]) -> int:
+    if len(argv) != 2:
+        return usage("expected exactly two arguments: <target> <observation>")
+
+    target, observation = argv
+    if target not in TARGETS:
+        return usage(f"unknown target {target!r}; expected one of {', '.join(TARGETS)}")
+    if observation not in OBSERVATIONS:
+        return usage(
+            f"unknown observation {observation!r}; expected one of "
+            f"{', '.join(sorted(OBSERVATIONS))}"
+        )
+
+    sys.argv = ["usl-stack", "--target", target, *OBSERVATIONS[observation], "--json"]
+    return main()
+
+
+if __name__ == "__main__":
+    raise SystemExit(run(sys.argv[1:]))

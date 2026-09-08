@@ -228,6 +228,7 @@
                                       decoration-warning="batch_incomplete_reason">
                                     <field name="company_currency_id" column_invisible="True"/>
                                     <field name="batch_attention_message" column_invisible="True"/>
+                                    <field name="batch_warning_reason" column_invisible="True"/>
                                     <field name="date"/>
                                     <field name="batch_attention_level"
                                            string=""

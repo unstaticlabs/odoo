@@ -13,7 +13,7 @@ class ResCompany(models.Model):
             )
         return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         protected = {
             "fiscalyear_lock_date",
             "hard_lock_date",
@@ -21,14 +21,14 @@ class ResCompany(models.Model):
             "sale_lock_date",
             "tax_lock_date",
         }
-        if self and protected & set(values) and not self.env.context.get(
+        if self and protected & set(vals) and not self.env.context.get(
             "usl_accounting_lock_guarded",
         ):
             self._usl_require_irreversible_action(
                 "accounting.lock.change",
                 "change accounting lock dates",
             )
-        return super().write(values)
+        return super().write(vals)
 
     def install_l10n_modules(self):
         self._usl_require_irreversible_action(

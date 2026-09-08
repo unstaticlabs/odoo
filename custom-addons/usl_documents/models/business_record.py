@@ -242,11 +242,11 @@ class DocumentLinkMixin(models.AbstractModel):
             documents._recompute_linked_record_access(sync_permissions=True)
         return True
 
-    def write(self, values):
+    def write(self, vals):
         access_changed = bool(
-            set(values).intersection(self._document_access_trigger_fields()),
+            set(vals).intersection(self._document_access_trigger_fields()),
         )
-        result = super().write(values)
+        result = super().write(vals)
         if access_changed:
             self._document_refresh_linked_access()
         return result

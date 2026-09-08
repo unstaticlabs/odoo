@@ -279,19 +279,19 @@ class SignExternalJourney(models.Model):
             "target": "current",
         }
 
-    def write(self, values):
+    def write(self, vals):
         chatter_fields = {"message_follower_ids", "activity_ids"}
-        if set(values) - chatter_fields and self.env.context.get(
+        if set(vals) - chatter_fields and self.env.context.get(
             "usl_sign_external_transition",
         ) is not INTERNAL_OPERATION:
             msg = "Use a controlled external-signature action."
             raise AccessError(msg)
         if self.filtered(lambda journey: journey.state in {"validated", "rejected", "cancelled"}) and set(
-            values,
+            vals,
         ) - {"message_follower_ids", "activity_ids"}:
             msg = "A closed external-signature journey is immutable."
             raise ValidationError(msg)
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         msg = "External-signature journeys cannot be deleted."

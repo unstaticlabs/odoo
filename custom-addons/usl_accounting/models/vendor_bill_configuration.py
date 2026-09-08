@@ -25,7 +25,9 @@ LINE_FIELDS = {
     "tax_ids",
     "analytic_distribution",
 }
+CREATE_LINE_FIELDS = LINE_FIELDS | {"product_id"}
 MAX_LINE_PATCHES = 100
+MAX_LINE_CREATES = 100
 MAX_TAXES_PER_LINE = 50
 MAX_ANALYTIC_ENTRIES = 100
 MAX_RESULT_INVOICE_LINES = 500
@@ -108,38 +110,74 @@ class AccountMove(models.Model):
             values = {key: value for key, value in patch.items() if key != "line_id"}
             if not values:
                 raise ValidationError(_("Each vendor bill line patch must change at least one field."))
-            if "name" in values and (
-                not isinstance(values["name"], str) or not values["name"].strip() or len(values["name"]) > 2_000
-            ):
-                raise ValidationError(_("Vendor bill line labels must contain 1 to 2,000 characters."))
-            if "account_id" in values:
-                _positive_id(values["account_id"], "account_id")
-            for field_name in ("quantity", "price_unit", "discount"):
-                if field_name in values:
-                    _finite_number(values[field_name], field_name)
-            if "discount" in values and not 0 <= values["discount"] <= 100:
-                raise ValidationError(_("Vendor bill line discounts must be between 0 and 100."))
-            if "tax_ids" in values:
-                tax_ids = values["tax_ids"]
-                if isinstance(tax_ids, (str, bytes, Mapping)) or not isinstance(tax_ids, Sequence):
-                    raise ValidationError(_("tax_ids must be a list of record IDs."))
-                if len(tax_ids) > MAX_TAXES_PER_LINE:
-                    raise ValidationError(
-                        _("At most %(maximum)s taxes may be selected per line.", maximum=MAX_TAXES_PER_LINE),
-                    )
-                values["tax_ids"] = list(dict.fromkeys(
-                    _positive_id(tax_id, "tax_ids") for tax_id in tax_ids
-                ))
-            if "analytic_distribution" in values:
-                distribution = values["analytic_distribution"]
-                if not isinstance(distribution, Mapping) or len(distribution) > MAX_ANALYTIC_ENTRIES:
-                    raise ValidationError(_("analytic_distribution must be a bounded object."))
-                for analytic_ids, percentage in distribution.items():
-                    if not isinstance(analytic_ids, str) or not analytic_ids or len(analytic_ids) > 200:
-                        raise ValidationError(_("Analytic distribution keys must be non-empty record ID strings."))
-                    _finite_number(percentage, "analytic percentage")
-                values["analytic_distribution"] = dict(distribution)
-            normalized.append((line_id, values))
+            normalized.append((line_id, self._validate_draft_vendor_bill_line_values(values)))
+        return normalized
+
+    @api.private
+    def _validate_draft_vendor_bill_line_values(self, values):
+        """Validate the curated product-line fields shared by patches and new lines."""
+        if "name" in values and (
+            not isinstance(values["name"], str) or not values["name"].strip() or len(values["name"]) > 2_000
+        ):
+            raise ValidationError(_("Vendor bill line labels must contain 1 to 2,000 characters."))
+        for field_name in ("account_id", "product_id"):
+            if field_name in values:
+                _positive_id(values[field_name], field_name)
+        for field_name in ("quantity", "price_unit", "discount"):
+            if field_name in values:
+                _finite_number(values[field_name], field_name)
+        if "discount" in values and not 0 <= values["discount"] <= 100:
+            raise ValidationError(_("Vendor bill line discounts must be between 0 and 100."))
+        if "tax_ids" in values:
+            tax_ids = values["tax_ids"]
+            if isinstance(tax_ids, (str, bytes, Mapping)) or not isinstance(tax_ids, Sequence):
+                raise ValidationError(_("tax_ids must be a list of record IDs."))
+            if len(tax_ids) > MAX_TAXES_PER_LINE:
+                raise ValidationError(
+                    _("At most %(maximum)s taxes may be selected per line.", maximum=MAX_TAXES_PER_LINE),
+                )
+            values["tax_ids"] = list(dict.fromkeys(
+                _positive_id(tax_id, "tax_ids") for tax_id in tax_ids
+            ))
+        if "analytic_distribution" in values:
+            distribution = values["analytic_distribution"]
+            if not isinstance(distribution, Mapping) or len(distribution) > MAX_ANALYTIC_ENTRIES:
+                raise ValidationError(_("analytic_distribution must be a bounded object."))
+            for analytic_ids, percentage in distribution.items():
+                if not isinstance(analytic_ids, str) or not analytic_ids or len(analytic_ids) > 200:
+                    raise ValidationError(_("Analytic distribution keys must be non-empty record ID strings."))
+                _finite_number(percentage, "analytic percentage")
+            values["analytic_distribution"] = dict(distribution)
+        return values
+
+    @api.private
+    def _validate_draft_vendor_bill_line_creates(self, creates):
+        if creates is None:
+            return []
+        if isinstance(creates, (str, bytes, Mapping)) or not isinstance(creates, Sequence):
+            raise ValidationError(_("Vendor bill lines to create must be a list."))
+        if len(creates) > MAX_LINE_CREATES:
+            raise ValidationError(
+                _("At most %(maximum)s vendor bill lines may be created at once.", maximum=MAX_LINE_CREATES),
+            )
+
+        normalized = []
+        for index, line in enumerate(creates):
+            if not isinstance(line, Mapping):
+                raise ValidationError(_("Vendor bill line %(index)s must be an object.", index=index + 1))
+            unknown = set(line) - CREATE_LINE_FIELDS
+            if unknown:
+                raise ValidationError(
+                    _("Unsupported vendor bill line fields: %(fields)s", fields=", ".join(sorted(unknown))),
+                )
+            values = dict(line)
+            # A new line carries what the source document states. Odoo derives
+            # the rest from the product, the partner and the fiscal position.
+            if not isinstance(values.get("name"), str) or not values["name"].strip():
+                raise ValidationError(_("Every vendor bill line to create needs a label."))
+            if "price_unit" not in values:
+                raise ValidationError(_("Every vendor bill line to create needs a unit price."))
+            normalized.append(self._validate_draft_vendor_bill_line_values(values))
         return normalized
 
     @api.private
@@ -220,8 +258,42 @@ class AccountMove(models.Model):
             ],
         }
 
-    def configure_draft_vendor_bill(self, header_values=None, line_patches=None):
-        """Atomically configure curated fields on one draft vendor bill."""
+    @api.private
+    def _resolve_draft_vendor_bill_line_taxes(self, values):
+        """Turn validated tax IDs into a Command, once they are proven usable."""
+        taxes = self.env["account.tax"].browse(values["tax_ids"]).exists()
+        if len(taxes) != len(values["tax_ids"]):
+            raise ValidationError(_("Every selected tax must exist."))
+        taxes.check_access("read")
+        if any(tax.company_id and tax.company_id != self.company_id for tax in taxes):
+            raise ValidationError(_("Every selected tax must belong to the vendor bill company."))
+        values["tax_ids"] = [Command.set(taxes.ids)]
+
+    @api.private
+    def _resolve_draft_vendor_bill_line_records(self, values):
+        """Prove the account and product of a new line before it is written."""
+        if "account_id" in values:
+            account = self.env["account.account"].browse(values["account_id"]).exists()
+            if not account:
+                raise ValidationError(_("The selected account must exist."))
+            account.check_access("read")
+            if self.company_id not in account.company_ids:
+                raise ValidationError(_("The selected account must belong to the vendor bill company."))
+        if "product_id" in values:
+            product = self.env["product.product"].browse(values["product_id"]).exists()
+            if not product:
+                raise ValidationError(_("The selected product must exist."))
+            product.check_access("read")
+            if product.company_id and product.company_id != self.company_id:
+                raise ValidationError(_("The selected product must belong to the vendor bill company."))
+
+    def configure_draft_vendor_bill(self, header_values=None, line_patches=None, line_creates=None):
+        """Atomically configure curated fields on one draft vendor bill.
+
+        `line_creates` appends product lines from the source document. A bill
+        whose import produced no line at all is completed here rather than
+        through a generic write, and existing lines are never removed.
+        """
         self.ensure_one()
         self.check_access("write")
         if self.company_id not in self.env.companies:
@@ -234,8 +306,9 @@ class AccountMove(models.Model):
 
         header_values = self._validate_draft_vendor_bill_header(header_values)
         line_patches = self._validate_draft_vendor_bill_line_patches(line_patches)
-        if not header_values and not line_patches:
-            raise ValidationError(_("Supply at least one vendor bill field or line patch."))
+        line_creates = self._validate_draft_vendor_bill_line_creates(line_creates)
+        if not header_values and not line_patches and not line_creates:
+            raise ValidationError(_("Supply at least one vendor bill field, line patch, or new line."))
 
         lines = self.env["account.move.line"].browse([line_id for line_id, _values in line_patches]).exists()
         if len(lines) != len(line_patches):
@@ -247,18 +320,22 @@ class AccountMove(models.Model):
             if line.move_id != self or line.display_type != "product":
                 raise ValidationError(_("Only existing product lines belonging to this vendor bill may be patched."))
             if "tax_ids" in values:
-                taxes = self.env["account.tax"].browse(values["tax_ids"]).exists()
-                if len(taxes) != len(values["tax_ids"]):
-                    raise ValidationError(_("Every selected tax must exist."))
-                taxes.check_access("read")
-                if any(tax.company_id and tax.company_id != self.company_id for tax in taxes):
-                    raise ValidationError(_("Every selected tax must belong to the vendor bill company."))
-                values["tax_ids"] = [Command.set(taxes.ids)]
+                self._resolve_draft_vendor_bill_line_taxes(values)
+
+        for values in line_creates:
+            self._resolve_draft_vendor_bill_line_records(values)
+            if "tax_ids" in values:
+                self._resolve_draft_vendor_bill_line_taxes(values)
 
         if header_values:
             self.write(header_values)
             self._check_fiscal_lock_dates()
         for line_id, values in line_patches:
             by_id[line_id].write(values)
+        if line_creates:
+            # Writing through the bill lets Odoo apply the product, the partner
+            # and the fiscal position to each new line and recompute the taxes
+            # and the payable line in the same transaction.
+            self.write({"invoice_line_ids": [Command.create(values) for values in line_creates]})
         self.flush_recordset()
         return self._draft_vendor_bill_configuration_result()

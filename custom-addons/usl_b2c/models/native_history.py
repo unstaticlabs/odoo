@@ -133,15 +133,15 @@ class B2cPartnerIdentity(models.Model):
     # evidence models: the action-risk policy then classifies and enforces them
     # by name instead of hiding them from the governed surface.
     @api.model_create_multi
-    def create(self, values_list):
+    def create(self, vals_list):
         if not _is_materialization(self):
             raise AccessError(self.env._("Provider identities are maintained by the audited B2C importer."))
-        return super().create(values_list)
+        return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         if not _is_materialization(self):
             raise AccessError(self.env._("Provider identities are immutable."))
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         raise AccessError(self.env._("Provider identities are immutable."))
@@ -167,13 +167,13 @@ class ResPartner(models.Model):
     )
 
     @api.model_create_multi
-    def create(self, values_list):
-        _guard_provenance_create(self, values_list, self._usl_materialization_fields)
-        return super().create(values_list)
+    def create(self, vals_list):
+        _guard_provenance_create(self, vals_list, self._usl_materialization_fields)
+        return super().create(vals_list)
 
-    def write(self, values):
-        _guard_provenance_write(self, values, self._usl_materialization_fields)
-        return super().write(values)
+    def write(self, vals):
+        _guard_provenance_write(self, vals, self._usl_materialization_fields)
+        return super().write(vals)
 
 
 class B2cOrderProvenance(models.Model):
@@ -184,13 +184,13 @@ class B2cOrderProvenance(models.Model):
     )
 
     @api.model_create_multi
-    def create(self, values_list):
-        _guard_provenance_create(self, values_list, self._usl_materialization_fields)
-        return super().create(values_list)
+    def create(self, vals_list):
+        _guard_provenance_create(self, vals_list, self._usl_materialization_fields)
+        return super().create(vals_list)
 
-    def write(self, values):
-        _guard_provenance_write(self, values, self._usl_materialization_fields)
-        return super().write(values)
+    def write(self, vals):
+        _guard_provenance_write(self, vals, self._usl_materialization_fields)
+        return super().write(vals)
 
 
 class B2cOrderLineProvenance(models.Model):
@@ -201,13 +201,13 @@ class B2cOrderLineProvenance(models.Model):
     )
 
     @api.model_create_multi
-    def create(self, values_list):
-        _guard_provenance_create(self, values_list, self._usl_materialization_fields)
-        return super().create(values_list)
+    def create(self, vals_list):
+        _guard_provenance_create(self, vals_list, self._usl_materialization_fields)
+        return super().create(vals_list)
 
-    def write(self, values):
-        _guard_provenance_write(self, values, self._usl_materialization_fields)
-        return super().write(values)
+    def write(self, vals):
+        _guard_provenance_write(self, vals, self._usl_materialization_fields)
+        return super().write(vals)
 
 
 class B2cFulfilmentEventProvenance(models.Model):
@@ -226,13 +226,13 @@ class B2cFulfilmentEventProvenance(models.Model):
     )
 
     @api.model_create_multi
-    def create(self, values_list):
-        _guard_provenance_create(self, values_list, self._usl_materialization_fields)
-        return super().create(values_list)
+    def create(self, vals_list):
+        _guard_provenance_create(self, vals_list, self._usl_materialization_fields)
+        return super().create(vals_list)
 
-    def write(self, values):
-        _guard_provenance_write(self, values, self._usl_materialization_fields)
-        return super().write(values)
+    def write(self, vals):
+        _guard_provenance_write(self, vals, self._usl_materialization_fields)
+        return super().write(vals)
 
 
 class SaleOrder(models.Model):
@@ -315,9 +315,9 @@ class SaleOrder(models.Model):
         return self.filtered("usl_historical_b2c_completed")
 
     @api.model_create_multi
-    def create(self, values_list):
-        _guard_provenance_create(self, values_list, self._usl_materialization_fields)
-        return super().create(values_list)
+    def create(self, vals_list):
+        _guard_provenance_create(self, vals_list, self._usl_materialization_fields)
+        return super().create(vals_list)
 
     def _historical_communication_allowed(self):
         return self.env["ir.config_parameter"].sudo().get_bool(COMMUNICATION_PARAMETER)
@@ -413,9 +413,9 @@ class SaleOrder(models.Model):
             ]
         return recipients
 
-    def write(self, values):
-        _guard_provenance_write(self, values, self._usl_materialization_fields)
-        if self.filtered("usl_historical_b2c") and "transaction_ids" in values:
+    def write(self, vals):
+        _guard_provenance_write(self, vals, self._usl_materialization_fields)
+        if self.filtered("usl_historical_b2c") and "transaction_ids" in vals:
             raise UserError(
                 self.env._(
                     "Historical B2C orders cannot be linked to payment transactions."
@@ -423,13 +423,13 @@ class SaleOrder(models.Model):
             )
         _guard_locked_write(
             self,
-            values,
+            vals,
             self.env._(
                 "Completed historical B2C orders are locked. Use their source "
                 "evidence for audit corrections."
             ),
         )
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         if self.filtered("usl_historical_b2c"):
@@ -490,25 +490,25 @@ class SaleOrderLine(models.Model):
         return self.filtered("order_id.usl_historical_b2c_completed")
 
     @api.model_create_multi
-    def create(self, values_list):
-        _guard_provenance_create(self, values_list, self._usl_materialization_fields)
+    def create(self, vals_list):
+        _guard_provenance_create(self, vals_list, self._usl_materialization_fields)
         _guard_locked_parents(
             self,
-            values_list,
+            vals_list,
             ("order_id",),
             "sale.order",
             self.env._("Completed historical B2C order lines are locked."),
         )
-        return super().create(values_list)
+        return super().create(vals_list)
 
-    def write(self, values):
-        _guard_provenance_write(self, values, self._usl_materialization_fields)
+    def write(self, vals):
+        _guard_provenance_write(self, vals, self._usl_materialization_fields)
         _guard_locked_write(
             self,
-            values,
+            vals,
             self.env._("Completed historical B2C order lines are locked."),
         )
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         if self.filtered("order_id.usl_historical_b2c"):
@@ -526,8 +526,8 @@ class PaymentTransaction(models.Model):
         )
 
     @api.model_create_multi
-    def create(self, values_list):
-        for values in values_list:
+    def create(self, vals_list):
+        for values in vals_list:
             commands = values.get("sale_order_ids")
             if commands and self._usl_historical_sales_from_commands(commands):
                 raise UserError(
@@ -535,10 +535,10 @@ class PaymentTransaction(models.Model):
                         "Historical B2C orders cannot create payment transactions."
                     ),
                 )
-        return super().create(values_list)
+        return super().create(vals_list)
 
-    def write(self, values):
-        commands = values.get("sale_order_ids")
+    def write(self, vals):
+        commands = vals.get("sale_order_ids")
         if commands:
             for transaction in self:
                 if transaction._usl_historical_sales_from_commands(commands):
@@ -548,7 +548,7 @@ class PaymentTransaction(models.Model):
                             "transactions."
                         ),
                     )
-        return super().write(values)
+        return super().write(vals)
 
 
 class PurchaseOrder(models.Model):
@@ -573,9 +573,9 @@ class PurchaseOrder(models.Model):
     )
 
     @api.model_create_multi
-    def create(self, values_list):
-        _guard_provenance_create(self, values_list, self._usl_materialization_fields)
-        return super().create(values_list)
+    def create(self, vals_list):
+        _guard_provenance_create(self, vals_list, self._usl_materialization_fields)
+        return super().create(vals_list)
 
     _usl_locked_fields = frozenset(
         {
@@ -598,17 +598,17 @@ class PurchaseOrder(models.Model):
     def _usl_locked_records(self):
         return self.filtered("usl_historical_b2c")
 
-    def write(self, values):
-        _guard_provenance_write(self, values, self._usl_materialization_fields)
+    def write(self, vals):
+        _guard_provenance_write(self, vals, self._usl_materialization_fields)
         _guard_locked_write(
             self,
-            values,
+            vals,
             self.env._(
                 "Historical B2C purchase orders are locked. Use their source "
                 "vendor evidence for audit corrections."
             ),
         )
-        return super().write(values)
+        return super().write(vals)
 
     def action_rfq_send(self):
         if self.filtered("usl_historical_b2c"):
@@ -702,25 +702,25 @@ class PurchaseOrderLine(models.Model):
         return self.filtered("order_id.usl_historical_b2c")
 
     @api.model_create_multi
-    def create(self, values_list):
-        _guard_provenance_create(self, values_list, self._usl_materialization_fields)
+    def create(self, vals_list):
+        _guard_provenance_create(self, vals_list, self._usl_materialization_fields)
         _guard_locked_parents(
             self,
-            values_list,
+            vals_list,
             ("order_id",),
             "purchase.order",
             self.env._("Historical B2C purchase order lines are locked."),
         )
-        return super().create(values_list)
+        return super().create(vals_list)
 
-    def write(self, values):
-        _guard_provenance_write(self, values, self._usl_materialization_fields)
+    def write(self, vals):
+        _guard_provenance_write(self, vals, self._usl_materialization_fields)
         _guard_locked_write(
             self,
-            values,
+            vals,
             self.env._("Historical B2C purchase order lines are locked."),
         )
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         if self.filtered("order_id.usl_historical_b2c"):
@@ -755,9 +755,9 @@ class StockPicking(models.Model):
     )
 
     @api.model_create_multi
-    def create(self, values_list):
-        _guard_provenance_create(self, values_list, self._usl_materialization_fields)
-        return super().create(values_list)
+    def create(self, vals_list):
+        _guard_provenance_create(self, vals_list, self._usl_materialization_fields)
+        return super().create(vals_list)
 
     _usl_locked_fields = frozenset(
         {
@@ -780,14 +780,14 @@ class StockPicking(models.Model):
             lambda picking: picking.usl_historical_b2c and picking.state == "done",
         )
 
-    def write(self, values):
-        _guard_provenance_write(self, values, self._usl_materialization_fields)
+    def write(self, vals):
+        _guard_provenance_write(self, vals, self._usl_materialization_fields)
         _guard_locked_write(
             self,
-            values,
+            vals,
             self.env._("Completed historical B2C stock operations are locked."),
         )
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         if self.filtered("usl_historical_b2c"):
@@ -849,8 +849,8 @@ class StockMove(models.Model):
         )
 
     @api.model_create_multi
-    def create(self, values_list):
-        _guard_provenance_create(self, values_list, self._usl_materialization_fields)
+    def create(self, vals_list):
+        _guard_provenance_create(self, vals_list, self._usl_materialization_fields)
         locked_message = self.env._("Completed historical B2C stock moves are locked.")
         for field_names, comodel in (
             (("picking_id",), "stock.picking"),
@@ -858,18 +858,18 @@ class StockMove(models.Model):
             (("unbuild_id", "consume_unbuild_id"), "mrp.unbuild"),
         ):
             _guard_locked_parents(
-                self, values_list, field_names, comodel, locked_message,
+                self, vals_list, field_names, comodel, locked_message,
             )
-        return super().create(values_list)
+        return super().create(vals_list)
 
-    def write(self, values):
-        _guard_provenance_write(self, values, self._usl_materialization_fields)
+    def write(self, vals):
+        _guard_provenance_write(self, vals, self._usl_materialization_fields)
         _guard_locked_write(
             self,
-            values,
+            vals,
             self.env._("Completed historical B2C stock moves are locked."),
         )
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         if self.filtered(lambda move: move._usl_is_historical_b2c_move()):
@@ -904,23 +904,23 @@ class StockMoveLine(models.Model):
         return self.filtered(lambda line: line.move_id._usl_locked_records())
 
     @api.model_create_multi
-    def create(self, values_list):
+    def create(self, vals_list):
         _guard_locked_parents(
             self,
-            values_list,
+            vals_list,
             ("move_id",),
             "stock.move",
             self.env._("Completed historical B2C stock move lines are locked."),
         )
-        return super().create(values_list)
+        return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         _guard_locked_write(
             self,
-            values,
+            vals,
             self.env._("Completed historical B2C stock move lines are locked."),
         )
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         completed = self._usl_locked_records()
@@ -954,9 +954,9 @@ class MrpProduction(models.Model):
     )
 
     @api.model_create_multi
-    def create(self, values_list):
-        _guard_provenance_create(self, values_list, self._usl_materialization_fields)
-        return super().create(values_list)
+    def create(self, vals_list):
+        _guard_provenance_create(self, vals_list, self._usl_materialization_fields)
+        return super().create(vals_list)
 
     _usl_locked_fields = frozenset(
         {
@@ -981,14 +981,14 @@ class MrpProduction(models.Model):
             and production.state == "done",
         )
 
-    def write(self, values):
-        _guard_provenance_write(self, values, self._usl_materialization_fields)
+    def write(self, vals):
+        _guard_provenance_write(self, vals, self._usl_materialization_fields)
         _guard_locked_write(
             self,
-            values,
+            vals,
             self.env._("Completed historical B2C production orders are locked."),
         )
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         if self.filtered("usl_b2c_source_key"):
@@ -1014,9 +1014,9 @@ class MrpUnbuild(models.Model):
     )
 
     @api.model_create_multi
-    def create(self, values_list):
-        _guard_provenance_create(self, values_list, self._usl_materialization_fields)
-        return super().create(values_list)
+    def create(self, vals_list):
+        _guard_provenance_create(self, vals_list, self._usl_materialization_fields)
+        return super().create(vals_list)
 
     _usl_locked_fields = frozenset(
         {
@@ -1038,14 +1038,14 @@ class MrpUnbuild(models.Model):
             lambda unbuild: unbuild.usl_historical_b2c and unbuild.state == "done",
         )
 
-    def write(self, values):
-        _guard_provenance_write(self, values, self._usl_materialization_fields)
+    def write(self, vals):
+        _guard_provenance_write(self, vals, self._usl_materialization_fields)
         _guard_locked_write(
             self,
-            values,
+            vals,
             self.env._("Completed historical supplier-pack conversions are locked."),
         )
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         if self.filtered("usl_historical_b2c"):
@@ -1071,9 +1071,9 @@ class StockLandedCost(models.Model):
     )
 
     @api.model_create_multi
-    def create(self, values_list):
-        _guard_provenance_create(self, values_list, self._usl_materialization_fields)
-        return super().create(values_list)
+    def create(self, vals_list):
+        _guard_provenance_create(self, vals_list, self._usl_materialization_fields)
+        return super().create(vals_list)
 
     _usl_locked_fields = frozenset(
         {
@@ -1092,14 +1092,14 @@ class StockLandedCost(models.Model):
             lambda cost: cost.usl_historical_b2c and cost.state == "done",
         )
 
-    def write(self, values):
-        _guard_provenance_write(self, values, self._usl_materialization_fields)
+    def write(self, vals):
+        _guard_provenance_write(self, vals, self._usl_materialization_fields)
         _guard_locked_write(
             self,
-            values,
+            vals,
             self.env._("Validated historical B2C landed costs are locked."),
         )
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         if self.filtered("usl_historical_b2c"):
@@ -1116,22 +1116,22 @@ class StockLandedCostLine(models.Model):
         return self.filtered(lambda line: line.cost_id._usl_locked_records())
 
     @api.model_create_multi
-    def create(self, values_list):
+    def create(self, vals_list):
         _guard_locked_parents(
             self,
-            values_list,
+            vals_list,
             ("cost_id",),
             "stock.landed.cost",
             self.env._("Validated historical B2C landed cost lines are locked."),
         )
-        return super().create(values_list)
+        return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         if self._usl_locked_records() and not _is_materialization(self):
             raise UserError(
                 self.env._("Validated historical B2C landed cost lines are locked."),
             )
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         if self._usl_locked_records():
@@ -1150,24 +1150,24 @@ class StockValuationAdjustmentLine(models.Model):
         return self.filtered(lambda line: line.cost_id._usl_locked_records())
 
     @api.model_create_multi
-    def create(self, values_list):
+    def create(self, vals_list):
         _guard_locked_parents(
             self,
-            values_list,
+            vals_list,
             ("cost_id",),
             "stock.landed.cost",
             self.env._("Validated historical B2C valuation adjustments are locked."),
         )
-        return super().create(values_list)
+        return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         if self._usl_locked_records() and not _is_materialization(self):
             raise UserError(
                 self.env._(
                     "Validated historical B2C valuation adjustments are locked."
                 ),
             )
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         if self._usl_locked_records():

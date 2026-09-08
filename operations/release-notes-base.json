@@ -1,0 +1,5 @@
+{
+  "base_commit": "ceb6775e26106cf938e869d64a22882bffb5dff0",
+  "reason": "Production runs ceb6775e. The 2026-09-08 promotion published a release that never reached production, so the next changelog starts there and covers everything that release carried.",
+  "schema": "usl-release-notes-base/v1"
+}

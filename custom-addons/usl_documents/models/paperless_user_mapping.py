@@ -170,13 +170,13 @@ class UslPaperlessUserMapping(models.Model):
         return failures
 
     @api.model_create_multi
-    def create(self, values_list):
+    def create(self, vals_list):
         trusted_seed = (
             self.env.context.get("usl_documents_mapping_no_sync")
             and self.env.su
         )
         normalized = []
-        for values in values_list:
+        for values in vals_list:
             values = dict(values)
             if values.get("qa_local_identity") and (
                 not trusted_seed
@@ -209,8 +209,8 @@ class UslPaperlessUserMapping(models.Model):
             normalized.append(values)
         return super().create(normalized)
 
-    def write(self, values):
-        values = dict(values)
+    def write(self, vals):
+        vals = dict(vals)
         trusted_seed = (
             self.env.context.get("usl_documents_mapping_no_sync")
             and self.env.su
@@ -219,7 +219,7 @@ class UslPaperlessUserMapping(models.Model):
             self.env.context.get("usl_documents_mapping_verification")
             and self.env.su
         )
-        if values.get("qa_local_identity") and (
+        if vals.get("qa_local_identity") and (
             not trusted_seed
             or os.getenv("USL_DEPLOYMENT_ENV", "").strip() != "qa"
         ):
@@ -228,7 +228,7 @@ class UslPaperlessUserMapping(models.Model):
             )
         protected_fields = {"sync_state", "last_verified_at", "last_error"}
         if (
-            protected_fields.intersection(values)
+            protected_fields.intersection(vals)
             and not (trusted_seed or verified_write)
         ):
             raise AccessError(
@@ -241,8 +241,8 @@ class UslPaperlessUserMapping(models.Model):
             "oidc_identity_id",
             "qa_local_identity",
         }
-        if identity_fields.intersection(values) and not (trusted_seed or verified_write):
-            values.update(
+        if identity_fields.intersection(vals) and not (trusted_seed or verified_write):
+            vals.update(
                 {
                     "sync_state": "pending",
                     "last_verified_at": False,
@@ -260,14 +260,14 @@ class UslPaperlessUserMapping(models.Model):
         }
         effective_sync_fields = {
             field_name
-            for field_name in sync_fields.intersection(values)
+            for field_name in sync_fields.intersection(vals)
             if any(
                 (
                     mapping[field_name].id
                     if mapping._fields[field_name].type == "many2one"
                     else mapping[field_name]
                 )
-                != values[field_name]
+                != vals[field_name]
                 for mapping in self
             )
         }
@@ -275,7 +275,7 @@ class UslPaperlessUserMapping(models.Model):
             not effective_sync_fields
             or trusted_seed
         ):
-            return super().write(values)
+            return super().write(vals)
         before_documents = {
             mapping.id: mapping._mapped_user_documents()
             for mapping in self
@@ -284,8 +284,8 @@ class UslPaperlessUserMapping(models.Model):
         revoking = any(
             mapping.id in before_documents
             and (
-                values.get("active", mapping.active) is False
-                or values.get("sync_state", mapping.sync_state) != "synchronized"
+                vals.get("active", mapping.active) is False
+                or vals.get("sync_state", mapping.sync_state) != "synchronized"
                 or "user_id" in effective_sync_fields
                 or "paperless_user_id" in effective_sync_fields
                 or "oidc_identity_id" in effective_sync_fields
@@ -293,7 +293,7 @@ class UslPaperlessUserMapping(models.Model):
             )
             for mapping in self
         )
-        result = super().write(values)
+        result = super().write(vals)
         documents = self.env["usl.document"].browse(
             list(
                 set().union(

@@ -86,7 +86,7 @@ class UslDocumentLink(models.Model):
     )
 
     @api.model_create_multi
-    def create(self, values_list):
+    def create(self, vals_list):
         protected = {
             "archive_mode",
             "policy_role",
@@ -94,14 +94,14 @@ class UslDocumentLink(models.Model):
             "attachment_origin",
             "policy_reason",
         }
-        if any(protected.intersection(values) for values in values_list) and not (
+        if any(protected.intersection(values) for values in vals_list) and not (
             self.env.su
             and self.env.context.get("usl_documents_link_policy_write")
         ):
             raise AccessError(
                 _("Document relationship policy can only change through Documents."),
             )
-        return super().create(values_list)
+        return super().create(vals_list)
 
     @api.model
     def _allowed_models(self):
@@ -285,7 +285,7 @@ class UslDocumentLink(models.Model):
         documents._recompute_linked_record_access(sync_permissions=True)
         return result
 
-    def write(self, values):
+    def write(self, vals):
         protected = {
             "archive_mode",
             "policy_role",
@@ -293,17 +293,17 @@ class UslDocumentLink(models.Model):
             "attachment_origin",
             "policy_reason",
         }
-        if protected.intersection(values) and not (
+        if protected.intersection(vals) and not (
             self.env.su
             and self.env.context.get("usl_documents_link_policy_write")
         ):
             raise AccessError(
                 _("Document relationship policy can only change through Documents."),
             )
-        documents = self.mapped("document_id") if "active" in values else self.env[
+        documents = self.mapped("document_id") if "active" in vals else self.env[
             "usl.document"
         ]
-        result = super().write(values)
+        result = super().write(vals)
         if documents:
             documents._recompute_linked_record_access(sync_permissions=True)
         return result

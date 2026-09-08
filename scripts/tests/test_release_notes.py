@@ -385,6 +385,62 @@ class MainTests(unittest.TestCase):
         self.assertIn("fallback", err)
         self.assertEqual(out.strip(), str(output))
 
+    def test_a_recorded_base_reaches_over_an_undeployed_release(self) -> None:
+        api = FakeApi({commit(1): [node(9, "fix(home): keep the breadcrumb honest")]})
+        with tempfile.TemporaryDirectory() as directory:
+            record = Path(directory) / "release-notes-base.json"
+            record.write_text(json.dumps({
+                "schema": "usl-release-notes-base/v1",
+                "base_commit": "a" * 40,
+                "reason": "the previous release never reached production",
+            }), encoding="utf-8")
+            code, out, err = self.run_main(
+                [
+                    "--repository", REPOSITORY, "--before", BEFORE, "--sha", SHA,
+                    "--date", "2026-09-05", "--unreleased-base", str(record),
+                ],
+                api,
+            )
+        self.assertEqual(code, 0, err)
+        self.assertIn("reaching back to the last deployed commit", err)
+        compare = next(call[0] for call in api.calls if "/compare/" in call[0])
+        self.assertIn("a" * 40, compare)
+        self.assertNotIn(BEFORE, compare)
+        self.assertEqual(json.loads(out)["changes"][0]["number"], 9)
+
+    def test_an_unusable_recorded_base_stops_the_changelog(self) -> None:
+        api = FakeApi({commit(1): [node(9, "fix(home): keep the breadcrumb honest")]})
+        with tempfile.TemporaryDirectory() as directory:
+            record = Path(directory) / "release-notes-base.json"
+            record.write_text(json.dumps({"schema": "wrong", "base_commit": "a" * 40}), encoding="utf-8")
+            code, out, err = self.run_main(
+                [
+                    "--repository", REPOSITORY, "--before", BEFORE, "--sha", SHA,
+                    "--unreleased-base", str(record),
+                ],
+                api,
+            )
+        self.assertEqual(code, 1)
+        self.assertEqual(out, "")
+        self.assertIn("usl-release-notes-base/v1", err)
+        self.assertEqual(api.calls, [])
+
+    def test_no_record_keeps_the_pushed_range(self) -> None:
+        api = FakeApi({commit(1): [node(9, "fix(home): keep the breadcrumb honest")]})
+        with tempfile.TemporaryDirectory() as directory:
+            code, out, err = self.run_main(
+                [
+                    "--repository", REPOSITORY, "--before", BEFORE, "--sha", SHA,
+                    "--date", "2026-09-05",
+                    "--unreleased-base", str(Path(directory) / "absent.json"),
+                ],
+                api,
+            )
+        self.assertEqual(code, 0, err)
+        self.assertNotIn("reaching back", err)
+        compare = next(call[0] for call in api.calls if "/compare/" in call[0])
+        self.assertIn(BEFORE, compare)
+
     def test_github_failure_uses_the_fallback_unless_strict(self) -> None:
         api = FakeApi({commit(1): []}, compare_error=True, commits_error=True)
         arguments = ["--repository", REPOSITORY, "--before", BEFORE, "--sha", SHA]

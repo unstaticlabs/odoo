@@ -65,6 +65,14 @@ class B2cImportBatchFulfilment(models.Model):
         related="company_id.currency_id",
         string="Supplier currency",
     )
+    fulfilment_event_ids = fields.Many2many(
+        "b2c.fulfilment.event",
+        "b2c_import_batch_fulfilment_event_rel",
+        string="Fulfilments recorded",
+        copy=False,
+        help="What the supplier shipped, as this drop read it. What each one cost "
+             "is settled against the wallet from here.",
+    )
 
     @api.depends("row_ids.resolution", "row_ids.grain")
     def _compute_fulfilment_count(self):
@@ -300,8 +308,6 @@ class B2cImportBatchFulfilment(models.Model):
         goods = order.sale_order_id.order_line.filtered(
             lambda line: line.product_id != channel.shipping_product_id,
         )
-        if not goods:
-            return self.env["b2c.fulfilment.event"]
         values = fulfilment.values or {}
         key = f"printful:{values.get('printful_order_id') or fulfilment.external_order_id}"
         Event = self._trusted("b2c.fulfilment.event")
@@ -317,28 +323,55 @@ class B2cImportBatchFulfilment(models.Model):
         if found:
             # A corrected or refunded fulfilment must still reach the lines,
             # and writing the cost and the links is what makes the allocation
-            # run again.
-            found.write(stated)
+            # run again.  What of it already reached the ledger is a fact about
+            # the ledger, not about the fulfilment, so it is left alone: the
+            # wallet settles the difference rather than the whole cost twice.
+            found.write({
+                name: value
+                for name, value in stated.items()
+                if name not in ("accounting_link_state", "accounting_link_note")
+            })
             return found
         return Event.create(stated)
 
+    def _record_supply(self, fulfilment):
+        """Record a fulfilment that answers to no sale of ours.
+
+        The supplier drew on the wallet for it either way, so it is a cost
+        that has to be accounted; what it is not is the cost of something
+        sold.  Recording it here is what lets the wallet be settled in full
+        without any of it reaching cost of sales.
+        """
+        self.ensure_one()
+        return self._record_fulfilment(
+            fulfilment,
+            self.env["b2c.order"],
+            self.env["b2c.channel"],
+        )
+
     def _record_known_fulfilment(self):
-        """Record every fulfilment whose sale exists, in this drop or already.
+        """Record every fulfilment the supplier states, against its sale or not.
 
         A refund or a correction arrives long after the order it belongs to,
         in a drop that covers the refund rather than the sale. Matching it only
         against the orders in hand would leave the sale it actually changes
-        costed as though nothing had happened.
+        costed as though nothing had happened.  A fulfilment that answers to no
+        sale at all is recorded too: the supplier drew on the wallet for it and
+        that has to be accounted, just never as the cost of something sold.
         """
         self.ensure_one()
         channels = self._channels()
+        recorded = self.env["b2c.fulfilment.event"]
         for fulfilment in self._fulfilment_rows().filtered(
             lambda item: item.grain == ORDER_GRAIN,
         ):
             order = fulfilment.fulfilment_of_row_id.order_id or self._fulfilled_order(fulfilment)
             channel = channels.get(order.channel_id.code) or channels.get(fulfilment.provider)
             if order.sale_order_id and channel:
-                self._record_fulfilment(fulfilment, order, channel)
+                recorded |= self._record_fulfilment(fulfilment, order, channel)
+            else:
+                recorded |= self._record_supply(fulfilment)
+        self.write({"fulfilment_event_ids": [Command.link(event.id) for event in recorded]})
         return True
 
     def _fulfilled_order(self, fulfilment):
@@ -413,7 +446,7 @@ class B2cImportBatchFulfilment(models.Model):
             ),
             "completeness_state": "complete",
             "review_state": "pending",
-            "order_link_state": "verified",
+            "order_link_state": "verified" if order else "not_applicable",
             "accounting_link_state": "pending",
             "evidence_id": self._evidence(fulfilment).id,
             # Which lines it shipped is what the allocation spreads the cost

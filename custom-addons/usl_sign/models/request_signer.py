@@ -1320,7 +1320,7 @@ class SignRequestSigner(models.Model):
             ).hexdigest(),
         }
 
-    def write(self, values):
+    def write(self, vals):
         protected = {
             "state",
             "signed_on",
@@ -1359,13 +1359,13 @@ class SignRequestSigner(models.Model):
             "access_blocked_until",
             "last_access_failure_at",
         }
-        if protected.intersection(values) and self.env.context.get(
+        if protected.intersection(vals) and self.env.context.get(
             "usl_sign_signer_transition",
         ) is not INTERNAL_OPERATION:
             msg = "Use a controlled signer action to change signing evidence."
             raise ValidationError(msg)
         if (
-            values
+            vals
             and self.env.context.get("usl_sign_signer_transition") is not INTERNAL_OPERATION
             and not self.env.su
         ):
@@ -1378,18 +1378,18 @@ class SignRequestSigner(models.Model):
                 if signer.request_id.state != "draft":
                     msg = "Signers can only be edited while the request is a draft."
                     raise ValidationError(msg)
-        if self.filtered(lambda signer: signer.signed_on) and set(values) - {
+        if self.filtered(lambda signer: signer.signed_on) and set(vals) - {
             "message_follower_ids",
             "activity_ids",
         }:
             msg = "A completed signer record is immutable."
             raise ValidationError(msg)
-        if {"request_id", "partner_id", "role_id", "sequence"}.intersection(values) and self.filtered(
+        if {"request_id", "partner_id", "role_id", "sequence"}.intersection(vals) and self.filtered(
             lambda signer: signer.request_id.state not in MUTABLE_REQUEST_STATES,
         ):
             msg = "Signer identities, roles and order are frozen after sending."
             raise ValidationError(msg)
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         if not self.env.su:

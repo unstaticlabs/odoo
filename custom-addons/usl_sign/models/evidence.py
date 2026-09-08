@@ -67,7 +67,7 @@ class SignEvidence(models.Model):
             values["sha256"] = digest
         return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         msg = "Signature evidence is append-only."
         raise AccessError(msg)
 
@@ -220,7 +220,7 @@ class SignEvent(models.Model):
             raise AccessError(msg)
         return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         msg = "Signature events are append-only."
         raise AccessError(msg)
 
@@ -262,7 +262,7 @@ class SignValidation(models.Model):
             raise AccessError(msg)
         return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         msg = "Validation results cannot be changed."
         raise AccessError(msg)
 

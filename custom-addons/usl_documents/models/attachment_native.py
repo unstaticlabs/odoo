@@ -100,18 +100,18 @@ class IrAttachment(models.Model):
         )
 
     @api.model_create_multi
-    def create(self, values_list):
+    def create(self, vals_list):
         if not self._usl_documents_trusted_origin():
             protected = self._usl_documents_policy_fields()
-            values_list = [
+            vals_list = [
                 {
                     key: value
                     for key, value in values.items()
                     if key not in protected
                 }
-                for values in values_list
+                for values in vals_list
             ]
-        attachments = super().create(values_list)
+        attachments = super().create(vals_list)
         attachments._queue_usl_documents_archive()
         return attachments
 
@@ -291,8 +291,8 @@ class IrAttachment(models.Model):
         self._queue_usl_documents_archive()
         return result
 
-    def write(self, values):
-        protected = self._usl_documents_policy_fields().intersection(values)
+    def write(self, vals):
+        protected = self._usl_documents_policy_fields().intersection(vals)
         internal_policy_write = (
             self.env.su
             and self.env.context.get("usl_documents_attachment_policy_write")
@@ -303,13 +303,13 @@ class IrAttachment(models.Model):
             )
         archive_target_changed = bool(
             {"raw", "res_model", "res_id", "res_field"}.intersection(
-                values,
+                vals,
             ),
         )
         policy_target_changed = bool(
-            {"res_model", "res_id", "res_field"}.intersection(values),
+            {"res_model", "res_id", "res_field"}.intersection(vals),
         )
-        result = super().write(values)
+        result = super().write(vals)
         if archive_target_changed and not internal_policy_write:
             self._queue_usl_documents_archive(refresh=policy_target_changed)
         return result
@@ -630,8 +630,8 @@ class MailFollowers(models.Model):
     _inherit = "mail.followers"
 
     @api.model_create_multi
-    def create(self, values_list):
-        followers = super().create(values_list)
+    def create(self, vals_list):
+        followers = super().create(vals_list)
         followers._refresh_linked_document_access()
         return followers
 
@@ -657,15 +657,15 @@ class ProjectCollaborator(models.Model):
     _inherit = "project.collaborator"
 
     @api.model_create_multi
-    def create(self, values_list):
-        collaborators = super().create(values_list)
+    def create(self, vals_list):
+        collaborators = super().create(vals_list)
         collaborators.mapped("project_id")._document_refresh_linked_access()
         return collaborators
 
-    def write(self, values):
+    def write(self, vals):
         projects = self.mapped("project_id")
-        result = super().write(values)
-        if {"project_id", "partner_id", "limited_access"}.intersection(values):
+        result = super().write(vals)
+        if {"project_id", "partner_id", "limited_access"}.intersection(vals):
             (projects | self.mapped("project_id"))._document_refresh_linked_access()
         return result
 

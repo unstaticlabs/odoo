@@ -53,11 +53,18 @@ class UpgradePreservationTests(unittest.TestCase):
             predicate = sql.split(f'FROM public.{table} r WHERE ')[1].split(')')[0]
             self.assertNotIn('NOT', predicate)
 
-    def test_scoped_controls_use_the_same_row_scope(self):
-        """Controls and the fingerprint must agree on which rows are frozen."""
+    def test_controls_keep_every_row_inside_the_boundary(self):
+        """The controls count rows; the fingerprint asks if rows changed.
+
+        Excluding menu icons from the control CTEs made the post-upgrade
+        attachment count 23 lower than the pre-upgrade one, so the restore
+        comparison rejected the release. The exclusion belongs to the
+        fingerprint alone.
+        """
         controls = p.scoped_controls_sql('SELECT 1', self.scope)
-        self.assertIn("coalesce(r.res_model, '') = 'ir.ui.menu'", controls)
-        self.assertEqual(controls.count('AND NOT ('), 1)
+        self.assertIn('public.ir_attachment WHERE id <= 7', controls)
+        self.assertNotIn('NOT (', controls)
+        self.assertNotIn('res_field', controls)
 
     def test_a_user_document_is_still_frozen(self):
         """A real attachment carries no res_field, so it stays in scope."""
@@ -94,11 +101,8 @@ class UpgradePreservationTests(unittest.TestCase):
 
     def test_sql_scopes_only_additive_business_tables_and_group_boundaries(self):
         sql=p.scoped_controls_sql('SELECT 1',self.scope)
-        # The boundary still scopes every table; ir_attachment additionally
-        # excludes menu icons, so match the boundary rather than the whole
-        # clause.
-        self.assertIn('public.ir_attachment r WHERE id <= 7',sql)
-        self.assertIn('public.res_groups_users_rel r WHERE gid <= 7',sql)
+        self.assertIn('public.ir_attachment WHERE id <= 7',sql)
+        self.assertIn('public.res_groups_users_rel WHERE gid <= 7',sql)
         self.assertNotIn('account_move',sql)
         self.assertNotIn('res_users AS',sql)
         fingerprints=p.fingerprint_sql(self.scope)
@@ -118,3 +122,64 @@ class UpgradePreservationTests(unittest.TestCase):
         scope['ir_attachment']['columns'] = [['id']]
         with self.assertRaises(ValueError):
             p.validate_scope(scope)
+
+
+class TestIconAttachmentPredicateIsShared(unittest.TestCase):
+    """One definition of "an application icon", used by two different gates.
+
+    The preservation fingerprint and the restore controls read ir_attachment for
+    different reasons. On 2026-09-08 they disagreed about icons and seven
+    consecutive releases were refused with
+    `{"odoo.stored_attachments": {"after": 1547, "before": 1546}}`.
+    """
+
+    def test_the_alias_only_changes_the_column_prefix(self):
+        # "r." also occurs inside 'ir.ui.menu', so compare the column
+        # references themselves rather than the bare substring.
+        bare = p.icon_attachment_predicate()
+        aliased = p.icon_attachment_predicate("r")
+        for column in ("res_model", "res_field"):
+            self.assertIn(f"coalesce({column}, '')", bare)
+            self.assertIn(f"coalesce(r.{column}, '')", aliased)
+        self.assertEqual(bare, aliased.replace("r.res_", "res_"))
+
+    def test_a_null_res_field_still_evaluates(self):
+        # A user-uploaded document carries no res_field; coalesce keeps the
+        # comparison false rather than NULL, so NOT(...) retains the row.
+        self.assertIn("coalesce", p.icon_attachment_predicate())
+
+    def test_the_preservation_exclusion_uses_it(self):
+        self.assertEqual(
+            p.EXCLUDED_ROWS["ir_attachment"], p.icon_attachment_predicate("r"),
+        )
+
+    def test_the_restore_control_uses_the_same_definition(self):
+        from operations.control_manifest import ODOO_CONTROL_SQL
+
+        stored = [
+            line for line in ODOO_CONTROL_SQL.splitlines()
+            if "'stored_attachments'" in line
+        ]
+        self.assertEqual(len(stored), 1)
+        self.assertIn(p.icon_attachment_predicate(), stored[0])
+
+    def test_the_control_template_is_fully_rendered(self):
+        from operations.control_manifest import ODOO_CONTROL_SQL
+
+        self.assertNotIn("__ICON_ATTACHMENT__", ODOO_CONTROL_SQL)
+
+    def test_the_plain_attachment_count_is_deliberately_not_excluded(self):
+        """Only the stored-file count is icon-sensitive.
+
+        `attachments` is count(*): rewriting an existing icon does not change it,
+        and a new icon row falls outside the scoped boundary the candidate side
+        applies. Excluding icons there would hide a genuinely lost row for no gain.
+        """
+        from operations.control_manifest import ODOO_CONTROL_SQL
+
+        plain = [
+            line for line in ODOO_CONTROL_SQL.splitlines()
+            if "'attachments'" in line and "stored" not in line
+        ]
+        self.assertEqual(len(plain), 1)
+        self.assertNotIn("web_icon_data", plain[0])

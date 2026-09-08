@@ -411,16 +411,16 @@ class AccountBankStatementLine(models.Model):
             })
         return True
 
-    def write(self, values):
+    def write(self, vals):
         if self.env.context.get("rebuild_skip_partner_inference"):
-            return super().write(values)
+            return super().write(vals)
 
-        manual_partner_change = "partner_id" in values
+        manual_partner_change = "partner_id" in vals
         identity_change = bool(
             {"account_number", "company_id", "partner_name", "payment_ref"}
-            & values.keys(),
+            & vals.keys(),
         )
-        result = super().write(values)
+        result = super().write(vals)
         if manual_partner_change:
             self.with_context(
                 rebuild_skip_partner_inference=True,

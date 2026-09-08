@@ -444,14 +444,14 @@ class B2cFulfilmentEvent(models.Model):
     # touching a line takes part, so a refund or a second shipment nets out.
 
     @api.model_create_multi
-    def create(self, values_list):
-        events = super().create(values_list)
+    def create(self, vals_list):
+        events = super().create(vals_list)
         events._usl_allocate_cogs()
         return events
 
-    def write(self, values):
-        result = super().write(values)
-        if COGS_ALLOCATION_TRIGGERS.intersection(values):
+    def write(self, vals):
+        result = super().write(vals)
+        if COGS_ALLOCATION_TRIGGERS.intersection(vals):
             self._usl_allocate_cogs()
         return result
 

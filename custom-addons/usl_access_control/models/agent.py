@@ -560,13 +560,13 @@ class UslAgent(models.Model):
                 ids.clear()
         return list(ids)
 
-    def write(self, values):
+    def write(self, vals):
         if self.env.context.get("usl_agent_internal"):
-            return super().write(values)
+            return super().write(vals)
         self._check_caller_can_manage()
-        if "owner_id" in values:
+        if "owner_id" in vals:
             raise ValidationError(_("Use Transfer ownership to change an Agent owner."))
-        if "access_mode" in values and not self.env.context.get(
+        if "access_mode" in vals and not self.env.context.get(
             "usl_agent_profile_change",
         ):
             raise ValidationError(
@@ -578,30 +578,30 @@ class UslAgent(models.Model):
             "delegated_group_ids",
             "read_only_group_ids",
         }
-        if len(self) > 1 and authority_fields & values.keys():
-            return all(agent.write(dict(values)) for agent in self)
+        if len(self) > 1 and authority_fields & vals.keys():
+            return all(agent.write(dict(vals)) for agent in self)
         for agent in self:
             companies = agent.company_ids
             groups = agent.delegated_group_ids
             read_only_groups = agent.read_only_group_ids
             default_company = agent.company_id
-            if "company_ids" in values:
+            if "company_ids" in vals:
                 companies = self.env["res.company"].browse(
-                    self._ids_from_commands(values["company_ids"], companies.ids),
+                    self._ids_from_commands(vals["company_ids"], companies.ids),
                 ).exists()
-            if "delegated_group_ids" in values:
+            if "delegated_group_ids" in vals:
                 groups = self.env["res.groups"].browse(
-                    self._ids_from_commands(values["delegated_group_ids"], groups.ids),
+                    self._ids_from_commands(vals["delegated_group_ids"], groups.ids),
                 ).exists()
-            if "read_only_group_ids" in values:
+            if "read_only_group_ids" in vals:
                 read_only_groups = self.env["res.groups"].browse(
                     self._ids_from_commands(
-                        values["read_only_group_ids"],
+                        vals["read_only_group_ids"],
                         read_only_groups.ids,
                     ),
                 ).exists()
-            if "company_id" in values:
-                default_company = self.env["res.company"].browse(values["company_id"]).exists()
+            if "company_id" in vals:
+                default_company = self.env["res.company"].browse(vals["company_id"]).exists()
             self._validate_authority_values(
                 agent.owner_id,
                 companies,
@@ -609,17 +609,17 @@ class UslAgent(models.Model):
                 default_company,
                 read_only_groups,
             )
-            if "delegated_group_ids" in values or "read_only_group_ids" in values:
-                values = {
-                    **values,
+            if "delegated_group_ids" in vals or "read_only_group_ids" in vals:
+                vals = {
+                    **vals,
                     "access_mode": self._access_mode_from_groups(
                         groups,
                         read_only_groups,
                     ),
                 }
-        result = super().write(values)
+        result = super().write(vals)
         for agent in self:
-            if "delegated_group_ids" in values:
+            if "delegated_group_ids" in vals:
                 effective_group_ids = agent._effective_groups(agent.delegated_group_ids).ids
                 agent.with_user(SUPERUSER_ID).with_context(usl_agent_internal=True).write(
                     {"approved_effective_group_ids": [Command.set(effective_group_ids)]},

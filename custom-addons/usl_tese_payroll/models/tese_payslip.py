@@ -697,10 +697,10 @@ class UslTesePayslip(models.Model):
             ))
 
     @api.model_create_multi
-    def create(self, values_list):
+    def create(self, vals_list):
         self._check_workflow_access()
         clean_values_list = []
-        for values in values_list:
+        for values in vals_list:
             values = dict(values)
             pay_period = self._month_start(
                 values.get("pay_period") or self._default_pay_period(),
@@ -732,17 +732,17 @@ class UslTesePayslip(models.Model):
             clean_values_list.append(values)
         return super().create(clean_values_list)
 
-    def write(self, values):
+    def write(self, vals):
         self._check_workflow_access()
-        values = dict(values)
-        if values.get("pay_period"):
-            values["pay_period"] = self._month_start(values["pay_period"])
+        vals = dict(vals)
+        if vals.get("pay_period"):
+            vals["pay_period"] = self._month_start(vals["pay_period"])
         internal_write = (
             self.env.context.get("_tese_internal_write")
             is TESE_INTERNAL_WRITE_TOKEN
         )
         if not internal_write:
-            changed_fields = set(values)
+            changed_fields = set(vals)
             accounting_input_fields = self._INPUT_FIELDS - {
                 "attachment_id",
                 "document_note",
@@ -779,7 +779,7 @@ class UslTesePayslip(models.Model):
                         "The provider document cannot be changed after the "
                         "payroll journal entry has been posted.",
                     ))
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         self._check_workflow_access()
@@ -1092,10 +1092,10 @@ class UslTesePayslipLine(models.Model):
         self.env["usl.tese.payslip"]._check_workflow_access()
 
     @api.model_create_multi
-    def create(self, values_list):
+    def create(self, vals_list):
         self._check_workflow_access()
         payslips = self.env["usl.tese.payslip"].browse(
-            {values.get("payslip_id") for values in values_list},
+            {values.get("payslip_id") for values in vals_list},
         ).exists()
         internal_write = (
             self.env.context.get("_tese_internal_write")
@@ -1105,16 +1105,16 @@ class UslTesePayslipLine(models.Model):
             lambda payslip: payslip.state != "draft",
         ):
             raise UserError(_("Payroll snapshots are immutable after preparation."))
-        return super().create(values_list)
+        return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         self._check_workflow_access()
         if (
             self.env.context.get("_tese_internal_write")
             is not TESE_INTERNAL_WRITE_TOKEN
         ):
             raise UserError(_("Payroll accounting snapshots are immutable."))
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         self._check_workflow_access()

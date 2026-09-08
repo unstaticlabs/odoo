@@ -302,31 +302,31 @@ class ProjectTask(models.Model):
                 raise AccessError(_("Use the feedback conversation to create product feedback."))
         return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         if not self.env.su and not self._usl_feedback_is_maintainer():
             self.check_access("write")
-            if self.sudo().filtered("usl_feedback_reporter_id") or values.get(
+            if self.sudo().filtered("usl_feedback_reporter_id") or vals.get(
                 "usl_feedback_reporter_id",
             ):
                 raise AccessError(
                     _("Use the conversation to add details. The product team manages task fields."),
                 )
-            project_id = values.get("project_id")
+            project_id = vals.get("project_id")
             if project_id and self.env["project.project"].sudo().browse(project_id).usl_feedback_project:
                 raise AccessError(_("Use the feedback conversation to create product feedback."))
-        if "description" not in values:
-            return super().write(values)
+        if "description" not in vals:
+            return super().write(vals)
         feedback_tasks = self.filtered(lambda task: task._usl_feedback_is_task())
         other_tasks = self - feedback_tasks
         result = True
         if other_tasks:
-            result = super(ProjectTask, other_tasks).write(values) and result
+            result = super(ProjectTask, other_tasks).write(vals) and result
         # Each feedback card has an independent immutable snapshot. A batched
         # maintainer write must therefore render the caller's narrative once per card.
         for task in feedback_tasks:
-            task_values = dict(values)
+            task_values = dict(vals)
             task_values["description"] = task._usl_feedback_description_with_identity(
-                values["description"],
+                vals["description"],
             )
             result = super(ProjectTask, task).write(task_values) and result
         return result

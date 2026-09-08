@@ -400,12 +400,12 @@ class UslDocument(models.Model):
     )
 
     @api.model_create_multi
-    def create(self, values_list):
+    def create(self, vals_list):
         if not self.env.su:
             raise AccessError(
                 _("Archived document cache records can only be created by synchronization."),
             )
-        return super().create(values_list)
+        return super().create(vals_list)
 
     @api.depends("link_ids")
     def _compute_link_count(self):
@@ -830,7 +830,7 @@ class UslDocument(models.Model):
             )
         return self.availability_state == "available"
 
-    def write(self, values):
+    def write(self, vals):
         policy_fields = {
             "company_id",
             "confidentiality",
@@ -889,12 +889,12 @@ class UslDocument(models.Model):
             self.env.context.get("skip_permission_invalidation")
             and self.env.su
         )
-        if cache_fields.intersection(values) and not cache_write:
+        if cache_fields.intersection(vals) and not cache_write:
             raise AccessError(
                 _("Paperless cache and diagnostic fields cannot be edited manually."),
             )
         if (
-            policy_fields.intersection(values)
+            policy_fields.intersection(vals)
             and not policy_write
             and not self.env.user.has_group("usl_documents.group_documents_manager")
         ):
@@ -902,15 +902,15 @@ class UslDocument(models.Model):
                 _("Only Documents administrators may change archive access policy."),
             )
         if (
-            policy_fields.intersection(values)
+            policy_fields.intersection(vals)
             and not skip_permission_invalidation
         ):
-            values = {
-                **values,
+            vals = {
+                **vals,
                 "permission_sync_state": "pending",
                 "permission_sync_error": False,
             }
-        return super().write(values)
+        return super().write(vals)
 
     def _recompute_linked_record_access(self, *, sync_permissions=False):
         """Mirror native linked-record visibility into one searchable policy."""

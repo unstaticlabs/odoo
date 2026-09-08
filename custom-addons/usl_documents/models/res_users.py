@@ -34,18 +34,18 @@ class ResUsers(models.Model):
             for user in self
         }
 
-    def write(self, values):
+    def write(self, vals):
         if (
             self.env.context.get("usl_documents_user_access_no_sync")
             and self.env.su
         ):
-            return super().write(values)
+            return super().write(vals)
         defer_access_sync = self.env.context.get(
             "usl_documents_defer_user_access_sync",
         )
         access_fields = {"company_ids", "company_id", "group_ids", "active", "share"}
         access_change_requested = bool(
-            access_fields.intersection(values) and not defer_access_sync,
+            access_fields.intersection(vals) and not defer_access_sync,
         )
         access_before = (
             self._documents_access_fingerprint() if access_change_requested else {}
@@ -69,7 +69,7 @@ class ResUsers(models.Model):
             for user in tracked
         }
         before_active = {user.id: user.active for user in tracked}
-        result = super().write(values)
+        result = super().write(vals)
         access_after = (
             self._documents_access_fingerprint() if access_change_requested else {}
         )
@@ -86,7 +86,7 @@ class ResUsers(models.Model):
             "active",
             "usl_pocketid_access",
             "usl_identity_classification",
-        }.intersection(values):
+        }.intersection(vals):
             self._invalidate_unsafe_paperless_mappings()
         if not before or not access_changed:
             return result

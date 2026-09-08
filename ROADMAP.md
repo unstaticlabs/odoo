@@ -41,17 +41,29 @@ The latest independent production-to-staging restore completed in 332.411
 seconds without OCR, ingestion, vector rebuilding, or model download and
 matched all recorded business controls.
 
+## How work is chosen
+
+Items here are ranked with the rest of the backlog by BRICE, defined in
+`.claude/skills/usl-feedback-triage/SKILL.md`. `VALUES.md` gives the ordering the
+business-value and impact terms read from, and `ARCHITECTURE.md` §21 is the veto
+list. An item carrying an ID below can be pulled directly by a delivery agent;
+one without an ID needs shaping into a unit of work first.
+
 ## Now
 
 ### Continuous delivery
 
-- complete the reviewed historical consolidation into `19-usl` and make its
-  qualified tree the production source of truth;
-- create and protect `19-usl-staging` as the feature-integration line;
-- deploy each staging merge against a fresh production backup;
-- schedule the daily production promotion, backup-only no-change run, health
-  checks, notifications, and automatic rollback;
-- make release manifests the single source of runtime image identity.
+- **CD-1** complete the reviewed historical consolidation into `19-usl` and make
+  its qualified tree the production source of truth;
+- **CD-2** ~~create and protect `19-usl-staging` as the feature-integration
+  line~~ — **shipped**: the `USL Distribution — Staging` ruleset is active and
+  validated in CI by `scripts/check-github-governance`;
+- **CD-3** deploy each staging merge against a fresh production backup;
+- **CD-4** schedule the daily production promotion, backup-only no-change run,
+  health checks, notifications, and automatic rollback;
+- **CD-5** ~~make release manifests the single source of runtime image
+  identity~~ — **shipped**: `usl-release/v3` is published as an immutable OCI
+  artifact and `scripts/release-manifest validate` gates it.
 
 ### Operational reliability
 

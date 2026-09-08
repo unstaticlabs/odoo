@@ -51,6 +51,12 @@ CONVENTIONAL_TITLE = re.compile(
     re.DOTALL,
 )
 DEFAULT_FALLBACK = ROOT / "operations" / "release-notes.json"
+# A release that publishes but never reaches production leaves its changes out
+# of every later changelog, because the next push starts from the branch tip
+# that carried them. Recording the last deployed commit here makes the next
+# changelog reach back over the gap. Remove the file once that release lands.
+DEFAULT_UNRELEASED_BASE = ROOT / "operations" / "release-notes-base.json"
+UNRELEASED_BASE_SCHEMA = "usl-release-notes-base/v1"
 # The limits ``operations.release_manifest`` enforces on the fields the summary
 # rewrites. Staying inside them is what keeps the schema unchanged.
 MAXIMUM_SUMMARY = 500
@@ -150,6 +156,23 @@ def _valid_commit(value: str | None) -> str | None:
     if not COMMIT.fullmatch(value) or set(value) == {"0"}:
         return None
     return value
+
+
+def unreleased_base(path: Path | str) -> str | None:
+    """Return the recorded last deployed commit, or None when there is none."""
+    path = Path(path)
+    if not path.exists():
+        return None
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise ReleaseNotesError(f"cannot read {path}: {error}") from error
+    if not isinstance(value, dict) or value.get("schema") != UNRELEASED_BASE_SCHEMA:
+        raise ReleaseNotesError(f"{path} must use schema {UNRELEASED_BASE_SCHEMA}")
+    base = value.get("base_commit")
+    if not isinstance(base, str) or not COMMIT.fullmatch(base):
+        raise ReleaseNotesError(f"{path} must name one full commit")
+    return base
 
 
 def range_commits(repository: str, before: str | None, sha: str, api: Api = gh_api) -> list[str]:
@@ -431,6 +454,14 @@ def parser() -> argparse.ArgumentParser:
         help="the previous branch tip (github.event.before); empty or zero on a first push",
     )
     command.add_argument(
+        "--unreleased-base",
+        default=str(DEFAULT_UNRELEASED_BASE),
+        help=(
+            "reviewed record of the last deployed commit, used instead of "
+            "--before so a failed release keeps its changes in the changelog"
+        ),
+    )
+    command.add_argument(
         "--date",
         default=None,
         help="release date as YYYY-MM-DD (default: today, UTC)",
@@ -474,9 +505,22 @@ def main(argv: list[str] | None = None) -> int:
         else _datetime.datetime.now(_datetime.UTC).date()
     )
     notes: dict[str, Any] | None
+    before = arguments.before
+    try:
+        recorded = unreleased_base(arguments.unreleased_base)
+    except ReleaseNotesError as error:
+        print(f"release-notes: {error}", file=sys.stderr)
+        return 1
+    if recorded:
+        print(
+            f"release-notes: reaching back to the last deployed commit {recorded}; "
+            f"remove {arguments.unreleased_base} once this release is deployed",
+            file=sys.stderr,
+        )
+        before = recorded
     try:
         notes = generate(
-            arguments.repository, arguments.before, arguments.sha, date=date, api=gh_api,
+            arguments.repository, before, arguments.sha, date=date, api=gh_api,
         )
     except ReleaseNotesError as error:
         if arguments.strict:

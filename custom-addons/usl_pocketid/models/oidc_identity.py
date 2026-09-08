@@ -142,9 +142,9 @@ class OidcIdentity(models.Model):
             )
         return identities
 
-    def write(self, values):
+    def write(self, vals):
         immutable_fields = {"link_method", "linked_at", "linked_by_id"}
-        if immutable_fields.intersection(values):
+        if immutable_fields.intersection(vals):
             raise ValidationError(
                 _("The original identity-link method, actor and time are immutable."),
             )
@@ -157,7 +157,7 @@ class OidcIdentity(models.Model):
             )
             for identity in self
         }
-        result = super().write(values)
+        result = super().write(vals)
         for identity in self:
             old_user, old_provider, old_subject, old_active = previous[identity.id]
             changed_link = (
