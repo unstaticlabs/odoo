@@ -236,6 +236,14 @@ with open(sys.argv[1], encoding="utf-8") as stream:
 PY
 }
 
+action_risk_update_closure() {
+  "${COMPOSE[@]}" --profile test run --rm \
+    -e ODOO_INIT_DB="$DEV_DB" test odoo \
+    --config=/etc/odoo/odoo.conf --database="$DEV_DB" \
+    --update="$(action_risk_root_modules)" \
+    --without-demo=true --stop-after-init --log-level=warn
+}
+
 odoo_shell_script() {
   "${COMPOSE[@]}" --profile test run --rm -T \
     -e ODOO_INIT_DB="$DEV_DB" test odoo shell \
@@ -806,13 +814,22 @@ case "$command_name" in
     # closure exactly or the diff is meaningless, so install the tracked roots,
     # then reuse the scope enforcement ci-product-database already relies on,
     # and finally check the outcome against the delivered surface.
-    usl_cli_step "1/3" "Initialize the tracked action-risk closure"
+    usl_cli_step "1/5" "Initialize the tracked action-risk closure"
     "${COMPOSE[@]}" build odoo
     ODOO_INIT_MODULES="$(action_risk_root_modules)" \
       "${COMPOSE[@]}" --profile init run --rm init-db
-    usl_cli_step "2/3" "Remove the reviewed optional auto-installs"
+    usl_cli_step "2/5" "Remove the reviewed optional auto-installs"
     odoo_shell_script scripts/odoo/enforce_product_module_scope.py
-    usl_cli_step "3/3" "Verify the module set against the tracked closure"
+    # ci-product-database updates twice after enforcing scope, and the second
+    # pass is not redundant: removing the optional auto-installs leaves records
+    # the first update rewrites, so data-defined actions only settle on the
+    # second. Skipping them yields a database that differs from the canonical
+    # one and reports digest drift in modules the branch never touched.
+    usl_cli_step "3/5" "Update the closure (first pass)"
+    action_risk_update_closure
+    usl_cli_step "4/5" "Update the closure (second pass)"
+    action_risk_update_closure
+    usl_cli_step "5/5" "Verify the module set against the tracked closure"
     odoo_shell_script scripts/odoo/verify_tracked_module_closure.py
     usl_cli_success "$DEV_DB matches the tracked closure; run make action-risk-discover"
     ;;
