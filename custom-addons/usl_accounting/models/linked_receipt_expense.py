@@ -30,6 +30,14 @@ class HrExpense(models.Model):
         compute="_compute_linked_receipt_status",
         compute_sudo=True,
     )
+    linked_receipt_suggested_label = fields.Char(
+        compute="_compute_linked_receipt_status",
+        compute_sudo=True,
+    )
+    linked_receipt_has_alternatives = fields.Boolean(
+        compute="_compute_linked_receipt_status",
+        compute_sudo=True,
+    )
 
     def _compute_linked_receipt_status(self):
         Retrieval = self.env["usl.mail.pdf.retrieval"].sudo()
@@ -39,6 +47,7 @@ class HrExpense(models.Model):
                 [("expense_id", "in", self.ids)], ["expense_id"], ["id:max"],
             )
         }
+        Wizard = self.env["usl.mail.pdf.candidate.wizard"]
         for expense in self:
             retrieval = latest_by_expense.get(expense.id, Retrieval)
             expense.linked_receipt_state = retrieval.state or False
@@ -46,10 +55,38 @@ class HrExpense(models.Model):
                 retrieval.state == "needs_attention"
                 and retrieval.failure_code == "authentication_required",
             )
+            # Odoo already ranked the links when it discovered them; showing
+            # the winner and one button spares the employee a picker that
+            # usually holds a single row.
+            features = retrieval.candidate_features or []
+            suggestion = features[0] if isinstance(features, list) and features else None
+            expense.linked_receipt_suggested_label = (
+                Wizard._display_label(suggestion["label"]) if suggestion else False
+            )
+            expense.linked_receipt_has_alternatives = bool(
+                isinstance(features, list) and len(features) > 1,
+            )
             if not retrieval:
                 expense.linked_receipt_message = False
             elif retrieval.state == "selection_required":
-                expense.linked_receipt_message = _("Choose the receipt link so Odoo can learn this email format.")
+                if not suggestion:
+                    expense.linked_receipt_message = _(
+                        "Choose the receipt link so Odoo can learn this email format.",
+                    )
+                elif expense.linked_receipt_has_alternatives:
+                    expense.linked_receipt_message = _(
+                        "Odoo picked %(label)s on %(host)s. Download it, or choose"
+                        " another link from this email.",
+                        label=expense.linked_receipt_suggested_label,
+                        host=suggestion["hostname"],
+                    )
+                else:
+                    expense.linked_receipt_message = _(
+                        "Odoo picked %(label)s on %(host)s, the only receipt link"
+                        " in this email.",
+                        label=expense.linked_receipt_suggested_label,
+                        host=suggestion["hostname"],
+                    )
             elif retrieval.state in ("queued", "running"):
                 expense.linked_receipt_message = _("Odoo is downloading the linked PDF receipt.")
             elif retrieval.state == "retrying":
@@ -154,6 +191,11 @@ class HrExpense(models.Model):
             "view_mode": "form",
             "target": "new",
         }
+
+    def action_accept_linked_receipt(self):
+        self.ensure_one()
+        self._latest_linked_receipt().with_user(self.env.user).action_accept_suggestion()
+        return {"type": "ir.actions.client", "tag": "reload"}
 
     def action_retry_linked_receipt(self):
         self.ensure_one()

@@ -374,7 +374,7 @@
     "rpc:usl.tese.profile.message_subscribe",
     "rpc:usl.tese.profile.message_unsubscribe"
   ],
-  "qualified_policy_digest": "003aaee82af47200370c841599bc7ead7b0b2cedcd19b1467fc81bdbf733cdbd",
+  "qualified_policy_digest": "f12a7858c8c81a50db6638d388013ada02494a6f0d13700c9f9346372ab55d08",
   "read_only_actions": [
     "rpc:_unknown.check_field_access",
     "rpc:_unknown.export_data",
@@ -12877,7 +12877,7 @@
     "rpc:wizard.open.tax.balances.search_count",
     "rpc:wizard.open.tax.balances.search_read"
   ],
-  "runtime_policy_sha256": "9e551277c8fe5e93846c793fb73f36095ca8d2c5896896f2e2aa1817e41f03e8",
+  "runtime_policy_sha256": "0bd5d14e0e270ebf5291c8af8b982470d6f1b451d30cbf79ac94cf280da28e6d",
   "schema": "usl-agent-access-runtime-v2",
   "write_actions": [
     "rpc:_unknown.copy",
@@ -16865,6 +16865,7 @@
     "rpc:hr.employee.web_save_multi",
     "rpc:hr.employee.web_search_read",
     "rpc:hr.employee.write",
+    "rpc:hr.expense.action_accept_linked_receipt",
     "rpc:hr.expense.action_approve",
     "rpc:hr.expense.action_approve_duplicates",
     "rpc:hr.expense.action_archive_attachment",
@@ -26680,6 +26681,7 @@
     "rpc:usl.mail.pdf.pattern.web_save_multi",
     "rpc:usl.mail.pdf.pattern.web_search_read",
     "rpc:usl.mail.pdf.pattern.write",
+    "rpc:usl.mail.pdf.retrieval.action_accept_suggestion",
     "rpc:usl.mail.pdf.retrieval.action_dismiss",
     "rpc:usl.mail.pdf.retrieval.action_retry",
     "rpc:usl.mail.pdf.retrieval.action_select_candidate",
