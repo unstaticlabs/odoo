@@ -13,6 +13,7 @@ from pathlib import Path
 from unittest import mock
 
 from operations import cohort
+from operations.runtime import RuntimeError as OperationsError
 from operations.runtime import compose_command, load_target
 from operations.stack import (
     BACKUP_WRITER_SERVICE_ROLES,
@@ -87,6 +88,7 @@ from operations.stack import (
     _staging_reset_intent_receipt,
     _staging_reset_deferred_receipt,
     _validate_backup_quiescence_receipt,
+    _preserve_session_store,
     _preserve_staging_environment_state,
     _write_source_backup_environment,
     _write_adopt_generation,
@@ -6732,6 +6734,152 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(result["mcp_oauth"]["source"], identity)
         self.assertEqual(result["mcp_oauth"]["destination"], identity)
         self.assertFalse(any("production" in " ".join(command) for command in runner.commands))
+
+
+class SessionStorePreservationTests(unittest.TestCase):
+    """A rollout must not sign every person out of Odoo.
+
+    Materialization restores only ``filestore/<database>`` into the candidate's
+    brand-new data volume, so Odoo's ``sessions`` directory has to be carried
+    over explicitly or every signed-in person lands back on Pocket ID.
+    """
+
+    current = {"volumes": {"odoo_filestore": {"name": "old-odoo-data"}}}
+    volumes = {"odoo_filestore": "new-odoo-data"}
+
+    def _runner(self, *, present: bool = True, identity: dict | None = None, fail: str = ""):
+        identity = identity or {"files": 4, "bytes": 512, "sha256": "b" * 64}
+        commands: list[list[str]] = []
+
+        class Runner:
+            def run(self, command, *, check=True, input_text=None):
+                commands.append(command)
+                if fail and command[0] == fail:
+                    # The failure a real runner raises for a failed command.
+                    raise OperationsError(f"injected {fail} failure")
+                if command[:3] == ["docker", "volume", "inspect"]:
+                    return subprocess.CompletedProcess(
+                        command, 0, json.dumps({"Mountpoint": f"/volumes/{command[3]}"}), "",
+                    )
+                if command[:1] == ["python3"] and "is_dir" in command[2]:
+                    return subprocess.CompletedProcess(
+                        command, 0, json.dumps({"present": present}), "",
+                    )
+                if command[:1] == ["python3"]:
+                    return subprocess.CompletedProcess(command, 0, json.dumps(identity), "")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        return Runner(), commands
+
+    def test_live_sessions_are_copied_into_the_candidate_generation(self) -> None:
+        identity = {"files": 4, "bytes": 512, "sha256": "b" * 64}
+        runner, commands = self._runner(identity=identity)
+        result = _preserve_session_store(runner, self.current, self.volumes)
+        self.assertEqual(result["status"], "preserved")
+        self.assertEqual(result["sessions"], {"source": identity, "destination": identity})
+        copy = next(command for command in commands if command[0] == "rsync")
+        self.assertEqual(copy[-2:], [
+            "/volumes/old-odoo-data/sessions/", "/volumes/new-odoo-data/sessions/",
+        ])
+        self.assertIn("--delete", copy)
+        # The candidate directory must belong to Odoo's own runtime identity
+        # before Odoo reads it, whichever user materialization left behind.
+        created = next(command for command in commands if command[0] == "install")
+        self.assertEqual(
+            created,
+            ["install", "-d", "-m", "0700", "-o", "1000", "-g", "1000", "--",
+             "/volumes/new-odoo-data/sessions"],
+        )
+
+    def test_a_copy_onto_the_live_store_itself_is_refused(self) -> None:
+        # ``--delete`` against the outgoing store would destroy the sessions.
+        runner, commands = self._runner()
+        result = _preserve_session_store(
+            runner, self.current, {"odoo_filestore": "old-odoo-data"},
+        )
+        self.assertEqual(result["status"], "unchanged")
+        self.assertFalse(any(command[0] == "rsync" for command in commands))
+
+    def test_missing_source_directory_is_reported_without_copying(self) -> None:
+        runner, commands = self._runner(present=False)
+        result = _preserve_session_store(runner, self.current, self.volumes)
+        self.assertEqual(result["status"], "absent")
+        self.assertIsNone(result["sessions"])
+        self.assertFalse(any(command[0] == "rsync" for command in commands))
+
+    def test_a_copy_failure_reports_evidence_instead_of_failing_the_release(self) -> None:
+        # Session continuity is convenience state, not an integrity control:
+        # signing people out is better than refusing a qualified rollout.
+        for step in ("docker", "install", "rsync", "python3"):
+            with self.subTest(step=step):
+                runner, _ = self._runner(fail=step)
+                result = _preserve_session_store(runner, self.current, self.volumes)
+                self.assertEqual(result["status"], "skipped")
+                self.assertIn(f"injected {step} failure", result["detail"])
+                self.assertIsNone(result["sessions"])
+
+    def test_a_plain_builtin_failure_is_caught_despite_the_shadowed_name(self) -> None:
+        # ``operations.runtime`` shadows ``RuntimeError`` with a subclass, so
+        # catching that name alone would let an ordinary failure escape.
+        class Runner:
+            def run(self, command, *, check=True, input_text=None):
+                raise RuntimeError("plain failure")
+
+        result = _preserve_session_store(Runner(), self.current, self.volumes)
+        self.assertEqual(result["status"], "skipped")
+        self.assertIn("plain failure", result["detail"])
+
+    def test_a_diverged_copy_is_named_rather_than_claimed_preserved(self) -> None:
+        moved = [
+            {"files": 4, "bytes": 512, "sha256": "b" * 64},
+            {"files": 5, "bytes": 640, "sha256": "c" * 64},
+        ]
+
+        class Runner:
+            def run(self, command, *, check=True, input_text=None):
+                if command[:3] == ["docker", "volume", "inspect"]:
+                    return subprocess.CompletedProcess(
+                        command, 0, json.dumps({"Mountpoint": f"/volumes/{command[3]}"}), "",
+                    )
+                if command[:1] == ["python3"] and "is_dir" in command[2]:
+                    return subprocess.CompletedProcess(
+                        command, 0, json.dumps({"present": True}), "",
+                    )
+                if command[:1] == ["python3"]:
+                    return subprocess.CompletedProcess(command, 0, json.dumps(moved.pop(0)), "")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        result = _preserve_session_store(Runner(), self.current, self.volumes)
+        self.assertEqual(result["status"], "diverged")
+
+    def test_the_generated_probe_is_valid_python(self) -> None:
+        # Mocked runners cannot detect a broken inline program.
+        runner, commands = self._runner()
+        _preserve_session_store(runner, self.current, self.volumes)
+        program = next(
+            command[2] for command in commands
+            if command[0] == "python3" and "is_dir" in command[2]
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            present = subprocess.run(
+                ["python3", "-c", program, directory],
+                capture_output=True, text=True, check=True,
+            )
+            self.assertTrue(json.loads(present.stdout)["present"])
+            absent = subprocess.run(
+                ["python3", "-c", program, str(Path(directory) / "sessions")],
+                capture_output=True, text=True, check=True,
+            )
+            self.assertFalse(json.loads(absent.stdout)["present"])
+
+    def test_sessions_never_enter_the_backup_repository(self) -> None:
+        # The capture reads the whole Odoo data volume but copies only the
+        # filestore, so session material stays out of restic and out of any
+        # cross-environment restore.
+        source = Path(cohort.__file__).read_text(encoding="utf-8")
+        self.assertIn('Path("/source/odoo-data/filestore") / odoo_database', source)
+        self.assertNotIn("/source/odoo-data/sessions", source)
+        self.assertNotIn("/target/odoo-data/sessions", source)
 
 
 if __name__ == "__main__":

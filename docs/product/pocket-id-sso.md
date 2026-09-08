@@ -167,6 +167,10 @@ make authentication tests pass.
   revocation and new SSO login fails closed. Emergency access requires an
   incident-approved deployment flag and an expiry of at most one hour; the
   account never appears on the normal login page.
+- Release rollout: a session survives an upgrade of the same environment. The
+  release carries the Odoo session store into the new generation, so people who
+  were signed in stay signed in. A staging reset from production keeps no
+  sessions, because it replaces the users they were issued for.
 
 Sensitive Odoo actions reauthenticate against the same immutable Pocket ID
 identity. A different Pocket person cannot approve the action. Logout clears
