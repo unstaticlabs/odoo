@@ -27,7 +27,7 @@ PAPERLESS_HTTP_PORT=<derived>
 ```
 
 Ports move together in steps of ten from a base offset of 10000. The gaps
-inside one set are 3, 59 and 6598, none of them a multiple of ten, so no
+inside one set are 3, 59 and 6599, none of them a multiple of ten, so no
 worktree's port can land on another worktree's. Two worktrees collide only when
 their paths fall in the same bucket of four hundred, and Docker then reports a
 plain bind failure rather than silently sharing a runtime.

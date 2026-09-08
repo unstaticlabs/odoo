@@ -41,6 +41,7 @@ ACTION_RISK_RUNTIME_CANDIDATE ?= artifacts/action-risk/runtime.candidate.json
 .PHONY: action-risk-inventory action-risk-runtime product-assets french-translations
 .PHONY: expense-batch-qa-bootstrap tese-qa-bootstrap
 .PHONY: backup backup-list backup-verify restore smoke health qa-refresh recovery-cleanup-plan
+.PHONY: worktree-env dev-reclaim init-db action-risk-db
 
 help:
 	@printf '%s\n' \

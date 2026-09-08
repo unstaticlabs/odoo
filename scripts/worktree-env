@@ -7,12 +7,14 @@
 # worktree always resolves to the same settings, and two worktrees only collide
 # when their paths land in the same bucket, which Docker then reports as a
 # plain bind failure rather than as silent sharing.
-set -euo pipefail
+#
+# No `set -e` at file scope: compose-scope.sh sources this, and its sibling
+# libraries deliberately leave the caller's shell options alone.
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 
 # Ports move together in steps of ten. The gaps inside one set are 3, 59 and
-# 6598, none of them a multiple of ten, so no offset can slide one worktree's
+# 6599, none of them a multiple of ten, so no offset can slide one worktree's
 # port onto another worktree's.
 USL_WORKTREE_PORT_STEP=10
 USL_WORKTREE_PORT_BUCKETS=400
@@ -77,6 +79,7 @@ usl_worktree_env_prefix() {
 
 # Sourced by compose-scope.sh; executed directly by `make worktree-env`.
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    set -euo pipefail
     case "${1:-print}" in
         print)
             usl_worktree_env_assignments "$ROOT"
