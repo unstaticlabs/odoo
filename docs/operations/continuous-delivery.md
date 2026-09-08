@@ -215,6 +215,15 @@ previous release. The `Distribution release` workflow runs
    Commit type, and `action_required` from the title of a pull request
    labelled `action-required`.
 
+A release that publishes but never reaches production leaves its changes out of
+every later changelog, because the next push starts from the branch tip that
+already carried them. `operations/release-notes-base.json` records the commit
+production actually runs; while that file exists the generator starts the range
+there instead of at `github.event.before`, so the next changelog reaches back
+over the gap. It fails loudly rather than silently narrowing the range when the
+record is malformed. Remove the file in the first pull request after the
+release it covers is deployed.
+
 When no pull request was merged, or when GitHub is unreachable, the generator
 writes the reviewed `operations/release-notes.json` (`usl-release-notes/v1`)
 instead and says so in the job log. The v3 builder accepts both schemas,
