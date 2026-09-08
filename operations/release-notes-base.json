@@ -1,5 +1,5 @@
 {
   "base_commit": "ceb6775e26106cf938e869d64a22882bffb5dff0",
-  "reason": "Production runs 0801ff5b, promoted 2026-09-08T08:57:23Z, and reached it from ceb6775e directly. The releases published at e50be237 and 8828cb1e never landed, so the changelog that shipped with 0801ff5b covered only its own push and left ceb6775e..8828cb1e out. The range starts at ceb6775e to carry that gap into the next changelog, which re-lists the pull requests 0801ff5b already announced rather than dropping the ones no release ever announced.",
+  "reason": "Production runs ceb6775e. Every release published since has failed its final admission and rolled back: e50be237, 8828cb1e and 0801ff5b all left the previous generation running, so none of their changelogs describe anything that reached users. The GitOps ledger records 0801ff5b as promoted at 2026-09-08T08:57:23Z, which is the desired state being written and not the outcome; the Komodo update for that deployment ends 'rollback: completed: previous generation is running' and GitHub marks the production-release deployment failure at 09:10. The range therefore starts at ceb6775e, the last release that actually landed, so the next changelog carries everything since it. Delete this file once a release has been confirmed deployed, not merely promoted.",
   "schema": "usl-release-notes-base/v1"
 }
