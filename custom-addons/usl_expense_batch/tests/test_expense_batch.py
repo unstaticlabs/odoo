@@ -1183,3 +1183,51 @@ class TestExpenseBatch(TestExpenseCommon):
             }).action_open_expense_batch()["views"],
             [(False, "form")],
         )
+
+    def test_advisory_warning_stops_demanding_attention_once_accounting_is_booked(self):
+        """A note the reviewer can no longer act on is not a task.
+
+        The duplicate-receipt heuristics and the date-boundary note are worth
+        raising while the expense can still be edited.  Once its accounting is
+        booked nothing can be done about them, so they must stop presenting the
+        Batch as unfinished.
+        """
+        outside_dates = self._expense("Train home before the trip", amount=50)
+        outside_dates.sudo().date = fields.Date.from_string("2026-07-01")
+        batch = self.env["usl.expense.batch"].with_user(
+            self.expense_user_employee,
+        ).create({
+            "name": "SBFH — Paris — August",
+            "purpose": "Recording sessions in Paris",
+            "context_type": "travel",
+            "context_date_from": fields.Date.from_string("2026-07-05"),
+            "context_date_to": fields.Date.from_string("2026-07-31"),
+            "employee_id": self.expense_employee.id,
+            "company_id": self.env.company.id,
+            "expense_ids": [Command.set(outside_dates.ids)],
+        })
+
+        self.assertEqual(outside_dates.batch_warning_reason, "outside the Batch dates")
+        self.assertEqual(outside_dates.batch_attention_level, "warning")
+        self.assertEqual(batch.attention_count, 1)
+        self.assertEqual(batch.readiness_summary, "Needs attention · 1")
+
+        batch.with_user(self.expense_user_employee).action_submit()
+        batch.with_user(self.expense_user_manager).action_approve()
+        self.assertEqual(outside_dates.state, "approved")
+        self.assertEqual(outside_dates.batch_attention_level, "warning")
+        self.assertEqual(batch.attention_count, 1)
+
+        post_action = batch.with_user(self.env.user).action_post()
+        self.env[post_action["res_model"]].with_context(
+            post_action["context"],
+        ).browse(post_action["res_id"]).action_post_entry()
+        self.assertEqual(outside_dates.state, "posted")
+
+        self.assertEqual(outside_dates.batch_warning_reason, "outside the Batch dates")
+        self.assertEqual(outside_dates.batch_attention_level, "info")
+        self.assertIn("outside the Batch dates", outside_dates.batch_attention_message)
+        self.assertEqual(batch.warning_count, 1)
+        self.assertEqual(batch.attention_count, 0)
+        self.assertEqual(batch.readiness_summary, "Ready")
+        self.assertEqual(batch.readiness_state, "ready")
