@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+"""Require that the tree being promoted already deployed to staging."""
+
+import argparse
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from operations.staging_deployment import ENVIRONMENT, verify  # noqa: E402
+
+
+def _api(path: str) -> list[dict]:
+    result = subprocess.run(
+        ["gh", "api", "-H", "Accept: application/vnd.github+json", path],
+        check=True, capture_output=True, text=True,
+    )
+    return json.loads(result.stdout)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--repository", required=True)
+    parser.add_argument("--sha", required=True)
+    arguments = parser.parse_args()
+
+    deployments = _api(
+        f"repos/{arguments.repository}/deployments"
+        f"?sha={arguments.sha}&environment={ENVIRONMENT}&per_page=100",
+    )
+    evidence = verify(
+        arguments.sha,
+        deployments,
+        lambda identifier: _api(
+            f"repos/{arguments.repository}/deployments/{identifier}/statuses?per_page=100",
+        ),
+    )
+    print(
+        f"Staging deployed {evidence['sha'][:12]} "
+        f"(deployment {evidence['deployment_id']}): "
+        + ", ".join(evidence["states"]),
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except ValueError as error:
+        print(f"Production promotion refused: {error}", file=sys.stderr)
+        raise SystemExit(1) from error
