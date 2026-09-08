@@ -10,10 +10,10 @@ The duplication is deliberate. The feedback client cannot be imported here:
 * It starts with ``import requests``. The ``release`` job of
   ``.github/workflows/product-image.yml`` has no ``setup-python`` and no
   ``pip install``, so release tooling must run on the standard library alone.
-* Moving the shared code into the addon would change any file under
-  ``custom-addons/usl_feedback``, which changes ``module_set_sha256`` and so
-  ``surface_sha256`` in the sealed action-risk policy. Refreshing that seal
-  needs a live Odoo runtime. ``operations/`` is outside the sealed surface.
+* Moving the shared code into the addon would change a file under
+  ``custom-addons/usl_feedback``, which changes that module's ``source_sha256``
+  in the sealed action-risk surface. Refreshing that seal needs a live Odoo
+  runtime. ``operations/`` is outside the sealed surface.
 
 The two clients therefore share a contract, not an implementation.
 ``scripts/tests/test_gemini_operations.py`` reads the addon file as text and

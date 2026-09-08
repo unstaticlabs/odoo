@@ -101,11 +101,19 @@ def odoo_core_sha256() -> str:
 
 
 def action_risk_policy_sha256() -> str:
-    """Return the canonical digest of the reviewed action surface and policy."""
+    """Return the canonical digest of the whole delivered action-risk artifact set.
+
+    The two compiled runtime policies are covered alongside the reviewed surface
+    and policy. They no longer carry a digest binding them to the review, so this
+    label is what seals the set the image actually ships, and production
+    admission already verifies it.
+    """
     payload = {}
     for key, filename in (
         ("action_surface", "action_surface.json"),
         ("action_policy", "action_policy.json"),
+        ("agent_readonly_runtime_policy", "agent_readonly_runtime_policy.json"),
+        ("protected_runtime_policy", "protected_runtime_policy.json"),
     ):
         path = ACTION_RISK_POLICY_DIRECTORY / filename
         if not path.is_file():
@@ -118,16 +126,10 @@ def action_risk_policy_sha256() -> str:
             raise ReleaseIdentityError(
                 f"Action-risk policy artifact is invalid JSON: {path}: {error}",
             ) from error
-        if key == "action_policy":
-            if not isinstance(value, dict):
-                raise ReleaseIdentityError(
-                    f"Action-risk policy artifact must be an object: {path}",
-                )
-            value = {
-                item_key: item_value
-                for item_key, item_value in value.items()
-                if item_key != "qualified_policy_digest"
-            }
+        if not isinstance(value, dict):
+            raise ReleaseIdentityError(
+                f"Action-risk policy artifact must be an object: {path}",
+            )
         payload[key] = value
     canonical = json.dumps(
         payload,

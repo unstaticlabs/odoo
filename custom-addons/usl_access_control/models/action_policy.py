@@ -1,4 +1,3 @@
-import hashlib
 import json
 import os
 import re
@@ -15,8 +14,8 @@ _RUNTIME_POLICY_FILE = _POLICY_DIRECTORY / "protected_runtime_policy.json"
 _AGENT_READONLY_RUNTIME_POLICY_FILE = (
     _POLICY_DIRECTORY / "agent_readonly_runtime_policy.json"
 )
-_RUNTIME_POLICY_SCHEMA = "usl-action-risk-protected-runtime-v2"
-_AGENT_READONLY_RUNTIME_POLICY_SCHEMA = "usl-agent-access-runtime-v2"
+_RUNTIME_POLICY_SCHEMA = "usl-action-risk-protected-runtime-v3"
+_AGENT_READONLY_RUNTIME_POLICY_SCHEMA = "usl-agent-access-runtime-v3"
 _RUNTIME_POLICY_MAX_BYTES = 512 * 1024
 _AGENT_READONLY_RUNTIME_POLICY_MAX_BYTES = 4 * 1024 * 1024
 _SHA256 = re.compile(r"[0-9a-f]{64}")
@@ -39,7 +38,7 @@ class ActionPolicy:
     entries: dict[str, ActionPolicyEntry]
     model_operation_guards: dict[tuple[str, str], ActionPolicyEntry]
     server_actions: dict[str, str]
-    qualified_policy_digest: str
+    policy_digest: str
 
     def protected_action(self, action_key):
         entry = self.entries.get(action_key)
@@ -70,7 +69,7 @@ class AgentReadonlyPolicy:
     read_only_actions: frozenset[str]
     collaboration_actions: frozenset[str]
     write_actions: frozenset[str]
-    qualified_policy_digest: str
+    policy_digest: str
 
     def access_for(self, model_name, method_name):
         action_key = f"rpc:{model_name}.{method_name}"
@@ -102,19 +101,32 @@ def _read_json(path, *, max_bytes=None):
     return value
 
 
-def _runtime_policy_digest(runtime_policy):
-    payload = {
-        key: value
-        for key, value in runtime_policy.items()
-        if key != "runtime_policy_sha256"
-    }
-    canonical = json.dumps(
-        payload,
-        ensure_ascii=False,
-        separators=(",", ":"),
-        sort_keys=True,
-    ).encode()
-    return hashlib.sha256(canonical).hexdigest()
+# A compiled runtime policy records no digest of itself or of the review it came
+# from: every one of those was a summary line that each reseal rewrote, so two
+# branches touching unrelated modules conflicted over artifacts neither had
+# changed. A file still carrying one predates that and is refused as stale.
+_DERIVED_FIELDS = ("qualified_policy_digest", "runtime_policy_sha256")
+
+
+def _reject_derived_fields(label, runtime_policy):
+    stale = [field for field in _DERIVED_FIELDS if field in runtime_policy]
+    if stale:
+        raise ActionPolicyConfigurationError(
+            f"{label} records the derived field {stale[0]!r} and is stale; "
+            "recompile it from the reviewed surface and policy.",
+        )
+
+
+def _image_policy_digest():
+    """Identify the reviewed artifact set this image was sealed and admitted with.
+
+    Release identity seals all four action-risk artifacts into this value and
+    production admission verifies it, so it is what the audit trail should name
+    as the policy an action was judged against.
+    """
+
+    digest = os.environ.get("USL_ACTION_RISK_POLICY_SHA256") or ""
+    return digest if _SHA256.fullmatch(digest) else "unverified"
 
 
 def _load_entries(runtime_policy):
@@ -281,33 +293,13 @@ def load_action_policy():
         raise ActionPolicyConfigurationError(
             f"Protected runtime policy must use schema {_RUNTIME_POLICY_SCHEMA!r}.",
         )
-    digest = _runtime_policy_digest(runtime_policy)
-    if runtime_policy.get("runtime_policy_sha256") != digest:
-        message = (
-            "Protected runtime policy digest does not match its canonical content."
-        )
-        raise ActionPolicyConfigurationError(message)
-    qualified_digest = runtime_policy.get("qualified_policy_digest")
-    if not isinstance(qualified_digest, str) or not _SHA256.fullmatch(
-        qualified_digest,
-    ):
-        message = "Protected runtime policy has no valid qualified policy digest."
-        raise ActionPolicyConfigurationError(message)
-    image_digest = os.environ.get("USL_ACTION_RISK_POLICY_SHA256")
-    if (
-        image_digest not in {None, "", "unverified"}
-        and image_digest != qualified_digest
-    ):
-        message = (
-            "Protected runtime policy does not match the qualified image policy digest."
-        )
-        raise ActionPolicyConfigurationError(message)
+    _reject_derived_fields("Protected runtime policy", runtime_policy)
     entries = _load_entries(runtime_policy)
     return ActionPolicy(
         entries=MappingProxyType(entries),
         model_operation_guards=MappingProxyType(_model_operation_guards(entries)),
         server_actions=MappingProxyType(_load_server_actions(runtime_policy)),
-        qualified_policy_digest=qualified_digest,
+        policy_digest=_image_policy_digest(),
     )
 
 
@@ -321,27 +313,7 @@ def load_agent_readonly_policy():
         raise ActionPolicyConfigurationError(
             "Agent read-only runtime policy has an unsupported schema.",
         )
-    if runtime_policy.get("runtime_policy_sha256") != _runtime_policy_digest(
-        runtime_policy,
-    ):
-        raise ActionPolicyConfigurationError(
-            "Agent read-only runtime policy digest does not match its canonical content.",
-        )
-    qualified_digest = runtime_policy.get("qualified_policy_digest")
-    if not isinstance(qualified_digest, str) or not _SHA256.fullmatch(
-        qualified_digest,
-    ):
-        raise ActionPolicyConfigurationError(
-            "Agent read-only runtime policy has no valid qualified policy digest.",
-        )
-    image_digest = os.environ.get("USL_ACTION_RISK_POLICY_SHA256")
-    if (
-        image_digest not in {None, "", "unverified"}
-        and image_digest != qualified_digest
-    ):
-        raise ActionPolicyConfigurationError(
-            "Agent read-only runtime policy does not match the qualified image policy digest.",
-        )
+    _reject_derived_fields("Agent read-only runtime policy", runtime_policy)
     read_only_actions = _load_sorted_action_keys(runtime_policy, "read_only_actions")
     collaboration_actions = _load_sorted_action_keys(
         runtime_policy,
@@ -360,5 +332,5 @@ def load_agent_readonly_policy():
         read_only_actions=read_only_actions,
         collaboration_actions=collaboration_actions,
         write_actions=write_actions,
-        qualified_policy_digest=qualified_digest,
+        policy_digest=_image_policy_digest(),
     )

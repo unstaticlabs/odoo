@@ -344,7 +344,9 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
 
     def test_runtime_policy_resolves_semantic_and_model_operation_guards(self):
         policy = self.env["base"]._usl_qualified_action_policy()
-        self.assertRegex(policy.qualified_policy_digest, r"^[0-9a-f]{64}$")
+        # No artifact records a digest of itself; the loaded policy names the
+        # sealed set this image was admitted with, "unverified" outside a release.
+        self.assertRegex(policy.policy_digest, r"^([0-9a-f]{64}|unverified)$")
         self.assertEqual(
             policy.protected_guard("accounting.lock.change").action_key,
             "guard:accounting.lock.change",
@@ -506,7 +508,7 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
         self.assertEqual(event.action_key, "rpc:project.task.unlink")
         self.assertEqual(
             event.policy_digest,
-            self.env["base"]._usl_qualified_action_policy().qualified_policy_digest,
+            self.env["base"]._usl_qualified_action_policy().policy_digest,
         )
 
     def test_denied_protected_action_log_carries_policy_identity(self):
@@ -533,7 +535,7 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
         self.assertEqual(payload["action_key"], "rpc:project.task.unlink")
         self.assertEqual(
             payload["policy_digest"],
-            self.env["base"]._usl_qualified_action_policy().qualified_policy_digest,
+            self.env["base"]._usl_qualified_action_policy().policy_digest,
         )
 
     def test_accounting_remains_reversible_for_reviewer_and_agent(self):
