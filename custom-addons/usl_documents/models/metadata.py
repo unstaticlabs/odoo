@@ -173,14 +173,14 @@ class UslPaperlessMetadataMixin(models.AbstractModel):
         }
 
     @api.model_create_multi
-    def create(self, values_list):
+    def create(self, vals_list):
         if (
             self.env.context.get("usl_documents_cache_write")
             and self.env.su
         ):
-            return super().create(values_list)
+            return super().create(vals_list)
         records = self.browse()
-        for values in values_list:
+        for values in vals_list:
             payload = self._paperless_payload(values)
             # Paperless's create serializers require a string.  Keep this
             # create-only: defaulting it during a name-only update would erase
@@ -237,26 +237,26 @@ class UslPaperlessMetadataMixin(models.AbstractModel):
             records |= cached.with_env(self.env)
         return records
 
-    def write(self, values):
+    def write(self, vals):
         if (
             self.env.context.get("usl_documents_cache_write")
             and self.env.su
         ):
-            return super().write(values)
-        if "paperless_id" in values:
+            return super().write(vals)
+        if "paperless_id" in vals:
             raise AccessError(_("Paperless identities cannot be changed."))
         allowed = self._payload_fields() | self._local_write_fields()
-        unsupported = set(values) - allowed
+        unsupported = set(vals) - allowed
         if unsupported:
             raise AccessError(
                 _("These archive metadata fields cannot be edited: %s")
                 % ", ".join(sorted(unsupported)),
             )
         for record in self:
-            remote_values = record._paperless_payload(values)
+            remote_values = record._paperless_payload(vals)
             cache_values = {
                 key: value
-                for key, value in values.items()
+                for key, value in vals.items()
                 if key in record._local_write_fields()
             }
             if remote_values:
@@ -565,20 +565,20 @@ class UslPaperlessCorrespondent(models.Model):
         partner.check_access("read")
 
     @api.model_create_multi
-    def create(self, values_list):
-        for values in values_list:
+    def create(self, vals_list):
+        for values in vals_list:
             self._check_visible_partner_value(
                 values.get("partner_visible_id") or values.get("partner_id"),
             )
             self._check_visible_partner_value(values.get("rejected_partner_id"))
             if "partner_visible_id" in values:
                 values["partner_id"] = values.pop("partner_visible_id")
-        return super().create(values_list)
+        return super().create(vals_list)
 
-    def write(self, values):
-        values = dict(values)
+    def write(self, vals):
+        vals = dict(vals)
         mapping_requested = (
-            "partner_visible_id" in values or "partner_id" in values
+            "partner_visible_id" in vals or "partner_id" in vals
         )
         if mapping_requested and any(self.mapped("partner_mapping_hidden")):
             raise AccessError(
@@ -588,13 +588,13 @@ class UslPaperlessCorrespondent(models.Model):
                     "to review the mapping.",
                 ),
             )
-        if "partner_visible_id" in values:
-            values["partner_id"] = values.pop("partner_visible_id")
-        if "partner_id" in values:
-            self._check_visible_partner_value(values["partner_id"])
-        if "rejected_partner_id" in values:
-            self._check_visible_partner_value(values["rejected_partner_id"])
-        return super().write(values)
+        if "partner_visible_id" in vals:
+            vals["partner_id"] = vals.pop("partner_visible_id")
+        if "partner_id" in vals:
+            self._check_visible_partner_value(vals["partner_id"])
+        if "rejected_partner_id" in vals:
+            self._check_visible_partner_value(vals["rejected_partner_id"])
+        return super().write(vals)
 
     @api.depends("name", "partner_id", "rejected_partner_id")
     def _compute_suggested_partner(self):

@@ -30,14 +30,14 @@ class ProjectTaskType(models.Model):
             raise AccessError(_("Only Feedback Maintainers can change feedback stages."))
 
     @api.model_create_multi
-    def create(self, values_list):
-        for values in values_list:
+    def create(self, vals_list):
+        for values in vals_list:
             self._usl_feedback_check_metadata_operator(values)
-        return super().create(values_list)
+        return super().create(vals_list)
 
-    def write(self, values):
-        self._usl_feedback_check_metadata_operator(values)
-        return super().write(values)
+    def write(self, vals):
+        self._usl_feedback_check_metadata_operator(vals)
+        return super().write(vals)
 
     def unlink(self):
         self._usl_feedback_check_metadata_operator()
@@ -62,14 +62,14 @@ class ProjectTags(models.Model):
             raise AccessError(_("Only Feedback Maintainers can change feedback tags."))
 
     @api.model_create_multi
-    def create(self, values_list):
-        for values in values_list:
+    def create(self, vals_list):
+        for values in vals_list:
             self._usl_feedback_check_metadata_operator(values)
-        return super().create(values_list)
+        return super().create(vals_list)
 
-    def write(self, values):
-        self._usl_feedback_check_metadata_operator(values)
-        return super().write(values)
+    def write(self, vals):
+        self._usl_feedback_check_metadata_operator(vals)
+        return super().write(vals)
 
     def unlink(self):
         self._usl_feedback_check_metadata_operator()

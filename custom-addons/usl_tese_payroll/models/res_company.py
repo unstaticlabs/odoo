@@ -49,9 +49,9 @@ class ResCompany(models.Model):
             "target": "current",
         }
 
-    def write(self, values):
+    def write(self, vals):
         if (
-            {"tese_payroll_journal_id", "tese_collector_partner_id"} & set(values)
+            {"tese_payroll_journal_id", "tese_collector_partner_id"} & set(vals)
         ):
             self._check_tese_configuration_access()
-        return super().write(values)
+        return super().write(vals)

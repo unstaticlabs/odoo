@@ -89,7 +89,7 @@ class SignRequestDocument(models.Model):
             values["source_sha256"] = hashlib.sha256(raw).hexdigest()
         return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         if not self.env.su:
             for document in self:
                 if not document.request_id._user_can_coordinate():
@@ -98,11 +98,11 @@ class SignRequestDocument(models.Model):
         if self.filtered(lambda document: document.request_id.state not in MUTABLE_REQUEST_STATES):
             msg = "Documents are frozen once a request is sent."
             raise ValidationError(msg)
-        if "data" in values:
-            raw = field_content(values["data"])
+        if "data" in vals:
+            raw = field_content(vals["data"])
             self._validate_pdf(raw)
-            values["source_sha256"] = hashlib.sha256(raw).hexdigest()
-        return super().write(values)
+            vals["source_sha256"] = hashlib.sha256(raw).hexdigest()
+        return super().write(vals)
 
     def unlink(self):
         if not self.env.su:
@@ -198,18 +198,18 @@ class SignTemplateDocument(models.Model):
             values["source_sha256"] = hashlib.sha256(raw).hexdigest()
         return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         if self.filtered(
             lambda document: document.template_id.request_count
             or document.template_id.preparation_status == "ready",
         ):
             msg = "Published or used templates are immutable; create a new version."
             raise ValidationError(msg)
-        if "data" in values:
-            raw = field_content(values["data"])
+        if "data" in vals:
+            raw = field_content(vals["data"])
             SignRequestDocument._validate_pdf(raw)
-            values["source_sha256"] = hashlib.sha256(raw).hexdigest()
-        return super().write(values)
+            vals["source_sha256"] = hashlib.sha256(raw).hexdigest()
+        return super().write(vals)
 
     def unlink(self):
         if self.filtered(

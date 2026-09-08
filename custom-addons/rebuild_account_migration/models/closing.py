@@ -905,7 +905,7 @@ class RebuildAccountClosingSnapshot(models.Model):
             })
         return super().create(prepared)
 
-    def write(self, _vals):
+    def write(self, vals):
         raise UserError(
             "Accepted closing snapshots are immutable. Create a new review "
             "decision and snapshot instead.",

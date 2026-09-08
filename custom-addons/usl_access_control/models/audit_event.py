@@ -95,7 +95,7 @@ class UslAuditEvent(models.Model):
             },
         ).create(values)
 
-    def write(self, values):
+    def write(self, vals):
         raise UserError(self.env._("Distribution audit events are immutable."))
 
     def unlink(self):

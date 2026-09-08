@@ -102,13 +102,13 @@ class SignEnrollment(models.Model):
             raise ValidationError(msg)
 
     @api.model_create_multi
-    def create(self, values_list):
-        for values in values_list:
+    def create(self, vals_list):
+        for values in vals_list:
             if "relationship_reference" not in values:
                 partner_id = int(values.get("partner_id") or 0)
                 if partner_id:
                     values["relationship_reference"] = f"res.partner,{partner_id}"
-        return super().create(values_list)
+        return super().create(vals_list)
 
     @api.depends("policy_version")
     def _compute_review_standard_label(self):
@@ -435,7 +435,7 @@ class SignEnrollment(models.Model):
             "context": {"default_enrollment_id": self.id},
         }
 
-    def write(self, values):
+    def write(self, vals):
         protected = {
             "state",
             "reviewer_id",
@@ -458,15 +458,15 @@ class SignEnrollment(models.Model):
             "status_reason",
             "revocation_reason",
         }
-        if protected.intersection(values) and self.env.context.get(
+        if protected.intersection(vals) and self.env.context.get(
             "usl_sign_enrollment_transition",
         ) is not INTERNAL_OPERATION:
             msg = "Use a controlled identity-enrolment action."
             raise AccessError(msg)
-        if self.filtered(lambda enrollment: enrollment.state == "revoked") and values:
+        if self.filtered(lambda enrollment: enrollment.state == "revoked") and vals:
             msg = "A revoked identity enrolment is immutable."
             raise ValidationError(msg)
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         msg = "Identity enrolments cannot be deleted; revoke them instead."
@@ -602,10 +602,10 @@ class SignCeremony(models.Model):
         )
 
     @api.model_create_multi
-    def create(self, values_list):
+    def create(self, vals_list):
         if any(
             not values.get(field_name)
-            for values in values_list
+            for values in vals_list
             for field_name in CANDIDATE_BINDING_HASH_FIELDS
         ):
             msg = _(
@@ -613,19 +613,19 @@ class SignCeremony(models.Model):
                 "and evidence-context hashes.",
             )
             raise ValidationError(msg)
-        return super().create(values_list)
+        return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         if self.env.context.get("usl_sign_ceremony_transition") is not INTERNAL_OPERATION:
             msg = "Ceremonies can only change through controlled transitions."
             raise AccessError(msg)
         if any(
-            field_name in values and not values[field_name]
+            field_name in vals and not vals[field_name]
             for field_name in CANDIDATE_BINDING_HASH_FIELDS
         ):
             msg = _("A Strong ceremony's candidate-binding hashes cannot be cleared.")
             raise ValidationError(msg)
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         msg = "Strong-signature ceremonies are evidence and cannot be deleted."

@@ -139,8 +139,8 @@ class UslDocumentLetter(models.Model):
         return sequence
 
     @api.model_create_multi
-    def create(self, values_list):
-        for values in values_list:
+    def create(self, vals_list):
+        for values in vals_list:
             if not self.env.context.get("usl_document_letter_system_transition"):
                 forbidden = self._SYSTEM_FIELDS.intersection(values)
                 if forbidden:
@@ -157,7 +157,7 @@ class UslDocumentLetter(models.Model):
                 "reference",
                 self._sequence_for_company(company).with_company(company)._next(),
             )
-        return super().create(values_list)
+        return super().create(vals_list)
 
     def _body_blocks(self):
         self.ensure_one()
@@ -413,9 +413,9 @@ class UslDocumentLetter(models.Model):
             "target": "self",
         }
 
-    def write(self, values):
+    def write(self, vals):
         if (
-            self._SYSTEM_FIELDS.intersection(values)
+            self._SYSTEM_FIELDS.intersection(vals)
             and not self.env.context.get("usl_document_letter_system_transition")
         ):
             raise UserError(
@@ -436,20 +436,20 @@ class UslDocumentLetter(models.Model):
             "attachment_ids",
         }
         for letter in self:
-            if letter.state != "draft" and protected.intersection(values):
+            if letter.state != "draft" and protected.intersection(vals):
                 raise UserError(
                     _("Finalized official content is immutable. Create a correction instead."),
                 )
-            if "state" in values:
+            if "state" in vals:
                 allowed = {
                     "draft": {"draft", "finalized", "cancelled"},
                     "finalized": {"finalized", "sent", "cancelled"},
                     "sent": {"sent"},
                     "cancelled": {"cancelled"},
                 }
-                if values["state"] not in allowed[letter.state]:
+                if vals["state"] not in allowed[letter.state]:
                     raise UserError(_("This letter state transition is not allowed."))
-        return super().write(values)
+        return super().write(vals)
 
     @api.ondelete(at_uninstall=False)
     def _unlink_only_drafts(self):

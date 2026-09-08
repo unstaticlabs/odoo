@@ -424,12 +424,12 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             )
         return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         if (
             not self._can_generate_official_fec()
-            and values.get("fec_test_mode") is False
+            and vals.get("fec_test_mode") is False
             and any(
-                values.get("report_type", wizard.report_type) == "fec"
+                vals.get("report_type", wizard.report_type) == "fec"
                 for wizard in self
             )
         ):
@@ -439,7 +439,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                     "non-test FEC because it may update lock dates.",
                 ),
             )
-        return super().write(values)
+        return super().write(vals)
 
     def action_apply_period(self):
         self.ensure_one()

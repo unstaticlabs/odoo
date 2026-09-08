@@ -338,17 +338,17 @@ class SignServiceHealth(models.Model):
         }
 
     @api.model_create_multi
-    def create(self, values_list):
+    def create(self, vals_list):
         if self.env.context.get("usl_sign_health_write") is not INTERNAL_OPERATION:
             msg = "Signing capability rows are managed by health checks."
             raise AccessError(msg)
-        return super().create(values_list)
+        return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         if self.env.context.get("usl_sign_health_write") is not INTERNAL_OPERATION:
             msg = "Signing capability status is read-only."
             raise AccessError(msg)
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         msg = "Signing capability status rows cannot be deleted."

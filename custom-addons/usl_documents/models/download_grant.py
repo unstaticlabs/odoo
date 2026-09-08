@@ -263,7 +263,7 @@ class UslDocumentDownloadGrantAudit(models.Model):
         "Each logical grant event is recorded once.",
     )
 
-    def write(self, values):
+    def write(self, vals):
         raise AccessError(_("Document download audit events are immutable."))
 
     def unlink(self):
