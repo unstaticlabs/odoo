@@ -205,8 +205,10 @@ that is always safe — and say so.
 
 ## Promoting to production
 
-**What made it to staging should make it to production.** You have an exceptional
-standing mandate to carry it there yourself rather than wait for someone:
+**What made it to staging should make it to production.** Promotion is the last
+stage of the train, not a separate errand someone else runs: one pull request
+carrying the whole staging head, armed to merge when ready, and watched through
+CI.
 
 ```bash
 gh pr create --repo unstaticlabs/odoo --base 19-usl --head 19-usl-staging \
@@ -223,12 +225,12 @@ release, and finally the deploy — `check-release-health`,
 `usl-stack-observe production release | health | smoke | runtime` for the final
 VPS state.
 
-**When it goes wrong, fixing the pipeline is inside the mandate.** A promotion
-blocked by a defect in a gate, a workflow or a check is yours to repair and
-retry — that is the point of the mandate, because a promotion that sits red is a
-staging tree users never receive.
+**When it goes wrong, fixing the pipeline is part of the stage.** A promotion
+blocked by a defect in a gate, a workflow or a check is yours to repair and retry.
+A promotion left sitting red is a staging tree users never receive, so stopping at
+"CI is broken" does not finish the job.
 
-**The mandate is the pull request and the pipeline. It is not the machine.**
+**This stage is the pull request and the pipeline. It is not the machine.**
 
 - Every mutating `usl-stack` verb stays denied. You do not deploy, restore, roll
   back, start, stop or run a release on the VPS by hand. Read the final state
