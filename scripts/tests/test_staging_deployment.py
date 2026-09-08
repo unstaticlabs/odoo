@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from operations.staging_deployment import ENVIRONMENT, verify
+from operations.staging_deployment import ENVIRONMENT, applies_to, verify
 
 SHA = "8828cb1ed418deb03406f539a994925cae4af473"
 OTHER = "0801ff5b7cf68f513cb458b78f7de5e7bec3262e"
@@ -67,6 +67,33 @@ class StagingDeploymentTests(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaisesRegex(ValueError, "full commit sha"):
                     verify(value, [self.deployment(1)], statuses({1: ["success"]}))
+
+
+class PromotionSourceTests(unittest.TestCase):
+    def test_a_staging_promotion_must_show_a_deployment(self):
+        self.assertTrue(applies_to("19-usl-staging"))
+
+    def test_an_urgent_promotion_is_exempt_by_design(self):
+        """An urgent fix reaches staging after production, never before.
+
+        Requiring a staging deployment would refuse every hotfix at the moment
+        it is needed, which is worse than the gap this check closes.
+        """
+        for ref in ("urgent/receipt-egress-down", "urgent/x", "urgent/a/b"):
+            with self.subTest(ref=ref):
+                self.assertFalse(applies_to(ref))
+
+    def test_a_branch_merely_mentioning_urgent_is_not_exempt(self):
+        for ref in ("feat/urgent-ish", "not-urgent/x", "19-usl", "hotfix/urgent"):
+            with self.subTest(ref=ref):
+                with self.assertRaises(ValueError):
+                    applies_to(ref)
+
+    def test_a_missing_head_ref_is_refused_rather_than_assumed_urgent(self):
+        for ref in ("", None):
+            with self.subTest(ref=ref):
+                with self.assertRaisesRegex(ValueError, "head ref"):
+                    applies_to(ref)
 
 
 if __name__ == "__main__":

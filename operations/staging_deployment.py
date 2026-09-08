@@ -12,6 +12,29 @@ from __future__ import annotations
 ENVIRONMENT = "staging-release"
 SUCCESS = "success"
 
+#: Production accepts ``19-usl-staging`` or ``urgent/**``.  An urgent fix
+#: reaches staging *after* it merges to production, by design, so it can never
+#: have a staging deployment at promotion time.  Requiring one would break the
+#: emergency path at the moment it is needed.  ``source_policy`` has already
+#: established that the head is one of these two and originates in the
+#: protected repository before this runs.
+URGENT_PREFIX = "urgent/"
+STAGING_BRANCH = "19-usl-staging"
+
+
+def applies_to(head_ref: str) -> bool:
+    """Whether a promotion from ``head_ref`` must show a staging deployment."""
+    if not isinstance(head_ref, str) or not head_ref:
+        raise ValueError("staging deployment check needs the promotion head ref")
+    if head_ref.startswith(URGENT_PREFIX):
+        return False
+    if head_ref != STAGING_BRANCH:
+        raise ValueError(
+            f"unexpected production promotion source {head_ref!r}: "
+            f"expected {STAGING_BRANCH} or {URGENT_PREFIX}**",
+        )
+    return True
+
 
 def verify(sha: str, deployments: list[dict], statuses_for) -> dict:
     """Return the evidence that ``sha`` reached staging, or raise.

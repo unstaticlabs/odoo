@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from operations.staging_deployment import ENVIRONMENT, verify  # noqa: E402
+from operations.staging_deployment import ENVIRONMENT, applies_to, verify  # noqa: E402
 
 
 def _api(path: str) -> list[dict]:
@@ -24,7 +24,15 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repository", required=True)
     parser.add_argument("--sha", required=True)
+    parser.add_argument("--head-ref", required=True)
     arguments = parser.parse_args()
+
+    if not applies_to(arguments.head_ref):
+        print(
+            f"Urgent promotion from {arguments.head_ref}: staging deployment not "
+            "required, because an urgent fix reaches staging after production.",
+        )
+        return 0
 
     deployments = _api(
         f"repos/{arguments.repository}/deployments"
