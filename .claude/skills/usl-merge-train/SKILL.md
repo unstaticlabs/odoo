@@ -163,16 +163,21 @@ generation maps back to a commit through
 and its `commit` field. An active image plus a healthy endpoint is **not**
 sufficient — only the admission receipt proves it.
 
-**Staging's runtime lookup is currently broken, and it is not staging that is
-broken.** As of 2026-09-08 `usl-stack-observe staging runtime` returns
-`expected one usl-odoo-staging-main/odoo container, found 0` while
-`https://odoo-staging.unstaticlabs.com/web/health` answers Odoo's own
-`{"status": "pass"}` from origin. `operations/targets/staging.json` names a
-compose project nothing on the host answers to; the identical lookup resolves for
-production. Do not read that failure as "not deployed" and do not revert anything
-over it — `check-staging-deployment` answers that question without touching the
-host. It is a known, separate defect. Do not fix it in the middle of a merge
-train; report it.
+Staging is observed exactly like production. It was not, until 2026-09-08:
+`usl-stack-observe staging runtime` returned
+`expected one usl-odoo-staging-main/odoo container, found 0` while staging was
+deployed and serving, because `operations/targets/staging.json` named its Odoo
+service `odoo` when the deployed stack calls it `odoo-staging`. Two lines in a
+target file, and the failure was believed — it was read as "staging has not
+deployed" and became a claim in this protocol that staging's running commit could
+not be proved. It is fixed.
+
+The lesson outlasts the bug: **a tool that cannot see something is not evidence
+that the thing is absent.** When an observation fails, establish whether the tool
+or the target is broken before you act on it — here, the identical lookup
+resolving for production was the tell. `check-staging-deployment` answers
+"did this tree deploy" from the GitHub deployment API without touching the host,
+so you always have a second, independent signal.
 
 Use `scripts/usl-stack-observe`, never `scripts/usl-stack`. The observe wrapper
 builds its own argument list and there is no argument by which a caller reaches a
