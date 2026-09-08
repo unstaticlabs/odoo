@@ -539,6 +539,20 @@ esac
         pipeline = (ROOT / "scripts/ci-product-database").read_text(encoding="utf-8")
         self.assertIn("enforce_product_module_scope.py", pipeline)
 
+    def test_action_risk_database_matches_the_canonical_build_sequence(self):
+        """A database built differently reports drift in untouched modules."""
+        helper = ODOO_DEV.read_text(encoding="utf-8")
+        block = helper.split("action-risk-db)", 1)[1].split("\n    ;;", 1)[0]
+        pipeline = (ROOT / "scripts/ci-product-database").read_text(encoding="utf-8")
+
+        # ci-product-database is the reference: init, enforce scope, update twice.
+        self.assertEqual(pipeline.count('odoo_run --update="$modules"'), 2)
+        self.assertEqual(block.count("action_risk_update_closure"), 2)
+        self.assertLess(
+            block.index("enforce_product_module_scope.py"),
+            block.index("action_risk_update_closure"),
+        )
+
     def test_closure_verification_refuses_a_mismatched_database(self):
         """A database wide of the tracked set makes any discovery diff a lie."""
         script = (

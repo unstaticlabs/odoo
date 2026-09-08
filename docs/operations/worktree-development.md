@@ -106,7 +106,13 @@ the reviewed optional auto-installs with the same
 because the delivered closure does not carry them. Finally it checks the
 resulting module set against the delivered surface and refuses if it differs in
 either direction, so a module that starts auto-installing is reported here
-rather than as spurious action entries later. Afterwards
+rather than as spurious action entries later.
+
+Between those steps it updates the closure twice, matching
+`scripts/ci-product-database`. The second pass is not redundant: removing the
+optional auto-installs leaves records the first update rewrites, so
+data-defined actions only settle on the second. A database built without them
+reports digest drift in modules the branch never touched. Afterwards
 `make action-risk-discover` works from this checkout. See
 [the action-risk review procedure](action-risk-inventory.md) for what to do
 with the resulting diff.
