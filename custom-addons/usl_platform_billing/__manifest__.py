@@ -1,7 +1,7 @@
 {
     "name": "USL Platform Billing",
     "summary": "Turn content-platform payouts into auditable invoices and bills",
-    "version": "saas~19.3.1.3.4",
+    "version": "saas~19.3.1.3.5",
     "category": "Accounting/Accounting",
     "author": "Unstatic Labs",
     "license": "LGPL-3",

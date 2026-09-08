@@ -1,7 +1,7 @@
 {
     "name": "USL TESE Payroll",
     "summary": "Record provider payroll and keep its accounting liabilities in Odoo",
-    "version": "saas~19.3.1.4.7",
+    "version": "saas~19.3.1.4.8",
     "category": "Human Resources/Payroll",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
