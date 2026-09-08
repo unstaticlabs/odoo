@@ -40,6 +40,7 @@ DOCS_ENV_VAR = "USL_USER_DOCS_PATH"
 EVIDENCE_ENV_VAR = "USL_DOCS_EVIDENCE_PATH"
 RELEASE_MANIFEST_ENV_VAR = "USL_RELEASE_MANIFEST_JSON"
 EVIDENCE_PARAMETER = "usl.docs.evidence"
+EVIDENCE_JSON_ENV_VAR = "USL_DOCS_EVIDENCE_JSON"
 READER_GROUP = "base.group_user"
 REPOSITORY_URL = "https://github.com/unstaticlabs/odoo"
 RELEASE_COMMIT_RE = re.compile(r"[0-9a-f]{40}")
@@ -284,10 +285,12 @@ def load_evidence(env=None):
     """Return the docs evidence shipped with the running release, or ``None``.
 
     A file named by ``USL_DOCS_EVIDENCE_PATH`` wins (development stacks and
-    the CI database job). Then the ``usl.docs.evidence`` parameter, which the
-    release stamping writes into the database at deploy. Then the release
-    manifest the stack may inject as ``USL_RELEASE_MANIFEST_JSON``. A build
-    with none of them is unverified, and the pill says so.
+    the CI database job). Then ``USL_DOCS_EVIDENCE_JSON``, which the deployment
+    injects into the service from the release manifest's
+    ``qualification.docs_evidence``. Then the ``usl.docs.evidence`` parameter
+    (a database-side stamp). Then a whole release manifest in
+    ``USL_RELEASE_MANIFEST_JSON``. A build with none of them is unverified,
+    and the pill says so.
     """
     path = os.environ.get(EVIDENCE_ENV_VAR)
     if path:
@@ -299,6 +302,14 @@ def load_evidence(env=None):
             evidence = _evidence_from_file(path, mtime)
             if isinstance(evidence, dict):
                 return evidence
+    injected = os.environ.get(EVIDENCE_JSON_ENV_VAR)
+    if injected:
+        try:
+            evidence = json.loads(injected)
+        except ValueError:
+            evidence = None
+        if isinstance(evidence, dict):
+            return evidence
     if env is not None:
         stored = env["ir.config_parameter"].sudo().get_str(EVIDENCE_PARAMETER) or ""
         if stored:
@@ -314,7 +325,8 @@ def load_evidence(env=None):
             manifest = json.loads(raw)
         except ValueError:
             return None
-        evidence = manifest.get("docs_evidence") if isinstance(manifest, dict) else None
+        qualification = manifest.get("qualification") if isinstance(manifest, dict) else None
+        evidence = qualification.get("docs_evidence") if isinstance(qualification, dict) else None
         if isinstance(evidence, dict):
             return evidence
     return None
@@ -494,7 +506,7 @@ def _header_html(page, state, release_commit):
         if state["kind"] == "tested":
             pills.append(
                 f'<a class="pill pill-evidence pill-{state["kind"]}" href="{html.escape(state["proof"], quote=True)}" title="{title}">'
-                f'{html.escape(state["label"])} · proof</a>',
+                f'{html.escape(state["label"])}</a>',
             )
         else:
             pills.append(f'<span class="pill pill-evidence pill-{state["kind"]}" title="{title}">{html.escape(state["label"])}</span>')
@@ -643,7 +655,7 @@ def _wants_markdown():
 
 
 def _evidence_page_html(journey, entry, evidence, state, page_record):
-    """The proof behind a page's pill: run, commit, timings and captures."""
+    """The test record behind a page's pill: run, commit, timings and captures."""
     rows = "".join(
         "<tr><td>{step}</td><td>{viewport}</td><td><code>{file}</code></td><td>{match}</td></tr>".format(
             step=html.escape(str(shot.get("step", ""))),
@@ -681,7 +693,7 @@ def _evidence_page_html(journey, entry, evidence, state, page_record):
     ]
     facts_html = "".join(f"<tr><th>{label}</th><td>{value}</td></tr>" for label, value in facts)
     body = (
-        f"<h1>Proof for “{html.escape(page_record['title'] if page_record else journey)}”</h1>"
+        f"<h1>Test record for “{html.escape(page_record['title'] if page_record else journey)}”</h1>"
         "<p>This page was generated from a browser journey that the qualification of the running release "
         "replayed end to end. What follows is that run.</p>"
         f"<table>{facts_html}</table>"
@@ -712,7 +724,7 @@ class UserDocsController(http.Controller):
         page = {
             "path": f"evidence/{journey}",
             "type": "home",
-            "title": f"Proof: {page_record['title'] if page_record else journey}",
+            "title": f"Test record: {page_record['title'] if page_record else journey}",
             "description": "",
             "lang": page_record["lang"] if page_record else "en",
             "persona": None,

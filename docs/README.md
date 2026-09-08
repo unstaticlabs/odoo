@@ -48,8 +48,12 @@ make docs-check      # front matter, directories, links, images, sources, decisi
 `scripts/check-docs` runs in CI on every pull request. The qualification
 database job runs every journey, proves the committed pages and screenshots
 match them (`scripts/docs-generate check`), and writes `docs-evidence.json`
-(`scripts/docs-evidence create`), which the release carries and the viewer
-reads to say when each page last passed. Screenshots are compared by pixels
+(`scripts/docs-evidence create`). The distribution release downloads that
+artifact, verifies it against the qualified commit and run, and embeds it as
+`qualification.docs_evidence` in the release manifest; the deployment injects
+it into the odoo service as `USL_DOCS_EVIDENCE_JSON`, and the viewer reads it
+to say when each page last passed. A recovery release carries evidence that
+proves nothing, and the guide says "Recovery build". Screenshots are compared by pixels
 (a small tolerance absorbs font and antialiasing drift) and only replaced when
 the screen changed; a Chromium upgrade in the base image re-baselines many of
 them at once, and that is a normal, one-off pull request.

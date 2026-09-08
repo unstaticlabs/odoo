@@ -42,8 +42,7 @@ the navigation follows the page instead of pushing it below the fold.
 
 Captured on the same database after the pilot journey
 `usl_expense_batch_create_or_select` ran through `JourneyCase` and
-`make docs` rendered its page. The pill reads "Last tested 6 minutes ago ·
-proof" from the docs evidence stored in the database, the steps are the
+`make docs` rendered its page. The pill reads "Last tested 6 minutes ago", linking to the evidence page, from the docs evidence stored in the database, the steps are the
 journey's own sentences, and the screenshot is the one the journey captured
 inside the test container (Odoo's synthetic `company_1_data` fixtures).
 

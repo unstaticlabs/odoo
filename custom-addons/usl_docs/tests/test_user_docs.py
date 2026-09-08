@@ -177,7 +177,7 @@ class TestUserDocsViewer(HttpCase):
         self.authenticate("usl-docs-reader", "docs-reader")
         with patch.dict(os.environ, {user_docs.EVIDENCE_ENV_VAR: str(evidence)}):
             response = self._get("/how-to/example.md")
-        self.assertIn("Last tested 2 days ago · proof", response.text)
+        self.assertIn(">Last tested 2 days ago</a>", response.text)
         self.assertIn('href="/usl/user-docs/evidence/usl_docs.example"', response.text)
 
     def test_the_evidence_stamped_into_the_database_is_read_and_has_a_proof_page(self):
@@ -208,14 +208,19 @@ class TestUserDocsViewer(HttpCase):
         self.env["ir.config_parameter"].sudo().set_str("usl.release.commit", COMMIT)
         self.authenticate("usl-docs-reader", "docs-reader")
         page = self._get("/how-to/example.md")
-        self.assertIn("Last tested 5 hours ago · proof", page.text)
+        self.assertIn(">Last tested 5 hours ago</a>", page.text)
         proof = self._get("/evidence/usl_docs.example")
         self.assertEqual(proof.status_code, 200)
-        self.assertIn("Proof for “Do the example”", proof.text)
+        self.assertIn("Test record for “Do the example”", proof.text)
         self.assertIn("GitHub run 77", proof.text)
         self.assertIn("matches the published screenshot", proof.text)
         self.assertIn(COMMIT, proof.text)
         self.assertEqual(self._get("/evidence/unknown").status_code, 404)
+        # The deployment's injected environment outranks the database stamp.
+        injected = dict(evidence, journeys={})
+        with patch.dict(os.environ, {user_docs.EVIDENCE_JSON_ENV_VAR: json.dumps(injected)}):
+            self.authenticate("usl-docs-reader", "docs-reader")
+            self.assertIn("Not tested in this release", self._get("/how-to/example.md").text)
         self.authenticate("usl-docs-portal", "docs-portal")
         self.assertEqual(self._get("/evidence/usl_docs.example").status_code, 404)
 

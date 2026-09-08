@@ -308,6 +308,7 @@ jobs:
     timeout-minutes: 60
     permissions:
       contents: read
+      actions: read
       pull-requests: read
       packages: write
       id-token: write
@@ -370,6 +371,25 @@ jobs:
             "${summarize[@]}" \
             --output usl-release-notes.json
           cat usl-release-notes.json
+      - name: Resolve the user guide's evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          QUALIFICATION_RUN_ID: ${{ inputs.qualification_run_id }}
+        run: |
+          # The qualification run that admitted this release also replayed
+          # every documented journey. Its evidence rides with the release so
+          # the built-in guide can say when each page last passed. A recovery
+          # release has no run and carries evidence that proves nothing.
+          mkdir -p .release/docs-evidence
+          if [ -n "$QUALIFICATION_RUN_ID" ]; then
+            gh run download "$QUALIFICATION_RUN_ID" --repo "$GITHUB_REPOSITORY" \
+              --name "docs-evidence-$QUALIFICATION_RUN_ID" --dir .release/docs-evidence
+            scripts/docs-evidence verify .release/docs-evidence/docs-evidence.json \
+              --qualified-commit "$GITHUB_SHA" --workflow-run-id "$QUALIFICATION_RUN_ID"
+          else
+            scripts/docs-evidence recovery --repository "$GITHUB_REPOSITORY" \
+              --commit "$GITHUB_SHA" --output .release/docs-evidence/docs-evidence.json
+          fi
       - name: Create release manifest from published components
         run: |
           scripts/component-build --json > component-inputs.json
@@ -403,6 +423,7 @@ jobs:
             --ollama-dimension "$OLLAMA_DIMENSION" \
             --evidence "usl-qualification=${{ needs.resolve.outputs.evidence_sha256 }}" \
             --evidence "release-contract=$contract_evidence" \
+            --docs-evidence .release/docs-evidence/docs-evidence.json \
             --workflow-run-id "$GITHUB_RUN_ID" \
             --workflow-run-attempt "$GITHUB_RUN_ATTEMPT" \
             --workflow-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \

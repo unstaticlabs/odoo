@@ -4142,6 +4142,21 @@ def _resource_overlay(target) -> str | None:
     return json.dumps(value, indent=2, sort_keys=True) + "\n"
 
 
+def _docs_evidence_environment(release: dict) -> dict[str, str]:
+    """The user guide's evidence, as the environment the viewer reads.
+
+    A release qualified since the guide became test-generated carries
+    ``qualification.docs_evidence``; the built-in guide shows it as "Last
+    tested … · proof" on every generated page. Older releases carry nothing
+    and the guide says "Unverified build".
+    """
+    qualification = release.get("qualification")
+    evidence = qualification.get("docs_evidence") if isinstance(qualification, dict) else None
+    if not isinstance(evidence, dict):
+        return {}
+    return {"USL_DOCS_EVIDENCE_JSON": json.dumps(evidence, sort_keys=True, separators=(",", ":"))}
+
+
 def _generation_overlay(
     volumes: dict[str, str],
     release: dict | None = None,
@@ -4185,6 +4200,7 @@ def _generation_overlay(
                 "ODOO_LIST_DB": "True" if ingress["list_db"] else "False",
                 "ODOO_DB_FILTER": ingress["dbfilter"],
                 **(deployment_identity or {}),
+                **_docs_evidence_environment(release),
             }
             if init_db_service in value["services"]:
                 value["services"][init_db_service]["environment"] = dict(deployment_identity or {})

@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from operations.mcp_release import load_release
+from operations import docs_evidence
 from operations.module_release import build_inventory, validate_inventory
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -310,7 +311,19 @@ def validate(payload: object, *, commit: str | None = None) -> dict[str, Any]:
         raise ReleaseManifestError("foundation component digest is invalid")
     if foundation["digest"] != _sha256({key: value for key, value in foundation.items() if key != "digest"}):
         raise ReleaseManifestError("foundation digest differs")
-    evidence = _object(root["qualification"], {"evidence"}, "qualification")["evidence"]
+    qualification = root["qualification"]
+    if isinstance(qualification, dict) and "docs_evidence" in qualification:
+        qualification = _object(qualification, {"evidence", "docs_evidence"}, "qualification")
+        # The user guide's evidence rides with the release so the running
+        # product can say when each generated page last passed. It is
+        # validated as its own artifact, pinned to this commit.
+        try:
+            docs_evidence.validate(qualification["docs_evidence"], qualified_commit=commit)
+        except docs_evidence.DocsEvidenceError as error:
+            raise ReleaseManifestError(f"docs evidence is invalid: {error}") from error
+    else:
+        qualification = _object(qualification, {"evidence"}, "qualification")
+    evidence = qualification["evidence"]
     if not isinstance(evidence, dict) or not evidence or not all(
         isinstance(name, str) and name and SHA256.fullmatch(str(digest))
         for name, digest in evidence.items()
@@ -350,6 +363,18 @@ def _parse_component(raw: str) -> tuple[str, dict[str, Any]]:
             "provenance": {"predicate_type": "https://slsa.dev/provenance/v1", "subject_digest": digest},
         },
     }
+
+
+def _qualification(arguments: argparse.Namespace) -> dict[str, Any]:
+    qualification: dict[str, Any] = {"evidence": _parse_evidence(arguments.evidence)}
+    path = getattr(arguments, "docs_evidence", None)
+    if path:
+        try:
+            payload = docs_evidence.load(path)
+        except (OSError, ValueError, docs_evidence.DocsEvidenceError) as error:
+            raise ReleaseManifestError(f"docs evidence is invalid: {error}") from error
+        qualification["docs_evidence"] = payload
+    return qualification
 
 
 def _parse_evidence(values: list[str]) -> dict[str, str]:
@@ -457,7 +482,7 @@ def create(arguments: argparse.Namespace) -> int:
         "renderer": {"repository": renderer["repository"], "commit": renderer["commit"], "image": renderer["image_digest"]},
         "ollama": {"model": arguments.ollama_model, "manifest_sha256": arguments.ollama_manifest, "dimension": arguments.ollama_dimension},
         "release_notes": release_notes,
-        "qualification": {"evidence": _parse_evidence(arguments.evidence)},
+        "qualification": _qualification(arguments),
         "build": build,
     }
     payload["identity"] = _sha256(payload)
@@ -500,6 +525,7 @@ def parser() -> argparse.ArgumentParser:
     create_command.add_argument("--ollama-manifest", required=True)
     create_command.add_argument("--ollama-dimension", type=int, default=1024)
     create_command.add_argument("--evidence", action="append", default=[], required=True)
+    create_command.add_argument("--docs-evidence", help="usl-docs-evidence/v1 file to carry with the release")
     create_command.add_argument("--workflow-run-id", type=int)
     create_command.add_argument("--workflow-run-attempt", type=int)
     create_command.add_argument("--workflow-url")
