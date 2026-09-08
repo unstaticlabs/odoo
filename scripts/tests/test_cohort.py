@@ -195,7 +195,12 @@ def backup_receipt(*, target: str = "staging", run_id: str = "attempt-20260904-s
         "target": target,
         "run_id": run_id,
         "baseline_runtime_sha256": "e" * 64,
-        "writer_services": ["odoo", "paperless-webserver", "odoo-mcp", "usl-sign-dss", "usl-sign-step-ca"],
+        # Derived from the target, not hard-coded: production names its Odoo
+        # service `odoo` and staging names it `odoo-staging`.
+        "writer_services": [
+            load_target(target, TARGETS).value["services"][role]
+            for role in BACKUP_WRITER_SERVICE_ROLES
+        ],
         "prepared_at": "2026-09-03T23:59:59Z",
         "stopped_at": "2026-09-04T00:00:00Z",
         "status": "quiesced",
