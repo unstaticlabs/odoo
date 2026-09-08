@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+# Derive an isolated Compose project and host ports for a linked worktree.
+#
+# A worktree may not borrow the canonical Compose project, so every worktree
+# needs its own project name and its own published ports. Choosing those by
+# hand is the step people skip, so derive them from the checkout path: the same
+# worktree always resolves to the same settings, and two worktrees only collide
+# when their paths land in the same bucket, which Docker then reports as a
+# plain bind failure rather than as silent sharing.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+
+# Ports move together in steps of ten. The gaps inside one set are 3, 59 and
+# 6598, none of them a multiple of ten, so no offset can slide one worktree's
+# port onto another worktree's.
+USL_WORKTREE_PORT_STEP=10
+USL_WORKTREE_PORT_BUCKETS=400
+USL_WORKTREE_PORT_BASE_OFFSET=10000
+
+usl_worktree_path_bucket() {
+    local path="$1"
+    local sum
+    sum="$(printf '%s' "$path" | cksum | cut -d' ' -f1)"
+    printf '%s' "$((sum % USL_WORKTREE_PORT_BUCKETS))"
+}
+
+usl_worktree_port_offset() {
+    local path="$1"
+    printf '%s' "$((USL_WORKTREE_PORT_BASE_OFFSET \
+        + $(usl_worktree_path_bucket "$path") * USL_WORKTREE_PORT_STEP))"
+}
+
+usl_worktree_slug() {
+    local path="$1"
+    local slug
+    slug="$(basename "$path" | tr '[:upper:]' '[:lower:]' | tr -c 'a-z0-9' '-')"
+    slug="${slug##-}"
+    slug="${slug%%-}"
+    # Compose project names must start with a letter or digit.
+    case "$slug" in
+        ""|[!a-z0-9]*) slug="wt${slug}" ;;
+    esac
+    printf '%.40s' "$slug"
+}
+
+usl_worktree_is_linked() {
+    # A linked worktree records its git directory in a file; the main checkout
+    # keeps a directory.
+    [[ -f "${1:-$ROOT}/.git" ]]
+}
+
+usl_worktree_env_assignments() {
+    local path="${1:-$ROOT}"
+    local offset
+    offset="$(usl_worktree_port_offset "$path")"
+    # COMPOSE_PROJECT_NAME rather than COMPOSE_PROJECT: Compose itself only
+    # reads this spelling, and make now accepts it too, so one assignment
+    # serves `make`, a bare `docker compose`, and a persisted .env.
+    printf 'COMPOSE_PROJECT_NAME=usl-wt-%s\n' "$(usl_worktree_slug "$path")"
+    printf 'ODOO_HTTP_PORT=%s\n' "$((8069 + offset))"
+    printf 'ODOO_GEVENT_PORT=%s\n' "$((8072 + offset))"
+    printf 'POCKET_ID_HTTP_PORT=%s\n' "$((1411 + offset))"
+    printf 'PAPERLESS_HTTP_PORT=%s\n' "$((8010 + offset))"
+}
+
+# One line, ready to paste in front of a make target.
+usl_worktree_env_prefix() {
+    local path="${1:-$ROOT}"
+    local line
+    local prefix=""
+    while IFS= read -r line; do
+        prefix="${prefix}${line} "
+    done < <(usl_worktree_env_assignments "$path")
+    printf '%s' "$prefix"
+}
+
+# Sourced by compose-scope.sh; executed directly by `make worktree-env`.
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    case "${1:-print}" in
+        print)
+            usl_worktree_env_assignments "$ROOT"
+            ;;
+        export)
+            usl_worktree_env_assignments "$ROOT" | sed 's/^/export /'
+            ;;
+        prefix)
+            usl_worktree_env_prefix "$ROOT"
+            printf '\n'
+            ;;
+        *)
+            printf 'Usage: scripts/worktree-env [print|export|prefix]\n' >&2
+            exit 2
+            ;;
+    esac
+fi

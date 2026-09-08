@@ -336,6 +336,156 @@ esac
         )
         self.assertIn("Deploy updates an existing reconstructed target", helper)
 
+    def make_project(self, **environment):
+        """Report the Compose project a `make` invocation actually resolves."""
+        completed = subprocess.run(
+            ["make", "doctor"],
+            cwd=ROOT,
+            env={**os.environ, **environment},
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        for line in completed.stdout.splitlines():
+            if line.strip().startswith("Project:"):
+                return line.split(":", 1)[1].strip()
+        return None
+
+    def test_make_accepts_every_documented_compose_project_variable(self):
+        """COMPOSE_PROJECT_NAME used to be silently replaced by the default."""
+        for variable in (
+            "COMPOSE_PROJECT",
+            "COMPOSE_PROJECT_NAME",
+            "ODOO_SAAS_COMPOSE_PROJECT",
+        ):
+            with self.subTest(variable=variable):
+                self.assertEqual(
+                    self.make_project(**{variable: "usl-probe"}),
+                    "usl-probe",
+                )
+
+        self.assertEqual(self.make_project(), "usl-odoo-saas-19-3")
+
+    def test_compose_project_precedence_is_the_same_everywhere(self):
+        """`make`, odoo-dev and accounting_compat must not disagree."""
+        self.assertEqual(
+            self.make_project(
+                COMPOSE_PROJECT_NAME="usl-standard",
+                ODOO_SAAS_COMPOSE_PROJECT="usl-legacy",
+            ),
+            "usl-standard",
+        )
+
+        helper = ODOO_DEV.read_text(encoding="utf-8")
+        self.assertIn(
+            'COMPOSE_PROJECT="${COMPOSE_PROJECT_NAME:-'
+            '${ODOO_SAAS_COMPOSE_PROJECT:-usl-odoo-saas-19-3}}"',
+            helper,
+        )
+
+    def test_worktree_env_derives_isolated_project_and_ports(self):
+        completed = subprocess.run(
+            ["make", "worktree-env"],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        settings = dict(
+            line.split("=", 1)
+            for line in completed.stdout.splitlines()
+            if "=" in line
+        )
+        # COMPOSE_PROJECT_NAME, not COMPOSE_PROJECT: a bare `docker compose`
+        # reads only this spelling, so one assignment has to serve both.
+        self.assertEqual(
+            sorted(settings),
+            [
+                "COMPOSE_PROJECT_NAME",
+                "ODOO_GEVENT_PORT",
+                "ODOO_HTTP_PORT",
+                "PAPERLESS_HTTP_PORT",
+                "POCKET_ID_HTTP_PORT",
+            ],
+        )
+        self.assertNotEqual(settings["COMPOSE_PROJECT_NAME"], "usl-odoo-saas-19-3")
+
+        ports = [int(settings[name]) for name in settings if name.endswith("PORT")]
+        self.assertEqual(len(set(ports)), len(ports), "ports must not collide")
+        for port in ports:
+            self.assertGreater(port, 1024)
+            self.assertLess(port, 65536)
+        # The canonical published ports must never be handed to a worktree.
+        self.assertFalse({8069, 8072, 1411, 8010}.intersection(ports))
+
+    def test_worktree_env_persisted_to_dotenv_reaches_make(self):
+        """`make worktree-env >> .env` has to apply to make, not only Compose."""
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+
+        self.assertIn("DOTENV_COMPOSE_PROJECT", makefile)
+        self.assertIn("$(DOTENV_COMPOSE_PROJECT)", makefile)
+        # An explicit variable must still outrank the file.
+        resolution = makefile.split("COMPOSE_PROJECT ?=", 1)[1].splitlines()[0]
+        self.assertLess(
+            resolution.index("$(COMPOSE_PROJECT_NAME)"),
+            resolution.index("$(DOTENV_COMPOSE_PROJECT)"),
+        )
+
+    def test_worktree_env_is_stable_for_the_same_checkout(self):
+        first = subprocess.run(
+            ["make", "worktree-env"], cwd=ROOT, check=False,
+            capture_output=True, text=True,
+        )
+        second = subprocess.run(
+            ["make", "worktree-env"], cwd=ROOT, check=False,
+            capture_output=True, text=True,
+        )
+
+        self.assertEqual(first.stdout, second.stdout)
+
+    def test_blocked_worktree_message_offers_settings_that_work(self):
+        """Naming the variables was never enough; the values are the hard part."""
+        scope = COMPOSE_SCOPE.read_text(encoding="utf-8")
+
+        self.assertIn("usl_worktree_env_prefix", scope)
+        self.assertIn("make worktree-env", scope)
+        self.assertNotIn(
+            "Use a dedicated COMPOSE_PROJECT and non-conflicting ports",
+            scope,
+        )
+
+    def test_dev_reclaim_target_exists_and_demands_confirmation(self):
+        """compose-scope.sh has always pointed at this target; it must resolve."""
+        scope = COMPOSE_SCOPE.read_text(encoding="utf-8")
+        self.assertIn("make dev-reclaim CONFIRM=", scope)
+
+        completed = subprocess.run(
+            ["make", "dev-reclaim"],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertNotIn("No rule to make target", completed.stderr)
+        self.assertEqual(completed.returncode, 2)
+        self.assertIn("Blocked", completed.stderr)
+        self.assertIn("CONFIRM=", completed.stderr)
+
+    def test_dev_reclaim_refuses_a_confirmation_naming_another_project(self):
+        completed = subprocess.run(
+            ["make", "dev-reclaim", "CONFIRM=some-other-project"],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(completed.returncode, 2)
+        self.assertIn("does not name the project", completed.stderr)
+
     def test_preproduction_boundary_rejects_partial_qa_profiles(self):
         boundary = (ROOT / "scripts/odoo/product_database_boundary.py").read_text(
             encoding="utf-8",

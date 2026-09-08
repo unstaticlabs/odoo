@@ -1,6 +1,18 @@
 .DEFAULT_GOAL := help
 
-COMPOSE_PROJECT ?= usl-odoo-saas-19-3
+# One concept, three spellings in circulation. Accept all of them, preferring
+# Compose's own variable over the legacy ODOO_SAAS_ name, so a command copied
+# from any runbook does what it looks like it does. Without this,
+# COMPOSE_PROJECT_NAME=x make ... was silently replaced by the canonical name.
+#
+# Compose reads .env by itself but make does not, so a project persisted there
+# by `make worktree-env >> .env` would otherwise apply to `docker compose` and
+# not to `make`. Read it here as the last fallback; explicit shell variables
+# still win over the file, matching usl_cli_load_local_port_defaults.
+DOTENV_COMPOSE_PROJECT := $(strip $(shell test -f .env \
+	&& sed -n 's/^[[:space:]]*COMPOSE_PROJECT_NAME[[:space:]]*=[[:space:]]*//p' .env \
+	| tail -n 1))
+COMPOSE_PROJECT ?= $(or $(COMPOSE_PROJECT_NAME),$(ODOO_SAAS_COMPOSE_PROJECT),$(DOTENV_COMPOSE_PROJECT),usl-odoo-saas-19-3)
 export COMPOSE_PROJECT_NAME := $(COMPOSE_PROJECT)
 ODOO_DEV ?= scripts/odoo-dev
 ODOO_DEV_DB ?= odoo_dev
@@ -90,6 +102,12 @@ doctor:
 
 status:
 	@$(ODOO_DEV) status
+
+worktree-env:
+	@scripts/worktree-env print
+
+dev-reclaim:
+	@scripts/dev-reclaim "$(CONFIRM)"
 
 dev:
 	@$(ODOO_DEV) start

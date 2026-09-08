@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# Reclaim a Compose project for this checkout without deleting its data.
+#
+# The scope guard has always told developers to run this when a project is
+# foreign or mixed, but the target did not exist. Removing the containers is
+# enough: named volumes survive, so the database and filestore are untouched
+# and the next `make dev` recreates the containers against this checkout.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+cd "$ROOT"
+source "$ROOT/scripts/lib/compose-scope.sh"
+
+CONFIRM="${1:-}"
+PROJECT="${COMPOSE_PROJECT_NAME:-${ODOO_SAAS_COMPOSE_PROJECT:-usl-odoo-saas-19-3}}"
+
+if [[ -z "$CONFIRM" ]]; then
+    usl_cli_blocked \
+        "Reclaiming a Compose project needs an explicit confirmation." \
+        "Removing containers interrupts whatever the owning checkout is running." \
+        "Name the project you mean: make dev-reclaim CONFIRM=$PROJECT"
+    exit 2
+fi
+
+if [[ "$CONFIRM" != "$PROJECT" ]]; then
+    usl_cli_blocked \
+        "Confirmation does not name the project this command would reclaim." \
+        "Asked to reclaim: $CONFIRM
+Would reclaim:    $PROJECT" \
+        "Set the project you mean, then confirm the same name:" \
+        "  COMPOSE_PROJECT=$CONFIRM make dev-reclaim CONFIRM=$CONFIRM"
+    exit 2
+fi
+
+usl_cli_title "Reclaim Compose project"
+printf '  Project:  %s\n' "$PROJECT"
+printf '  Checkout: %s\n' "$ROOT"
+
+usl_compose_scope_scan "$PROJECT" "$ROOT"
+
+case "$USL_COMPOSE_SCOPE_STATE" in
+    unavailable)
+        usl_cli_blocked \
+            "Cannot inspect Compose project $PROJECT." \
+            "Docker is unavailable or the current user cannot access it." \
+            "Start Docker Desktop or Docker Engine, then retry."
+        exit 2
+        ;;
+    unused)
+        printf '\nNothing to reclaim — project %s has no containers.\n' "$PROJECT"
+        exit 0
+        ;;
+    owned)
+        printf '\nNothing to reclaim — project %s already belongs to this checkout.\n' \
+            "$PROJECT"
+        exit 0
+        ;;
+esac
+
+printf '\nCurrent owners\n'
+usl_compose_owner_summary | sed 's/^/  /'
+
+printf '\nContainers to remove (named volumes are kept)\n'
+usl_format_compose_resources "$USL_COMPOSE_SCOPE_RESOURCES" | sed 's/^/  /'
+
+printf '\n'
+usl_remove_compose_containers
+
+usl_cli_success "reclaimed $PROJECT; run make dev to recreate it here"

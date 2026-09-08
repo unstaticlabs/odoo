@@ -7,7 +7,9 @@ cd "$ROOT"
 source "$ROOT/scripts/lib/compose-scope.sh"
 usl_cli_load_local_port_defaults "$ROOT"
 
-COMPOSE_PROJECT="${ODOO_SAAS_COMPOSE_PROJECT:-${COMPOSE_PROJECT_NAME:-usl-odoo-saas-19-3}}"
+# Compose's own variable wins; ODOO_SAAS_COMPOSE_PROJECT stays accepted as the
+# legacy spelling. The Makefile resolves the same order before calling here.
+COMPOSE_PROJECT="${COMPOSE_PROJECT_NAME:-${ODOO_SAAS_COMPOSE_PROJECT:-usl-odoo-saas-19-3}}"
 CANONICAL_COMPOSE_PROJECT="${ODOO_CANONICAL_COMPOSE_PROJECT:-usl-odoo-saas-19-3}"
 COMPOSE=(docker compose -p "$COMPOSE_PROJECT")
 DEV_DB="${ODOO_DEV_DB:-odoo_dev}"
@@ -696,8 +698,11 @@ if [[ "$command_name" != "help" \
     && "$command_name" != "doctor" \
     && "$command_name" != "status" \
     ]]; then
-  usl_verify_compose_scope \
-    "$COMPOSE_PROJECT" "$ROOT" "Odoo development helper"
+  # Let the guard echo back the command the developer actually ran, so its
+  # suggested prefix can be pasted without editing a placeholder.
+  USL_CLI_BLOCKED_COMMAND="scripts/odoo-dev $command_name" \
+    usl_verify_compose_scope \
+      "$COMPOSE_PROJECT" "$ROOT" "Odoo development helper"
 fi
 
 case "$command_name" in

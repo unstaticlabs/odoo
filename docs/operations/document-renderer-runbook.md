@@ -13,11 +13,14 @@ make document-renderer-certs
 Use a worktree-specific Compose project, database, ports and volumes. Keep
 `USL_EINVOICE_LIVE_ENABLED=0` and `USL_EREPORTING_LIVE_ENABLED=0`.
 
+`make worktree-env` prints the project and all four ports for the current
+checkout; see [Developing in a git worktree](worktree-development.md). Pocket
+ID and Paperless ports are required too, not just the two Odoo ones.
+
 ```bash
-COMPOSE_PROJECT_NAME=usl-doc-<worktree> \
-ODOO_HTTP_PORT=<unique-port> ODOO_GEVENT_PORT=<unique-port> \
-docker compose --profile document-renderer up -d \
-  usl-document-renderer odoo
+eval "$(scripts/worktree-env export)" \
+  && docker compose --profile document-renderer up -d \
+    usl-document-renderer odoo
 ```
 
 The renderer has no host port. Odoo reaches
