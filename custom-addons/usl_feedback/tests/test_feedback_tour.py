@@ -113,3 +113,47 @@ class TestFeedbackWideCapture(FeedbackTourCommon):
             login=self.user.login,
             timeout=120,
         )
+
+
+@tagged("post_install", "-at_install", "usl_feedback_tour")
+class TestFeedbackMaintainerDirectTour(HttpCase):
+    browser_size = "1440x900"
+
+    def test_maintainer_opens_cards_from_the_board(self):
+        maintainer = new_test_user(
+            self.env,
+            login="feedback-tour-maintainer",
+            password="feedback-tour",
+            groups="usl_feedback.group_feedback_maintainer",
+            company_id=self.env.company.id,
+            company_ids=[Command.set(self.env.company.ids)],
+        )
+        for tour in (
+            "usl_feedback_maintainer_form_journey",
+            "usl_feedback_maintainer_quick_journey",
+        ):
+            self.start_tour(
+                "/odoo/action-usl_feedback.action_feedback_maintainer",
+                tour,
+                login=maintainer.login,
+            )
+        cards = self.env["project.task"].sudo().search(
+            [("usl_feedback_reporter_id", "=", maintainer.id)],
+        )
+        self.assertEqual(
+            set(cards.mapped("name")),
+            {"Keyboard shortcut for triage", "Batch export presets"},
+        )
+        for card in cards:
+            self.assertTrue(card.project_id.usl_feedback_project)
+            self.assertEqual(card.usl_feedback_agent_state, "triaged")
+            self.assertEqual(card.usl_feedback_company_id, self.env.company)
+            self.assertFalse(card.company_id)
+        quick, full = (
+            cards.filtered(lambda task: task.name == "Keyboard shortcut for triage"),
+            cards.filtered(lambda task: task.name == "Batch export presets"),
+        )
+        self.assertEqual(quick.usl_feedback_category, "improvement")
+        self.assertEqual(quick.stage_id, self.env.ref("usl_feedback.stage_feedback_new"))
+        self.assertEqual(full.usl_feedback_category, "ux")
+        self.assertEqual(full.stage_id, self.env.ref("usl_feedback.stage_feedback_declined"))
