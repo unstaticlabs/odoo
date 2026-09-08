@@ -1,5 +1,5 @@
 {
   "base_commit": "ceb6775e26106cf938e869d64a22882bffb5dff0",
-  "reason": "Production runs ceb6775e. The 2026-09-08 promotion published a release that never reached production, so the next changelog starts there and covers everything that release carried.",
+  "reason": "Production runs 0801ff5b, promoted 2026-09-08T08:57:23Z, and reached it from ceb6775e directly. The releases published at e50be237 and 8828cb1e never landed, so the changelog that shipped with 0801ff5b covered only its own push and left ceb6775e..8828cb1e out. The range starts at ceb6775e to carry that gap into the next changelog, which re-lists the pull requests 0801ff5b already announced rather than dropping the ones no release ever announced.",
   "schema": "usl-release-notes-base/v1"
 }
