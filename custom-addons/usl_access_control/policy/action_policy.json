@@ -18587,8 +18587,11 @@
         "rpc:b2c.fulfilment.event.web_name_search",
         "rpc:b2c.fulfilment.event.web_read",
         "rpc:b2c.import.batch.action_archive",
+        "rpc:b2c.import.batch.action_open_advances",
+        "rpc:b2c.import.batch.action_open_credit_notes",
         "rpc:b2c.import.batch.action_open_invoices",
         "rpc:b2c.import.batch.action_open_sales",
+        "rpc:b2c.import.batch.action_open_wallet_documents",
         "rpc:b2c.import.batch.action_unarchive",
         "rpc:b2c.import.batch.check_field_access",
         "rpc:b2c.import.batch.copy_translations",
@@ -19005,6 +19008,38 @@
         "rpc:b2c.provider.evidence.view_header_get",
         "rpc:b2c.provider.evidence.web_name_search",
         "rpc:b2c.provider.evidence.web_read",
+        "rpc:b2c.supply.settlement.action_archive",
+        "rpc:b2c.supply.settlement.action_unarchive",
+        "rpc:b2c.supply.settlement.check_field_access",
+        "rpc:b2c.supply.settlement.copy_translations",
+        "rpc:b2c.supply.settlement.default_get",
+        "rpc:b2c.supply.settlement.export_data",
+        "rpc:b2c.supply.settlement.fields_get",
+        "rpc:b2c.supply.settlement.formatted_read_group",
+        "rpc:b2c.supply.settlement.get_base_url",
+        "rpc:b2c.supply.settlement.get_empty_list_help",
+        "rpc:b2c.supply.settlement.get_external_id",
+        "rpc:b2c.supply.settlement.get_field_translations",
+        "rpc:b2c.supply.settlement.get_formview_action",
+        "rpc:b2c.supply.settlement.get_formview_id",
+        "rpc:b2c.supply.settlement.get_import_templates",
+        "rpc:b2c.supply.settlement.get_metadata",
+        "rpc:b2c.supply.settlement.get_property_definition",
+        "rpc:b2c.supply.settlement.has_access",
+        "rpc:b2c.supply.settlement.has_field_access",
+        "rpc:b2c.supply.settlement.hierarchy_read",
+        "rpc:b2c.supply.settlement.load",
+        "rpc:b2c.supply.settlement.name_search",
+        "rpc:b2c.supply.settlement.read",
+        "rpc:b2c.supply.settlement.read_progress_bar",
+        "rpc:b2c.supply.settlement.search",
+        "rpc:b2c.supply.settlement.search_count",
+        "rpc:b2c.supply.settlement.search_panel_select_multi_range",
+        "rpc:b2c.supply.settlement.search_panel_select_range",
+        "rpc:b2c.supply.settlement.search_read",
+        "rpc:b2c.supply.settlement.view_header_get",
+        "rpc:b2c.supply.settlement.web_name_search",
+        "rpc:b2c.supply.settlement.web_read",
         "rpc:change.production.qty.action_archive",
         "rpc:change.production.qty.action_unarchive",
         "rpc:change.production.qty.check_field_access",
@@ -23909,8 +23944,11 @@
         "rpc:b2c.fulfilment.event.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:b2c.fulfilment.event.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
         "rpc:b2c.import.batch.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+        "rpc:b2c.import.batch.action_open_advances": "5802ad8e11500033484755935e05512379016efca64563d689c52594283363b2",
+        "rpc:b2c.import.batch.action_open_credit_notes": "295db70a0517bbf98405ec1f97f795c399987afa38502ef9247df9507ea66cdd",
         "rpc:b2c.import.batch.action_open_invoices": "673b7a35bfe0a6524839bfb1b23d58dad5e0313f8abd321b03dc402d7539edb1",
         "rpc:b2c.import.batch.action_open_sales": "a315a1bf5eb7a43aaa5a2b975f863e98f47d565e8210cd93559108a380fc5a40",
+        "rpc:b2c.import.batch.action_open_wallet_documents": "2ff3c6b8a53d9d0ff1d432a6d6269fea043e49af1240744a5efef078bc490ff8",
         "rpc:b2c.import.batch.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:b2c.import.batch.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
         "rpc:b2c.import.batch.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
@@ -24327,6 +24365,38 @@
         "rpc:b2c.provider.evidence.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
         "rpc:b2c.provider.evidence.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:b2c.provider.evidence.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+        "rpc:b2c.supply.settlement.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+        "rpc:b2c.supply.settlement.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+        "rpc:b2c.supply.settlement.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+        "rpc:b2c.supply.settlement.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+        "rpc:b2c.supply.settlement.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+        "rpc:b2c.supply.settlement.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+        "rpc:b2c.supply.settlement.fields_get": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
+        "rpc:b2c.supply.settlement.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+        "rpc:b2c.supply.settlement.get_base_url": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+        "rpc:b2c.supply.settlement.get_empty_list_help": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+        "rpc:b2c.supply.settlement.get_external_id": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+        "rpc:b2c.supply.settlement.get_field_translations": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+        "rpc:b2c.supply.settlement.get_formview_action": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+        "rpc:b2c.supply.settlement.get_formview_id": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+        "rpc:b2c.supply.settlement.get_import_templates": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+        "rpc:b2c.supply.settlement.get_metadata": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+        "rpc:b2c.supply.settlement.get_property_definition": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+        "rpc:b2c.supply.settlement.has_access": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+        "rpc:b2c.supply.settlement.has_field_access": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+        "rpc:b2c.supply.settlement.hierarchy_read": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+        "rpc:b2c.supply.settlement.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+        "rpc:b2c.supply.settlement.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+        "rpc:b2c.supply.settlement.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+        "rpc:b2c.supply.settlement.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+        "rpc:b2c.supply.settlement.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+        "rpc:b2c.supply.settlement.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+        "rpc:b2c.supply.settlement.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+        "rpc:b2c.supply.settlement.search_panel_select_range": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+        "rpc:b2c.supply.settlement.search_read": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+        "rpc:b2c.supply.settlement.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+        "rpc:b2c.supply.settlement.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+        "rpc:b2c.supply.settlement.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
         "rpc:change.production.qty.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
         "rpc:change.production.qty.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:change.production.qty.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
@@ -29305,6 +29375,8 @@
         "rpc:b2c.product.alias.message_get_followers",
         "rpc:b2c.provider.evidence.mail_allowed_qweb_expressions",
         "rpc:b2c.provider.evidence.mail_get_partner_fields",
+        "rpc:b2c.supply.settlement.mail_allowed_qweb_expressions",
+        "rpc:b2c.supply.settlement.mail_get_partner_fields",
         "rpc:barcode.nomenclature.mail_allowed_qweb_expressions",
         "rpc:barcode.nomenclature.mail_get_partner_fields",
         "rpc:barcode.rule.mail_allowed_qweb_expressions",
@@ -33142,6 +33214,8 @@
         "rpc:b2c.product.alias.message_get_followers": "485d5a0893a9f9abb3d517b4b09eefc2d37c4a934af9e774768f79fb6b6736a5",
         "rpc:b2c.provider.evidence.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
         "rpc:b2c.provider.evidence.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+        "rpc:b2c.supply.settlement.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+        "rpc:b2c.supply.settlement.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
         "rpc:barcode.nomenclature.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
         "rpc:barcode.nomenclature.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
         "rpc:barcode.rule.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
@@ -68951,11 +69025,13 @@
         "rpc:b2c.import.batch.action_include_tax_in_price",
         "rpc:b2c.import.batch.action_invoice",
         "rpc:b2c.import.batch.action_park_destination_vat",
+        "rpc:b2c.import.batch.action_reconcile",
         "rpc:b2c.import.batch.action_retire_generic_positions",
         "rpc:b2c.import.batch.action_retire_shadowing_positions",
         "rpc:b2c.import.batch.action_reverse_charge_operators",
         "rpc:b2c.import.batch.action_settle_catalog_taxes",
         "rpc:b2c.import.batch.action_settle_product_taxes",
+        "rpc:b2c.import.batch.action_settle_wallet",
         "rpc:b2c.import.batch.mcp_revise_own_message",
         "rpc:b2c.import.batch.message_post",
         "rpc:b2c.order.mcp_revise_own_message",
@@ -76518,6 +76594,9 @@
         "rpc:b2c.import.batch.action_park_destination_vat": {
           "reversal_action": "rpc:account.tax.write"
         },
+        "rpc:b2c.import.batch.action_reconcile": {
+          "reversal_action": "rpc:account.move.button_draft"
+        },
         "rpc:b2c.import.batch.action_retire_generic_positions": {
           "reversal_action": "rpc:account.fiscal.position.write"
         },
@@ -76532,6 +76611,9 @@
         },
         "rpc:b2c.import.batch.action_settle_product_taxes": {
           "reversal_action": "rpc:product.template.write"
+        },
+        "rpc:b2c.import.batch.action_settle_wallet": {
+          "reversal_action": "rpc:account.move.button_draft"
         },
         "rpc:b2c.import.batch.mcp_revise_own_message": {
           "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
@@ -82539,13 +82621,15 @@
         "rpc:b2c.import.batch.action_account_for_revenue": "2354154c96d294671f682debbf3c8c0d1bb7cea2593a6b1a20e26142fca7e6f8",
         "rpc:b2c.import.batch.action_bill_fees": "d7bf1a3a8142fe92a767fdc915da1e3cd4d13c80aafbd66a8a2f1d8aacd9049e",
         "rpc:b2c.import.batch.action_include_tax_in_price": "ea7cc9565b50197fb96226c7e988a7fa3fe0b0f880d5610178151cc588fc7437",
-        "rpc:b2c.import.batch.action_invoice": "b461eb9fd095fa14ff50b689459d480fadd855c86d6be6183edd92230d01bf47",
+        "rpc:b2c.import.batch.action_invoice": "23d4be16088474719aa9957f5f7a281ad596a39ccd9ff4eb9184242546cc3d1d",
         "rpc:b2c.import.batch.action_park_destination_vat": "21f8cf7f28a5b6f8045adb91dd9d5498c90b26685c7149e4cf96e051b7f5e236",
+        "rpc:b2c.import.batch.action_reconcile": "101374426f7ec97a8b83d24a3e3f85914161bc1f868f9346a7e0e8c5e1ec405d",
         "rpc:b2c.import.batch.action_retire_generic_positions": "ef49eb03471ec740e141e65d0b42d8b449c0c89ebdfa0dfd68194594a0ac7054",
         "rpc:b2c.import.batch.action_retire_shadowing_positions": "a41d1f0a995d820f2da686bb6eaf76a082542b9764ca031a7f3c75af24a2f09f",
         "rpc:b2c.import.batch.action_reverse_charge_operators": "da744d32af8abd79e014caa482601012a71edaee185e85bce24446eef64d7645",
         "rpc:b2c.import.batch.action_settle_catalog_taxes": "0089dd63fd23145c57f7afbcf2739af1195c92fd07bccea36562ad33fc926a3b",
         "rpc:b2c.import.batch.action_settle_product_taxes": "b67d02c24b3c43f8a7cc00dfb44e6eaf44b92d777c03fe29b1df7fe44ebb88d5",
+        "rpc:b2c.import.batch.action_settle_wallet": "0168037962914add1449adb72a128bdc8fb3da3d6c4b9e673efaa8ad5b74e4c8",
         "rpc:b2c.import.batch.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:b2c.import.batch.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:b2c.order.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
@@ -84158,6 +84242,19 @@
         "rpc:b2c.provider.evidence.web_save",
         "rpc:b2c.provider.evidence.web_save_multi",
         "rpc:b2c.provider.evidence.web_search_read",
+        "rpc:b2c.supply.settlement.copy",
+        "rpc:b2c.supply.settlement.copy_data",
+        "rpc:b2c.supply.settlement.formatted_read_grouping_sets",
+        "rpc:b2c.supply.settlement.get_views",
+        "rpc:b2c.supply.settlement.name_create",
+        "rpc:b2c.supply.settlement.onchange",
+        "rpc:b2c.supply.settlement.update_field_translations",
+        "rpc:b2c.supply.settlement.web_override_translations",
+        "rpc:b2c.supply.settlement.web_read_group",
+        "rpc:b2c.supply.settlement.web_resequence",
+        "rpc:b2c.supply.settlement.web_save",
+        "rpc:b2c.supply.settlement.web_save_multi",
+        "rpc:b2c.supply.settlement.web_search_read",
         "rpc:bill.to.po.wizard.action_add_downpayment",
         "rpc:bill.to.po.wizard.action_add_to_po",
         "rpc:change.production.qty.change_prod_qty",
@@ -86677,6 +86774,45 @@
         },
         "rpc:b2c.provider.evidence.web_search_read": {
           "reversal_action": "rpc:b2c.provider.evidence.write"
+        },
+        "rpc:b2c.supply.settlement.copy": {
+          "reversal_action": "rpc:b2c.supply.settlement.unlink"
+        },
+        "rpc:b2c.supply.settlement.copy_data": {
+          "reversal_action": "rpc:b2c.supply.settlement.unlink"
+        },
+        "rpc:b2c.supply.settlement.formatted_read_grouping_sets": {
+          "reversal_action": "rpc:b2c.supply.settlement.write"
+        },
+        "rpc:b2c.supply.settlement.get_views": {
+          "reversal_action": "rpc:b2c.supply.settlement.write"
+        },
+        "rpc:b2c.supply.settlement.name_create": {
+          "reversal_action": "rpc:b2c.supply.settlement.write"
+        },
+        "rpc:b2c.supply.settlement.onchange": {
+          "reversal_action": "rpc:b2c.supply.settlement.write"
+        },
+        "rpc:b2c.supply.settlement.update_field_translations": {
+          "reversal_action": "rpc:b2c.supply.settlement.write"
+        },
+        "rpc:b2c.supply.settlement.web_override_translations": {
+          "reversal_action": "rpc:b2c.supply.settlement.write"
+        },
+        "rpc:b2c.supply.settlement.web_read_group": {
+          "reversal_action": "rpc:b2c.supply.settlement.write"
+        },
+        "rpc:b2c.supply.settlement.web_resequence": {
+          "reversal_action": "rpc:b2c.supply.settlement.write"
+        },
+        "rpc:b2c.supply.settlement.web_save": {
+          "reversal_action": "rpc:b2c.supply.settlement.write"
+        },
+        "rpc:b2c.supply.settlement.web_save_multi": {
+          "reversal_action": "rpc:b2c.supply.settlement.write"
+        },
+        "rpc:b2c.supply.settlement.web_search_read": {
+          "reversal_action": "rpc:b2c.supply.settlement.write"
         },
         "rpc:bill.to.po.wizard.action_add_downpayment": {
           "reversal_action": "rpc:bill.to.po.wizard.write"
@@ -92300,7 +92436,7 @@
         "rpc:b2c.fulfilment.event.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:b2c.fulfilment.event.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:b2c.fulfilment.event.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:b2c.import.batch.action_apply": "7148af841e430027cf67d43aaa46e8a0a580de21b9f3119a68da9153e054090d",
+        "rpc:b2c.import.batch.action_apply": "99a6719250997577d285c40477e647cda8bc342eb66097343d8043e9c9900a26",
         "rpc:b2c.import.batch.action_check_readiness": "f27e5f3436d35ea1e8762e34d623cbb92d2e67a3c03cc0e609d5ecffebf24f4a",
         "rpc:b2c.import.batch.action_confirm_mappings": "d0b57d0b2564723e36e7cefc2589db88ba14ad61d075bf6c813a8cb6febe3a67",
         "rpc:b2c.import.batch.action_fetch_fulfilment": "c5a09701f6ccdae854613255852e35c765a077d15f9c99d9e794e3e3aea71671",
@@ -92485,6 +92621,19 @@
         "rpc:b2c.provider.evidence.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:b2c.provider.evidence.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:b2c.provider.evidence.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+        "rpc:b2c.supply.settlement.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+        "rpc:b2c.supply.settlement.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+        "rpc:b2c.supply.settlement.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
+        "rpc:b2c.supply.settlement.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+        "rpc:b2c.supply.settlement.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+        "rpc:b2c.supply.settlement.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+        "rpc:b2c.supply.settlement.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+        "rpc:b2c.supply.settlement.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+        "rpc:b2c.supply.settlement.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+        "rpc:b2c.supply.settlement.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+        "rpc:b2c.supply.settlement.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+        "rpc:b2c.supply.settlement.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+        "rpc:b2c.supply.settlement.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:bill.to.po.wizard.action_add_downpayment": "a66590fc35fcc68a4144220e8d132a8151219aca96abc230481cf4bc870794d5",
         "rpc:bill.to.po.wizard.action_add_to_po": "1e80d460c0b94d083b67a3aada53bfba2a6136d088b8d44432c4cd4e3538786a",
         "rpc:change.production.qty.change_prod_qty": "5628114892c14584373fb98e489eda672e5da24642508c8a93bf84f089a78d0a",
@@ -109717,6 +109866,10 @@
         "rpc:b2c.provider.evidence.create",
         "rpc:b2c.provider.evidence.get_view",
         "rpc:b2c.provider.evidence.write",
+        "rpc:b2c.supply.settlement.create",
+        "rpc:b2c.supply.settlement.get_view",
+        "rpc:b2c.supply.settlement.unlink",
+        "rpc:b2c.supply.settlement.write",
         "rpc:barcode.nomenclature.create",
         "rpc:barcode.nomenclature.get_view",
         "rpc:barcode.nomenclature.unlink",
@@ -112327,6 +112480,18 @@
         },
         "rpc:b2c.provider.evidence.write": {
           "reversal_action": "rpc:b2c.provider.evidence.write"
+        },
+        "rpc:b2c.supply.settlement.create": {
+          "reversal_action": "rpc:b2c.supply.settlement.unlink"
+        },
+        "rpc:b2c.supply.settlement.get_view": {
+          "reversal_action": "rpc:b2c.supply.settlement.write"
+        },
+        "rpc:b2c.supply.settlement.unlink": {
+          "reversal_action": "rpc:b2c.supply.settlement.create"
+        },
+        "rpc:b2c.supply.settlement.write": {
+          "reversal_action": "rpc:b2c.supply.settlement.write"
         },
         "rpc:barcode.nomenclature.create": {
           "reversal_action": "rpc:barcode.nomenclature.unlink"
@@ -119111,6 +119276,10 @@
         "rpc:b2c.provider.evidence.create": "8f4af32ee3433a9e8688c82d458ab8c49d8237b6f82890323156ffa1e92d5d15",
         "rpc:b2c.provider.evidence.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:b2c.provider.evidence.write": "61a487dcd30c398d1246ad4f7d5ab5c90ae898724aa1f35f0a85c7ae294edf9f",
+        "rpc:b2c.supply.settlement.create": "37b76f9937e66a72c0555d93394a9e3336325c81c16eec20667bed140b30b44a",
+        "rpc:b2c.supply.settlement.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+        "rpc:b2c.supply.settlement.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
+        "rpc:b2c.supply.settlement.write": "b0373b6633d99d657d81a9aca3ec6bb0ebad5e3e7b41420276488a6f1ce1c8f4",
         "rpc:barcode.nomenclature.create": "37b76f9937e66a72c0555d93394a9e3336325c81c16eec20667bed140b30b44a",
         "rpc:barcode.nomenclature.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:barcode.nomenclature.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
@@ -144453,6 +144622,7 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.action_unlock:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.unlink:orm_unlink:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:1",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch._hold_as_advance:orm_create:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch._invoice_sale:orm_write:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch._invoice_sale:orm_write:2",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch._invoice_sale:orm_write:3",
@@ -144460,6 +144630,10 @@
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch.action_invoice:orm_write:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch.action_invoice:orm_write:2",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch.action_invoice:orm_write:3",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/lifecycle.py:b2c.import.batch._refund_to_clearing:orm_create:1",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/lifecycle.py:b2c.import.batch._return_advance:orm_create:1",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/lifecycle.py:b2c.import.batch.action_reconcile:orm_write:1",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/lifecycle.py:b2c.import.batch.action_reconcile:orm_write:2",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/oss_return.py:b2c.oss.return.action_compute:orm_create:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/oss_return.py:b2c.oss.return.action_compute:orm_write:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/oss_return.py:b2c.oss.return.action_mark_filed:orm_write:1",
@@ -144469,6 +144643,16 @@
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/settlement.py:b2c.import.batch.action_bill_fees:orm_write:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/settlement.py:b2c.import.batch.action_bill_fees:orm_write:2",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/settlement.py:b2c.import.batch.action_bill_fees:orm_write:3",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._pay_from_wallet:orm_create:1",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._record_settlements:orm_create:1",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._record_settlements:orm_write:1",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._record_settlements:sudo:1",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._supply_document:orm_create:1",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._supply_document:orm_create:2",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._supply_document:orm_write:1",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._unsettled_supply:orm_write:1",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch.action_settle_wallet:orm_write:1",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch.action_settle_wallet:orm_write:2",
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:orm_write:1",
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:orm_write:2",
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:orm_write:3",
@@ -150746,6 +150930,9 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:b2c.accounting.session.write"
         },
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch._hold_as_advance:orm_create:1": {
+          "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
+        },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch._invoice_sale:orm_write:1": {
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
@@ -150766,6 +150953,18 @@
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch.action_invoice:orm_write:3": {
           "reachability_proof": "This sink is inside action_invoice, whose only ordinary entry point is rpc:b2c.import.batch.action_invoice — classified and reviewed in its own right."
+        },
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/lifecycle.py:b2c.import.batch._refund_to_clearing:orm_create:1": {
+          "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
+        },
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/lifecycle.py:b2c.import.batch._return_advance:orm_create:1": {
+          "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
+        },
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/lifecycle.py:b2c.import.batch.action_reconcile:orm_write:1": {
+          "reachability_proof": "This sink is inside action_reconcile, whose only ordinary entry point is rpc:b2c.import.batch.action_reconcile — classified and reviewed in its own right."
+        },
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/lifecycle.py:b2c.import.batch.action_reconcile:orm_write:2": {
+          "reachability_proof": "This sink is inside action_reconcile, whose only ordinary entry point is rpc:b2c.import.batch.action_reconcile — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/oss_return.py:b2c.oss.return.action_compute:orm_create:1": {
           "reachability_proof": "This sink is inside action_compute, whose only ordinary entry point is rpc:b2c.oss.return.action_compute — classified and reviewed in its own right."
@@ -150793,6 +150992,36 @@
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/settlement.py:b2c.import.batch.action_bill_fees:orm_write:3": {
           "reachability_proof": "This sink is inside action_bill_fees, whose only ordinary entry point is rpc:b2c.import.batch.action_bill_fees — classified and reviewed in its own right."
+        },
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._pay_from_wallet:orm_create:1": {
+          "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
+        },
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._record_settlements:orm_create:1": {
+          "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
+        },
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._record_settlements:orm_write:1": {
+          "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
+        },
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._record_settlements:sudo:1": {
+          "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
+        },
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._supply_document:orm_create:1": {
+          "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
+        },
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._supply_document:orm_create:2": {
+          "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
+        },
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._supply_document:orm_write:1": {
+          "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
+        },
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._unsettled_supply:orm_write:1": {
+          "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
+        },
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch.action_settle_wallet:orm_write:1": {
+          "reachability_proof": "This sink is inside action_settle_wallet, whose only ordinary entry point is rpc:b2c.import.batch.action_settle_wallet — classified and reviewed in its own right."
+        },
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch.action_settle_wallet:orm_write:2": {
+          "reachability_proof": "This sink is inside action_settle_wallet, whose only ordinary entry point is rpc:b2c.import.batch.action_settle_wallet — classified and reviewed in its own right."
         },
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
@@ -152991,13 +153220,18 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.action_unlock:orm_write:1": "b882b52015493fc362ef55f3851e6eaa60747db4b984a7371f8081486ef9efb7",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.unlink:orm_unlink:1": "cfbbb43ba51d6356425a4c93c332b8c7509e93cab18638fdb5372e86ebc35994",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:1": "b4cb48248040186b82988ca2d951c3817e9b8ebc5bb41fb0f60b12366af7a6ac",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch._invoice_sale:orm_write:1": "4934adf790f2a2ba3a314c4253e11fb9c17054824c551d79efa9bbb4fea5d3a1",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch._invoice_sale:orm_write:2": "d9715351d7641cdb8a152233b4bda7aa7a49d5e716e7b56c2373c3efb1423fe3",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch._invoice_sale:orm_write:3": "4c9214b2593ce15110128983a8b326132b4c01be4686bec2f5dff94b4e4007fe",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch._settle:orm_create:1": "25feee40f6078fb25838a05c35035d64130c482f9c5a3189607b0ce0ba7cc7e4",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch.action_invoice:orm_write:1": "575315767ae62de406d03315dd537159706e9aa2af9470a43f420477d343ff66",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch.action_invoice:orm_write:2": "47a5fcbeb6df03bd8be3bedb64ccc7771804a9ca9d8eca7023f457ce20dc1e75",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch.action_invoice:orm_write:3": "3e2389360fba8872013e9744ac4e1f7daafedf91b7dab82826e93ab80896b3a7",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch._hold_as_advance:orm_create:1": "4379098596e06aaa611c9a563e5c91a20f122cb4920a325ac00644717c54fd4e",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch._invoice_sale:orm_write:1": "53d371e775686dbed5eee85bdbe9f66d95774e61b3767b36a8093ce21399b8b1",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch._invoice_sale:orm_write:2": "94e3166d6160869e09bb829b341c365c1690fd679212b9a5ab0ca81663ad0c75",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch._invoice_sale:orm_write:3": "ce352fdbd5cb71db403053395852b9260a784dacae89a9215a85f4c2296b5788",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch._settle:orm_create:1": "dae01b0dd97f217f5c9a8da3d15217b8d1ae24eefabf751d024e3f5d46ea2fd8",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch.action_invoice:orm_write:1": "b45729fa86a695ae2a2b7054e19a30c6b234d34ff3e3ea58cbab8436f45f3159",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch.action_invoice:orm_write:2": "435c6e4de5aa23a719b2975f84f91c43ca85c139b65c6a34f208a671f1edf8a3",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch.action_invoice:orm_write:3": "68cfde487bb777799053cdb51001eff4dc58809893ac68c7bd980a91e7e366b3",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/lifecycle.py:b2c.import.batch._refund_to_clearing:orm_create:1": "74c46727397b8ec3a5b2785f5150912200c6954e7009530ea77373e77fa89c74",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/lifecycle.py:b2c.import.batch._return_advance:orm_create:1": "d7149567350df1ee9b352e1c6f9e284d36bf6b65290fbe125a3d74c4536b79ed",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/lifecycle.py:b2c.import.batch.action_reconcile:orm_write:1": "d8b0a564afa01fa07c4c164ccf4e5b0fa0a6432b324e5a86c4936e1efdd9252e",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/lifecycle.py:b2c.import.batch.action_reconcile:orm_write:2": "2c08160fa3dc0a17813b3244291ea7ac48e69c8dc9d1a097d55b816fd722f293",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/oss_return.py:b2c.oss.return.action_compute:orm_create:1": "2559b1ca29bb542608ac30659033fc378dd01bf010cb3db5ec610fb4f27dbc9a",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/oss_return.py:b2c.oss.return.action_compute:orm_write:1": "6201cca809b3ba0f74bba91b4b6aee3269675dd54a4f889023be31503486888f",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/oss_return.py:b2c.oss.return.action_mark_filed:orm_write:1": "1ba9f3f784b48330327238dfd45633cef8052644e6db2ffb6fa2aa6d07598e7d",
@@ -153007,6 +153241,16 @@
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/settlement.py:b2c.import.batch.action_bill_fees:orm_write:1": "a303467d2b1d4c227646b5f2b532ab01c269296076e0eb5143e6c02fc616ada0",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/settlement.py:b2c.import.batch.action_bill_fees:orm_write:2": "f8db2b27e8870e1fa2d637d3765ecf66425ad47495d301e99af637c03e32b353",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/settlement.py:b2c.import.batch.action_bill_fees:orm_write:3": "f2b109947628067054b3c8d213ef40cd6708cbf6fa2e8f303e52497c79c67bf1",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._pay_from_wallet:orm_create:1": "92f8a451d560d8ced5083490530e20a408909b49bd8722c91ae3af12ecebd71a",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._record_settlements:orm_create:1": "721287420541095979b62ad2f4cce9da932c67b3999843b2ce1bd45c3cc9024a",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._record_settlements:orm_write:1": "886d0df24b6e986f5206d04ca8b0b8663323112de51fb27afde0340d813b3eff",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._record_settlements:sudo:1": "9fec29144601ef2adca3bea98cf9d76831f486fb1ee47b9cf3446c662eab2d49",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._supply_document:orm_create:1": "c5e2ab8800c69d90200407df742e99bfc403f7cce13d59985412c5b12d8bba8a",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._supply_document:orm_create:2": "5aac406bd9048bf720b68940faa4c0711c8244d390095b031d14b5771e40516e",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._supply_document:orm_write:1": "8918e2505e944903d833bdf8662a091fcd6cfa5a7d28a2bdb07b4218ac49a8f5",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._unsettled_supply:orm_write:1": "918098fa750fe38fb02ecd634e23c98e6b3ed181ceff5c805c0f87763cdb9105",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch.action_settle_wallet:orm_write:1": "4197e055fb948049a1d4ecf7f29de0a54b508776d407c0e5aea2ea395dbe7da2",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch.action_settle_wallet:orm_write:2": "b72896571b5420ec572f15b9bfd1ea0305a9a5a0f583b7d6e5834226bd1e73ff",
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:orm_write:1": "9e827db29830a24000a687391f3a3a2fc2bbafeaa063b76719eadb76b61c2b65",
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:orm_write:2": "20c696a9dcb35479cf25cdbb18936c2522f9bf77fdc08c72641d0399e081b008",
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:orm_write:3": "f646021b465b99f3f90dfb3f3b4f59fa0d1e58b7a71bd4845b96592c7f250889",
@@ -156390,6 +156634,7 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/product_alias.py:b2c.product.alias.action_reset_pending:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/product_alias.py:b2c.product.alias.action_verify:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/product_alias.py:b2c.product.alias.action_verify:orm_write:2",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._build_report:orm_write:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._raise_issue:orm_create:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:2",
@@ -156404,6 +156649,7 @@
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_issue.py:b2c.import.issue.action_supersede_duplicate:orm_write:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_issue.py:b2c.import.issue.action_supersede_duplicate:sudo:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_issue.py:b2c.import.issue.action_supersede_duplicate:sudo:2",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/lifecycle.py:b2c.import.batch._cancel_as_stated:sudo:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/mapping.py:b2c.import.batch._map_lines:orm_write:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/mapping.py:b2c.import.batch._map_lines:orm_write:2",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/mapping.py:b2c.import.batch._report_unresolved:orm_write:1",
@@ -156441,6 +156687,7 @@
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/supplier.py:b2c.import.batch._printful_client:sudo:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/supplier.py:b2c.import.batch._record_fulfilment:orm_create:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/supplier.py:b2c.import.batch._record_fulfilment:orm_write:1",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/supplier.py:b2c.import.batch._record_known_fulfilment:orm_write:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/supplier.py:b2c.import.batch._store_fulfilment:orm_create:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/supplier.py:b2c.import.batch.action_fetch_fulfilment:orm_write:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/parsers/etsy.py:parse_order_items:orm_write:1",
@@ -160698,6 +160945,9 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/product_alias.py:b2c.product.alias.action_verify:orm_write:2": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:b2c.product.alias.action_verify"
         },
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._build_report:orm_write:1": {
+          "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
+        },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._raise_issue:orm_create:1": {
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
@@ -160739,6 +160989,9 @@
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_issue.py:b2c.import.issue.action_supersede_duplicate:sudo:2": {
           "reachability_proof": "This sink is inside action_supersede_duplicate, whose only ordinary entry point is rpc:b2c.import.issue.action_supersede_duplicate — classified and reviewed in its own right."
+        },
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/lifecycle.py:b2c.import.batch._cancel_as_stated:sudo:1": {
+          "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/mapping.py:b2c.import.batch._map_lines:orm_write:1": {
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
@@ -160849,6 +161102,9 @@
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/supplier.py:b2c.import.batch._record_fulfilment:orm_write:1": {
+          "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
+        },
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/supplier.py:b2c.import.batch._record_known_fulfilment:orm_write:1": {
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/supplier.py:b2c.import.batch._store_fulfilment:orm_create:1": {
@@ -162284,6 +162540,7 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/product_alias.py:b2c.product.alias.action_reset_pending:orm_write:1": "33655cef67fb032a5e1c47e0645d654f7b48a0bc5659966ab9bed2a6e3c0e22b",
         "sink:usl_b2c:custom-addons/usl_b2c/models/product_alias.py:b2c.product.alias.action_verify:orm_write:1": "faa83647913fa7e6ed9815c09daf6a3548b344d7da32440b7dc226ce6ff2778e",
         "sink:usl_b2c:custom-addons/usl_b2c/models/product_alias.py:b2c.product.alias.action_verify:orm_write:2": "a5de9eb4739cbefdb3af9311537c81a2d6c81a78d226acf57989e58003aef686",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._build_report:orm_write:1": "a1773da83b2990fc7015daad38baa4373be882d1b6401d79cdd26d45816bf73d",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._raise_issue:orm_create:1": "7e52af0959b51a8f4e1d5b48739cf6d29d1f86fd4f444d138b9b821f7bb9b0fd",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:1": "dd53d3eec080be8b2b87445edefdb6186aea2f21d28d4048580ac8b2fa6c7b02",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:2": "9bf13eb71f7d1b0dafcef39349af1d842c89e10d918f420c5e2214c395408bf3",
@@ -162298,6 +162555,7 @@
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_issue.py:b2c.import.issue.action_supersede_duplicate:orm_write:1": "c733c59e73b7efb82469b2569ba4c2ca96827ad0bedd1e35bed544d8299cc509",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_issue.py:b2c.import.issue.action_supersede_duplicate:sudo:1": "0b58a3a7bfce879cb2638b8a1ddb6afaf50509b57b200d7bcc6cbb0890184e49",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_issue.py:b2c.import.issue.action_supersede_duplicate:sudo:2": "acb9634f2f4f8f31822ed34cd94eaf0fc8af85c11791dbd7d61dbc00c134dc4a",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/lifecycle.py:b2c.import.batch._cancel_as_stated:sudo:1": "448671ebec91bd8d8d52d6d250064a3ae7f15ccdab67c3482b9ba4aa446f2112",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/mapping.py:b2c.import.batch._map_lines:orm_write:1": "6d2a7607dda6d74344a24ac252872ee0b92e61c7de05b9749472a78e52993c58",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/mapping.py:b2c.import.batch._map_lines:orm_write:2": "179b1e777370a2a498507a9f06b0831eab85af8fda411917eaac3c0a5f00e16d",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/mapping.py:b2c.import.batch._report_unresolved:orm_write:1": "adc70e365143fb19c787d0bc1c5773603530afe482df82e727e5271c20b3e286",
@@ -162308,9 +162566,9 @@
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._commerce_lines:orm_create:1": "411607c4d67aeb2abf1b6e9c5300d080ac6c5e08ddd3f45abc24484edcccd050",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._commerce_order:orm_create:1": "0390cf63a758bc05501f21ecdd16199ff555c2dac72dc1ed8340f6744598f5a8",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._commerce_source:orm_create:1": "df8a88d3e7ac386879021aea763f5b1602b04ab16639e6be1e43ac49ce719db2",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._deliver:orm_write:1": "530eecec8e73f777734bf7464381de99be0a5e9f8216b22be94ee5b459fb2f74",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._deliver:orm_write:2": "e76267b8b86e9ada3e77b0f5455a0361e7db039e2b5864f5f62ae26ba406976d",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._deliver:sudo:1": "d2fe55b2219df8e96e6424b3c9fcb5dbcea70bbb45b042cec1cb70276a8fd9d8",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._deliver:orm_write:1": "4afb99765f5eee7eb2fe2ad648486c4a28960905279e2f7e6bcea23cdcc42c25",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._deliver:orm_write:2": "48f8f3824800893056ec0819919344117d07ea1f716192fcf996223c354b7190",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._deliver:sudo:1": "b35b8af4327b5f728b4dafb3ab84599f225f52353af967d7eb584f57f8bfc73c",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._evidence:orm_create:1": "8c9899a7a6667d6251868c7db5aa27999c2ea76195fc79720ad1f72b6e88067f",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._evidence:sudo:1": "7ad5828abf330997f50accdf3aabbd37d791577b3a4b31a39a5a46635a18bb74",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._materialise_order:orm_write:1": "58b4306df6878baf98483b05742d30b5e647986d565207644521740f329bdf4c",
@@ -162321,20 +162579,21 @@
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._pricelist:orm_create:1": "507823373d0f1ed3f0b6bd114c7c969b65d3aa7cbf68e3fb0efa0358ba547600",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._pricelist:sudo:1": "aac533a70f53794fff85d1c955ccbc29b5c632d71d073b7edb6ca3dfa3a9b019",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._pricelist:sudo:2": "343974e25492554945fcacb0e238ad61dbc637661d31d6d430146b024c91139e",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._sale_order:orm_create:1": "bb76d64d3d54b09fa34dd9bb49355cbcef8ae77627db564d6ec055ee055a3487",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._sale_order:orm_create:2": "2c71e99880a1817b78cc285d363c4d0f0739a13ac5d13b752abf05f7e03f562a",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._sale_order:orm_create:3": "4a3bb9ffd3d9d65f7ae4aee29d1667fbf1685e02f60d5e6106f045e72e9b46bd",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._sale_order:orm_write:1": "73487a8451675c0c1a164cec28f66f7f6b66521afe13c39a69080ce0d6e3d05a",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._sale_order:orm_create:1": "d8d40d2f4d09827b3039256661920d9bc4ed96c8f6f1390ec716671020f6de0f",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._sale_order:orm_create:2": "35e6df09f21002db2a984445d7628b0a9857774373ebd94e3256ccb166ab1509",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._sale_order:orm_create:3": "95e74dd9579db7b527368e5c3bb7a4f7b0a003d1dfad11b49492a097b7349f36",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._sale_order:orm_write:1": "da0a534e43b8fab5a6486b57e315c3705336a156498aadfe02a84b59a26458ba",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._trusted:sudo:1": "6b6da25ca666241ab0f47744017962c30c1df4487323c026ae11c4479255513e",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch.action_apply:orm_write:1": "45af1c018b4f613d8089605c5eb4b99102fc209b47be8416a47023f1ced84160",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch.action_apply:orm_write:2": "727c46355821916c66ab457007d4ba0f129438c43d561aaccb0f9b7f8251c3f5",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch.action_apply:orm_write:3": "5f83382ddcf45ec98199ba7cdcc8af0e5759a4660c7b295bf65db97cb7f61b7e",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch.action_apply:orm_write:1": "6d36b04dcd01fad727eb10c83fc38c5e64497d2c04ffe3b7269138ab87b6f6fa",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch.action_apply:orm_write:2": "94cc4122778d1b2bb75a3895db19f2ed06035593a1ae6923e2dbdce02f50dd4d",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch.action_apply:orm_write:3": "ddedf33f73af71856547c65ba17b29a569366dfeafb27409b1cbb60d8559bfbc",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/readiness.py:b2c.import.batch.action_check_readiness:orm_write:1": "11e5e3a332e3f4761e93795015908ed0ee42919c099d3b7f1a390eab91919e00",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/readiness.py:b2c.import.batch.action_settle_catalog_taxes:orm_write:1": "ba66297c3ff6d0a3a73ead2fa397471b8815eae8121b6081ec57f27e74cb54cc",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/supplier.py:b2c.import.batch._link_fulfilment:orm_write:1": "3909b75dbe163709a1a00f700c66c370ccca6035e9f10bd33ba32f36fcdf5169",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/supplier.py:b2c.import.batch._printful_client:sudo:1": "330ed4fc876e18b0d752590dac96fb97364d42c1594131f778e766bf69572613",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/supplier.py:b2c.import.batch._record_fulfilment:orm_create:1": "2d197838dd59c8565faa4da101d9c256ea36a685738f26d226e0e1c732f196a4",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/supplier.py:b2c.import.batch._record_fulfilment:orm_write:1": "1a56ca23d02f46729e46f8f5c41182f8216c5a537f6f48caa77c370bc0acdd23",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/supplier.py:b2c.import.batch._record_fulfilment:orm_create:1": "1ee3804be94d61727fc6f8c6921bb70f790dd27be4e1dbbdf95613ec359551f2",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/supplier.py:b2c.import.batch._record_fulfilment:orm_write:1": "239a737d2d8637bb8851f2b32ec42cf5e05f9c24cd89167a48ca512264cf1ffd",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/supplier.py:b2c.import.batch._record_known_fulfilment:orm_write:1": "2a6942aecd2aa4f144cb940672e5c0cd02f8c8c5366aa45346b7962ec64ad589",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/supplier.py:b2c.import.batch._store_fulfilment:orm_create:1": "54a937ba25ebd2049c6a10a53e4d66a50663b8062a13c63e936d9ec8b53f78e4",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/supplier.py:b2c.import.batch.action_fetch_fulfilment:orm_write:1": "6b172627df0e56ce0cb1b0ddb93da102c890c0f49b5df92554e87fbb8fc0204a",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/parsers/etsy.py:parse_order_items:orm_write:1": "e8a3f7e5121a0cc7853c7b6ffe9654cee8b914c9b130b6481077a7fba2c7c9a8",
@@ -184252,8 +184511,10 @@
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_correct_chart:1",
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_invoice:1",
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_park_destination_vat:1",
+        "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_reconcile:1",
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_retire_shadowing_positions:1",
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_settle_product_taxes:1",
+        "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_settle_wallet:1",
         "ui:usl_b2c_ingest.view_b2c_oss_return_form:button:object:action_compute:1",
         "ui:usl_b2c_ingest.view_b2c_oss_return_form:button:object:action_mark_filed:1",
         "ui:usl_b2c_ingest.view_b2c_oss_return_form:button:object:action_mark_ready:1",
@@ -186895,6 +187156,11 @@
             "rpc:b2c.import.batch.action_park_destination_vat"
           ]
         },
+        "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_reconcile:1": {
+          "targets": [
+            "rpc:b2c.import.batch.action_reconcile"
+          ]
+        },
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_retire_shadowing_positions:1": {
           "targets": [
             "rpc:b2c.import.batch.action_retire_shadowing_positions"
@@ -186903,6 +187169,11 @@
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_settle_product_taxes:1": {
           "targets": [
             "rpc:b2c.import.batch.action_settle_product_taxes"
+          ]
+        },
+        "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_settle_wallet:1": {
+          "targets": [
+            "rpc:b2c.import.batch.action_settle_wallet"
           ]
         },
         "ui:usl_b2c_ingest.view_b2c_oss_return_form:button:object:action_compute:1": {
@@ -187491,8 +187762,10 @@
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_correct_chart:1": "d8fc9c1f0e84537974bdf095b19daa383b41d6829c1f69247561656b04c5dfbc",
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_invoice:1": "a59912cb6586ff897d28cbe57430f2bb71a0cd3c2ca5ecc6bb469f2a17ee3f40",
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_park_destination_vat:1": "23f71fe06322dad37d6a5180558683b25519194344c10b5eb9b6e5a1486e35ea",
+        "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_reconcile:1": "a9edb1a9381b7a02d6dcd0487b91a46067481ac20b463f7858f2b8f6d8097c13",
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_retire_shadowing_positions:1": "058675a3345143e5d322e655afbe8fb5a4744ad643a27e33c8658747e8323785",
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_settle_product_taxes:1": "2dffbee68152836e02ffedf69a86a55ad850f8a75a4d9d2820d2bcb63c5f635f",
+        "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_settle_wallet:1": "9251f26ddc9a08aaed54ec298da8169940767661adda0b4c17bbcfe0956ae29f",
         "ui:usl_b2c_ingest.view_b2c_oss_return_form:button:object:action_compute:1": "9e4720e3eeb05f054ad22b4129336953ff28c44d97768d5f90ab35a0ead351f6",
         "ui:usl_b2c_ingest.view_b2c_oss_return_form:button:object:action_mark_filed:1": "789051bdd663ab7ee31c8137a5c0801ca9948e12e2cd272cd62149da556abddb",
         "ui:usl_b2c_ingest.view_b2c_oss_return_form:button:object:action_mark_ready:1": "55c13e83df08c6072f21306e4c6ab95294806085298823f2bcbbc7cfbe7bb5d4",
@@ -187974,8 +188247,11 @@
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_check_readiness:1",
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_confirm_mappings:1",
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_fetch_fulfilment:1",
+        "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_open_advances:1",
+        "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_open_credit_notes:1",
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_open_invoices:1",
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_open_sales:1",
+        "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_open_wallet_documents:1",
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_parse:1",
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_parse:2",
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_reset:1",
@@ -190122,6 +190398,16 @@
             "rpc:b2c.import.batch.action_fetch_fulfilment"
           ]
         },
+        "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_open_advances:1": {
+          "targets": [
+            "rpc:b2c.import.batch.action_open_advances"
+          ]
+        },
+        "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_open_credit_notes:1": {
+          "targets": [
+            "rpc:b2c.import.batch.action_open_credit_notes"
+          ]
+        },
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_open_invoices:1": {
           "targets": [
             "rpc:b2c.import.batch.action_open_invoices"
@@ -190130,6 +190416,11 @@
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_open_sales:1": {
           "targets": [
             "rpc:b2c.import.batch.action_open_sales"
+          ]
+        },
+        "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_open_wallet_documents:1": {
+          "targets": [
+            "rpc:b2c.import.batch.action_open_wallet_documents"
           ]
         },
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_parse:1": {
@@ -190596,8 +190887,11 @@
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_check_readiness:1": "b2e41ec5949aa35a28f3ae870f306ebfd575f0dd56d58411f0fbb4b214c1d733",
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_confirm_mappings:1": "aa04e193bbadbdb9eb84ade0cec8803d6152106a9fe1a7e52f342438b6e53806",
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_fetch_fulfilment:1": "c772d6f74a1fdeed0468e087b5c92e19b0c02242ce1f7d39ccde8b0643df3644",
+        "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_open_advances:1": "4a01cc69ef74c9e7fa85a433fd83e0900f047ba0928fc1f1cb5cf67d8a4f2008",
+        "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_open_credit_notes:1": "1aaba94f7beaeada08b929267e6edb2ad06e761f36d63bfde1f47d9ca9a484c5",
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_open_invoices:1": "4c9d3438753b1c0569cae9b0a1403e6b43ae18fc80f4d5f0794de30fcfec44ff",
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_open_sales:1": "899d0f2185a0f6e8a7a64e8c32003bf7c1763a49539f881387feaa3e1b5b81d3",
+        "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_open_wallet_documents:1": "4a2e712b4051556f070c56e0794d0c090baec3017ecb6e3dfaa29a29b238fb7a",
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_parse:1": "4513a9a1eaab12892f7bbde4d3a583c88ce4546e6717ef343580ec5e9a685431",
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_parse:2": "07db1c839cf1e901a21704ef0cd347fe47685f38de30f1058b847148773eb42d",
         "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_reset:1": "c5afadee4aff839469cc2154ee8c4d0c870e03bcc05faf9ce3cd8df986e26136",
