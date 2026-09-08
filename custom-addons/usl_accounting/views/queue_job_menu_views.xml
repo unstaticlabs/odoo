@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Job monitoring is infrastructure, not a daily application. Reparenting
+         rather than deactivating keeps the queue views reachable: they exist
+         only underneath this root, so hiding it would leave failed jobs
+         visible in the server log alone. usl_accounting is the only module
+         depending on both queue_job and usl_locale, so it owns this record. -->
+    <record id="queue_job.menu_queue_job_root" model="ir.ui.menu">
+        <field name="parent_id" ref="base.menu_administration"/>
+        <field name="sequence">200</field>
+    </record>
+</odoo>

@@ -10,6 +10,10 @@ DEEMPHASIZED_ROOT_MENU_XMLIDS = (
     "base.menu_management",
     "utm.menu_link_tracker_root",
     "usl_document_templates.menu_official_documents_root",
+    # A Project board reached from the Notifications menu, not a daily app.
+    "usl_feedback.menu_feedback_root",
+    # Core ships this ungated, so every internal user would otherwise see it.
+    "base.menu_tests",
 )
 
 PRIMARY_ROOT_MENU_XMLIDS = (
@@ -17,28 +21,26 @@ PRIMARY_ROOT_MENU_XMLIDS = (
     "project.menu_main_pm",
     "usl_documents.menu_usl_documents_root",
     "account.menu_finance",
-    "hr_expense.menu_hr_expense_root",
     "usl_platform_billing.menu_platform_billing_root",
     "usl_b2c.menu_b2c_root",
-    "stock.menu_stock_root",
-    "purchase.menu_purchase_root",
     "sale.sale_menu_root",
+    "purchase.menu_purchase_root",
+    "stock.menu_stock_root",
     "mrp.menu_mrp_root",
 )
 
 # Supporting apps, kept together after the workflow block so they never split
-# the commerce apps above.
+# the commerce apps above. Contacts and Employees lead so payroll sits with the
+# people apps rather than with the signing tools.
 SECONDARY_ROOT_MENU_XMLIDS = (
-    "usl_feedback.menu_feedback_root",
-    "sign_oca.sign_oca_root_menu",
-    "usl_tese_payroll.menu_tese_payroll_root",
-)
-
-TRAILING_ROOT_MENU_XMLIDS = (
     "contacts.menu_contacts",
     "hr.menu_hr_root",
-    "base.menu_administration",
+    "usl_tese_payroll.menu_tese_payroll_root",
+    "hr_expense.menu_hr_expense_root",
+    "sign_oca.sign_oca_root_menu",
 )
+
+TRAILING_ROOT_MENU_XMLIDS = ("base.menu_administration",)
 
 
 def order_root_menu_items(items, xmlid_getter):
