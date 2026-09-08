@@ -303,6 +303,18 @@ policy through Odoo's ORM. Production receives its explicitly gated set and
 staging receives no active jobs. Unknown, missing or ambiguously identified
 jobs stop the candidate before the active generation is touched.
 
+Odoo keeps its HTTP sessions as files beside the filestore, and materialization
+restores only `filestore/<database>` into the candidate's new data volume. A
+rollout onto the same target therefore copies the outgoing generation's
+`sessions` directory into the candidate before it starts, so people who were
+signed in stay signed in instead of returning to the Pocket ID login screen.
+The copy is host-side between the two generation volumes: session material
+never enters a backup repository and never crosses an environment boundary, so
+a staging reset from production starts with an empty session store. Session
+continuity is convenience state rather than an integrity control. The run
+records the copy as `session_store_preservation`, and a failure to copy is
+reported there rather than failing the release.
+
 An ordinary `19-usl-staging` release never selects a production snapshot. It
 takes an attempt-bound staging checkpoint, clones the current staging database,
 filestore, Paperless state, staging Sign material, MCP OAuth vault and reusable
