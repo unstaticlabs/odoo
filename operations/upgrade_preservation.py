@@ -15,12 +15,23 @@ SCHEMA = "usl-upgrade-preservation/v1"
 # gate refuses, the rollback restores the old icon, and the next attempt repeats
 # it forever.  The exclusion is written so a NULL res_field still evaluates, and
 # so it cannot widen to a user-uploaded document, which never carries res_field.
-EXCLUDED_ROWS = {
-    "ir_attachment": (
-        "coalesce(r.res_model, '') = 'ir.ui.menu' "
-        "AND coalesce(r.res_field, '') = 'web_icon_data'"
-    ),
-}
+def icon_attachment_predicate(alias: str = "") -> str:
+    """SQL matching the ir_attachment rows that back an application icon.
+
+    Shared with the restore controls, which count the same table: an icon that
+    changes size can move between inline storage and the filestore, or stop
+    sharing a deduplicated file with another attachment, and either shifts a
+    count that both sides must agree on.  One definition, so the two can never
+    disagree about what an icon is.
+    """
+    prefix = f"{alias}." if alias else ""
+    return (
+        f"coalesce({prefix}res_model, '') = 'ir.ui.menu' "
+        f"AND coalesce({prefix}res_field, '') = 'web_icon_data'"
+    )
+
+
+EXCLUDED_ROWS = {"ir_attachment": icon_attachment_predicate("r")}
 
 
 def _row_scope(table: str, key: str, maximum: int) -> str:
