@@ -114,10 +114,16 @@ unclear, it conflicts with something else, it needs a product decision — set
 **Changes Requested**, assign Valentin, and put the actual question in the chatter.
 One question, specific, answerable. Do not guess to keep the queue moving.
 
-**Write stage first, then state, as two separate calls.** Odoo resets `state` to
-*In Progress* whenever `stage_id` changes
-(`addons/project/models/project_task.py:429`), so a combined write silently loses
-the approval. This has to be two calls every time.
+**Write `stage_id` and `state` in a single call.** Odoo's `write()` resets `state`
+to *In Progress* **only when `stage_id` is in the values and `state` is not**
+(`addons/project/models/project_task.py:1375`,
+`elif 'stage_id' in vals and 'state' not in vals:`). Sending both together skips
+that branch and the state you set survives. Writing the stage **alone** is the
+destructive case.
+
+Do not split it into two calls "to be safe" — that writes the stage, lets the reset
+fire, and depends on a second call to repair it. If the second call fails, the
+approval is gone.
 
 ## Writing back
 

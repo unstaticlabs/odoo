@@ -74,10 +74,11 @@ becomes visible on the board, alongside the branch, the pull request, the score
 and the cumulative token cost. The board becomes a delivery board, not only an
 intake board.
 
-Anything reading or writing a card must write `stage_id` and `state` as two
-separate calls. Odoo resets `state` to *In Progress* on a stage change
-(`addons/project/models/project_task.py:429`), so a combined write silently
-discards an approval.
+Anything writing a card must set `stage_id` and `state` in the **same** call.
+Odoo's `write()` resets `state` to *In Progress* only when the stage changes and no
+state accompanies it (`addons/project/models/project_task.py:1375`); a combined
+write skips that branch, and writing the stage alone is what discards an
+approval.
 
 An unattended run needs a pre-approved permission allowlist, and read-only SSH
 access to observe deployments — the release pipeline hands off to GitLab with a
