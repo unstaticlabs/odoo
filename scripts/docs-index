@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+"""Regenerate the documentation indexes from page front matter."""
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from operations.user_docs import ROOT, write_indexes  # noqa: E402
+
+
+if __name__ == "__main__":
+    written = write_indexes()
+    for path in written:
+        print(f"wrote {path.relative_to(ROOT).as_posix()}")
+    if not written:
+        print("Documentation indexes: current")

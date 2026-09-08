@@ -1,3 +1,14 @@
+---
+title: Try the Documents application
+type: how-to
+description: Review the Paperless-backed Documents experience on a test database before relying on it.
+lang: en
+persona: everyone
+source:
+  - custom-addons/usl_documents
+generated: false
+---
+
 # Try the Documents application
 
 Use this guide to review the Paperless-backed Documents experience in a

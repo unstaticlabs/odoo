@@ -1,3 +1,14 @@
+---
+title: Process an expense
+type: how-to
+description: Capture a receipt, complete the expense, submit it and follow it to reimbursement.
+lang: en
+persona: employee
+source:
+  - custom-addons/usl_expense_batch/models/hr_expense.py
+generated: false
+---
+
 # Process an Expense
 
 1. Open the **Expenses** app, then **Expenses to Process**. The removable **Needs action** filter initially shows drafts and approved expenses that still need work. Select the **Expenses** app title whenever you want to return to **My Expenses**.
@@ -95,5 +106,5 @@ shared analytics or accounting context. Explicit line exceptions are
 preserved. Adding alone does not submit, post or pay anything; the explicit
 create-and-submit choice advances only ready Draft expenses.
 
-See [Expense Batches](../guides/expense-batches.md) for the employee, manager
+See [Expense Batches](expense-batches.md) for the employee, manager
 and accounting workflow.

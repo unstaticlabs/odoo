@@ -63,7 +63,7 @@ make rebuild                       # rebuild after image or dependency changes
 make logs SERVICE=odoo
 make stop                          # stop containers and preserve data
 make accounting-addon-tests
-make user-docs-build
+make docs-check                     # documentation structure and links
 ```
 
 Run `make help` for the complete routine development surface. Migration is
@@ -99,7 +99,8 @@ not a production recovery path or an ordinary development workflow.
 - [Pocket ID operations](docs/operations/pocket-id-sso-runbook.md)
 - [Electronic-invoice activation](docs/operations/activate-french-electronic-invoicing.md)
 - [Document renderer operations](docs/operations/document-renderer-runbook.md)
-- User guide at `/usl/user-docs` in a running distribution
+- [Documentation map](docs/README.md) and the user guide at `/usl/user-docs` in a running distribution
+- [Decision records](docs/product/decisions/README.md)
 
 ## Release identity
 

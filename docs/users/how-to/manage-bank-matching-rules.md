@@ -1,3 +1,12 @@
+---
+title: Manage bank matching rules
+type: how-to
+description: Create, order and test the rules that propose counterparts for bank transactions.
+lang: en
+persona: accountant
+generated: false
+---
+
 # Manage Bank Matching Rules
 
 Open **Accounting > Configuration > Bank Matching Rules**.

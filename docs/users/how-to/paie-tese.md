@@ -1,3 +1,14 @@
+---
+title: Enregistrer et rapprocher la paie TESE
+type: how-to
+description: Saisir le bulletin calculé par TESE, joindre les justificatifs et suivre les dettes jusqu'au règlement.
+lang: fr
+persona: accountant
+source:
+  - custom-addons/usl_tese_payroll
+generated: false
+---
+
 # Paie TESE
 
 L’application **Paie TESE** conserve dans Odoo le bulletin calculé par TESE,

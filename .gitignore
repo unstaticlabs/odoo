@@ -74,7 +74,6 @@ usl-online-dump
 /artifacts/migration/private/
 /artifacts/platform-billing-restore/
 /artifacts/release/
-/artifacts/user-docs/site/
 /output/
 /tmp/
 /.pocket-id.env

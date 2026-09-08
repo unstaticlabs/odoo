@@ -1,3 +1,14 @@
+---
+title: Roles and permissions
+type: reference
+description: Application access, the Accountant Reviewer role and the irreversible actions a role protects.
+lang: en
+persona: administrator
+source:
+  - custom-addons/usl_access_control
+generated: false
+---
+
 # Roles and Permissions
 
 ## Distribution roles and irreversible actions

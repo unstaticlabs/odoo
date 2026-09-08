@@ -1,3 +1,14 @@
+---
+title: Process content-platform payouts
+type: how-to
+description: Import a platform payout, generate its invoices and bills, and settle it against the bank.
+lang: en
+persona: finance_operator
+source:
+  - custom-addons/usl_platform_billing
+generated: false
+---
+
 # Process content-platform payouts
 
 ## Before you start

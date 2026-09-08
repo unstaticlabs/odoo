@@ -1,3 +1,14 @@
+---
+title: Export reports and the FEC
+type: how-to
+description: Download a report as PDF or XLSX with its current filters, and produce the annual FEC file.
+lang: en
+persona: accountant
+source:
+  - custom-addons/rebuild_account_migration/controllers/fec.py
+generated: false
+---
+
 # Export Reports and FEC
 
 ## PDF or XLSX

@@ -1,3 +1,14 @@
+---
+title: Generate official documents
+type: how-to
+description: Configure a company's document templates and render governed invoices, quotes and letters.
+lang: en
+persona: administrator
+source:
+  - custom-addons/usl_document_templates
+generated: false
+---
+
 # Generate official documents
 
 ## Before the first document

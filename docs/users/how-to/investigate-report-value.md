@@ -1,3 +1,12 @@
+---
+title: Investigate a report value
+type: how-to
+description: Trace a figure on a financial report back to the journal items and source documents behind it.
+lang: en
+persona: accountant
+generated: false
+---
+
 # Investigate a Report Value
 
 1. Open the canonical report from **Reporting**.

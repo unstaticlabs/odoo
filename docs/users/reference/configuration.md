@@ -1,3 +1,12 @@
+---
+title: Configuration
+type: reference
+description: "The settings Accounting managers maintain: companies, journals, taxes, fiscal years and matching."
+lang: en
+persona: administrator
+generated: false
+---
+
 # Configuration
 
 Accounting managers use **Configuration** for:

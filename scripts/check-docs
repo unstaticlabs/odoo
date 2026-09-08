@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+"""Prove the documentation is well formed and its generated indexes current.
+
+Every page under docs/users carries front matter that matches its directory,
+links only to pages and images that exist, and names sources that exist.
+Decision records are numbered without gaps. The generated indexes match what
+`scripts/docs-index` would write. `--coverage` also prints how many pages of
+each type a browser journey proves.
+"""
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from operations.user_docs import check, coverage  # noqa: E402
+
+
+if __name__ == "__main__":
+    findings = check()
+    for path, problem in findings:
+        print(f"{path}: {problem}")
+    if "--coverage" in sys.argv[1:]:
+        print("Test-backed pages by type:")
+        for page_type, (backed, total) in sorted(coverage().items()):
+            print(f"  {page_type}: {backed}/{total}")
+    if findings:
+        print(f"Documentation check: FAIL ({len(findings)} finding(s))")
+        sys.exit(1)
+    print("Documentation check: PASS")

@@ -1,3 +1,12 @@
+---
+title: Create and collect a customer invoice
+type: how-to
+description: Issue an invoice, send it, register the payment and confirm it is matched.
+lang: en
+persona: finance_operator
+generated: false
+---
+
 # Create and Collect a Customer Invoice
 
 1. Open **Customers > Invoices** and select **New**.
