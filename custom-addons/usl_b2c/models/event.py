@@ -1,3 +1,6 @@
+from collections import defaultdict
+from decimal import Decimal
+
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
@@ -9,6 +12,12 @@ from .constants import (
     ORIGINS,
     REVIEW_STATES,
     SOURCE_PROVIDERS,
+)
+
+# Writing any of these on a fulfilment event changes what the linked sale
+# lines cost, so the allocation is redone.
+COGS_ALLOCATION_TRIGGERS = frozenset(
+    {"sale_order_line_ids", "company_cogs_amount", "state", "event_date"},
 )
 
 
@@ -418,3 +427,93 @@ class B2cFulfilmentEvent(models.Model):
                 raise ValidationError(
                     self.env._("Refunded fulfilment/COGS events must be negative."),
                 )
+
+    # ------------------------------------------------------------------
+    # Cost of goods on the native sale lines
+    # ------------------------------------------------------------------
+    #
+    # A fulfilment event is what the supplier billed for shipping an order.
+    # The native sale lines it is linked to are the lines it shipped, so the
+    # event's cost is their cost of goods. Nothing else in the system knows
+    # that cost: print-on-demand products are never received into stock, so
+    # the margin module would otherwise fall back to a zero standard price and
+    # report the whole revenue as margin.
+    #
+    # The cost is spread over the linked lines in proportion to what each line
+    # earned, and by quantity when none of them earned anything. Every event
+    # touching a line takes part, so a refund or a second shipment nets out.
+
+    @api.model_create_multi
+    def create(self, values_list):
+        events = super().create(values_list)
+        events._usl_allocate_cogs()
+        return events
+
+    def write(self, values):
+        result = super().write(values)
+        if COGS_ALLOCATION_TRIGGERS.intersection(values):
+            self._usl_allocate_cogs()
+        return result
+
+    def _usl_allocate_cogs(self):
+        """Write each linked sale line's unit cost from the events that shipped it."""
+        lines = self.sale_order_line_ids
+        if not lines:
+            return
+        events = self.search([("sale_order_line_ids", "in", lines.ids)])
+        allocated = defaultdict(Decimal)
+        shipped = defaultdict(Decimal)
+        latest = {}
+        for event in events:
+            event_lines = event.sale_order_line_ids
+            cost = Decimal(str(event.company_cogs_amount))
+            weights = {line: Decimal(str(line.price_subtotal)) for line in event_lines}
+            if not any(weights.values()):
+                weights = {line: Decimal(str(line.product_uom_qty)) for line in event_lines}
+            total = sum(weights.values())
+            if not total:
+                continue
+            for line, weight in weights.items():
+                share = cost * weight / total
+                allocated[line] += share
+                if event.state != "fulfilled":
+                    continue
+                shipped[line] += share
+                if line not in latest or event.event_date > latest[line].event_date:
+                    latest[line] = event
+        shipped_unit_costs = {}
+        for line in events.sale_order_line_ids:
+            quantity = Decimal(str(line.product_uom_qty))
+            unit_cost = allocated[line] / quantity if quantity else Decimal("0")
+            shipped_unit_costs[line] = shipped[line] / quantity if quantity else Decimal("0")
+            line.write(
+                {
+                    "purchase_price": line._convert_to_sol_currency(
+                        float(unit_cost), line.company_id.currency_id,
+                    ),
+                },
+            )
+        self._usl_refresh_standard_prices(shipped_unit_costs, latest)
+
+    def _usl_refresh_standard_prices(self, unit_costs, latest):
+        """Carry the most recently shipped unit cost onto print-on-demand products.
+
+        Stocked products are valued by their receipts and manufacturing orders
+        and are left alone. A print-on-demand product has no other cost source,
+        so its standard price is what the supplier last charged to ship one
+        unit, which is what the margin on the next order should assume. A
+        refund nets out of the line it belongs to, not of the next order.
+        """
+        by_product = {}
+        for line, event in latest.items():
+            product = line.product_id
+            if product.product_tmpl_id.b2c_fulfilment_mode != "printful":
+                continue
+            current = by_product.get(product)
+            if current is None or event.event_date > current[0]:
+                by_product[product] = (event.event_date, unit_costs[line])
+        for product, (_date, unit_cost) in by_product.items():
+            price = float(unit_cost)
+            product = product.with_company(product.company_id or self.env.company)
+            if product.cost_currency_id.compare_amounts(product.standard_price, price):
+                product.write({"standard_price": price})

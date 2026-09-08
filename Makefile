@@ -1,6 +1,18 @@
 .DEFAULT_GOAL := help
 
-COMPOSE_PROJECT ?= usl-odoo-saas-19-3
+# One concept, three spellings in circulation. Accept all of them, preferring
+# Compose's own variable over the legacy ODOO_SAAS_ name, so a command copied
+# from any runbook does what it looks like it does. Without this,
+# COMPOSE_PROJECT_NAME=x make ... was silently replaced by the canonical name.
+#
+# Compose reads .env by itself but make does not, so a project persisted there
+# by `make worktree-env >> .env` would otherwise apply to `docker compose` and
+# not to `make`. Read it here as the last fallback; explicit shell variables
+# still win over the file, matching usl_cli_load_local_port_defaults.
+DOTENV_COMPOSE_PROJECT := $(strip $(shell test -f .env \
+	&& sed -n 's/^[[:space:]]*COMPOSE_PROJECT_NAME[[:space:]]*=[[:space:]]*//p' .env \
+	| tail -n 1))
+COMPOSE_PROJECT ?= $(or $(COMPOSE_PROJECT_NAME),$(ODOO_SAAS_COMPOSE_PROJECT),$(DOTENV_COMPOSE_PROJECT),usl-odoo-saas-19-3)
 export COMPOSE_PROJECT_NAME := $(COMPOSE_PROJECT)
 ODOO_DEV ?= scripts/odoo-dev
 ODOO_DEV_DB ?= odoo_dev
@@ -29,6 +41,7 @@ ACTION_RISK_RUNTIME_CANDIDATE ?= artifacts/action-risk/runtime.candidate.json
 .PHONY: action-risk-inventory action-risk-runtime product-assets french-translations
 .PHONY: expense-batch-qa-bootstrap tese-qa-bootstrap
 .PHONY: backup backup-list backup-verify restore smoke health qa-refresh recovery-cleanup-plan
+.PHONY: worktree-env dev-reclaim init-db action-risk-db
 
 help:
 	@printf '%s\n' \
@@ -36,7 +49,10 @@ help:
 	  'USL Odoo Distribution — local development' \
 	  '' \
 	  '  make doctor                         Diagnose ownership and configuration' \
+	  '  make worktree-env                   Print this checkout'"'"'s project and ports' \
 	  '  make dev                            Start the development runtime' \
+	  '  make init-db                        Create the development database' \
+	  '  make action-risk-db                 Create the tracked action-risk closure' \
 	  '  make deploy [MODULE=module_name]    Update mounted add-ons' \
 	  '  make rebuild [MODULE=module_name]   Rebuild the image, then deploy' \
 	  '  make status                         Show health and URLs' \
@@ -91,8 +107,20 @@ doctor:
 status:
 	@$(ODOO_DEV) status
 
+worktree-env:
+	@scripts/worktree-env print
+
+dev-reclaim:
+	@scripts/dev-reclaim "$(CONFIRM)"
+
 dev:
 	@$(ODOO_DEV) start
+
+init-db:
+	@$(ODOO_DEV) init-db
+
+action-risk-db:
+	@$(ODOO_DEV) action-risk-db
 
 deploy:
 	@if [ -n "$(strip $(MODULE))" ]; then $(ODOO_DEV) deploy "$(MODULE)"; else $(ODOO_DEV) deploy; fi

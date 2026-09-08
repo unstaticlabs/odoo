@@ -7,4 +7,5 @@ from . import (
     product,
     product_alias,
     native_history,
+    manufactured_cost,
 )

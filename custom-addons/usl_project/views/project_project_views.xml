@@ -16,4 +16,35 @@
             </xpath>
         </field>
     </record>
+
+    <!--
+        The Company field offers every company the user is *allowed*, but the
+        `project.project_comp_rule` record rule keys off the companies that are
+        *active* in the company switcher. Choosing an allowed-but-inactive
+        company therefore hides the project from the person who just filed it,
+        and Odoo answers the reload with a bare AccessError. Restrict the choice
+        to the active companies so a project cannot be filed out of sight.
+    -->
+    <record id="view_project_form_company_active_only" model="ir.ui.view">
+        <field name="name">project.project.form.company.active.only</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='company_id'][@groups='base.group_multi_company']" position="attributes">
+                <attribute name="domain">[('id', 'in', allowed_company_ids)]</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- The project list is multi_edit, so the same trap loses a whole selection at once. -->
+    <record id="view_project_list_company_active_only" model="ir.ui.view">
+        <field name="name">project.project.list.company.active.only</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='company_id'][@groups='base.group_multi_company']" position="attributes">
+                <attribute name="domain">[('id', 'in', allowed_company_ids)]</attribute>
+            </xpath>
+        </field>
+    </record>
 </odoo>

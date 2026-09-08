@@ -103,15 +103,37 @@ production gates to `1` after admission.
 
 ## Employee and manager recovery
 
-When confidence is insufficient, the employee chooses a sanitized candidate
-on the expense. That choice records one positive example and bounded negatives
-for the other candidates in the same email. A valid fetched PDF activates the
-host and learned pattern instance-wide.
+When confidence is insufficient, the expense names the highest-ranked
+sanitized candidate and offers one action to accept it; the full picker appears
+only when the email holds more than one candidate. That acceptance records one
+positive example and bounded negatives for the other candidates in the same
+email; links of the same learned shape are interchangeable and are never taught
+against each other. It also confirms the starting host for reuse. A valid fetched PDF additionally activates the host
+and the learned pattern instance-wide, which is what admits an unfamiliar host
+to unattended fetching.
+
+A learned pattern is evidence about which link to choose, so it is matched from
+the **Learning** state onwards, on the confirmed host, for a sender in the same
+domain family, and by decreasing strength: the same normalized signature, the
+same distinctive path template, the same subject skeleton with an overlapping
+label, and finally a label that still names the document itself. Selection
+confidence therefore counts deliberate employee choices, completed downloads
+and rejections, and never a download failure.
 
 Transient failures stay in the queue. A terminal failure preserves the email
 and expense and offers **Retry**, **Teach another link**, **Ignore**, and the
 native attachment action. A manual main receipt supersedes outstanding
 generations. Two consecutive terminal pattern failures pause that pattern.
+
+Two outcome classes are deliberately not pattern failures, because they say
+nothing about the employee's choice. An `authentication_required` outcome means
+the link was right and the provider wants a person; after two of them the
+pattern records **Requires handoff** and later expenses of that format go
+straight to the employee handoff without spending a request that the provider
+would only refuse or throttle. **Retry** clears that state for one probe, a
+success clears it, and it lapses on its own after 30 days. A dead or throttled
+link (`expired_or_forbidden`, `rate_limited`, `deadline`, browser and sidecar
+outages) only increments the pattern's unavailable counter.
 
 An authentication-required outcome offers the expense owner a manual browser
 handoff. The GET interstitial contains only the normalized starting host. Its
@@ -145,7 +167,8 @@ URL, path, query value, fingerprint, attachment name, or message text as a
 metric label.
 
 The manager views expose retrieval state and outcome, HTTP/browser mode,
-pattern confidence changes, and host success/failure counts. Operators may use
+pattern selection confidence, handoff and unavailable counts, and host
+success/failure counts. Operators may use
 read-only PostgreSQL aggregates when diagnosing queue delay:
 
 ```sql

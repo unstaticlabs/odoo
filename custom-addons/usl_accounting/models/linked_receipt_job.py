@@ -168,7 +168,7 @@ class UslMailPdfRetrieval(models.Model):
             },
         )
         if self.pattern_id:
-            self.pattern_id._register_terminal_failure()
+            self.pattern_id._register_terminal_failure(error.code)
         host = self.env["usl.mail.pdf.host"].sudo().search([("hostname", "=", self.starting_host)], limit=1)
         if host:
             host._locked()
@@ -320,6 +320,20 @@ class UslMailPdfRetrieval(models.Model):
             return
         if retrieval._has_manual_receipt():
             retrieval.write({"state": "superseded", "generation": retrieval.generation + 1})
+            return
+        if retrieval.pattern_id and not retrieval.pattern_id._should_probe_provider():
+            # This provider has already refused unattended downloads for this
+            # format.  Offer the employee handoff at once rather than spending
+            # another request that can only be throttled and refused again.
+            retrieval.write(
+                {
+                    "state": "needs_attention",
+                    "failure_code": "authentication_required",
+                    "failure_message": self.env._(
+                        _safe_fetch_failure_message("authentication_required"),
+                    ),
+                },
+            )
             return
         attempt_number = retrieval._job_attempt_number()
         running_values = {

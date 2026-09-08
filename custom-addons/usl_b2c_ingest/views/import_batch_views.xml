@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_b2c_import_batch_list" model="ir.ui.view">
+        <field name="name">b2c.import.batch.list</field>
+        <field name="model">b2c.import.batch</field>
+        <field name="arch" type="xml">
+            <list decoration-warning="blocking_issue_count &gt; 0" decoration-success="state == 'applied'">
+                <field name="name"/>
+                <field name="period_start"/>
+                <field name="period_end"/>
+                <field name="file_count" string="Files"/>
+                <field name="order_count" string="Orders"/>
+                <field name="new_order_count" string="New"/>
+                <field name="blocking_issue_count" string="To resolve"/>
+                <field name="state" widget="badge"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_b2c_import_batch_form" model="ir.ui.view">
+        <field name="name">b2c.import.batch.form</field>
+        <field name="model">b2c.import.batch</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_parse" type="object" string="Read the files"
+                            title="Read every dropped file and report what it contains. Nothing outside this batch is changed."
+                            class="btn-primary" invisible="state != 'draft'"
+                            groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_parse" type="object" string="Read again"
+                            title="Read the files again, replacing what this batch found."
+                            invisible="state not in ('parsed', 'resolved')"
+                            groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_resolve" type="object" string="Resolve products"
+                            title="Map every line to the product it sold. Nothing outside this batch is changed."
+                            class="btn-primary" invisible="state != 'parsed'"
+                            groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_resolve" type="object" string="Resolve again"
+                            title="Map the lines again after confirming a mapping or adding a product."
+                            invisible="state != 'resolved'" groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_confirm_mappings" type="object" string="Confirm mappings"
+                            title="Write the derived mappings as confirmed aliases, so the next sale of the same thing maps on its own."
+                            invisible="state != 'resolved'" groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_fetch_fulfilment" type="object" string="Read the supplier"
+                            title="Ask Printful what each order cost and when it shipped."
+                            invisible="state == 'draft'" groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_check_readiness" type="object" string="Check readiness"
+                            title="Report what would make this drop post the wrong numbers."
+                            invisible="state == 'draft'" groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_apply" type="object" string="Apply"
+                            title="Create the contacts, the canonical orders, the sales and the stock this drop describes."
+                            class="btn-primary" invisible="state != 'resolved'"
+                            confirm="This creates sales and moves stock. Apply the drop?"
+                            groups="usl_b2c.group_b2c_operator"/>
+                    <button name="action_invoice" type="object" string="Invoice"
+                            title="Invoice every sale this drop created and settle it to the channel that collected it."
+                            class="btn-primary" invisible="state != 'applied'"
+                            confirm="This posts invoices. Invoice the drop?"
+                            groups="usl_b2c.group_b2c_manager"/>
+                    <button name="action_bill_fees" type="object" string="Bill the commission"
+                            title="Bill each channel's commission for each month this drop touches."
+                            invisible="state != 'applied'"
+                            groups="usl_b2c.group_b2c_manager"/>
+                    <button name="action_correct_chart" type="object"
+                            string="Correct the chart" invisible="state == 'draft'"
+                            title="Correct every defect a B2C sale's numbers depend on, and report what changed."
+                            groups="usl_b2c.group_b2c_manager"/>
+                    <button name="action_park_destination_vat" type="object"
+                            string="Point destination VAT" invisible="state == 'draft'"
+                            title="Point every destination rate at the account the shop's registration implies."
+                            groups="usl_b2c.group_b2c_manager"/>
+                    <button name="action_retire_shadowing_positions" type="object"
+                            string="Retire shadowing positions" invisible="state == 'draft'"
+                            title="Retire the generic fiscal positions answering for countries that have one of their own."
+                            groups="usl_b2c.group_b2c_manager"/>
+                    <button name="action_settle_product_taxes" type="object"
+                            string="Settle product taxes" invisible="state == 'draft'"
+                            title="Give each product the one sales tax its kind of thing is charged at."
+                            groups="usl_b2c.group_b2c_manager"/>
+                    <button name="action_reset" type="object" string="Reset"
+                            title="Discard what this batch found and keep the dropped files."
+                            invisible="state in ('draft', 'applied')"
+                            groups="usl_b2c.group_b2c_operator"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,parsed,resolved,applied"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_sales" type="object" class="oe_stat_button"
+                                icon="fa-shopping-cart" invisible="applied_order_count == 0">
+                            <field name="applied_order_count" widget="statinfo" string="Sales"/>
+                        </button>
+                        <button name="action_open_invoices" type="object" class="oe_stat_button"
+                                icon="fa-file-text-o" invisible="not invoiced_move_ids">
+                            <field name="invoiced_move_ids" widget="statinfo" string="Invoices"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Name this drop"/></h1>
+                    </div>
+                    <group>
+                        <group string="Coverage">
+                            <field name="period_start"/>
+                            <field name="period_end"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="What was found">
+                            <field name="order_count"/>
+                            <field name="new_order_count"/>
+                            <field name="known_order_count"/>
+                            <field name="line_count"/>
+                            <field name="conflicting_count"/>
+                            <field name="mapped_line_count"/>
+                            <field name="unmapped_line_count"/>
+                            <field name="fulfilment_count"/>
+                            <field name="supplier_sales_cost"/>
+                            <field name="supplier_internal_cost"/>
+                            <field name="supplier_currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <field name="report" readonly="1" invisible="not report"/>
+                    <notebook>
+                        <page string="Files" name="files">
+                            <field name="file_ids">
+                                <list editable="bottom" decoration-danger="state == 'unreadable'">
+                                    <field name="name"/>
+                                    <field name="content" widget="binary" filename="name"/>
+                                    <field name="format_id" readonly="1"/>
+                                    <field name="provider" readonly="1"/>
+                                    <field name="row_count" readonly="1"/>
+                                    <field name="order_count" readonly="1"/>
+                                    <field name="line_count" readonly="1"/>
+                                    <field name="state" readonly="1" widget="badge"/>
+                                    <field name="note" readonly="1" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Findings" name="issues"
+                              invisible="blocking_issue_count == 0 and advisory_issue_count == 0">
+                            <field name="issue_ids" readonly="1"/>
+                        </page>
+                        <page string="Rows" name="rows" invisible="row_count == 0">
+                            <field name="row_ids" readonly="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_b2c_import_batch" model="ir.actions.act_window">
+        <field name="name">Channel Imports</field>
+        <field name="res_model">b2c.import.batch</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Drop a channel export</p>
+            <p>Add the CSV files your channels email you. Reading them changes nothing —
+               you see what they contain before anything is created.</p>
+        </field>
+    </record>
+</odoo>

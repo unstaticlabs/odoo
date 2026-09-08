@@ -420,12 +420,32 @@
       }
     },
     {
+      "action_key": "rpc:b2c.import.batch.unlink",
+      "action_name": "permanently delete b2c.import.batch",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "b2c.import.batch",
+        "operation": "unlink"
+      }
+    },
+    {
       "action_key": "rpc:b2c.order.unlink",
       "action_name": "permanently delete b2c.order",
       "classification": "protected",
       "enforcement": {
         "kind": "model_operation",
         "model": "b2c.order",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:b2c.oss.return.unlink",
+      "action_name": "permanently delete b2c.oss.return",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "b2c.oss.return",
         "operation": "unlink"
       }
     },
@@ -2081,9 +2101,7 @@
       "classification": "protected"
     }
   ],
-  "qualified_policy_digest": "463665063254ee30592f5e02e29ba71ff8aade1e5f7ca232bcb825b77dd5b181",
-  "runtime_policy_sha256": "7058f452d8fabd18d14efca5c600b131ce6bc4c1bd3311f9f35f71d10458a5b5",
-  "schema": "usl-action-risk-protected-runtime-v2",
+  "schema": "usl-action-risk-protected-runtime-v3",
   "server_actions": [
     {
       "action_key": "server_action:account.accountant_reset_to_draft_entries_action",

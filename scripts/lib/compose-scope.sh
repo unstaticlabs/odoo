@@ -9,6 +9,11 @@ if ! declare -F usl_cli_blocked >/dev/null 2>&1; then
     source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/cli-ui.sh"
 fi
 
+if ! declare -F usl_worktree_env_prefix >/dev/null 2>&1; then
+    # shellcheck source=../worktree-env
+    source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/worktree-env"
+fi
+
 usl_compose_scope_scan() {
     local project="$1"
     local repository_root="$2"
@@ -195,10 +200,17 @@ usl_verify_compose_scope() {
 
     repository_root="$(cd "$repository_root" && pwd -P)"
     if [[ -f "$repository_root/.git" && "$project" == "$canonical_project" ]]; then
+        # Naming the variables is not enough: people skip this step because
+        # picking four free ports by hand is the tedious part. Hand back a
+        # command that already carries settings derived from this checkout.
         usl_cli_blocked \
             "$purpose cannot use the canonical project from a linked worktree." \
             "The canonical project belongs exclusively to the main checkout." \
-            "Use a dedicated COMPOSE_PROJECT and non-conflicting ports for $repository_root." \
+            "Prefix the command with this worktree's own project and ports:
+  $(usl_worktree_env_prefix "$repository_root")\\
+    ${USL_CLI_BLOCKED_COMMAND:-make <target>}" \
+            "Print them at any time with: make worktree-env" \
+            "Persist them for this checkout with: make worktree-env >> .env" \
             "Run: make doctor"
         return 2
     fi

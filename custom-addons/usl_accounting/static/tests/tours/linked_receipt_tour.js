@@ -14,8 +14,8 @@ registry.category("web_tour.tours").add("usl_linked_receipt_historical_scan", {
             expectUnloadPage: true,
         },
         {
-            content: "The discovered receipt is ready for link selection",
-            trigger: ".o_form_view button[name='action_review_linked_receipt']",
+            content: "The discovered receipt is already picked and one click away",
+            trigger: ".o_form_view button[name='action_accept_linked_receipt']",
         },
     ],
 });
@@ -23,9 +23,14 @@ registry.category("web_tour.tours").add("usl_linked_receipt_historical_scan", {
 registry.category("web_tour.tours").add("usl_linked_receipt_teach_and_recover", {
     steps: () => [
         {
-            content: "The employee is asked to teach the first receipt link",
+            content: "Odoo names the link it picked instead of asking for a choice",
             trigger:
-                ".o_form_view .alert-info button[name='action_review_linked_receipt']:contains('Choose receipt link')",
+                ".o_form_view .alert-info:contains('Odoo picked Download PDF receipt on receipts.example.com')",
+        },
+        {
+            content: "The other links of the email stay one click away",
+            trigger:
+                ".o_form_view .alert-info button[name='action_review_linked_receipt']:contains('Choose another link')",
             run: "click",
         },
         {
@@ -34,9 +39,14 @@ registry.category("web_tour.tours").add("usl_linked_receipt_teach_and_recover", 
                 ".o_dialog:contains('Odoo will remember the sender, host, and link pattern across this instance') tr:has(td[name='hostname']:contains('receipts.example.com')) button[name='action_choose']",
         },
         {
-            content: "Teach the selected candidate and start the safe download",
+            content: "Close the alternatives dialog without changing the choice",
+            trigger: ".o_dialog footer button:contains('Cancel')",
+            run: "click",
+        },
+        {
+            content: "Accept the picked link and start the safe download",
             trigger:
-                ".o_dialog tr:has(td[name='hostname']:contains('receipts.example.com')) button[name='action_choose']:contains('Use this link')",
+                ".o_form_view .alert-info button[name='action_accept_linked_receipt']:contains('Download this receipt')",
             run: "click",
             expectUnloadPage: true,
         },

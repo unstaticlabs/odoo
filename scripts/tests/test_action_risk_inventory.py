@@ -59,13 +59,11 @@ class ActionRiskInventoryTestCase(unittest.TestCase):
             "schema": inventory.SURFACE_SCHEMA,
             "root_modules": ["app"],
             "country_codes": ["fr"],
-            "module_set_sha256": ZERO,
             "modules": [],
             "actions": sorted(actions, key=lambda action: action["key"]),
             "diagnostics": [],
             "discovery": "source",
         }
-        value["surface_sha256"] = inventory.surface_digest(value)
         return value
 
     @staticmethod
@@ -403,7 +401,10 @@ export class Action {
             country_codes={"fr"},
         )
 
-        self.assertEqual(before["module_set_sha256"], after["module_set_sha256"])
+        self.assertEqual(
+            inventory.module_set_digest(before),
+            inventory.module_set_digest(after),
+        )
         self.assertEqual(before["modules"], after["modules"])
 
     def test_runtime_facts_replace_approximate_rpc_and_routes(self):
@@ -790,7 +791,6 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
         )
         surface["actions"].append(server_action)
         surface["actions"].sort(key=lambda action: action["key"])
-        surface["surface_sha256"] = inventory.surface_digest(surface)
         policy["actions"][server_action["key"]] = self.entry(
             server_action,
             "operational",
@@ -814,14 +814,10 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
                 },
             ],
         )
-        self.assertEqual(
-            runtime_policy["qualified_policy_digest"],
-            inventory.qualified_policy_digest(surface, policy),
-        )
-        self.assertEqual(
-            runtime_policy["runtime_policy_sha256"],
-            inventory.runtime_policy_digest(runtime_policy),
-        )
+        # The compiled artifact records no digest of itself or of the review it
+        # came from, so an unrelated reseal leaves it byte-identical.
+        for field in inventory.RUNTIME_POLICY_DERIVED_FIELDS:
+            self.assertNotIn(field, runtime_policy)
         self.assertEqual(
             inventory.validate_runtime_policy(surface, policy, runtime_policy),
             [],
@@ -829,8 +825,15 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
 
         runtime_policy["actions"].pop()
         errors = inventory.validate_runtime_policy(surface, policy, runtime_policy)
-        self.assertTrue(any("digest mismatch" in error for error in errors), errors)
         self.assertTrue(any("stale" in error for error in errors), errors)
+
+        stale = inventory.build_runtime_policy(surface, policy)
+        stale["runtime_policy_sha256"] = ZERO
+        errors = inventory.validate_runtime_policy(surface, policy, stale)
+        self.assertTrue(
+            any("derived field" in error for error in errors),
+            errors,
+        )
 
     def test_tracked_runtime_policy_is_compact(self):
         runtime_policy = inventory.load_json(inventory.DEFAULT_RUNTIME_POLICY)
@@ -839,10 +842,8 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
             inventory.MAX_RUNTIME_POLICY_BYTES,
         )
         self.assertLessEqual(len(runtime_policy["actions"]), 1_000)
-        self.assertEqual(
-            runtime_policy["runtime_policy_sha256"],
-            inventory.runtime_policy_digest(runtime_policy),
-        )
+        for field in inventory.RUNTIME_POLICY_DERIVED_FIELDS:
+            self.assertNotIn(field, runtime_policy)
 
     def test_compiles_exact_agent_readonly_and_collaboration_allowlists(self):
         read_action = self.action("rpc:res.partner.search_read", "rpc")
@@ -883,14 +884,20 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
             ),
             [],
         )
+        for field in inventory.RUNTIME_POLICY_DERIVED_FIELDS:
+            self.assertNotIn(field, runtime_policy)
         runtime_policy["read_only_actions"].append(write_action["key"])
         errors = inventory.validate_agent_readonly_runtime_policy(
             surface,
             policy,
             runtime_policy,
         )
-        self.assertTrue(any("digest mismatch" in error for error in errors), errors)
         self.assertTrue(any("stale" in error for error in errors), errors)
+
+        stale = inventory.build_agent_readonly_runtime_policy(surface, policy)
+        stale["qualified_policy_digest"] = ZERO
+        errors = inventory.validate_agent_readonly_runtime_policy(surface, policy, stale)
+        self.assertTrue(any("derived field" in error for error in errors), errors)
 
     def test_agent_readonly_allowlist_rejects_mutating_method_names(self):
         denied_names = (
@@ -938,10 +945,8 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
             inventory.DEFAULT_AGENT_READONLY_RUNTIME_POLICY.stat().st_size,
             inventory.MAX_AGENT_READONLY_RUNTIME_POLICY_BYTES,
         )
-        self.assertEqual(
-            runtime_policy["runtime_policy_sha256"],
-            inventory.runtime_policy_digest(runtime_policy),
-        )
+        for field in inventory.RUNTIME_POLICY_DERIVED_FIELDS:
+            self.assertNotIn(field, runtime_policy)
         read_actions = set(runtime_policy["read_only_actions"])
         for action_key in inventory.AGENT_READONLY_EXPLICIT_ACTIONS:
             self.assertIn(action_key, read_actions)
@@ -991,10 +996,11 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
         sealed_policy = inventory.load_json(policy_path)
         runtime_policy = inventory.load_json(runtime_path)
         agent_runtime_policy = inventory.load_json(agent_runtime_path)
-        self.assertEqual(
-            sealed_policy["qualified_policy_digest"],
-            inventory.qualified_policy_digest(surface, sealed_policy),
-        )
+        sealed_surface = inventory.load_json(surface_path)
+        for field in inventory.POLICY_DERIVED_FIELDS:
+            self.assertNotIn(field, sealed_policy)
+        for field in inventory.SURFACE_DERIVED_FIELDS:
+            self.assertNotIn(field, sealed_surface)
         self.assertEqual(
             inventory.validate_runtime_policy(
                 surface,

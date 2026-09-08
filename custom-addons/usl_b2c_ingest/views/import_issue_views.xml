@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_b2c_import_issue_list" model="ir.ui.view">
+        <field name="name">b2c.import.issue.list</field>
+        <field name="model">b2c.import.issue</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="severity == 'blocking'" decoration-warning="severity == 'advisory'">
+                <field name="severity" widget="badge"/>
+                <field name="kind"/>
+                <field name="name"/>
+                <field name="external_order_id" optional="show"/>
+                <field name="note" optional="show"/>
+                <field name="row_id" optional="hide"/>
+                <field name="proposed_value" optional="show"
+                       readonly="kind != 'missing_variant'"/>
+                <button name="action_add_missing_value" type="object" icon="fa-plus"
+                        title="Add this value to the product's attribute and resolve again"
+                        invisible="kind != 'missing_variant'"
+                        groups="usl_b2c.group_b2c_manager"/>
+                <button name="action_supersede_duplicate" type="object" icon="fa-compress"
+                        title="Keep the fuller of the two records of this sale and retire the other"
+                        invisible="kind != 'duplicate_order'"
+                        groups="usl_b2c.group_b2c_manager"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_b2c_import_issue" model="ir.actions.act_window">
+        <field name="name">Import Findings</field>
+        <field name="res_model">b2c.import.issue</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

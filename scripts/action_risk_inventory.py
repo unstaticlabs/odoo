@@ -46,11 +46,18 @@ DEFAULT_AGENT_READONLY_RUNTIME_POLICY = (
     / "policy"
     / "agent_readonly_runtime_policy.json"
 )
-SURFACE_SCHEMA = "usl-action-risk-surface-v1"
-POLICY_SCHEMA = "usl-action-risk-policy-v1"
+SURFACE_SCHEMA = "usl-action-risk-surface-v2"
+POLICY_SCHEMA = "usl-action-risk-policy-v2"
 RUNTIME_SCHEMA = "usl-action-risk-runtime-v1"
-RUNTIME_POLICY_SCHEMA = "usl-action-risk-protected-runtime-v2"
-AGENT_READONLY_RUNTIME_POLICY_SCHEMA = "usl-agent-access-runtime-v2"
+RUNTIME_POLICY_SCHEMA = "usl-action-risk-protected-runtime-v3"
+AGENT_READONLY_RUNTIME_POLICY_SCHEMA = "usl-agent-access-runtime-v3"
+# No delivered artifact records a digest of itself or of another artifact in the
+# same tree. Every consumer recomputes them. Storing one made a summary line that
+# every reseal rewrites, so two branches touching unrelated modules contended for
+# it and conflicted although neither had read the other's actions.
+SURFACE_DERIVED_FIELDS = ("module_set_sha256", "surface_sha256")
+POLICY_DERIVED_FIELDS = ("qualified_policy_digest",)
+RUNTIME_POLICY_DERIVED_FIELDS = ("qualified_policy_digest", "runtime_policy_sha256")
 MAX_RUNTIME_POLICY_BYTES = 512 * 1024
 MAX_AGENT_READONLY_RUNTIME_POLICY_BYTES = 4 * 1024 * 1024
 CLASSIFICATIONS = frozenset(
@@ -80,6 +87,7 @@ AGENT_COLLABORATION_METHODS = frozenset(
         "action_feedback_schedule_next",
         "activity_schedule",
         "mcp_create_download_grant",
+        "mcp_revise_own_message",
         "mcp_revoke_download_grant",
         "message_post",
         "message_subscribe",
@@ -132,6 +140,7 @@ PRODUCT_MODULES = frozenset(
         "usl_access_control",
         "usl_accounting",
         "usl_b2c",
+        "usl_b2c_ingest",
         "usl_documents",
         "usl_documents_accounting",
         "usl_documents_b2c",
@@ -289,24 +298,25 @@ def qualified_policy_digest(
     surface: Mapping[str, object],
     policy: Mapping[str, object],
 ) -> str:
-    """Hash the complete surface and policy with the policy's self-digest removed."""
+    """Hash the complete reviewed surface and policy.
 
-    action_policy = copy.deepcopy(dict(policy))
-    action_policy.pop("qualified_policy_digest", None)
+    No artifact stores a digest of itself. Every consumer recomputes this from
+    the delivered content, so a reseal in one module leaves every byte another
+    module owns untouched and two branches never contend for a summary line.
+    """
+
     return sha256_json(
         {
-            "action_policy": action_policy,
+            "action_policy": dict(policy),
             "action_surface": dict(surface),
         },
     )
 
 
 def runtime_policy_digest(runtime_policy: Mapping[str, object]) -> str:
-    """Hash the compact enforcement artifact without its self-digest."""
+    """Hash the compact enforcement artifact."""
 
-    payload = copy.deepcopy(dict(runtime_policy))
-    payload.pop("runtime_policy_sha256", None)
-    return sha256_json(payload)
+    return sha256_json(dict(runtime_policy))
 
 
 def build_runtime_policy(
@@ -342,14 +352,11 @@ def build_runtime_policy(
         if enforcement is not None:
             runtime_entry["enforcement"] = enforcement
         actions.append(runtime_entry)
-    result: dict[str, object] = {
+    return {
         "actions": actions,
-        "qualified_policy_digest": qualified_policy_digest(surface, policy),
         "schema": RUNTIME_POLICY_SCHEMA,
         "server_actions": server_actions,
     }
-    result["runtime_policy_sha256"] = runtime_policy_digest(result)
-    return result
 
 
 def build_agent_readonly_runtime_policy(
@@ -382,15 +389,12 @@ def build_agent_readonly_runtime_policy(
             continue
         if entry.get("classification") in {"operational", "recoverable"}:
             write_actions.append(action_key)
-    result: dict[str, object] = {
+    return {
         "collaboration_actions": collaboration_actions,
-        "qualified_policy_digest": qualified_policy_digest(surface, policy),
         "read_only_actions": read_only_actions,
         "schema": AGENT_READONLY_RUNTIME_POLICY_SCHEMA,
         "write_actions": write_actions,
     }
-    result["runtime_policy_sha256"] = runtime_policy_digest(result)
-    return result
 
 
 def validate_agent_readonly_runtime_policy(
@@ -412,13 +416,13 @@ def validate_agent_readonly_runtime_policy(
             "Agent read-only runtime policy schema must be "
             f"{AGENT_READONLY_RUNTIME_POLICY_SCHEMA}.",
         )
-    recorded_digest = runtime_policy.get("runtime_policy_sha256")
-    computed_digest = runtime_policy_digest(runtime_policy)
-    if recorded_digest != computed_digest:
-        errors.append(
-            "Agent read-only runtime policy digest mismatch: "
-            f"recorded {recorded_digest!r}, computed {computed_digest}.",
-        )
+    errors.extend(
+        _derived_field_errors(
+            "Agent read-only runtime policy",
+            runtime_policy,
+            RUNTIME_POLICY_DERIVED_FIELDS,
+        ),
+    )
     try:
         expected = build_agent_readonly_runtime_policy(surface, policy)
     except InventoryError as error:
@@ -448,13 +452,13 @@ def validate_runtime_policy(
         )
     if runtime_policy.get("schema") != RUNTIME_POLICY_SCHEMA:
         errors.append(f"Runtime policy schema must be {RUNTIME_POLICY_SCHEMA}.")
-    recorded_digest = runtime_policy.get("runtime_policy_sha256")
-    computed_digest = runtime_policy_digest(runtime_policy)
-    if recorded_digest != computed_digest:
-        errors.append(
-            "Runtime policy digest mismatch: "
-            f"recorded {recorded_digest!r}, computed {computed_digest}.",
-        )
+    errors.extend(
+        _derived_field_errors(
+            "Protected runtime policy",
+            runtime_policy,
+            RUNTIME_POLICY_DERIVED_FIELDS,
+        ),
+    )
     try:
         expected = build_runtime_policy(surface, policy)
     except InventoryError as error:
@@ -469,9 +473,41 @@ def validate_runtime_policy(
 
 
 def surface_digest(surface: Mapping[str, object]) -> str:
-    payload = copy.deepcopy(dict(surface))
-    payload.pop("surface_sha256", None)
-    return sha256_json(payload)
+    return sha256_json(dict(surface))
+
+
+def _derived_field_errors(
+    label: str,
+    payload: Mapping[str, object],
+    fields: tuple[str, ...],
+) -> list[str]:
+    """Refuse an artifact that carries a value it should have recomputed."""
+
+    return [
+        f"{label} must not record the derived field {field!r}; every consumer "
+        "recomputes it, and storing it makes unrelated branches conflict."
+        for field in fields
+        if field in payload
+    ]
+
+
+def module_set_digest(surface: Mapping[str, object]) -> str:
+    """Identify the exact delivered module set from the surface's own entries."""
+
+    modules = surface.get("modules")
+    if not isinstance(modules, list):
+        return ""
+    return sha256_json(
+        [
+            {
+                "manifest_sha256": module.get("manifest_sha256"),
+                "name": module.get("name"),
+                "source_sha256": module.get("source_sha256"),
+                "version": module.get("version"),
+            }
+            for module in modules
+        ],
+    )
 
 
 def _no_duplicate_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -1758,29 +1794,15 @@ def discover_surface(
     if runtime is not None:
         actions = _merge_runtime(actions, runtime)
     _sink_parent_rewrite(actions)
-    module_set_sha256 = sha256_json(
-        [
-            {
-                "manifest_sha256": module["manifest_sha256"],
-                "name": module["name"],
-                "source_sha256": module["source_sha256"],
-                "version": module["version"],
-            }
-            for module in module_entries
-        ],
-    )
-    surface: dict[str, object] = {
+    return {
         "schema": SURFACE_SCHEMA,
         "root_modules": requested_roots,
-        "module_set_sha256": module_set_sha256,
         "modules": module_entries,
         "actions": actions,
         "diagnostics": sorted(set(diagnostics)),
         "discovery": "runtime+source" if runtime is not None else "source",
         "country_codes": sorted({code.lower() for code in country_codes}),
     }
-    surface["surface_sha256"] = surface_digest(surface)
-    return surface
 
 
 def _action_map(
@@ -1900,12 +1922,8 @@ def validate_inventory(
         errors.append(f"Surface schema must be {SURFACE_SCHEMA}.")
     if policy.get("schema") != POLICY_SCHEMA:
         errors.append(f"Policy schema must be {POLICY_SCHEMA}.")
-    expected_surface_digest = surface_digest(surface)
-    if surface.get("surface_sha256") != expected_surface_digest:
-        errors.append(
-            "Surface digest mismatch: "
-            f"recorded {surface.get('surface_sha256')!r}, computed {expected_surface_digest}.",
-        )
+    errors.extend(_derived_field_errors("Surface", surface, SURFACE_DERIVED_FIELDS))
+    errors.extend(_derived_field_errors("Policy", policy, POLICY_DERIVED_FIELDS))
     diagnostics = surface.get("diagnostics", [])
     if not isinstance(diagnostics, list):
         errors.append("Surface diagnostics must be a list.")
@@ -2075,13 +2093,6 @@ def validate_inventory(
         if action.get("kind") == "guard" and classification != "protected":
             errors.append(f"Guard action {key} must be protected.")
 
-    expected_qualified = qualified_policy_digest(surface, policy)
-    recorded_qualified = policy.get("qualified_policy_digest")
-    if recorded_qualified is not None and recorded_qualified != expected_qualified:
-        errors.append(
-            "Qualified policy digest mismatch: "
-            f"recorded {recorded_qualified!r}, computed {expected_qualified}.",
-        )
     return errors
 
 
@@ -2177,10 +2188,12 @@ def compare_surfaces(
         return comparable
 
     errors: list[str] = []
-    if expected.get("module_set_sha256") != candidate.get("module_set_sha256"):
+    expected_module_set = module_set_digest(expected)
+    candidate_module_set = module_set_digest(candidate)
+    if expected_module_set != candidate_module_set:
         errors.append(
             "Installed module set changed: "
-            f"{expected.get('module_set_sha256')} -> {candidate.get('module_set_sha256')}.",
+            f"{expected_module_set} -> {candidate_module_set}.",
         )
     expected_modules = {
         module.get("name"): module
@@ -2460,10 +2473,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "refresh":
             candidate = load_json(args.candidate)
             policy = load_json(args.policy)
-            policy["qualified_policy_digest"] = qualified_policy_digest(
-                candidate,
-                policy,
-            )
             errors = validate_inventory(candidate, policy)
             if errors:
                 return _print_errors("Action-risk refresh", errors)
@@ -2493,7 +2502,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(
                 "Protected runtime policy compiled: "
                 f"{len(runtime_policy['actions'])} actions, "
-                f"{runtime_policy['runtime_policy_sha256']}",
+                f"digest {runtime_policy_digest(runtime_policy)}",
             )
             return 0
         if args.command == "compile-agent-readonly-runtime-policy":
@@ -2508,7 +2517,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "Agent read-only runtime policy compiled: "
                 f"{len(runtime_policy['read_only_actions'])} reads, "
                 f"{len(runtime_policy['collaboration_actions'])} collaboration actions, "
-                f"{runtime_policy['runtime_policy_sha256']}",
+                f"digest {runtime_policy_digest(runtime_policy)}",
             )
             return 0
         if args.command == "digest":

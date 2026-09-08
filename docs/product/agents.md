@@ -62,6 +62,34 @@ normal Chatter notifications, and short-lived Documents download grants.
 Direct writes to messages, activities, followers, mail queues or grants remain
 blocked.
 
+One narrow repair belongs to that list. A Chatter body is stored as HTML, so an
+Agent that sends markup without declaring it stores escaped tags that readers
+see as characters, and the ordinary write path cannot correct them.
+`mcp_revise_own_message` lets an identity rewrite the body of a comment or note
+it posted itself, on a record it can still read, within a day of posting.
+Odoo marks the message edited, the audit trail keeps the original body, and
+everything else -- another author's message, a tracking message, a message on a
+different record, an older one -- is refused. Rewriting history is not the
+point; correcting your own fresh mistake is.
+
+Some product steps are decisions rather than data entry: a person puts their
+name to a judgement that will be read later by a reviewer or an auditor.
+Continuing an expense without a receipt is one of them, and an Agent is refused
+it by default. An owner who is willing to answer for what their Agent decides
+can turn on **May record receipt decisions** on the Agent, under **Decisions
+this Agent may record on your behalf**. The permission is granted per Agent,
+requires write access to Expenses, is withdrawn automatically with that access,
+and cannot be granted by the Agent itself -- Agents cannot see Agent records at
+all.
+
+The permission relaxes the refusal into a confirmation, never into a silent
+write. The first call records nothing and returns the exact decision -- the
+expense, employee, amount, category and written reason -- with an instruction
+to put it in front of the employee or an Expense Manager. Only a second call
+carrying `agent_confirmed=True` records it, and the Chatter note then names the
+Agent, the owner whose authority it used, and the reason, so the decision reads
+as attributable as a person's own.
+
 Credential values and secret-bearing models or fields remain hidden even when
 Settings is visible. Agents can inspect safe configuration identity, status,
 expiry, digest and health metadata, but not passwords, private keys, API/OAuth

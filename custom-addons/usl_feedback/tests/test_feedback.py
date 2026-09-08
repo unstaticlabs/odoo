@@ -10,6 +10,7 @@ from odoo.modules.module import get_module_path
 from odoo.tests import TransactionCase, new_test_user, tagged
 from odoo.tools.mail import html2plaintext
 
+from odoo.addons.usl_feedback.models.project_task import IDENTITY_MARKER
 from odoo.addons.usl_feedback.services import (
     FALLBACK_MODEL,
     VISION_MODEL,
@@ -708,6 +709,115 @@ class TestProductFeedback(TransactionCase):
             same_name,
             self.env["project.tags"].with_user(self.agent).search([("name", "=", "Bug")]),
         )
+
+    def _direct(self, user=None, values=None):
+        user = user or self.maintainer
+        return (
+            self.env["project.task"]
+            .with_user(user)
+            .with_context(usl_feedback_direct_create=True)
+            .create(values or {"name": "Batch export presets"})
+        )
+
+    def test_maintainer_opens_an_icebox_card_without_the_assistant(self):
+        icebox = self.env.ref("usl_feedback.stage_feedback_declined")
+        with patch.dict("os.environ", {"USL_RELEASE_COMMIT": RELEASE_SHA}):
+            task = self._direct(
+                values={
+                    "name": "Batch export presets",
+                    "description": "<p>Parked until the export rewrite lands.</p>",
+                    "stage_id": icebox.id,
+                    "usl_feedback_category": "ux",
+                    "priority": "1",
+                },
+            )
+        self.assertEqual(task.project_id, self.project)
+        self.assertEqual(task.stage_id, icebox)
+        self.assertEqual(task.usl_feedback_reporter_id, self.maintainer)
+        self.assertEqual(task.usl_feedback_company_id, self.company_a)
+        self.assertFalse(task.company_id)
+        self.assertEqual(task.usl_feedback_category, "ux")
+        self.assertEqual(task.usl_feedback_agent_state, "triaged")
+        self.assertEqual(task.usl_feedback_release_sha, RELEASE_SHA)
+        self.assertFalse(task.usl_feedback_context_included)
+        self.assertIn("Parked until the export rewrite lands.", task.description)
+        self.assertIn(RELEASE_SHA, task.description)
+        # No assistant conversation is started for a card the product team wrote.
+        self.assertFalse(
+            self.env["usl.feedback.agent.run"].sudo().search([("task_id", "=", task.id)]),
+        )
+        self.assertIn(
+            task,
+            self.env["project.task"].with_user(self.maintainer).search(
+                [("project_id.usl_feedback_project", "=", True)],
+            ),
+        )
+
+    def test_direct_card_created_from_a_title_alone_still_lands_on_the_board(self):
+        task = self._direct(values={"name": "Keyboard shortcut for triage"})
+        self.assertEqual(task.project_id, self.project)
+        self.assertEqual(task.stage_id, self.env.ref("usl_feedback.stage_feedback_new"))
+        self.assertEqual(task.usl_feedback_reporter_id, self.maintainer)
+        self.assertEqual(task.usl_feedback_category, "improvement")
+        self.assertEqual(task.usl_feedback_agent_state, "triaged")
+        defaults = (
+            self.env["project.task"]
+            .with_user(self.maintainer)
+            .with_context(usl_feedback_direct_create=True)
+            .default_get(
+                [
+                    "project_id",
+                    "stage_id",
+                    "usl_feedback_reporter_id",
+                    "usl_feedback_category",
+                    "usl_feedback_agent_state",
+                ],
+            )
+        )
+        self.assertEqual(defaults["project_id"], self.project.id)
+        self.assertEqual(defaults["stage_id"], self.env.ref("usl_feedback.stage_feedback_new").id)
+        self.assertEqual(defaults["usl_feedback_reporter_id"], self.maintainer.id)
+        self.assertEqual(defaults["usl_feedback_category"], "improvement")
+        self.assertEqual(defaults["usl_feedback_agent_state"], "triaged")
+
+    def test_direct_create_cannot_be_forged_by_reporters_or_project_managers(self):
+        for user in (self.reporter, self.project_manager):
+            with self.subTest(user=user.login), self.assertRaises(AccessError):
+                self._direct(user=user, values={"name": "Forged direct card"})
+        self.assertFalse(
+            self.env["project.task"].sudo().search([("name", "=", "Forged direct card")]),
+        )
+
+    def test_direct_create_ignores_forged_reporter_company_and_assistant_state(self):
+        task = self._direct(
+            values={
+                "name": "Forged metadata",
+                "usl_feedback_reporter_id": self.reporter.id,
+                "usl_feedback_company_id": self.company_b.id,
+                "usl_feedback_agent_state": "waiting",
+                "usl_feedback_release_sha": "b" * 40,
+                "usl_feedback_context_included": True,
+                "usl_feedback_source_res_id": 42,
+                "company_id": self.company_a.id,
+            },
+        )
+        self.assertEqual(task.usl_feedback_reporter_id, self.maintainer)
+        self.assertEqual(task.usl_feedback_company_id, self.company_a)
+        self.assertEqual(task.usl_feedback_agent_state, "triaged")
+        self.assertNotEqual(task.usl_feedback_release_sha, "b" * 40)
+        self.assertFalse(task.usl_feedback_context_included)
+        self.assertFalse(task.company_id)
+
+    def test_ordinary_task_creation_is_untouched_by_the_direct_create_context(self):
+        regular = self.env["project.project"].sudo().create({"name": "Unrelated board"})
+        task = (
+            self.env["project.task"]
+            .with_user(self.project_manager)
+            .create({"name": "Ordinary task", "project_id": regular.id})
+        )
+        self.assertFalse(task.usl_feedback_reporter_id)
+        self.assertFalse(task.usl_feedback_agent_state)
+        self.assertNotIn(IDENTITY_MARKER, task.description or "")
 
     def test_maintainer_operates_and_service_identity_is_strictly_read_only(self):
         task, _payload = self._submit()

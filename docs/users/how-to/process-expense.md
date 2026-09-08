@@ -12,10 +12,13 @@
    submission, approval and posting until you either attach it or record a
    documented decision to continue without it (see below).
 5. When an emailed receipt contains a PDF link instead of an attachment, open
-   the expense. For an unfamiliar email format, choose **Choose receipt link**
-   and select the sanitized option that describes the receipt. Your choice
-   teaches the instance-wide matcher; later confident matches download in the
-   background. The signed link is not exposed or saved elsewhere.
+   the expense. Odoo already names the link it picked, so for an unfamiliar
+   email format select **Download this receipt**; **Choose another link**
+   appears only when the email holds more than one. Your choice teaches the
+   instance-wide matcher; later emails of that format are downloaded for you
+   without any prompt, even when the provider reworded its subject or the
+   download itself still needs your login. The signed link is not exposed or
+   saved elsewhere.
 6. If the company may already have paid the expense, select **Find bank
    transactions** before posting. Review the amount, date, journal, label,
    partner and the plain-language facts shown for each suggestion.
@@ -46,7 +49,9 @@ the expense keeps the original email and offers **Retry**, **Teach another
 link**, **Ignore**, and the normal receipt attachment action. Attach the PDF
 manually whenever the choices are ambiguous. If the provider requires login,
 select **Open receipt website**, review the displayed host, and continue in the
-new browser tab. Sign in with the provider, download the PDF, return to the
+new browser tab. Once a provider has asked for a login twice, later expenses of
+that format offer that button straight away instead of retrying a download that
+cannot finish. Sign in with the provider, download the PDF, return to the
 expense, and select **Attach downloaded receipt**. Odoo never receives or
 stores your provider password, verification code, cookies, or browser session.
 The manual receipt immediately supersedes pending downloads.
@@ -62,6 +67,13 @@ expense can then be submitted, approved and posted; the reviewer sees the
 decision, the **Receipt waived** filter lists such expenses, and the Accounting
 overview and hygiene checks no longer count them as missing evidence. Attach
 the receipt if it turns up later, or clear the reason to withdraw the decision.
+
+An Agent cannot take this decision on its own; it is asked to bring it to you
+or to an Expense Manager. If you own an Agent and are willing to answer for
+what it decides, you can allow it on the Agent itself under **Decisions this
+Agent may record on your behalf**. Even then it must show you the expense,
+amount, category and reason first and confirm afterwards, and the recorded
+decision names both the Agent and you.
 
 If the active company has no employee profile, ask an administrator to open
 your user under **Settings > Users & Companies > Users**, enable **Expenses in

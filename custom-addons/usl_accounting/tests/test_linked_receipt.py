@@ -3,7 +3,7 @@ import hashlib
 import json
 from unittest.mock import patch
 
-from odoo import Command
+from odoo import Command, fields
 from odoo.addons.queue_job.exception import RetryableJobError
 from odoo.addons.queue_job.job import Job
 from odoo.exceptions import AccessError, UserError
@@ -12,8 +12,10 @@ from odoo.tests import tagged
 from odoo.addons.hr_expense.tests.common import TestExpenseCommon
 
 from ..models.linked_receipt import (
+    HANDOFF_REPROBE_DAYS,
     ReceiptFetchError,
     _LINKED_RECEIPT_INTERNAL,
+    _related_sender_domains,
     _safe_fetch_failure_message,
     _safe_filename,
     _safe_redirect_evidence,
@@ -924,6 +926,262 @@ class TestLinkedReceipt(TestExpenseCommon):
 
         self.assertLess(retrieval.pattern_id.confidence, 0.60)
         self.assertFalse(rematch["pattern_id"])
+
+    def _teach_first_uber_email(self, *, token, failure_code=None):
+        """Teach one link, then optionally record how the provider answered."""
+        expense = self._ingest(token=token)
+        retrieval = self.env["usl.mail.pdf.retrieval"].sudo().search(
+            [("expense_id", "=", expense.id)],
+        )
+        candidate = retrieval._extract_candidates(retrieval.source_message_id)[0]
+        retrieval.with_user(self.expense_user_employee)._select_candidate(
+            candidate["fingerprint"],
+            teach=True,
+        )
+        if failure_code:
+            retrieval._register_terminal_failure(
+                ReceiptFetchError(
+                    failure_code,
+                    _safe_fetch_failure_message(failure_code),
+                ),
+            )
+        return expense, retrieval, candidate
+
+    def test_taught_link_is_reused_when_the_provider_requires_a_login(self):
+        _first, first_retrieval, _candidate = self._teach_first_uber_email(
+            token="uber-login-first",
+            failure_code="authentication_required",
+        )
+
+        second = self._ingest(token="uber-login-second")
+
+        retrieval = self.env["usl.mail.pdf.retrieval"].sudo().search(
+            [("expense_id", "=", second.id)],
+        )
+        self.assertEqual(retrieval.state, "queued")
+        self.assertTrue(retrieval.selected_fingerprint)
+        self.assertEqual(retrieval.pattern_id, first_retrieval.pattern_id)
+        self.assertEqual(second.linked_receipt_state, "queued")
+
+    def test_login_outcome_is_not_evidence_against_the_learned_pattern(self):
+        _expense, retrieval, _candidate = self._teach_first_uber_email(
+            token="uber-login-evidence",
+            failure_code="authentication_required",
+        )
+
+        pattern = retrieval.pattern_id
+        self.assertEqual(pattern.state, "learning")
+        self.assertEqual(pattern.failure_count, 0)
+        self.assertEqual(pattern.consecutive_failure_count, 0)
+        self.assertEqual(pattern.handoff_count, 1)
+        self.assertEqual(pattern.selection_confidence, 1.0)
+        self.assertFalse(pattern.requires_handoff)
+
+    def test_dead_signed_link_is_not_evidence_against_the_learned_pattern(self):
+        _expense, retrieval, _candidate = self._teach_first_uber_email(
+            token="uber-expired-link",
+            failure_code="expired_or_forbidden",
+        )
+        retrieval._register_terminal_failure(
+            ReceiptFetchError("expired_or_forbidden", "expired"),
+        )
+
+        pattern = retrieval.pattern_id
+        self.assertEqual(pattern.state, "learning")
+        self.assertEqual(pattern.failure_count, 0)
+        self.assertEqual(pattern.unavailable_count, 2)
+        self.assertEqual(pattern.selection_confidence, 1.0)
+
+    def test_repeated_login_outcomes_stop_paying_the_provider_a_request(self):
+        _expense, retrieval, _candidate = self._teach_first_uber_email(
+            token="uber-login-learned",
+            failure_code="authentication_required",
+        )
+        retrieval._register_terminal_failure(
+            ReceiptFetchError("authentication_required", "sign in"),
+        )
+        self.assertTrue(retrieval.pattern_id.requires_handoff)
+
+        second = self._ingest(token="uber-login-learned-second")
+        second_retrieval = self.env["usl.mail.pdf.retrieval"].sudo().search(
+            [("expense_id", "=", second.id)],
+        )
+        with patch.object(
+            type(second_retrieval), "_feature_enabled", return_value=True,
+        ), patch.object(
+            type(second_retrieval), "_fetcher_request",
+        ) as fetch:
+            second_retrieval._job_fetch_receipt()
+
+        fetch.assert_not_called()
+        self.assertEqual(second_retrieval.state, "needs_attention")
+        self.assertEqual(second_retrieval.failure_code, "authentication_required")
+        self.assertTrue(second.linked_receipt_authentication_required)
+
+    def test_explicit_retry_probes_a_provider_that_learned_a_handoff(self):
+        _expense, retrieval, _candidate = self._teach_first_uber_email(
+            token="uber-login-retry",
+            failure_code="authentication_required",
+        )
+        retrieval._register_terminal_failure(
+            ReceiptFetchError("authentication_required", "sign in"),
+        )
+        self.assertTrue(retrieval.pattern_id.requires_handoff)
+
+        with patch.object(type(retrieval), "_enqueue") as enqueue:
+            retrieval.with_user(self.expense_user_employee).action_retry()
+
+        enqueue.assert_called_once()
+        self.assertFalse(retrieval.pattern_id.requires_handoff)
+        self.assertEqual(retrieval.pattern_id.consecutive_handoff_count, 0)
+
+    def test_learned_handoff_is_probed_again_after_the_reprobe_delay(self):
+        _expense, retrieval, _candidate = self._teach_first_uber_email(
+            token="uber-login-reprobe",
+            failure_code="authentication_required",
+        )
+        retrieval._register_terminal_failure(
+            ReceiptFetchError("authentication_required", "sign in"),
+        )
+        pattern = retrieval.pattern_id
+
+        self.assertFalse(pattern._should_probe_provider())
+        pattern.with_context(
+            linked_receipt_internal=_LINKED_RECEIPT_INTERNAL,
+        ).write(
+            {
+                "handoff_learned_at": fields.Datetime.subtract(
+                    fields.Datetime.now(), days=HANDOFF_REPROBE_DAYS + 1,
+                ),
+            },
+        )
+        self.assertTrue(pattern._should_probe_provider())
+
+    def test_teaching_one_of_two_identical_shapes_does_not_teach_against_itself(self):
+        expense = self._ingest(
+            token="duplicate-shape-teaching",
+            extra_link=(
+                '<a href="https://receipts.example.com/trips/'
+                '11114444aaaa8888/download?token=second-secret&amp;locale=en">'
+                "Download PDF receipt</a>"
+            ),
+        )
+        retrieval = self.env["usl.mail.pdf.retrieval"].sudo().search(
+            [("expense_id", "=", expense.id)],
+        )
+        candidates = retrieval._extract_candidates(retrieval.source_message_id)
+        self.assertEqual(
+            candidates[0]["signature"], candidates[1]["signature"],
+        )
+
+        retrieval.with_user(self.expense_user_employee)._select_candidate(
+            candidates[0]["fingerprint"],
+            teach=True,
+        )
+
+        self.assertEqual(retrieval.pattern_id.positive_count, 1)
+        self.assertEqual(retrieval.pattern_id.negative_count, 0)
+        self.assertEqual(retrieval.pattern_id.selection_confidence, 1.0)
+
+    def test_duplicate_shaped_links_do_not_look_like_an_ambiguous_choice(self):
+        self._teach_first_uber_email(
+            token="duplicate-shape-first",
+            failure_code="authentication_required",
+        )
+
+        second = self._ingest(
+            token="duplicate-shape-second",
+            extra_link=(
+                '<a href="https://receipts.example.com/trips/'
+                '22225555bbbb9999/download?token=third-secret&amp;locale=en">'
+                "Download PDF receipt</a>"
+            ),
+        )
+
+        retrieval = self.env["usl.mail.pdf.retrieval"].sudo().search(
+            [("expense_id", "=", second.id)],
+        )
+        self.assertEqual(retrieval.state, "queued")
+        self.assertTrue(retrieval.selected_fingerprint)
+
+    def test_learned_pattern_survives_a_reworded_subject_and_sender_subdomain(self):
+        _expense, retrieval, _candidate = self._teach_first_uber_email(
+            token="uber-reworded",
+            failure_code="authentication_required",
+        )
+        learned_domain = retrieval.pattern_id.sender_domain
+        self.assertTrue(learned_domain)
+        reworded = self.env["mail.message"].sudo().create(
+            {
+                "subject": f"{self.product_c.default_code} Uber ride EUR 31.00",
+                "email_from": f"receipts@mail.{learned_domain}",
+                "body": (
+                    '<a href="https://receipts.example.com/trips/'
+                    'cccc7777dddd6666/download?token=reworded-secret">'
+                    "Download PDF receipt</a>"
+                ),
+                "message_type": "email",
+            },
+        )
+
+        matched = retrieval._extract_candidates(reworded)[0]
+
+        self.assertEqual(matched["pattern_id"], retrieval.pattern_id.id)
+        self.assertTrue(matched["host_confirmed"])
+        self.assertFalse(matched["host_active"])
+
+    def test_unrelated_sender_on_a_shared_public_suffix_is_not_a_relative(self):
+        self.assertTrue(_related_sender_domains("uber.com", "email.uber.com"))
+        self.assertTrue(_related_sender_domains("email.uber.com", "uber.com"))
+        self.assertFalse(_related_sender_domains("shop.co.uk", "attacker.co.uk"))
+        self.assertFalse(_related_sender_domains("uber.com", "uber.com.evil.test"))
+        self.assertFalse(_related_sender_domains("uber.com", ""))
+
+    def test_single_link_email_needs_no_picker(self):
+        expense = self._ingest(token="single-link-suggestion")
+
+        self.assertEqual(expense.linked_receipt_state, "selection_required")
+        self.assertEqual(
+            expense.linked_receipt_suggested_label, "Download PDF receipt",
+        )
+        self.assertFalse(expense.linked_receipt_has_alternatives)
+        self.assertIn("Odoo picked", expense.linked_receipt_message)
+
+    def test_accepting_the_picked_link_teaches_and_downloads_it(self):
+        expense = self._ingest(token="accept-suggestion")
+        retrieval = self.env["usl.mail.pdf.retrieval"].sudo().search(
+            [("expense_id", "=", expense.id)],
+        )
+        expected = retrieval._extract_candidates(retrieval.source_message_id)[0]
+
+        with patch.object(type(retrieval), "_enqueue") as enqueue:
+            expense.with_user(
+                self.expense_user_employee
+            ).action_accept_linked_receipt()
+
+        enqueue.assert_called_once()
+        self.assertEqual(retrieval.selected_fingerprint, expected["fingerprint"])
+        self.assertEqual(retrieval.pattern_id.positive_count, 1)
+
+    def test_several_links_keep_the_full_list_reachable(self):
+        expense = self._ingest(
+            token="alternative-links",
+            extra_link='<a href="https://files.example.com/invoice.pdf">Invoice PDF</a>',
+        )
+
+        self.assertTrue(expense.linked_receipt_has_alternatives)
+        self.assertTrue(expense.linked_receipt_suggested_label)
+        self.assertIn("choose", expense.linked_receipt_message)
+
+    def test_other_employee_cannot_accept_the_picked_link(self):
+        expense = self._ingest(token="accept-authority")
+        outsider = self.expense_user_manager_2
+        outsider.group_ids = [
+            Command.unlink(self.env.ref("account.group_account_manager").id),
+        ]
+
+        with self.assertRaises(AccessError):
+            expense.with_user(outsider).action_accept_linked_receipt()
 
     def test_two_terminal_failures_pause_pattern(self):
         expense = self._ingest()

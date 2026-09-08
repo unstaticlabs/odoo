@@ -4,7 +4,7 @@
               name="TESE Payroll"
               action="action_tese_payslips"
               groups="hr.group_hr_manager"
-              web_icon="account,static/description/icon.png"
+              web_icon="usl_tese_payroll,static/description/icon.png"
               sequence="160"/>
 
     <menuitem id="menu_tese_payroll_records"

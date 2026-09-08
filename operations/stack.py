@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import argparse
+# ``operations.runtime`` deliberately shadows ``RuntimeError`` with its own
+# subclass, so a plain builtin failure has to be named through ``builtins``.
+import builtins
 import copy
 import hashlib
 import io
@@ -156,6 +159,13 @@ RESOURCE_FIELDS = {
 }
 BACKUP_WRITER_SERVICE_ROLES = ("odoo", "paperless", "mcp", "sign", "sign_ca")
 GENERATION_NAME = re.compile(r"g[a-z0-9][a-z0-9-]{0,30}\Z")
+# Odoo runs as this fixed unprivileged identity inside the distribution image.
+ODOO_RUNTIME_UID = "1000"
+ODOO_RUNTIME_GID = "1000"
+# Odoo keeps its HTTP session store beside the filestore, under the Odoo data
+# directory.  Materialization restores only ``filestore/<database>``, so this
+# directory has to be carried between generations explicitly.
+ODOO_SESSION_STORE_DIRECTORY = "sessions"
 # Local capture directories that the fixed release launcher creates under the
 # state directory.  Production runs are named after their release attempt;
 # staging runs are the attempt itself.
@@ -3932,6 +3942,22 @@ def _write_source_backup_environment(source, source_runner, target, target_runne
     return path
 
 
+TREE_IDENTITY_PROGRAM = (
+    "import hashlib,json,os,pathlib,stat,sys;"
+    "r=pathlib.Path(sys.argv[1]);h=hashlib.sha256();n=0;b=0;"
+    "exec(\"for p in sorted(r.rglob('*')):\\n s=p.lstat();rel=p.relative_to(r).as_posix();"
+    "h.update((rel+chr(0)+oct(stat.S_IMODE(s.st_mode))+chr(0)).encode());"
+    "n+=1;"
+    "b+=s.st_size if p.is_file() else 0;"
+    "h.update(p.read_bytes()) if p.is_file() else None\");"
+    "print(json.dumps({'files':n,'bytes':b,'sha256':h.hexdigest()},sort_keys=True))"
+)
+DIRECTORY_PRESENT_PROGRAM = (
+    "import json,pathlib,sys;"
+    "print(json.dumps({'present':pathlib.Path(sys.argv[1]).is_dir()}))"
+)
+
+
 def _preserve_staging_environment_state(target, runner, current: dict, volumes: dict[str, str]) -> dict:
     """Keep staging-owned OAuth state when business data is reseeded from production."""
     if target.value["environment"] != "staging":
@@ -3940,20 +3966,10 @@ def _preserve_staging_environment_state(target, runner, current: dict, volumes: 
     source = _volume_source_path(runner, current["volumes"][role]["name"])
     destination = _volume_source_path(runner, volumes[role])
     mcp = target.value["services"]["mcp"]
-    identity_program = (
-        "import hashlib,json,os,pathlib,stat,sys;"
-        "r=pathlib.Path(sys.argv[1]);h=hashlib.sha256();n=0;b=0;"
-        "exec(\"for p in sorted(r.rglob('*')):\\n s=p.lstat();rel=p.relative_to(r).as_posix();"
-        "h.update((rel+chr(0)+oct(stat.S_IMODE(s.st_mode))+chr(0)).encode());"
-        "n+=1;"
-        "b+=s.st_size if p.is_file() else 0;"
-        "h.update(p.read_bytes()) if p.is_file() else None\");"
-        "print(json.dumps({'files':n,'bytes':b,'sha256':h.hexdigest()},sort_keys=True))"
-    )
     runner.run(compose_command(current["compose"], ["stop", "--timeout", "30", mcp]))
     try:
         source_identity = json.loads(runner.run(
-            ["python3", "-c", identity_program, source],
+            ["python3", "-c", TREE_IDENTITY_PROGRAM, source],
         ).stdout)
         common = ["-aHAXS", "--numeric-ids", "--sparse", "--delete", "--"]
         runner.run(["rsync", *common, source.rstrip("/") + "/", destination.rstrip("/") + "/"])
@@ -3962,7 +3978,7 @@ def _preserve_staging_environment_state(target, runner, current: dict, volumes: 
             "--itemize-changes", "--", source.rstrip("/") + "/", destination.rstrip("/") + "/",
         ])
         destination_identity = json.loads(runner.run(
-            ["python3", "-c", identity_program, destination],
+            ["python3", "-c", TREE_IDENTITY_PROGRAM, destination],
         ).stdout)
         if verified.stdout.strip() or destination_identity != source_identity:
             raise RuntimeError("staging MCP OAuth preservation differs")
@@ -3975,6 +3991,72 @@ def _preserve_staging_environment_state(target, runner, current: dict, volumes: 
         "mcp_oauth": {"source": source_identity, "destination": destination_identity},
         "status": "preserved",
     }
+
+
+def _preserve_session_store(runner, current: dict, volumes: dict[str, str]) -> dict:
+    """Carry the live Odoo HTTP session store into the candidate generation.
+
+    Every rollout materializes a brand-new Odoo data volume and restores only
+    ``filestore/<database>`` into it.  Odoo keeps its HTTP sessions as files
+    under ``sessions/`` in that same volume, so without this step each release
+    hands the candidate an empty session store and returns every signed-in
+    person to the Pocket ID login screen.
+
+    Sessions are environment-local authentication material.  They are copied
+    host-side between the outgoing and incoming generation volumes of the same
+    target and never enter a backup repository or cross an environment
+    boundary.  Session continuity is convenience state rather than an integrity
+    control, so a failure here is reported as evidence and never fails a
+    release: logging people out is strictly better than refusing the rollout.
+    """
+    receipt: dict = {
+        "schema": "usl-session-store-preservation/v1",
+        "sessions": None,
+        "status": "skipped",
+        "detail": "",
+    }
+    role = "odoo_filestore"
+    try:
+        source = os.path.join(
+            _volume_source_path(runner, current["volumes"][role]["name"]),
+            ODOO_SESSION_STORE_DIRECTORY,
+        )
+        destination = os.path.join(
+            _volume_source_path(runner, volumes[role]), ODOO_SESSION_STORE_DIRECTORY,
+        )
+        if source == destination:
+            # The candidate always owns a new volume.  Never let a deleting
+            # copy run against the store it is meant to preserve.
+            receipt["status"] = "unchanged"
+            return receipt
+        runner.run([
+            "install", "-d", "-m", "0700",
+            "-o", ODOO_RUNTIME_UID, "-g", ODOO_RUNTIME_GID, "--", destination,
+        ])
+        present = json.loads(
+            runner.run(["python3", "-c", DIRECTORY_PRESENT_PROGRAM, source]).stdout,
+        )
+        if not present["present"]:
+            receipt["status"] = "absent"
+            return receipt
+        runner.run([
+            "rsync", "-aHAXS", "--numeric-ids", "--sparse", "--delete", "--",
+            source.rstrip("/") + "/", destination.rstrip("/") + "/",
+        ])
+        source_identity = json.loads(
+            runner.run(["python3", "-c", TREE_IDENTITY_PROGRAM, source]).stdout,
+        )
+        destination_identity = json.loads(
+            runner.run(["python3", "-c", TREE_IDENTITY_PROGRAM, destination]).stdout,
+        )
+    except (builtins.RuntimeError, OSError, ValueError, KeyError) as error:
+        receipt["detail"] = str(error)
+        return receipt
+    receipt["sessions"] = {"source": source_identity, "destination": destination_identity}
+    receipt["status"] = (
+        "preserved" if destination_identity == source_identity else "diverged"
+    )
+    return receipt
 
 
 def _write_remote(target, runner, path: str, content: str, mode: str = "0600") -> None:
@@ -5908,12 +5990,11 @@ GROUPING_THRESHOLD = 5
 
 
 def render_change(change):
-    # A change is one merged pull request: ``type(scope): title (#number)``.
-    label = change["type"]
-    if change.get("scope"):
-        label += "(%s)" % change["scope"]
-    return Markup('<li>%s: %s (<a href="%s">#%s</a>)</li>') % (
-        escape(label),
+    # A change is one merged pull request: its title, then its link. The
+    # Conventional Commit prefix is deliberately absent. The title may already
+    # be a plain-language sentence written for users, and the grouped view
+    # below names the type in words, so the prefix only added noise.
+    return Markup('<li>%s (<a href="%s">#%s</a>)</li>') % (
         escape(change["title"]),
         escape(change["url"]),
         escape(change["number"]),
@@ -6101,6 +6182,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     upgrade_plan = None
     cron_policy_application = None
     environment_state_preservation = None
+    session_store_preservation = None
     pocketid_admission = None
     if getattr(arguments, "upgrade_plan", None):
         try:
@@ -6267,6 +6349,22 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
             network,
             volumes,
         )
+        if source.name == target.name:
+            # Same-target rollout: the candidate inherits the outgoing
+            # generation's own database, so its signed-in sessions stay valid.
+            # A cross-environment reseed replaces the users the sessions were
+            # issued for, and must not carry them.
+            session_store_preservation = _preserve_session_store(
+                target_runner, current, volumes,
+            )
+            _record_event(
+                target,
+                target_runner,
+                generation,
+                "restore",
+                "session-store",
+                session_store_preservation["status"],
+            )
         _prepare_generation_volume_ownership(target_runner, release, volumes)
     capacity_before_activation = _require_restore_capacity(target, target_runner, "activation")
     materialization_seconds = round(time.monotonic() - phase_started, 3)
@@ -6556,6 +6654,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
         "smoke": smoke,
         "cron_policy_application": cron_policy_application,
         "environment_state_preservation": environment_state_preservation,
+        "session_store_preservation": session_store_preservation,
         "pocket_id_admission": pocketid_admission,
         "auth_compose_admission": auth_compose_admission,
         "control_validation": control_validation,

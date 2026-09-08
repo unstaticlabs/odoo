@@ -256,10 +256,11 @@ class ResUsers(models.Model):
         )
         if creating_agent and not self.env.context.get("usl_agent_provisioning"):
             raise AccessError(_("Agent identities must be created from My Agents."))
-        self._usl_require_irreversible_action(
-            "authorization.user.create",
-            "create a user identity",
-        )
+        if vals_list:
+            self._usl_require_irreversible_action(
+                "authorization.user.create",
+                "create a user identity",
+            )
         users = super().create(vals_list)
         users._check_usl_agent_irreversible_incompatibility()
         return users
@@ -267,13 +268,19 @@ class ResUsers(models.Model):
     def write(self, values):
         if self.filtered("usl_managed_agent_id") and not self.env.context.get("usl_agent_provisioning"):
             raise AccessError(_("Manage Agent identities from the Agent record."))
-        # A form recomputes onchanges by writing the whole payload onto a
-        # virtual record, so opening "My preferences" and changing the language
-        # reaches this override.  Such a write only updates the in-memory cache:
-        # nothing irreversible can happen, and a virtual record never compares
-        # equal to `env.user`, so guarding it refused people their own
-        # preferences.  Guard, and reconcile, only what is actually persisted.
-        persisted = all(self._ids)
+        # Guard, and reconcile, only a write that stores something.  A `NewId`
+        # is falsy and a database id is truthy, so this is "at least one
+        # stored record", and it stays conservative if the two ever mix.  Two
+        # kinds of write reach this override storing nothing, and each one,
+        # guarded, denied people their own preferences.  An empty recordset:
+        # writing on the result of a `filtered` without testing it first is
+        # ordinary Odoo, and mail's `_compute_notification_type` runs on every
+        # `res.users` onchange and ends on `new_portal_users.write(...)`, empty
+        # for an internal user.  And the virtual record a form recomputes
+        # onchanges on: that write only updates the in-memory cache, and the
+        # record never compares equal to `env.user`, so the identity test below
+        # reads editing yourself as changing somebody else.
+        persisted = any(self._ids)
         sensitive_fields = {
             "active",
             "company_id",
@@ -302,10 +309,11 @@ class ResUsers(models.Model):
     def unlink(self):
         if self.filtered("usl_managed_agent_id"):
             raise AccessError(_("Suspend Agent identities instead of deleting them."))
-        self._usl_require_irreversible_action(
-            "authorization.user.delete",
-            "delete a user identity",
-        )
+        if self:
+            self._usl_require_irreversible_action(
+                "authorization.user.delete",
+                "delete a user identity",
+            )
         return super().unlink()
 
 

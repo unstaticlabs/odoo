@@ -14,6 +14,7 @@ routine product-development or production-operations guide.
 Specialized product procedures remain separate when they require a deliberate
 activation or domain-specific response:
 
+- [Developing in a git worktree](worktree-development.md)
 - [Production image CI contract](production-image-ci.md)
 - [Backup and recovery](backup-and-recovery.md)
 - [First deployment incident review](first-deployment-incident.md)
@@ -27,6 +28,7 @@ activation or domain-specific response:
 - [Odoo MCP](odoo-mcp.md)
 - [Personal Gemini](personal-gemini-runbook.md)
 - [Shine bank export](shine-bank-export-runbook.md)
+- [Importing channel exports](b2c-channel-imports.md)
 - [Access controls](distribution-access-control-runbook.md)
 - [Product performance](product-performance.md)
 - [Action-risk inventory](action-risk-inventory.md)

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Job monitoring is infrastructure, not a daily application. Moving the
+         intermediate "Queue" menu rather than the app root keeps the jobs one
+         click inside Settings instead of three; the emptied root is then
+         deactivated so it stops claiming a launcher tile. Deactivating without
+         moving the children first would hide the queue views entirely, because
+         they exist nowhere else. usl_accounting owns these records as the only
+         module depending on both queue_job and usl_locale. -->
+    <record id="queue_job.menu_queue" model="ir.ui.menu">
+        <field name="name">Job Queue</field>
+        <field name="parent_id" ref="base.menu_administration"/>
+        <field name="sequence">200</field>
+        <!-- The root carried this restriction; the children never did, so it
+             has to be restated here or the menu would widen to every user who
+             can open Settings. -->
+        <field
+            name="group_ids"
+            eval="[(6, 0, [ref('queue_job.group_queue_job_manager')])]"
+        />
+    </record>
+
+    <record id="queue_job.menu_queue_job_root" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+</odoo>

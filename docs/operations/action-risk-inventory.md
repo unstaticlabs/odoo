@@ -14,10 +14,35 @@ The two authoritative product artifacts ship in `usl_access_control`:
 - `policy/action_policy.json` contains the explicit classification and evidence
   contract for each stable action key.
 
-Their canonical combined SHA-256 is stored in release identity, embedded in the
-Distribution image label
+Two compiled derivatives ship beside them and are what the running server loads:
+`policy/protected_runtime_policy.json` and
+`policy/agent_readonly_runtime_policy.json`. Both are the exact recompilation of
+the reviewed pair, and `check-source` proves it by recompiling and comparing the
+whole artifact rather than trusting a recorded digest.
+
+The canonical combined SHA-256 of all four is stored in release identity,
+embedded in the Distribution image label
 `com.unstaticlabs.odoo.action-risk-policy-sha256`, and verified against the
-database and candidate before production admission.
+database and candidate before production admission. That label is the value the
+audit trail names as the policy an action was judged against.
+
+## No artifact records a digest of itself
+
+None of the four files stores `surface_sha256`, `module_set_sha256`,
+`qualified_policy_digest` or `runtime_policy_sha256`. Every consumer recomputes
+them from the delivered content, and a file that still carries one is refused as
+stale — by `check-source` and by the server at load.
+
+They were removed because each was a single summary line that every reseal
+rewrote. Two branches touching unrelated modules therefore contended for the
+same six lines and conflicted, although neither had read the other's actions:
+the 45 MB of per-module data merged cleanly and only the summaries did not. A
+one-module reseal now leaves every byte another module owns untouched, and the
+two compiled derivatives usually do not change at all.
+
+Nothing was weakened. The self-digests were verified by recomputing them from
+the same file, which proved only that the file agreed with itself; the recompile
+comparison and the image label are what actually bind the set together.
 
 ## Classifications
 
@@ -71,6 +96,14 @@ surface:
 
 1. Run `make action-risk-discover` and inspect the candidate diff. Discovery
    reads the running `odoo_dev` registry and never creates policy decisions.
+   The surface takes its module set from that database, so check parity before
+   trusting a diff: the installed modules must equal `modules` in the tracked
+   `action_surface.json`. Initializing from the tracked `root_modules` is not
+   enough on its own, because Odoo also installs every `auto_install` module
+   whose dependencies are then present, and the delivered closure does not
+   carry them. Uninstall the extras and reload the registry first; a database
+   that is one module wide of the tracked set produces thousands of spurious
+   entries and hides the change under review.
 2. Trace each added or changed entry point through delegates to its mutation,
    `sudo()`, raw SQL, filesystem, messaging and provider sinks. Check its ACLs,
    record rules, company behavior and externally reachable callers.

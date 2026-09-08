@@ -271,6 +271,10 @@ msgid "Choose a receipt link before retrying."
 msgstr "Choisissez un lien de justificatif avant de réessayer."
 
 #. module: usl_accounting
+msgid "Choose another link"
+msgstr "Choisir un autre lien"
+
+#. module: usl_accounting
 #. module: usl_accounting
 msgid "Choose receipt link"
 msgstr "Choisir le lien du justificatif"
@@ -302,6 +306,10 @@ msgid "Consecutive Failure Count"
 msgstr "Nombre d’échecs consécutifs"
 
 #. module: usl_accounting
+msgid "Consecutive Handoff Count"
+msgstr "Nombre de renvois consécutifs vers le site"
+
+#. module: usl_accounting
 #. module: usl_accounting
 msgid "Direct HTTP"
 msgstr "HTTP direct"
@@ -310,6 +318,14 @@ msgstr "HTTP direct"
 #. module: usl_accounting
 msgid "Dismissed"
 msgstr "Ignoré"
+
+#. module: usl_accounting
+msgid "Download the link Odoo picked and remember this email format for later expenses."
+msgstr "Télécharge le lien retenu par Odoo et mémorise ce format d’e-mail pour les notes de frais suivantes."
+
+#. module: usl_accounting
+msgid "Download this receipt"
+msgstr "Télécharger ce justificatif"
 
 #. module: usl_accounting
 #. module: usl_accounting
@@ -352,6 +368,14 @@ msgid "Generation"
 msgstr "Génération"
 
 #. module: usl_accounting
+msgid "Handoff Count"
+msgstr "Nombre de renvois vers le site"
+
+#. module: usl_accounting
+msgid "Handoff Learned At"
+msgstr "Renvoi vers le site appris le"
+
+#. module: usl_accounting
 #. module: usl_accounting
 msgid "Hostname"
 msgstr "Nom d’hôte"
@@ -360,6 +384,10 @@ msgstr "Nom d’hôte"
 #. module: usl_accounting
 msgid "Hosts"
 msgstr "Hôtes"
+
+#. module: usl_accounting
+msgid "How reliably this pattern names the receipt link, ignoring whether an unattended download can finish it."
+msgstr "Fiabilité avec laquelle ce modèle désigne le lien du justificatif, indépendamment de la possibilité de le télécharger sans intervention."
 
 #. module: usl_accounting
 #. module: usl_accounting
@@ -476,6 +504,14 @@ msgstr ""
 "gérer son justificatif lié."
 
 #. module: usl_accounting
+msgid "Odoo picked %(label)s on %(host)s, the only receipt link in this email."
+msgstr "Odoo a retenu %(label)s sur %(host)s, le seul lien de justificatif de cet e-mail."
+
+#. module: usl_accounting
+msgid "Odoo picked %(label)s on %(host)s. Download it, or choose another link from this email."
+msgstr "Odoo a retenu %(label)s sur %(host)s. Téléchargez-le ou choisissez un autre lien de cet e-mail."
+
+#. module: usl_accounting
 #. module: usl_accounting
 msgid "Path Template"
 msgstr "Modèle de chemin"
@@ -536,6 +572,10 @@ msgid "Redirect Hosts"
 msgstr "Hôtes de redirection"
 
 #. module: usl_accounting
+msgid "Requires Handoff"
+msgstr "Renvoi vers le site nécessaire"
+
+#. module: usl_accounting
 #. module: usl_accounting
 msgid "Retrieval"
 msgstr "Récupération"
@@ -586,6 +626,10 @@ msgid "Selected Signature"
 msgstr "Signature sélectionnée"
 
 #. module: usl_accounting
+msgid "Selection Confidence"
+msgstr "Niveau de confiance du choix"
+
+#. module: usl_accounting
 #. module: usl_accounting
 msgid "Selection required"
 msgstr "Sélection requise"
@@ -629,6 +673,14 @@ msgstr "Remplacé"
 #. module: usl_accounting
 msgid "Teach and download"
 msgstr "Apprendre et télécharger"
+
+#. module: usl_accounting
+msgid "This email no longer offers a receipt link to download."
+msgstr "Cet e-mail ne propose plus de lien de justificatif à télécharger."
+
+#. module: usl_accounting
+msgid "Unavailable Count"
+msgstr "Nombre d’indisponibilités"
 
 #. module: usl_accounting
 msgid "Use this link"

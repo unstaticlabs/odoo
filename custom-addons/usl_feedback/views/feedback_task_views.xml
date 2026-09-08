@@ -36,6 +36,21 @@
         </field>
     </record>
 
+    <!-- Kept at priority 900 with the boards: this is a primary project.task form
+         and must never win default_view() against the stock task form. The generic
+         quick create writes display_name, which project.task computes, so the
+         maintainer board names its own title-only view instead. -->
+    <record id="view_feedback_task_quick_create" model="ir.ui.view">
+        <field name="name">project.task.feedback.quick.create.form</field>
+        <field name="priority">900</field>
+        <field name="model">project.task</field>
+        <field name="arch" type="xml">
+            <form>
+                <field name="name" placeholder="What should the product team look at?" required="1"/>
+            </form>
+        </field>
+    </record>
+
     <record id="view_feedback_task_kanban_maintainer" model="ir.ui.view">
         <field name="name">project.task.feedback.maintainer.kanban</field>
         <field name="priority">900</field>
@@ -51,6 +66,8 @@
                 <attribute name="group_create">true</attribute>
                 <attribute name="group_edit">true</attribute>
                 <attribute name="group_delete">true</attribute>
+                <attribute name="quick_create">true</attribute>
+                <attribute name="quick_create_view">usl_feedback.view_feedback_task_quick_create</attribute>
             </kanban>
         </field>
     </record>
@@ -82,7 +99,9 @@
         <field name="mode">primary</field>
         <field name="arch" type="xml">
             <list position="attributes">
+                <attribute name="create">true</attribute>
                 <attribute name="edit">true</attribute>
+                <attribute name="delete">true</attribute>
             </list>
         </field>
     </record>
@@ -145,7 +164,9 @@
         <field name="mode">primary</field>
         <field name="arch" type="xml">
             <form position="attributes">
+                <attribute name="create">true</attribute>
                 <attribute name="edit">true</attribute>
+                <attribute name="delete">true</attribute>
             </form>
             <field name="stage_id" position="attributes">
                 <attribute name="readonly">0</attribute>
@@ -158,6 +179,17 @@
                 <attribute name="readonly">0</attribute>
             </field>
             <field name="description" position="attributes">
+                <attribute name="readonly">0</attribute>
+            </field>
+            <!-- The badge widget only renders a value, so drop it here or the field
+                 stays uneditable. Not required either: assistant cards sit in the
+                 Inbox without a category until triage, and the constraint already
+                 demands one past that stage. -->
+            <field name="usl_feedback_category" position="attributes">
+                <attribute name="readonly">0</attribute>
+                <attribute name="widget">selection</attribute>
+            </field>
+            <field name="tag_ids" position="attributes">
                 <attribute name="readonly">0</attribute>
             </field>
         </field>
@@ -189,12 +221,16 @@
         <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_feedback_task_search"/>
         <field name="domain">[('project_id.usl_feedback_project', '=', True)]</field>
-        <field name="context">{
+        <!-- default_project_id with project_kanban is what makes native stage
+             expansion show every column on an empty board; without it the board
+             renders the no-content helper and no stages at all. -->
+        <field name="context" eval="{
+            'default_project_id': ref('project_product_feedback'),
             'project_kanban': True,
             'create': False,
             'edit': False,
             'delete': False,
-        }</field>
+        }"/>
         <field name="view_ids" eval="[
             Command.clear(),
             Command.create({'view_mode': 'kanban', 'view_id': ref('view_feedback_task_kanban_collaborator')}),
@@ -213,12 +249,14 @@
         <field name="view_mode">kanban,list,form</field>
         <field name="search_view_id" ref="view_feedback_task_search"/>
         <field name="domain">[('project_id.usl_feedback_project', '=', True)]</field>
-        <field name="context">{
+        <field name="context" eval="{
+            'default_project_id': ref('project_product_feedback'),
             'project_kanban': True,
             'create': True,
             'edit': True,
             'delete': True,
-        }</field>
+            'usl_feedback_direct_create': True,
+        }"/>
         <field name="view_ids" eval="[
             Command.clear(),
             Command.create({'view_mode': 'kanban', 'view_id': ref('view_feedback_task_kanban_maintainer')}),
@@ -227,7 +265,7 @@
         ]"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">No feedback yet</p>
-            <p>Use Feedback in Messages to report an issue or suggest an improvement.</p>
+            <p>Use New to open a card directly, or Feedback in Messages to report an issue with page details.</p>
         </field>
     </record>
 

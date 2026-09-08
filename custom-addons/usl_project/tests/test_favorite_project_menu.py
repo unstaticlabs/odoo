@@ -142,7 +142,6 @@ class TestFavoriteProjectMenu(TransactionCase):
         ])
         self.project_user.favorite_project_ids = projects
         self.env.cr.flush()
-        query_count_before = self.env.cr.sql_log_count
 
         with patch.object(
             type(self.env['project.project']),
@@ -154,16 +153,28 @@ class TestFavoriteProjectMenu(TransactionCase):
                 [self.env.company.id],
             )
 
-        query_count = self.env.cr.sql_log_count - query_count_before
         favorite_menu_ids = [
             menu_id
             for menu_id in children
             if isinstance(menu_id, str) and menu_id.startswith("usl-project-favorite-")
         ]
-        # Loading the native menu tree has a stable base cost.  The favorite
-        # lookup stays one capped search plus one fixed native-action lookup.
-        # It must not prepare a separate task action for every favorite.
-        self.assertLessEqual(query_count, 55)
+        # The favorite lookup stays one capped search plus one fixed
+        # native-action lookup, and must not prepare a task action per
+        # favorite.  Both halves of that are asserted directly: the patch above
+        # fires if any action is prepared while the menu loads, and the capped
+        # length fires if the search stops being bounded.
+        #
+        # This used to also assert a ceiling of 55 queries.  Measured on a real
+        # registry, the same unchanged code costs 6 queries warm and 58 cold,
+        # because loading the menu tree resolves xmlids through an ormcache
+        # whose state depends on whatever ran earlier in the suite.  A fixed
+        # ceiling on a number that swings that far passes or fails on test
+        # ordering, and it blocked a production promotion after passing the
+        # identical commit twice.  It is removed rather than widened: a
+        # differential count does not help either, because building the extra
+        # menu entries is pure Python over rows the one search already
+        # returned, so an uncapped search costs no extra queries at all and is
+        # caught only by the length assertion below.
         self.assertEqual(len(favorite_menu_ids), 12)
         self.assertEqual(
             [menus[menu_id]["name"] for menu_id in favorite_menu_ids],

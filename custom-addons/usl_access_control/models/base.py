@@ -120,7 +120,7 @@ class Base(models.AbstractModel):
         if not agent:
             return vary
         try:
-            policy_digest = load_agent_readonly_policy().qualified_policy_digest
+            policy_digest = load_agent_readonly_policy().policy_digest
         except ActionPolicyConfigurationError:
             policy_digest = "invalid"
         return (*vary, {
@@ -415,7 +415,7 @@ class Base(models.AbstractModel):
             self._usl_log_denied_protected_action(
                 action_key=entry.action_key,
                 action_name=action_name,
-                policy_digest=policy.qualified_policy_digest,
+                policy_digest=policy.policy_digest,
             )
             if self._usl_actor_is_agent():
                 raise AgentPolicyAccessError(
@@ -441,7 +441,7 @@ class Base(models.AbstractModel):
                 "operation": "action",
                 "action_name": action_name,
                 "action_key": entry.action_key,
-                "policy_digest": policy.qualified_policy_digest,
+                "policy_digest": policy.policy_digest,
                 "origin": self._usl_audit_origin(),
                 "correlation_id": self._usl_audit_correlation_id(),
             },
@@ -532,12 +532,17 @@ class Base(models.AbstractModel):
     def create(self, vals_list):
         self._usl_reject_readonly_agent_mutation("create")
         self._usl_reject_agent_identity_mutation("create")
+        # Guard only a call that stores something.  `create([])` returns
+        # before Odoo reads an ACL or touches a row, and it is what a values
+        # list built from a comprehension that matched nothing produces, so
+        # demanding the irreversible permission for it refuses an operation
+        # with no consequence.  `unlink` below already tested what it acts on.
         policy_entry = (
             self._usl_qualified_action_policy().model_operation_guard(
                 self._name,
                 "create",
             )
-            if self.env.uid != SUPERUSER_ID
+            if vals_list and self.env.uid != SUPERUSER_ID
             else None
         )
         if policy_entry:
@@ -554,12 +559,17 @@ class Base(models.AbstractModel):
     def write(self, vals):
         self._usl_reject_readonly_agent_mutation("write")
         self._usl_reject_agent_identity_mutation("modify")
+        # Likewise for a write that stores nothing.  Writing on the result of
+        # a `filtered` without testing it first is ordinary Odoo: mail's
+        # `_compute_notification_type` ends on `new_portal_users.write(...)`,
+        # empty for an internal user, and guarding that shape is what denied
+        # people their own preferences in `res.users`.
         policy_entry = (
             self._usl_qualified_action_policy().model_operation_guard(
                 self._name,
                 "write",
             )
-            if self.env.uid != SUPERUSER_ID
+            if self and self.env.uid != SUPERUSER_ID
             else None
         )
         if policy_entry:
