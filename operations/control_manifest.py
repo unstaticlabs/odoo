@@ -7,6 +7,8 @@ import json
 from collections.abc import Mapping
 from typing import Any
 
+from operations.upgrade_preservation import icon_attachment_predicate
+
 SCHEMA_V1 = "usl-control-manifest/v1"
 SCHEMA = "usl-control-manifest/v2"
 
@@ -110,7 +112,7 @@ PAPERLESS_PRESERVATION_KEYS_V2 = PAPERLESS_PRESERVATION_KEYS | frozenset(
 )
 
 
-ODOO_CONTROL_SQL = r"""
+_ODOO_CONTROL_SQL_TEMPLATE = r"""
 SELECT json_build_object(
   'companies', (SELECT count(*) FROM res_company),
   'users', (SELECT count(*) FROM res_users),
@@ -145,7 +147,14 @@ SELECT json_build_object(
   'attachments', (SELECT count(*) FROM ir_attachment),
   'messages', (SELECT count(*) FROM mail_message WHERE model IS NULL OR model NOT IN ('ir.cron', 'ir.actions.server')),
   'activities', (SELECT count(*) FROM mail_activity),
-  'stored_attachments', (SELECT count(DISTINCT store_fname) FROM ir_attachment WHERE store_fname IS NOT NULL),
+  -- Application icons are excluded on BOTH sides of the comparison. They are
+  -- regenerated from module source on upgrade, and a changed icon shifts this
+  -- count without any business data moving: Odoo deduplicates the filestore by
+  -- content, so an icon that stops sharing a file with another attachment adds a
+  -- distinct store_fname, and one that grows past the inline threshold acquires
+  -- a store_fname it did not have. On 2026-09-08 that was 1546 -> 1547 and it
+  -- refused seven consecutive releases, each rollback restoring the cause.
+  'stored_attachments', (SELECT count(DISTINCT store_fname) FROM ir_attachment WHERE store_fname IS NOT NULL AND NOT (__ICON_ATTACHMENT__)),
   'projects', (SELECT count(*) FROM project_project),
   'tasks', (SELECT count(*) FROM project_task),
   'expenses', (SELECT count(*) FROM hr_expense),
@@ -169,6 +178,10 @@ SELECT json_build_object(
   'cron_failures', (SELECT coalesce(sum(failure_count), 0) FROM ir_cron WHERE active),
   'cron_lag', (SELECT count(*) FROM ir_cron WHERE active AND (nextcall IS NULL OR nextcall < now() - interval '2 minutes' OR (interval_type IN ('minutes', 'hours') AND interval_number * CASE interval_type WHEN 'minutes' THEN 60 ELSE 3600 END <= 3600 AND (lastcall IS NULL OR lastcall < now() - make_interval(secs => interval_number * CASE interval_type WHEN 'minutes' THEN 60 ELSE 3600 END * 2 + 120)))))
 );""".strip()
+
+ODOO_CONTROL_SQL = _ODOO_CONTROL_SQL_TEMPLATE.replace(
+    "__ICON_ATTACHMENT__", icon_attachment_predicate(),
+)
 
 
 PAPERLESS_CONTROL_SQL = r"""
