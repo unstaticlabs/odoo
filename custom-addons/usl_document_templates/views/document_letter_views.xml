@@ -161,8 +161,17 @@
         <field name="context">{'search_default_draft': 1}</field>
     </record>
 
+    <!-- Parented under Settings rather than left as a launcher root. The
+         launcher carries sixteen daily applications and this is not one of
+         them, but blacklisting the root alone made Correspondence, Templates
+         and Output Inventory reachable by direct URL only: they exist nowhere
+         else in the menu tree. Settings is gated on base.group_erp_manager, so
+         a document-letter user who is not an ERP manager still cannot reach
+         these — which is exactly where they were before, since the root was
+         hidden from everyone. Nobody loses access; ERP managers regain it. -->
     <menuitem id="menu_official_documents_root"
               name="Official Documents"
+              parent="base.menu_administration"
               sequence="45"
               groups="group_document_letter_user"/>
     <menuitem id="menu_document_letters"
