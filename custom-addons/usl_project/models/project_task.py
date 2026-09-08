@@ -133,9 +133,9 @@ class ProjectTask(models.Model):
             for task in self
         }
 
-    def write(self, values):
+    def write(self, vals):
         if self.env.context.get("usl_skip_task_reactivation"):
-            return super().write(values)
+            return super().write(vals)
 
         event_fields = {
             "stage_id",
@@ -146,14 +146,14 @@ class ProjectTask(models.Model):
             "planned_date_begin",
             "date_deadline",
         }
-        if not event_fields.intersection(values):
-            return super().write(values)
+        if not event_fields.intersection(vals):
+            return super().write(vals)
 
         tracked_tasks = self.exists()
         task_before = tracked_tasks._usl_reactivation_snapshot()
         dependent_tasks = (
             tracked_tasks.sudo().dependent_ids
-            if "state" in values
+            if "state" in vals
             else self.browse().sudo()
         )
         dependent_blocked_before = {
@@ -161,8 +161,8 @@ class ProjectTask(models.Model):
         }
         old_parents = tracked_tasks.sudo().parent_id
         new_parents = (
-            self.sudo().browse(values["parent_id"])
-            if values.get("parent_id")
+            self.sudo().browse(vals["parent_id"])
+            if vals.get("parent_id")
             else self.browse().sudo()
         )
         parents = old_parents | new_parents
@@ -171,27 +171,27 @@ class ProjectTask(models.Model):
             for parent in parents
         }
 
-        result = super().write(values)
+        result = super().write(vals)
 
         candidates = self.browse()
-        if "stage_id" in values or "state" in values:
+        if "stage_id" in vals or "state" in vals:
             candidates |= tracked_tasks.filtered(
                 lambda task: (
-                    ("stage_id" in values and task.stage_id.id != task_before[task.id]["stage_id"])
-                    or ("state" in values and task.state != task_before[task.id]["state"])
+                    ("stage_id" in vals and task.stage_id.id != task_before[task.id]["stage_id"])
+                    or ("state" in vals and task.state != task_before[task.id]["state"])
                 ),
             )
-        if "depend_on_ids" in values:
+        if "depend_on_ids" in vals:
             candidates |= tracked_tasks.filtered(
                 lambda task: task_before[task.id]["blocked"]
                 and not task.is_blocked_by_dependences(),
             )
-        if "state" in values:
+        if "state" in vals:
             candidates |= dependent_tasks.filtered(
                 lambda task: dependent_blocked_before.get(task.id, False)
                 and not task.is_blocked_by_dependences(),
             )
-        if {"state", "parent_id", "active"}.intersection(values):
+        if {"state", "parent_id", "active"}.intersection(vals):
             parents |= tracked_tasks.sudo().parent_id
             candidates |= parents.filtered(
                 lambda parent: (
@@ -199,10 +199,10 @@ class ProjectTask(models.Model):
                     and parent._usl_has_completed_direct_subtasks()
                 ),
             )
-        if {"planned_date_begin", "date_deadline"}.intersection(values):
+        if {"planned_date_begin", "date_deadline"}.intersection(vals):
             changed_date_tasks = tracked_tasks.filtered(
                 lambda task: any(
-                    field_name in values
+                    field_name in vals
                     and task[field_name] != task_before.get(task.id, {}).get(field_name)
                     for field_name in ("planned_date_begin", "date_deadline")
                 ),

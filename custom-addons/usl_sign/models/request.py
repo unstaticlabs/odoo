@@ -1758,7 +1758,7 @@ class SignRequest(models.Model):
             request._start_final_validation()
         return True
 
-    def write(self, values):
+    def write(self, vals):
         internal = any(
             self.env.context.get(key) is INTERNAL_OPERATION
             for key in (
@@ -1769,13 +1769,13 @@ class SignRequest(models.Model):
             )
         )
         if (
-            values
+            vals
             and not internal
             and self.filtered(lambda request: request.record_kind == "external_archive")
-            and set(values) - {"message_follower_ids", "activity_ids"}
+            and set(vals) - {"message_follower_ids", "activity_ids"}
         ):
             raise ValidationError(_("Archived external signing records are immutable."))
-        if values and not internal and not self.env.su:
+        if vals and not internal and not self.env.su:
             chatter_fields = {"message_follower_ids", "activity_ids"}
             trust_fields = {"requested_trust", "override_reason"}
             owner_fields = {"user_id", "coordinator_ids"}
@@ -1789,21 +1789,21 @@ class SignRequest(models.Model):
                 if is_admin or is_owner:
                     continue
                 if is_coordinator:
-                    if owner_fields.intersection(values) or trust_fields.intersection(values):
+                    if owner_fields.intersection(vals) or trust_fields.intersection(vals):
                         msg = "Only the requester may change sharing or the requested trust level."
                         raise AccessError(
                             msg,
                         )
                     continue
-                if is_trust_reviewer and set(values) <= trust_fields:
+                if is_trust_reviewer and set(vals) <= trust_fields:
                     continue
-                if set(values) <= chatter_fields:
+                if set(vals) <= chatter_fields:
                     continue
                 msg = "Only the requester or a named coordinator may change this request."
                 raise AccessError(
                     msg,
                 )
-        if "state" in values and self.env.context.get("usl_sign_transition") is not INTERNAL_OPERATION:
+        if "state" in vals and self.env.context.get("usl_sign_transition") is not INTERNAL_OPERATION:
             msg = "Use a signature lifecycle action to change state."
             raise ValidationError(msg)
         frozen_fields = {
@@ -1838,7 +1838,7 @@ class SignRequest(models.Model):
             "signer_ids",
             "document_ids",
         }
-        if frozen_fields.intersection(values) and self.env.context.get("usl_sign_freeze") is not INTERNAL_OPERATION:
+        if frozen_fields.intersection(vals) and self.env.context.get("usl_sign_freeze") is not INTERNAL_OPERATION:
             if self.filtered(lambda request: request.state not in MUTABLE_REQUEST_STATES):
                 msg = "A sent request is immutable; create a replacement."
                 raise ValidationError(msg)
@@ -1868,20 +1868,20 @@ class SignRequest(models.Model):
             "archive_status",
             "archive_last_error",
         }
-        if controlled_fields.intersection(values) and not (
+        if controlled_fields.intersection(vals) and not (
             self.env.context.get("usl_sign_transition") is INTERNAL_OPERATION
             or self.env.context.get("usl_sign_freeze") is INTERNAL_OPERATION
         ):
             msg = "Use a controlled signature operation to change protected evidence."
             raise ValidationError(msg)
-        if {"data", "signatory_data", "current_hash"}.intersection(values) and not (
+        if {"data", "signatory_data", "current_hash"}.intersection(vals) and not (
             self.env.context.get("usl_sign_working_pdf") is INTERNAL_OPERATION
             or self.env.context.get("usl_sign_freeze") is INTERNAL_OPERATION
             or self.filtered(lambda request: request.state in MUTABLE_REQUEST_STATES)
         ):
             msg = "Only the controlled signing ceremony may change the PDF."
             raise ValidationError(msg)
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         self._check_owner_access()

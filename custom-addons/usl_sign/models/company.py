@@ -28,8 +28,8 @@ class ResCompany(models.Model):
     )
 
     @api.model_create_multi
-    def create(self, values_list):
-        companies = super().create(values_list)
+    def create(self, vals_list):
+        companies = super().create(vals_list)
         for company in companies:
             self.env["usl.sign.service.health"]._ensure_company(company)
         return companies

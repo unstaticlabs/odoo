@@ -82,6 +82,12 @@ test("attention indicator stays compact and distinguishes warnings from locks", 
     expect(attentionIconClass("info")).toInclude("fa-lock");
 });
 
+test("a settled line shows its advisory note as information, not as a lock", () => {
+    expect(attentionIconClass("info", { advisory: true })).toInclude("fa-info-circle");
+    expect(attentionIconClass("info", { advisory: true })).not.toInclude("text-warning");
+    expect(attentionIconClass("warning", { advisory: true })).toInclude("text-warning");
+});
+
 test("expense progress keeps every state as a proportional segment", () => {
     expect(
         expenseProgressSegments(

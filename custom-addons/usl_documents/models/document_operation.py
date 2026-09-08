@@ -84,28 +84,28 @@ class UslDocumentOperation(models.Model):
     )
 
     @api.model_create_multi
-    def create(self, values_list):
+    def create(self, vals_list):
         if not self.env.su:
             raise AccessError(
                 _("Ingestion operations can only be created by the upload workflow."),
             )
         now = fields.Datetime.now()
-        for values in values_list:
+        for values in vals_list:
             if values.get("state") == "processing":
                 values.setdefault("processing_started_at", now)
-        return super().create(values_list)
+        return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         if not self.env.su:
             raise AccessError(
                 _("Ingestion state can only be changed by the archive workflow."),
             )
-        values = dict(values)
-        if values.get("state") == "processing":
-            values.setdefault("processing_started_at", fields.Datetime.now())
-        elif "state" in values:
-            values.setdefault("processing_started_at", False)
-        return super().write(values)
+        vals = dict(vals)
+        if vals.get("state") == "processing":
+            vals.setdefault("processing_started_at", fields.Datetime.now())
+        elif "state" in vals:
+            vals.setdefault("processing_started_at", False)
+        return super().write(vals)
 
     def _processing_is_stale(self, *, now=None):
         self.ensure_one()

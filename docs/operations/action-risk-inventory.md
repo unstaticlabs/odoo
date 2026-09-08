@@ -94,8 +94,9 @@ the protected consequence.
 For every product, Odoo or pinned OCA revision that changes the discovered
 surface:
 
-1. Run `make action-risk-discover` and inspect the candidate diff. Discovery
-   reads the running `odoo_dev` registry and never creates policy decisions.
+1. Build the closure with `make action-risk-db`, then run
+   `make action-risk-discover` and inspect the candidate diff. Discovery reads
+   the `odoo_action_risk` registry and never creates policy decisions.
    The surface takes its module set from that database, so check parity before
    trusting a diff: the installed modules must equal `modules` in the tracked
    `action_surface.json`. Initializing from the tracked `root_modules` is not
@@ -104,6 +105,17 @@ surface:
    carry them. Uninstall the extras and reload the registry first; a database
    that is one module wide of the tracked set produces thousands of spurious
    entries and hides the change under review.
+
+   Build it from scratch, never over an existing database. A matching module
+   set is not sufficient: a few Odoo action records store a raw database row id
+   that is fixed on first install and never rewritten — `base.ir_cron_act`
+   embeds the id of `mail.ir_cron_module_update_notification`, and the two
+   account payment-receipt actions embed the id of the receipt mail template —
+   so a registry that inherited another database's rows reports exactly those
+   entries as changed. `make action-risk-db` recreates its own database for
+   this reason, and `check-source` names the cause when only such entries move.
+   Those digests are correct as recorded; reseal them only when an upstream
+   change to Odoo or a pinned OCA revision actually moved them.
 2. Trace each added or changed entry point through delegates to its mutation,
    `sudo()`, raw SQL, filesystem, messaging and provider sinks. Check its ACLs,
    record rules, company behavior and externally reachable callers.
@@ -127,8 +139,8 @@ surface:
    policy-only edit that does not refresh the surface, run
    `make action-risk-compile-policy`.
 8. Run `make action-risk-inventory`, the affected add-on tests, and
-   `make action-risk-runtime` against `odoo_dev`, then compile the delivered
-   bundles with `make product-assets`. A release also runs the check on a
+   `make action-risk-runtime` against `odoo_action_risk`, then compile the
+   delivered bundles with `make product-assets`. A release also runs the check on a
    disposable clean installation and the reconstructed target registry.
 
 Agents may divide review into bounded module or functional-domain batches. The

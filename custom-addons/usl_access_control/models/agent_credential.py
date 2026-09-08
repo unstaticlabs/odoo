@@ -148,10 +148,10 @@ class UslAgentCredential(models.Model):
             raise AccessError(_("Agent credentials can be created only through the protected key action."))
         return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         if not self.env.context.get("usl_agent_credential_internal"):
             raise AccessError(_("Agent credential metadata is managed by the security service."))
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         raise UserError(_("Revoke Agent credentials instead of deleting their audit history."))

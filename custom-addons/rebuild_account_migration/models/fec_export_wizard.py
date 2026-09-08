@@ -55,24 +55,24 @@ class L10nFrFecExportWizard(models.TransientModel):
                     values["excluded_journal_ids"] = [Command.clear()]
         return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         if not self._rebuild_can_generate_official_fec():
-            if values.get("test_file") is False:
+            if vals.get("test_file") is False:
                 raise UserError(
                     self.env._(
                         "Only Accounting Managers can generate a final FEC "
                         "that may update lock dates.",
                     ),
                 )
-            values = dict(values)
-            values["test_file"] = True
-            values["export_type"] = "official"
-            values["excluded_journal_ids"] = [Command.clear()]
-        elif values.get("test_file") is False:
-            values = dict(values)
-            values["export_type"] = "official"
-            values["excluded_journal_ids"] = [Command.clear()]
-        return super().write(values)
+            vals = dict(vals)
+            vals["test_file"] = True
+            vals["export_type"] = "official"
+            vals["excluded_journal_ids"] = [Command.clear()]
+        elif vals.get("test_file") is False:
+            vals = dict(vals)
+            vals["export_type"] = "official"
+            vals["excluded_journal_ids"] = [Command.clear()]
+        return super().write(vals)
 
     def generate_fec(self):
         for wizard in self:

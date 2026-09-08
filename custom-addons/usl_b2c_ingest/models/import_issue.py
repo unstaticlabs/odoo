@@ -31,6 +31,9 @@ ISSUE_KINDS = [
     ("destination_vat_misplaced", "Destination VAT does not accrue where it belongs"),
     ("operator_untaxed", "A channel operator has no tax number"),
     ("retired_rate", "A fiscal position states a retired rate"),
+    ("cancelled_after_delivery", "A cancelled order has already shipped"),
+    ("part_refund_unallocated", "Part of an order was refunded, without saying which part"),
+    ("wallet_overdrawn", "The supplier drew more than the wallet holds"),
 ]
 
 

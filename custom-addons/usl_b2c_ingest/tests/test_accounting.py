@@ -279,3 +279,80 @@ class TestAccounting(TestMaterialise):
         issue = batch.issue_ids.filtered(lambda item: item.kind == "operator_untaxed")
         self.assertTrue(issue)
         self.assertIn("no tax number", issue[0].note)
+
+    # -- goods that have not left yet --------------------------------------
+
+    def _unshipped_drop(self):
+        """Return a drop whose first order is paid and not yet shipped."""
+        self._etsy_drop()
+        rows = ({**fixtures.ETSY_ORDER_ROWS[0], "Date Shipped": ""},)
+        batch = self._batch(
+            **{
+                "etsy-orders.csv": fixtures.etsy_orders(rows),
+                "etsy-items.csv": fixtures.etsy_order_items(
+                    ({**fixtures.ETSY_ITEM_ROWS[0], "Date Shipped": ""},),
+                ),
+            },
+        )
+        batch.action_parse()
+        batch.action_resolve()
+        batch.action_apply()
+        return batch
+
+    def test_money_for_goods_that_have_not_left_is_not_revenue_yet(self):
+        batch = self._unshipped_drop()
+        batch.action_invoice()
+        self.assertFalse(batch.invoiced_move_ids, "an unshipped order is not a sale yet")
+        self.assertEqual(len(batch.advance_payment_ids), 1)
+        advance = batch.advance_payment_ids
+        self.assertAlmostEqual(advance.amount, 45.00, places=2)
+        # The money is in the clearing account and owed back to the customer,
+        # so no revenue and no VAT has been stated.
+        receivable = advance.move_id.line_ids.filtered(
+            lambda line: line.account_id.account_type == "asset_receivable",
+        )
+        self.assertAlmostEqual(receivable.balance, -45.00, places=2)
+        self.assertFalse(advance.move_id.line_ids.filtered(lambda line: line.tax_line_id))
+
+    def test_the_advance_becomes_the_invoice_when_the_goods_go_out(self):
+        held = self._unshipped_drop()
+        held.action_invoice()
+        advance = held.advance_payment_ids
+
+        shipped = self._batch(
+            **{
+                "etsy-orders.csv": fixtures.etsy_orders((fixtures.ETSY_ORDER_ROWS[0],)),
+                "etsy-items.csv": fixtures.etsy_order_items((fixtures.ETSY_ITEM_ROWS[0],)),
+            },
+        )
+        shipped.action_parse()
+        shipped.action_resolve()
+        shipped.action_apply()
+        shipped.action_reconcile()
+        shipped.action_invoice()
+
+        invoice = shipped.invoiced_move_ids
+        self.assertEqual(len(invoice), 1)
+        self.assertEqual(invoice.payment_state, "paid")
+        self.assertEqual(advance.state, "reconciled")
+        # Nothing was collected twice: the customer owes nothing and the
+        # clearing account holds exactly the one receipt.
+        self.assertAlmostEqual(invoice.amount_residual, 0.00, places=2)
+        self.assertEqual(
+            self.env["account.payment"].search_count(
+                [("company_id", "=", self.company.id), ("partner_type", "=", "customer")],
+            ),
+            1,
+        )
+
+    def test_holding_an_advance_twice_holds_it_once(self):
+        batch = self._unshipped_drop()
+        batch.action_invoice()
+        first = batch.advance_payment_ids
+        batch.action_invoice()
+        self.assertEqual(batch.advance_payment_ids, first)
+
+    def test_an_unshipped_order_still_delivers_nothing(self):
+        batch = self._unshipped_drop()
+        sale = self._sale(batch, "9000000001")
+        self.assertFalse(sale.picking_ids.filtered(lambda item: item.state == "done"))

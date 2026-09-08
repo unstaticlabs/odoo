@@ -50,10 +50,10 @@ class ResUsers(models.Model):
 class OidcIdentity(models.Model):
     _inherit = "usl.oidc.identity"
 
-    def write(self, values):
-        result = super().write(values)
+    def write(self, vals):
+        result = super().write(vals)
         if {"active", "issuer", "subject", "provider_id", "user_id"}.intersection(
-            values,
+            vals,
         ):
             self.mapped("user_id")._invalidate_unsafe_paperless_mappings()
         return result

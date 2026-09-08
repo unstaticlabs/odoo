@@ -11,6 +11,12 @@ ROOT = Path(__file__).resolve().parents[2]
 ODOO_DEV = ROOT / "scripts" / "odoo-dev"
 COMPOSE_SCOPE = ROOT / "scripts" / "lib" / "compose-scope.sh"
 POCKET_ID_DEV = ROOT / "scripts" / "pocket-id-dev"
+# The three spellings the Makefile and scripts/odoo-dev both accept.
+PROJECT_VARIABLES = (
+    "COMPOSE_PROJECT",
+    "COMPOSE_PROJECT_NAME",
+    "ODOO_SAAS_COMPOSE_PROJECT",
+)
 
 
 class DeveloperCommandUXTest(unittest.TestCase):
@@ -337,12 +343,30 @@ esac
         )
         self.assertIn("Deploy updates an existing reconstructed target", helper)
 
-    def make_project(self, **environment):
-        """Report the Compose project a `make` invocation actually resolves."""
+    def make_project(self, *, dotenv="", **environment):
+        """Report the Compose project a `make` invocation actually resolves.
+
+        The answer must come from this call, not from the checkout it runs in.
+        `make worktree-env >> .env` is a documented step, and the Makefile
+        deliberately reads that file as its last fallback, so a developer who
+        followed the instruction would otherwise fail the default assertion
+        below on a checkout that is working perfectly. Pin the fallback on the
+        command line, where it overrides the Makefile, and drop the three
+        documented variables from the inherited environment for the same
+        reason. Pass `dotenv` to exercise the fallback itself.
+        """
+        environment = {
+            **{
+                name: value
+                for name, value in os.environ.items()
+                if name not in PROJECT_VARIABLES
+            },
+            **environment,
+        }
         completed = subprocess.run(
-            ["make", "doctor"],
+            ["make", f"DOTENV_COMPOSE_PROJECT={dotenv}", "doctor"],
             cwd=ROOT,
-            env={**os.environ, **environment},
+            env=environment,
             check=False,
             capture_output=True,
             text=True,
@@ -354,11 +378,7 @@ esac
 
     def test_make_accepts_every_documented_compose_project_variable(self):
         """COMPOSE_PROJECT_NAME used to be silently replaced by the default."""
-        for variable in (
-            "COMPOSE_PROJECT",
-            "COMPOSE_PROJECT_NAME",
-            "ODOO_SAAS_COMPOSE_PROJECT",
-        ):
+        for variable in PROJECT_VARIABLES:
             with self.subTest(variable=variable):
                 self.assertEqual(
                     self.make_project(**{variable: "usl-probe"}),
@@ -366,6 +386,21 @@ esac
                 )
 
         self.assertEqual(self.make_project(), "usl-odoo-saas-19-3")
+
+    def test_dotenv_supplies_the_project_but_never_outranks_a_variable(self):
+        """Compose reads .env by itself; make must agree, and yield to a variable."""
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+        self.assertIn("test -f .env", makefile)
+
+        self.assertEqual(self.make_project(dotenv="usl-dotenv"), "usl-dotenv")
+        for variable in PROJECT_VARIABLES:
+            with self.subTest(variable=variable):
+                self.assertEqual(
+                    self.make_project(
+                        dotenv="usl-dotenv", **{variable: "usl-probe"},
+                    ),
+                    "usl-probe",
+                )
 
     def test_compose_project_precedence_is_the_same_everywhere(self):
         """`make`, odoo-dev and accounting_compat must not disagree."""
@@ -552,6 +587,33 @@ esac
             block.index("enforce_product_module_scope.py"),
             block.index("action_risk_update_closure"),
         )
+
+    def test_action_risk_database_is_built_from_scratch_and_never_the_dev_one(self):
+        """Reusing a database keeps its row ids, and three digests then move."""
+        helper = ODOO_DEV.read_text(encoding="utf-8")
+        block = helper.split("action-risk-db)", 1)[1].split("\n    ;;", 1)[0]
+
+        # Its own database, so the developer's odoo_dev is never dropped.
+        self.assertIn('DEV_DB="${ODOO_ACTION_RISK_DB:-odoo_action_risk}"', block)
+        self.assertIn('"$DEV_DB" == "odoo_dev"', block)
+        # Dropped before the closure is installed, never after.
+        self.assertIn("recreate_action_risk_database", block)
+        self.assertLess(
+            block.index("recreate_action_risk_database"),
+            block.index("ODOO_INIT_MODULES="),
+        )
+        self.assertIn("dropdb --if-exists --force", helper)
+
+    def test_action_risk_targets_read_the_database_the_build_writes(self):
+        """Discovering another database silently compares the wrong registry."""
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+
+        self.assertIn("ACTION_RISK_DB ?= odoo_action_risk", makefile)
+        self.assertIn("ODOO_ACTION_RISK_DB=$(ACTION_RISK_DB)", makefile)
+        for target in ("action-risk-discover", "action-risk-runtime"):
+            block = makefile.split(f"\n{target}:", 1)[1].split("\n\n", 1)[0]
+            self.assertIn("--database=$(ACTION_RISK_DB)", block)
+            self.assertNotIn("--database=$(ODOO_DEV_DB)", block)
 
     def test_closure_verification_refuses_a_mismatched_database(self):
         """A database wide of the tracked set makes any discovery diff a lie."""

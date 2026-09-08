@@ -119,8 +119,8 @@ class UslExpenseBatchCreateWizard(models.TransientModel):
     context_skipped_count = fields.Integer(compute="_compute_preview")
 
     @api.model_create_multi
-    def create(self, values_list):
-        records = super().create(values_list)
+    def create(self, vals_list):
+        records = super().create(vals_list)
         for wizard in records.filtered(lambda record: record.expense_ids):
             defaults = wizard._suggest_batch_values()
             candidates = wizard.env["hr.expense"].get_expense_batch_candidates(

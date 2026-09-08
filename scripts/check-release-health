@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+"""Fail when a release environment has stopped delivering, and say why."""
+
+import argparse
+import json
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from operations.release_health import ENVIRONMENTS, assess  # noqa: E402
+
+
+def _api(path: str) -> list[dict]:
+    result = subprocess.run(
+        ["gh", "api", "-H", "Accept: application/vnd.github+json", path],
+        check=True, capture_output=True, text=True,
+    )
+    return json.loads(result.stdout)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--repository", required=True)
+    parser.add_argument(
+        "--environment", action="append", choices=ENVIRONMENTS,
+        help="repeatable; defaults to every release environment",
+    )
+    arguments = parser.parse_args()
+    environments = arguments.environment or list(ENVIRONMENTS)
+
+    now = datetime.now(timezone.utc)
+    unhealthy = []
+    for environment in environments:
+        deployments = _api(
+            f"repos/{arguments.repository}/deployments"
+            f"?environment={environment}&per_page=30",
+        )
+        report = assess(
+            environment, deployments,
+            lambda identifier: _api(
+                f"repos/{arguments.repository}/deployments/{identifier}"
+                f"/statuses?per_page=100",
+            ),
+            now,
+        )
+        marker = "ok  " if report["healthy"] else "FAIL"
+        print(f"{marker} {report['summary']}")
+        if not report["healthy"]:
+            unhealthy.append(report)
+
+    if unhealthy:
+        print(
+            "\nThe release chain is not delivering. Check the newest run on the "
+            "release branch and the deployment's own log before merging anything "
+            "further: a merge into staging supersedes a release already in flight.",
+            file=sys.stderr,
+        )
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

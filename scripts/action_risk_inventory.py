@@ -2238,6 +2238,7 @@ def compare_surfaces(
         errors.append(f"Added action requires classification: {key}")
     for key in sorted(set(expected_actions) - set(candidate_actions)):
         errors.append(f"Removed action leaves stale review: {key}")
+    database_only: list[str] = []
     for key in sorted(set(expected_actions) & set(candidate_actions)):
         expected_action = comparable_action(expected_actions[key])
         candidate_action = comparable_action(candidate_actions[key])
@@ -2260,7 +2261,43 @@ def compare_surfaces(
             if expected_action.get(field) != candidate_action.get(field)
         )
         errors.append(f"Changed action requires review: {key} ({', '.join(fields)})")
+        if _is_database_defined_digest_change(fields, candidate_actions[key]):
+            database_only.append(key)
+    if database_only:
+        errors.append(
+            "Only the digests of database-defined actions moved "
+            f"({', '.join(database_only)}). A few Odoo action records store a raw "
+            "database row id that is fixed on first install and never rewritten, "
+            "so a discovery database built over an older one reports them as "
+            "changed while its module set still matches. Rebuild the closure "
+            "from scratch with make action-risk-db and discover again before "
+            "reviewing or resealing these entries.",
+        )
     return errors
+
+
+def _is_database_defined_digest_change(
+    fields: Sequence[str],
+    candidate_action: Mapping[str, object],
+) -> bool:
+    """Report a changed action that only a differently built database explains.
+
+    The action's own recorded content is unchanged apart from the digests, and
+    it is defined by a database record rather than by source, so nothing in the
+    checkout can account for the move.
+    """
+
+    if set(fields) - {"digest", "runtime_digest"}:
+        return False
+    sources = candidate_action.get("sources")
+    if not isinstance(sources, list):
+        return False
+    return any(
+        isinstance(source, dict)
+        and isinstance(source.get("path"), str)
+        and source["path"].startswith("database:")
+        for source in sources
+    )
 
 
 SINK_KEY = re.compile(r"^sink:([^:]+):(.+?):([^:]+):([^:]+):(\d+)$")
