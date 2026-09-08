@@ -348,9 +348,11 @@ def relative_age(then, now=None):
     """Say how long ago ``then`` was, the way a person would."""
     now = now or datetime.now(timezone.utc)
     seconds = max(0, int((now - then).total_seconds()))
-    if seconds < 90:
+    if seconds < 45:
         return "just now"
     minutes = seconds // 60
+    if minutes < 2:
+        return "a minute ago"
     if minutes < 60:
         return f"{minutes} minutes ago"
     hours = minutes // 60
@@ -573,6 +575,7 @@ def _page_html(page, body_html, records, state, release_commit):
     * {{ box-sizing: border-box; }}
     body {{ margin: 0; font: 15px/1.55 Roboto, system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--text); background: var(--bg); }}
     .layout {{ display: grid; grid-template-columns: minmax(260px, 300px) minmax(0, 1fr); min-height: 100vh; }}
+    .layout > * {{ min-width: 0; }}
     aside {{ border-right: 1px solid var(--border); background: var(--panel); padding: 18px; position: sticky; top: 0; height: 100vh; overflow: auto; }}
     main {{ max-width: 920px; width: 100%; padding: 32px 42px 64px; }}
     .brand {{ font-weight: 700; font-size: 17px; }}
@@ -615,6 +618,7 @@ def _page_html(page, body_html, records, state, release_commit):
       .layout {{ grid-template-columns: 1fr; }}
       aside {{ position: static; height: auto; order: 2; border-right: 0; border-top: 1px solid var(--border); }}
       main {{ padding: 24px 20px 40px; }}
+      main table {{ display: block; overflow-x: auto; }}
       .brand, .subtitle {{ display: none; }}
       .doc-nav-title {{ display: block; font-weight: 700; margin-bottom: 10px; }}
     }}
@@ -661,54 +665,193 @@ def _wants_markdown():
     return first == "text/markdown"
 
 
-def _evidence_page_html(journey, entry, evidence, state, page_record):
-    """The test record behind a page's pill: run, commit, timings and captures."""
-    rows = "".join(
-        "<tr><td>{step}</td><td>{viewport}</td><td><code>{file}</code></td><td>{match}</td></tr>".format(
-            step=html.escape(str(shot.get("step", ""))),
-            viewport=html.escape(str(shot.get("viewport", ""))),
-            file=html.escape(str(shot.get("file", ""))),
-            match={"exact": "matches the published screenshot", "tolerance": "within tolerance of the published screenshot"}.get(
-                shot.get("match"), "not published",
-            ),
-        )
-        for shot in entry.get("screenshots", []) if isinstance(shot, dict)
-    )
+def _load_sidecar(root, page_record):
+    """The committed journey facts beside a generated page, or ``None``."""
+    if not page_record:
+        return None
+    page = Path(page_record["path"])
+    directory = page.parent / page.stem if page.name != "TUTORIAL.md" else Path("tutorial") / page_record["journey"]
+    sidecar = _resolve_inside(root, (directory / "journey.json").as_posix())
+    if not sidecar:
+        return None
+    try:
+        payload = json.loads(sidecar.read_text(encoding="utf-8"))
+    except ValueError:
+        return None
+    if not isinstance(payload, dict) or payload.get("schema") != "usl-docs-journey-sidecar/v1":
+        return None
+    payload["_directory"] = directory.as_posix()
+    return payload
+
+
+def _github(commit, path, line=None):
+    if not path:
+        return ""
+    ref = commit or "19-usl-staging"
+    url = f"{REPOSITORY_URL}/blob/{ref}/{quote(path, safe='/')}"
+    return f"{url}#L{int(line)}" if line else url
+
+
+def _short_sha(value):
+    value = str(value or "")
+    return value[:12] if RELEASE_COMMIT_RE.fullmatch(value) else value
+
+
+def _inline_markdown(text):
+    """Render one step's sentence (bold, code, links) through the same sanitizer as pages."""
+    rendered = render_markdown(text or "").strip()
+    if rendered.startswith("<p>") and rendered.endswith("</p>") and rendered.count("<p>") == 1:
+        rendered = rendered[3:-4]
+    return rendered
+
+
+def _test_record_html(journey, entry, evidence, state, page_record, sidecar, release_commit):
+    """The interactive record behind a page's pill.
+
+    Everything on it links somewhere real: the commit and the qualification
+    run on GitHub, the tour and the test at that commit, the screens the
+    journey captured, and the raw facts a reader can copy. It is built from
+    the committed sidecar (what the journey is) and the release's evidence
+    (what happened when it ran).
+    """
+    esc = html.escape
+    commit = str(evidence.get("qualified_commit") or "")
+    tested_at = _parse_timestamp(entry.get("finished") or evidence.get("tested_at"))
     started = _parse_timestamp(entry.get("started"))
     finished = _parse_timestamp(entry.get("finished"))
-    duration = ""
-    if started and finished:
-        duration = f"{int((finished - started).total_seconds())} s"
+    duration = f"{int((finished - started).total_seconds())} s" if started and finished else "unknown"
     run_url = evidence.get("run_url") if isinstance(evidence.get("run_url"), str) else ""
-    run_link = (
-        f'<a href="{html.escape(run_url, quote=True)}" rel="noopener">GitHub run {html.escape(str(evidence.get("workflow_run_id", "")))}</a>'
-        " (GitHub keeps a run for a limited time; this page is the durable record)"
-        if run_url else "no run link"
-    )
+    title = page_record["title"] if page_record else journey
     back = f'{DOCS_ROUTE}/{quote(page_record["path"], safe="/")}' if page_record else DOCS_ROUTE
+    module = ""
+    if sidecar and sidecar.get("source_test", "").startswith("odoo.addons."):
+        module = sidecar["source_test"].split(".")[2]
+    test_file = (sidecar or {}).get("source_test_file") or {}
+    tour_file = (sidecar or {}).get("source_tour_file") or {}
+    matches = {shot.get("step"): shot for shot in entry.get("screenshots", []) if isinstance(shot, dict)}
+
+    def link(url, label):
+        return f'<a href="{esc(url, quote=True)}" rel="noopener">{esc(label)}</a>' if url else esc(label)
+
     facts = [
-        ("Page", f'<a href="{html.escape(back, quote=True)}">{html.escape(page_record["title"] if page_record else journey)}</a>'),
-        ("Journey", f"<code>{html.escape(journey)}</code>"),
-        ("Tour", f"<code>{html.escape(str(entry.get('tour', '')))}</code>"),
-        ("Test", f"<code>{html.escape(str(entry.get('source_test', '')))}</code>"),
-        ("Last passed", html.escape(state["label"]) + (f" ({html.escape(state['tested_at'])})" if state.get("tested_at") else "")),
-        ("Duration", html.escape(duration or "unknown")),
-        ("Viewports", html.escape(", ".join(str(v) for v in entry.get("viewports", [])))),
-        ("Qualified commit", f"<code>{html.escape(str(evidence.get('qualified_commit', '')))}</code>"),
-        ("Browser", html.escape(str(evidence.get("chromium", "")) or "unknown")),
-        ("Qualification", run_link),
+        ("Page", link(back, title)),
+        ("Last passed", esc(state["label"]) + (f' <span class="mono muted">{esc(tested_at.isoformat(timespec="seconds"))}</span>' if tested_at else "")),
+        ("Duration", esc(duration)),
+        ("Qualified commit", link(f"{REPOSITORY_URL}/commit/{commit}" if RELEASE_COMMIT_RE.fullmatch(commit) else "", _short_sha(commit) or "unknown")
+         + ("" if not release_commit or release_commit == commit else ' <span class="pill pill-unverified">differs from the running release</span>')),
+        ("Qualification run", link(run_url, f"GitHub run {evidence.get('workflow_run_id', '')}") + ' <span class="muted">(GitHub keeps a run for a limited time; this page is the durable record)</span>' if run_url else "none"),
+        ("Tour", link(_github(commit, tour_file.get("path"), tour_file.get("line")), (sidecar or {}).get("tour") or entry.get("tour", ""))),
+        ("Test", link(_github(commit, test_file.get("path"), test_file.get("line")), (sidecar or {}).get("source_test") or entry.get("source_test", ""))),
+        ("Ran as", esc((sidecar or {}).get("login", "") or "a fixture user")),
+        ("Viewport", esc(", ".join(str(v) for v in entry.get("viewports", [])) + (f" ({sidecar['viewport_size']})" if sidecar and sidecar.get("viewport_size") else ""))),
+        ("Browser", esc(str(evidence.get("chromium", "")) or "unknown")),
     ]
     facts_html = "".join(f"<tr><th>{label}</th><td>{value}</td></tr>" for label, value in facts)
-    body = (
-        f"<h1>Test record for “{html.escape(page_record['title'] if page_record else journey)}”</h1>"
-        "<p>This page was generated from a browser journey that the qualification of the running release "
-        "replayed end to end. What follows is that run.</p>"
-        f"<table>{facts_html}</table>"
-        "<h2>Screens captured</h2>"
-        f"<table><thead><tr><th>Step</th><th>Viewport</th><th>File</th><th>Published copy</th></tr></thead><tbody>{rows}</tbody></table>"
-        f'<p><a href="{html.escape(back, quote=True)}">Back to the page</a></p>'
+
+    steps_html = []
+    shots = []
+    for step in (sidecar or {}).get("steps", []):
+        shot = step.get("screenshot")
+        line = (tour_file.get("steps") or {}).get(step.get("id"))
+        tour_link = link(_github(commit, tour_file.get("path"), line), f"tour L{line}" if line else "tour")
+        capture = ""
+        if shot and sidecar:
+            src = f"{DOCS_ROUTE}/{quote(sidecar['_directory'] + '/' + shot, safe='/')}"
+            index = len(shots)
+            shots.append((src, step.get("text", "")))
+            match = matches.get(step.get("id"), {}).get("match")
+            verdict = {"exact": "identical to the published screen", "tolerance": "within tolerance of the published screen"}.get(match, "published copy")
+            capture = (
+                f'<figure class="step-shot"><a href="{esc(src, quote=True)}" data-shot="{index}">'
+                f'<img src="{esc(src, quote=True)}" alt="{esc(step.get("text", ""), quote=True)}" loading="lazy"/></a>'
+                f'<figcaption><span class="mono">{esc(shot)}</span> · sha256 <span class="mono" title="{esc(step.get("sha256") or "", quote=True)}">{esc((step.get("sha256") or "")[:12])}</span> · {esc(verdict)}</figcaption></figure>'
+            )
+        steps_html.append(
+            f'<li class="step"><div class="step-text">{_inline_markdown(step.get("text", ""))}</div>'
+            f'<div class="step-meta"><span class="mono">{esc(step.get("assertion") or "")}</span>'
+            f'<span class="mono muted">trigger: {esc(step.get("trigger") or "")}</span>'
+            + (f'<span class="mono muted">run: {esc(step["run"])}</span>' if step.get("run") else "")
+            + f'<span class="step-link">{tour_link}</span></div>{capture}</li>',
+        )
+    replay = f"USL_DOCS_JOURNEYS=1 make docs-journeys MODULE={module}" if module else "USL_DOCS_JOURNEYS=1 make docs-journeys"
+    raw_evidence = json.dumps(entry, indent=2, sort_keys=True, ensure_ascii=False)
+    raw_sidecar = json.dumps({k: v for k, v in (sidecar or {}).items() if k != "_directory"}, indent=2, sort_keys=True, ensure_ascii=False)
+    lightbox = "".join(
+        f'<figure data-index="{index}" hidden><img src="{esc(src, quote=True)}" alt="{esc(caption, quote=True)}"/><figcaption>{esc(caption)}</figcaption></figure>'
+        for index, (src, caption) in enumerate(shots)
     )
-    return body
+    return f"""<h1>Test record for “{esc(title)}”</h1>
+<p class="lead">This page is generated from a browser journey that the qualification of the running release replayed end to end. Here is that run, step by step, with what it asserted and what it saw.</p>
+<table class="facts">{facts_html}</table>
+<h2>Steps</h2>
+<ol class="steps">{"".join(steps_html) or "<li>No committed journey facts for this page.</li>"}</ol>
+<h2>Replay it</h2>
+<p>From the repository, in an isolated stack, on the module's own fixtures:</p>
+<pre class="copyable"><code>{esc(replay)}</code><button type="button" class="copy" data-copy="{esc(replay, quote=True)}">copy</button></pre>
+<details><summary>Raw evidence for this journey</summary><pre class="copyable"><code>{esc(raw_evidence)}</code><button type="button" class="copy" data-copy="{esc(raw_evidence, quote=True)}">copy</button></pre></details>
+<details><summary>Committed journey facts (journey.json)</summary><pre class="copyable"><code>{esc(raw_sidecar)}</code><button type="button" class="copy" data-copy="{esc(raw_sidecar, quote=True)}">copy</button></pre></details>
+<p><a href="{esc(back, quote=True)}">Back to the page</a></p>
+<dialog id="shot-box"><div class="shot-nav"><button type="button" data-nav="-1" aria-label="Previous">‹</button><span id="shot-counter"></span><button type="button" data-nav="1" aria-label="Next">›</button><button type="button" data-close aria-label="Close">✕</button></div>{lightbox}</dialog>
+<style>
+  .lead {{ color: var(--muted); }}
+  .facts th {{ width: 180px; white-space: nowrap; }}
+  .facts td {{ overflow-wrap: anywhere; }}
+  .mono {{ font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size: 12.5px; overflow-wrap: anywhere; }}
+  @media (max-width: 820px) {{
+    .facts th {{ width: auto; white-space: normal; }}
+    .step {{ padding-left: 32px; margin-left: 10px; }}
+    .step-shot img {{ max-width: 100%; }}
+  }}
+  .muted {{ color: var(--muted); }}
+  .steps {{ list-style: none; padding: 0; counter-reset: step; }}
+  .step {{ position: relative; padding: 12px 0 18px 44px; border-left: 2px solid var(--border); margin-left: 14px; }}
+  .step::before {{ counter-increment: step; content: counter(step); position: absolute; left: -15px; top: 12px; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; }}
+  .step-text {{ font-weight: 600; }}
+  .step-meta {{ display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 4px; }}
+  .step-shot {{ margin: 10px 0 0; }}
+  .step-shot img {{ max-width: 520px; cursor: zoom-in; }}
+  .step-shot figcaption {{ font-size: 12px; color: var(--muted); margin-top: 2px; }}
+  pre.copyable {{ position: relative; }}
+  button.copy {{ position: absolute; top: 8px; right: 8px; font: inherit; font-size: 12px; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); background: var(--panel); cursor: pointer; }}
+  #shot-box {{ border: 0; border-radius: 8px; padding: 12px; max-width: 96vw; }}
+  #shot-box::backdrop {{ background: rgba(23, 33, 43, .75); }}
+  #shot-box img {{ max-width: 92vw; max-height: 80vh; border: 0; }}
+  #shot-box figcaption {{ color: var(--muted); font-size: 13px; margin-top: 6px; }}
+  .shot-nav {{ display: flex; justify-content: flex-end; gap: 6px; align-items: center; margin-bottom: 6px; }}
+  .shot-nav button {{ font: inherit; padding: 2px 10px; border-radius: 4px; border: 1px solid var(--border); background: var(--panel); cursor: pointer; }}
+</style>
+<script>
+  (() => {{
+    const box = document.getElementById('shot-box');
+    const figures = Array.from(box.querySelectorAll('figure'));
+    const counter = document.getElementById('shot-counter');
+    let current = 0;
+    const show = (index) => {{
+      current = (index + figures.length) % figures.length;
+      figures.forEach((figure, i) => {{ figure.hidden = i !== current; }});
+      counter.textContent = `${{current + 1}} / ${{figures.length}}`;
+    }};
+    for (const link of document.querySelectorAll('a[data-shot]')) {{
+      link.addEventListener('click', (event) => {{ event.preventDefault(); show(Number(link.dataset.shot)); box.showModal(); }});
+    }}
+    for (const button of box.querySelectorAll('button[data-nav]')) {{
+      button.addEventListener('click', () => show(current + Number(button.dataset.nav)));
+    }}
+    box.querySelector('button[data-close]').addEventListener('click', () => box.close());
+    box.addEventListener('keydown', (event) => {{
+      if (event.key === 'ArrowLeft') show(current - 1);
+      if (event.key === 'ArrowRight') show(current + 1);
+    }});
+    for (const button of document.querySelectorAll('button.copy')) {{
+      button.addEventListener('click', async () => {{
+        try {{ await navigator.clipboard.writeText(button.dataset.copy); button.textContent = 'copied'; }}
+        catch (error) {{ button.textContent = 'select and copy'; }}
+        setTimeout(() => {{ button.textContent = 'copy'; }}, 1500);
+      }});
+    }}
+  }})();
+</script>
+"""
 
 
 class UserDocsController(http.Controller):
@@ -739,7 +882,8 @@ class UserDocsController(http.Controller):
             "generated": False,
             "source": [],
         }
-        body_html = _evidence_page_html(journey, entry, evidence, state, page_record)
+        sidecar = _load_sidecar(root, page_record)
+        body_html = _test_record_html(journey, entry, evidence, state, page_record, sidecar, release_commit)
         return request.make_response(
             _page_html(page, body_html, records, None, release_commit),
             headers=[("Content-Type", "text/html; charset=utf-8")],

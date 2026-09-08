@@ -1,0 +1,113 @@
+{
+  "journey": "group-expenses-into-a-batch",
+  "lang": "en",
+  "login": "expense_user_employee",
+  "persona": "employee",
+  "schema": "usl-docs-journey-sidecar/v1",
+  "source_test": "odoo.addons.usl_expense_batch.tests.test_expense_batch_journeys.TestExpenseBatchJourneys.test_group_expenses_into_a_batch",
+  "source_test_file": {
+    "line": 17,
+    "path": "custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py"
+  },
+  "source_tour_file": {
+    "line": 3,
+    "path": "custom-addons/usl_expense_batch/static/tests/tours/expense_batch_tour.js",
+    "steps": {
+      "add_to_batch": 26,
+      "confirm": 43,
+      "grouped": 49,
+      "preview": 37,
+      "proposed_batch": 32,
+      "select_first": 12,
+      "select_second": 19,
+      "work_list": 6
+    }
+  },
+  "steps": [
+    {
+      "assertion": "The two related expenses are available for grouping",
+      "id": "work_list",
+      "index": 1,
+      "run": "",
+      "screenshot": "01-work_list.png",
+      "sha256": "268d0b2e5c18338ed4f12db6819df66107c9d86a2913d92ef14303b6b8bdee40",
+      "text": "Open **Expenses > My Expenses**. Expenses that belong together, such as a hotel and a taxi from one trip, sit in the same work list.",
+      "trigger": ".o_list_table tbody:has(tr:contains('Browser Canada hotel')):has(tr:contains('Browser Canada taxi'))"
+    },
+    {
+      "assertion": "Select the hotel",
+      "id": "select_first",
+      "index": 2,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Tick the first expense of the trip.",
+      "trigger": ".o_list_table tbody tr:has(td:contains('Browser Canada hotel')) .o_list_record_selector input"
+    },
+    {
+      "assertion": "Select the taxi",
+      "id": "select_second",
+      "index": 3,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Tick the other expenses of the same trip.",
+      "trigger": ".o_list_table tbody tr:has(td:contains('Browser Canada taxi')) .o_list_record_selector input"
+    },
+    {
+      "assertion": "Grouping is the primary multi-expense action",
+      "id": "add_to_batch",
+      "index": 4,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Choose **Add to a Batch**, the primary action once several expenses are selected.",
+      "trigger": ".o_control_panel button.btn-primary:contains('Add to a Batch')"
+    },
+    {
+      "assertion": "The compatible travel Batch is proposed",
+      "id": "proposed_batch",
+      "index": 5,
+      "run": "",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Odoo proposes a compatible Batch from the employee, the company, the dates and the analytics. Keep it, or create a new one.",
+      "trigger": ".o_dialog .o_field_widget[name='batch_id'] input"
+    },
+    {
+      "assertion": "The mixed payer context is previewed before mutation",
+      "id": "preview",
+      "index": 6,
+      "run": "",
+      "screenshot": "02-preview.png",
+      "sha256": "0c16bec459c061412f94fe846b510d2b23cf459115e5c2a6b4defac1d6adfa3a",
+      "text": "Check the preview: what the employee paid and what the company paid are totalled separately before anything changes.",
+      "trigger": ".o_dialog .o_form_view:has(.o_field_widget[name='employee_paid_total']):has(.o_field_widget[name='company_paid_total'])"
+    },
+    {
+      "assertion": "Add both expenses to the proposed Batch",
+      "id": "confirm",
+      "index": 7,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Choose **Add to Batch**.",
+      "trigger": ".o_dialog footer button:contains('Add to Batch')"
+    },
+    {
+      "assertion": "The refreshed work list no longer contains grouped lines",
+      "id": "grouped",
+      "index": 8,
+      "run": "",
+      "screenshot": "03-grouped.png",
+      "sha256": "9e143e18e2cb0edff169db4db121321d1e6a3bca5c2673a6579f03e48921731b",
+      "text": "The work list no longer shows the grouped lines; they now live on the Batch, where you review and submit them together.",
+      "trigger": ".o_list_view:not(:has(tbody tr:contains('Browser Canada hotel'))):not(:has(tbody tr:contains('Browser Canada taxi')))"
+    }
+  ],
+  "title": "Group related expenses into a Batch",
+  "tour": "usl_expense_batch_create_or_select",
+  "type": "how-to",
+  "viewport": "desktop",
+  "viewport_size": "1366x768"
+}

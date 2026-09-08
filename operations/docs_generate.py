@@ -44,6 +44,8 @@ class Rendered:
     page_path: Path
     page_text: str
     images: dict  # relative image path -> PNG bytes
+    sidecar_path: Path
+    sidecar_text: str
 
 
 # --- Records -----------------------------------------------------------------
@@ -140,7 +142,55 @@ def render(record, existing_images=None):
         "",
         *lines,
     ]).rstrip("\n") + "\n"
-    return Rendered(page_path, _dump_front(front) + "\n" + body, images)
+    sidecar_path = image_dir / "journey.json"
+    return Rendered(page_path, _dump_front(front) + "\n" + body, images, sidecar_path, _sidecar(record, images))
+
+
+def _sidecar(record, images):
+    """The facts the test record page shows, without anything that changes per run.
+
+    Timestamps, the commit and the browser belong to the evidence a release
+    carries; the sidecar carries what the journey *is*: its steps, their
+    assertions and triggers, where the tour and the test live, and the
+    digests of the screenshots the page shows.
+    """
+    digests = {path.name: hashlib.sha256(data).hexdigest() for path, data in images.items()}
+    steps = []
+    for step in record["steps"]:
+        shot = step.get("screenshot") or {}
+        steps.append({
+            "index": step["index"],
+            "id": step["id"],
+            "text": step["text"],
+            "assertion": step.get("assertion", ""),
+            "trigger": step.get("trigger", ""),
+            "run": step.get("run", ""),
+            "screenshot": shot.get("file") if shot else None,
+            "sha256": digests.get(shot.get("file")) if shot else None,
+        })
+    tour_source = record.get("source_tour_file") or {}
+    test_source = record.get("source_test_file") or {}
+    payload = {
+        "schema": "usl-docs-journey-sidecar/v1",
+        "journey": record["journey"],
+        "tour": record["tour"],
+        "type": record["type"],
+        "title": record["title"],
+        "persona": record["persona"],
+        "lang": record["lang"],
+        "viewport": record["viewport"],
+        "viewport_size": record.get("viewport_size", ""),
+        "login": record.get("login", ""),
+        "source_test": record["source_test"],
+        "source_test_file": {"path": test_source.get("path", ""), "line": test_source.get("line")},
+        "source_tour_file": {
+            "path": tour_source.get("path", ""),
+            "line": tour_source.get("line"),
+            "steps": tour_source.get("steps", {}),
+        },
+        "steps": steps,
+    }
+    return json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
 
 
 def _relative_to_page(image, page_path):
@@ -242,6 +292,11 @@ def render_all(records_root, docs_root=USERS):
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(data)
                 written.append(target)
+        sidecar = docs_root / result.sidecar_path
+        if not sidecar.exists() or sidecar.read_text(encoding="utf-8") != result.sidecar_text:
+            sidecar.parent.mkdir(parents=True, exist_ok=True)
+            sidecar.write_text(result.sidecar_text, encoding="utf-8")
+            written.append(sidecar)
     return written
 
 
@@ -263,4 +318,9 @@ def check_all(records_root, docs_root=USERS):
                 findings.append((_display(target), "missing; run `make docs`"))
             elif target.read_bytes() != data:
                 findings.append((_display(target), "the screen changed materially; run `make docs`"))
+        sidecar = docs_root / result.sidecar_path
+        if not sidecar.exists():
+            findings.append((_display(sidecar), "missing; run `make docs`"))
+        elif sidecar.read_text(encoding="utf-8") != result.sidecar_text:
+            findings.append((_display(sidecar), "differs from what the journey produces; run `make docs`"))
     return findings

@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import inspect
 import json
 import os
 import queue
@@ -62,6 +63,44 @@ def _git_commit():
         if re.fullmatch(r"[0-9a-f]{40}", value):
             return value
     return None
+
+
+def _repository_path(path):
+    """Return ``path`` relative to the repository root when it is inside one."""
+    path = Path(path).resolve()
+    for parent in path.parents:
+        if (parent / "custom-addons").is_dir() and (parent / "odoo").is_dir():
+            return path.relative_to(parent).as_posix()
+        if parent.name in {"custom-addons", "mnt"} and parent.parent.name in {"opt", "mnt"} or parent.name == "mnt":
+            break
+    # Inside the container the add-ons are mounted or copied without the
+    # repository around them; the path under custom-addons is still stable.
+    parts = path.parts
+    if "custom-addons" in parts:
+        index = parts.index("custom-addons")
+        return "/".join(parts[index:])
+    return path.as_posix()
+
+
+def _tour_source(tour_name, module):
+    """Find the file and line where ``tour_name`` is registered, and each step id's line."""
+    module_path = Path(odoo.modules.get_module_path(module) or "")
+    tours = sorted((module_path / "static" / "tests" / "tours").glob("*.js")) if module_path.exists() else []
+    pattern = re.compile(r'\.add\(\s*"' + re.escape(tour_name) + r'"')
+    for path in tours:
+        lines = path.read_text(encoding="utf-8").splitlines()
+        start = next((number for number, line in enumerate(lines, start=1) if pattern.search(line)), None)
+        if start is None:
+            continue
+        step_lines = {}
+        for number in range(start, len(lines) + 1):
+            match = re.search(r'\bid:\s*"([A-Za-z0-9_-]+)"', lines[number - 1])
+            if match and match.group(1) not in step_lines:
+                step_lines[match.group(1)] = number
+            if number > start and pattern.search(lines[number - 1]):
+                break
+        return {"path": _repository_path(path), "line": start, "steps": step_lines}
+    return {"path": "", "line": None, "steps": {}}
 
 
 def _chromium_version(browser):
@@ -238,6 +277,8 @@ class JourneyCase(HttpCase):
             "viewport": viewport,
             "viewport_size": settings["size"],
             "source_test": f"{type(self).__module__}.{type(self).__name__}.{self._testMethodName}",
+            "source_test_file": self._test_source(),
+            "source_tour_file": _tour_source(tour_name, type(self).__module__.split(".")[2]),
             "login": login,
             "started": started.isoformat(timespec="seconds").replace("+00:00", "Z"),
             "finished": finished.isoformat(timespec="seconds").replace("+00:00", "Z"),
@@ -251,6 +292,8 @@ class JourneyCase(HttpCase):
                     "id": step["id"],
                     "text": step["text"],
                     "assertion": step["assertion"],
+                    "trigger": step.get("trigger", ""),
+                    "run": step.get("run", ""),
                     "screenshot": capture.screenshots.get(step["id"]),
                 }
                 for index, step in enumerate(journey["steps"], start=1)
@@ -283,6 +326,16 @@ class JourneyCase(HttpCase):
                 "usl_ui_theme_color": self.THEME_COLOR,
             })
         self.env.flush_all()
+
+    def _test_source(self):
+        """The test method's file and first line, for a deep link at the release commit."""
+        method = getattr(type(self), self._testMethodName)
+        try:
+            _lines, line = inspect.getsourcelines(method)
+            path = inspect.getsourcefile(method)
+        except (OSError, TypeError):
+            return {"path": "", "line": None}
+        return {"path": _repository_path(path), "line": line}
 
     def _module_versions(self):
         modules = self.env["ir.module.module"].sudo().search([

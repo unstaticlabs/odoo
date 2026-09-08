@@ -194,6 +194,8 @@ export async function startJourney(name, options = {}) {
                 id: step.id,
                 text: meta.text,
                 assertion: typeof step.content === "string" ? step.content : "",
+                trigger: typeof step.trigger === "string" ? step.trigger : "",
+                run: typeof step.run === "string" ? step.run : step.run ? "function" : "",
                 screenshot: Boolean(meta.screenshot),
             });
             if (meta.screenshot) {
