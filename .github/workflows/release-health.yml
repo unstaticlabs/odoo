@@ -1,0 +1,30 @@
+name: Release health
+
+# Nothing watched the release chain until 2026-09-08, when five consecutive
+# staging releases failed across seven hours in silence and were found by hand.
+# A scheduled run that fails is the alert: GitHub already reports a red run on
+# this repository, and it needs no secret and no external service.
+on:
+  schedule:
+    - cron: '27 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: read
+
+concurrency:
+  group: release-health
+  cancel-in-progress: false
+
+jobs:
+  deployments:
+    name: Release environments are delivering
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check the newest deployment of each release environment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 scripts/check-release-health --repository "${{ github.repository }}"

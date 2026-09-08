@@ -93,3 +93,8 @@ usl-online-dump
 # The blanket ignore above still covers settings.local.json and transcripts.
 !/.claude/skills/
 !/.claude/skills/**
+# Edit-time invariant warnings are likewise shared tooling, and settings.json
+# above references them: an ignored hook would be a dangling path in every
+# other checkout.
+!/.claude/hooks/
+!/.claude/hooks/**

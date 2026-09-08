@@ -41,7 +41,7 @@ ACTION_RISK_RUNTIME_CANDIDATE ?= artifacts/action-risk/runtime.candidate.json
 .PHONY: action-risk-inventory action-risk-runtime product-assets french-translations
 .PHONY: expense-batch-qa-bootstrap tese-qa-bootstrap
 .PHONY: backup backup-list backup-verify restore smoke health qa-refresh recovery-cleanup-plan
-.PHONY: worktree-env dev-reclaim init-db action-risk-db
+.PHONY: worktree-env dev-reclaim init-db action-risk-db preservation-check
 
 help:
 	@printf '%s\n' \
@@ -121,6 +121,9 @@ init-db:
 
 action-risk-db:
 	@$(ODOO_DEV) action-risk-db
+
+preservation-check:
+	@$(ODOO_DEV) preservation-check "$(MODULE)"
 
 deploy:
 	@if [ -n "$(strip $(MODULE))" ]; then $(ODOO_DEV) deploy "$(MODULE)"; else $(ODOO_DEV) deploy; fi

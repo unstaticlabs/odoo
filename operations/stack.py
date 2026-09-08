@@ -2691,6 +2691,25 @@ def _recover_interrupted_backup_lock(
     return True
 
 
+def _safe_error_summary(error: BaseException) -> dict:
+    """The failure message, when the raiser guarantees it carries no business data.
+
+    A recorded ``error_type`` of ``ValueError`` tells an operator nothing: on
+    2026-09-08 that single word was the whole durable record of six refused
+    releases, while the sentence naming the table lived only in stdout.  Errors
+    that mark themselves ``safe_summary`` state fixed text plus identifiers, so
+    they are recorded in full.  Everything else keeps its type alone, because an
+    arbitrary message can quote a row.
+    """
+    seen = set()
+    while error is not None and id(error) not in seen:
+        seen.add(id(error))
+        if getattr(error, "safe_summary", False):
+            return {"error_summary": str(error)}
+        error = error.__cause__ or error.__context__
+    return {}
+
+
 def _record_event(target, runner, run_id: str, operation: str, phase: str, status: str, **details) -> None:
     event = {
         "schema": "usl-operation-event/v1",
@@ -6723,6 +6742,7 @@ def restore_command(arguments: argparse.Namespace) -> int:
                 "failed",
                 duration_seconds=round(time.monotonic() - started, 3),
                 error_type=type(error).__name__,
+                **_safe_error_summary(error),
             )
             _report(
                 "restore",

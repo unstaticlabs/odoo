@@ -5,6 +5,19 @@ import hashlib
 import json
 import re
 
+class PreservationError(ValueError):
+    """A preservation failure whose message names tables, never row values.
+
+    The release records only ``error_type`` for a failed operation, so a refusal
+    reached the operator as the bare word ``ValueError`` and the sentence naming
+    the table stayed in a log nobody was reading.  Every message this module
+    raises is a fixed string plus table names, which carries no business data and
+    is therefore safe to record verbatim; ``safe_summary`` is what says so.
+    """
+
+    safe_summary = True
+
+
 TABLES = {"ir_attachment": "id", "mail_message": "id", "project_project": "id", "res_groups_users_rel": "gid"}
 SCHEMA = "usl-upgrade-preservation/v1"
 
@@ -52,15 +65,15 @@ def scope_sql() -> str:
 
 def validate_scope(scope: object) -> dict:
     if not isinstance(scope, dict) or set(scope) != set(TABLES):
-        raise ValueError("upgrade preservation scope tables differ")
+        raise PreservationError("upgrade preservation scope tables differ")
     for table, item in scope.items():
         if not isinstance(item, dict) or set(item) != {"maximum", "columns"}:
-            raise ValueError("upgrade preservation scope fields differ")
+            raise PreservationError("upgrade preservation scope fields differ")
         maximum, columns = item['maximum'], item['columns']
         if type(maximum) is not int or maximum < 0:
-            raise ValueError("upgrade preservation boundary is invalid")
+            raise PreservationError("upgrade preservation boundary is invalid")
         if not isinstance(columns, list) or not columns or not all(isinstance(c, str) and re.fullmatch(r'[a-z_][a-z0-9_]*', c) for c in columns) or columns != sorted(set(columns)) or TABLES[table] not in columns:
-            raise ValueError("upgrade preservation columns are invalid")
+            raise PreservationError("upgrade preservation columns are invalid")
     return scope
 
 
@@ -96,7 +109,7 @@ def scoped_controls_sql(sql: str, scope: dict) -> str:
 
 def validate_fingerprints(value: object) -> dict:
     if not isinstance(value, dict) or set(value) != set(TABLES):
-        raise ValueError("upgrade preservation fingerprint tables differ")
+        raise PreservationError("upgrade preservation fingerprint tables differ")
     for item in value.values():
         if (
             not isinstance(item, dict)
@@ -106,7 +119,7 @@ def validate_fingerprints(value: object) -> dict:
             or not isinstance(item["sha256"], str)
             or re.fullmatch(r"[0-9a-f]{64}", item["sha256"]) is None
         ):
-            raise ValueError("upgrade preservation fingerprint is invalid")
+            raise PreservationError("upgrade preservation fingerprint is invalid")
     return value
 
 
@@ -118,17 +131,17 @@ def capture(execute) -> dict:
 
 def verify(before: dict, execute) -> dict:
     if not isinstance(before, dict) or set(before) != {'schema', 'scope', 'fingerprints'} or before['schema'] != SCHEMA:
-        raise ValueError('upgrade preservation evidence fields differ')
+        raise PreservationError('upgrade preservation evidence fields differ')
     scope = validate_scope(before['scope'])
     # A removed column is not silently converted to NULL by the projection.
     current = validate_scope(json.loads(execute(scope_sql())))
     for table in TABLES:
         if not set(scope[table]['columns']) <= set(current[table]['columns']):
-            raise ValueError('upgrade removed captured columns: ' + table)
+            raise PreservationError('upgrade removed captured columns: ' + table)
     validate_fingerprints(before['fingerprints'])
     after = validate_fingerprints(json.loads(execute(fingerprint_sql(scope))))
     changed = [table for table in TABLES if before['fingerprints'][table] != after[table]]
     if changed:
-        raise ValueError('upgrade changed or removed existing records: ' + ', '.join(changed))
+        raise PreservationError('upgrade changed or removed existing records: ' + ', '.join(changed))
     digest = hashlib.sha256(json.dumps(before, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
     return {'schema': SCHEMA, 'status': 'preserved', 'baseline_sha256': digest, 'scope': scope, 'fingerprints': after}
