@@ -17,6 +17,7 @@ from odoo.addons.usl_b2c.models.native_history import (
     MATERIALIZATION_CONTEXT,
     MATERIALIZATION_TOKEN,
 )
+from odoo.addons.usl_b2c_ingest.models.lifecycle import CANCELLED, stated_outcome
 
 #: A drop states money to the cent; anything coarser is a defect, not rounding.
 CENT = Decimal("0.01")
@@ -37,6 +38,10 @@ class B2cImportBatchMaterialise(models.Model):
             created = batch.env["sale.order"]
             for row in batch._orders_to_create():
                 created |= batch._materialise_order(row)
+            # What a sale cost is not this module's to state. Recording what the
+            # supplier shipped lets the fulfilment event allocate it, which is
+            # the one place a B2C line's cost is decided.
+            batch._record_known_fulfilment()
             batch.write(
                 {
                     "state": "applied",
@@ -104,7 +109,11 @@ class B2cImportBatchMaterialise(models.Model):
     def _orders_to_create(self):
         self.ensure_one()
         return self.row_ids.filtered(
-            lambda row: row.grain == "order" and row.resolution == "new",
+            lambda row: row.grain == "order"
+            and row.resolution == "new"
+            # A sale the channel says never completed never became commerce, so
+            # there is nothing to create and nothing to reverse later.
+            and stated_outcome(row.values)[0] != CANCELLED,
         ).sorted(lambda row: (row.occurred_at or fields.Datetime.now(), row.id))
 
     def _context(self):
@@ -538,10 +547,6 @@ class B2cImportBatchMaterialise(models.Model):
         # for a sale that already happened is the day it happened.
         sale.write({"date_order": row.occurred_at})
         self._deliver(sale, row)
-        # What the sale cost is not this module's to state. Recording what the
-        # supplier shipped lets the fulfilment event allocate it, which is the
-        # one place a B2C line's cost is decided.
-        self._record_known_fulfilment()
         return sale
 
     def _deliver(self, sale, row):
@@ -555,7 +560,9 @@ class B2cImportBatchMaterialise(models.Model):
         shipped = self._shipped_on(row)
         if not shipped:
             return
-        for picking in sale.picking_ids.sudo():
+        for picking in sale.picking_ids.sudo().filtered(
+            lambda item: item.state not in ("done", "cancel"),
+        ):
             for move in picking.move_ids:
                 move.picked = True
                 move.quantity = move.product_uom_qty

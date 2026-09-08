@@ -17,3 +17,6 @@ access_b2c_oss_return_manager,b2c oss return manager,model_b2c_oss_return,usl_b2
 access_b2c_oss_return_line_reader,b2c oss return line reader,model_b2c_oss_return_line,usl_b2c.group_b2c_reader,1,0,0,0
 access_b2c_oss_return_line_operator,b2c oss return line operator,model_b2c_oss_return_line,usl_b2c.group_b2c_operator,1,1,1,1
 access_b2c_oss_return_line_manager,b2c oss return line manager,model_b2c_oss_return_line,usl_b2c.group_b2c_manager,1,1,1,1
+access_b2c_supply_settlement_reader,b2c supply settlement reader,model_b2c_supply_settlement,usl_b2c.group_b2c_reader,1,0,0,0
+access_b2c_supply_settlement_operator,b2c supply settlement operator,model_b2c_supply_settlement,usl_b2c.group_b2c_operator,1,0,0,0
+access_b2c_supply_settlement_manager,b2c supply settlement manager,model_b2c_supply_settlement,usl_b2c.group_b2c_manager,1,1,1,1

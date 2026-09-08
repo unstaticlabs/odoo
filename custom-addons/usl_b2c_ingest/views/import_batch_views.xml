@@ -58,6 +58,16 @@
                             class="btn-primary" invisible="state != 'applied'"
                             confirm="This posts invoices. Invoice the drop?"
                             groups="usl_b2c.group_b2c_manager"/>
+                    <button name="action_reconcile" type="object" string="Reconcile"
+                            title="Send what these exports now say has shipped, and credit or cancel what they say was taken back."
+                            invisible="state != 'applied'"
+                            confirm="This can post credit notes and cancel sales. Reconcile the drop?"
+                            groups="usl_b2c.group_b2c_manager"/>
+                    <button name="action_settle_wallet" type="object" string="Settle the supply"
+                            title="Bill the supplier for what this drop shows it drew on the wallet, and empty the wallet by exactly that."
+                            invisible="state != 'applied'"
+                            confirm="This posts supplier documents. Settle what the wallet paid for?"
+                            groups="usl_b2c.group_b2c_manager"/>
                     <button name="action_bill_fees" type="object" string="Bill the commission"
                             title="Bill each channel's commission for each month this drop touches."
                             invisible="state != 'applied'"
@@ -94,6 +104,19 @@
                                 icon="fa-file-text-o" invisible="not invoiced_move_ids">
                             <field name="invoiced_move_ids" widget="statinfo" string="Invoices"/>
                         </button>
+                        <button name="action_open_advances" type="object" class="oe_stat_button"
+                                icon="fa-hourglass-half" invisible="not advance_payment_ids"
+                                title="Paid for, not shipped yet, so not a sale yet.">
+                            <field name="advance_payment_ids" widget="statinfo" string="Advances"/>
+                        </button>
+                        <button name="action_open_credit_notes" type="object" class="oe_stat_button"
+                                icon="fa-reply" invisible="not credit_note_ids">
+                            <field name="credit_note_ids" widget="statinfo" string="Credit notes"/>
+                        </button>
+                        <button name="action_open_wallet_documents" type="object" class="oe_stat_button"
+                                icon="fa-credit-card" invisible="not wallet_move_ids">
+                            <field name="wallet_move_ids" widget="statinfo" string="Supply"/>
+                        </button>
                     </div>
                     <div class="oe_title">
                         <h1><field name="name" placeholder="Name this drop"/></h1>
@@ -115,6 +138,7 @@
                             <field name="fulfilment_count"/>
                             <field name="supplier_sales_cost"/>
                             <field name="supplier_internal_cost"/>
+                            <field name="wallet_balance"/>
                             <field name="supplier_currency_id" invisible="1"/>
                         </group>
                     </group>
