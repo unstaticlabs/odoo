@@ -88,3 +88,8 @@ usl-online-dump
 !/.claude/
 /.claude/*
 !/.claude/settings.json
+# Delivery-protocol skills are product of the repository, not personal
+# configuration: they are reviewed, versioned and invocable by any session.
+# The blanket ignore above still covers settings.local.json and transcripts.
+!/.claude/skills/
+!/.claude/skills/**
