@@ -2306,3 +2306,66 @@ class TestAgentDraftVendorBillConfiguration(AccountTestInvoicingCommon):
                 bill,
                 line_patches=[{"line_id": bill.invoice_line_ids.id, "tax_ids": []}],
             )
+
+    def test_agent_completes_a_draft_vendor_bill_that_imported_no_line(self):
+        bill = self.env["account.move"].create(
+            {
+                "move_type": "in_invoice",
+                "partner_id": self.partner_a.id,
+                "invoice_date": fields.Date.today(),
+            },
+        )
+        self.assertFalse(bill.invoice_line_ids)
+
+        result = self._configure(
+            bill,
+            line_creates=[
+                {
+                    "name": "Workers subscription",
+                    "quantity": 1,
+                    "price_unit": 100.0,
+                    "tax_ids": self.tax_purchase_a.ids,
+                },
+                {"name": "Usage", "quantity": 2, "price_unit": 25.0},
+            ],
+        )
+
+        self.assertEqual(len(bill.invoice_line_ids), 2)
+        self.assertEqual(bill.amount_untaxed, 150.0)
+        self.assertEqual(bill.invoice_line_ids[0].tax_ids, self.tax_purchase_a)
+        self.assertTrue(result["tax_lines"])
+        self.assertTrue(result["payable_lines"])
+        self.assertEqual(len(result["invoice_lines"]), 2)
+
+    def test_agent_adds_a_line_without_removing_the_lines_already_there(self):
+        bill = self._bill()
+        existing = bill.invoice_line_ids
+
+        self._configure(
+            bill,
+            line_creates=[{"name": "Late fee", "price_unit": 12.0}],
+        )
+
+        self.assertIn(existing, bill.invoice_line_ids)
+        self.assertEqual(len(bill.invoice_line_ids), 2)
+
+    def test_agent_cannot_create_an_unusable_vendor_bill_line(self):
+        bill = self._bill()
+        other_company_tax = self.env["account.tax"].create(
+            {
+                "name": "Other company purchase tax",
+                "amount": 10.0,
+                "type_tax_use": "purchase",
+                "company_id": self.setup_other_company()["company"].id,
+            },
+        )
+        for line_creates in (
+            [{"name": "   ", "price_unit": 10.0}],
+            [{"name": "No price"}],
+            [{"name": "Unknown field", "price_unit": 10.0, "display_type": "line_note"}],
+            [{"name": "Foreign tax", "price_unit": 10.0, "tax_ids": other_company_tax.ids}],
+            [{"name": "Missing account", "price_unit": 10.0, "account_id": 0}],
+        ):
+            with self.assertRaises(ValidationError):
+                self._configure(bill, line_creates=line_creates)
+        self.assertEqual(len(bill.invoice_line_ids), 1)
