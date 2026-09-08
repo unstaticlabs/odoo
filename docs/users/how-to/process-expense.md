@@ -63,6 +63,13 @@ decision, the **Receipt waived** filter lists such expenses, and the Accounting
 overview and hygiene checks no longer count them as missing evidence. Attach
 the receipt if it turns up later, or clear the reason to withdraw the decision.
 
+An Agent cannot take this decision on its own; it is asked to bring it to you
+or to an Expense Manager. If you own an Agent and are willing to answer for
+what it decides, you can allow it on the Agent itself under **Decisions this
+Agent may record on your behalf**. Even then it must show you the expense,
+amount, category and reason first and confirm afterwards, and the recorded
+decision names both the Agent and you.
+
 If the active company has no employee profile, ask an administrator to open
 your user under **Settings > Users & Companies > Users**, enable **Expenses in
 all allowed companies**, and select **Refresh expense access**. Do not change an

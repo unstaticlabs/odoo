@@ -2143,7 +2143,7 @@
         "rpc:usl.agent.action_suspend": "d8e5306ff46a5478e5788cade29d58e8e9843f08e938d17225243a92fef9eb00",
         "rpc:usl.agent.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:usl.agent.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
-        "rpc:usl.agent.create": "26b0a75e68ed32b8a3f14e2825e0b5154399925d58120832f56f83f77c4ff526",
+        "rpc:usl.agent.create": "83c0a9bf9ee811283a99df256c7353fa8183469ff7e6ad90750dd457060244ac",
         "rpc:usl.agent.credential.action_revoke": "c7dc4b26a7b0cf62c6c28c7014851614568d553282114c3472cd620f371bece6",
         "rpc:usl.agent.credential.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:usl.agent.credential.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
@@ -2159,7 +2159,7 @@
         "rpc:usl.agent.unlink": "d9be3a64c5c49d8bc529cc4f7048973aefc9b1a88485bd3f9c2aacf375eb344a",
         "rpc:usl.agent.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:usl.agent.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
-        "rpc:usl.agent.write": "17c2ec4ee8f660f595fad46c4a9bad9629c24d9baca280800d969c4c3833a1f8"
+        "rpc:usl.agent.write": "1560ab5ec989a9ddedc096990ce071da5a19fdb648ebe02f12b18c77ca478a86"
       }
     },
     {
@@ -82593,7 +82593,7 @@
         "rpc:hr.employee.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:hr.expense.action_approve": "1c5ac92f4e60de5d22469b23fbadc8bf0d27d8d1d48a2e6e9af434993b0205ed",
         "rpc:hr.expense.action_post": "966aac07eb839e4dd47962cfdaac11f44154e4fdabd630e9a0ada9037004bcde",
-        "rpc:hr.expense.action_rebuild_waive_receipt": "da2b3d997a5eb94fb5947570ea799df3641a40047ca6d020b505f4ab4e34d795",
+        "rpc:hr.expense.action_rebuild_waive_receipt": "46b4cd9ad2696afc1844b16977c1ea16f5f511d86ed8c0392d2be95cf48c0de4",
         "rpc:hr.expense.action_refresh_bank_match_candidates": "52ba6d0bd98f5a482ae99e7e69a58fd06866a8019c2a075b22ed369f8075bbab",
         "rpc:hr.expense.create": "71ecce147d60d9b06c23dda1aa68554618f1dbdcbe4458926cc43db6fc0a0d5b",
         "rpc:hr.expense.get_view": "829ead50476916a75b5a15b02576065008a75e42e189f8bf5a708413c61a6762",
@@ -152514,8 +152514,8 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:account.statement.import._import_file:orm_write:1": "6d4925c0ebe82bd7eb42d4e257bf0c37f6495c55d473b8939ccc047402b24e27",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:account.statement.import._import_file:orm_write:2": "474a737b911dbb55602e9428173edf3784bb590542f3a049e352a743787a49a1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:account.statement.import._prepare_create_attachment:orm_write:1": "793947e593fa57e605048cc9c96f996848e88d67929317b7616ac324f8960e0d",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.action_rebuild_waive_receipt:message_send:1": "9e4d6b8f83e0831a61e5bde02c89af61f8eeb8b9d1547c2ad01070a4b047e9f7",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.action_rebuild_waive_receipt:orm_write:1": "16368d067f983870d11aa53120ca2a73b21f6fb26b5b4b629b63d379bcf1d7b9",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.action_rebuild_waive_receipt:message_send:1": "e930dd3746a725dd7f81a7deb83dedcc37bdda03fc2718716f31c2784d286ccf",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.action_rebuild_waive_receipt:orm_write:1": "a2ddb6263ca872d476af9c789b570a289bd2ff2f98f442a4e2207f82b964aaf7",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.create:orm_create:1": "498fe1fd65cabccc7c2917466e03112c0e91b98f46a881dff353723cc1424349",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.unlink:orm_unlink:1": "6aa4ea04342b7aa9cae1c1a42610ba0f6d25385950c1f8c2a82955b91c24bd25",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.write:orm_write:1": "3002c731d03b596ff8c6650243bfe1c715fd85a59a1bf861fb2eae89343662f5",
@@ -175538,6 +175538,7 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_all:sudo:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:2",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:3",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:sudo:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_for_owners:sudo:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._replace_delegated_access:orm_write:1",
@@ -175604,6 +175605,9 @@
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:2": {
+          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:3": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:sudo:1": {
@@ -175750,9 +175754,10 @@
         "cron:usl_access_control.ir_cron_usl_agent_authority_reconcile": "68b2784e283cd0bfd8bb2e336dca3df9cefadc486fb46d5ca73fb42574d3067d",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._allows_model_operation:sudo:1": "4a85fbdfdd0815a5565f6ce0dc7338febe026a3c9fcc6b6992f9e2d9757aa773",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_all:sudo:1": "ab023e5e5e9fa738aea9fc1f8fd6ebde4640654955c4bfd9fb3c3163205a7e91",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:1": "e1e030924aed03966beb2576cb215b159309a8d2cd2987a3ec5b28b5c8f23515",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:2": "b0809e48b6b802085ca1650f7e2061c32e04be4523841670c571e5fc65f9f699",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:sudo:1": "cf3cff0e8b2282f758654d1443e31cabf4245a6d9451bdbb0b2d280162231cd8",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:1": "63f0fd894e7cdbc255384ae69ce2a6b81644d237edae395fbe8c1dafdc1392e9",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:2": "85b959c52d7c886c7fbc12687186f813682d3f38d547178ad6e93b86c37ec197",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:3": "256f8b886f3bbadc47b4a30cc1182adc5791edfbdbd2c2a8f4cd0a57b302aa20",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:sudo:1": "17abe40a04dc7b7d99cb09811a426280a3c7c62a0b5de6872f1ee1c4202d30ab",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_for_owners:sudo:1": "faabcbc225f9ef22890efe7c900501c1d944f613c2252bd35e3dfbcdb91469de",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._replace_delegated_access:orm_write:1": "7219b35e1be2db2513cc820fb0a20030233f39acea1d7c77cb752feb011085ef",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._search_needs_attention:sudo:1": "9807630298dc28aca87575effed45363b9847f76a8259f9d5893565b31ef088e",
@@ -175763,15 +175768,15 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.action_grant_all_read_write:orm_write:1": "e203fb137170d6f4973cc7f17526c95e6864b43fb32ab4864a7a5f847450615f",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.action_reactivate:orm_write:1": "b65c79e169243d6c5503ac6110510e3fce0aff3570ec23b7d07f0b548ea80070",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.action_suspend:orm_write:1": "3a1d69ad9d4cc0e46e7f37fbdbcafad1908e5c7188583bf5d5dc06b9a7fffc4d",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.create:orm_create:1": "3d9fdf708c986cd284466ce0efb0ec7279973e7ad310348360df7c32c4d947c2",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.create:orm_create:2": "9824630413e04a9906d9771678d0e5c8ee1249da0f317f95851dd8e9c9c03fab",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.create:orm_create:1": "e47e0c4559aa6530ca0ed788de111054ad9f0d8198315710bfb82066a8d8d9bb",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.create:orm_create:2": "0c9678411c5ca325cfe2dd015a912de0ed023afc5cabc8bd269eac26e2ef8ff4",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.current_identity:sudo:1": "6d04c54a41e845c0203bb218b6b4f9a3184e3ef185d6e6f39f39ecbc3de22660",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.current_identity:sudo:2": "e8a36e107710ca469bd9eddf7a4a267ea25f1687086e7b22dc5b4199f82d14e5",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:1": "908837c35df00cbcad84264379a5766fa9dea3a76c63337d7b56beedbbe6a314",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:2": "9da815d19438ebe05b77bb5df8041eefed2a663547afcd5b4d79aafc6effd5fc",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:3": "8d89c2cf31a264209e939ec5686383db2123878c93dcd586b536f3dd58419319",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:4": "60c8c10681f913b891096cf5d00024ce9b3a9e8789805dfcc3c39a5d4dea4fc3",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:5": "fc4890618e8c15eaca737f2e449137d4c0d4060eadf465e3a73e70e4518b56dd",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:1": "c6bb45f235bff042cf0cdd5812c9141651360aae6aed9b5cafe2a55e08f37852",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:2": "3d1d294e3b09cd4453c2adf6c0a606d6fbcb7db34f57f4818ae648801580efeb",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:3": "6c44ee7094cb68f879a2d9bd68e66178258fbab3da1fe9d9e92b53c9eaa0e0b5",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:4": "c97b376277f1d2fc082e2fb916886bc0eff337e497f53f6166dbf52d2ed7f7c3",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent.write:orm_write:5": "c1841ad34ebcc15c6dbf6423722f87bec369c4fcadf2cb6b53699fb1bb397e6c",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.thread._usl_revisable_subtypes:sudo:1": "abea34e3010f09837042a620684342daf14aeabe3fd76d6e1001083e297a7aea",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.thread._usl_revisable_subtypes:sudo:2": "e552987c9045b0ce2937cccb1e8c1a863cf8bc45b9568269f2e659d8eb255d2a",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.thread.mcp_revise_own_message:orm_write:1": "09327e112fbdc4c0c3b2fea1a1be72979e336d04a0c8a77206d2a02e748d6578",
@@ -197046,6 +197051,6 @@
       ]
     }
   },
-  "qualified_policy_digest": "37f5d641340e5ffd505f541254f9ffd0d460a9d9091472014a652a6a4902d1b8",
+  "qualified_policy_digest": "cdc125d7b50062b62305b04426f41e758e8306ba9aef687855a98e6a29e1da7c",
   "schema": "usl-action-risk-policy-v1"
 }

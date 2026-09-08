@@ -161,23 +161,13 @@ class HrExpense(models.Model):
                 ),
             )
 
-    def action_rebuild_waive_receipt(self):
-        """Record the explicit decision to continue without a receipt.
+    def _rebuild_check_receipt_waiver_ready(self):
+        """Refuse every expense that cannot carry the decision before any is written.
 
-        The decision is a documented exception, not a policy change: the
-        category still requires receipts, the expense keeps the written
-        reason, who confirmed it and when, and the chatter carries the same
-        facts for reviewers and hygiene follow-up.
+        Checking the whole set first is what lets a caller preview the
+        decision truthfully: a preview that passed here and a confirmation
+        that failed afterwards would be a lie.
         """
-        self.check_access("write")
-        if getattr(self.env.user, "usl_is_ai_agent", False):
-            raise AccessError(
-                _(
-                    "Continuing without a receipt is a documented decision that "
-                    "a person must record. Ask the employee or an Expense "
-                    "Manager to confirm it.",
-                ),
-            )
         for expense in self:
             if expense.message_main_attachment_id:
                 raise UserError(
@@ -187,8 +177,7 @@ class HrExpense(models.Model):
                 raise UserError(
                     _("The category of %s does not require a receipt.", expense.name),
                 )
-            reason = (expense.rebuild_receipt_waiver_reason or "").strip()
-            if not reason:
+            if not (expense.rebuild_receipt_waiver_reason or "").strip():
                 raise UserError(
                     _(
                         "Explain why no receipt can be provided for %s before "
@@ -196,6 +185,34 @@ class HrExpense(models.Model):
                         expense.name,
                     ),
                 )
+        return True
+
+    def _rebuild_receipt_waiver_note(self, reason):
+        """The Chatter record of the decision.
+
+        Identity governance extends this note rather than adding a second
+        one, so a reviewer reads who decided and on whose authority in the
+        same place as the reason.
+        """
+        self.ensure_one()
+        return _(
+            "Decision recorded: this expense continues without a receipt. "
+            "Reason: %s",
+            reason,
+        )
+
+    def action_rebuild_waive_receipt(self):
+        """Record the explicit decision to continue without a receipt.
+
+        The decision is a documented exception, not a policy change: the
+        category still requires receipts, the expense keeps the written
+        reason, who confirmed it and when, and the chatter carries the same
+        facts for reviewers and hygiene follow-up.
+        """
+        self.check_access("write")
+        self._rebuild_check_receipt_waiver_ready()
+        for expense in self:
+            reason = expense.rebuild_receipt_waiver_reason.strip()
             expense.write(
                 {
                     "rebuild_receipt_waiver_reason": reason,
@@ -204,11 +221,7 @@ class HrExpense(models.Model):
                 },
             )
             expense.message_post(
-                body=_(
-                    "Decision recorded: this expense continues without a "
-                    "receipt. Reason: %s",
-                    reason,
-                ),
+                body=expense._rebuild_receipt_waiver_note(reason),
                 message_type="comment",
                 subtype_xmlid="mail.mt_note",
             )
