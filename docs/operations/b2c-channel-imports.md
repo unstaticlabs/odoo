@@ -41,13 +41,57 @@ and the **orders** export is asked for by name. Export all three.
    finding stopping only the step it would spoil.
 6. **Apply.** Contacts, canonical orders, sales orders priced at what was
    actually paid, and deliveries completed on the day the goods left.
-7. **Invoice.** One invoice per sale, dated the day of the sale, settled into
-   the channel's clearing account.
-8. **Bill the commission.** One bill per channel per month, paid out of the
+7. **Reconcile.** What these exports now say has become of the orders they
+   name: goods an earlier drop could not send because they had not left yet,
+   and the sales the channel has since cancelled or refunded.
+8. **Invoice.** One invoice per sale whose goods have gone out, dated the day
+   of the sale, settled into the channel's clearing account. An order paid and
+   not yet shipped is held instead, and becomes an invoice in the drop that
+   says it shipped.
+9. **Bill the commission.** One bill per channel per month, paid out of the
    same clearing account.
+10. **Settle the supply.** One document per month for what the supplier drew on
+    its wallet, paid out of the wallet itself.
 
 What is left is the bank: each payout meets the clearing account, which by then
-holds exactly what the payout brings.
+holds exactly what the payout brings, and each wallet top-up meets the wallet.
+
+Every step can be run again. A drop applied, reconciled, invoiced, billed and
+settled twice leaves the ledger exactly as the first run left it — which is
+what makes re-dropping a wider export the way to correct a narrower one.
+
+## What happens to an order that does not stand
+
+A channel exports an order's present condition, not only that it once happened.
+The word it uses is read as what became of the order, and an unknown word is
+read as a sale that stands: channels invent vocabulary far more often than they
+invent outcomes, and taking a word nobody recognises for a cancellation would
+erase revenue that exists.
+
+| The channel says | What is done |
+| --- | --- |
+| Nothing, or a word this does not know | Nothing. It is a sale. |
+| Cancelled, and Odoo has no sale for it yet | No sale is created. It never became commerce. |
+| Cancelled, before the goods left | The sale is cancelled and anything held for it is paid back. |
+| Cancelled or refunded, after the goods left | A credit note is posted and paid back out of the clearing account. A cancellation of goods that have already gone out is also reported: whether they came back is a stock fact no export states. |
+| Refunded in part | The credit note is drafted, not posted, and a finding names the amount. Which line was refunded decides the account and the rate, and that is a person's to say. |
+
+Etsy names no refund at all. It restates the order's money after adjustment, so
+a refund there is the difference between what the buyer paid and what the order
+is now worth — which is also how an untouched order is told from one refunded
+to nothing.
+
+## Money for goods that have not left
+
+VAT on a supply of goods falls due when the goods are delivered, so an order
+paid and not yet shipped is not a sale yet and is not invoiced. What the
+customer paid is recorded against the customer, which leaves the receivable in
+credit — an advance — and states no revenue and no VAT.
+
+The drop that says the order shipped sends the goods, invoices it, and settles
+the invoice against the advance already held. Nothing is collected twice, and
+at closing the credit balances are what the customer-advances account is
+presented from.
 
 ## Configuration this depends on
 
@@ -61,8 +105,12 @@ Per channel (**B2C → Configuration → Channels**):
 - **Channel operator** and **Commission product** — who bills the commission
   and what it is bought as.
 
-Per company:
+Per company (**Settings → Accounting**, or on the company record):
 
+- **Print-on-demand supplier**, **Supplier wallet**, **Supply of goods sold**
+  and **Supply for no sale** — who draws on the wallet, the journal the wallet
+  is held in, and the two products a month of supply is bought as. Without them
+  the supply cannot be settled and the button says so.
 - **Registered for the One Stop Shop**, and the two accounts destination VAT
   reaches before and after registration. Until registration it accrues as a
   liability to be regularised rather than as VAT collected under a scheme the
@@ -131,6 +179,29 @@ A refund is a fulfilment too, costing the negative of what was charged, and it
 usually arrives long after the sale. So a drop that holds no orders of its own
 still updates what earlier sales cost: fulfilment is matched to the order Odoo
 already has, not only to the orders in hand.
+
+## What the supplier drew
+
+Printful does not invoice an order. It draws on a wallet the shop tops up, so
+the ledger owes it one document a month for what it drew, credited to the
+wallet the money came out of. **Settle the supply** posts that document and
+pays it from the wallet, which leaves the wallet's balance a fact the bank can
+be reconciled against rather than an opinion.
+
+It bills exactly the number the margin uses — the whole fulfilment cost, the
+supplier's own carriage included — so the cost in the accounts and the cost in
+the margin can never disagree. A fulfilment answering to no sale is marketing
+or prototyping: it drew on the wallet just the same, so it is billed, but on a
+line of its own and never as the cost of something sold.
+
+What each document settled is kept, per fulfilment, so a cost that changes
+afterwards is billed as the difference rather than charged again. A month that
+nets negative — a refund arriving after its bill was paid — is a credit note,
+and the wallet is credited back by exactly what it was charged.
+
+A top-up is a bank movement and stays yours to reconcile. When the supplier has
+drawn more than the wallet was ever paid, the drop says so: a prepaid balance
+cannot be in credit, and a missing top-up is the usual reason.
 
 ## Destination VAT
 

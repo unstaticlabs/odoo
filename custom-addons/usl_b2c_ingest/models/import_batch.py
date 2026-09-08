@@ -389,6 +389,62 @@ class B2cImportBatch(models.Model):
                 ),
             )
 
+    def _settlement_report(self):
+        """Say what became of the money: held, invoiced, given back, paid out."""
+        self.ensure_one()
+        lines = []
+        reversed_orders = self._orders_stated_reversed()
+        if reversed_orders:
+            lines.append(
+                self.env._(
+                    "%(count)s order(s) are stated cancelled or refunded.",
+                    count=len(reversed_orders),
+                ),
+            )
+        if self.advance_payment_ids:
+            lines.append(
+                self.env._(
+                    "%(count)s order(s) are paid but not shipped, so %(amount)s is "
+                    "held as an advance rather than invoiced.",
+                    count=len(self.advance_payment_ids),
+                    amount=sum(self.advance_payment_ids.mapped("amount")),
+                ),
+            )
+        if self.credit_note_ids:
+            lines.append(
+                self.env._(
+                    "%(count)s credit note(s): %(names)s.",
+                    count=len(self.credit_note_ids),
+                    names=", ".join(self.credit_note_ids.mapped("display_name")),
+                ),
+            )
+        if self.cancelled_sale_ids:
+            lines.append(
+                self.env._(
+                    "%(count)s sale(s) cancelled: %(names)s.",
+                    count=len(self.cancelled_sale_ids),
+                    names=", ".join(self.cancelled_sale_ids.mapped("display_name")),
+                ),
+            )
+        if self.wallet_move_ids:
+            lines.append(
+                self.env._(
+                    "%(count)s document(s) settle what the supplier drew: %(names)s.",
+                    count=len(self.wallet_move_ids),
+                    names=", ".join(self.wallet_move_ids.mapped("display_name")),
+                ),
+            )
+        if self.company_id.usl_b2c_wallet_journal_id:
+            lines.append(
+                self.env._(
+                    # Read rather than taken from the stored field: the run
+                    # that writes this report is the one that just moved it.
+                    "The supplier's wallet holds %(balance)s.",
+                    balance=self._wallet_position(),
+                ),
+            )
+        return lines
+
     def _raise_issue(self, kind, name, *, note=None, external_order_id=None, row=None,
                      severity="blocking", proposal=None):
         self.ensure_one()
@@ -489,6 +545,7 @@ class B2cImportBatch(models.Model):
                     internal=cost["internal"],
                 ),
             )
+        lines.extend(self._settlement_report())
         if self.blocking_issue_count or self.advisory_issue_count:
             lines.append(
                 self.env._(

@@ -10,6 +10,7 @@ from . import (
     import_issue,
     import_row,
     invoicing,
+    lifecycle,
     mapping,
     materialise,
     oss,
@@ -17,4 +18,5 @@ from . import (
     readiness,
     settlement,
     supplier,
+    wallet,
 )
