@@ -1083,6 +1083,54 @@ class TestDrift(ActionRiskInventoryTestCase):
             ["Changed action requires review: rpc:x.changed (sources)"],
         )
 
+    def test_names_the_database_when_only_a_database_defined_digest_moves(self):
+        """The author is otherwise sent to reseal an action nobody changed."""
+        expected_action = self.action(
+            "ui:base.ir_cron_act", "ui", xmlid="base.ir_cron_act",
+        )
+        expected_action["sources"] = [
+            {"path": "database:ir.actions.act_window:5"},
+            {"path": "odoo/addons/base/views/ir_cron_views.xml", "line": 86},
+        ]
+        candidate_action = self.action(
+            "ui:base.ir_cron_act", "ui", xmlid="base.ir_cron_act", digest=ONE,
+        )
+        candidate_action["sources"] = list(expected_action["sources"])
+
+        errors = inventory.compare_surfaces(
+            self.surface([expected_action]),
+            self.surface([candidate_action]),
+        )
+
+        self.assertIn(
+            "Changed action requires review: ui:base.ir_cron_act (digest)",
+            errors,
+        )
+        diagnosis = [error for error in errors if "row id" in error]
+        self.assertEqual(len(diagnosis), 1, errors)
+        self.assertIn("ui:base.ir_cron_act", diagnosis[0])
+        self.assertIn("raw database row id", diagnosis[0])
+        self.assertIn("make action-risk-db", diagnosis[0])
+
+    def test_stays_silent_when_a_source_defined_digest_moves(self):
+        """Only a database record can move without the checkout moving."""
+        expected_action = self.action("rpc:x.changed", "rpc")
+        expected_action["sources"] = [
+            {"path": "custom-addons/app/models/thing.py", "line": 12},
+        ]
+        candidate_action = self.action("rpc:x.changed", "rpc", digest=ONE)
+        candidate_action["sources"] = list(expected_action["sources"])
+
+        errors = inventory.compare_surfaces(
+            self.surface([expected_action]),
+            self.surface([candidate_action]),
+        )
+
+        self.assertEqual(
+            errors,
+            ["Changed action requires review: rpc:x.changed (digest)"],
+        )
+
     def test_carry_moved_sinks_renames_only_identical_relocated_helpers(self):
         moved = self.action(
             "sink:app:custom-addons/app/models/old.py:app.thing._helper:sudo:1",
