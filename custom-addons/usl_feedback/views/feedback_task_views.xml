@@ -13,6 +13,7 @@
             <kanban string="Product Feedback" default_group_by="stage_id" create="false" edit="false" delete="false" records_draggable="false" group_create="false" group_edit="false" group_delete="false" class="o_kanban_small_column o_usl_feedback_board">
                 <field name="stage_id"/>
                 <field name="priority"/>
+                <field name="state"/>
                 <field name="usl_feedback_reporter_id"/>
                 <field name="usl_feedback_category"/>
                 <field name="usl_feedback_agent_state"/>
@@ -27,6 +28,7 @@
                             <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" class="mt-2"/>
                             <footer class="mt-2">
                                 <field name="usl_feedback_reporter_id" widget="many2one_avatar_user"/>
+                                <field name="state" class="ms-1" widget="project_task_state_selection" options="{'is_toggle_mode': false}"/>
                                 <field name="usl_feedback_agent_state" widget="badge" class="ms-auto"/>
                             </footer>
                         </main>
@@ -83,7 +85,11 @@
                 <field name="usl_feedback_category" widget="badge"/>
                 <field name="priority" widget="priority"/>
                 <field name="stage_id"/>
+                <field name="state" widget="project_task_state_selection" options="{'is_toggle_mode': false}"/>
                 <field name="usl_feedback_agent_state" widget="badge" optional="show"/>
+                <field name="usl_feedback_score" optional="show"/>
+                <field name="usl_feedback_tokens" optional="show"/>
+                <field name="allocated_hours" optional="show"/>
                 <field name="usl_feedback_company_id" groups="base.group_multi_company" optional="hide"/>
                 <field name="create_date" optional="hide"/>
                 <field name="write_date" optional="show"/>
@@ -124,6 +130,7 @@
                         <field name="usl_feedback_reporter_id" readonly="1"/>
                         <field name="usl_feedback_category" widget="badge" readonly="1"/>
                         <field name="priority" widget="priority" readonly="1"/>
+                        <field name="state" widget="project_task_state_selection" readonly="1"/>
                         <field name="usl_feedback_agent_state" widget="badge" readonly="1"/>
                         <field name="usl_feedback_company_id" groups="base.group_multi_company" readonly="1"/>
                         <field name="tag_ids" widget="many2many_tags" readonly="1"/>
@@ -147,6 +154,13 @@
                     </group>
                     <group string="Release">
                         <field name="usl_feedback_release_sha" readonly="1" class="font-monospace"/>
+                    </group>
+                    <group string="Delivery">
+                        <field name="usl_feedback_branch" readonly="1"/>
+                        <field name="usl_feedback_pr_url" widget="url" text="Open pull request" readonly="1"/>
+                        <field name="usl_feedback_score" readonly="1"/>
+                        <field name="usl_feedback_tokens" readonly="1"/>
+                        <field name="allocated_hours" readonly="1"/>
                     </group>
                     <field name="usl_feedback_context_included" invisible="1"/>
                     <field name="usl_feedback_can_manage" invisible="1"/>
@@ -178,7 +192,31 @@
             <field name="priority" position="attributes">
                 <attribute name="readonly">0</attribute>
             </field>
+            <!-- The human approval gate: Valentin sets this to Approved once he
+                 has read the pull request and its screenshots. Only a feedback
+                 maintainer may change it (see project_task.py write()); note that
+                 Odoo itself resets it to In Progress on a stage change that does
+                 not also set state, so approving here does not survive a later
+                 drag to a new stage. -->
+            <field name="state" position="attributes">
+                <attribute name="readonly">0</attribute>
+            </field>
             <field name="description" position="attributes">
+                <attribute name="readonly">0</attribute>
+            </field>
+            <field name="usl_feedback_branch" position="attributes">
+                <attribute name="readonly">0</attribute>
+            </field>
+            <field name="usl_feedback_pr_url" position="attributes">
+                <attribute name="readonly">0</attribute>
+            </field>
+            <field name="usl_feedback_score" position="attributes">
+                <attribute name="readonly">0</attribute>
+            </field>
+            <field name="usl_feedback_tokens" position="attributes">
+                <attribute name="readonly">0</attribute>
+            </field>
+            <field name="allocated_hours" position="attributes">
                 <attribute name="readonly">0</attribute>
             </field>
             <!-- The badge widget only renders a value, so drop it here or the field
