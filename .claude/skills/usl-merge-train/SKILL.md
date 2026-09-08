@@ -1,12 +1,12 @@
 ---
 name: usl-merge-train
-description: Batch approved pull requests into the staging merge queue, watch the post-merge qualification and release, verify the deploy, and recover from a red batch. Use when clearing the approved queue, or when staging has gone red after a merge.
+description: Batch approved pull requests into the staging merge queue, watch the post-merge qualification and release, prove the deploy, promote the qualified staging head to production, and recover from a red batch. Use when clearing the approved queue, when promoting staging to production, or when staging has gone red after a merge.
 ---
 
 # The merge train
 
-Collect what is approved, land it as one group, and prove it reached users. Then
-close the loop on the board.
+Collect what is approved, land it as one group, prove it reached users, and carry
+it on to production. Then close the loop on the board.
 
 **Run this first and alone.** Everything downstream — the upstream catch-up branch,
 every delivery worktree — is cut from the staging head. Running agents while the
@@ -24,8 +24,17 @@ A pull request joins the train when **all** of these hold:
   `required_review_thread_resolution: true`, so an open thread blocks the merge.
   Resolve threads you have genuinely addressed; never resolve one to get past it.
 
-Nothing else. A green CI run is not approval. The rulesets require zero approving
-reviews *by design*, so the gate is the card's Approved state, not GitHub's.
+Nothing else. **Either signal is sufficient on its own.** An approving GitHub
+review is a person saying yes on the pull request; the card's **Approved** state
+is a person saying yes on the board. A PR approved on GitHub is eligible even
+when its card never reached *Review / Approved*, and a card approved on the board
+is eligible even when nobody clicked Approve on GitHub.
+
+What is never approval is a green CI run: it says the tree builds and its tests
+pass, not that anyone read it. The rulesets require zero approving reviews *by
+design*, so GitHub will never hold the merge back on your behalf — which is
+exactly why you check for one of these two human signals yourself instead of
+letting the queue decide.
 
 ```bash
 gh pr list --repo unstaticlabs/odoo --state open --base 19-usl-staging \
@@ -44,7 +53,8 @@ first.
 **Never batch into production.** `19-usl` is `max_entries_to_merge: 1`, and
 `scripts/merge-group-pull-request` raises
 `merge queue must identify one open PR by its source parent` on a batched group.
-Production gets there through the ordinary promotion, never through this train.
+Production gets there through the single-entry promotion below, never through a
+batch.
 
 ```bash
 gh pr merge <n> --repo unstaticlabs/odoo --merge --auto
@@ -100,33 +110,52 @@ gh api "repos/unstaticlabs/odoo/actions/artifacts?name=usl-release-<sha>" \
 
 ## Proving it deployed
 
-The release workflow fires **one webhook at GitLab and forgets**. Nothing in GitHub
-records whether the deploy worked, and a green release check does not mean a green
-deploy — the trigger step runs *after* publication, and it has timed out in
-production before (01:09 on 2026-09-07; production did not move until a manual
-re-run at 07:14).
+The release workflow fires **one webhook at GitLab and forgets**, and a green
+release check does not mean a green deploy: the trigger step runs *after*
+publication, and it has timed out in production before (01:09 on 2026-09-07;
+production did not move until a manual re-run at 07:14).
 
-Read-only, over `ssh odoo`:
+**GitHub does record the outcome, and it is commit-exact.** The deploy reports
+back as a deployment on the `staging-release` environment. That status — not a
+health endpoint, not a published artifact — is what proves a *given commit*
+reached staging:
 
 ```bash
-scripts/usl-stack --target staging runtime status --json   # deployment generation
-scripts/usl-stack --target staging release status --json   # status == "admitted"
-scripts/usl-stack --target staging health --json
-scripts/usl-stack --target staging smoke  --json
+scripts/check-staging-deployment --repository unstaticlabs/odoo \
+  --sha <merge commit> --head-ref 19-usl-staging
 ```
 
-**Staging's runtime lookup is currently broken, and it is not staging that is
-broken.** As of 2026-09-08 `usl-stack-observe staging runtime` returns
-`expected one usl-odoo-staging-main/odoo container, found 0` while
-`https://odoo-staging.unstaticlabs.com/web/health` answers Odoo's own
-`{"status": "pass"}` from origin. `operations/targets/staging.json` names a compose
-project nothing on the host answers to; the identical lookup resolves for
-production. Do not read that failure as "not deployed", and do not revert anything
-over it. Say which signal you actually used, and note that none of the fallbacks —
-release artifact published, health endpoint passing, `release status` admitted —
-establishes *which commit* staging runs. Only the generation's release manifest
-does, which is why production stays the only environment whose running commit can
-be proved.
+It exits non-zero and names the reason when no `staging-release` deployment
+exists for that sha, or when the newest status on it is not `success`
+(`operations/staging_deployment.py`). The production promotion runs this exact
+check as a required step in `.github/workflows/qualification.yml`, so a tree
+staging never deployed cannot be promoted. That gate exists because on
+2026-09-08 a promotion merged fully green at 08:49 while the same commit's
+staging deployment had read `failure` since 04:55, and production then failed
+identically.
+
+The chain can also stall rather than fail, and a check looking only for failure
+misses it:
+
+```bash
+scripts/check-release-health --repository unstaticlabs/odoo
+```
+
+`operations/release_health.py` calls an environment unhealthy when its newest
+deployment failed **or** never reached a terminal state within two hours — the
+hand-off is single-attempt HTTP and a lost one leaves a deployment pending
+forever. The `Release health` workflow runs it hourly, so a red scheduled run is
+the alert. Run it yourself before merging anything further: a merge into staging
+supersedes a release already in flight.
+
+Then the runtime itself, read-only:
+
+```bash
+scripts/usl-stack-observe staging release    # status == "admitted"
+scripts/usl-stack-observe staging health
+scripts/usl-stack-observe staging smoke
+scripts/usl-stack-observe staging runtime    # deployment generation
+```
 
 `release status` reports `admitted` only when all sixteen stages completed. The
 generation maps back to a commit through
@@ -134,7 +163,23 @@ generation maps back to a commit through
 and its `commit` field. An active image plus a healthy endpoint is **not**
 sufficient — only the admission receipt proves it.
 
-Every mutating `usl-stack` verb is denied to you. Status, health and smoke only.
+**Staging's runtime lookup is currently broken, and it is not staging that is
+broken.** As of 2026-09-08 `usl-stack-observe staging runtime` returns
+`expected one usl-odoo-staging-main/odoo container, found 0` while
+`https://odoo-staging.unstaticlabs.com/web/health` answers Odoo's own
+`{"status": "pass"}` from origin. `operations/targets/staging.json` names a
+compose project nothing on the host answers to; the identical lookup resolves for
+production. Do not read that failure as "not deployed" and do not revert anything
+over it — `check-staging-deployment` answers that question without touching the
+host. It is a known, separate defect. Do not fix it in the middle of a merge
+train; report it.
+
+Use `scripts/usl-stack-observe`, never `scripts/usl-stack`. The observe wrapper
+builds its own argument list and there is no argument by which a caller reaches a
+mutating verb, whereas a permission rule allowing `scripts/usl-stack` also allows
+`restore`, `backup` and `release run` — it opens the SSH connection itself.
+**Every mutating `usl-stack` verb is denied to you.** Status, release, health,
+smoke and storage only.
 
 ## When the batch goes red
 
@@ -149,11 +194,53 @@ Staging is already carrying the bad commit. Recover in this order:
    the batch you just merged, and only to restore the state before it.
 3. **Open a fix PR** against the reverted work carrying the failure evidence, as a
    draft, assigned to Valentin.
-4. **Move the card back to Build, state Changes Requested**, and say plainly in
-   the chatter what broke and what happens next.
+4. **Move the card to Release / Changes Requested** — it entered the chain and
+   fell out of it, and that is what the state means. Say plainly in the chatter
+   what broke and what happens next. It returns to **Build / In Progress** when
+   the fix is actually allocated to someone, not before: a card parked in Build
+   with nobody on it reads as work in progress that is not.
 
 If you cannot identify the culprit with confidence, revert the **whole group** —
 that is always safe — and say so.
+
+## Promoting to production
+
+**What made it to staging should make it to production.** You have an exceptional
+standing mandate to carry it there yourself rather than wait for someone:
+
+```bash
+gh pr create --repo unstaticlabs/odoo --base 19-usl --head 19-usl-staging \
+  --title 'chore(release): promote qualified staging' --body '<what is in it>'
+gh pr merge <n> --repo unstaticlabs/odoo --merge --auto
+```
+
+One entry at a time — `19-usl` is `max_entries_to_merge: 1`, and the promotion
+carries the whole staging head, never a cherry-picked subset. Then watch it the
+same way you watched the staging merge: the promotion's own `USL qualification`
+run (production re-qualifies the commit even when staging already passed), the
+release, and finally the deploy — `check-release-health`,
+`check-staging-deployment`'s production counterpart in the deployment API, and
+`usl-stack-observe production release | health | smoke | runtime` for the final
+VPS state.
+
+**When it goes wrong, fixing the pipeline is inside the mandate.** A promotion
+blocked by a defect in a gate, a workflow or a check is yours to repair and
+retry — that is the point of the mandate, because a promotion that sits red is a
+staging tree users never receive.
+
+**The mandate is the pull request and the pipeline. It is not the machine.**
+
+- Every mutating `usl-stack` verb stays denied. You do not deploy, restore, roll
+  back, start, stop or run a release on the VPS by hand. Read the final state
+  with `usl-stack-observe`; if what you find needs a mutation, say so and stop.
+- You never push to `19-usl`. The pre-push guard refuses it, and a direct push
+  skips qualification while Git pushes as an administrator, so nothing on GitHub
+  would catch it.
+- Before you change a promotion gate, read `operations/source_policy.py`.
+  Production accepts `19-usl-staging` **or** `urgent/**`, and an urgent fix
+  reaches staging *after* production by design. A gate demanding staging evidence
+  of every promotion welds the emergency path shut at the moment it is needed —
+  which is why `check-staging-deployment` exempts `urgent/**` explicitly.
 
 ## Closing the loop on the board
 
@@ -164,14 +251,33 @@ loses an approval.
 
 | Moment | Stage | State |
 |---|---|---|
-| merged to staging | Review | Approved (unchanged) |
-| live in production | Release | Done |
+| added to the merge queue | Release | In Progress |
+| proven deployed to staging | Release | **Approved** |
+| failed staging, and was reverted or blocked | Release | **Changes Requested** |
+| proven deployed to production | Release | **Done** |
 
-Post a chatter note at each: the merge commit for the first, the deployment
-generation for the second. Say it in the reporter's language, not CI's.
+**The card enters Release when you queue it, not when it reaches production.**
+Earlier revisions of this skill said the card stayed at *Review / Approved* until
+production; it does not, and the two statements cannot both be true. *Review /
+Approved* is this train's **input** — the signal that let the pull request in —
+and queuing consumes it. From that moment the card reports where the change sits
+in the release chain, and every row above is a fact you can point at: a
+merge-queue entry, a successful `staging-release` deployment, a revert commit, a
+successful `production-release` deployment.
+
+*Changes Requested* is where a card stops until someone acts. It means the change
+is out of the chain, not merely late: use it when you reverted the PR or blocked
+it, never for a batch that is simply still in flight.
+
+Post a chatter note at each step: the merge commit when you queue it, the
+deployment evidence when staging and production accept it, and — if it comes to
+that — what broke and what happens next. Say it in the reporter's language, not
+CI's.
 
 ## Report
 
 Which PRs went in and as what group; the merge commit; the post-merge check
-results; the release digest; the deployment generation and admission status; every
+results; the release digest; the staging and production deployment evidence you
+actually read, named; the promotion pull request and anything you fixed in the
+pipeline to get it through; the deployment generation and admission status; every
 card moved; and anything reverted, with the evidence that identified it.
