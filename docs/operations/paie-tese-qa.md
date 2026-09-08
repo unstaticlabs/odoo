@@ -24,13 +24,13 @@ Keep both regulatory live guards disabled. In the canonical worktree:
 make tese-qa-bootstrap
 ```
 
-In an isolated worktree, keep its Compose project and ports explicit:
+In an isolated worktree, keep its Compose project and ports explicit. Take them
+from `make worktree-env`, which derives all five from the checkout path — the
+Pocket ID and Paperless ports are required too, not just the two Odoo ones. See
+[Developing in a git worktree](worktree-development.md).
 
 ```bash
-ODOO_SAAS_COMPOSE_PROJECT=usl-tese-f73b \
-ODOO_HTTP_PORT=19669 \
-ODOO_GEVENT_PORT=19672 \
-make tese-qa-bootstrap
+eval "$(scripts/worktree-env export)" && make tese-qa-bootstrap
 ```
 
 The bootstrap is idempotent while its scenarios remain untouched. After a QA

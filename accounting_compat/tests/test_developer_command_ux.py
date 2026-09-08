@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import unittest
@@ -335,6 +336,231 @@ esac
             configure.index("start_paperless_runtime"),
         )
         self.assertIn("Deploy updates an existing reconstructed target", helper)
+
+    def make_project(self, **environment):
+        """Report the Compose project a `make` invocation actually resolves."""
+        completed = subprocess.run(
+            ["make", "doctor"],
+            cwd=ROOT,
+            env={**os.environ, **environment},
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        for line in completed.stdout.splitlines():
+            if line.strip().startswith("Project:"):
+                return line.split(":", 1)[1].strip()
+        return None
+
+    def test_make_accepts_every_documented_compose_project_variable(self):
+        """COMPOSE_PROJECT_NAME used to be silently replaced by the default."""
+        for variable in (
+            "COMPOSE_PROJECT",
+            "COMPOSE_PROJECT_NAME",
+            "ODOO_SAAS_COMPOSE_PROJECT",
+        ):
+            with self.subTest(variable=variable):
+                self.assertEqual(
+                    self.make_project(**{variable: "usl-probe"}),
+                    "usl-probe",
+                )
+
+        self.assertEqual(self.make_project(), "usl-odoo-saas-19-3")
+
+    def test_compose_project_precedence_is_the_same_everywhere(self):
+        """`make`, odoo-dev and accounting_compat must not disagree."""
+        self.assertEqual(
+            self.make_project(
+                COMPOSE_PROJECT_NAME="usl-standard",
+                ODOO_SAAS_COMPOSE_PROJECT="usl-legacy",
+            ),
+            "usl-standard",
+        )
+
+        helper = ODOO_DEV.read_text(encoding="utf-8")
+        self.assertIn(
+            'COMPOSE_PROJECT="${COMPOSE_PROJECT_NAME:-'
+            '${ODOO_SAAS_COMPOSE_PROJECT:-usl-odoo-saas-19-3}}"',
+            helper,
+        )
+
+    def test_worktree_env_derives_isolated_project_and_ports(self):
+        completed = subprocess.run(
+            ["make", "worktree-env"],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        settings = dict(
+            line.split("=", 1)
+            for line in completed.stdout.splitlines()
+            if "=" in line
+        )
+        # COMPOSE_PROJECT_NAME, not COMPOSE_PROJECT: a bare `docker compose`
+        # reads only this spelling, so one assignment has to serve both.
+        self.assertEqual(
+            sorted(settings),
+            [
+                "COMPOSE_PROJECT_NAME",
+                "ODOO_GEVENT_PORT",
+                "ODOO_HTTP_PORT",
+                "PAPERLESS_HTTP_PORT",
+                "POCKET_ID_HTTP_PORT",
+            ],
+        )
+        self.assertNotEqual(settings["COMPOSE_PROJECT_NAME"], "usl-odoo-saas-19-3")
+
+        ports = [int(settings[name]) for name in settings if name.endswith("PORT")]
+        self.assertEqual(len(set(ports)), len(ports), "ports must not collide")
+        for port in ports:
+            self.assertGreater(port, 1024)
+            self.assertLess(port, 65536)
+        # The canonical published ports must never be handed to a worktree.
+        self.assertFalse({8069, 8072, 1411, 8010}.intersection(ports))
+
+    def test_worktree_env_persisted_to_dotenv_reaches_make(self):
+        """`make worktree-env >> .env` has to apply to make, not only Compose."""
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+
+        self.assertIn("DOTENV_COMPOSE_PROJECT", makefile)
+        self.assertIn("$(DOTENV_COMPOSE_PROJECT)", makefile)
+        # An explicit variable must still outrank the file.
+        resolution = makefile.split("COMPOSE_PROJECT ?=", 1)[1].splitlines()[0]
+        self.assertLess(
+            resolution.index("$(COMPOSE_PROJECT_NAME)"),
+            resolution.index("$(DOTENV_COMPOSE_PROJECT)"),
+        )
+
+    def test_worktree_env_is_stable_for_the_same_checkout(self):
+        first = subprocess.run(
+            ["make", "worktree-env"], cwd=ROOT, check=False,
+            capture_output=True, text=True,
+        )
+        second = subprocess.run(
+            ["make", "worktree-env"], cwd=ROOT, check=False,
+            capture_output=True, text=True,
+        )
+
+        self.assertEqual(first.stdout, second.stdout)
+
+    def test_blocked_worktree_message_offers_settings_that_work(self):
+        """Naming the variables was never enough; the values are the hard part."""
+        scope = COMPOSE_SCOPE.read_text(encoding="utf-8")
+
+        self.assertIn("usl_worktree_env_prefix", scope)
+        self.assertIn("make worktree-env", scope)
+        self.assertNotIn(
+            "Use a dedicated COMPOSE_PROJECT and non-conflicting ports",
+            scope,
+        )
+
+    def test_dev_reclaim_target_exists_and_demands_confirmation(self):
+        """compose-scope.sh has always pointed at this target; it must resolve."""
+        scope = COMPOSE_SCOPE.read_text(encoding="utf-8")
+        self.assertIn("make dev-reclaim CONFIRM=", scope)
+
+        completed = subprocess.run(
+            ["make", "dev-reclaim"],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertNotIn("No rule to make target", completed.stderr)
+        self.assertEqual(completed.returncode, 2)
+        self.assertIn("Blocked", completed.stderr)
+        self.assertIn("CONFIRM=", completed.stderr)
+
+    def test_dev_reclaim_refuses_a_confirmation_naming_another_project(self):
+        completed = subprocess.run(
+            ["make", "dev-reclaim", "CONFIRM=some-other-project"],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(completed.returncode, 2)
+        self.assertIn("does not name the project", completed.stderr)
+
+    def test_missing_database_offers_a_way_to_build_one(self):
+        """The advice used to dead-end at a source-data reconstruction."""
+        helper = ODOO_DEV.read_text(encoding="utf-8")
+        assessment = helper.split("The %s database is missing", 1)[1][:600]
+
+        self.assertIn("make init-db", assessment)
+        self.assertIn("make action-risk-db", assessment)
+        # The migration path stays, but no longer as the only option.
+        self.assertIn("migration/manage qa refresh", assessment)
+
+    def test_database_targets_are_reachable_from_make(self):
+        for target in ("init-db", "action-risk-db"):
+            with self.subTest(target=target):
+                completed = subprocess.run(
+                    ["make", "-n", target],
+                    cwd=ROOT,
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                )
+                self.assertEqual(completed.returncode, 0, completed.stderr)
+                self.assertIn(f"odoo-dev {target}", completed.stdout)
+
+    def test_action_risk_database_installs_the_tracked_roots(self):
+        """The database must not drift from what the inventory compares to."""
+        surface = json.loads(
+            (
+                ROOT
+                / "custom-addons/usl_access_control/policy/action_surface.json"
+            ).read_text(encoding="utf-8"),
+        )
+        helper = ODOO_DEV.read_text(encoding="utf-8")
+
+        # Roots are read from the tracked file, never restated in the script.
+        self.assertIn("action_surface.json", helper)
+        self.assertIn('ODOO_INIT_MODULES="$(action_risk_root_modules)"', helper)
+        for root in surface["root_modules"]:
+            self.assertNotIn(f'"{root}"', helper.split("action_risk_root_modules")[0])
+
+    def test_action_risk_database_reuses_the_canonical_scope_enforcement(self):
+        """Do not add a second way to remove the optional auto-installs."""
+        helper = ODOO_DEV.read_text(encoding="utf-8")
+        block = helper.split("action-risk-db)", 1)[1].split(";;", 1)[0]
+
+        self.assertIn("scripts/odoo/enforce_product_module_scope.py", block)
+        self.assertTrue(
+            (ROOT / "scripts/odoo/enforce_product_module_scope.py").is_file(),
+        )
+        # ci-product-database and migration/internal/finalize rely on it too.
+        pipeline = (ROOT / "scripts/ci-product-database").read_text(encoding="utf-8")
+        self.assertIn("enforce_product_module_scope.py", pipeline)
+
+    def test_closure_verification_refuses_a_mismatched_database(self):
+        """A database wide of the tracked set makes any discovery diff a lie."""
+        script = (
+            ROOT / "scripts/odoo/verify_tracked_module_closure.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("action_surface.json", script)
+        self.assertIn("Module set does not match the tracked closure", script)
+        # Both directions must fail, not just extras.
+        self.assertIn("tracked - installed", script)
+        self.assertIn("installed - tracked", script)
+        # It only reports; removal stays with the canonical script.
+        self.assertNotIn("button_immediate_uninstall", script)
+
+    def test_repair_hint_never_hands_a_worktree_the_canonical_project(self):
+        """It echoed current values, i.e. the one project a worktree may not use."""
+        helper = ODOO_DEV.read_text(encoding="utf-8")
+        hint = helper.split("Pocket ID repair", 1)[1][:900]
+
+        self.assertIn("usl_worktree_is_linked", hint)
+        self.assertIn("usl_worktree_env_prefix", hint)
+        self.assertIn("CANONICAL_COMPOSE_PROJECT", hint)
 
     def test_preproduction_boundary_rejects_partial_qa_profiles(self):
         boundary = (ROOT / "scripts/odoo/product_database_boundary.py").read_text(
