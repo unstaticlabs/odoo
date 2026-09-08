@@ -39,14 +39,34 @@ journey lands; that is the conversion backlog, measured by
 ## Commands
 
 ```bash
-make docs          # regenerate users/README.md, product/decisions/README.md and llms.txt
-make docs-check    # front matter, directories, links, images, sources, decision numbering, stale indexes
+make docs            # run the journeys in the test container, render pages and screenshots, refresh the indexes
+make docs-journeys   # only run the journeys (MODULE=name limits the installed modules); records land in artifacts/usl-docs
+make docs-render     # only render from recorded journeys (scripts/docs-generate render)
+make docs-check      # front matter, directories, links, images, sources, decision numbering, stale indexes
 ```
 
-`scripts/check-docs` runs in CI on every pull request. Generated pages and
-their screenshots are committed; the qualification run that admits a release
-records when each journey last passed, and the viewer shows that next to the
-page.
+`scripts/check-docs` runs in CI on every pull request. The qualification
+database job runs every journey, proves the committed pages and screenshots
+match them (`scripts/docs-generate check`), and writes `docs-evidence.json`
+(`scripts/docs-evidence create`), which the release carries and the viewer
+reads to say when each page last passed. Screenshots are compared by pixels
+(a small tolerance absorbs font and antialiasing drift) and only replaced when
+the screen changed; a Chromium upgrade in the base image re-baselines many of
+them at once, and that is a normal, one-off pull request.
+
+## How a journey becomes a page
+
+1. A stock tour in `<module>/static/tests/tours/` gives an `id` to every step
+   the reader should see. Only stock step keys; no `expectUnloadPage`.
+2. A `usl_docs.journeys` registry entry under the same tour name names the
+   page (`id` slug, `type`, `title`, `description`, `persona`, `lang`) and, per
+   step id, the `text` the reader follows and `screenshot: true` where a screen
+   helps (`mask: [selectors]` hides volatile elements).
+3. A `JourneyCase` test (`custom-addons/usl_docs/tests/journey.py`) tagged
+   `usl_docs_journey` runs it with `run_journey(tour, url, login)`. It is skipped
+   unless `USL_DOCS_JOURNEYS=1`, so ordinary module suites never pay for it.
+4. `make docs` writes `docs/users/how-to/<slug>.md` (or `TUTORIAL.md`) and its
+   `<slug>/NN-step.png`, with the screenshot digests in the front matter.
 
 ## Adding a page
 

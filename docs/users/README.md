@@ -22,6 +22,7 @@ Goal-shaped steps for work you already understand.
 - [Enregistrer et rapprocher la paie TESE](how-to/paie-tese.md) (FR): Saisir le bulletin calculé par TESE, joindre les justificatifs et suivre les dettes jusqu'au règlement. (for accountants)
 - [Export reports and the FEC](how-to/export-reports-and-fec.md): Download a report as PDF or XLSX with its current filters, and produce the annual FEC file. (for accountants)
 - [Generate official documents](how-to/official-documents.md): Configure a company's document templates and render governed invoices, quotes and letters. (for administrators)
+- [Group related expenses into a Batch](how-to/group-expenses-into-a-batch.md): Select the expenses that belong together and add them to a proposed Batch so they share one business context. (for employees)
 - [Investigate a report value](how-to/investigate-report-value.md): Trace a figure on a financial report back to the journal items and source documents behind it. (for accountants)
 - [Manage bank matching rules](how-to/manage-bank-matching-rules.md): Create, order and test the rules that propose counterparts for bank transactions. (for accountants)
 - [Match a bank transaction](how-to/reconcile-bank-transaction.md): Match a bank line against invoices, bills, expenses or a suggested counterpart. (for accountants)

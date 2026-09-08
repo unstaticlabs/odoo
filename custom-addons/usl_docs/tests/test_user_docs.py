@@ -1,3 +1,4 @@
+import json
 import os
 import tempfile
 from datetime import datetime, timedelta, timezone
@@ -178,6 +179,45 @@ class TestUserDocsViewer(HttpCase):
             response = self._get("/how-to/example.md")
         self.assertIn("Last tested 2 days ago · proof", response.text)
         self.assertIn('href="/usl/user-docs/evidence/usl_docs.example"', response.text)
+
+    def test_the_evidence_stamped_into_the_database_is_read_and_has_a_proof_page(self):
+        """At deploy the release stamps usl.docs.evidence; the proof page shows it."""
+        finished = (datetime.now(timezone.utc) - timedelta(hours=5)).isoformat()
+        evidence = {
+            "schema": "usl-docs-evidence/v1",
+            "qualified_commit": COMMIT,
+            "workflow_run_id": 77,
+            "run_url": "https://github.com/unstaticlabs/odoo/actions/runs/77",
+            "chromium": "Chrome/152",
+            "journeys": {
+                "usl_docs.example": {
+                    "status": "success",
+                    "page": "how-to/example.md",
+                    "tour": "usl_docs_example",
+                    "source_test": "odoo.addons.usl_docs.tests.test_x.TestX.test_y",
+                    "started": "2026-09-08T10:00:00Z",
+                    "finished": finished,
+                    "viewports": ["desktop"],
+                    "screenshots": [
+                        {"step": "open", "viewport": "desktop", "file": "01-open.png", "match": "exact"},
+                    ],
+                },
+            },
+        }
+        self.env["ir.config_parameter"].sudo().set_str(user_docs.EVIDENCE_PARAMETER, json.dumps(evidence))
+        self.env["ir.config_parameter"].sudo().set_str("usl.release.commit", COMMIT)
+        self.authenticate("usl-docs-reader", "docs-reader")
+        page = self._get("/how-to/example.md")
+        self.assertIn("Last tested 5 hours ago · proof", page.text)
+        proof = self._get("/evidence/usl_docs.example")
+        self.assertEqual(proof.status_code, 200)
+        self.assertIn("Proof for “Do the example”", proof.text)
+        self.assertIn("GitHub run 77", proof.text)
+        self.assertIn("matches the published screenshot", proof.text)
+        self.assertIn(COMMIT, proof.text)
+        self.assertEqual(self._get("/evidence/unknown").status_code, 404)
+        self.authenticate("usl-docs-portal", "docs-portal")
+        self.assertEqual(self._get("/evidence/usl_docs.example").status_code, 404)
 
 
 @tagged("post_install", "-at_install", "usl_docs")

@@ -38,11 +38,12 @@ steps is a how-to that will go stale.
 3. Drive it from a `JourneyCase` test in `<module>/tests/`, as a non-admin
    fixture user with synthetic data. Never production records, prices,
    identities or credentials: screenshots are committed to a public repository.
-4. Run `make docs` in the isolated stack. It runs the journey inside the test
-   container, writes the page and its screenshots, and refreshes the indexes.
-   Commit the page, the screenshots and the tour together.
+4. Run `make docs MODULE=<module>` in the isolated stack. It runs the journey
+   inside the test container (`make docs-journeys`), writes the page and its
+   screenshots (`make docs-render`), and refreshes the indexes. Commit the
+   page, the screenshots and the tour together.
 5. Prove it: `make docs-check` passes; edit one step's `text`, run
-   `scripts/docs_generate.py check` and watch it fail; regenerate.
+   `scripts/docs-generate check` and watch it fail; regenerate.
 
 ## An explanation
 

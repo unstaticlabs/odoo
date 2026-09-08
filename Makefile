@@ -37,7 +37,7 @@ ACTION_RISK_RUNTIME_CANDIDATE ?= artifacts/action-risk/runtime.candidate.json
 .PHONY: oca-addons-sync document-renderer-certs document-renderer-check
 .PHONY: product-migration-source-boundary product-migration-boundary sign-product-validate
 .PHONY: accounting-addon-tests accounting-multicompany-acceptance
-.PHONY: docs docs-check
+.PHONY: docs docs-check docs-journeys docs-render
 .PHONY: action-helpers action-risk-discover action-risk-refresh action-risk-compile-policy
 .PHONY: action-risk-inventory action-risk-runtime product-assets french-translations
 .PHONY: expense-batch-qa-bootstrap tese-qa-bootstrap
@@ -69,7 +69,9 @@ help:
 	  '  make smoke TARGET=staging           Run read-only business controls' \
 	  '  make product-migration-boundary     Check the product and private-data boundary' \
 	  '  make accounting-addon-tests         Run focused Accounting module tests' \
-	  '  make docs                           Regenerate the documentation indexes' \
+	  '  make docs                           Run the journeys, render the pages, refresh the indexes' \
+	  '  make docs-journeys [MODULE=name]    Run the documented journeys into artifacts/usl-docs' \
+	  '  make docs-render                    Render pages and screenshots from recorded journeys' \
 	  '  make docs-check                     Check documentation structure and links' \
 	  '' \
 	  'Migration and cutover use migration/manage exclusively.' \
@@ -198,8 +200,25 @@ accounting-addon-tests: oca-addons-sync document-renderer-certs
 		--test-tags=$(ACCOUNTING_TEST_TAGS) --stop-after-init \
 		--log-level=$(ACCOUNTING_TEST_LOG_LEVEL)
 
-docs:
-	@python3 scripts/docs-index
+docs: docs-journeys docs-render
+
+# Journeys run in the test container so screenshots come from the same
+# Chromium as CI. MODULE limits the installed modules; the default is the
+# module set the journeys need.
+DOCS_JOURNEY_DB ?= odoo_docs_journeys
+DOCS_JOURNEY_MODULES ?= $(or $(MODULE),usl_expense_batch)
+docs-journeys:
+	@mkdir -p artifacts/usl-docs && chmod 777 artifacts/usl-docs
+	@docker compose -p $(COMPOSE_PROJECT) --profile test run --rm -T \
+		-e USL_DOCS_JOURNEYS=1 -e USL_DOCS_JOURNEY_OUTPUT=/mnt/usl-docs-artifacts \
+		-e ODOO_INIT_DB=$(DOCS_JOURNEY_DB) -e ODOO_DB_FILTER='^$(DOCS_JOURNEY_DB)$$' \
+		-e USL_EINVOICE_LIVE_ENABLED=0 -e USL_EREPORTING_LIVE_ENABLED=0 \
+		test odoo --config=/etc/odoo/odoo.conf --database=$(DOCS_JOURNEY_DB) \
+		--init=$(DOCS_JOURNEY_MODULES) --without-demo=true --test-enable \
+		--test-tags=usl_docs_journey --stop-after-init --log-level=test
+
+docs-render:
+	@python3 scripts/docs-generate render
 
 docs-check:
 	@python3 scripts/check-docs

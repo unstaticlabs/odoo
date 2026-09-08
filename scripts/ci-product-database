@@ -147,4 +147,39 @@ USL_PRODUCT_BOUNDARY_PREPROD=0 odoo_shell < scripts/odoo/product_database_bounda
 
 ACTION_RISK_MODE=check odoo_shell < scripts/odoo/action_risk_inventory.py
 
+# Every documented journey runs on every qualification, whatever the focused
+# plan selected: the pages they generate are the release's user guide, and
+# the evidence they produce is what the viewer shows as "last tested". The
+# records leave the container through the mounted artifacts directory.
+mkdir -p artifacts/usl-docs
+chmod 777 artifacts/usl-docs
+printf 'Running the documented journeys\n'
+"${compose[@]}" --profile test run --rm -T \
+  -e ODOO_INIT_DB="$database" \
+  -e ODOO_DB_FILTER="^${database}$" \
+  -e USL_EINVOICE_LIVE_ENABLED=0 \
+  -e USL_EREPORTING_LIVE_ENABLED=0 \
+  -e ACTION_RISK_MODE=check \
+  -e USL_DOCS_JOURNEYS=1 \
+  -e USL_DOCS_JOURNEY_OUTPUT=/mnt/usl-docs-artifacts \
+  -e USL_RELEASE_COMMIT="${GITHUB_SHA:-}" \
+  test odoo \
+  --config=/etc/odoo/odoo.conf \
+  --database="$database" \
+  --workers=0 \
+  --max-cron-threads=0 \
+  --stop-after-init \
+  --test-enable \
+  --test-tags=usl_docs_journey \
+  --update="$modules" \
+  --log-level=test
+python3 scripts/docs-generate check --records artifacts/usl-docs
+python3 scripts/docs-evidence create \
+  --records artifacts/usl-docs \
+  --repository "${GITHUB_REPOSITORY:-unstaticlabs/odoo}" \
+  --qualified-commit "${GITHUB_SHA:-$(git rev-parse HEAD)}" \
+  --workflow-run-id "${GITHUB_RUN_ID:-1}" \
+  --run-url "${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY:-unstaticlabs/odoo}/actions/runs/${GITHUB_RUN_ID:-1}" \
+  --output artifacts/usl-docs/docs-evidence.json
+
 printf 'Clean install, repeated upgrade, affected tests and runtime boundaries passed.\n'
