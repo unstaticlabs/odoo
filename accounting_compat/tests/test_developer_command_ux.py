@@ -526,18 +526,32 @@ esac
         for root in surface["root_modules"]:
             self.assertNotIn(f'"{root}"', helper.split("action_risk_root_modules")[0])
 
-    def test_prune_refuses_when_the_tracked_closure_is_incomplete(self):
-        """Pointed at the wrong database it must refuse, not empty it."""
+    def test_action_risk_database_reuses_the_canonical_scope_enforcement(self):
+        """Do not add a second way to remove the optional auto-installs."""
+        helper = ODOO_DEV.read_text(encoding="utf-8")
+        block = helper.split("action-risk-db)", 1)[1].split(";;", 1)[0]
+
+        self.assertIn("scripts/odoo/enforce_product_module_scope.py", block)
+        self.assertTrue(
+            (ROOT / "scripts/odoo/enforce_product_module_scope.py").is_file(),
+        )
+        # ci-product-database and migration/internal/finalize rely on it too.
+        pipeline = (ROOT / "scripts/ci-product-database").read_text(encoding="utf-8")
+        self.assertIn("enforce_product_module_scope.py", pipeline)
+
+    def test_closure_verification_refuses_a_mismatched_database(self):
+        """A database wide of the tracked set makes any discovery diff a lie."""
         script = (
-            ROOT / "scripts/odoo/prune_untracked_modules.py"
+            ROOT / "scripts/odoo/verify_tracked_module_closure.py"
         ).read_text(encoding="utf-8")
 
-        self.assertIn("Refusing to prune", script)
-        refusal = script.index("Refusing to prune")
-        uninstall = script.index("button_immediate_uninstall")
-        self.assertLess(refusal, uninstall, "refusal must precede any removal")
-        # And it verifies the result rather than trusting the uninstall.
-        self.assertIn("Prune did not reach the tracked closure", script)
+        self.assertIn("action_surface.json", script)
+        self.assertIn("Module set does not match the tracked closure", script)
+        # Both directions must fail, not just extras.
+        self.assertIn("tracked - installed", script)
+        self.assertIn("installed - tracked", script)
+        # It only reports; removal stays with the canonical script.
+        self.assertNotIn("button_immediate_uninstall", script)
 
     def test_repair_hint_never_hands_a_worktree_the_canonical_project(self):
         """It echoed current values, i.e. the one project a worktree may not use."""

@@ -100,10 +100,13 @@ make action-risk-db
 ```
 
 It installs the surface's own `root_modules` — read from the tracked file, so
-the database cannot drift from what the check compares against — and then
-prunes whatever `auto_install` dragged in, because the delivered closure does
-not carry those. It refuses to prune when the tracked closure is not fully
-installed, so pointing it at the wrong database cannot empty it. Afterwards
+the database cannot drift from what the check compares against — then removes
+the reviewed optional auto-installs with the same
+`scripts/odoo/enforce_product_module_scope.py` that `ci-product-database` uses,
+because the delivered closure does not carry them. Finally it checks the
+resulting module set against the delivered surface and refuses if it differs in
+either direction, so a module that starts auto-installing is reported here
+rather than as spurious action entries later. Afterwards
 `make action-risk-discover` works from this checkout. See
 [the action-risk review procedure](action-risk-inventory.md) for what to do
 with the resulting diff.

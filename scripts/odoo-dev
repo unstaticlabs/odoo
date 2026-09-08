@@ -236,11 +236,11 @@ with open(sys.argv[1], encoding="utf-8") as stream:
 PY
 }
 
-prune_untracked_modules() {
+odoo_shell_script() {
   "${COMPOSE[@]}" --profile test run --rm -T \
     -e ODOO_INIT_DB="$DEV_DB" test odoo shell \
     --config=/etc/odoo/odoo.conf --database="$DEV_DB" --log-level=warn \
-    < "$ROOT/scripts/odoo/prune_untracked_modules.py"
+    < "$ROOT/$1"
 }
 
 disable_dev_tours() {
@@ -803,15 +803,17 @@ case "$command_name" in
   action-risk-db)
     # Discovery reads a registry, not production data, so any checkout can
     # build the database it needs. The module set must equal the tracked
-    # closure exactly or the diff is meaningless, so install the tracked roots
-    # and then prune whatever auto_install dragged in.
-    usl_cli_step "1/2" "Initialize the tracked action-risk closure"
-    ODOO_INIT_MODULES="$(action_risk_root_modules)" \
-      "${COMPOSE[@]}" build odoo
+    # closure exactly or the diff is meaningless, so install the tracked roots,
+    # then reuse the scope enforcement ci-product-database already relies on,
+    # and finally check the outcome against the delivered surface.
+    usl_cli_step "1/3" "Initialize the tracked action-risk closure"
+    "${COMPOSE[@]}" build odoo
     ODOO_INIT_MODULES="$(action_risk_root_modules)" \
       "${COMPOSE[@]}" --profile init run --rm init-db
-    usl_cli_step "2/2" "Prune modules the tracked closure does not carry"
-    prune_untracked_modules
+    usl_cli_step "2/3" "Remove the reviewed optional auto-installs"
+    odoo_shell_script scripts/odoo/enforce_product_module_scope.py
+    usl_cli_step "3/3" "Verify the module set against the tracked closure"
+    odoo_shell_script scripts/odoo/verify_tracked_module_closure.py
     usl_cli_success "$DEV_DB matches the tracked closure; run make action-risk-discover"
     ;;
   shell)
