@@ -302,6 +302,10 @@ msgid "Consecutive Failure Count"
 msgstr "Nombre d’échecs consécutifs"
 
 #. module: usl_accounting
+msgid "Consecutive Handoff Count"
+msgstr "Nombre de renvois consécutifs vers le site"
+
+#. module: usl_accounting
 #. module: usl_accounting
 msgid "Direct HTTP"
 msgstr "HTTP direct"
@@ -352,6 +356,14 @@ msgid "Generation"
 msgstr "Génération"
 
 #. module: usl_accounting
+msgid "Handoff Count"
+msgstr "Nombre de renvois vers le site"
+
+#. module: usl_accounting
+msgid "Handoff Learned At"
+msgstr "Renvoi vers le site appris le"
+
+#. module: usl_accounting
 #. module: usl_accounting
 msgid "Hostname"
 msgstr "Nom d’hôte"
@@ -360,6 +372,10 @@ msgstr "Nom d’hôte"
 #. module: usl_accounting
 msgid "Hosts"
 msgstr "Hôtes"
+
+#. module: usl_accounting
+msgid "How reliably this pattern names the receipt link, ignoring whether an unattended download can finish it."
+msgstr "Fiabilité avec laquelle ce modèle désigne le lien du justificatif, indépendamment de la possibilité de le télécharger sans intervention."
 
 #. module: usl_accounting
 #. module: usl_accounting
@@ -536,6 +552,10 @@ msgid "Redirect Hosts"
 msgstr "Hôtes de redirection"
 
 #. module: usl_accounting
+msgid "Requires Handoff"
+msgstr "Renvoi vers le site nécessaire"
+
+#. module: usl_accounting
 #. module: usl_accounting
 msgid "Retrieval"
 msgstr "Récupération"
@@ -586,6 +606,10 @@ msgid "Selected Signature"
 msgstr "Signature sélectionnée"
 
 #. module: usl_accounting
+msgid "Selection Confidence"
+msgstr "Niveau de confiance du choix"
+
+#. module: usl_accounting
 #. module: usl_accounting
 msgid "Selection required"
 msgstr "Sélection requise"
@@ -629,6 +653,10 @@ msgstr "Remplacé"
 #. module: usl_accounting
 msgid "Teach and download"
 msgstr "Apprendre et télécharger"
+
+#. module: usl_accounting
+msgid "Unavailable Count"
+msgstr "Nombre d’indisponibilités"
 
 #. module: usl_accounting
 msgid "Use this link"

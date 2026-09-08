@@ -141,9 +141,15 @@
                        decoration-success="state == 'active'"
                        decoration-warning="state in ('learning', 'paused')"
                        decoration-danger="state == 'blocked'"/>
-                <field name="confidence" widget="percentage"/>
+                <field name="selection_confidence" widget="percentage"/>
+                <field name="confidence" widget="percentage" optional="hide"/>
+                <field name="positive_count" optional="hide"/>
+                <field name="negative_count" optional="hide"/>
                 <field name="success_count"/>
                 <field name="failure_count"/>
+                <field name="handoff_count" optional="show"/>
+                <field name="unavailable_count" optional="hide"/>
+                <field name="requires_handoff" optional="show"/>
                 <field name="preferred_fetch_mode"/>
                 <field name="last_used_at"/>
                 <button name="action_pause" type="object" string="Pause" invisible="state in ('paused', 'blocked')"/>

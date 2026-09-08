@@ -19,9 +19,33 @@ MAX_PDF_BYTES = 20 * 1024 * 1024
 AUTO_SCORE = 12
 AUTO_MARGIN = 3
 MIN_PATTERN_CONFIDENCE = 0.60
+# How strongly a learned pattern recognises a link, weakest recognition last.
+PATTERN_SCORE_EXACT = 15
+PATTERN_SCORE_PATH = 14
+PATTERN_SCORE_SUBJECT = 10
+PATTERN_SCORE_LABEL = 8
+PATTERN_PAUSE_FAILURES = 2
+# A provider that answered "sign in first" twice will do so again. Stop paying
+# it a pointless request per expense and offer the employee handoff directly,
+# but re-probe eventually so a provider that opens up is picked up again.
+HANDOFF_LEARNING_THRESHOLD = 2
+HANDOFF_REPROBE_DAYS = 30
 # RPC contexts are client-controlled; only in-process workflow code may edit
 # learned evidence and governance state.
 _LINKED_RECEIPT_INTERNAL = object()
+# A terminal outcome answers two independent questions: did the employee pick
+# the right link, and can an unattended download ever finish it?  Only the
+# first is evidence about the learned pattern, so the codes that answer only
+# the second must never reduce its confidence or pause it.
+HANDOFF_FAILURE_CODES = {"authentication_required"}
+UNAVAILABLE_FAILURE_CODES = {
+    "browser_crash",
+    "browser_request_limit",
+    "deadline",
+    "expired_or_forbidden",
+    "fetcher_unavailable",
+    "rate_limited",
+}
 FETCH_FAILURE_CODES = {
     "ambiguous_download",
     "authentication_required",
@@ -53,6 +77,17 @@ POSITIVE_TOKENS = {
     "justificatif": 8,
     "telecharger": 3,
     "télécharger": 3,
+}
+# Words that name the document itself rather than the action around it.  On a
+# host an employee has already taught, one of these is enough to recognise the
+# receipt link even when the provider reworded its email.
+STRONG_RECEIPT_TOKENS = {
+    "facture",
+    "invoice",
+    "justificatif",
+    "receipt",
+    "recu",
+    "reçu",
 }
 NEGATIVE_TOKENS = {
     "account",
@@ -123,6 +158,42 @@ def _normalized_host(value):
         return value.rstrip(".").encode("idna").decode("ascii").lower()
     except (UnicodeError, AttributeError):
         return ""
+
+
+# Labels that are part of a public suffix rather than of an organisation, so
+# "shop.example.co.uk" is never treated as a relative of "other.co.uk".
+PUBLIC_SUFFIX_LABELS = frozenset(
+    {"ac", "co", "com", "edu", "gouv", "gov", "net", "org"},
+)
+
+
+def _related_sender_domains(learned, observed):
+    """Answer whether two sender domains belong to the same provider.
+
+    Providers send the same receipt from ``uber.com`` and ``email.uber.com``
+    interchangeably.  Requiring an exact match made every such variation look
+    like a brand new format the employee had to teach again.
+    """
+    if not learned or not observed:
+        return False
+    if learned == observed:
+        return True
+    shorter, longer = sorted((learned, observed), key=len)
+    if not longer.endswith(f".{shorter}"):
+        return False
+    labels = shorter.split(".")
+    return len(labels) >= 2 and labels[0] not in PUBLIC_SUFFIX_LABELS
+
+
+def _is_distinctive_path(template):
+    """Answer whether a redacted path still identifies one provider route."""
+    segments = [segment for segment in (template or "").split("/") if segment]
+    return any(
+        segment == "{id}"
+        or segment.endswith(".pdf")
+        or segment in SAFE_PATH_SEGMENTS
+        for segment in segments
+    )
 
 
 def _path_template(path):
@@ -328,7 +399,19 @@ class UslMailPdfPattern(models.Model):
     success_count = fields.Integer(readonly=True)
     failure_count = fields.Integer(readonly=True)
     consecutive_failure_count = fields.Integer(readonly=True)
+    handoff_count = fields.Integer(readonly=True)
+    consecutive_handoff_count = fields.Integer(readonly=True)
+    unavailable_count = fields.Integer(readonly=True)
+    requires_handoff = fields.Boolean(readonly=True)
+    handoff_learned_at = fields.Datetime(readonly=True)
     confidence = fields.Float(compute="_compute_confidence", store=True, readonly=True)
+    selection_confidence = fields.Float(
+        compute="_compute_confidence",
+        store=True,
+        readonly=True,
+        help="How reliably this pattern names the receipt link, ignoring whether"
+        " an unattended download can finish it.",
+    )
     last_used_at = fields.Datetime(readonly=True)
 
     _signature_unique = models.Constraint(
@@ -349,6 +432,74 @@ class UslMailPdfPattern(models.Model):
             positive = pattern.positive_count + pattern.success_count
             total = positive + pattern.negative_count + pattern.failure_count
             pattern.confidence = positive / total if total else 0.0
+            # Choosing the link and downloading it are separate questions.  A
+            # provider behind a login fails every download while the employee's
+            # choice stays right, so selection confidence counts deliberate
+            # choices and completed downloads but no download failure.
+            selection_total = positive + pattern.negative_count
+            pattern.selection_confidence = (
+                positive / selection_total if selection_total else 0.0
+            )
+
+    def _match_score(self, candidate):
+        """Score how strongly this pattern recognises a candidate link.
+
+        Returns 0 when the pattern does not recognise it at all.
+        """
+        self.ensure_one()
+        if not _related_sender_domains(
+            self.sender_domain, candidate["sender_domain"],
+        ):
+            return 0
+        if self.signature == candidate["signature"]:
+            return PATTERN_SCORE_EXACT
+        if (
+            self.path_template
+            and self.path_template == candidate["path_template"]
+            and _is_distinctive_path(self.path_template)
+        ):
+            return PATTERN_SCORE_PATH
+        learned_labels = set((self.label_tokens or "").split())
+        shared_labels = learned_labels & set(candidate["label_tokens"])
+        if self.subject_skeleton == candidate["subject_skeleton"] and shared_labels:
+            return PATTERN_SCORE_SUBJECT
+        # The provider reworded its subject and moved its route, but the link
+        # still calls itself a receipt on a host this instance was taught.
+        if shared_labels & STRONG_RECEIPT_TOKENS:
+            return PATTERN_SCORE_LABEL
+        return 0
+
+    @api.model
+    def _best_match(self, candidate, patterns):
+        """Return the strongest usable pattern for a candidate, and its score."""
+        scored = [
+            (pattern._match_score(candidate), pattern)
+            for pattern in patterns
+            if pattern.selection_confidence >= MIN_PATTERN_CONFIDENCE
+        ]
+        usable = [item for item in scored if item[0]]
+        if not usable:
+            return self.browse(), 0
+        score, pattern = max(
+            usable,
+            key=lambda item: (
+                item[0],
+                item[1].selection_confidence,
+                item[1].success_count,
+                item[1].id,
+            ),
+        )
+        return pattern, score
+
+    def _should_probe_provider(self):
+        """Answer whether an unattended download is still worth attempting."""
+        self.ensure_one()
+        if not self.requires_handoff:
+            return True
+        if not self.handoff_learned_at:
+            return True
+        age = fields.Datetime.now() - self.handoff_learned_at
+        return age.days >= HANDOFF_REPROBE_DAYS
 
     @api.model
     def _learn(self, candidate, *, positive):
@@ -407,6 +558,9 @@ class UslMailPdfPattern(models.Model):
                 "state": "active",
                 "success_count": self.success_count + 1,
                 "consecutive_failure_count": 0,
+                "consecutive_handoff_count": 0,
+                "requires_handoff": False,
+                "handoff_learned_at": False,
                 "preferred_fetch_mode": metadata.get("fetch_mode") or False,
                 "learned_action": metadata.get("learned_action") or False,
                 "observed_final_host": _normalized_host(final.get("host")),
@@ -417,16 +571,57 @@ class UslMailPdfPattern(models.Model):
             },
         )
 
-    def _register_terminal_failure(self):
+    def _register_terminal_failure(self, code=None):
         self.ensure_one()
         self._locked()
+        now = fields.Datetime.now()
+        if code in HANDOFF_FAILURE_CODES:
+            # The provider confirmed the link and refused the robot, not the
+            # employee.  Remember that instead of punishing the pattern.
+            handoffs = self.consecutive_handoff_count + 1
+            self.sudo().with_context(
+                linked_receipt_internal=_LINKED_RECEIPT_INTERNAL,
+            ).write(
+                {
+                    "handoff_count": self.handoff_count + 1,
+                    "consecutive_handoff_count": handoffs,
+                    "requires_handoff": handoffs >= HANDOFF_LEARNING_THRESHOLD,
+                    "handoff_learned_at": now,
+                    "last_used_at": now,
+                },
+            )
+            return
+        if code in UNAVAILABLE_FAILURE_CODES:
+            # A dead signed link, a throttled provider or an unreachable
+            # sidecar says nothing about which link the employee chose.
+            self.sudo().with_context(
+                linked_receipt_internal=_LINKED_RECEIPT_INTERNAL,
+            ).write(
+                {
+                    "unavailable_count": self.unavailable_count + 1,
+                    "last_used_at": now,
+                },
+            )
+            return
         failures = self.consecutive_failure_count + 1
         self.sudo().with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write(
             {
                 "failure_count": self.failure_count + 1,
                 "consecutive_failure_count": failures,
-                "state": "paused" if failures >= 2 else self.state,
-                "last_used_at": fields.Datetime.now(),
+                "state": "paused" if failures >= PATTERN_PAUSE_FAILURES else self.state,
+                "last_used_at": now,
+            },
+        )
+
+    def _clear_learned_handoff(self):
+        """Let one explicit human retry probe the provider again."""
+        self.ensure_one()
+        self._locked()
+        self.sudo().with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write(
+            {
+                "requires_handoff": False,
+                "consecutive_handoff_count": 0,
+                "handoff_learned_at": False,
             },
         )
 
@@ -441,6 +636,9 @@ class UslMailPdfPattern(models.Model):
                 {
                     "state": "active" if pattern.success_count else "learning",
                     "consecutive_failure_count": 0,
+                    "requires_handoff": False,
+                    "consecutive_handoff_count": 0,
+                    "handoff_learned_at": False,
                 },
             )
 
@@ -598,6 +796,8 @@ class UslMailPdfRetrieval(models.Model):
 
         candidates = []
         seen = set()
+        learned_by_host = {}
+        hosts_by_name = {}
         Pattern = self.env["usl.mail.pdf.pattern"].sudo()
         Host = self.env["usl.mail.pdf.host"].sudo()
         for url, label, context, position, role in discovered:
@@ -668,36 +868,29 @@ class UslMailPdfRetrieval(models.Model):
             signature = hashlib.sha256(
                 json.dumps(canonical, sort_keys=True, separators=(",", ":")).encode(),
             ).hexdigest()
-            matching = Pattern.search(
-                [
-                    ("sender_domain", "=", sender_domain),
-                    ("hostname", "=", hostname),
-                    ("state", "=", "active"),
-                ],
+            if hostname not in learned_by_host:
+                # A learned pattern is evidence about which link to choose.
+                # Only a successful download can promote it to "active", so
+                # gating recognition on that state made every teaching of a
+                # login-walled provider unusable.
+                learned_by_host[hostname] = Pattern.search(
+                    [
+                        ("hostname", "=", hostname),
+                        ("state", "in", ("learning", "active")),
+                    ],
+                )
+            pattern, pattern_score = Pattern._best_match(
+                {**canonical, "signature": signature},
+                learned_by_host[hostname],
             )
-            compatible = matching.filtered(
-                lambda item: item.confidence >= MIN_PATTERN_CONFIDENCE
-                and (
-                    item.signature == signature
-                    or (
-                        item.subject_skeleton == subject_skeleton
-                        and (
-                            item.path_template == path_template
-                            or bool(set(item.label_tokens.split()) & set(label_tokens))
-                        )
-                    )
-                ),
-            )
-            exact = compatible.filtered(lambda item: item.signature == signature)
-            pattern = (exact or compatible).sorted(
-                key=lambda item: (item.confidence, item.success_count, item.id),
-                reverse=True,
-            )[:1]
-            if pattern:
-                score += 15 if pattern.path_template == path_template else 10
+            score += pattern_score
             if score <= 0:
                 continue
-            host = Host.search([("hostname", "=", hostname)], limit=1)
+            if hostname not in hosts_by_name:
+                hosts_by_name[hostname] = Host.search(
+                    [("hostname", "=", hostname)], limit=1,
+                )
+            host = hosts_by_name[hostname]
             candidates.append(
                 {
                     **canonical,
@@ -709,6 +902,13 @@ class UslMailPdfRetrieval(models.Model):
                     "score": score,
                     "pattern_id": pattern.id if pattern else False,
                     "host_active": bool(host and host.state == "active"),
+                    "host_confirmed": bool(
+                        host
+                        and (
+                            host.state == "active"
+                            or (host.state == "provisional" and host.confirmed_by_id)
+                        ),
+                    ),
                     "generic_pdf_signature": generic_pdf_signature,
                     "_url": url,
                 },
@@ -754,9 +954,20 @@ class UslMailPdfRetrieval(models.Model):
         if not candidates:
             return self.browse()
         top = candidates[0]
-        runner_score = candidates[1]["score"] if len(candidates) > 1 else -999
+        # Providers repeat the same receipt link as a button and as text.  Both
+        # normalise to one learned shape, so they are interchangeable here and
+        # must not read as an ambiguity that sends the employee back to the
+        # picker for a format the instance already knows.
+        runner_score = next(
+            (
+                item["score"]
+                for item in candidates[1:]
+                if item["signature"] != top["signature"]
+            ),
+            -999,
+        )
         automatic = (
-            top["host_active"]
+            top["host_confirmed"]
             and (top["pattern_id"] or top["generic_pdf_signature"])
             and top["score"] >= AUTO_SCORE
             and top["score"] - runner_score >= AUTO_MARGIN
@@ -880,13 +1091,28 @@ class UslMailPdfRetrieval(models.Model):
             )
         if teach:
             for rejected in self._extract_candidates(self.source_message_id):
-                if rejected["fingerprint"] != fingerprint:
+                # Comparing fingerprints alone made a second link of the same
+                # learned shape teach the chosen pattern against itself, which
+                # halved its confidence on the very click that taught it.
+                if (
+                    rejected["fingerprint"] != fingerprint
+                    and rejected["signature"] != candidate["signature"]
+                ):
                     Pattern._learn(rejected, positive=False)
         if not host:
             host = Host._get_or_create(
                 candidate["hostname"],
                 confirmed_by_id=self.env.user.id,
                 confirmed_at=fields.Datetime.now(),
+            )
+        elif teach and not host.confirmed_by_id:
+            # A host first seen through a successful download carries no human
+            # confirmation; teaching a link on it is exactly that confirmation.
+            host.with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write(
+                {
+                    "confirmed_by_id": self.env.user.id,
+                    "confirmed_at": fields.Datetime.now(),
+                },
             )
         if host.state == "blocked":
             raise UserError(_("This receipt host is blocked for the Odoo instance."))
@@ -954,6 +1180,8 @@ class UslMailPdfRetrieval(models.Model):
             pattern.with_context(linked_receipt_internal=_LINKED_RECEIPT_INTERNAL).write(
                 {"state": "learning", "consecutive_failure_count": 0},
             )
+        if pattern.requires_handoff:
+            pattern._clear_learned_handoff()
         self.sudo().write(
             {
                 "generation": self.generation + 1,
