@@ -56,7 +56,17 @@ and model-level guards, so generic Project-manager RPCs and imports cannot
 rewrite them without the Feedback Maintainer capability.
 
 Members of the explicit **Feedback Maintainer** capability can operate the
-whole board. The separate **Feedback Agent (read-only service)** capability is
+whole board. **New** on the maintainer board opens a card directly, without the
+Feedback Assistant: the product team's own bugs, ideas and parked **Icebox**
+items belong on the same board as reported ones, and going through the
+conversation to file them would be ceremony. A title alone is enough — the
+server owns the rest and records the maintainer as reporter, their active
+company as the source company, **Sent to product team** as the assistant status
+and the running release in the description's deployment block. Such a card
+carries no reporter page context, screenshot or assistant conversation, and no
+provider request is made for it. The route is the maintainer board's own
+action; an ordinary employee cannot reach it by replaying its context.
+The separate **Feedback Agent (read-only service)** capability is
 for one dedicated non-human external identity used by the remote Projects MCP.
 It can read only the governed feedback Project, cards, stages, tags,
 attachments and activities. It has no create, write, delete or chatter rights,

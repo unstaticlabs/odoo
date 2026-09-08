@@ -59,6 +59,7 @@ class ProjectProject(models.Model):
                     "create": maintainer,
                     "edit": maintainer,
                     "delete": maintainer,
+                    "usl_feedback_direct_create": maintainer,
                 },
             },
         )

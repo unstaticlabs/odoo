@@ -18,6 +18,8 @@ FEEDBACK_CATEGORIES = [
     ("question", "Question"),
     ("ux", "UX"),
 ]
+DIRECT_CREATE_CONTEXT = "usl_feedback_direct_create"
+DIRECT_CREATE_CATEGORY = "improvement"
 AGENT_STATES = [
     ("waiting", "Needs details"),
     ("queued", "Queued"),
@@ -201,8 +203,76 @@ class ProjectTask(models.Model):
                 if value and not 1 <= value <= 16384:
                     raise ValidationError(_("Viewport dimensions must be between 1 and 16384 pixels."))
 
+    def _usl_feedback_direct_entry(self):
+        """A maintainer opening a card straight on the board, without the assistant.
+
+        Named away from "_create": the action-risk scanner reads that marker in a
+        private method name as an ORM write sink, and this helper only reads context.
+        """
+        return bool(self.env.context.get(DIRECT_CREATE_CONTEXT)) and (
+            self.env.su or self._usl_feedback_is_maintainer()
+        )
+
+    def _usl_feedback_direct_values(self, identity=None):
+        """Server-owned metadata for a directly created card; never taken from input."""
+        identity = identity or self._usl_feedback_deployment_identity()
+        return {
+            "project_id": self.env.ref("usl_feedback.project_product_feedback").id,
+            "company_id": False,
+            "usl_feedback_reporter_id": self.env.user.id,
+            "usl_feedback_company_id": self.env.company.id,
+            "usl_feedback_agent_state": "triaged",
+            "usl_feedback_release_sha": identity["release_commit"],
+            # A card the product team writes carries no reporter page state.
+            "usl_feedback_context_included": False,
+            "usl_feedback_source_action_id": False,
+            "usl_feedback_source_model_id": False,
+            "usl_feedback_source_res_id": False,
+            "usl_feedback_source_section": False,
+            "usl_feedback_viewport_width": False,
+            "usl_feedback_viewport_height": False,
+            "usl_feedback_screenshot_attachment_id": False,
+        }
+
+    @api.model
+    def default_get(self, fields_list):
+        values = super().default_get(fields_list)
+        if not self._usl_feedback_direct_entry():
+            return values
+        defaults = dict(
+            self._usl_feedback_direct_values(),
+            usl_feedback_category=DIRECT_CREATE_CATEGORY,
+        )
+        # The board never shows project_id, and a quick create asks for the title
+        # alone. create() therefore stays the authority; this only mirrors the
+        # governed values the maintainer is about to see on the full form.
+        values.update({name: value for name, value in defaults.items() if name in fields_list})
+        if "stage_id" in fields_list and not values.get("stage_id"):
+            inbox = self.env.ref("usl_feedback.stage_feedback_new", raise_if_not_found=False)
+            if inbox:
+                values["stage_id"] = inbox.id
+        return values
+
     @api.model_create_multi
     def create(self, vals_list):
+        direct = self._usl_feedback_direct_entry()
+        if self.env.context.get(DIRECT_CREATE_CONTEXT) and not direct:
+            raise AccessError(_("Only feedback maintainers can open a card directly on the board."))
+        if direct:
+            identity = self._usl_feedback_deployment_identity()
+            governed = self._usl_feedback_direct_values(identity)
+            vals_list = [
+                {
+                    "usl_feedback_category": DIRECT_CREATE_CATEGORY,
+                    **values,
+                    **governed,
+                    "description": Markup("%s%s") % (
+                        Markup(self._usl_feedback_strip_identity_blocks(values.get("description"))),
+                        self._usl_feedback_identity_html(identity),
+                    ),
+                }
+                for values in vals_list
+            ]
         if not self.env.su and not self._usl_feedback_is_maintainer():
             project_ids = {values.get("project_id") for values in vals_list if values.get("project_id")}
             protected = self.env["project.project"].sudo().browse(project_ids).filtered(

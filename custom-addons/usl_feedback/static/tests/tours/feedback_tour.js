@@ -136,3 +136,76 @@ registry.category("web_tour.tours").add("usl_feedback_desktop_journey", {
 registry.category("web_tour.tours").add("usl_feedback_mobile_journey", {
     steps: () => journey("The mobile status is unclear after reload."),
 });
+
+// The maintainer board is a set of primary views bound to their own action. These
+// journeys prove both of its create routes reach the governed board through them,
+// rather than the stray project-less task the bare create="true" used to make.
+// They are two tours because an empty board renders the no-content helper instead
+// of its columns, so the column quick add only exists once a card does.
+registry.category("web_tour.tours").add("usl_feedback_maintainer_form_journey", {
+    steps: () => [
+        {
+            content: "New opens the full maintainer card",
+            trigger: ".o_control_panel .o-kanban-button-new",
+            run: "click",
+        },
+        {
+            content: "Title the card",
+            trigger: ".o_form_view div[name='name'] input",
+            run: "edit Batch export presets",
+        },
+        {
+            content: "The category is a real choice, not a read-only badge",
+            trigger: ".o_form_view div[name='usl_feedback_category'] .o_select_menu_toggler",
+            run: "click",
+        },
+        {
+            content: "Classify it",
+            trigger: ".o_select_menu_menu .o_select_menu_item:contains('UX')",
+            run: "click",
+        },
+        {
+            content: "The assistant status is server-owned",
+            trigger:
+                ".o_form_view div[name='usl_feedback_agent_state']:contains('Sent to product team')",
+        },
+        {
+            content: "Park it in the Icebox",
+            trigger: ".o_statusbar_status button:contains('Icebox')",
+            run: "click",
+        },
+        {
+            content: "Save the card",
+            trigger: ".o_form_button_save",
+            run: "click",
+        },
+        {
+            content: "The card is saved on the governed board",
+            trigger: ".o_form_view .o_form_saved",
+        },
+    ],
+});
+
+registry.category("web_tour.tours").add("usl_feedback_maintainer_quick_journey", {
+    steps: () => [
+        {
+            content: "Add to a column straight from the board",
+            trigger: ".o_kanban_header:contains('Inbox') .o_kanban_quick_add",
+            run: "click",
+        },
+        {
+            content: "A title alone is enough",
+            trigger: ".o_kanban_quick_create div[name='name'] input",
+            run: "edit Keyboard shortcut for triage",
+        },
+        {
+            content: "Add it to the board",
+            trigger: ".o_kanban_quick_create .o_kanban_add",
+            run: "click",
+        },
+        {
+            content: "The quick card is on the shared board",
+            trigger: ".o_kanban_view .o_kanban_record:contains('Keyboard shortcut for triage')",
+        },
+    ],
+});
