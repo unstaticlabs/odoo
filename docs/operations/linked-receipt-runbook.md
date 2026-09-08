@@ -103,11 +103,12 @@ production gates to `1` after admission.
 
 ## Employee and manager recovery
 
-When confidence is insufficient, the employee chooses a sanitized candidate
-on the expense. That choice records one positive example and bounded negatives
-for the other candidates in the same email; links of the same learned shape are
-interchangeable and are never taught against each other. It also confirms the
-starting host for reuse. A valid fetched PDF additionally activates the host
+When confidence is insufficient, the expense names the highest-ranked
+sanitized candidate and offers one action to accept it; the full picker appears
+only when the email holds more than one candidate. That acceptance records one
+positive example and bounded negatives for the other candidates in the same
+email; links of the same learned shape are interchangeable and are never taught
+against each other. It also confirms the starting host for reuse. A valid fetched PDF additionally activates the host
 and the learned pattern instance-wide, which is what admits an unfamiliar host
 to unattended fetching.
 

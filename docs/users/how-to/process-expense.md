@@ -12,11 +12,13 @@
    submission, approval and posting until you either attach it or record a
    documented decision to continue without it (see below).
 5. When an emailed receipt contains a PDF link instead of an attachment, open
-   the expense. For an unfamiliar email format, choose **Choose receipt link**
-   and select the sanitized option that describes the receipt. Your choice
-   teaches the instance-wide matcher; later emails of that format are chosen
-   for you, even when the provider reworded its subject or the download itself
-   still needs your login. The signed link is not exposed or saved elsewhere.
+   the expense. Odoo already names the link it picked, so for an unfamiliar
+   email format select **Download this receipt**; **Choose another link**
+   appears only when the email holds more than one. Your choice teaches the
+   instance-wide matcher; later emails of that format are downloaded for you
+   without any prompt, even when the provider reworded its subject or the
+   download itself still needs your login. The signed link is not exposed or
+   saved elsewhere.
 6. If the company may already have paid the expense, select **Find bank
    transactions** before posting. Review the amount, date, journal, label,
    partner and the plain-language facts shown for each suggestion.

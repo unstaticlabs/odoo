@@ -52,6 +52,7 @@ class TestLinkedReceiptBrowser(TestExpenseCommon, HttpCase):
               <a href="https://receipts.example.com/trips/browser-fixture/download?token=browser-secret">
                 Download PDF receipt
               </a>
+              <a href="https://files.example.com/download/browser-fixture">Download the file</a>
             </body></html>
             """,
             subtype="html",
@@ -86,6 +87,7 @@ class TestLinkedReceiptBrowser(TestExpenseCommon, HttpCase):
             "provisional",
         )
         self.assertNotIn("browser-secret", str(retrieval.candidate_features))
+        self.assertEqual(len(retrieval.candidate_features), 2)
 
     def test_employee_sees_authenticated_handoff_journey(self):
         message = EmailMessage()

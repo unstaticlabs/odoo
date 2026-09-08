@@ -271,6 +271,10 @@ msgid "Choose a receipt link before retrying."
 msgstr "Choisissez un lien de justificatif avant de réessayer."
 
 #. module: usl_accounting
+msgid "Choose another link"
+msgstr "Choisir un autre lien"
+
+#. module: usl_accounting
 #. module: usl_accounting
 msgid "Choose receipt link"
 msgstr "Choisir le lien du justificatif"
@@ -314,6 +318,14 @@ msgstr "HTTP direct"
 #. module: usl_accounting
 msgid "Dismissed"
 msgstr "Ignoré"
+
+#. module: usl_accounting
+msgid "Download the link Odoo picked and remember this email format for later expenses."
+msgstr "Télécharge le lien retenu par Odoo et mémorise ce format d’e-mail pour les notes de frais suivantes."
+
+#. module: usl_accounting
+msgid "Download this receipt"
+msgstr "Télécharger ce justificatif"
 
 #. module: usl_accounting
 #. module: usl_accounting
@@ -492,6 +504,14 @@ msgstr ""
 "gérer son justificatif lié."
 
 #. module: usl_accounting
+msgid "Odoo picked %(label)s on %(host)s, the only receipt link in this email."
+msgstr "Odoo a retenu %(label)s sur %(host)s, le seul lien de justificatif de cet e-mail."
+
+#. module: usl_accounting
+msgid "Odoo picked %(label)s on %(host)s. Download it, or choose another link from this email."
+msgstr "Odoo a retenu %(label)s sur %(host)s. Téléchargez-le ou choisissez un autre lien de cet e-mail."
+
+#. module: usl_accounting
 #. module: usl_accounting
 msgid "Path Template"
 msgstr "Modèle de chemin"
@@ -653,6 +673,10 @@ msgstr "Remplacé"
 #. module: usl_accounting
 msgid "Teach and download"
 msgstr "Apprendre et télécharger"
+
+#. module: usl_accounting
+msgid "This email no longer offers a receipt link to download."
+msgstr "Cet e-mail ne propose plus de lien de justificatif à télécharger."
 
 #. module: usl_accounting
 msgid "Unavailable Count"

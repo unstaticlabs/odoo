@@ -1131,6 +1131,23 @@ class UslMailPdfRetrieval(models.Model):
         )
         return candidate
 
+    def _suggested_candidate_feature(self):
+        """Return the best-ranked sanitized candidate recorded at discovery."""
+        self.ensure_one()
+        features = self.candidate_features or []
+        return features[0] if isinstance(features, list) and features else None
+
+    def action_accept_suggestion(self):
+        """Download the link Odoo already picked, without opening the picker."""
+        self.ensure_one()
+        self._check_can_manage()
+        suggestion = self._suggested_candidate_feature()
+        if not suggestion:
+            raise UserError(
+                _("This email no longer offers a receipt link to download."),
+            )
+        return self.action_select_candidate(suggestion["fingerprint"])
+
     def action_select_candidate(self, fingerprint):
         self.ensure_one()
         self._check_can_manage()

@@ -1137,6 +1137,52 @@ class TestLinkedReceipt(TestExpenseCommon):
         self.assertFalse(_related_sender_domains("uber.com", "uber.com.evil.test"))
         self.assertFalse(_related_sender_domains("uber.com", ""))
 
+    def test_single_link_email_needs_no_picker(self):
+        expense = self._ingest(token="single-link-suggestion")
+
+        self.assertEqual(expense.linked_receipt_state, "selection_required")
+        self.assertEqual(
+            expense.linked_receipt_suggested_label, "Download PDF receipt",
+        )
+        self.assertFalse(expense.linked_receipt_has_alternatives)
+        self.assertIn("Odoo picked", expense.linked_receipt_message)
+
+    def test_accepting_the_picked_link_teaches_and_downloads_it(self):
+        expense = self._ingest(token="accept-suggestion")
+        retrieval = self.env["usl.mail.pdf.retrieval"].sudo().search(
+            [("expense_id", "=", expense.id)],
+        )
+        expected = retrieval._extract_candidates(retrieval.source_message_id)[0]
+
+        with patch.object(type(retrieval), "_enqueue") as enqueue:
+            expense.with_user(
+                self.expense_user_employee
+            ).action_accept_linked_receipt()
+
+        enqueue.assert_called_once()
+        self.assertEqual(retrieval.selected_fingerprint, expected["fingerprint"])
+        self.assertEqual(retrieval.pattern_id.positive_count, 1)
+
+    def test_several_links_keep_the_full_list_reachable(self):
+        expense = self._ingest(
+            token="alternative-links",
+            extra_link='<a href="https://files.example.com/invoice.pdf">Invoice PDF</a>',
+        )
+
+        self.assertTrue(expense.linked_receipt_has_alternatives)
+        self.assertTrue(expense.linked_receipt_suggested_label)
+        self.assertIn("choose", expense.linked_receipt_message)
+
+    def test_other_employee_cannot_accept_the_picked_link(self):
+        expense = self._ingest(token="accept-authority")
+        outsider = self.expense_user_manager_2
+        outsider.group_ids = [
+            Command.unlink(self.env.ref("account.group_account_manager").id),
+        ]
+
+        with self.assertRaises(AccessError):
+            expense.with_user(outsider).action_accept_linked_receipt()
+
     def test_two_terminal_failures_pause_pattern(self):
         expense = self._ingest()
         retrieval = self.env["usl.mail.pdf.retrieval"].sudo().search(
