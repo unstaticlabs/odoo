@@ -2101,9 +2101,7 @@
       "classification": "protected"
     }
   ],
-  "qualified_policy_digest": "b7901963dbda83a0d50883b30d80858343f8177ece50e602d98271f265b68754",
-  "runtime_policy_sha256": "a1d8d101f815eaee12491eb56faad37e419ce12aa53c94e7ff5065836b333645",
-  "schema": "usl-action-risk-protected-runtime-v2",
+  "schema": "usl-action-risk-protected-runtime-v3",
   "server_actions": [
     {
       "action_key": "server_action:account.accountant_reset_to_draft_entries_action",

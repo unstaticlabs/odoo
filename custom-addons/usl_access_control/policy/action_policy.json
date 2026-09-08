@@ -197123,6 +197123,5 @@
       ]
     }
   },
-  "qualified_policy_digest": "b7901963dbda83a0d50883b30d80858343f8177ece50e602d98271f265b68754",
-  "schema": "usl-action-risk-policy-v1"
+  "schema": "usl-action-risk-policy-v2"
 }

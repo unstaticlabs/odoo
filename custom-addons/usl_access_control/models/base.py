@@ -120,7 +120,7 @@ class Base(models.AbstractModel):
         if not agent:
             return vary
         try:
-            policy_digest = load_agent_readonly_policy().qualified_policy_digest
+            policy_digest = load_agent_readonly_policy().policy_digest
         except ActionPolicyConfigurationError:
             policy_digest = "invalid"
         return (*vary, {
@@ -415,7 +415,7 @@ class Base(models.AbstractModel):
             self._usl_log_denied_protected_action(
                 action_key=entry.action_key,
                 action_name=action_name,
-                policy_digest=policy.qualified_policy_digest,
+                policy_digest=policy.policy_digest,
             )
             if self._usl_actor_is_agent():
                 raise AgentPolicyAccessError(
@@ -441,7 +441,7 @@ class Base(models.AbstractModel):
                 "operation": "action",
                 "action_name": action_name,
                 "action_key": entry.action_key,
-                "policy_digest": policy.qualified_policy_digest,
+                "policy_digest": policy.policy_digest,
                 "origin": self._usl_audit_origin(),
                 "correlation_id": self._usl_audit_correlation_id(),
             },

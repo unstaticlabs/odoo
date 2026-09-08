@@ -51,19 +51,16 @@ class TestActionPolicyLoader(BaseCase):
         *,
         actions,
         server_actions=None,
-        qualified_policy_digest="a" * 64,
-        runtime_policy_sha256=None,
-        schema="usl-action-risk-protected-runtime-v2",
+        derived_field=None,
+        schema="usl-action-risk-protected-runtime-v3",
     ):
         policy = {
             "actions": actions,
-            "qualified_policy_digest": qualified_policy_digest,
             "schema": schema,
             "server_actions": server_actions or [],
         }
-        policy["runtime_policy_sha256"] = (
-            runtime_policy_sha256 or action_policy._runtime_policy_digest(policy)
-        )
+        if derived_field:
+            policy[derived_field] = "a" * 64
         self.runtime_policy_path.write_text(json.dumps(policy), encoding="utf-8")
         return policy
 
@@ -73,16 +70,16 @@ class TestActionPolicyLoader(BaseCase):
         reads=None,
         collaboration=None,
         writes=None,
-        qualified_policy_digest="a" * 64,
+        derived_field=None,
     ):
         policy = {
             "collaboration_actions": collaboration or [],
-            "qualified_policy_digest": qualified_policy_digest,
             "read_only_actions": reads or [],
-            "schema": "usl-agent-access-runtime-v2",
+            "schema": "usl-agent-access-runtime-v3",
             "write_actions": writes or [],
         }
-        policy["runtime_policy_sha256"] = action_policy._runtime_policy_digest(policy)
+        if derived_field:
+            policy[derived_field] = "a" * 64
         self.agent_runtime_policy_path.write_text(json.dumps(policy), encoding="utf-8")
         return policy
 
@@ -119,7 +116,7 @@ class TestActionPolicyLoader(BaseCase):
         self.agent_runtime_policy_path.write_text(json.dumps(policy), encoding="utf-8")
         with self.assertRaisesRegex(
             action_policy.ActionPolicyConfigurationError,
-            "digest does not match",
+            "records the derived field",
         ):
             action_policy.load_agent_readonly_policy()
 
@@ -159,7 +156,7 @@ class TestActionPolicyLoader(BaseCase):
                 ),
             ],
         )
-        self.assertEqual(policy.qualified_policy_digest, "a" * 64)
+        self.assertEqual(policy.policy_digest, "unverified")
         self.assertEqual(
             policy.protected_guard("accounting.lock.change").action_key,
             "guard:accounting.lock.change",
@@ -240,13 +237,23 @@ class TestActionPolicyLoader(BaseCase):
         ):
             action_policy.load_action_policy()
 
-    def test_rejects_runtime_digest_and_schema_mismatch(self):
-        self._write_policy(actions=[], runtime_policy_sha256="0" * 64)
-        with self.assertRaisesRegex(
-            action_policy.ActionPolicyConfigurationError,
-            "digest does not match",
-        ):
-            action_policy.load_action_policy()
+    def test_rejects_an_artifact_that_still_records_a_derived_digest(self):
+        for field in ("runtime_policy_sha256", "qualified_policy_digest"):
+            with self.subTest(field=field):
+                action_policy.load_action_policy.cache_clear()
+                self._write_policy(actions=[], derived_field=field)
+                with self.assertRaisesRegex(
+                    action_policy.ActionPolicyConfigurationError,
+                    "records the derived field",
+                ):
+                    action_policy.load_action_policy()
+                action_policy.load_agent_readonly_policy.cache_clear()
+                self._write_agent_policy(derived_field=field)
+                with self.assertRaisesRegex(
+                    action_policy.ActionPolicyConfigurationError,
+                    "records the derived field",
+                ):
+                    action_policy.load_agent_readonly_policy()
 
     def test_rejects_runtime_policy_above_worker_budget_before_parsing(self):
         self.runtime_policy_path.write_bytes(
@@ -266,19 +273,19 @@ class TestActionPolicyLoader(BaseCase):
         ):
             action_policy.load_action_policy()
 
-    def test_rejects_image_policy_digest_mismatch(self):
-        self._write_policy(actions=[], qualified_policy_digest="a" * 64)
-        with (
-            patch.dict(
-                "os.environ",
-                {"USL_ACTION_RISK_POLICY_SHA256": "b" * 64},
-            ),
-            self.assertRaisesRegex(
-                action_policy.ActionPolicyConfigurationError,
-                "does not match the qualified image",
-            ),
+    def test_records_the_admitted_image_policy_digest(self):
+        self._write_policy(actions=[])
+        with patch.dict(
+            "os.environ",
+            {"USL_ACTION_RISK_POLICY_SHA256": "b" * 64},
         ):
-            action_policy.load_action_policy()
+            self.assertEqual(action_policy.load_action_policy().policy_digest, "b" * 64)
+        action_policy.load_action_policy.cache_clear()
+        with patch.dict("os.environ", {"USL_ACTION_RISK_POLICY_SHA256": "not-a-digest"}):
+            self.assertEqual(
+                action_policy.load_action_policy().policy_digest,
+                "unverified",
+            )
 
     def test_rejects_unsorted_or_unsupported_entries(self):
         self._write_policy(

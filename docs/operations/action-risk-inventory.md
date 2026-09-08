@@ -14,10 +14,35 @@ The two authoritative product artifacts ship in `usl_access_control`:
 - `policy/action_policy.json` contains the explicit classification and evidence
   contract for each stable action key.
 
-Their canonical combined SHA-256 is stored in release identity, embedded in the
-Distribution image label
+Two compiled derivatives ship beside them and are what the running server loads:
+`policy/protected_runtime_policy.json` and
+`policy/agent_readonly_runtime_policy.json`. Both are the exact recompilation of
+the reviewed pair, and `check-source` proves it by recompiling and comparing the
+whole artifact rather than trusting a recorded digest.
+
+The canonical combined SHA-256 of all four is stored in release identity,
+embedded in the Distribution image label
 `com.unstaticlabs.odoo.action-risk-policy-sha256`, and verified against the
-database and candidate before production admission.
+database and candidate before production admission. That label is the value the
+audit trail names as the policy an action was judged against.
+
+## No artifact records a digest of itself
+
+None of the four files stores `surface_sha256`, `module_set_sha256`,
+`qualified_policy_digest` or `runtime_policy_sha256`. Every consumer recomputes
+them from the delivered content, and a file that still carries one is refused as
+stale — by `check-source` and by the server at load.
+
+They were removed because each was a single summary line that every reseal
+rewrote. Two branches touching unrelated modules therefore contended for the
+same six lines and conflicted, although neither had read the other's actions:
+the 45 MB of per-module data merged cleanly and only the summaries did not. A
+one-module reseal now leaves every byte another module owns untouched, and the
+two compiled derivatives usually do not change at all.
+
+Nothing was weakened. The self-digests were verified by recomputing them from
+the same file, which proved only that the file agreed with itself; the recompile
+comparison and the image label are what actually bind the set together.
 
 ## Classifications
 
