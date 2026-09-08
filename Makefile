@@ -48,7 +48,10 @@ help:
 	  'USL Odoo Distribution — local development' \
 	  '' \
 	  '  make doctor                         Diagnose ownership and configuration' \
+	  '  make worktree-env                   Print this checkout'"'"'s project and ports' \
 	  '  make dev                            Start the development runtime' \
+	  '  make init-db                        Create the development database' \
+	  '  make action-risk-db                 Create the tracked action-risk closure' \
 	  '  make deploy [MODULE=module_name]    Update mounted add-ons' \
 	  '  make rebuild [MODULE=module_name]   Rebuild the image, then deploy' \
 	  '  make status                         Show health and URLs' \
@@ -111,6 +114,12 @@ dev-reclaim:
 
 dev:
 	@$(ODOO_DEV) start
+
+init-db:
+	@$(ODOO_DEV) init-db
+
+action-risk-db:
+	@$(ODOO_DEV) action-risk-db
 
 deploy:
 	@if [ -n "$(strip $(MODULE))" ]; then $(ODOO_DEV) deploy "$(MODULE)"; else $(ODOO_DEV) deploy; fi

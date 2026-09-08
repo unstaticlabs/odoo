@@ -115,8 +115,15 @@ doctor() {
           printf '  Update mounted add-ons with: make deploy\n'
           ;;
         missing)
-          printf '  The %s database is missing; deploy cannot recreate source data.\n' "$DEV_DB"
-          printf '  Reconstruct migration targets only with: migration/manage qa refresh\n'
+          # Two different needs used to share one dead end. Reconstructing a
+          # migration target really does require the source dump, but a
+          # checkout that only needs a registry to develop or test against can
+          # build one from the add-ons in this tree.
+          printf '  The %s database is missing.\n' "$DEV_DB"
+          printf '  For a development registry from this checkout: make init-db\n'
+          printf '  For the action-risk closure: make action-risk-db\n'
+          printf '  Note that deploy cannot recreate source data; reconstruct a\n'
+          printf '  migration target only with: migration/manage qa refresh\n'
           ;;
         not-running)
           printf '  The database service is stopped; run make dev to inspect the target.\n'
@@ -142,10 +149,19 @@ doctor() {
     printf '\nPocket ID repair\n'
     printf '  Odoo and its project-bound SSO configuration are not aligned.\n'
     printf '  Run:\n'
-    printf '    make COMPOSE_PROJECT=%s ODOO_HTTP_PORT=%s ODOO_GEVENT_PORT=%s \\\n' \
-      "$COMPOSE_PROJECT" "${ODOO_HTTP_PORT:-8069}" "${ODOO_GEVENT_PORT:-8072}"
-    printf '      POCKET_ID_HTTP_PORT=%s PAPERLESS_HTTP_PORT=%s repair-pocket-id\n' \
-      "${POCKET_ID_HTTP_PORT:-1411}" "${PAPERLESS_HTTP_PORT:-8010}"
+    if usl_worktree_is_linked "$ROOT" \
+        && [[ "$COMPOSE_PROJECT" == "$CANONICAL_COMPOSE_PROJECT" ]]; then
+      # Echoing the current values here would hand a worktree the canonical
+      # project, which is the one thing the scope guard forbids it. Suggest
+      # this checkout's own settings instead.
+      printf '    %s\\\n      make repair-pocket-id\n' \
+        "$(usl_worktree_env_prefix "$ROOT")"
+    else
+      printf '    make COMPOSE_PROJECT=%s ODOO_HTTP_PORT=%s ODOO_GEVENT_PORT=%s \\\n' \
+        "$COMPOSE_PROJECT" "${ODOO_HTTP_PORT:-8069}" "${ODOO_GEVENT_PORT:-8072}"
+      printf '      POCKET_ID_HTTP_PORT=%s PAPERLESS_HTTP_PORT=%s repair-pocket-id\n' \
+        "${POCKET_ID_HTTP_PORT:-1411}" "${PAPERLESS_HTTP_PORT:-8010}"
+    fi
   fi
 }
 
@@ -206,6 +222,25 @@ print_url() {
   published_port="${published_port:-8069}"
   printf '\nDevelopment environment: http://localhost:%s/web/login?db=%s\n' \
     "$published_port" "$DEV_DB"
+}
+
+action_risk_root_modules() {
+  # Read the roots from the tracked surface so the database cannot drift from
+  # what the inventory check compares against.
+  python3 - "$ROOT/custom-addons/usl_access_control/policy/action_surface.json" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as stream:
+    print(",".join(json.load(stream)["root_modules"]))
+PY
+}
+
+prune_untracked_modules() {
+  "${COMPOSE[@]}" --profile test run --rm -T \
+    -e ODOO_INIT_DB="$DEV_DB" test odoo shell \
+    --config=/etc/odoo/odoo.conf --database="$DEV_DB" --log-level=warn \
+    < "$ROOT/scripts/odoo/prune_untracked_modules.py"
 }
 
 disable_dev_tours() {
@@ -764,6 +799,20 @@ case "$command_name" in
     if uses_pocket_id_runtime; then
       "$ROOT/scripts/pocket-id-dev" configure-odoo usl_pocketid
     fi
+    ;;
+  action-risk-db)
+    # Discovery reads a registry, not production data, so any checkout can
+    # build the database it needs. The module set must equal the tracked
+    # closure exactly or the diff is meaningless, so install the tracked roots
+    # and then prune whatever auto_install dragged in.
+    usl_cli_step "1/2" "Initialize the tracked action-risk closure"
+    ODOO_INIT_MODULES="$(action_risk_root_modules)" \
+      "${COMPOSE[@]}" build odoo
+    ODOO_INIT_MODULES="$(action_risk_root_modules)" \
+      "${COMPOSE[@]}" --profile init run --rm init-db
+    usl_cli_step "2/2" "Prune modules the tracked closure does not carry"
+    prune_untracked_modules
+    usl_cli_success "$DEV_DB matches the tracked closure; run make action-risk-discover"
     ;;
   shell)
     "${COMPOSE[@]}" --profile devcontainer run --rm devcontainer bash

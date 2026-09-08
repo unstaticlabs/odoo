@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import unittest
@@ -485,6 +486,67 @@ esac
 
         self.assertEqual(completed.returncode, 2)
         self.assertIn("does not name the project", completed.stderr)
+
+    def test_missing_database_offers_a_way_to_build_one(self):
+        """The advice used to dead-end at a source-data reconstruction."""
+        helper = ODOO_DEV.read_text(encoding="utf-8")
+        assessment = helper.split("The %s database is missing", 1)[1][:600]
+
+        self.assertIn("make init-db", assessment)
+        self.assertIn("make action-risk-db", assessment)
+        # The migration path stays, but no longer as the only option.
+        self.assertIn("migration/manage qa refresh", assessment)
+
+    def test_database_targets_are_reachable_from_make(self):
+        for target in ("init-db", "action-risk-db"):
+            with self.subTest(target=target):
+                completed = subprocess.run(
+                    ["make", "-n", target],
+                    cwd=ROOT,
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                )
+                self.assertEqual(completed.returncode, 0, completed.stderr)
+                self.assertIn(f"odoo-dev {target}", completed.stdout)
+
+    def test_action_risk_database_installs_the_tracked_roots(self):
+        """The database must not drift from what the inventory compares to."""
+        surface = json.loads(
+            (
+                ROOT
+                / "custom-addons/usl_access_control/policy/action_surface.json"
+            ).read_text(encoding="utf-8"),
+        )
+        helper = ODOO_DEV.read_text(encoding="utf-8")
+
+        # Roots are read from the tracked file, never restated in the script.
+        self.assertIn("action_surface.json", helper)
+        self.assertIn('ODOO_INIT_MODULES="$(action_risk_root_modules)"', helper)
+        for root in surface["root_modules"]:
+            self.assertNotIn(f'"{root}"', helper.split("action_risk_root_modules")[0])
+
+    def test_prune_refuses_when_the_tracked_closure_is_incomplete(self):
+        """Pointed at the wrong database it must refuse, not empty it."""
+        script = (
+            ROOT / "scripts/odoo/prune_untracked_modules.py"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("Refusing to prune", script)
+        refusal = script.index("Refusing to prune")
+        uninstall = script.index("button_immediate_uninstall")
+        self.assertLess(refusal, uninstall, "refusal must precede any removal")
+        # And it verifies the result rather than trusting the uninstall.
+        self.assertIn("Prune did not reach the tracked closure", script)
+
+    def test_repair_hint_never_hands_a_worktree_the_canonical_project(self):
+        """It echoed current values, i.e. the one project a worktree may not use."""
+        helper = ODOO_DEV.read_text(encoding="utf-8")
+        hint = helper.split("Pocket ID repair", 1)[1][:900]
+
+        self.assertIn("usl_worktree_is_linked", hint)
+        self.assertIn("usl_worktree_env_prefix", hint)
+        self.assertIn("CANONICAL_COMPOSE_PROJECT", hint)
 
     def test_preproduction_boundary_rejects_partial_qa_profiles(self):
         boundary = (ROOT / "scripts/odoo/product_database_boundary.py").read_text(

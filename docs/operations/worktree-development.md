@@ -73,17 +73,44 @@ script. `scripts/odoo-dev` and `accounting_compat.cli` resolve the same order.
 
 ## The database
 
-`make worktree-env` isolates the runtime, not the data. A worktree still starts
-with no `odoo_dev` database, and `make doctor` reports it as missing. Deploy
-cannot recreate source data; reconstruct a migration target only with
-`migration/manage qa refresh`.
+`make worktree-env` isolates the runtime, not the data, so a worktree starts
+with no database and `make doctor` reports one missing. What to do next depends
+on what you actually need, and the two needs are not interchangeable.
 
-For work that needs a registry rather than production-shaped data — running an
-add-on test suite, or `make action-risk-discover` — initialize a scratch
-database from the tracked root modules instead. See
-[the action-risk review procedure](action-risk-inventory.md), which also
-explains why the installed module set must equal the tracked `modules` list
-before a discovery diff can be trusted.
+**A registry to develop and test against.** Built from the add-ons in this
+checkout, no source dump involved:
+
+```bash
+make init-db
+```
+
+That installs `ODOO_INIT_MODULES`, defaulting to `rebuild_account_migration`.
+Set it to install something else:
+
+```bash
+ODOO_INIT_MODULES=usl_documents make init-db
+```
+
+**The action-risk closure.** Discovery compares against the module set recorded
+in the tracked `action_surface.json`, and a database one module wide of it
+produces thousands of spurious entries that hide the change under review:
+
+```bash
+make action-risk-db
+```
+
+It installs the surface's own `root_modules` — read from the tracked file, so
+the database cannot drift from what the check compares against — and then
+prunes whatever `auto_install` dragged in, because the delivered closure does
+not carry those. It refuses to prune when the tracked closure is not fully
+installed, so pointing it at the wrong database cannot empty it. Afterwards
+`make action-risk-discover` works from this checkout. See
+[the action-risk review procedure](action-risk-inventory.md) for what to do
+with the resulting diff.
+
+**Production-shaped data.** Neither of the above reconstructs the evolved data
+cohort. Deploy cannot recreate source data; reconstruct a migration target only
+with `migration/manage qa refresh`.
 
 ## When a project is already taken
 
