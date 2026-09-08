@@ -268,11 +268,11 @@ class UslDocumentQuickFilter(models.Model):
         )
 
     @api.model_create_multi
-    def create(self, values_list):
+    def create(self, vals_list):
         self._require_manager()
         normalized = []
         pending_editor_values = []
-        for values in values_list:
+        for values in vals_list:
             values = dict(values)
             editor_values = {
                 key: values.pop(key)
@@ -294,22 +294,22 @@ class UslDocumentQuickFilter(models.Model):
                 )
         return shortcuts
 
-    def write(self, values):
+    def write(self, vals):
         self._require_manager()
-        values = dict(values)
+        vals = dict(vals)
         editor_values = {
-            key: values.pop(key)
+            key: vals.pop(key)
             for key in self._EDITOR_FIELDS
-            if key in values
+            if key in vals
         }
-        result = super().write(values)
+        result = super().write(vals)
         for shortcut in self:
             native_values = {}
             if editor_values:
                 native_values.update(
                     shortcut._editor_ir_filter_values(editor_values),
                 )
-            if "name" in values:
+            if "name" in vals:
                 native_values["name"] = shortcut.name
             if native_values:
                 shortcut.ir_filter_id.write(native_values)
@@ -666,9 +666,9 @@ class UslDocumentSmartView(models.Model):
         }
 
     @api.model_create_multi
-    def create(self, values_list):
+    def create(self, vals_list):
         normalized = []
-        for values in values_list:
+        for values in vals_list:
             values = dict(values)
             cache_write = (
                 self.env.context.get("usl_documents_archive_view_sync")
@@ -703,12 +703,12 @@ class UslDocumentSmartView(models.Model):
             records.filtered("archive_native")._push_to_paperless()
         return records
 
-    def write(self, values):
+    def write(self, vals):
         cache_write = (
             self.env.context.get("usl_documents_archive_view_sync")
             and self.env.su
         )
-        if self._paperless_cache_fields().intersection(values) and not cache_write:
+        if self._paperless_cache_fields().intersection(vals) and not cache_write:
             raise AccessError(
                 _("Paperless synchronization fields cannot be edited manually."),
             )
@@ -718,11 +718,11 @@ class UslDocumentSmartView(models.Model):
             lambda item: item.scope == "personal" and item.user_id != self.env.user,
         ):
             raise AccessError(_("You may only edit your own saved views."))
-        if values.get("archive_native") and self.filtered(
+        if vals.get("archive_native") and self.filtered(
             lambda item: item.scope == "personal",
         ):
             raise AccessError(_("Personal saved searches stay private to Odoo."))
-        result = super().write(values)
+        result = super().write(vals)
         push_fields = {
             "name",
             "archive_native",
@@ -731,7 +731,7 @@ class UslDocumentSmartView(models.Model):
             "correspondent_ids",
         }
         if (
-            push_fields.intersection(values)
+            push_fields.intersection(vals)
             and not cache_write
             and not self.env.context.get("install_mode")
         ):

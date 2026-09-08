@@ -586,11 +586,11 @@ class UslDocumentOperation(models.Model):
             return self.env.ref("base.user_root")
         return self.user_id
 
-    def write(self, values):
-        result = super().write(values)
-        if "state" in values:
+    def write(self, vals):
+        result = super().write(vals)
+        if "state" in vals:
             self._sync_source_attachment_ledger()
-        if values.get("state") == "archived":
+        if vals.get("state") == "archived":
             for operation in self.filtered("source_attachment_id"):
                 superseded = self.sudo().search(
                     [

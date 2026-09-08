@@ -147,9 +147,9 @@ class AuthOauthProvider(models.Model):
         default="client_secret_basic",
     )
 
-    def write(self, values):
+    def write(self, vals):
         if (
-            _ENVIRONMENT_MANAGED_FIELDS.intersection(values)
+            _ENVIRONMENT_MANAGED_FIELDS.intersection(vals)
             and any(self.mapped("usl_pocketid"))
         ):
             raise ValidationError(
@@ -158,7 +158,7 @@ class AuthOauthProvider(models.Model):
                     "Use the documented configuration helper.",
                 ),
             )
-        return super().write(values)
+        return super().write(vals)
 
     def _usl_pocketid_environment_write(self, values):
         self.ensure_one()

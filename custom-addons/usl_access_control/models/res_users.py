@@ -265,7 +265,7 @@ class ResUsers(models.Model):
         users._check_usl_agent_irreversible_incompatibility()
         return users
 
-    def write(self, values):
+    def write(self, vals):
         if self.filtered("usl_managed_agent_id") and not self.env.context.get("usl_agent_provisioning"):
             raise AccessError(_("Manage Agent identities from the Agent record."))
         # Guard, and reconcile, only a write that stores something.  A `NewId`
@@ -293,16 +293,16 @@ class ResUsers(models.Model):
             "usl_pocketid_access",
             "usl_pocketid_email_link",
         }
-        changing_another_identity = self != self.env.user and {"email", "name"} & set(values)
-        if persisted and (sensitive_fields & set(values) or changing_another_identity):
+        changing_another_identity = self != self.env.user and {"email", "name"} & set(vals)
+        if persisted and (sensitive_fields & set(vals) or changing_another_identity):
             self._usl_require_irreversible_action(
                 "authorization.user.change",
                 "change user identity or authorization",
             )
-        result = super().write(values)
-        if persisted and "group_ids" in values:
+        result = super().write(vals)
+        if persisted and "group_ids" in vals:
             self._check_usl_agent_irreversible_incompatibility()
-        if persisted and {"active", "company_id", "company_ids", "group_ids"} & set(values):
+        if persisted and {"active", "company_id", "company_ids", "group_ids"} & set(vals):
             self.env["usl.agent"]._reconcile_for_owners(self)
         return result
 
@@ -320,8 +320,8 @@ class ResUsers(models.Model):
 class ResGroups(models.Model):
     _inherit = "res.groups"
 
-    def write(self, values):
-        result = super().write(values)
-        if {"implied_ids", "user_ids"} & set(values):
+    def write(self, vals):
+        result = super().write(vals)
+        if {"implied_ids", "user_ids"} & set(vals):
             self.env["res.users"]._usl_validate_all_agent_capabilities()
         return result

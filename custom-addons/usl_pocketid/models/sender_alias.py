@@ -109,7 +109,7 @@ class UslMailSenderAlias(models.Model):
                 )
 
     @api.model_create_multi
-    def create(self, values_list):
+    def create(self, vals_list):
         protected = {
             "state",
             "verified_at",
@@ -117,7 +117,7 @@ class UslMailSenderAlias(models.Model):
             "verification_token_digest",
             "verification_expires_at",
         }
-        for values in values_list:
+        for values in vals_list:
             if values.get("email"):
                 values["email"] = tools.email_normalize(
                     values["email"],
@@ -127,18 +127,18 @@ class UslMailSenderAlias(models.Model):
             self._check_actor_can_manage(partner)
             for field_name in protected:
                 values.pop(field_name, None)
-        aliases = super().create(values_list)
+        aliases = super().create(vals_list)
         if not self.env.context.get("usl_sender_alias_skip_automatic_verification"):
             aliases._send_verification_for_pending_addresses()
         return aliases
 
-    def write(self, values):
-        values = dict(values)
-        if values.get("email"):
-            values["email"] = tools.email_normalize(
-                values["email"],
+    def write(self, vals):
+        vals = dict(vals)
+        if vals.get("email"):
+            vals["email"] = tools.email_normalize(
+                vals["email"],
                 strict=False,
-            ) or values["email"].strip()
+            ) or vals["email"].strip()
         protected = {
             "state",
             "verified_at",
@@ -146,28 +146,28 @@ class UslMailSenderAlias(models.Model):
             "verification_token_digest",
             "verification_expires_at",
         }
-        if protected & values.keys() and not self.env.context.get(
+        if protected & vals.keys() and not self.env.context.get(
             "usl_sender_alias_internal",
         ):
             raise AccessError(_("Verification state is managed by Odoo."))
         for alias in self:
             partner = self.env["res.partner"].browse(
-                values.get("partner_id", alias.partner_id.id),
+                vals.get("partner_id", alias.partner_id.id),
             )
             alias._check_actor_can_manage(partner)
         aliases_to_reset = self.filtered(
             lambda alias: (
-                "email" in values and values["email"] != alias.email
+                "email" in vals and vals["email"] != alias.email
             )
             or (
-                "partner_id" in values
-                and values["partner_id"] != alias.partner_id.id
+                "partner_id" in vals
+                and vals["partner_id"] != alias.partner_id.id
             ),
         )
         result = super(
             UslMailSenderAlias,
             self.with_context(usl_sender_alias_internal=True),
-        ).write(values)
+        ).write(vals)
         if aliases_to_reset:
             aliases_to_reset.sudo().with_context(
                 usl_sender_alias_internal=True,

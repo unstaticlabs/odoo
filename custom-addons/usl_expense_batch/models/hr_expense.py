@@ -454,9 +454,9 @@ class HrExpense(models.Model):
                 )
 
     @api.model_create_multi
-    def create(self, values_list):
-        records = super().create(values_list)
-        for expense, incoming_values in zip(records, values_list):
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        for expense, incoming_values in zip(records, vals_list):
             provenance = {}
             if (
                 "account_id" in incoming_values
@@ -483,12 +483,12 @@ class HrExpense(models.Model):
                 expense.with_context(usl_batch_context_internal=True).write(provenance)
         return records
 
-    def write(self, values):
-        if len(self) > 1 and values.get("expense_batch_id") is False:
+    def write(self, vals):
+        if len(self) > 1 and vals.get("expense_batch_id") is False:
             for expense in self:
-                expense.write(values)
+                expense.write(vals)
             return True
-        new_batch_id = values.get("expense_batch_id")
+        new_batch_id = vals.get("expense_batch_id")
         if new_batch_id and any(
             expense.expense_batch_id
             and expense.expense_batch_id.id != new_batch_id
@@ -500,22 +500,22 @@ class HrExpense(models.Model):
                     "it to another one.",
                 ),
             )
-        values = dict(values)
+        vals = dict(vals)
         internal = self.env.context.get("usl_batch_context_internal")
         if not internal:
-            if "account_id" in values:
-                values.setdefault("account_context_source", "explicit")
-            if "analytic_distribution" in values:
-                values.setdefault("analytic_context_source", "explicit")
+            if "account_id" in vals:
+                vals.setdefault("account_context_source", "explicit")
+            if "analytic_distribution" in vals:
+                vals.setdefault("analytic_context_source", "explicit")
 
-        removing_batch = "expense_batch_id" in values and not values["expense_batch_id"]
+        removing_batch = "expense_batch_id" in vals and not vals["expense_batch_id"]
         if removing_batch and len(self) == 1 and self.expense_batch_id:
             if (
                 self.account_context_source == "batch"
                 and self.account_id == self.batch_applied_account_id
                 and self.batch_account_baseline_captured
             ):
-                values.update({
+                vals.update({
                     "account_id": self.pre_batch_account_id.id,
                     "account_context_source": (
                         self.pre_batch_account_context_source or "product"
@@ -529,13 +529,13 @@ class HrExpense(models.Model):
                 )
                 and self.batch_analytic_baseline_captured
             ):
-                values.update({
+                vals.update({
                     "analytic_distribution": self.pre_batch_analytic_distribution or {},
                     "analytic_context_source": (
                         self.pre_batch_analytic_context_source or "product"
                     ),
                 })
-            values.update({
+            vals.update({
                 "pre_batch_account_id": False,
                 "pre_batch_account_context_source": False,
                 "pre_batch_analytic_distribution": False,
@@ -547,7 +547,7 @@ class HrExpense(models.Model):
                 "batch_context_revision": 0,
             })
 
-        result = super().write(values)
+        result = super().write(vals)
         if new_batch_id:
             batch = self.env["usl.expense.batch"].browse(new_batch_id)
             batch.apply_context(expense_ids=self.ids)

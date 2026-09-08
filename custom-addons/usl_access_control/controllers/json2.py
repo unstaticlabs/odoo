@@ -3,6 +3,8 @@ import json
 import logging
 import uuid
 
+from werkzeug.exceptions import NotFound
+
 from odoo import SUPERUSER_ID, _, api, http
 from odoo.exceptions import AccessDenied, AccessError
 from odoo.http import request
@@ -122,7 +124,14 @@ class UslAgentJson2Controller(WebJson2Controller):
         except (AccessError, AttributeError, KeyError):
             # Preserve the base JSON-2 controller's canonical error response.
             return kwargs
-        parameters = list(inspect.signature(method).parameters.values())
+        # `follow_wrapped=False` reads the callable the controller actually
+        # calls.  `@api.model_create_multi` wraps an override with `@wraps`, so
+        # a followed signature reports the *inner* parameter name while the
+        # wrapper itself only accepts `vals_list`; renaming the payload to the
+        # inner name then raises TypeError inside the wrapper.
+        parameters = list(
+            inspect.signature(method, follow_wrapped=False).parameters.values(),
+        )
         if parameters and parameters[0].name in {"self", "cls"}:
             parameters = parameters[1:]
         if canonical_name in {parameter.name for parameter in parameters}:
@@ -151,12 +160,36 @@ class UslAgentJson2Controller(WebJson2Controller):
         return normalized
 
     @staticmethod
-    def _check_agent_call(*, agent, model_name, method_name, kwargs):
+    def _assert_public_method_exists(*, env, model_name, method_name):
+        """Answer an unknown model or method as the base controller does.
+
+        The Agent policy classifies methods that exist.  Reporting a name it
+        has never heard of as missing application access reads as a governance
+        decision about a real capability, and an Agent then asks its owner for
+        access to something Odoo does not implement.  Existence is already
+        public to any authenticated bearer through the base controller.
+        """
+        try:
+            model = env[model_name]
+        except KeyError as error:
+            raise NotFound(f"the model {model_name!r} does not exist") from error
+        try:
+            get_public_method(model, method_name)
+        except AttributeError as error:
+            raise NotFound(error.args[0]) from error
+
+    @classmethod
+    def _check_agent_call(cls, *, agent, model_name, method_name, kwargs):
         if model_name in AGENT_HIDDEN_API_MODELS:
             raise AgentPolicyAccessError(
                 _("Agent credentials and secrets are not exposed through the API."),
                 "agent_read_only_action_denied",
             )
+        cls._assert_public_method_exists(
+            env=agent.env,
+            model_name=model_name,
+            method_name=method_name,
+        )
         requested_fields = []
         for parameter_name in ("fields", "fields_to_export"):
             value = kwargs.get(parameter_name)

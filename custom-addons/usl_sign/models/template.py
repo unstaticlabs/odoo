@@ -778,7 +778,7 @@ class SignTemplate(models.Model):
         )
         return values
 
-    def write(self, values):
+    def write(self, vals):
         material = {
             "data",
             "name",
@@ -793,23 +793,23 @@ class SignTemplate(models.Model):
             "item_ids",
             "document_ids",
         }
-        if material.intersection(values) and self.filtered(
+        if material.intersection(vals) and self.filtered(
             lambda template: template.request_count or template.preparation_status == "ready",
         ):
             msg = "Published or used templates are immutable; create a new version."
             raise ValidationError(msg)
         if (
-            material.intersection(values)
-            and "preparation_status" not in values
+            material.intersection(vals)
+            and "preparation_status" not in vals
             and self.env.context.get("usl_sign_editor_internal") is not INTERNAL_OPERATION
         ):
-            values.update(
+            vals.update(
                 {
                     "preparation_status": "draft",
                     "preparation_note": "Review this version after its material change.",
                 },
             )
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         if self.filtered(
@@ -909,13 +909,13 @@ class SignTemplateItem(models.Model):
             raise ValidationError(msg)
         return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         if self.mapped("template_id").filtered(
             lambda template: template.request_count or template.preparation_status == "ready",
         ):
             msg = "Published or used templates are immutable; create a new version."
             raise ValidationError(msg)
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         if self.mapped("template_id").filtered(

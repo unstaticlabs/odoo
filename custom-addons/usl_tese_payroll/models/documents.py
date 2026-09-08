@@ -12,14 +12,14 @@ class UslTesePayslip(models.Model):
     _inherit = "usl.tese.payslip"
 
     @api.model_create_multi
-    def create(self, values_list):
-        payslips = super().create(values_list)
+    def create(self, vals_list):
+        payslips = super().create(vals_list)
         payslips._reconcile_documents_after_attachment_change()
         return payslips
 
-    def write(self, values):
-        result = super().write(values)
-        if "attachment_id" in values:
+    def write(self, vals):
+        result = super().write(vals)
+        if "attachment_id" in vals:
             self._reconcile_documents_after_attachment_change()
         return result
 
@@ -289,9 +289,9 @@ class UslDocument(models.Model):
 class UslDocumentOperation(models.Model):
     _inherit = "usl.document.operation"
 
-    def write(self, values):
-        result = super().write(values)
-        if values.get("state") != "archived":
+    def write(self, vals):
+        result = super().write(vals)
+        if vals.get("state") != "archived":
             return result
         completed = self.filtered(
             lambda operation: (

@@ -956,7 +956,7 @@ class SignDailyManifest(models.Model):
             raise AccessError(msg)
         return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         if self.env.context.get("usl_sign_daily_manifest_signing") is INTERNAL_OPERATION:
             allowed = {
                 "state",
@@ -971,13 +971,13 @@ class SignDailyManifest(models.Model):
                 "failure_code",
                 "failure_message",
             }
-            if set(values) <= allowed and all(manifest.state == "failed" for manifest in self):
-                return super().write(values)
+            if set(vals) <= allowed and all(manifest.state == "failed" for manifest in self):
+                return super().write(vals)
         if (
             self.env.context.get("usl_sign_daily_manifest_operation") is INTERNAL_OPERATION
-            and set(values) <= MANIFEST_OPERATION_FIELDS
+            and set(vals) <= MANIFEST_OPERATION_FIELDS
         ):
-            return super().write(values)
+            return super().write(vals)
         msg = "Daily evidence manifests and their proof artifacts are immutable."
         raise AccessError(msg)
 
@@ -1036,7 +1036,7 @@ class SignDailyManifestEntry(models.Model):
             raise AccessError(msg)
         return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         msg = "Daily manifest entries are immutable."
         raise AccessError(msg)
 
@@ -1101,7 +1101,7 @@ class SignDailyManifestReceipt(models.Model):
                 raise ValidationError(msg)
         return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         msg = "OpenTimestamps receipts are immutable."
         raise AccessError(msg)
 

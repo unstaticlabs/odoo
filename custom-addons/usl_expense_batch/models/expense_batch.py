@@ -583,13 +583,13 @@ class UslExpenseBatch(models.Model):
         return result
 
     @api.model_create_multi
-    def create(self, values_list):
+    def create(self, vals_list):
         self._check_readonly_accountant_mutation()
-        for values in values_list:
+        for values in vals_list:
             self._check_account_override_access(values)
         clean_values_list = []
         expense_ids_list = []
-        for values in values_list:
+        for values in vals_list:
             values = dict(values)
             expense_ids = self._expense_ids_from_create_commands(
                 values.pop("expense_ids", []),
@@ -701,9 +701,9 @@ class UslExpenseBatch(models.Model):
                 ):
                     move.sudo().expense_batch_id = batch
 
-    def write(self, values):
+    def write(self, vals):
         self._check_readonly_accountant_mutation()
-        self._check_account_override_access(values)
+        self._check_account_override_access(vals)
         editable_fields = {
             "name",
             "purpose",
@@ -716,18 +716,18 @@ class UslExpenseBatch(models.Model):
             "employee_id",
             "company_id",
         }
-        if editable_fields.intersection(values):
+        if editable_fields.intersection(vals):
             archived = self.filtered(lambda batch: not batch.active)
             if archived:
                 raise UserError(
                     _("Reopen this Expense Batch before changing its information."),
                 )
-        structural_fields = {"employee_id", "company_id"}.intersection(values)
+        structural_fields = {"employee_id", "company_id"}.intersection(vals)
         if structural_fields:
             changed_structural_batch = self.filtered(
                 lambda batch: batch.expense_ids
                 and any(
-                    values[field_name] != batch[field_name].id
+                    vals[field_name] != batch[field_name].id
                     for field_name in structural_fields
                 ),
             )
@@ -747,14 +747,14 @@ class UslExpenseBatch(models.Model):
             "account_override_id",
             "analytic_distribution",
         }
-        if context_fields.intersection(values) and "context_revision" not in values:
+        if context_fields.intersection(vals) and "context_revision" not in vals:
             for batch in self:
                 super(UslExpenseBatch, batch).write({
-                    **values,
+                    **vals,
                     "context_revision": batch.context_revision + 1,
                 })
             return True
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         self._check_readonly_accountant_mutation()

@@ -292,14 +292,14 @@ class UslTeseProfile(models.Model):
             ))
 
     @api.model_create_multi
-    def create(self, values_list):
+    def create(self, vals_list):
         self._check_configuration_access()
         internal_write = (
             self.env.context.get("_tese_internal_write")
             is TESE_INTERNAL_WRITE_TOKEN
         )
         profile_ids = {
-            values.get("profile_id") for values in values_list
+            values.get("profile_id") for values in vals_list
             if values.get("profile_id")
         }
         if (
@@ -312,22 +312,22 @@ class UslTeseProfile(models.Model):
                 "Accounting details already used by payroll history cannot be "
                 "extended. Create the next dated settings version instead.",
             ))
-        return super().create(values_list)
+        return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         self._check_configuration_access()
         internal_write = (
             self.env.context.get("_tese_internal_write")
             is TESE_INTERNAL_WRITE_TOKEN
         )
-        if not internal_write and self._VERSIONED_FIELDS & set(values):
+        if not internal_write and self._VERSIONED_FIELDS & set(vals):
             used_profiles = self.filtered("payslip_count")
             if used_profiles:
                 raise UserError(_(
                     "Settings already used by payroll history cannot be "
                     "edited. Create the next dated version instead.",
                 ))
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         self._check_configuration_access()
@@ -542,11 +542,11 @@ class UslTeseProfileLine(models.Model):
         self.env["usl.tese.profile"]._check_configuration_access()
 
     @api.model_create_multi
-    def create(self, values_list):
+    def create(self, vals_list):
         self._check_configuration_access()
-        return super().create(values_list)
+        return super().create(vals_list)
 
-    def write(self, values):
+    def write(self, vals):
         self._check_configuration_access()
         internal_write = (
             self.env.context.get("_tese_internal_write")
@@ -559,7 +559,7 @@ class UslTeseProfileLine(models.Model):
                 "Accounting details already used by payroll history cannot be "
                 "edited. Create the next dated settings version instead.",
             ))
-        return super().write(values)
+        return super().write(vals)
 
     def unlink(self):
         self._check_configuration_access()
