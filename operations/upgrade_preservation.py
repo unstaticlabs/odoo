@@ -71,8 +71,13 @@ def fingerprint_sql(scope: dict) -> str:
 
 def scoped_controls_sql(sql: str, scope: dict) -> str:
     validate_scope(scope)
+    # Boundary only, deliberately not _row_scope: these CTEs shadow the real
+    # tables for the control queries, which count rows. Hiding a row here would
+    # change what the controls measure and make the before/after comparison
+    # disagree, which is a different question from whether an existing row was
+    # rewritten.
     ctes = [
-        f"{table} AS (SELECT * FROM public.{table} r WHERE {_row_scope(table, key, scope[table]['maximum'])})"
+        f"{table} AS (SELECT * FROM public.{table} WHERE {key} <= {scope[table]['maximum']})"
         for table, key in TABLES.items()
     ]
     return 'WITH ' + ', '.join(ctes) + '\n' + sql
