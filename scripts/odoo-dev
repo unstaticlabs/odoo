@@ -878,6 +878,28 @@ be a name this command owns, never the development database." \
     odoo_shell_script scripts/odoo/verify_tracked_module_closure.py
     usl_cli_success "$DEV_DB matches the tracked closure; run make action-risk-discover"
     ;;
+  preservation-check)
+    # The release gate that refuses a change runs on a host after a build and a
+    # deploy. This runs the identical code from operations/upgrade_preservation
+    # against the development database, in the time an upgrade takes, so a
+    # refusal costs minutes rather than a failed release and a rollback.
+    modules="${2:-all}"
+    [ -n "$modules" ] || modules=all
+    baseline="${TMPDIR:-/tmp}/usl-preservation-${COMPOSE_PROJECT}.json"
+    psql_command="$(printf '%q ' "${COMPOSE[@]}" exec -T db psql -U odoo -d "$DEV_DB" -Atc)"
+    usl_cli_step "1/3" "Fingerprint the frozen tables before the upgrade"
+    python3 "$ROOT/scripts/preservation_check.py" capture \
+      --psql "$psql_command" --baseline "$baseline"
+    usl_cli_step "2/3" "Upgrade $modules from this checkout"
+    "${COMPOSE[@]}" --profile test run --rm \
+      -e ODOO_INIT_DB="$DEV_DB" test odoo \
+      --config=/etc/odoo/odoo.conf --database="$DEV_DB" \
+      --update="$modules" --without-demo=true --stop-after-init --log-level=warn
+    usl_cli_step "3/3" "Verify that no pre-existing row changed"
+    python3 "$ROOT/scripts/preservation_check.py" verify \
+      --psql "$psql_command" --baseline "$baseline"
+    usl_cli_success "This tree would pass the release upgrade-preservation gate"
+    ;;
   shell)
     "${COMPOSE[@]}" --profile devcontainer run --rm devcontainer bash
     ;;
@@ -961,6 +983,8 @@ Commands:
   restart      Restart services
   logs         Follow logs
   init-db      Initialize odoo_dev (or ODOO_INIT_DB)
+  preservation-check [modules]
+                Run the release upgrade-preservation gate against odoo_dev
   shell        Open a dev container shell
   test [mod]   Run full backend/browser tests for a module
   test-js [mod] Run one module's frontend unit tests on odoo_dev
