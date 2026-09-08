@@ -896,6 +896,90 @@ class TestProductFeedback(TransactionCase):
             ),
         )
 
+    def test_delivery_metadata_is_readable_by_any_internal_user(self):
+        task, _payload = self._submit()
+        task.with_user(self.maintainer).write(
+            {
+                "usl_feedback_branch": "feat/delivery",
+                "usl_feedback_pr_url": "https://github.com/unstaticlabs/odoo/pull/1",
+                "usl_feedback_score": 4.2,
+                "usl_feedback_tokens": 1500,
+            },
+        )
+        read = task.with_user(self.other).read(
+            [
+                "state",
+                "usl_feedback_branch",
+                "usl_feedback_pr_url",
+                "usl_feedback_score",
+                "usl_feedback_tokens",
+                "allocated_hours",
+            ],
+        )[0]
+        self.assertEqual(read["state"], "01_in_progress")
+        self.assertEqual(read["usl_feedback_branch"], "feat/delivery")
+        self.assertEqual(read["usl_feedback_pr_url"], "https://github.com/unstaticlabs/odoo/pull/1")
+        self.assertEqual(read["usl_feedback_score"], 4.2)
+        self.assertEqual(read["usl_feedback_tokens"], 1500)
+
+    def test_ordinary_internal_user_cannot_write_delivery_metadata(self):
+        task, _payload = self._submit()
+        for values in (
+            {"usl_feedback_branch": "feat/forged"},
+            {"usl_feedback_pr_url": "https://github.com/unstaticlabs/odoo/pull/2"},
+            {"usl_feedback_score": 9.9},
+            {"usl_feedback_tokens": 1},
+            {"state": "03_approved"},
+            {"allocated_hours": 5.0},
+        ):
+            with self.subTest(values=values), self.assertRaises(AccessError):
+                task.with_user(self.other).write(values)
+        # Every attempt above must have been rejected before it touched the
+        # column: none of the forged values reached the record.
+        self.assertFalse(task.usl_feedback_branch)
+        self.assertFalse(task.usl_feedback_pr_url)
+        self.assertFalse(task.usl_feedback_score)
+        self.assertFalse(task.usl_feedback_tokens)
+
+    def test_maintainer_can_write_delivery_metadata_and_approval_state(self):
+        task, _payload = self._submit()
+        task.with_user(self.maintainer).write(
+            {
+                "usl_feedback_branch": "feat/delivery",
+                "usl_feedback_pr_url": "https://github.com/unstaticlabs/odoo/pull/1",
+                "usl_feedback_score": 4.2,
+                "usl_feedback_tokens": 1500,
+                "allocated_hours": 3.5,
+                "state": "03_approved",
+            },
+        )
+        self.assertEqual(task.usl_feedback_branch, "feat/delivery")
+        self.assertEqual(task.usl_feedback_pr_url, "https://github.com/unstaticlabs/odoo/pull/1")
+        self.assertEqual(task.usl_feedback_score, 4.2)
+        self.assertEqual(task.usl_feedback_tokens, 1500)
+        self.assertEqual(task.allocated_hours, 3.5)
+        self.assertEqual(task.state, "03_approved")
+
+    def test_state_reset_by_stage_change_loses_approval(self):
+        """Pin the trap the weekly delivery protocol has to write around.
+
+        Odoo resets ``project.task.state`` on any stage change that does not
+        also set ``state`` in the same write: see the
+        ``elif 'stage_id' in vals and 'state' not in vals`` branch of
+        ``project.task.write()`` (``addons/project/models/project_task.py``).
+        A card set to Approved therefore silently loses that approval the
+        moment it moves to a new stage unless the caller sets ``state`` again
+        in the very same write.
+        """
+        task, _payload = self._submit()
+        task.with_user(self.maintainer).write({"usl_feedback_category": "bug"})
+        task.with_user(self.maintainer).write({"state": "03_approved"})
+        self.assertEqual(task.state, "03_approved")
+        review = self.env.ref("usl_feedback.stage_feedback_ready_to_verify")
+        task.with_user(self.maintainer).write({"stage_id": review.id})
+        self.assertEqual(task.stage_id, review)
+        self.assertEqual(task.state, "01_in_progress")
+
     def test_feedback_agent_cannot_become_an_internal_or_maintainer_user(self):
         with self.assertRaises(ValidationError):
             self.agent.sudo().write(

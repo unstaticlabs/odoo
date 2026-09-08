@@ -104,6 +104,26 @@ class ProjectTask(models.Model):
     )
     usl_feedback_can_manage = fields.Boolean(compute="_compute_usl_feedback_can_manage")
 
+    # Weekly delivery-run metadata. Every internal user reads these on the
+    # board; only a feedback maintainer can set them, enforced the same way
+    # as the rest of this model's canonical fields: not by field-level
+    # `groups=` (that would hide them from ordinary readers too), but by the
+    # blanket non-maintainer write() guard below, which already rejects any
+    # write to any field of a feedback card from a non-maintainer, non-su
+    # caller. See `write()`.
+    usl_feedback_branch = fields.Char(
+        string="Delivery branch", copy=False,
+    )
+    usl_feedback_pr_url = fields.Char(
+        string="Pull request", copy=False,
+    )
+    usl_feedback_score = fields.Float(
+        string="Score", copy=False, store=True, index=True,
+    )
+    usl_feedback_tokens = fields.Integer(
+        string="Tokens spent", copy=False,
+    )
+
     @api.depends_context("uid")
     def _compute_usl_feedback_can_manage(self):
         allowed = self._usl_feedback_is_maintainer()
