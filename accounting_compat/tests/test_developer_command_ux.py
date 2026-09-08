@@ -553,6 +553,33 @@ esac
             block.index("action_risk_update_closure"),
         )
 
+    def test_action_risk_database_is_built_from_scratch_and_never_the_dev_one(self):
+        """Reusing a database keeps its row ids, and three digests then move."""
+        helper = ODOO_DEV.read_text(encoding="utf-8")
+        block = helper.split("action-risk-db)", 1)[1].split("\n    ;;", 1)[0]
+
+        # Its own database, so the developer's odoo_dev is never dropped.
+        self.assertIn('DEV_DB="${ODOO_ACTION_RISK_DB:-odoo_action_risk}"', block)
+        self.assertIn('"$DEV_DB" == "odoo_dev"', block)
+        # Dropped before the closure is installed, never after.
+        self.assertIn("recreate_action_risk_database", block)
+        self.assertLess(
+            block.index("recreate_action_risk_database"),
+            block.index("ODOO_INIT_MODULES="),
+        )
+        self.assertIn("dropdb --if-exists --force", helper)
+
+    def test_action_risk_targets_read_the_database_the_build_writes(self):
+        """Discovering another database silently compares the wrong registry."""
+        makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
+
+        self.assertIn("ACTION_RISK_DB ?= odoo_action_risk", makefile)
+        self.assertIn("ODOO_ACTION_RISK_DB=$(ACTION_RISK_DB)", makefile)
+        for target in ("action-risk-discover", "action-risk-runtime"):
+            block = makefile.split(f"\n{target}:", 1)[1].split("\n\n", 1)[0]
+            self.assertIn("--database=$(ACTION_RISK_DB)", block)
+            self.assertNotIn("--database=$(ODOO_DEV_DB)", block)
+
     def test_closure_verification_refuses_a_mismatched_database(self):
         """A database wide of the tracked set makes any discovery diff a lie."""
         script = (

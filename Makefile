@@ -16,6 +16,11 @@ COMPOSE_PROJECT ?= $(or $(COMPOSE_PROJECT_NAME),$(ODOO_SAAS_COMPOSE_PROJECT),$(D
 export COMPOSE_PROJECT_NAME := $(COMPOSE_PROJECT)
 ODOO_DEV ?= scripts/odoo-dev
 ODOO_DEV_DB ?= odoo_dev
+# Discovery digests some action records that carry a raw database row id, so a
+# closure reusing an older database reports drift in modules nobody touched.
+# ci-product-database builds a fresh database per run; this name lets the local
+# closure do the same without ever touching the developer's own $(ODOO_DEV_DB).
+ACTION_RISK_DB ?= odoo_action_risk
 MODULE ?=
 SERVICE ?=
 TARGET ?= local
@@ -120,7 +125,7 @@ init-db:
 	@$(ODOO_DEV) init-db
 
 action-risk-db:
-	@$(ODOO_DEV) action-risk-db
+	@ODOO_ACTION_RISK_DB=$(ACTION_RISK_DB) $(ODOO_DEV) action-risk-db
 
 deploy:
 	@if [ -n "$(strip $(MODULE))" ]; then $(ODOO_DEV) deploy "$(MODULE)"; else $(ODOO_DEV) deploy; fi
@@ -214,7 +219,7 @@ action-risk-discover:
 	@docker compose -p $(COMPOSE_PROJECT) exec -T \
 		-e ACTION_RISK_MODE=discover -e USL_EINVOICE_LIVE_ENABLED=0 \
 		-e USL_EREPORTING_LIVE_ENABLED=0 odoo odoo shell \
-		--config=/etc/odoo/odoo.conf --database=$(ODOO_DEV_DB) \
+		--config=/etc/odoo/odoo.conf --database=$(ACTION_RISK_DB) \
 		< scripts/odoo/action_risk_inventory.py > "$(ACTION_RISK_RUNTIME_CANDIDATE)"
 	@python3 scripts/action_risk_inventory.py discover \
 		--runtime "$(ACTION_RISK_RUNTIME_CANDIDATE)" --output "$(ACTION_RISK_CANDIDATE)"
@@ -232,7 +237,7 @@ action-risk-runtime: action-risk-inventory
 	@docker compose -p $(COMPOSE_PROJECT) exec -T \
 		-e ACTION_RISK_MODE=check -e USL_EINVOICE_LIVE_ENABLED=0 \
 		-e USL_EREPORTING_LIVE_ENABLED=0 odoo odoo shell \
-		--config=/etc/odoo/odoo.conf --database=$(ODOO_DEV_DB) \
+		--config=/etc/odoo/odoo.conf --database=$(ACTION_RISK_DB) \
 		< scripts/odoo/action_risk_inventory.py
 
 product-assets: document-renderer-check

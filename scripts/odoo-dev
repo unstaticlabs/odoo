@@ -236,6 +236,32 @@ with open(sys.argv[1], encoding="utf-8") as stream:
 PY
 }
 
+recreate_action_risk_database() {
+  # Discovery hashes the exact registry, and a few Odoo action records carry a
+  # raw database row id that is fixed on first install and never rewritten
+  # (base.ir_cron_act embeds the mail.ir_cron_module_update_notification id;
+  # the two account payment-receipt actions embed the receipt mail template
+  # id). Installing the closure over an existing database keeps that database's
+  # ids, so discovery reports drift in modules the branch never touched while
+  # the module set still matches. ci-product-database builds a fresh database
+  # for every run; this does the same locally.
+  "${COMPOSE[@]}" up -d --wait db
+  "${COMPOSE[@]}" exec -T \
+    -e ACTION_RISK_DATABASE="$DEV_DB" \
+    db sh -c \
+    'dropdb --if-exists --force -U "$POSTGRES_USER" "$ACTION_RISK_DATABASE"'
+  "${COMPOSE[@]}" --profile init run --rm \
+    --entrypoint sh \
+    -e ACTION_RISK_DATABASE="$DEV_DB" \
+    init-db -c '
+      directory="/var/lib/odoo/filestore/$ACTION_RISK_DATABASE"
+      if [ -d "$directory" ]; then
+        find "$directory" -mindepth 1 -delete
+        rmdir "$directory"
+      fi
+    '
+}
+
 action_risk_update_closure() {
   "${COMPOSE[@]}" --profile test run --rm \
     -e ODOO_INIT_DB="$DEV_DB" test odoo \
@@ -814,22 +840,41 @@ case "$command_name" in
     # closure exactly or the diff is meaningless, so install the tracked roots,
     # then reuse the scope enforcement ci-product-database already relies on,
     # and finally check the outcome against the delivered surface.
-    usl_cli_step "1/5" "Initialize the tracked action-risk closure"
+    #
+    # The closure owns its own database. The developer's $DEV_DB keeps whatever
+    # it holds, and the closure is never built over a registry whose row ids
+    # came from somewhere else. make action-risk-discover and
+    # make action-risk-runtime read this same database.
+    DEV_DB="${ODOO_ACTION_RISK_DB:-odoo_action_risk}"
+    if [[ -z "$DEV_DB" || "$DEV_DB" == "odoo_dev" \
+      || "$DEV_DB" == *[!A-Za-z0-9_]* ]]; then
+      usl_cli_blocked \
+        "Refusing to build the action-risk closure in $DEV_DB." \
+        "The closure database is dropped and rebuilt on every run, so it must
+be a name this command owns, never the development database." \
+        "Unset ODOO_ACTION_RISK_DB, or set it to a dedicated name."
+      exit 2
+    fi
+    export ODOO_INIT_DB="$DEV_DB"
+    export ODOO_DB_FILTER="^${DEV_DB}$"
+    usl_cli_step "1/6" "Drop any previous action-risk closure"
+    recreate_action_risk_database
+    usl_cli_step "2/6" "Initialize the tracked action-risk closure"
     "${COMPOSE[@]}" build odoo
     ODOO_INIT_MODULES="$(action_risk_root_modules)" \
       "${COMPOSE[@]}" --profile init run --rm init-db
-    usl_cli_step "2/5" "Remove the reviewed optional auto-installs"
+    usl_cli_step "3/6" "Remove the reviewed optional auto-installs"
     odoo_shell_script scripts/odoo/enforce_product_module_scope.py
     # ci-product-database updates twice after enforcing scope, and the second
     # pass is not redundant: removing the optional auto-installs leaves records
     # the first update rewrites, so data-defined actions only settle on the
     # second. Skipping them yields a database that differs from the canonical
     # one and reports digest drift in modules the branch never touched.
-    usl_cli_step "3/5" "Update the closure (first pass)"
+    usl_cli_step "4/6" "Update the closure (first pass)"
     action_risk_update_closure
-    usl_cli_step "4/5" "Update the closure (second pass)"
+    usl_cli_step "5/6" "Update the closure (second pass)"
     action_risk_update_closure
-    usl_cli_step "5/5" "Verify the module set against the tracked closure"
+    usl_cli_step "6/6" "Verify the module set against the tracked closure"
     odoo_shell_script scripts/odoo/verify_tracked_module_closure.py
     usl_cli_success "$DEV_DB matches the tracked closure; run make action-risk-discover"
     ;;
