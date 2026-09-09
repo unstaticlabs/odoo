@@ -213,21 +213,22 @@ class B2cImportBatchSettlement(models.Model):
         for (channel, period, currency), accounts in by_month.items():
             provider, amount = max(accounts, key=lambda item: abs(item[1]))
             if len(accounts) > 1:
-                self._raise_issue(
+                # A misconfiguration is true of every month a statement covers,
+                # so it is said once for all of them.
+                self._gather_issue(
                     "fee_source_conflict",
+                    lambda count: self.env._(
+                        "%(count)s month(s) two parties each state what one "
+                        "channel kept",
+                        count=count,
+                    ),
                     self.env._(
-                        "%(count)s parties each state what %(channel)s kept in "
-                        "%(period)s",
-                        count=len(accounts),
+                        "%(channel)s, %(period)s: %(accounts)s. Only "
+                        "%(provider)s's account is billed, being the fuller "
+                        "one. A channel states its own commission or names a "
+                        "processor that states it, never both.",
                         channel=channel.display_name,
                         period=f"{period:%B %Y}",
-                    ),
-                    severity="advisory",
-                    note=self.env._(
-                        "%(accounts)s. Only %(provider)s's account is billed, "
-                        "being the fuller one. A channel states its own "
-                        "commission or names a processor that states it, never "
-                        "both.",
                         accounts="; ".join(
                             f"{name}: {value}" for name, value in sorted(accounts)
                         ),
