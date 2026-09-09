@@ -39,7 +39,7 @@ CENT = Decimal("0.01")
 FEE_ENTRY_KINDS = frozenset(etsy.FEE_KINDS) | frozenset(stripe.FEE_KINDS)
 
 #: Findings the commission run owns, cleared each time it runs.
-FEE_KINDS = ("fee_source_missing", "period_closed")
+FEE_KINDS = ("fee_source_missing", "fee_source_conflict", "fee_period_closed")
 
 
 class B2cChannelSettlement(models.Model):
@@ -184,7 +184,7 @@ class B2cImportBatchSettlement(models.Model):
         already states, and counting both would buy it twice.
         """
         self.ensure_one()
-        stated = self._stated_fees()
+        stated = self._sole_account_per_month(self._stated_fees())
         covered = {(channel, period, currency) for channel, _p, period, currency in stated}
         kept = {
             key: (amount, False)
@@ -195,6 +195,47 @@ class B2cImportBatchSettlement(models.Model):
         return dict(
             sorted(kept.items(), key=lambda item: (item[0][2], item[0][0].code, item[0][3].name)),
         )
+
+    def _sole_account_per_month(self, stated):
+        """Return one account of each month, and report where there were two.
+
+        What a channel kept in a month is one quantity, and what has already
+        been bought of it is counted per channel — so two parties each claiming
+        to state the same month would have the second document subtract the
+        first rather than add to it.  That is a configuration nobody meant, so
+        it is reported and the fuller account is the one believed.
+        """
+        self.ensure_one()
+        by_month = defaultdict(list)
+        for (channel, provider, period, currency), amount in stated.items():
+            by_month[channel, period, currency].append((provider, amount))
+        found = {}
+        for (channel, period, currency), accounts in by_month.items():
+            provider, amount = max(accounts, key=lambda item: abs(item[1]))
+            if len(accounts) > 1:
+                self._raise_issue(
+                    "fee_source_conflict",
+                    self.env._(
+                        "%(count)s parties each state what %(channel)s kept in "
+                        "%(period)s",
+                        count=len(accounts),
+                        channel=channel.display_name,
+                        period=f"{period:%B %Y}",
+                    ),
+                    severity="advisory",
+                    note=self.env._(
+                        "%(accounts)s. Only %(provider)s's account is billed, "
+                        "being the fuller one. A channel states its own "
+                        "commission or names a processor that states it, never "
+                        "both.",
+                        accounts="; ".join(
+                            f"{name}: {value}" for name, value in sorted(accounts)
+                        ),
+                        provider=provider,
+                    ),
+                )
+            found[channel, provider, period, currency] = amount
+        return found
 
     def _stated_fees(self):
         """Return what the statements say was kept, per channel, month and currency."""
@@ -310,6 +351,7 @@ class B2cImportBatchSettlement(models.Model):
             # alternative is refusing the whole drop over a month nobody can
             # post to anyway.
             self._report_closed_period(
+                "fee_period_closed",
                 self.env._("what %(channel)s kept", channel=channel.name),
                 period, currency, residual,
             )
@@ -366,19 +408,25 @@ class B2cImportBatchSettlement(models.Model):
         )
         return bill
 
-    def _report_closed_period(self, what, period, currency, amount):
-        """Say what a closed month would have cost, having posted nothing."""
+    def _report_closed_period(self, kind, what, period, currency, amount):
+        """Say what a closed month would have cost, having posted nothing.
+
+        The kind is the caller's own, because three runs report closed months
+        and each clears its findings before it starts: sharing one kind would
+        mean the last run erased what the others had to say.
+        """
         self.ensure_one()
-        return self._raise_issue(
-            "period_closed",
-            self.env._(
-                "%(period)s is closed, so %(what)s was not posted",
-                period=f"{period:%B %Y}",
+        return self._gather_issue(
+            kind,
+            lambda count: self.env._(
+                "%(count)s month(s) are closed, so %(what)s was not posted",
+                count=count,
                 what=what,
             ),
-            severity="advisory",
-            note=self.env._(
-                "%(amount)s %(currency)s, against books closed on %(closed)s.",
+            self.env._(
+                "%(period)s: %(amount)s %(currency)s, against books closed on "
+                "%(closed)s.",
+                period=f"{period:%B %Y}",
                 amount=amount,
                 currency=currency.name,
                 closed=self._closed_on(),

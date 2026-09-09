@@ -190,6 +190,33 @@ class TestStatementSettlement(TestWallet):
         self.assertTrue(finding)
         self.assertEqual(finding.severity, "advisory")
 
+    def test_two_parties_stating_one_month_do_not_cancel_each_other(self):
+        """A channel states its own commission or names a processor, not both.
+
+        Counted per channel, a second document for the same month would
+        subtract the first rather than add to it, so the fuller account is
+        believed and the configuration is reported.
+        """
+        self.channels["etsy"].write({
+            "processor_provider": "stripe",
+            "processor_partner_id": self.operator.id,
+            "processor_fee_product_id": self.commission_product.id,
+        })
+        batch = self._applied_with(
+            **{
+                "etsy-statement.csv": fixtures.etsy_statement(),
+                "stripe-balance.csv": fixtures.stripe_balance_history(),
+            },
+        )
+        batch.action_bill_fees()
+        self.assertTrue(
+            batch.issue_ids.filtered(lambda issue: issue.kind == "fee_source_conflict"),
+        )
+        # Etsy's 15.20 is the fuller account of March; Stripe's 1.34 is not
+        # billed, and above all is not credited back out of Etsy's.
+        self.assertGreater(self._bills(batch), 0)
+        self.channels["etsy"].processor_provider = False
+
     def test_a_channel_with_a_statement_says_nothing(self):
         batch = self._applied_with(**{"etsy-statement.csv": fixtures.etsy_statement()})
         batch.action_bill_fees()
@@ -203,7 +230,9 @@ class TestStatementSettlement(TestWallet):
         self.company.fiscalyear_lock_date = "2026-12-31"
         batch.action_bill_fees()
         self.assertFalse(batch.fee_bill_ids)
-        finding = batch.issue_ids.filtered(lambda issue: issue.kind == "period_closed")
+        finding = batch.issue_ids.filtered(
+            lambda issue: issue.kind == "fee_period_closed",
+        )
         self.assertTrue(finding)
         self.assertEqual(finding[0].severity, "advisory")
         self.company.fiscalyear_lock_date = False
@@ -356,6 +385,47 @@ class TestTransfers(TestWallet):
         self.assertTrue(finding)
         self.assertIn("etsy:payout:BNK1/25-26/0326", finding[0].note)
 
+    def test_a_top_up_the_ledger_already_shows_is_not_posted_again(self):
+        """Money leaves the account it was held in, whichever way it went.
+
+        A top-up leaves the bank, so what an earlier posting left on the bank's
+        suspense account is a credit — the same side a payout leaves on the
+        clearing account.
+        """
+        standing = self.env["account.move"].create(
+            {
+                "company_id": self.company.id,
+                "journal_id": self.transfer_journal.id,
+                "date": "2026-03-02",
+                "ref": "printful:topup:BNK1/25-26/0159",
+                "line_ids": [
+                    (0, 0, {"account_id": self.wallet_account.id, "balance": 250.00}),
+                    (0, 0, {"account_id": self.suspense.id, "balance": -250.00}),
+                ],
+            },
+        )
+        standing.action_post()
+        batch = self._moved(**{"printful.csv": fixtures.printful_transactions()})
+        self.assertFalse(batch.transfer_move_ids)
+        self.assertTrue(
+            batch.issue_ids.filtered(
+                lambda issue: issue.kind == "transfer_already_posted",
+            ),
+        )
+
+    def test_settling_the_drop_does_every_run_in_order(self):
+        """One button holds the order so nobody has to hold it in their head."""
+        batch = self._moved(**{"etsy-statement.csv": fixtures.etsy_statement()})
+        again = self._batch(**{"etsy-statement.csv": fixtures.etsy_statement()})
+        again.action_parse()
+        again.action_resolve()
+        again.action_apply()
+        again.action_settle()
+        # The second drop states what the first already settled, so it adds
+        # nothing — which is what makes the one button safe to press twice.
+        self.assertFalse(again.transfer_move_ids)
+        self.assertTrue(batch.transfer_move_ids)
+
     def test_transfers_cannot_be_posted_before_the_drop_is_applied(self):
         batch = self._batch(**{"printful.csv": fixtures.printful_transactions()})
         batch.action_parse()
@@ -405,6 +475,24 @@ class TestSupplyAgainstStatement(TestWallet):
         finding = batch.issue_ids.filtered(lambda issue: issue.kind == "wallet_disagrees")
         self.assertTrue(finding)
         self.assertIn("5.00", finding[0].note)
+
+    def test_a_statement_with_no_supplier_read_disagrees_with_nothing(self):
+        """Without the supplier read there is nothing to compare against.
+
+        Saying every month differs would be true and useless, and would bury
+        the months that really do.
+        """
+        batch = self._batch(
+            **{"printful.csv": fixtures.printful_transactions()},
+        )
+        batch.action_parse()
+        batch.action_resolve()
+        batch.action_apply()
+        self._top_up(500)
+        batch.action_settle_wallet()
+        self.assertFalse(
+            batch.issue_ids.filtered(lambda issue: issue.kind == "wallet_disagrees"),
+        )
 
     def test_a_month_both_agree_on_is_not_reported(self):
         batch = self._drop()

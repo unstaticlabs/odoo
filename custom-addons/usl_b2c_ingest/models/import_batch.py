@@ -171,6 +171,27 @@ class B2cImportBatch(models.Model):
         self.write({"report": self._build_report()})
         return True
 
+    def action_settle(self):
+        """Do everything that follows applying, in the order it has to happen.
+
+        Five separate runs, each safe to repeat, and each meaningless before
+        the one in front of it: what an export says became of an order decides
+        whether there is an invoice to write, an invoice decides what is left
+        in the clearing account, and only then can what the channel kept and
+        what the supplier drew leave it.  An operator should not have to hold
+        that order in their head, so this holds it for them — and each run
+        stays on its own button for whoever needs one of them alone.
+        """
+        for batch in self:
+            if batch.state != "applied":
+                raise UserError(batch.env._("Apply the drop before settling it."))
+            batch.action_reconcile()
+            batch.action_invoice()
+            batch.action_bill_fees()
+            batch.action_settle_wallet()
+            batch.action_post_transfers()
+        return True
+
     def action_reset(self):
         """Return the batch to draft, keeping the files that were dropped."""
         self.row_ids.unlink()
@@ -428,6 +449,49 @@ class B2cImportBatch(models.Model):
                 ),
             )
 
+    def _remaining_report(self):
+        """Say what is left for a person to do, which is the point of all this.
+
+        Everything above is what the drop did.  This is the only part an
+        operator has to act on, so it is last and it is plain.
+        """
+        self.ensure_one()
+        if self.state != "applied":
+            return []
+        waiting = self.env["b2c.money.transfer"].search(
+            [
+                ("move_id", "in", self.transfer_move_ids.ids),
+                ("move_id.state", "=", "posted"),
+            ],
+        )
+        if not waiting:
+            return [self.env._("Nothing is waiting for the bank.")]
+        return [
+            self.env._(
+                "Left for you: %(count)s line(s) to match in %(bank)s — "
+                "%(detail)s.",
+                count=len(waiting),
+                bank=self.company_id.usl_b2c_bank_journal_id.display_name
+                or self.env._("the bank"),
+                detail=", ".join(
+                    self.env._(
+                        "%(count)s %(direction)s totalling %(amount)s",
+                        count=len(found),
+                        direction=direction,
+                        amount=sum(transfer.amount for transfer in found),
+                    )
+                    for direction, found in sorted(
+                        {
+                            name: waiting.filtered(
+                                lambda transfer, d=name: transfer.direction == d,
+                            )
+                            for name in set(waiting.mapped("direction"))
+                        }.items(),
+                    )
+                ),
+            ),
+        ]
+
     def _statement_report(self):
         """Say what the statements added, and which of them nothing answers."""
         self.ensure_one()
@@ -502,6 +566,28 @@ class B2cImportBatch(models.Model):
                 ),
             )
         return lines
+
+    def _gather_issue(self, kind, headline, line, *, severity="advisory"):
+        """Add a line to one finding of this kind, rather than raise another.
+
+        Some things are true of many months at once — a statement reaches back
+        years past the date the books closed, and a ledger already holds most
+        of the movements one states.  Raised one by one they are a hundred
+        findings nobody reads; gathered they are one an operator can act on.
+
+        ``headline`` is called with how many lines the finding now holds, so it
+        can say so in whatever way its language counts.
+        """
+        self.ensure_one()
+        found = self.issue_ids.filtered(lambda issue, k=kind: issue.kind == k)[:1]
+        if not found:
+            return self._raise_issue(kind, headline(1), note=line, severity=severity)
+        lines = (found.note or "").splitlines()
+        found.write({
+            "name": headline(len(lines) + 1),
+            "note": "\n".join([*lines, line]),
+        })
+        return found
 
     def _raise_issue(self, kind, name, *, note=None, external_order_id=None, row=None,
                      severity="blocking", proposal=None):
@@ -616,6 +702,7 @@ class B2cImportBatch(models.Model):
         lines.extend(self._statement_report())
         lines.extend(self._settlement_report())
         lines.extend(self._transfer_report())
+        lines.extend(self._remaining_report())
         if self.blocking_issue_count or self.advisory_issue_count:
             lines.append(
                 self.env._(

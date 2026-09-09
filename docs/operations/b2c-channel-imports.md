@@ -54,24 +54,38 @@ and the **orders** export is asked for by name. Export all three.
    finding stopping only the step it would spoil.
 6. **Apply.** Contacts, canonical orders, sales orders priced at what was
    actually paid, and deliveries completed on the day the goods left.
-7. **Reconcile.** What these exports now say has become of the orders they
-   name: goods an earlier drop could not send because they had not left yet,
-   and the sales the channel has since cancelled or refunded.
-8. **Invoice.** One invoice per sale whose goods have gone out, dated the day
-   of the sale, settled into the channel's clearing account. An order paid and
-   not yet shipped is held instead, and becomes an invoice in the drop that
-   says it shipped.
-9. **Bill the commission.** One bill per channel per month, paid out of the
-   same clearing account.
-10. **Settle the supply.** One document per month for what the supplier drew on
-    its wallet, paid out of the wallet itself.
+7. **Settle the drop.** The five runs that follow, in the order they have to
+   happen. Each is on its own button as well, for whoever needs one alone, and
+   each is safe to run again:
+   1. **Reconcile** what these exports now say became of the orders they name:
+      goods an earlier drop could not send because they had not left yet, and
+      the sales the channel has since cancelled or refunded.
+   2. **Invoice** each sale whose goods have gone out, dated the day of the
+      sale, settled into the channel's clearing account. An order paid and not
+      yet shipped is held instead, and becomes an invoice in the drop that says
+      it shipped.
+   3. **Bill what was kept** — one document per party, per month, per currency.
+   4. **Settle the supply** — one document per month for what the supplier drew
+      on its wallet, paid out of the wallet itself.
+   5. **Post what moved to the bank** — one entry per payout and per top-up.
 
-What is left is the bank: each payout meets the clearing account, which by then
-holds exactly what the payout brings, and each wallet top-up meets the wallet.
+What is left is the bank. Four kinds of line, each meeting one entry: supplier
+bills, Printful top-ups, Etsy payouts and Stripe payouts. A payout entry exists
+so that one bank line meets one entry rather than every receipt the payout
+settled.
 
-Every step can be run again. A drop applied, reconciled, invoiced, billed and
-settled twice leaves the ledger exactly as the first run left it — which is
-what makes re-dropping a wider export the way to correct a narrower one.
+Every step can be run again. A drop applied and settled twice leaves the ledger
+exactly as the first run left it — which is what makes re-dropping a wider
+export the way to correct a narrower one.
+
+The report ends with what is left for a person to do. Everything above it is
+what the drop did.
+
+A statement reaches back years further than the books are open, and a ledger
+already holds most of the movements one states. Findings that are true of many
+months at once are gathered into one rather than raised a hundred times: a
+closed-month finding names every month it covers, and so does one saying a
+movement was already posted.
 
 ## What happens to an order that does not stand
 
@@ -164,6 +178,65 @@ of what the check would otherwise report is a defect in the chart rather than in
 the drop, and reporting a thing that can be put right without putting it right
 wastes the reader's attention. Untick it to see what the chart would be reported
 for without changing it.
+
+## Setting a shop up for the first time
+
+Rehearsed against a copy of the production ledger; the order matters, and each
+step says how to know it worked.
+
+**1. Give each account a journal that holds it.** A clearing account is money a
+third party holds for you, which in Odoo is a bank journal — the same way the
+Stripe and PayPal connectors model one. The journals the historical
+reconstruction wrote into are *Miscellaneous* journals holding no account at
+all, so they cannot be selected as a clearing journal, and no payment can be
+registered in one.
+
+Odoo allows the type to be changed and computes the payment methods when it is.
+Convert the three that hold an account, and add one per further currency:
+
+| Journal | Type becomes | Default account | Journal currency |
+| --- | --- | --- | --- |
+| Etsy (`ETSY`) | Bank | `511210 Etsy Clearing EUR` | — |
+| Stripe (`STRP`) | Bank | `511220 Stripe Clearing EUR` | — |
+| Printful Wallet (`PFW`) | Bank | `409110 Printful Wallet EUR` | — |
+| *new* Stripe Clearing GBP | Bank | `511221` | GBP |
+| *new* Stripe Clearing USD | Bank | `511222` | USD |
+
+Medusa (`MEDU`) stays Miscellaneous: it is where the payout and top-up entries
+are written. A shop of one's own holds no money of its own, so it needs no
+clearing account — its customers' money sits in Stripe's.
+
+*Worked when*: each converted journal shows one inbound and one outbound
+payment method, and its default account is the one above.
+
+**2. Give each cost something to be bought as.** A product per expense account,
+so a document reaches the account and not a general one:
+
+| Product | Expense account |
+| --- | --- |
+| Channel commission | `622200 Commissions et courtages sur ventes` |
+| Payment processing | `627800 Autres frais et commissions bancaires` |
+| Supply of goods sold | `607000 Achats de marchandises` |
+| Supply for no sale | the marketing and prototyping account |
+| Carriage charged *(income, not expense)* | `708500 Ports et frais accessoires facturés` |
+
+**3. Fill in Settings → B2C**, and the channels under **B2C → Configuration →
+Channels**. Every field is listed under *Configuration this depends on* below.
+
+*Worked when*: pressing **Settle the drop** on an applied batch raises no
+`UserError` naming something unset.
+
+**4. Let it adopt what came before.** Installing or upgrading the module records
+a settlement for every month the historical reconstruction already settled, so
+the tool can see those months are done. Nothing is posted.
+
+*Worked when*: the install log says how many months of commission and how many
+fulfilments it adopted, and a drop covering those months posts nothing for them.
+
+**5. Close the books you have filed.** The tool refuses to write behind
+`fiscalyear_lock_date` and `tax_lock_date`, and reports what it would have
+posted instead. That refusal is the strongest guarantee there is that a filed
+period stays as filed, and it costs nothing to set.
 
 ## The four accounts, and what empties each
 

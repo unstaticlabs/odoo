@@ -35,13 +35,25 @@ _logger = logging.getLogger(__name__)
 #: How the reconstruction named a month of what a channel kept, per provider.
 #: A trailing currency is optional: it wrote one for Revolut and not for Stripe.
 CHANNEL_FAMILIES = {
-    "etsy": re.compile(r"^etsy:wallet:(?P<period>\d{4}-\d{2})(?::(?P<currency>[A-Z]{3}))?$"),
-    "stripe": re.compile(r"^stripe:fees:(?P<period>\d{4}-\d{2})(?::(?P<currency>[A-Z]{3}))?$"),
-    "revolut": re.compile(r"^revolut:fees:(?P<period>\d{4}-\d{2})(?::(?P<currency>[A-Z]{3}))?$"),
+    "etsy": (
+        "etsy:wallet:",
+        re.compile(r"^etsy:wallet:(?P<period>\d{4}-\d{2})(?::(?P<currency>[A-Z]{3}))?$"),
+    ),
+    "stripe": (
+        "stripe:fees:",
+        re.compile(r"^stripe:fees:(?P<period>\d{4}-\d{2})(?::(?P<currency>[A-Z]{3}))?$"),
+    ),
+    "revolut": (
+        "revolut:fees:",
+        re.compile(r"^revolut:fees:(?P<period>\d{4}-\d{2})(?::(?P<currency>[A-Z]{3}))?$"),
+    ),
 }
 
 #: How it named a month of what the supplier drew on the wallet.
-SUPPLY_FAMILY = re.compile(r"^printful:wallet:consumption:(?P<period>\d{4}-\d{2})$")
+SUPPLY_FAMILY = (
+    "printful:wallet:consumption:",
+    re.compile(r"^printful:wallet:consumption:(?P<period>\d{4}-\d{2})$"),
+)
 
 #: The account kinds a cost reaches. What a document put anywhere else — a
 #: receipt, a tax, a sale — is not something that was bought.
@@ -75,11 +87,11 @@ def _adopt_channel_months(env):
         if channel.processor_provider:
             by_provider.setdefault(channel.processor_provider, channel)
     values = []
-    for provider, pattern in CHANNEL_FAMILIES.items():
+    for provider, (prefix, pattern) in CHANNEL_FAMILIES.items():
         channel = by_provider.get(provider)
         if not channel:
             continue
-        for move in _moves_matching(env, pattern):
+        for move in _moves_matching(env, prefix, pattern):
             period, currency = _period_and_currency(env, move, pattern)
             if Settlement.search_count(
                 [
@@ -117,8 +129,9 @@ def _adopt_supply_months(env):
     Settlement = env["b2c.supply.settlement"].sudo()
     Event = env["b2c.fulfilment.event"].sudo()
     adopted = 0
-    for move in _moves_matching(env, SUPPLY_FAMILY):
-        period = SUPPLY_FAMILY.match(move.ref).group("period")
+    prefix, pattern = SUPPLY_FAMILY
+    for move in _moves_matching(env, prefix, pattern):
+        period = pattern.match(move.ref).group("period")
         start = f"{period}-01"
         events = Event.search(
             [
@@ -174,10 +187,15 @@ def _expense_booked(move):
     )
 
 
-def _moves_matching(env, pattern):
-    """Return every posted entry whose reference this family names."""
+def _moves_matching(env, prefix, pattern):
+    """Return every posted entry whose reference this family names.
+
+    The database narrows by the prefix, because the alternative is reading
+    every document the ledger has ever posted in order to discard almost all
+    of them.  The pattern then decides, since a prefix is not an identity.
+    """
     candidates = env["account.move"].sudo().search(
-        [("ref", "!=", False), ("state", "=", "posted")],
+        [("ref", "=like", f"{prefix}%"), ("state", "=", "posted")],
     )
     return candidates.filtered(lambda move: pattern.match(move.ref or ""))
 
