@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_usl_document_intake_list" model="ir.ui.view">
+        <field name="name">usl.document.intake.list</field>
+        <field name="model">usl.document.intake</field>
+        <field name="arch" type="xml">
+            <list string="Emailed documents" create="0"
+                  decoration-danger="document_archive_failure_count &gt; 0"
+                  decoration-muted="archived_document_count == 0 and document_archive_pending_count == 0 and document_archive_failure_count == 0">
+                <field name="received_at"/>
+                <field name="name"/>
+                <field name="email_from"/>
+                <field name="sender_user_id" optional="show"/>
+                <field name="archived_document_count" string="Archived"/>
+                <field name="document_archive_pending_count" string="Archiving"/>
+                <field name="document_archive_failure_count" string="Needs attention"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_usl_document_intake_form" model="ir.ui.view">
+        <field name="name">usl.document.intake.form</field>
+        <field name="model">usl.document.intake</field>
+        <field name="arch" type="xml">
+            <form string="Emailed document" create="0" edit="0">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_documents_workspace" type="object" class="oe_stat_button"
+                                icon="fa-folder-open-o"
+                                title="Open the documents archived from this message and review any archive processing issue."
+                                groups="usl_documents.group_documents_user,usl_documents.group_documents_accountant">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value" invisible="document_archive_failure_count == 0"><field name="document_archive_failure_count"/></span>
+                                <span class="o_stat_text" invisible="document_archive_failure_count == 0">Needs attention</span>
+                                <span class="o_stat_value" invisible="document_archive_failure_count != 0 or document_archive_pending_count == 0"><field name="document_archive_pending_count"/></span>
+                                <span class="o_stat_text" invisible="document_archive_failure_count != 0 or document_archive_pending_count == 0">Archiving</span>
+                                <span class="o_stat_value" invisible="document_archive_failure_count != 0 or document_archive_pending_count != 0"><field name="archived_document_count"/></span>
+                                <span class="o_stat_text" invisible="document_archive_failure_count != 0 or document_archive_pending_count != 0">Documents</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="email_from"/>
+                            <field name="sender_user_id"/>
+                        </group>
+                        <group>
+                            <field name="received_at"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_usl_document_intake_search" model="ir.ui.view">
+        <field name="name">usl.document.intake.search</field>
+        <field name="model">usl.document.intake</field>
+        <field name="arch" type="xml">
+            <search string="Emailed documents">
+                <field name="name"/>
+                <field name="email_from"/>
+                <field name="sender_user_id"/>
+                <filter name="filter_received_month" string="Received" date="received_at"/>
+                <group>
+                    <filter name="group_sender" string="Sender" context="{'group_by': 'sender_user_id'}"/>
+                    <filter name="group_received" string="Received" context="{'group_by': 'received_at:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_usl_document_intakes" model="ir.actions.act_window">
+        <field name="name">Emailed documents</field>
+        <field name="res_model">usl.document.intake</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_usl_document_intake_search"/>
+    </record>
+
+    <menuitem id="menu_usl_documents_intakes" name="Emailed documents"
+              parent="menu_usl_documents_configuration"
+              action="action_usl_document_intakes" sequence="65"
+              groups="usl_documents.group_documents_manager"/>
+</odoo>

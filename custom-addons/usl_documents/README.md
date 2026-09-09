@@ -109,6 +109,14 @@ individual deep links. Extend supported business models through
 policy, context, relationship and access-trigger hooks, with explicit company
 and confidentiality tests. Do not add a second attachment ingestion path.
 
+`usl.document.intake` is the email front door and deliberately obeys that last
+rule: the `documents` alias creates one intake record per message and lets the
+message's own attachments travel the existing capture policy, archive queue and
+Paperless bridge. The alias is employee-restricted, the intake is owned by the
+sending employee's company, and every emailed file is classified `automatic`
+/ `library` under the reason `emailed_document_intake`. Nothing else about the
+archive path is special-cased for email.
+
 `usl_documents` depends on `usl_pocketid` for the canonical Odoo identity
 link. Interactive Odoo and Paperless sessions use distinct confidential Pocket
 OIDC clients. A Paperless mapping is permission-eligible only while its Odoo

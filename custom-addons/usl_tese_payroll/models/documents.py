@@ -1,8 +1,13 @@
 import hashlib
+import logging
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.fields import Domain
+
+from odoo.addons.usl_documents.models.paperless_client import PaperlessError
+
+_logger = logging.getLogger(__name__)
 
 PAYROLL_DOCUMENT_TYPE = "Payroll record"
 PAYROLL_TAG = "Payroll"
@@ -25,7 +30,7 @@ class UslTesePayslip(models.Model):
 
     def _reconcile_documents_after_attachment_change(self):
         if self.env.context.get("usl_tese_skip_immediate_document_reconciliation"):
-            return {"reconciled": 0, "queued": 0}
+            return {"reconciled": 0, "queued": 0, "skipped": 0}
         return self.filtered("attachment_id")._reconcile_archived_payslip_document()
 
     def _document_archive_policy(self, attachment):
@@ -81,60 +86,88 @@ class UslTesePayslip(models.Model):
         }
 
     def _reconcile_archived_payslip_document(self):
-        """Reuse the attachment's archive root and add payroll semantics."""
+        """Reuse the attachment's archive root and add payroll semantics.
+
+        Each payroll record converges on its own. One that cannot be linked or
+        classified is skipped and logged, never allowed to abort the pass: the
+        remaining payslips still converge and the scheduled job keeps a clean
+        run, so a release smoke does not inherit a housekeeping problem.
+        """
         operation_model = self.env["usl.document.operation"].sudo()
         touched_documents = self.env["usl.document"]
         classified = 0
         queued = 0
+        skipped = 0
         for payslip in self.sudo().filtered("attachment_id"):
-            attachment_checksum = hashlib.sha256(
-                bytes(payslip.attachment_id.raw or b""),
-            ).hexdigest()
-            linked_documents = self.env["usl.document.link"].sudo().search(
-                [
-                    ("res_model", "=", payslip._name),
-                    ("res_id", "=", payslip.id),
-                    ("active", "=", True),
-                ],
-            ).mapped("document_id")
-            document = linked_documents.filtered(
-                lambda candidate: (
-                    candidate.checksum == attachment_checksum
-                    or attachment_checksum in candidate.version_ids.mapped("checksum")
-                ),
-            )[:1]
-            operation = operation_model.search(
-                [
-                    ("source_attachment_id", "=", payslip.attachment_id.id),
-                    ("state", "in", ("archived", "duplicate")),
-                    "|",
-                    ("document_id", "!=", False),
-                    ("target_document_id", "!=", False),
-                ],
-                order="id desc",
-                limit=1,
-            )
-            document = document or operation.document_id or operation.target_document_id
-            if not document:
-                payslip.attachment_id._queue_usl_documents_archive()
-                queued += 1
+            try:
+                with self.env.cr.savepoint():
+                    document = payslip._reconcile_one_archived_payslip_document(
+                        operation_model,
+                    )
+            except (UserError, ValidationError, PaperlessError) as error:
+                skipped += 1
+                _logger.warning(
+                    "TESE payslip %s: archive reconciliation skipped: %s",
+                    payslip.id,
+                    error,
+                )
                 continue
-            context = self.env["usl.document"]._prepare_archive_context(
-                payslip,
-                payslip.attachment_id,
-            )
-            document.with_context(
-                usl_documents_trusted_backfill_access=True,
-            )._apply_archive_context(
-                context,
-                submitted_by=self.env.ref("base.user_root"),
-                access_user=self.env.ref("base.user_root"),
-            )
-            touched_documents |= document
-            classified += 1
+            if document is None:
+                queued += 1
+            else:
+                touched_documents |= document
+                classified += 1
         if touched_documents:
             self.env["usl.document"].reconcile_linked_classification(limit=1000)
-        return {"reconciled": classified, "queued": queued}
+        return {"reconciled": classified, "queued": queued, "skipped": skipped}
+
+    def _reconcile_one_archived_payslip_document(self, operation_model):
+        """Classify one payslip's archive root; return it, or None once queued."""
+        self.ensure_one()
+        payslip = self
+        attachment_checksum = hashlib.sha256(
+            bytes(payslip.attachment_id.raw or b""),
+        ).hexdigest()
+        linked_documents = self.env["usl.document.link"].sudo().search(
+            [
+                ("res_model", "=", payslip._name),
+                ("res_id", "=", payslip.id),
+                ("active", "=", True),
+            ],
+        ).mapped("document_id")
+        document = linked_documents.filtered(
+            lambda candidate: (
+                candidate.checksum == attachment_checksum
+                or attachment_checksum in candidate.version_ids.mapped("checksum")
+            ),
+        )[:1]
+        operation = operation_model.search(
+            [
+                ("source_attachment_id", "=", payslip.attachment_id.id),
+                ("state", "in", ("archived", "duplicate")),
+                "|",
+                ("document_id", "!=", False),
+                ("target_document_id", "!=", False),
+            ],
+            order="id desc",
+            limit=1,
+        )
+        document = document or operation.document_id or operation.target_document_id
+        if not document:
+            payslip.attachment_id._queue_usl_documents_archive()
+            return None
+        context = self.env["usl.document"]._prepare_archive_context(
+            payslip,
+            payslip.attachment_id,
+        )
+        document.with_context(
+            usl_documents_trusted_backfill_access=True,
+        )._apply_archive_context(
+            context,
+            submitted_by=self.env.ref("base.user_root"),
+            access_user=self.env.ref("base.user_root"),
+        )
+        return document
 
     def action_choose_archived_pdf(self):
         self.ensure_one()
