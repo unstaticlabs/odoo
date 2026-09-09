@@ -37,7 +37,7 @@ ACTION_RISK_RUNTIME_CANDIDATE ?= artifacts/action-risk/runtime.candidate.json
 .PHONY: oca-addons-sync document-renderer-certs document-renderer-check
 .PHONY: product-migration-source-boundary product-migration-boundary sign-product-validate
 .PHONY: accounting-addon-tests accounting-multicompany-acceptance
-.PHONY: docs docs-check docs-journeys docs-render
+.PHONY: docs docs-check docs-journeys docs-render docs-reference
 .PHONY: action-helpers action-risk-discover action-risk-refresh action-risk-compile-policy
 .PHONY: action-risk-inventory action-risk-runtime product-assets french-translations
 .PHONY: expense-batch-qa-bootstrap tese-qa-bootstrap
@@ -72,6 +72,7 @@ help:
 	  '  make docs                           Run the journeys, render the pages, refresh the indexes' \
 	  '  make docs-journeys [MODULE=name]    Run the documented journeys into artifacts/usl-docs' \
 	  '  make docs-render                    Render pages and screenshots from recorded journeys' \
+	  '  make docs-reference                 Regenerate the reference pages from the action-risk closure' \
 	  '  make docs-check                     Check documentation structure and links' \
 	  '' \
 	  'Migration and cutover use migration/manage exclusively.' \
@@ -219,6 +220,17 @@ docs-journeys:
 
 docs-render:
 	@python3 scripts/docs-generate render
+
+# The reference pages come from the registry of the full product closure,
+# the same database make action-risk-db builds, so a page never describes a
+# module the release does not ship.
+docs-reference:
+	@mkdir -p artifacts/usl-docs
+	@docker compose -p $(COMPOSE_PROJECT) exec -T \
+		-e USL_EINVOICE_LIVE_ENABLED=0 -e USL_EREPORTING_LIVE_ENABLED=0 \
+		odoo odoo shell --config=/etc/odoo/odoo.conf --database=$(ACTION_RISK_DB) --log-level=error \
+		< scripts/odoo/docs_reference.py | tail -n 1 > artifacts/usl-docs/reference.json
+	@python3 scripts/docs-reference render
 
 docs-check:
 	@python3 scripts/check-docs

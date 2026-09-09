@@ -54,9 +54,11 @@ paragraph, no steps.
 
 ## A reference page
 
-Do not edit the page. Add `help=` to the field, `_description` to the model,
-or the missing menu, and rerun the generator. Coverage per module is in
-`scripts/check-docs --coverage`.
+Do not edit a page under `reference/generated/`. Add `help=` to the field,
+`_description` to the model, or the missing menu, then `make docs-reference`
+on a stack with the action-risk closure (`make action-risk-db`). The `help=`
+coverage per module is the page `reference/generated/help-coverage.md`; CI
+fails when a committed page no longer matches the registry.
 
 ## A decision
 

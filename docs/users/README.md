@@ -50,10 +50,32 @@ Goal-shaped steps for work you already understand.
 What the screens, statuses and settings mean.
 
 - [Configuration](reference/configuration.md): The settings Accounting managers maintain: companies, journals, taxes, fiscal years and matching. (for administrators)
+- [Field help coverage](reference/generated/help-coverage.md): How many of the product's fields explain themselves with a tooltip, per module. (for administrators)
+- [Fields: rebuild_account_migration](reference/generated/fields-rebuild-account-migration.md): Every field `rebuild_account_migration` defines or adds to Odoo, by model, with its label, type and meaning.
+- [Fields: usl_access_control](reference/generated/fields-usl-access-control.md): Every field `usl_access_control` defines or adds to Odoo, by model, with its label, type and meaning.
+- [Fields: usl_accounting](reference/generated/fields-usl-accounting.md): Every field `usl_accounting` defines or adds to Odoo, by model, with its label, type and meaning.
+- [Fields: usl_b2c](reference/generated/fields-usl-b2c.md): Every field `usl_b2c` defines or adds to Odoo, by model, with its label, type and meaning.
+- [Fields: usl_b2c_ingest](reference/generated/fields-usl-b2c-ingest.md): Every field `usl_b2c_ingest` defines or adds to Odoo, by model, with its label, type and meaning.
+- [Fields: usl_documents](reference/generated/fields-usl-documents.md): Every field `usl_documents` defines or adds to Odoo, by model, with its label, type and meaning.
+- [Fields: usl_documents_accounting](reference/generated/fields-usl-documents-accounting.md): Every field `usl_documents_accounting` defines or adds to Odoo, by model, with its label, type and meaning.
+- [Fields: usl_documents_b2c](reference/generated/fields-usl-documents-b2c.md): Every field `usl_documents_b2c` defines or adds to Odoo, by model, with its label, type and meaning.
+- [Fields: usl_expense_batch](reference/generated/fields-usl-expense-batch.md): Every field `usl_expense_batch` defines or adds to Odoo, by model, with its label, type and meaning.
+- [Fields: usl_feedback](reference/generated/fields-usl-feedback.md): Every field `usl_feedback` defines or adds to Odoo, by model, with its label, type and meaning.
+- [Fields: usl_home](reference/generated/fields-usl-home.md): Every field `usl_home` defines or adds to Odoo, by model, with its label, type and meaning.
+- [Fields: usl_locale](reference/generated/fields-usl-locale.md): Every field `usl_locale` defines or adds to Odoo, by model, with its label, type and meaning.
+- [Fields: usl_platform_billing](reference/generated/fields-usl-platform-billing.md): Every field `usl_platform_billing` defines or adds to Odoo, by model, with its label, type and meaning.
+- [Fields: usl_pocketid](reference/generated/fields-usl-pocketid.md): Every field `usl_pocketid` defines or adds to Odoo, by model, with its label, type and meaning.
+- [Fields: usl_project](reference/generated/fields-usl-project.md): Every field `usl_project` defines or adds to Odoo, by model, with its label, type and meaning.
+- [Fields: usl_sign](reference/generated/fields-usl-sign.md): Every field `usl_sign` defines or adds to Odoo, by model, with its label, type and meaning.
+- [Fields: usl_tese_payroll](reference/generated/fields-usl-tese-payroll.md): Every field `usl_tese_payroll` defines or adds to Odoo, by model, with its label, type and meaning.
 - [French declarations](reference/declarations.md): The obligations the Declarations workspace tracks and where each figure comes from. (for accountants)
+- [Menus](reference/generated/menus.md): Every menu the product adds, what it opens and who sees it.
 - [Menus and screens](reference/menus-and-screens.md): Every application menu and the screen it opens.
 - [Reports and filters](reference/reports-and-filters.md): The financial reports, their filters and what each column means. (for accountants)
+- [Roles](reference/generated/roles.md): The access groups the product adds, what each includes and what it is for. (for administrators)
 - [Roles and permissions](reference/roles-and-permissions.md): Application access, the Accountant Reviewer role and the irreversible actions a role protects. (for administrators)
+- [Settings](reference/generated/settings.md): The options the product adds to Settings, with their meaning. (for administrators)
+- [States](reference/generated/states.md): The lifecycle values of every product record, in the order the product moves through them.
 - [Statuses](reference/statuses.md): What each document, expense, payment and reconciliation status means.
 
 ## Understand the design

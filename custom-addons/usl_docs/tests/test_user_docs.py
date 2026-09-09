@@ -240,6 +240,7 @@ class TestEvidenceState(HttpCase):
         }
         cases = [
             ({"type": "explanation"}, None, "not-test-backed"),
+            ({"type": "reference", "generated": True}, None, "generated"),
             (self.PAGE, None, "unverified"),
             (self.PAGE, {"mode": "recovery"}, "recovery"),
             (self.PAGE, {"journeys": {}}, "untested-release"),
