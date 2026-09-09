@@ -113,6 +113,34 @@ the contract.
   administrator, so nothing on GitHub would stop it.
 - Use terminal Git and GitHub CLI. Do not use a browser for repository actions.
 
+## Skills
+
+A skill is a procedure somebody already got wrong once and wrote down. Read the
+one that matches before you start, not after a review sends you back. They are
+plain Markdown, so every agent can use them; Claude Code additionally loads the
+`.claude/skills/` ones on its own and offers them as `/usl-merge-train` and
+friends. Nothing else depends on that, and the paths below always work.
+
+| When you are | Read |
+|---|---|
+| landing approved pull requests, promoting staging to production, or recovering a staging head that went red | `.claude/skills/usl-merge-train/SKILL.md` |
+| bringing the fork current with upstream `saas~19.3`, or absorbing Dependabot | `.agents/skills/usl-upstream-sync/SKILL.md`, which governs, then `.claude/skills/usl-upstream-catchup/SKILL.md` |
+| ranking the Product Feedback board before allocating work from it | `.claude/skills/usl-feedback-triage/SKILL.md` |
+| delivering one piece of work as a qualified pull request | `.claude/skills/usl-cluster-delivery/SKILL.md` |
+| reviewing an agent's work and taking its pull request out of draft | `.claude/skills/usl-lead-review/SKILL.md` |
+| changing ACLs, record rules, multi-company boundaries, `sudo` use or destructive actions | `.agents/skills/odoo-access-control-safety/SKILL.md` |
+| changing accounting data, currencies, reconciliation, taxes, reports or lock dates | `.agents/skills/odoo-accounting-integrity/SKILL.md` |
+| building or qualifying forms, lists, dialogs, dashboards, OWL components or navigation | `.agents/skills/odoo-ui-product-quality/SKILL.md` |
+| designing, critiquing or polishing any interface | `.agents/skills/impeccable/SKILL.md` |
+| writing user-facing copy, documentation, reports, comments or commit messages | `.agents/skills/writing-clearly-and-concisely/SKILL.md` |
+| testing a parser, a normalization, a roundtrip, a validator or a state invariant | `.agents/skills/designing-property-based-tests/SKILL.md` |
+| hunting other instances of a defect whose root cause you already know | `.agents/skills/finding-bug-variants/SKILL.md` |
+| asked for trust boundaries, abuse paths or AppSec design risk | `.agents/skills/threat-modeling-repositories/SKILL.md` |
+
+The five delivery skills score and choose work against `VALUES.md`, `ROADMAP.md`
+and `DECISIONS/0001-weekly-delivery-protocol.md`. Read those before deciding what
+is worth building; read the skill before building it.
+
 ## References
 
 - Feature and module map: `docs/product/fork-overview.md`
@@ -120,6 +148,3 @@ the contract.
 - Product and reconstruction boundary: `docs/operations/product-migration-boundary.md`
 - Delivery and promotion: `docs/operations/continuous-delivery.md`
 - Runtime and recovery procedures: `docs/operations/`
-
-Use the repository `writing-clearly-and-concisely` skill for user-facing copy,
-documentation, reports, comments and commit messages.

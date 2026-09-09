@@ -6,13 +6,13 @@
   "transport": {"type": "ssh", "host": "odoo"},
   "compose": {
     "project": "usl-odoo-staging-main",
-    "anchor_service": "odoo",
+    "anchor_service": "odoo-staging",
     "profiles": ["document-renderer", "mcp", "paperless", "sign"],
     "default_network": "usl-odoo-staging-main_default",
     "resource_overlay": "compose.resources.staging.json"
   },
   "services": {
-    "odoo": "odoo",
+    "odoo": "odoo-staging",
     "odoo_db": "db",
     "paperless": "paperless-webserver",
     "paperless_db": "paperless-db",

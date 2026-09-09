@@ -107,11 +107,42 @@ class TestFocusedAppLauncher(TransactionCase):
                 "spreadsheet_dashboard.spreadsheet_dashboard_menu_root",
                 "base.menu_management",
                 "utm.menu_link_tracker_root",
-                "usl_document_templates.menu_official_documents_root",
                 "usl_feedback.menu_feedback_root",
                 "base.menu_tests",
             ),
         )
+
+    def test_official_documents_is_reachable_without_a_launcher_tile(self):
+        """Blacklisting the root alone left its children reachable by URL only.
+
+        Correspondence, Templates and Output Inventory exist nowhere else in the
+        menu tree, so the root now hangs under Settings instead: off the
+        launcher, but reachable.
+        """
+        menu_model = self.env["ir.ui.menu"]
+        root = self.env.ref(
+            "usl_document_templates.menu_official_documents_root",
+            raise_if_not_found=False,
+        )
+        self.assertTrue(root, "the Official Documents root should exist")
+        settings = self.env.ref("base.menu_administration")
+        self.assertEqual(root.parent_id, settings)
+        self.assertNotIn(root.id, menu_model._load_menus_blacklist())
+
+        loaded = menu_model.load_menus(debug=False)
+        self.assertNotIn(
+            root.id, loaded["root"]["children"],
+            "Official Documents must not claim a launcher tile",
+        )
+        self.assertIn(root.id, loaded, "its subtree must still load, under Settings")
+        for xmlid in (
+            "usl_document_templates.menu_document_letters",
+            "usl_document_templates.menu_document_templates",
+            "usl_document_templates.menu_report_output_inventory",
+        ):
+            child = self.env.ref(xmlid, raise_if_not_found=False)
+            self.assertTrue(child, f"{xmlid} should exist")
+            self.assertIn(child.id, loaded, f"{xmlid} must be reachable from the menu")
 
     def test_ungated_core_test_menu_never_reaches_the_launcher(self):
         """`base.menu_tests` carries no group, so only the blacklist hides it."""

@@ -29,14 +29,20 @@ reviews and marks it ready.
 
 ## Environment — isolated, never the canonical one
 
+Worktrees live under `~/Code/odoo-worktrees/`, **never under `/tmp`**. On
+2026-09-09 a tmp cleaner emptied every worktree there that had not been written to
+for a few days, and six branches' worth of uncommitted work went with it. The
+directories survived; the files did not.
+
 ```bash
-WORKTREE=/private/tmp/odoo-fb-<slug>
+WORKTREE=~/Code/odoo-worktrees/fb-<slug>
 BRANCH=<type>/<slug>          # conventional: fix/ feat/ perf/ refactor/ docs/
 PROJECT=usl-fb-<slug>         # Compose project, yours alone
 DB=odoo_fb_<slug>             # NOT odoo_dev — see below
 HTTP_PORT=<assigned>
 GEVENT_PORT=<assigned>
 
+mkdir -p ~/Code/odoo-worktrees
 git -C /Users/valentin/Code/odoo worktree add "$WORKTREE" -b "$BRANCH" <base branch>
 cd "$WORKTREE"
 

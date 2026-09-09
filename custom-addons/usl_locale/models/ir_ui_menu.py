@@ -9,7 +9,6 @@ DEEMPHASIZED_ROOT_MENU_XMLIDS = (
     "spreadsheet_dashboard.spreadsheet_dashboard_menu_root",
     "base.menu_management",
     "utm.menu_link_tracker_root",
-    "usl_document_templates.menu_official_documents_root",
     # A Project board reached from the Notifications menu, not a daily app.
     "usl_feedback.menu_feedback_root",
     # Core ships this ungated, so every internal user would otherwise see it.

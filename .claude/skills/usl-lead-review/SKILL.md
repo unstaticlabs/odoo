@@ -59,8 +59,59 @@ courtesy so the right person sees it, never a gate.
 ## Rejecting
 
 Say what is wrong, what right looks like, and which of the three you are asking
-for: more evidence, a different fix, or a smaller change. Then re-dispatch. A
-rejection without a concrete next step just costs another cycle.
+for: more evidence, a different fix, or a smaller change. A rejection without a
+concrete next step just costs another cycle. Writing it is only half of it —
+getting it to somebody who will act on it is the next section, and a review
+nobody receives is the same as no review.
+
+## Getting the feedback back to an agent
+
+A delivery agent has no channel to you while it works — `usl-cluster-delivery`
+tells it so, and tells it to make the conservative call rather than stall. So the
+loop only closes if *you* reopen it, deliberately, in this order.
+
+**1. Write it down first, on the pull request.** Before you message anybody, post
+the review as a comment on the PR, with an inline thread on each line you are
+talking about:
+
+```bash
+gh pr comment <n> --repo unstaticlabs/odoo --body-file <notes.md>
+```
+
+GitHub will not accept an approving or changes-requested *review* from the
+account that opened the pull request, and `gh` opened it — so this is a comment,
+not a review. That costs nothing: an unresolved inline thread blocks the merge
+anyway (`required_review_thread_resolution: true` on the staging ruleset), so the
+threads you open here are a real gate, and the agent closing them is real
+evidence it addressed each point.
+
+**2. Then send the agent at it.** Two cases, and you find out which by trying:
+
+- **The session is still resumable.** Continue it by name or id with
+  `SendMessage` — the context, the worktree, the branch and everything it learned
+  are still there, and it is much cheaper than re-explaining. Send the review as
+  instructions plus the PR link, not instead of it.
+- **The session is gone.** Allocate a fresh delivery agent with
+  `usl-cluster-delivery`, filling the assignment placeholders as usual and adding
+  the PR number and the review notes. It can pick up the existing work: the
+  worktree under `~/Code/odoo-worktrees/fb-<slug>` and its branch live on disk
+  independently of any session, so a new agent continues the same branch instead
+  of starting the change again.
+
+**When the two disagree, the pull request wins.** A chat message reaches one
+session and dies with it; the PR thread and the card outlive every agent that
+touches them, and they are what the next agent, Valentin, or you-in-a-week will
+actually read. If you say something in a message that is not on the PR, it is not
+part of the review. Put it on the PR and point at it.
+
+**3. Move the card**, so the board says what is true: **Build / Changes
+Requested**, with a chatter note in the reporter's language saying it is going
+back for another pass and roughly why.
+
+The agent's revision comes back the same way the first one did — a handoff, not a
+merge. Re-review it from the top of this skill: the regression-test evidence in
+particular has to be shown again, because a fix that moved may no longer be the
+fix the test was pinned to.
 
 ## Closing the loop on the card
 
@@ -73,8 +124,11 @@ loses an approval.
 |---|---|---|---|
 | allocated | Build | In Progress | `usl_feedback_branch`, assignee Elio |
 | draft PR open | Build | In Progress | `usl_feedback_pr_url`, chatter note |
+| you send it back | Build | **Changes Requested** | review notes on the PR, agent resumed or re-allocated, chatter note |
+| the agent returns a revision | Build | In Progress | re-review from the top |
 | you accept | Review | In Progress | PR ready, reviewers assigned, chatter note mentioning the reporter, **Approval activity** for the reporter |
 | Valentin approves | Review | **Approved** | *his step — the merge train's input* |
+| queued, deployed, released | Release | *see `usl-merge-train`* | the train owns the card from here |
 
 The chatter note is for the person who reported the problem, not for CI. One
 paragraph: what changes for them, and what to look at in the screenshots.
@@ -99,3 +153,5 @@ reply.
 
 Per PR: accepted or rejected and why; the test evidence you actually saw; what the
 screenshots showed; digests moved; the card transitions you made; tokens recorded.
+For anything sent back: where the review notes live, whether you resumed the
+original agent or allocated a fresh one, and what you asked for.
