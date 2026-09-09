@@ -408,20 +408,35 @@ class B2cImportBatchSettlement(models.Model):
         )
         return bill
 
-    def _report_closed_period(self, kind, what, period, currency, amount):
+    def _report_closed_period(self, kind, what, period, currency, amount, *,
+                              noun=None):
         """Say what a closed month would have cost, having posted nothing.
 
         The kind is the caller's own, because three runs report closed months
         and each clears its findings before it starts: sharing one kind would
         mean the last run erased what the others had to say.
+
+        A caller counting months names what was not posted.  One counting
+        things of its own passes ``noun`` and names none, because a headline
+        that named the last one would be a headline about all of them.
         """
         self.ensure_one()
         return self._gather_issue(
             kind,
-            lambda count: self.env._(
-                "%(count)s month(s) are closed, so %(what)s was not posted",
-                count=count,
-                what=what,
+            (
+                lambda count: self.env._(
+                    "%(count)s %(noun)s fall in months the books are closed to",
+                    count=count,
+                    noun=noun,
+                )
+            )
+            if noun
+            else (
+                lambda count: self.env._(
+                    "%(count)s month(s) are closed, so %(what)s was not posted",
+                    count=count,
+                    what=what,
+                )
             ),
             self.env._(
                 "%(period)s: %(amount)s %(currency)s, against books closed on "

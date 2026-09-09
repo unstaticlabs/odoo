@@ -467,27 +467,28 @@ class B2cImportBatch(models.Model):
         )
         if not waiting:
             return [self.env._("Nothing is waiting for the bank.")]
+        labels = dict(waiting._fields["direction"].selection)
+        totals = defaultdict(lambda: [0, Decimal("0")])
+        for transfer in waiting:
+            found = totals[transfer.direction, transfer.currency_id]
+            found[0] += 1
+            found[1] += Decimal(str(transfer.amount))
         return [
             self.env._(
-                "Left for you: %(count)s line(s) to match in %(bank)s — "
-                "%(detail)s.",
+                "Left for you: %(count)s line(s) to match in %(bank)s — %(detail)s.",
                 count=len(waiting),
                 bank=self.company_id.usl_b2c_bank_journal_id.display_name
                 or self.env._("the bank"),
                 detail=", ".join(
                     self.env._(
-                        "%(count)s %(direction)s totalling %(amount)s",
-                        count=len(found),
-                        direction=direction,
-                        amount=sum(transfer.amount for transfer in found),
+                        "%(count)s %(direction)s totalling %(amount)s %(currency)s",
+                        count=count,
+                        direction=labels[direction].lower(),
+                        amount=f"{total:.2f}",
+                        currency=currency.name,
                     )
-                    for direction, found in sorted(
-                        {
-                            name: waiting.filtered(
-                                lambda transfer, d=name: transfer.direction == d,
-                            )
-                            for name in set(waiting.mapped("direction"))
-                        }.items(),
+                    for (direction, currency), (count, total) in sorted(
+                        totals.items(), key=lambda item: item[0][0],
                     )
                 ),
             ),
@@ -628,8 +629,12 @@ class B2cImportBatch(models.Model):
                 self.env._(
                     # Read rather than taken from the stored field: the run
                     # that writes this report is the one that just moved it.
-                    "The supplier's wallet holds %(balance)s.",
-                    balance=self._wallet_position(),
+                    "The supplier's wallet holds %(balance)s %(currency)s.",
+                    balance=f"{self._wallet_position():.2f}",
+                    currency=(
+                        self.company_id._usl_b2c_wallet_account().currency_id
+                        or self.company_id.currency_id
+                    ).name,
                 ),
             )
         return lines
@@ -710,17 +715,26 @@ class B2cImportBatch(models.Model):
             self.env._(
                 "%(files)s file(s) read, covering %(start)s to %(end)s.",
                 files=self.file_count,
-                start=self.period_start or self.env._("no date"),
-                end=self.period_end or self.env._("no date"),
-            ),
-            self.env._(
-                "%(orders)s order(s) and %(items)s line(s): %(new)s new, %(known)s already in Odoo.",
-                orders=self.order_count,
-                items=self.line_count,
-                new=self.new_order_count,
-                known=self.known_order_count,
+                start=self.period_start,
+                end=self.period_end,
+            )
+            if self.period_start
+            else self.env._(
+                "%(files)s file(s) read, naming no orders of their own.",
+                files=self.file_count,
             ),
         ]
+        if self.order_count or self.line_count:
+            lines.append(
+                self.env._(
+                    "%(orders)s order(s) and %(items)s line(s): %(new)s new, "
+                    "%(known)s already in Odoo.",
+                    orders=self.order_count,
+                    items=self.line_count,
+                    new=self.new_order_count,
+                    known=self.known_order_count,
+                ),
+            )
         by_provider = defaultdict(Counter)
         for row in self.row_ids.filtered(
             lambda item: item.grain == "order" and item.resolution != "supplier",
@@ -739,7 +753,7 @@ class B2cImportBatch(models.Model):
                     count=counts["conflicting"],
                 )
             lines.append(line)
-        if self.state in ("resolved", "applied"):
+        if self.state in ("resolved", "applied") and self.line_count:
             lines.append(
                 self.env._(
                     "%(mapped)s line(s) map to a product, %(unmapped)s still need one.",
@@ -768,7 +782,6 @@ class B2cImportBatch(models.Model):
             )
         lines.extend(self._statement_report())
         lines.extend(self._settlement_report())
-        lines.extend(self._transfer_report())
         lines.extend(self._remaining_report())
         if self.blocking_issue_count or self.advisory_issue_count:
             lines.append(
