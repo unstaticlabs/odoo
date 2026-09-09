@@ -147,6 +147,7 @@
       "domain": "people_and_payroll",
       "evidence_id": "historical-receipt-rescan",
       "id": "operational.accounting.historical_receipt_rescan",
+      "overrides": {},
       "rationale": "Explicit expense read/write and owner/Accounting Manager checks precede company-scoped elevation. Existing evidence and requests are skipped. Elevation only reads receipt evidence or invokes the existing discovery flow; no financial state, policy, credentials or provider-learning controls are changed.",
       "reviewed_digests": {
         "rpc:hr.expense.action_scan_existing_receipt_emails": "daaa91bfcf983b78a6e615eeb5d9ebd9833dea80fb9d508c709a49d5b3f5b3de",
@@ -1378,6 +1379,7 @@
       "domain": "projects",
       "evidence_id": "feedback-provider-phases-20260906",
       "id": "operational.projects.feedback_provider_phases_20260906",
+      "overrides": {},
       "rationale": "Reviewed in docs/operations/feedback-action-risk-review.md: phase-separated configured provider work, bounded task-owned images and temporary evidence, terminal cleanup and rate-limit recovery preserve owner/company checks, retained-run ACLs and the server-owned deployment snapshot. No protected guard or service-identity permission is changed.",
       "reviewed_digests": {
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run.write:orm_write:1": "0a8c5f9f82869b8309e643bb3323d832cd73ae02105b52cf101258ff686f9919",
@@ -18288,6 +18290,7 @@
       "domain": "accounting",
       "evidence_id": "platform-billing-structured-evidence",
       "id": "read_only.accounting.platform_billing_evidence",
+      "overrides": {},
       "rationale": "The private helper checks bill read access before elevating one search_fetch bounded by bill IDs, companies and posted/paid payout states. Elevated payout records are never returned. The native relational company constraint remains active; no partner or reference heuristic is used.",
       "reviewed_digests": {
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/hygiene.py:rebuild.account.hygiene.issue._structured_evidence_move_ids:sudo:1": "4272bf648cf88adc9e6982093b8bb5ec05936d8a45eca7e86df17389fccb7c21"
@@ -104192,9 +104195,9 @@
         "rpc:usl.document.context.tag.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:usl.document.context.tag.write": "b0373b6633d99d657d81a9aca3ec6bb0ebad5e3e7b41420276488a6f1ce1c8f4",
         "rpc:usl.document.cron_reconcile_linked_classification": "02b5dff40703dd75a4d0f086fdaefa47c2084e29a0a6157b45021a8bf70d0ae3",
-        "rpc:usl.document.cron_sync_from_paperless": "bc1f998c5f1edbddd05a985a32e4b2b34111a3294162a92f90a0b11efb070bc1",
+        "rpc:usl.document.cron_sync_from_paperless": "d77aeb5498952e3520756240fc04c7f411f78820ac07504a29adffe682838b2c",
         "rpc:usl.document.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
-        "rpc:usl.document.link.create_for_record": "52815798c181b86649188002bd68fc4c66a8e90f10dedfaa1d26e44b0ed610b8",
+        "rpc:usl.document.link.create_for_record": "ade7799d141415807e677c8591c24b6f1690c9540d7a37736cdad8a48e3bc475",
         "rpc:usl.document.link.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
         "rpc:usl.document.link.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:usl.document.link.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
@@ -164284,6 +164287,8 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._paperless_values:orm_create:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._paperless_values:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._paperless_values:sudo:2",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._retry_failed_permission_syncs:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._retry_failed_permission_syncs:sudo:2",
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._sync_active_documents:orm_create:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._sync_active_documents:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._sync_active_documents:orm_write:2",
@@ -164305,6 +164310,7 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._sync_trashed_documents:orm_write:3",
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._sync_trashed_documents:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._sync_trashed_documents:sudo:2",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document.cron_sync_from_paperless:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document.diagnostics:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document.diagnostics:sudo:2",
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document.diagnostics:sudo:3",
@@ -168570,6 +168576,12 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._paperless_values:sudo:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._retry_failed_permission_syncs:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._retry_failed_permission_syncs:sudo:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._sync_active_documents:orm_create:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -168631,6 +168643,9 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._sync_trashed_documents:sudo:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document.cron_sync_from_paperless:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document.diagnostics:sudo:1": {
@@ -171199,13 +171214,13 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:2": "5850a879f63a8a0aa78adcb8401e15dcb2a31f08656dc087332b8bdaf2087856",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_new_version:sudo:1": "963c30d97836c96a2be38085262914508d7dbaf698f9603dedb5a91425d6c086",
         "sink:usl_documents:custom-addons/usl_documents/models/document_link.py:usl.document.link.create:orm_create:1": "2172eb704fc1428d91acbe80b90d1a94b60a174e7b82011a165b76f9525be291",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_link.py:usl.document.link.create_for_record:orm_create:1": "6b5bb6e78a7504d0ec4a9ef59ea8a5a4fb198d8f67938cc62ee861f66d0243b8",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_link.py:usl.document.link.create_for_record:orm_write:1": "a90cd8bac45b1d36405cb3d01a7e458dfc3ea50d85a2328f9a078fc55e6c7280",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_link.py:usl.document.link.create_for_record:orm_write:2": "561d5158123b88b3adfea745bc932e95a74c1e141997dc429504fcf6b785bfad",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_link.py:usl.document.link.create_for_record:sudo:1": "32ace5f7b797c1bca3150b3f66a29dc27fd9d76703bdc0adc7307d190adaae79",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_link.py:usl.document.link.create_for_record:sudo:2": "e1f370bab409f12b50576f91568a87ae834d46cda04b5736f8013a8b3bab1e2c",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_link.py:usl.document.link.create_for_record:sudo:3": "07f093c60d18c24e676a7c5cf4eaca9893951330a16978575e61fbae79f8740a",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_link.py:usl.document.link.create_for_record:sudo:4": "113528575f07e04492990b4ed09caf31be01b900a923685f269895729fd54121",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_link.py:usl.document.link.create_for_record:orm_create:1": "908557e56817381565f23e7dae06ed27dd28bc47c77edf61518533f5f84e41ce",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_link.py:usl.document.link.create_for_record:orm_write:1": "311d7b47d6e4f035b4d18148daed2cfa8067eee72af066955c081107301ef0e0",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_link.py:usl.document.link.create_for_record:orm_write:2": "7e80902a44bcaca878573253b86f7345579f9f9727465fb514f026571673a3ed",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_link.py:usl.document.link.create_for_record:sudo:1": "47112116745d11cb4bba01af494706d0458e05ec9c5bd107b06b128f070cdd9e",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_link.py:usl.document.link.create_for_record:sudo:2": "09373419b1984bc0aa4450cf7248804e56c1521548fc55bcb59471bc6ba03d7e",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_link.py:usl.document.link.create_for_record:sudo:3": "0140e83486574b390241316ad283a032203c6c6957c9ad67eaab409eac6f7ec1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_link.py:usl.document.link.create_for_record:sudo:4": "53da6026e2a6eab9b62c8c96349bed43219096f4b1769b464cea49e90b365560",
         "sink:usl_documents:custom-addons/usl_documents/models/document_link.py:usl.document.link.unlink:orm_unlink:1": "303334d97310e7e7a4dd9ffa9b2314d78a4a3a8eb18b258a574db1c6ee7ff17b",
         "sink:usl_documents:custom-addons/usl_documents/models/document_link.py:usl.document.link.unlink:orm_unlink:2": "da7b3232d4a3b13231eeccaa61974558bf1982e22c301a8f7c5f9e6c311ffcd2",
         "sink:usl_documents:custom-addons/usl_documents/models/document_link.py:usl.document.link.write:orm_write:1": "e0957ce0a495defa5723fb7883ff3b70beef5e03cc0ab41f24e24e912f35482a",
@@ -171226,6 +171241,8 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._paperless_values:orm_create:1": "f16d1af751353a754e4bc2b86b1eac45e49cb05624100b91a9f055fe0897889a",
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._paperless_values:sudo:1": "f57d8bb82f83490387600ec1ef6dfeb524b04aee55dd3c39ec9ee86b8a69bfc7",
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._paperless_values:sudo:2": "38f037d64c6b74c98115928c6d50495bc060f0426b54617b0f81c02cc70d65e3",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._retry_failed_permission_syncs:sudo:1": "fb0ef886b39dd6dab9072363abab09f7c91249553662d7c7d461d880e24e8a1b",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._retry_failed_permission_syncs:sudo:2": "545040f36771686be02088c28743151de31a0b9e3a3bc2d7ea62831a81a25305",
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._sync_active_documents:orm_create:1": "adbfe28db3109d726088462b2392bf4817066e5e4afff8942c3f3a6cdf2adb3b",
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._sync_active_documents:orm_write:1": "91b2b8f61d880807138d5222d9cf23d60296bf66b6f5d3853f2b8910ddc940ab",
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._sync_active_documents:orm_write:2": "c55d16e43c78165b7743772b96a5b74ccaaf3a526e3a5babacd908813945f00c",
@@ -171247,6 +171264,7 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._sync_trashed_documents:orm_write:3": "6e368e66b0a667469ba7d19d83b509127f28e1e1551edae4d091bad5a89aeeb2",
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._sync_trashed_documents:sudo:1": "0350132a181b0fc2b0c7b06efe7c78c9bb6bf642ae33fe76eaf953f79f59b474",
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document._sync_trashed_documents:sudo:2": "b5f82fe500e3b3903390da753d83bb397db078b5839a26bd5e22b49456846bbd",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document.cron_sync_from_paperless:orm_write:1": "2dee659da252ede449db9819224d08712aebff7c51d5c731e859e8568ee8f215",
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document.diagnostics:sudo:1": "31dbf208d8bae84c25615b07c82ac95b5147877177526c31395ce88303729add",
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document.diagnostics:sudo:2": "56aff9c113b61f192163eb5e483ad3208dd19d6c8e13c810db7358c81bf9976e",
         "sink:usl_documents:custom-addons/usl_documents/models/document_sync.py:usl.document.diagnostics:sudo:3": "577c4c17c58db2e85f105f3a9bbad80ebb92a2af7b06e062c3a1be832a6b3c21",
@@ -172332,7 +172350,7 @@
       "action_keys": [
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/documents.py:usl.tese.document.link.wizard.action_link_document:orm_create:1",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/documents.py:usl.tese.document.link.wizard.action_link_document:orm_write:1",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/documents.py:usl.tese.payslip._reconcile_archived_payslip_document:sudo:3"
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/documents.py:usl.tese.payslip._reconcile_one_archived_payslip_document:sudo:1"
       ],
       "classification": "system_internal",
       "consequence": "Supports a reviewed workflow internally and has no independent ordinary-user entry point.",
@@ -172346,15 +172364,15 @@
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/documents.py:usl.tese.document.link.wizard.action_link_document:orm_write:1": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/documents.py:usl.tese.payslip._reconcile_archived_payslip_document:sudo:3": {
-          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/documents.py:usl.tese.payslip._reconcile_one_archived_payslip_document:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         }
       },
       "rationale": "Reachability is limited to the reviewed caller or scheduler; any separately reachable action is classified independently.",
       "reviewed_digests": {
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/documents.py:usl.tese.document.link.wizard.action_link_document:orm_create:1": "f53bf1a372bdb443adad9b7f424e3b61f31306a38aeebf84dbe1bd889fa551bc",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/documents.py:usl.tese.document.link.wizard.action_link_document:orm_write:1": "49d083e12865b749ece80ba6bffeb91fa04f3c88d13d183663b6917f3317cee3",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/documents.py:usl.tese.payslip._reconcile_archived_payslip_document:sudo:3": "785dcdf3629284e2bdb9d3730936de93171db18ed20d8adfc5ec775159092600"
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/documents.py:usl.tese.payslip._reconcile_one_archived_payslip_document:sudo:1": "c2a3adb7992f0ad7a5829ddf9ecfa822af5f9793691cda2fdd573a63e5a91042"
       }
     },
     {
@@ -173621,8 +173639,8 @@
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/hr_expense.py:hr.expense.write:orm_write:2": "6907e2429af3f052bc088f5db4448488b754001514bce263f3b3c5abee751a31",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/documents.py:usl.document.operation.write:orm_write:1": "55fd953b550c80a204d230cf9a8cbdc6de65609636a2fc9f5fe69609321b8e3a",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/documents.py:usl.document.operation.write:sudo:1": "bc3e30dce8e1a04ea4f5ad67369ba34776566e441898a02d16415e8287af3f37",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/documents.py:usl.tese.payslip._reconcile_archived_payslip_document:sudo:1": "768b40be5c6c1f56bb6002195e602966ad1b397cac8b35886786adf1759d3bbe",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/documents.py:usl.tese.payslip._reconcile_archived_payslip_document:sudo:2": "ed742377db39c762579b910484df586657760295461894f2ffb061ad54bface1",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/documents.py:usl.tese.payslip._reconcile_archived_payslip_document:sudo:1": "aad1d6ccfbc6fdea5661f6dcc0e0859f9735c1ed6cc104e228a818968af85bca",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/documents.py:usl.tese.payslip._reconcile_archived_payslip_document:sudo:2": "3305d8d75ef1d27d1f7491298382c01b92df5ed8a0e4abce86314f3ef8f6c3a6",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/documents.py:usl.tese.payslip.create:orm_create:1": "8f4b664531128d73bef583c3c45f6341802d56a2e9e2320452d4c7dfb6f51ac3",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/documents.py:usl.tese.payslip.cron_reconcile_archived_documents:sudo:1": "c54dbdd1dcf59c0f9c6b299a5f9c35848c5a0e82c698fb11bbd01dafe97359d9",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/documents.py:usl.tese.payslip.cron_reconcile_archived_documents:sudo:2": "d4cb568e32c01a636eed76c095e8d301e6b59bc94d7b02f3529101054cff2400",
@@ -174134,6 +174152,7 @@
       "domain": "projects",
       "evidence_id": "feedback-provider-phases-20260906",
       "id": "system_internal.projects.feedback_provider_phases_20260906",
+      "overrides": {},
       "rationale": "Reviewed in docs/operations/feedback-action-risk-review.md: phase-separated configured provider work, bounded task-owned images and temporary evidence, terminal cleanup and rate-limit recovery preserve owner/company checks, retained-run ACLs and the server-owned deployment snapshot. No protected guard or service-identity permission is changed.",
       "reachability_proof": "Underscore methods are not RPC-callable. The fixed cron or owner/maintainer-authorized task processing holds the run lock before submit, poll and phase transition. Configuration rejects neutralized databases before provider use; elevated parameter reads supply only the validated MCP connection, never business-record access.",
       "reviewed_digests": {
@@ -187789,6 +187808,7 @@
       "domain": "people_and_payroll",
       "evidence_id": "historical-receipt-rescan",
       "id": "transport.accounting.receipt_scan_ui",
+      "overrides": {},
       "rationale": "The installed UI binding delegates only to the exact operational server action; expense read/write, ownership and company checks remain authoritative in its RPC.",
       "reviewed_digests": {
         "ui:usl_accounting.action_scan_existing_receipt_emails": "adf3efe5b5788d5cc810e94c45515f86d64c88778d47051bd35e6709fb1212c5"
