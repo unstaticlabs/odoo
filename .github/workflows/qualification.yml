@@ -334,6 +334,10 @@ jobs:
       attestations: write
       artifact-metadata: write
       contents: read
+      # The changelog reads the production deployment ledger to find the last
+      # release that reached users. A called workflow's token cannot exceed
+      # its caller's, so this grant has to exist here too.
+      deployments: read
       id-token: write
       packages: write
       pull-requests: read

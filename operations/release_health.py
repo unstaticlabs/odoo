@@ -130,3 +130,30 @@ def assess(
             "starts from the same state and fails the same way until someone acts."
         ),
     }
+
+
+def last_delivered(
+    environment: str,
+    deployments: list[dict],
+    statuses_for,
+) -> str | None:
+    """The commit of the newest deployment that reached users, or ``None``.
+
+    ``assess`` answers whether the chain is delivering now.  This answers what
+    it last delivered, which is a different question and the one a changelog
+    has to start from: a release that published but never deployed is not a
+    baseline, because the changes it carried are still owed to the people who
+    read the announcement.
+    """
+    if environment not in ENVIRONMENTS:
+        raise ValueError(f"unknown release environment {environment!r}")
+    ordered = sorted(
+        (d for d in deployments if d.get("environment") == environment),
+        key=lambda d: _moment(d.get("created_at")),
+        reverse=True,
+    )
+    for deployment in ordered:
+        states = [status.get("state") for status in statuses_for(deployment["id"])]
+        if _verdict(states) == SUCCESS:
+            return str(deployment.get("sha") or "") or None
+    return None

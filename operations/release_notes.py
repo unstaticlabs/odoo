@@ -1,10 +1,19 @@
-"""Build user-facing release notes from the pull requests merged in a push.
+"""Build user-facing release notes from the pull requests merged since the
+last release that reached users.
 
 A push to ``19-usl`` is a production release and a push to ``19-usl-staging``
-is a staging release. The changelog lists every pull request merged in the
-pushed commit range ``before..sha``. The promotion pull request itself
-(``19-usl-staging`` into ``19-usl``) is excluded; the pull requests it carries
-are included because their commits are part of the range.
+is a staging release. The promotion pull request itself (``19-usl-staging``
+into ``19-usl``) is excluded; the pull requests it carries are included because
+their commits are part of the range.
+
+A production changelog does not start at the pushed range. A release that
+publishes but never deploys rolls back and is never announced, and the next
+push starts from the tip that already carried its pull requests, so they would
+be dropped from every later changelog. The range therefore starts at the last
+``production-release`` deployment that succeeded, which the GitOps launcher
+already records and ``operations.release_health`` already reads. Every
+uncertainty resolves towards the older base: repeating a change in two
+announcements is recoverable, losing it is not.
 
 The generator uses only ``gh api`` and the standard library. When the range
 has no pull request, or when GitHub is unreachable, it writes the reviewed
@@ -33,6 +42,7 @@ from pathlib import Path
 from typing import Any
 
 from operations.gemini import MODEL, GeminiClient, GeminiError
+from operations.release_health import PRODUCTION, last_delivered
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = "usl-release-notes/v2"
@@ -53,10 +63,21 @@ CONVENTIONAL_TITLE = re.compile(
 DEFAULT_FALLBACK = ROOT / "operations" / "release-notes.json"
 # A release that publishes but never reaches production leaves its changes out
 # of every later changelog, because the next push starts from the branch tip
-# that carried them. Recording the last deployed commit here makes the next
-# changelog reach back over the gap. Remove the file once that release lands.
+# that already carried them. The changelog therefore starts from the last
+# production release that actually reached users, read from the GitHub
+# deployments the GitOps launcher already writes and that
+# ``operations.release_health`` and ``operations.staging_deployment`` already
+# trust. This file remains the reviewed manual override for the case the
+# ledger cannot answer; remove it once the release it covers lands.
 DEFAULT_UNRELEASED_BASE = ROOT / "operations" / "release-notes-base.json"
 UNRELEASED_BASE_SCHEMA = "usl-release-notes-base/v1"
+# Only a production release is announced, so only a production push reaches
+# back over an undelivered release. A staging changelog nobody reads keeps the
+# pushed range.
+PRODUCTION_REF = "refs/heads/19-usl"
+DEPLOYMENT_PAGE_SIZE = 100
+# The one sentence used when the reviewed fallback cannot be read at all.
+MINIMAL_FALLBACK_CHANGE = "Internal changes, with no visible difference for users."
 # The limits ``operations.release_manifest`` enforces on the fields the summary
 # rewrites. Staying inside them is what keeps the schema unchanged.
 MAXIMUM_SUMMARY = 500
@@ -173,6 +194,117 @@ def unreleased_base(path: Path | str) -> str | None:
     if not isinstance(base, str) or not COMMIT.fullmatch(base):
         raise ReleaseNotesError(f"{path} must name one full commit")
     return base
+
+
+def _step_summary(text: str) -> None:
+    """Also say it where a person reviewing the run will see it."""
+    path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not path:
+        return
+    try:
+        with open(path, "a", encoding="utf-8") as stream:
+            stream.write(text + "\n")
+    except OSError as error:
+        print(f"release-notes: cannot write the step summary: {error}", file=sys.stderr)
+
+
+def delivered_base(
+    repository: str,
+    *,
+    environment: str = PRODUCTION,
+    api: Api = gh_api,
+) -> str | None:
+    """The commit of the newest release of ``environment`` that reached users.
+
+    The GitOps launcher records every release as a GitHub deployment, and that
+    record is already the source of truth for ``scripts/check-release-health``
+    and for the promotion gate in ``operations.staging_deployment``. Reading it
+    here adds no second ledger to keep in step.
+    """
+    deployments = api([
+        f"repos/{repository}/deployments"
+        f"?environment={environment}&per_page={DEPLOYMENT_PAGE_SIZE}",
+    ])
+    if not isinstance(deployments, list):
+        raise ReleaseNotesError(f"{environment} deployments were not a list")
+    try:
+        sha = last_delivered(
+            environment,
+            deployments,
+            lambda identifier: api([
+                f"repos/{repository}/deployments/{identifier}/statuses?per_page=100",
+            ]),
+        )
+    except ValueError as error:
+        raise ReleaseNotesError(f"{environment} deployments are unreadable: {error}") from error
+    return _valid_commit(sha)
+
+
+def is_ancestor(repository: str, base: str, sha: str, api: Api = gh_api) -> bool:
+    """Whether ``base`` is reachable from ``sha`` on this repository.
+
+    A deployment can name a commit this branch no longer contains. Comparing
+    an unrelated commit would produce a changelog of someone else's work, so
+    the base is placed before it is used.
+    """
+    response = api([f"repos/{repository}/compare/{base}...{sha}?per_page=1"])
+    if not isinstance(response, dict):
+        raise ReleaseNotesError(f"comparing {base[:12]}...{sha[:12]} returned no status")
+    return response.get("status") in {"ahead", "identical"}
+
+
+def resolve_base(
+    repository: str,
+    *,
+    before: str | None,
+    sha: str,
+    ref: str | None,
+    recorded: str | None,
+    api: Api = gh_api,
+) -> tuple[str | None, str]:
+    """The commit this changelog starts from, and one sentence saying why.
+
+    Precedence is the reviewed record, then the last production release that
+    reached users, then the pushed range. Every uncertainty resolves towards
+    the older base: too old repeats a change across two announcements, too new
+    loses it for good.
+
+    Nothing here is allowed to fail the release. The changelog is built before
+    the GitOps hand-off, so raising would leave every component image published
+    and production never told to collect them.
+    """
+    if recorded:
+        return recorded, f"reviewed record {recorded[:12]}"
+    if ref != PRODUCTION_REF:
+        return before, "pushed range, because only a production release is announced"
+    if not REPOSITORY.fullmatch(repository) or not COMMIT.fullmatch(sha):
+        return before, "pushed range, because the release identity is invalid"
+    try:
+        delivered = delivered_base(repository, api=api)
+    except ReleaseNotesError as error:
+        return before, f"pushed range, because the deployment ledger is unreadable: {error}"
+    if delivered is None:
+        return before, "pushed range, because no production release has reached users yet"
+    if delivered == _valid_commit(before):
+        return before, f"pushed range, which already starts at delivered {delivered[:12]}"
+    if delivered == _valid_commit(sha):
+        # A re-run of a release that already reached users. Starting the range
+        # at the pushed commit would make ``range_commits`` fall back to the
+        # last twenty commits and announce a changelog of old work.
+        return before, f"pushed range, because {delivered[:12]} is this release"
+    try:
+        placed = is_ancestor(repository, delivered, sha, api)
+    except ReleaseNotesError as error:
+        return before, f"pushed range, because the delivered commit cannot be placed: {error}"
+    if not placed:
+        return before, (
+            f"pushed range, because delivered {delivered[:12]} is not an ancestor "
+            f"of {sha[:12]}"
+        )
+    return delivered, (
+        f"last delivered production release {delivered[:12]}, so a release that "
+        "never reached users keeps its changes in this changelog"
+    )
 
 
 def range_commits(repository: str, before: str | None, sha: str, api: Api = gh_api) -> list[str]:
@@ -330,6 +462,10 @@ def build_notes(pull_requests: list[dict], *, date: _datetime.date) -> dict[str,
             f"release-notes: keeping {MAXIMUM_CHANGES} of {len(changes)} changes",
             file=sys.stderr,
         )
+        _step_summary(
+            f"> [!WARNING]\n> The changelog was shortened to {MAXIMUM_CHANGES} of "
+            f"{len(changes)} changes. The rest will not be announced.",
+        )
         changes = changes[:MAXIMUM_CHANGES]
     action_required = [
         _change(node)["title"]
@@ -440,6 +576,39 @@ def _write(path: Path, value: dict[str, Any]) -> None:
     os.replace(temporary, path)
 
 
+def fallback_notes(path: Path | str, *, date: _datetime.date) -> dict[str, Any]:
+    """The reviewed fallback notes, or a minimal valid substitute.
+
+    This runs before the GitOps hand-off. An unparseable file used to raise
+    here and stop a release whose images were already published, which is the
+    one thing a changelog must never do.
+    """
+    try:
+        value = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        print(f"release-notes: cannot read {path}: {error}", file=sys.stderr)
+        value = None
+    if isinstance(value, dict) and isinstance(value.get("changes"), list) and value["changes"]:
+        return value
+    print(
+        f"release-notes: {path} is not usable; using the minimal built-in notes",
+        file=sys.stderr,
+    )
+    _step_summary(
+        f"> [!WARNING]\n> `{path}` could not be read. The release carries the "
+        "minimal built-in notes.",
+    )
+    return {
+        "schema": "usl-release-notes/v1",
+        "title": f"USL Distribution release {date.isoformat()}",
+        "summary": (
+            "This release contains internal changes and needs no action from you."
+        ),
+        "changes": [MINIMAL_FALLBACK_CHANGE],
+        "action_required": None,
+    }
+
+
 def parser() -> argparse.ArgumentParser:
     command = argparse.ArgumentParser(
         prog="scripts/release-notes",
@@ -454,11 +623,19 @@ def parser() -> argparse.ArgumentParser:
         help="the previous branch tip (github.event.before); empty or zero on a first push",
     )
     command.add_argument(
+        "--ref",
+        default=os.environ.get("GITHUB_REF"),
+        help=(
+            "the pushed ref; only a push to "
+            f"{PRODUCTION_REF} reaches back over an undelivered release"
+        ),
+    )
+    command.add_argument(
         "--unreleased-base",
         default=str(DEFAULT_UNRELEASED_BASE),
         help=(
-            "reviewed record of the last deployed commit, used instead of "
-            "--before so a failed release keeps its changes in the changelog"
+            "reviewed record of the last deployed commit; overrides the "
+            "deployment ledger when it cannot answer"
         ),
     )
     command.add_argument(
@@ -505,19 +682,28 @@ def main(argv: list[str] | None = None) -> int:
         else _datetime.datetime.now(_datetime.UTC).date()
     )
     notes: dict[str, Any] | None
-    before = arguments.before
     try:
         recorded = unreleased_base(arguments.unreleased_base)
     except ReleaseNotesError as error:
+        # A reviewed record a person wrote by hand is never silently ignored.
         print(f"release-notes: {error}", file=sys.stderr)
         return 1
+    before, reason = resolve_base(
+        arguments.repository,
+        before=arguments.before,
+        sha=arguments.sha,
+        ref=arguments.ref,
+        recorded=recorded,
+        api=gh_api,
+    )
+    print(f"release-notes: starting from the {reason}", file=sys.stderr)
+    _step_summary(f"Changelog starts from the {reason}.")
     if recorded:
         print(
-            f"release-notes: reaching back to the last deployed commit {recorded}; "
-            f"remove {arguments.unreleased_base} once this release is deployed",
+            f"release-notes: remove {arguments.unreleased_base} once this "
+            "release is deployed",
             file=sys.stderr,
         )
-        before = recorded
     try:
         notes = generate(
             arguments.repository, before, arguments.sha, date=date, api=gh_api,
@@ -531,7 +717,7 @@ def main(argv: list[str] | None = None) -> int:
     source = "merged pull requests"
     if notes is None:
         source = f"fallback {arguments.fallback}"
-        notes = json.loads(Path(arguments.fallback).read_text(encoding="utf-8"))
+        notes = fallback_notes(arguments.fallback, date=date)
     if arguments.summarize and notes["schema"] == SCHEMA:
         # The reviewed fallback has no pull request to describe, so it is never
         # sent to a model. Any failure here keeps the mechanical changelog: a
