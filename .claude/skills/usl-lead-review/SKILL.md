@@ -94,7 +94,7 @@ evidence it addressed each point.
 - **The session is gone.** Allocate a fresh delivery agent with
   `usl-cluster-delivery`, filling the assignment placeholders as usual and adding
   the PR number and the review notes. It can pick up the existing work: the
-  worktree under `/private/tmp/odoo-fb-<slug>` and its branch live on disk
+  worktree under `~/Code/odoo-worktrees/fb-<slug>` and its branch live on disk
   independently of any session, so a new agent continues the same branch instead
   of starting the change again.
 
