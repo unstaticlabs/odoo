@@ -15,7 +15,8 @@ precedent — read it before starting, it shows the shape of a good result.
 
 ```bash
 BRANCH=chore/catchup-$(date +%Y%m%d)
-git worktree add /private/tmp/odoo-catchup-$(date +%Y%m%d) -b "$BRANCH" usl/19-usl-staging
+mkdir -p ~/Code/odoo-worktrees
+git worktree add ~/Code/odoo-worktrees/catchup-$(date +%Y%m%d) -b "$BRANCH" usl/19-usl-staging
 git fetch upstream saas-19.3
 git rev-list --count usl/19-usl-staging..upstream/saas-19.3   # how far behind
 ```
