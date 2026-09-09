@@ -15259,6 +15259,7 @@
     "rpc:b2c.import.batch.action_reconcile",
     "rpc:b2c.import.batch.action_reset",
     "rpc:b2c.import.batch.action_resolve",
+    "rpc:b2c.import.batch.action_resolve_identities",
     "rpc:b2c.import.batch.action_retire_generic_positions",
     "rpc:b2c.import.batch.action_retire_shadowing_positions",
     "rpc:b2c.import.batch.action_reverse_charge_operators",

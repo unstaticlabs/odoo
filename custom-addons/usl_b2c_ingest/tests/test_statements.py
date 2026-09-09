@@ -197,6 +197,17 @@ class TestStatementSettlement(TestWallet):
             batch.issue_ids.filtered(lambda issue: issue.kind == "fee_source_missing"),
         )
 
+    def test_a_month_the_books_are_closed_to_is_reported_not_refused(self):
+        """A statement covers years; only some of them are still open."""
+        batch = self._applied_with(**{"etsy-statement.csv": fixtures.etsy_statement()})
+        self.company.fiscalyear_lock_date = "2026-12-31"
+        batch.action_bill_fees()
+        self.assertFalse(batch.fee_bill_ids)
+        finding = batch.issue_ids.filtered(lambda issue: issue.kind == "period_closed")
+        self.assertTrue(finding)
+        self.assertEqual(finding[0].severity, "advisory")
+        self.company.fiscalyear_lock_date = False
+
     def test_billing_the_same_month_again_changes_nothing(self):
         batch = self._applied_with(**{"etsy-statement.csv": fixtures.etsy_statement()})
         batch.action_bill_fees()
@@ -316,6 +327,35 @@ class TestTransfers(TestWallet):
         self.assertEqual(len(wider.transfer_move_ids), 1)
         self.assertAlmostEqual(self._balance(self.wallet_account), 325.00, places=2)
 
+    def test_a_movement_the_ledger_already_shows_is_not_posted_again(self):
+        """The reconstruction posted a payout per bank line, under its own name.
+
+        Its reference says nothing a statement entry could be matched to, so
+        what is recognised is the movement itself.
+        """
+        bank = self._account("Invented other bank", "asset_cash")
+        standing = self.env["account.move"].create(
+            {
+                "company_id": self.company.id,
+                "journal_id": self.transfer_journal.id,
+                # Dated when it reached the bank, not when Etsy sent it.
+                "date": "2026-04-03",
+                "ref": "etsy:payout:BNK1/25-26/0326",
+                "line_ids": [
+                    (0, 0, {"account_id": bank.id, "balance": 104.00}),
+                    (0, 0, {"account_id": self.clearing.id, "balance": -104.00}),
+                ],
+            },
+        )
+        standing.action_post()
+        batch = self._moved(**{"etsy-statement.csv": fixtures.etsy_statement()})
+        self.assertFalse(batch.transfer_move_ids)
+        finding = batch.issue_ids.filtered(
+            lambda issue: issue.kind == "transfer_already_posted",
+        )
+        self.assertTrue(finding)
+        self.assertIn("etsy:payout:BNK1/25-26/0326", finding[0].note)
+
     def test_transfers_cannot_be_posted_before_the_drop_is_applied(self):
         batch = self._batch(**{"printful.csv": fixtures.printful_transactions()})
         batch.action_parse()
@@ -408,26 +448,19 @@ class TestAdoptingTheReconstruction(TestWallet):
 
     @staticmethod
     def _migration():
-        """Load the migration by path: Odoo never imports one as a module."""
-        import importlib.util
-        from pathlib import Path
+        """Return the adoption, which install and upgrade both run."""
+        from odoo.addons.usl_b2c_ingest import hooks
 
-        from odoo.modules.module import get_module_path
-
-        path = (
-            Path(get_module_path("usl_b2c_ingest"))
-            / "migrations"
-            / "saas~19.3.1.2.0"
-            / "post-adopt-reconstruction.py"
-        )
-        spec = importlib.util.spec_from_file_location("adopt_reconstruction", path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        return module
+        return hooks
 
     def _reconstruction_entry(self, ref, amount, account):
-        """Post an entry in the shape the reconstruction wrote them."""
-        other = self._account(f"Invented counterpart {ref}", "asset_current")
+        """Post an entry in the shape the reconstruction wrote them.
+
+        One document for a whole month: the sales, the receipts that settled
+        them, and — the only part that was bought — what it charged to expense.
+        """
+        held = self._account(f"Invented held {ref}", "asset_current")
+        sold = self._account(f"Invented sold {ref}", "income")
         move = self.env["account.move"].create(
             {
                 "company_id": self.company.id,
@@ -438,8 +471,10 @@ class TestAdoptingTheReconstruction(TestWallet):
                 "date": "2026-03-31",
                 "ref": ref,
                 "line_ids": [
+                    (0, 0, {"account_id": held.id, "balance": 100.00}),
+                    (0, 0, {"account_id": sold.id, "balance": -100.00}),
                     (0, 0, {"account_id": account.id, "balance": amount}),
-                    (0, 0, {"account_id": other.id, "balance": -amount}),
+                    (0, 0, {"account_id": held.id, "balance": -amount}),
                 ],
             },
         )
@@ -455,6 +490,20 @@ class TestAdoptingTheReconstruction(TestWallet):
         self.migration._adopt_supply_months(self.env)
         batch.action_settle_wallet()
         self.assertFalse(batch.wallet_move_ids)
+
+    def test_only_what_a_month_charged_to_expense_counts_as_settled(self):
+        """A reconstruction entry states a whole month, not only its fee.
+
+        Its own total is the month's turnover; reading that as commission
+        already bought would claim ten times what the channel kept.
+        """
+        move = self._reconstruction_entry("etsy:wallet:2026-03", 5.00, self.commissions)
+        self.assertGreater(move.amount_total, 5.00)
+        self.migration.adopt_reconstruction(self.env)
+        settlement = self.env["b2c.channel.settlement"].search(
+            [("move_id", "=", move.id)],
+        )
+        self.assertAlmostEqual(settlement.fee_amount, 5.00, places=2)
 
     def test_a_month_of_commission_it_settled_is_not_billed_again(self):
         batch, _jersey, _cap = self._etsy_drop()
@@ -474,6 +523,22 @@ class TestAdoptingTheReconstruction(TestWallet):
         self.migration._adopt_channel_months(self.env)
         batch.action_bill_fees()
         self.assertAlmostEqual(batch.fee_bill_ids.amount_total, 3.00, places=2)
+
+    def test_installing_and_upgrading_adopt_the_same_months(self):
+        """Either can be the first time the tool meets a reconstructed ledger."""
+        self._reconstruction_entry("etsy:wallet:2026-03", 5.00, self.commissions)
+        self.migration.adopt_reconstruction(self.env)
+        once = self.env["b2c.channel.settlement"].search_count(
+            [("company_id", "=", self.company.id)],
+        )
+        self.assertEqual(once, 1)
+        self.migration.post_init_hook(self.env)
+        self.assertEqual(
+            self.env["b2c.channel.settlement"].search_count(
+                [("company_id", "=", self.company.id)],
+            ),
+            once,
+        )
 
     def test_adopting_twice_records_one_settlement(self):
         self._reconstruction_entry("etsy:wallet:2026-03", 5.00, self.commissions)

@@ -19,5 +19,6 @@
         "views/oss_return_views.xml",
         "views/menu_views.xml",
     ],
+    "post_init_hook": "post_init_hook",
     "installable": True,
 }

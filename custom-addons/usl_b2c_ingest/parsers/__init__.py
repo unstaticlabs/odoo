@@ -1,8 +1,10 @@
 """Channel export parsers and the registry that recognises a dropped file.
 
-A file is recognised by the set of column names it declares, not by its file
-name or the order of its columns, so a renamed export or a channel that
-reorders its columns still lands in the right parser.
+A file is recognised by the column names it declares, not by its file name, the
+order of its columns or the character between them.  A renamed export, one
+whose columns moved, and one a shop wrote with a different separator than it
+used last time all land in the same parser — Medusa alone writes its orders
+with commas and its items with semicolons.
 """
 
 from . import common, etsy, medusa, printful, printful_transactions, stripe
@@ -41,6 +43,8 @@ class CsvFormat:
         self.header = tuple(header)
         self.parse = parse
         self.precedence = precedence
+        #: What this export usually puts between its columns. It is tried
+        #: first and is not believed: a shop changes it without saying so.
         self.delimiter = delimiter
         #: A shape recognised by the columns it must contain rather than by all
         #: of them.  Stripe appends one column per metadata key an account
@@ -135,33 +139,31 @@ CSV_FORMATS = (
 FORMATS_BY_ID = {fmt.format_id: fmt for fmt in CSV_FORMATS}
 _FORMATS_BY_SIGNATURE = {fmt.signature: fmt for fmt in CSV_FORMATS if fmt.exact}
 _SUBSET_FORMATS = tuple(fmt for fmt in CSV_FORMATS if not fmt.exact)
+_DELIMITERS = tuple(sorted({fmt.delimiter for fmt in CSV_FORMATS}))
 
 
 def detect(content):
     """Return the CsvFormat for raw file bytes, or raise naming what differed.
 
-    Every known delimiter is tried before giving up, because the delimiter is
-    part of the export's shape rather than something an operator should have to
-    declare.
+    Every known delimiter is tried before giving up, and none is required to be
+    the one the format usually uses: read with the wrong separator a file
+    becomes a single unrecognisable column, so trying them all can find the
+    right shape but never invent one.
     """
     attempts = {}
-    for delimiter in sorted({fmt.delimiter for fmt in CSV_FORMATS}):
+    for delimiter in _DELIMITERS:
         try:
             document = read_csv("probe", content, delimiter=delimiter)
         except (UnicodeDecodeError, SchemaError):
             continue
         found = _FORMATS_BY_SIGNATURE.get(header_signature(document.header))
-        if found is not None and found.delimiter == delimiter:
+        if found is not None:
             return found
         attempts[delimiter] = document.header
     # Only once no shape claims the whole header: a file that is exactly one
     # export must never be read as another that merely fits inside it.
-    for delimiter, header in attempts.items():
-        matching = [
-            fmt
-            for fmt in _SUBSET_FORMATS
-            if fmt.delimiter == delimiter and fmt.recognises(header)
-        ]
+    for header in attempts.values():
+        matching = [fmt for fmt in _SUBSET_FORMATS if fmt.recognises(header)]
         if len(matching) == 1:
             return matching[0]
         if matching:
@@ -174,13 +176,26 @@ def detect(content):
 
 def parse(fmt, name, content):
     """Return the parsed rows and the source document for a recognised file."""
-    document = read_csv(name, content, delimiter=fmt.delimiter)
-    if not fmt.recognises(document.header):
-        raise SchemaError(
-            f"{name} does not have the columns of {fmt.label}: "
-            f"{_column_difference(fmt.header, document.header)}",
-        )
+    document = _read_as(fmt, name, content)
     return tuple(fmt.parse(document)), document
+
+
+def _read_as(fmt, name, content):
+    """Return the document, whichever separator this export happened to use."""
+    closest = ()
+    for delimiter in (fmt.delimiter, *(d for d in _DELIMITERS if d != fmt.delimiter)):
+        try:
+            document = read_csv(name, content, delimiter=delimiter)
+        except (UnicodeDecodeError, SchemaError):
+            continue
+        if fmt.recognises(document.header):
+            return document
+        if len(document.header) > len(closest):
+            closest = document.header
+    raise SchemaError(
+        f"{name} does not have the columns of {fmt.label}: "
+        f"{_column_difference(fmt.header, closest)}",
+    )
 
 
 def _column_difference(expected, actual):

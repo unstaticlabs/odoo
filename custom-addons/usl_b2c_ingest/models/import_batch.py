@@ -32,6 +32,10 @@ RECONCILED_VALUES = frozenset(
     },
 )
 
+#: What a row's identity was judged to be. Superseding a duplicate settles one
+#: of these, so they are re-judged rather than left standing.
+IDENTITY_KINDS = ("duplicate_order", "identity_conflict")
+
 BATCH_STATES = [
     ("draft", "Draft"),
     ("parsed", "Read"),
@@ -149,6 +153,22 @@ class B2cImportBatch(models.Model):
             batch._check_order_money(rows)
             batch.write(batch._period(rows))
             batch.write({"state": "parsed", "report": batch._build_report()})
+        return True
+
+    def action_resolve_identities(self):
+        """Judge again which order each row is, and report what conflicts.
+
+        Identity is judged when the files are read, but what Odoo holds can
+        change afterwards — superseding a duplicate is exactly that. Without
+        judging again, a row stays conflicting and a finding stays blocking
+        long after the thing they describe has been settled.
+        """
+        self.ensure_one()
+        self.issue_ids.filtered(lambda issue: issue.kind in IDENTITY_KINDS).unlink()
+        rows = self.row_ids
+        self._resolve(rows)
+        self._check_conflicts(rows)
+        self.write({"report": self._build_report()})
         return True
 
     def action_reset(self):

@@ -27,7 +27,7 @@ from odoo.exceptions import UserError
 CENT = Decimal("0.01")
 
 #: Findings the wallet run owns, cleared each time it runs.
-WALLET_KINDS = ("wallet_overdrawn", "wallet_disagrees")
+WALLET_KINDS = ("wallet_overdrawn", "wallet_disagrees", "period_closed")
 
 
 class ResCompanySupply(models.Model):
@@ -227,7 +227,6 @@ class B2cImportBatchWallet(models.Model):
         """Bill, or credit, one month of what the supplier drew in one currency."""
         self.ensure_one()
         date = self._period_end(period)
-        self._assert_period_open(date)
         by_purpose = defaultdict(Decimal)
         for event, residual in residuals.items():
             by_purpose[bool(event.order_id)] += residual
@@ -236,6 +235,11 @@ class B2cImportBatchWallet(models.Model):
             return self.env["account.move"]
         # A month whose cost of sales and prototyping cancel each other out
         # still owes both accounts their entry; only the wallet is untouched.
+        if not self._period_open(date):
+            self._report_closed_period(
+                self.env._("what the supplier drew"), period, currency, total,
+            )
+            return self.env["account.move"]
         credit = total < 0
         sign = Decimal("-1") if credit else Decimal("1")
         company = self.company_id

@@ -15,6 +15,7 @@ identity, so a wider export dropped later adds what is new and repeats nothing.
 """
 
 from collections import defaultdict
+from datetime import timedelta
 from decimal import Decimal
 
 from odoo import Command, fields, models
@@ -27,8 +28,18 @@ from odoo.addons.usl_b2c_ingest.parsers import printful_transactions
 #: cent only when they are the same amount.
 CENT = Decimal("0.01")
 
+#: How far a movement already in the ledger may sit from the day the statement
+#: says it happened.  A payout leaves the channel on one day and reaches the
+#: bank on another, and whatever posted it first may have used either.
+MATCH_WINDOW = timedelta(days=10)
+
 #: Findings the transfer run owns, cleared each time it runs.
-TRANSFER_KINDS = ("payout_unattributed", "transfer_amount_missing")
+TRANSFER_KINDS = (
+    "payout_unattributed",
+    "transfer_amount_missing",
+    "period_closed",
+    "transfer_already_posted",
+)
 
 TRANSFER_DIRECTIONS = [
     ("payout", "Paid out to the bank"),
@@ -217,8 +228,13 @@ class B2cImportBatchTransfers(models.Model):
         self.ensure_one()
         self._assert_transfers_configured()
         date = movement["date"]
-        self._assert_period_open(date)
         currency = movement["currency"] or self.company_id.currency_id
+        if not self._period_open(date):
+            self._report_closed_period(
+                self.env._("a %(direction)s", direction=movement["direction"]),
+                date.replace(day=1), currency, movement["amount"],
+            )
+            return self.env["account.move"]
         held, met = self._transfer_accounts(movement)
         if not (held and met):
             self._raise_issue(
@@ -234,6 +250,29 @@ class B2cImportBatchTransfers(models.Model):
                     "Name the clearing journal for %(currency)s on the channel, "
                     "or the wallet journal on the company.",
                     currency=currency.name,
+                ),
+            )
+            return self.env["account.move"]
+        standing = self._movement_already_in_the_ledger(movement, held, date)
+        if standing:
+            # Something posted this before the tool existed and under its own
+            # reference — the reconstruction wrote a payout per bank line, not
+            # per statement entry, so its identity cannot be recognised. What
+            # can be recognised is the movement itself, already standing in the
+            # account it would move.
+            self._raise_issue(
+                "transfer_already_posted",
+                self.env._(
+                    "%(date)s already shows %(amount)s leaving %(account)s",
+                    date=date,
+                    amount=movement["amount"],
+                    account=held.code,
+                ),
+                severity="advisory",
+                note=self.env._(
+                    "Posted as %(ref)s. Nothing was posted for %(key)s.",
+                    ref=standing.move_id.ref or standing.move_id.name,
+                    key=movement["entry_key"],
                 ),
             )
             return self.env["account.move"]
@@ -270,6 +309,41 @@ class B2cImportBatchTransfers(models.Model):
             },
         )
         return entry
+
+    def _movement_already_in_the_ledger(self, movement, held, date):
+        """Return a line already standing for this movement, if there is one.
+
+        A statement entry's identity is the tool's own way of not repeating
+        itself, and it only recognises what the tool posted.  A movement posted
+        by anything else — the reconstruction, or a person — carries no such
+        identity, so what is looked for is the movement: the same amount
+        leaving the same account on the same day.
+
+        Two payouts of exactly the same amount within days of each other would
+        look like one.  That is rarer than posting every payout twice.
+        """
+        self.ensure_one()
+        ours = self.env["b2c.money.transfer"].search(
+            [("company_id", "=", self.company_id.id)],
+        ).move_id
+        sign = Decimal("-1") if movement["direction"] == "payout" else Decimal("1")
+        wanted = float(sign * movement["amount"])
+        for line in self.env["account.move.line"].search(
+            [
+                ("account_id", "=", held.id),
+                ("date", ">=", date - MATCH_WINDOW),
+                ("date", "<=", date + MATCH_WINDOW),
+                ("parent_state", "=", "posted"),
+                ("move_id", "not in", ours.ids),
+            ],
+        ):
+            if held.currency_id and line.amount_currency:
+                found = line.amount_currency
+            else:
+                found = line.balance
+            if abs(found - wanted) < float(CENT):
+                return line
+        return self.env["account.move.line"]
 
     def _transfer_accounts(self, movement):
         """Return the account the money sat in, and the one it moved to.

@@ -146,7 +146,7 @@ def parse_orders(document):
             payload=_payload(row),
             occurred_at=parsed_datetime(row["Sale Date"]),
             values={
-                "currency": text(row["Currency"]) or "EUR",
+                "currency": text(row["Currency"]).upper() or "EUR",
                 "subtotal_amount": gross,
                 "discount_amount": discount + shipping_discount,
                 "shipping_amount": shipping,
@@ -196,7 +196,7 @@ def parse_order_items(document):
             payload=_payload(row),
             occurred_at=parsed_datetime(row["Date Paid"]) or parsed_datetime(row["Sale Date"]),
             values={
-                "currency": text(row["Currency"]) or "EUR",
+                "currency": text(row["Currency"]).upper() or "EUR",
                 "original_name": text(row["Item Name"]),
                 "original_variation": text(row["Variations"]),
                 "original_sku": text(row["SKU"]),

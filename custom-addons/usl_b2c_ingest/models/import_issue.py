@@ -38,6 +38,8 @@ ISSUE_KINDS = [
     ("payout_unattributed", "A payout left an account nothing names"),
     ("transfer_amount_missing", "A movement is stated without an amount"),
     ("wallet_disagrees", "The supplier's account of a month is not the one Odoo holds"),
+    ("period_closed", "A month the books are closed to"),
+    ("transfer_already_posted", "A movement the ledger already shows"),
 ]
 
 
@@ -95,6 +97,10 @@ class B2cImportIssue(models.Model):
         retired.with_context(**batch._context()).sudo().write(
             {"state": "cancelled", "superseded_by_id": kept.id},
         )
+        # The finding this settles was raised when the files were read, and
+        # nothing else ever revisits it. Judge identity again so the rows stop
+        # conflicting and this stops blocking.
+        batch.action_resolve_identities()
         batch.action_resolve()
         return {
             "type": "ir.actions.act_window",
