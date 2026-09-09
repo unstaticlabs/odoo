@@ -14,10 +14,23 @@ every stage can be run again without adding anything.
 | Medusa — sold items per order | The lines, one row per order |
 | Medusa — sold items | The lines, one row per line |
 | Printful (read over its API) | What fulfilment cost, and when it shipped |
+| Etsy — payment account statement | What Etsy kept, and what it paid out |
+| Stripe — balance history | What Stripe kept, and what it paid out |
+| Printful — wallet transactions | What drew on the wallet, and what topped it up |
 
-A file is recognised by the **set** of column names it declares, not by its
-name or the order of its columns. A channel that reorders its columns is still
-recognised; one that renames or drops a column is reported, naming the column.
+A file is recognised by the columns it declares, not by its name or the order
+of them. An order export is matched on the whole set; a statement on the columns
+its writer always writes, because Stripe adds one column per metadata key an
+account happens to use and nothing about that changes what the file is. A file
+no parser knows is reported, naming the columns it lacks and the closest export.
+
+**An order export is not an account of what a channel kept.** Etsy's sold-orders
+file states the card processing fee and nothing else — not the transaction fee,
+the listing fee, the regulatory fee or the advertising — and Medusa's states
+nothing at all, because Medusa keeps nothing and Stripe keeps everything. Drop
+the statements as well, or the clearing accounts keep the difference for ever.
+When one is missing the drop still completes, saying which account will keep it;
+dropping the statement later bills exactly the difference.
 
 Medusa's item exports carry neither the destination nor the carriage. Without
 the destination there is no rate to charge, so a drop of those alone is stopped
@@ -104,6 +117,10 @@ Per channel (**B2C → Configuration → Channels**):
   posting its payments to that channel's clearing account.
 - **Channel operator** and **Commission product** — who bills the commission
   and what it is bought as.
+- **Payment processor**, **Processor** and **Processing product** — for a shop
+  of one's own, which keeps nothing itself. Whose statement says what its
+  payments cost, who bills it, and what it is bought as. It is a banking cost
+  rather than a selling commission, and rarely the same account.
 
 Per company (**Settings → Accounting**, or on the company record):
 
@@ -111,6 +128,10 @@ Per company (**Settings → Accounting**, or on the company record):
   and **Supply for no sale** — who draws on the wallet, the journal the wallet
   is held in, and the two products a month of supply is bought as. Without them
   the supply cannot be settled and the button says so.
+- **B2C bank** and **B2C transfers** — the bank the channels pay into, whose
+  suspense account is where a payout waits for its statement line, and the
+  journal the movements are written in. Without them nothing can be posted for
+  a payout and the button says so.
 - **Registered for the One Stop Shop**, and the two accounts destination VAT
   reaches before and after registration. Until registration it accrues as a
   liability to be regularised rather than as VAT collected under a scheme the
@@ -136,8 +157,32 @@ In the chart:
   one needs the archived records to be visible: write the mapping with
   `active_test` disabled, or the ORM keeps it and says nothing.
 
-The readiness check reports each of these against the drop in hand, and makes
-the corrections that are a matter of fact rather than judgement.
+The readiness check reports each of these against the drop in hand. It also
+**puts right** the ones that are a matter of fact rather than judgement, unless
+*Keep the chart correct* is unticked on the drop. It is ticked by default: most
+of what the check would otherwise report is a defect in the chart rather than in
+the drop, and reporting a thing that can be put right without putting it right
+wastes the reader's attention. Untick it to see what the chart would be reported
+for without changing it.
+
+## The four accounts, and what empties each
+
+| Account | Filled by | Emptied by |
+| --- | --- | --- |
+| Etsy clearing | Each invoice, settled to the channel | The commission bill, then the payout entry |
+| Stripe clearing | Each Medusa invoice | Stripe's own charge, then the payout entry |
+| Printful wallet | Each top-up entry | The monthly supply document |
+| Bank suspense | Payouts and top-ups waiting | The bank statement line, matched by hand |
+
+Medusa has no account of its own. A shop of one's own holds no money: what its
+customers paid sits in the Stripe clearing account, and it is Stripe that keeps
+a part of it.
+
+A month is billed the **difference** between what it is now said to have cost
+and what documents already stand for it, so the exports can arrive in any order
+and a wider one dropped later corrects a narrower one instead of charging twice.
+An order export may complete a month nothing has spoken for; it can never take
+back what a statement stated, being only part of the same account.
 
 **Correct the chart** settles all of them at once, across the chart rather than
 across the drop, because a chart defect is wrong whether or not anything is

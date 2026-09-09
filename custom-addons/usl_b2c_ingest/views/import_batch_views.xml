@@ -72,21 +72,10 @@
                             title="Bill each channel's commission for each month this drop touches."
                             invisible="state != 'applied'"
                             groups="usl_b2c.group_b2c_manager"/>
-                    <button name="action_correct_chart" type="object"
-                            string="Correct the chart" invisible="state == 'draft'"
-                            title="Correct every defect a B2C sale's numbers depend on, and report what changed."
-                            groups="usl_b2c.group_b2c_manager"/>
-                    <button name="action_park_destination_vat" type="object"
-                            string="Point destination VAT" invisible="state == 'draft'"
-                            title="Point every destination rate at the account the shop's registration implies."
-                            groups="usl_b2c.group_b2c_manager"/>
-                    <button name="action_retire_shadowing_positions" type="object"
-                            string="Retire shadowing positions" invisible="state == 'draft'"
-                            title="Retire the generic fiscal positions answering for countries that have one of their own."
-                            groups="usl_b2c.group_b2c_manager"/>
-                    <button name="action_settle_product_taxes" type="object"
-                            string="Settle product taxes" invisible="state == 'draft'"
-                            title="Give each product the one sales tax its kind of thing is charged at."
+                    <button name="action_post_transfers" type="object"
+                            string="Post what moved to the bank"
+                            title="Post an entry for each payout and each wallet top-up the statements state, so one bank line meets one entry."
+                            invisible="state != 'applied'"
                             groups="usl_b2c.group_b2c_manager"/>
                     <button name="action_reset" type="object" string="Reset"
                             title="Discard what this batch found and keep the dropped files."
@@ -117,6 +106,11 @@
                                 icon="fa-credit-card" invisible="not wallet_move_ids">
                             <field name="wallet_move_ids" widget="statinfo" string="Supply"/>
                         </button>
+                        <button name="action_open_transfers" type="object" class="oe_stat_button"
+                                icon="fa-university" invisible="not transfer_move_ids"
+                                title="Payouts and top-ups, each waiting to meet one bank line.">
+                            <field name="transfer_move_ids" widget="statinfo" string="To the bank"/>
+                        </button>
                     </div>
                     <div class="oe_title">
                         <h1><field name="name" placeholder="Name this drop"/></h1>
@@ -126,6 +120,7 @@
                             <field name="period_start"/>
                             <field name="period_end"/>
                             <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="correct_chart" groups="usl_b2c.group_b2c_manager"/>
                         </group>
                         <group string="What was found">
                             <field name="order_count"/>
@@ -138,6 +133,7 @@
                             <field name="fulfilment_count"/>
                             <field name="supplier_sales_cost"/>
                             <field name="supplier_internal_cost"/>
+                            <field name="statement_entry_count"/>
                             <field name="wallet_balance"/>
                             <field name="supplier_currency_id" invisible="1"/>
                         </group>

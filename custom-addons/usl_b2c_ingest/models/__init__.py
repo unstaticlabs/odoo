@@ -18,5 +18,6 @@ from . import (
     readiness,
     settlement,
     supplier,
+    transfers,
     wallet,
 )

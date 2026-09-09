@@ -24,4 +24,16 @@
         <field name="global" eval="True"/>
         <field name="domain_force">[('company_id', 'in', company_ids)]</field>
     </record>
+    <record id="rule_b2c_channel_settlement_company" model="ir.rule">
+        <field name="name">B2C channel settlements: allowed companies</field>
+        <field name="model_id" ref="model_b2c_channel_settlement"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_b2c_money_transfer_company" model="ir.rule">
+        <field name="name">B2C money transfers: allowed companies</field>
+        <field name="model_id" ref="model_b2c_money_transfer"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
 </odoo>

@@ -7,6 +7,7 @@ from odoo.addons.usl_b2c.models.constants import SOURCE_PROVIDERS
 GRAINS = [
     ("order", "Order"),
     ("line", "Order line"),
+    ("charge", "Statement entry"),
 ]
 
 MAPPINGS = [
@@ -22,6 +23,7 @@ RESOLUTIONS = [
     ("conflicting", "Conflicts with what Odoo holds"),
     ("orphan_line", "Line without an order"),
     ("supplier", "Supplier fulfilment"),
+    ("statement", "What the money-handler kept or paid out"),
 ]
 
 
