@@ -136,7 +136,13 @@ class UslDocumentLink(models.Model):
             and self.env.context.get("usl_documents_allow_trashed_link")
             and document.availability_state == "trashed"
         )
-        if document.availability_state != "available" and not allow_trashed_link:
+        # A permission_error root is live in Paperless; only its last access
+        # push failed. Linking it is what lets the next access recomputation
+        # repair that push, so refusing here would latch the failure instead.
+        if (
+            document.availability_state not in ("available", "permission_error")
+            and not allow_trashed_link
+        ):
             raise UserError(
                 _("Only an available archived document can receive a new Odoo link."),
             )
