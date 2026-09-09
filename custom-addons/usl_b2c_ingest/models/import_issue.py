@@ -14,6 +14,7 @@ ISSUE_KINDS = [
     ("duplicate_order", "Odoo holds the same order twice"),
     ("payload_conflict", "Files disagree about the same order"),
     ("net_identity", "Channel totals no longer add up"),
+    ("order_totals_disagree", "An order and its lines disagree about the goods"),
     ("orphan_line", "Line without an order"),
     ("order_money_missing", "Order-level money is not in the export"),
     ("unknown_product", "The channel sold something Odoo does not know"),

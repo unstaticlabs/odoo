@@ -32,6 +32,10 @@ RECONCILED_VALUES = frozenset(
     },
 )
 
+#: How many of a repeated finding are worth naming before the rest are the
+#: same thing said again.
+SHOWN = 20
+
 #: What a row's identity was judged to be. Superseding a duplicate settles one
 #: of these, so they are re-judged rather than left standing.
 IDENTITY_KINDS = ("duplicate_order", "identity_conflict")
@@ -555,26 +559,42 @@ class B2cImportBatch(models.Model):
             residual = sold - stated
             if abs(residual) >= Decimal("0.01"):
                 wrong.append((row, sold, stated, residual))
-        for row, sold, stated, residual in wrong[:1]:
+        if wrong:
+            first = wrong[0][0]
             self._raise_issue(
-                "net_identity",
+                "order_totals_disagree",
                 self.env._(
                     "%(count)s order(s) do not come to what their lines say",
                     count=len(wrong),
                 ),
-                external_order_id=row.external_order_id,
-                row=row,
+                external_order_id=first.external_order_id,
+                row=first,
                 severity="advisory",
                 note="\n".join(
-                    self.env._(
-                        "%(order)s: its lines come to %(sold)s where the order "
-                        "says %(stated)s — %(residual)s out.",
-                        order=item.external_order_id,
-                        sold=line_total,
-                        stated=total,
-                        residual=difference,
-                    )
-                    for item, line_total, total, difference in wrong[:20]
+                    [
+                        *(
+                            self.env._(
+                                "%(order)s: its lines come to %(sold)s where the "
+                                "order says %(stated)s — %(residual)s out.",
+                                order=item.external_order_id,
+                                sold=line_total,
+                                stated=total,
+                                residual=difference,
+                            )
+                            for item, line_total, total, difference in wrong[:SHOWN]
+                        ),
+                        *(
+                            [
+                                self.env._(
+                                    "… and %(count)s more, all of them the same "
+                                    "shape as these.",
+                                    count=len(wrong) - SHOWN,
+                                ),
+                            ]
+                            if len(wrong) > SHOWN
+                            else []
+                        ),
+                    ],
                 ),
             )
         return bool(wrong)

@@ -203,7 +203,7 @@ class TestImportBatch(TransactionCase):
             },
         )
         batch.action_parse()
-        finding = batch.issue_ids.filtered(lambda issue: issue.kind == "net_identity")
+        finding = batch.issue_ids.filtered(lambda issue: issue.kind == "order_totals_disagree")
         self.assertTrue(finding)
         self.assertEqual(finding[0].severity, "advisory")
         self.assertIn("out.", finding[0].note)
@@ -217,7 +217,9 @@ class TestImportBatch(TransactionCase):
         )
         batch.action_parse()
         self.assertFalse(
-            batch.issue_ids.filtered(lambda issue: issue.kind == "net_identity"),
+            batch.issue_ids.filtered(
+                lambda issue: issue.kind == "order_totals_disagree",
+            ),
         )
 
     def test_a_replaced_record_stops_being_the_sale(self):
