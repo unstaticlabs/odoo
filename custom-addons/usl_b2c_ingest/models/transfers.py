@@ -42,8 +42,8 @@ TRANSFER_KINDS = (
 )
 
 TRANSFER_DIRECTIONS = [
-    ("payout", "Paid out to the bank"),
-    ("top_up", "Paid into the supplier's wallet"),
+    ("payout", "Payout"),
+    ("top_up", "Wallet top-up"),
 ]
 
 
@@ -232,9 +232,11 @@ class B2cImportBatchTransfers(models.Model):
         if not self._period_open(date):
             self._report_closed_period(
                 "transfer_period_closed",
-                self.env._("a %(direction)s", direction=movement["direction"]),
+                dict(TRANSFER_DIRECTIONS)[movement["direction"]].lower(),
                 date.replace(day=1), currency, movement["amount"],
+                noun=self.env._("movement(s)"),
             )
+
             return self.env["account.move"]
         held, met = self._transfer_accounts(movement)
         if not (held and met):
@@ -423,23 +425,3 @@ class B2cImportBatchTransfers(models.Model):
                     journal=company.usl_b2c_bank_journal_id.display_name,
                 ),
             )
-
-    def _transfer_report(self):
-        """Say what moved, and what is now waiting for the bank."""
-        self.ensure_one()
-        if not self.transfer_move_ids:
-            return []
-        by_direction = defaultdict(list)
-        for transfer in self.env["b2c.money.transfer"].search(
-            [("move_id", "in", self.transfer_move_ids.ids)],
-        ):
-            by_direction[transfer.direction].append(transfer)
-        return [
-            self.env._(
-                "%(count)s %(direction)s: %(amount)s, waiting to meet the bank.",
-                count=len(transfers),
-                direction=dict(TRANSFER_DIRECTIONS)[direction].lower(),
-                amount=sum(transfer.amount for transfer in transfers),
-            )
-            for direction, transfers in sorted(by_direction.items())
-        ]
