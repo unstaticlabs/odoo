@@ -288,13 +288,18 @@ def parse_statement(document):
             [stated, text(row["Title"]), text(row["Info"]), text(row["Currency"]),
              str(gross), str(kept)],
         )[:12]
-        seen[occurred_at.date(), identity] += 1
+        # Etsy writes a summary line with no date of its own. It moves nothing
+        # and settles nothing, and every run that reads a statement asks for a
+        # date before it looks at anything else — so it is carried through as
+        # evidence rather than ending the drop it arrived in.
+        day = occurred_at.date() if occurred_at else None
+        seen[day, identity] += 1
         yield ParsedRow(
             format_id="etsy_statement",
             provider=PROVIDER,
             grain=CHARGE_GRAIN,
-            external_order_id=f"{occurred_at.date():%Y-%m-%d}",
-            external_line_id=f"{identity}:{seen[occurred_at.date(), identity]}",
+            external_order_id=f"{day:%Y-%m-%d}" if day else "",
+            external_line_id=f"{identity}:{seen[day, identity]}",
             row_number=row["_row_number"],
             occurred_at=occurred_at,
             payload=row,

@@ -156,7 +156,7 @@ class B2cImportBatchTransfers(models.Model):
             direction = self._direction(values)
             if not direction:
                 continue
-            key = row.external_order_id
+            key = self._entry_key(row)
             if (row.provider, key) in known:
                 continue
             amount = self._transfer_amount(values, direction)
@@ -186,6 +186,20 @@ class B2cImportBatchTransfers(models.Model):
             )
             known.add((row.provider, key))
         return found
+
+    @staticmethod
+    def _entry_key(row):
+        """Return what makes one statement entry itself, and no other.
+
+        A statement that carries an identifier of its own is answered by it:
+        Stripe and Printful both write one, unique across every export they
+        will ever produce.  Etsy writes none, so its parser builds one out of
+        what the entry says and how many identical ones came before it on the
+        same day — and that, not the day, is the entry.  Keying on the day
+        would let one Etsy deposit stand for every deposit made that day, and
+        a shop paid out in two currencies is paid out twice on the same day.
+        """
+        return row.external_line_id or row.external_order_id
 
     @staticmethod
     def _direction(values):
