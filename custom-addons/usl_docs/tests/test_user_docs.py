@@ -46,6 +46,16 @@ def _write_guide(root):
         encoding="utf-8",
     )
     (root / "how-to" / "example" / "01-open.png").write_bytes(PNG)
+    (root / "how-to" / "example" / "journey.json").write_text(json.dumps({
+        "schema": "usl-docs-journey-sidecar/v1",
+        "journey": "usl_docs.example", "tour": "usl_docs_example", "type": "how-to", "title": "Do the example",
+        "persona": "accountant", "lang": "en", "viewport": "desktop", "viewport_size": "1366x768", "login": "acc",
+        "source_test": "odoo.addons.usl_docs.tests.test_x.TestX.test_y",
+        "source_test_file": {"path": "custom-addons/usl_docs/tests/test_x.py", "line": 12},
+        "source_tour_file": {"path": "custom-addons/usl_docs/static/tests/tours/x.js", "line": 3, "steps": {"open": 5}},
+        "steps": [{"index": 1, "id": "open", "text": "Open **the screen**.", "assertion": "The screen is open",
+                   "trigger": ".o_list_view", "run": "click", "screenshot": "01-open.png", "sha256": "ab" * 32}],
+    }), encoding="utf-8")
     (root / "explanation" / "why.md").write_text(
         "---\n"
         "title: Pourquoi\n"
@@ -213,8 +223,15 @@ class TestUserDocsViewer(HttpCase):
         self.assertEqual(proof.status_code, 200)
         self.assertIn("Test record for “Do the example”", proof.text)
         self.assertIn("GitHub run 77", proof.text)
-        self.assertIn("matches the published screenshot", proof.text)
-        self.assertIn(COMMIT, proof.text)
+        self.assertIn(f"https://github.com/unstaticlabs/odoo/commit/{COMMIT}", proof.text)
+        self.assertIn(f"/blob/{COMMIT}/custom-addons/usl_docs/static/tests/tours/x.js#L5", proof.text, "each step links to its line in the tour")
+        self.assertIn(f"/blob/{COMMIT}/custom-addons/usl_docs/tests/test_x.py#L12", proof.text)
+        self.assertIn("trigger: .o_list_view", proof.text)
+        self.assertIn("Open <strong>the screen</strong>.", proof.text, "step sentences render their Markdown")
+        self.assertIn("identical to the published screen", proof.text)
+        self.assertIn('src="/usl/user-docs/how-to/example/01-open.png"', proof.text)
+        self.assertIn("make docs-journeys MODULE=usl_docs", proof.text)
+        self.assertIn('<dialog id="shot-box">', proof.text)
         self.assertEqual(self._get("/evidence/unknown").status_code, 404)
         # The deployment's injected environment outranks the database stamp.
         injected = dict(evidence, journeys={})
@@ -261,6 +278,7 @@ class TestEvidenceState(HttpCase):
         now = datetime(2026, 9, 10, 12, 0, tzinfo=timezone.utc)
         for delta, expected in [
             (timedelta(seconds=30), "just now"),
+            (timedelta(minutes=1), "a minute ago"),
             (timedelta(minutes=5), "5 minutes ago"),
             (timedelta(hours=1), "an hour ago"),
             (timedelta(hours=5), "5 hours ago"),

@@ -48,14 +48,20 @@ inside the test container (Odoo's synthetic `company_1_data` fixtures).
 
 ![Generated how-to with the Last tested pill and a journey screenshot](user-guide-generated-how-to-desktop.png)
 
-## The proof page behind the pill, desktop
+## The test record behind the pill, desktop
 
-`/usl/user-docs/evidence/group-expenses-into-a-batch`: the journey, tour and
-test, when it last passed and how long it took, the qualified commit, the
-browser, the GitHub run (with the note that GitHub forgets runs), and each
-captured screen with whether it matches the published copy.
+`/usl/user-docs/evidence/group-expenses-into-a-batch`, reached from the
+"Last tested" pill. Facts with links: the page, when it last passed, the
+qualified commit on GitHub, the qualification run, the tour and the test at
+that commit, who it ran as, viewport and browser. Then the steps as a timeline:
+the reader's sentence, the tour's assertion, the trigger selector, a link to
+the step's line in the tour, and the captured screen with its digest and
+whether it is identical to the published one. Screens open in a lightbox with
+keyboard navigation; the replay command and the raw facts have copy buttons.
+When the evidence commit differs from the running release, an amber badge says
+so next to the commit.
 
-![Proof page listing the run, commit, timings and captured screens](user-guide-proof-page-desktop.png)
+![Test record page with facts, links and the steps timeline](user-guide-test-record-desktop.png)
 
 ## The generated how-to, mobile
 
@@ -79,3 +85,10 @@ The same run's `help-coverage.md`: per module, how many stored fields explain
 themselves with a tooltip. The number is the reference quadrant's backlog.
 
 ![Help coverage per module](user-guide-reference-coverage-desktop.png)
+
+## The test record, mobile
+
+The same page on a 390x844 viewport: the facts table wraps and the timeline
+narrows.
+
+![Test record page on a phone](user-guide-test-record-mobile.png)

@@ -70,8 +70,11 @@ them at once, and that is a normal, one-off pull request.
 3. A `JourneyCase` test (`custom-addons/usl_docs/tests/journey.py`) tagged
    `usl_docs_journey` runs it with `run_journey(tour, url, login)`. It is skipped
    unless `USL_DOCS_JOURNEYS=1`, so ordinary module suites never pay for it.
-4. `make docs` writes `docs/users/how-to/<slug>.md` (or `TUTORIAL.md`) and its
-   `<slug>/NN-step.png`, with the screenshot digests in the front matter.
+4. `make docs` writes `docs/users/how-to/<slug>.md` (or `TUTORIAL.md`), its
+   `<slug>/NN-step.png` screenshots, and `<slug>/journey.json`: the committed
+   facts of the journey (steps, assertions, triggers, where the tour and the
+   test live, screenshot digests) that the product's test record page shows
+   with deep links into the code at the qualified commit.
 
 ## Adding a page
 

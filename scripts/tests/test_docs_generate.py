@@ -62,8 +62,13 @@ class DocsGenerateTests(unittest.TestCase):
         written = docs_generate.render_all(self.records, self.docs)
         self.assertEqual(
             sorted(path.relative_to(self.docs).as_posix() for path in written),
-            ["how-to/match-a-line.md", "how-to/match-a-line/01-open.png"],
+            ["how-to/match-a-line.md", "how-to/match-a-line/01-open.png", "how-to/match-a-line/journey.json"],
         )
+        sidecar = json.loads((self.docs / "how-to" / "match-a-line" / "journey.json").read_text(encoding="utf-8"))
+        self.assertEqual(sidecar["schema"], "usl-docs-journey-sidecar/v1")
+        self.assertEqual(sidecar["steps"][0]["screenshot"], "01-open.png")
+        self.assertEqual(sidecar["steps"][0]["sha256"], hashlib.sha256(PNG_A).hexdigest())
+        self.assertNotIn("started", sidecar)
         page = (self.docs / "how-to" / "match-a-line.md").read_text(encoding="utf-8")
         self.assertTrue(page.startswith("---\ntitle: Match a line\ntype: how-to\n"))
         self.assertIn("journey: match-a-line\n", page)
@@ -85,14 +90,15 @@ class DocsGenerateTests(unittest.TestCase):
         write_record(self.records)
         self.assertEqual(
             [problem for _path, problem in docs_generate.check_all(self.records, self.docs)],
-            ["missing; run `make docs`", "missing; run `make docs`"],
+            ["missing; run `make docs`"] * 3,
         )
         docs_generate.render_all(self.records, self.docs)
         write_record(self.records, png=PNG_B)
         findings = docs_generate.check_all(self.records, self.docs)
-        self.assertEqual(len(findings), 2, findings)
+        self.assertEqual(len(findings), 3, findings)
         self.assertIn("differs from what the journey produces", findings[0][1])
         self.assertIn("the screen changed materially", findings[1][1])
+        self.assertTrue(findings[2][0].endswith("journey.json"), "the sidecar carries the new digest too")
 
     def test_identical_bytes_never_count_as_different(self):
         self.assertFalse(docs_generate.materially_different(PNG_A, PNG_A))
