@@ -1,3 +1,12 @@
+---
+title: Process a supplier bill
+type: how-to
+description: Record a bill from its document, check lines and taxes, post it and match the payment.
+lang: en
+persona: finance_operator
+generated: false
+---
+
 # Process a Supplier Bill
 
 1. Open **Vendors > Bills** and select **New**, or upload the bill from the

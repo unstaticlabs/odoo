@@ -1,3 +1,15 @@
+---
+title: Regrouper et contrôler des dépenses dans un lot
+type: how-to
+description: Créer ou choisir un lot, appliquer le contexte commun, contrôler les lignes signalées et soumettre ensemble.
+lang: fr
+persona: employee
+source:
+  - custom-addons/usl_expense_batch/models/expense_batch.py
+  - custom-addons/usl_expense_batch/static/tests/tours/expense_batch_tour.js
+generated: false
+---
+
 # Lots de dépenses
 
 Un **lot de dépenses** regroupe des dépenses liées et leur applique un contexte

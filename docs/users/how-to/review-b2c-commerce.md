@@ -1,3 +1,14 @@
+---
+title: Review B2C commerce history
+type: how-to
+description: Browse orders, events and settlements imported from the sales channels and open their accounting.
+lang: en
+persona: ceo
+source:
+  - custom-addons/usl_b2c
+generated: false
+---
+
 # Review B2C commerce history
 
 The **B2C** application keeps the best available Etsy, Medusa, Stripe,

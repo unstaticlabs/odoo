@@ -1,3 +1,14 @@
+---
+title: Préparer et suivre une signature électronique
+type: how-to
+description: Préparer le document, désigner les signataires, suivre la signature et conserver la preuve.
+lang: fr
+persona: manager
+source:
+  - custom-addons/usl_sign
+generated: false
+---
+
 # Préparer et suivre une signature électronique
 
 L’application **Signature** conserve dans Odoo le document, les signataires,

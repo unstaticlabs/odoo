@@ -1,3 +1,12 @@
+---
+title: Closing and lock dates
+type: explanation
+description: What closing a period commits to and how lock dates protect it.
+lang: en
+persona: accountant
+generated: false
+---
+
 # Closing and Lock Dates
 
 Closing is a controlled review of a period, not a single report or button.

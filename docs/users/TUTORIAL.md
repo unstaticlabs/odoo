@@ -1,3 +1,14 @@
+---
+title: Take a guided tour of Accounting
+type: tutorial
+description: Walk through Overview, journals, documents, reconciliation, reports, hygiene and declarations without changing posted accounting.
+lang: en
+persona: everyone
+source:
+  - custom-addons/rebuild_account_migration
+generated: false
+---
+
 # Tutorial: Take a Guided Tour of Accounting
 
 This tutorial introduces the complete Accounting application without changing posted accounting.

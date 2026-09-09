@@ -1,3 +1,14 @@
+---
+title: Activate, monitor or pause electronic-invoice reception in production
+type: how-to
+description: Switch the approved reception platform on, watch the first invoices arrive, and pause it safely.
+lang: en
+persona: administrator
+source:
+  - custom-addons/rebuild_account_migration/models/einvoice_transport.py
+generated: false
+---
+
 # Activate, Monitor or Pause Reception in Production
 
 Use this guide only on the deployed production Accounting system during an

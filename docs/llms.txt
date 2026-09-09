@@ -1,0 +1,65 @@
+# USL Odoo Distribution
+
+> User guide and decision records for the USL Odoo distribution. Pages carry
+> front matter (title, type, description, lang, persona, journey, source,
+> generated) that says what each one is for and whether a test proves it.
+
+Paths are relative to the repository root. In a running product the guide is
+served at `/usl/user-docs/<path under docs/users>`; add `?format=md` or send
+`Accept: text/markdown` to read the committed Markdown.
+
+## Tutorial
+
+- [Take a guided tour of Accounting](docs/users/TUTORIAL.md): Walk through Overview, journals, documents, reconciliation, reports, hygiene and declarations without changing posted accounting.
+
+## How-to guides
+
+- [Activate, monitor or pause electronic-invoice reception in production](docs/users/how-to/activate-electronic-invoice-reception.md): Switch the approved reception platform on, watch the first invoices arrive, and pause it safely.
+- [Analyze analytic performance](docs/users/how-to/analyze-analytic-performance.md): Read margin and cost by activity, brand or project from the analytic analysis report.
+- [Create and collect a customer invoice](docs/users/how-to/process-customer-invoice.md): Issue an invoice, send it, register the payment and confirm it is matched.
+- [Enregistrer et rapprocher la paie TESE](docs/users/how-to/paie-tese.md): Saisir le bulletin calculé par TESE, joindre les justificatifs et suivre les dettes jusqu'au règlement.
+- [Export reports and the FEC](docs/users/how-to/export-reports-and-fec.md): Download a report as PDF or XLSX with its current filters, and produce the annual FEC file.
+- [Generate official documents](docs/users/how-to/official-documents.md): Configure a company's document templates and render governed invoices, quotes and letters.
+- [Investigate a report value](docs/users/how-to/investigate-report-value.md): Trace a figure on a financial report back to the journal items and source documents behind it.
+- [Manage bank matching rules](docs/users/how-to/manage-bank-matching-rules.md): Create, order and test the rules that propose counterparts for bank transactions.
+- [Match a bank transaction](docs/users/how-to/reconcile-bank-transaction.md): Match a bank line against invoices, bills, expenses or a suggested counterpart.
+- [Match a foreign bill to a company-currency bank transaction](docs/users/how-to/settle-immediate-foreign-payment.md): Settle a foreign-currency bill paid by card from the EUR debit the bank reports.
+- [Prepare a French declaration](docs/users/how-to/prepare-declaration.md): Open the next obligation, compare ledger values with external confirmations and record the filing.
+- [Prepare electronic-invoice reception](docs/users/how-to/prepare-electronic-invoice-reception.md): Get the company, partners and approved platform ready before reception is activated.
+- [Process a supplier bill](docs/users/how-to/process-vendor-bill.md): Record a bill from its document, check lines and taxes, post it and match the payment.
+- [Process an expense](docs/users/how-to/process-expense.md): Capture a receipt, complete the expense, submit it and follow it to reimbursement.
+- [Process content-platform payouts](docs/users/how-to/process-platform-payouts.md): Import a platform payout, generate its invoices and bills, and settle it against the bank.
+- [Provide read-only accountant access](docs/users/how-to/provide-accountant-access.md): Give an external accountant the Accountant Reviewer role on the right companies only.
+- [Préparer et suivre une signature électronique](docs/users/how-to/signatures-electroniques.md): Préparer le document, désigner les signataires, suivre la signature et conserver la preuve.
+- [Reconcile a clearing or other account](docs/users/how-to/reconcile-clearing-account.md): Settle balances on a non-bank account from the general reconciliation workspace.
+- [Regrouper et contrôler des dépenses dans un lot](docs/users/how-to/expense-batches.md): Créer ou choisir un lot, appliquer le contexte commun, contrôler les lignes signalées et soumettre ensemble.
+- [Review Accounting Hygiene](docs/users/how-to/review-accounting-hygiene.md): Work through the deterministic recommendations, open their records and confirm resolution.
+- [Review an incoming electronic invoice](docs/users/how-to/review-incoming-electronic-invoice.md): Check a received e-invoice, accept it as a bill or reject it with a reason.
+- [Review B2C commerce history](docs/users/how-to/review-b2c-commerce.md): Browse orders, events and settlements imported from the sales channels and open their accounting.
+- [Run a monthly review](docs/users/how-to/run-monthly-review.md): Clear queues, check hygiene, reconcile, review reports and prepare the closing in one pass.
+- [Send product feedback](docs/users/how-to/send-product-feedback.md): Report a bug, suggest an improvement or ask a question from any page and follow the answer.
+- [Sign in with Pocket ID](docs/users/how-to/sign-in-with-pocket-id.md): Sign in to Odoo and Documents with a passkey through Pocket ID, and recover when it fails.
+- [Traiter les encaissements des plateformes de contenu](docs/users/how-to/traiter-encaissements-plateformes.md): Importer un versement de plateforme, générer les factures et le rapprocher de la banque.
+- [Try the Documents application](docs/users/how-to/test-paperless-documents.md): Review the Paperless-backed Documents experience on a test database before relying on it.
+
+## Reference
+
+- [Configuration](docs/users/reference/configuration.md): The settings Accounting managers maintain: companies, journals, taxes, fiscal years and matching.
+- [French declarations](docs/users/reference/declarations.md): The obligations the Declarations workspace tracks and where each figure comes from.
+- [Menus and screens](docs/users/reference/menus-and-screens.md): Every application menu and the screen it opens.
+- [Reports and filters](docs/users/reference/reports-and-filters.md): The financial reports, their filters and what each column means.
+- [Roles and permissions](docs/users/reference/roles-and-permissions.md): Application access, the Accountant Reviewer role and the irreversible actions a role protects.
+- [Statuses](docs/users/reference/statuses.md): What each document, expense, payment and reconciliation status means.
+
+## Decisions
+
+- [A weekly autonomous delivery run for product feedback](docs/product/decisions/0001-weekly-delivery-protocol.md): accepted, 2026-09-08
+- [Documentation generated from tests and served with the release](docs/product/decisions/0002-documentation-generated-from-tests.md): accepted, 2026-09-08
+
+## Optional
+
+- [Analytical accounting](docs/users/explanation/analytical-accounting.md): Why general and analytical accounting answer different questions and how the distribution works.
+- [Closing and lock dates](docs/users/explanation/closing-and-locks.md): What closing a period commits to and how lock dates protect it.
+- [Posting and evidence](docs/users/explanation/posting-and-evidence.md): Why posting turns preparation into ledger truth and what evidence must travel with it.
+- [Reconciliation and residuals](docs/users/explanation/reconciliation.md): What reconciliation links, what a residual means and when partial matching is right.
+- [VAT and declarations](docs/users/explanation/vat-and-declarations.md): How taxes on documents become tax bases, tags and the French VAT return.

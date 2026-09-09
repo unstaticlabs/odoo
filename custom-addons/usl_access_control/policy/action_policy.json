@@ -11877,9 +11877,9 @@
         "route:http:ANY:/my/invoices/<int:invoice_id>": "e42613684f6770934255b11f70f6285b36168b1e0d5b69914ab8dd5062db48d9",
         "route:http:ANY:/my/invoices/page/<int:page>": "dddf4d7e599c38c6de7d96392f74a5c95797f293d450775b32e837c521876160",
         "route:http:ANY:/terms": "67ff9f3d780f6ae5b4a2f97b92bd45d8e4b0e1a5d0186370b604107bb7126d61",
-        "route:http:ANY:/usl/user-docs": "e6964c12f0f339ff4d3c833b73090c3328993d60abfef4d8d6fa26ea0575cc4b",
-        "route:http:ANY:/usl/user-docs/": "95f5ff1557e13bc987ca7ca7ad082bbc30c10ee8179db76130e12948a7c18a2b",
-        "route:http:ANY:/usl/user-docs/<path:doc_path>": "c6833b6cd47e0dc02ad189f69a122359e4e72ed52a3a4d0f7795c1603d9e51ab",
+        "route:http:ANY:/usl/user-docs": "cea22e5f943e06915bacbd3f87bf813b6645bedc2da46768142da33bba53f4a5",
+        "route:http:ANY:/usl/user-docs/": "cfd74cf5abe4b8c7d1ccb45b0dbe6e09059fc98198dfc7a36ee0ed154e1da260",
+        "route:http:ANY:/usl/user-docs/<path:doc_path>": "a9ac40361e6fb3d0510a026668c18f4c79719874b09c74681fcba375c6ab87b1",
         "route:http:GET,POST:/my/journal/<int:journal_id>/unsubscribe": "f54a3c59ef385797cb8e5123181f8a8948bb8c7bef2229f01372e5717cb2f8da",
         "route:http:GET:/my/invoices/overdue": "c2721dc25abb1ae979c214510a312754be1ecc41243f289ff60fd8b40fac1e35",
         "route:http:GET:/payment/pay": "94057d46455c16e5778de00a461db6edb3528f5ad7c54e978d564e85d43e03f9",
@@ -183889,6 +183889,25 @@
         "sink:web_unsplash:addons/web_unsplash/controllers/main.py:Web_Unsplash.save_unsplash_url:sudo:1": "5c467ebd33707392066ee34aa21e2b297e90101bfbb08075384c54f15ba6136d",
         "sink:web_unsplash:addons/web_unsplash/utils.py:get_unsplash_access_key:sudo:1": "c4a033affa0dd3cb7a97f106a874f7770f33a0133027029b856515bbc9341562",
         "sink:web_unsplash:addons/web_unsplash/utils.py:get_unsplash_app_id:sudo:1": "115f1e385907715b80c5c8f24c51fbcd19e4f9f658aaaa761cd278e1320c9eda"
+      }
+    },
+    {
+      "action_keys": [
+        "sink:usl_docs:custom-addons/usl_docs/controllers/user_docs.py:_release_commit:sudo:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Runs only as an internal helper, detected sink, or scheduler-owned job rather than an ordinary actor entry point.",
+      "domain": "system_framework",
+      "evidence_id": "internal-reachability-v1",
+      "id": "system_internal.system_framework.sink.usl_docs",
+      "overrides": {
+        "sink:usl_docs:custom-addons/usl_docs/controllers/user_docs.py:_release_commit:sudo:1": {
+          "reachability_proof": "This private helper reads the usl.release.commit parameter with sudo so the guide can link sources at the running release; it writes nothing. It is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: route:http:ANY:/usl/user-docs, route:http:ANY:/usl/user-docs/, route:http:ANY:/usl/user-docs/<path:doc_path>"
+        }
+      },
+      "rationale": "Runtime registry and source reachability facts provide no direct ordinary RPC/controller access; any reviewed parent or manual scheduler entry is classified separately.",
+      "reviewed_digests": {
+        "sink:usl_docs:custom-addons/usl_docs/controllers/user_docs.py:_release_commit:sudo:1": "fc73f2f8660302dafc346b432181f6bde589eb8fb0edbb29a1951cf031599b81"
       }
     },
     {

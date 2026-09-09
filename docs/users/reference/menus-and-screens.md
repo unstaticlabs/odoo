@@ -1,3 +1,12 @@
+---
+title: Menus and screens
+type: reference
+description: Every application menu and the screen it opens.
+lang: en
+persona: everyone
+generated: false
+---
+
 # Menus and Screens
 
 ## Overview
@@ -131,7 +140,7 @@ costs and native stock so totals from different grains are not multiplied.
 **Configuration** is limited to B2C Managers. Restricted provider payloads are
 hidden unless the user also has the sensitive-evidence role because they may
 contain customer personal data. See [Review B2C commerce
-history](../guides/review-b2c-commerce.md) for the complete review workflow.
+history](../how-to/review-b2c-commerce.md) for the complete review workflow.
 
 ## Action explanations
 

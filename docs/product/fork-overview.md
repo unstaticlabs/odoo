@@ -16,6 +16,7 @@ production-admission work.
 | Multi-company Accounting cockpit, Hygiene, controls, French reports, declarations, closing and FEC | `rebuild_account_migration`, `usl_accounting`, native Accounting and pinned OCA modules | **Accounting** | Operational in production; final statutory and professional sign-off remains |
 | Customer invoices, supplier bills, expenses, payments, assets, deferrals, bank matching, reconciliation and analytics | native Accounting, `usl_accounting` | **Accounting**, **Expenses** | Operational |
 | Company-aware personal Home and attention summaries | `usl_home` | **Home** | Operational |
+| Built-in user guide generated from browser journeys, with per-page test evidence | `usl_docs` | **Help** in the user menu, `/usl/user-docs` | Operational; journeys are being added area by area |
 | Expense Batches with shared business and analytic context | `usl_expense_batch`, `usl_accounting` | **Expenses > Expense Batches** | Operational |
 | Content-platform payout billing and settlement | `usl_platform_billing`, `usl_platform_billing_pocketid` | **Platform Billing** | Operational |
 | TESE payroll evidence, entries and settlement controls | `usl_tese_payroll`, `usl_tese_accounting` | **Paie TESE** | Operational; TESE remains the legal payroll calculator |
@@ -52,6 +53,7 @@ Only `custom-addons/` is part of the normal USL add-ons path.
 | `usl_expense_batch` | Optional expense grouping, shared context, review and native workflow integration. |
 | `usl_feedback` | Shared conversational product feedback, private local page previews, bounded assistant processing and reporter-confirmed Project workflow. |
 | `usl_home` | Personal launcher, durable destinations and bounded attention summaries. |
+| `usl_docs` | The release's user guide, its viewer and the journey harness that generates and proves pages. |
 | `usl_locale` | European date conventions and company-aware presentation. |
 | `usl_platform_billing` | Platform sessions, payouts, generated native Accounting documents and settlement. |
 | `usl_platform_billing_pocketid` | Pocket ID role mapping for Platform Billing administrators. |

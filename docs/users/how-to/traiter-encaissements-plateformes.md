@@ -1,3 +1,14 @@
+---
+title: Traiter les encaissements des plateformes de contenu
+type: how-to
+description: Importer un versement de plateforme, générer les factures et le rapprocher de la banque.
+lang: fr
+persona: finance_operator
+source:
+  - custom-addons/usl_platform_billing
+generated: false
+---
+
 # Traiter les encaissements des plateformes de contenu
 
 ## Préparation

@@ -1,3 +1,12 @@
+---
+title: Analytical accounting
+type: explanation
+description: Why general and analytical accounting answer different questions and how the distribution works.
+lang: en
+persona: ceo
+generated: false
+---
+
 # Analytical Accounting
 
 General accounting answers which legal account was affected. Analytical accounting explains which activity, brand, project or other management dimension caused it.

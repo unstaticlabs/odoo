@@ -29,10 +29,6 @@ SNAPSHOT ?=
 ACCOUNTING_TEST_DB ?= odoo_rebuild_accounting_unit_$(shell date -u +%Y%m%d%H%M%S)
 ACCOUNTING_TEST_TAGS ?= rebuild_account_migration_unit
 ACCOUNTING_TEST_LOG_LEVEL ?= warn
-USER_DOCS_HOST ?= 127.0.0.1
-USER_DOCS_PORT ?= 8079
-USER_DOCS_VENV ?= .venv-docs
-USER_DOCS_PYTHON ?= $(USER_DOCS_VENV)/bin/python
 ACTION_RISK_CANDIDATE ?= artifacts/action-risk/action_surface.candidate.json
 ACTION_RISK_RUNTIME_CANDIDATE ?= artifacts/action-risk/runtime.candidate.json
 
@@ -41,7 +37,7 @@ ACTION_RISK_RUNTIME_CANDIDATE ?= artifacts/action-risk/runtime.candidate.json
 .PHONY: oca-addons-sync document-renderer-certs document-renderer-check
 .PHONY: product-migration-source-boundary product-migration-boundary sign-product-validate
 .PHONY: accounting-addon-tests accounting-multicompany-acceptance
-.PHONY: user-docs-deps user-docs-serve user-docs-build
+.PHONY: docs docs-check
 .PHONY: action-helpers action-risk-discover action-risk-refresh action-risk-compile-policy
 .PHONY: action-risk-inventory action-risk-runtime product-assets french-translations
 .PHONY: expense-batch-qa-bootstrap tese-qa-bootstrap
@@ -73,7 +69,8 @@ help:
 	  '  make smoke TARGET=staging           Run read-only business controls' \
 	  '  make product-migration-boundary     Check the product and private-data boundary' \
 	  '  make accounting-addon-tests         Run focused Accounting module tests' \
-	  '  make user-docs-build                Render user documentation' \
+	  '  make docs                           Regenerate the documentation indexes' \
+	  '  make docs-check                     Check documentation structure and links' \
 	  '' \
 	  'Migration and cutover use migration/manage exclusively.' \
 	  'Run migration/manage --help for its lifecycle commands.'
@@ -201,18 +198,11 @@ accounting-addon-tests: oca-addons-sync document-renderer-certs
 		--test-tags=$(ACCOUNTING_TEST_TAGS) --stop-after-init \
 		--log-level=$(ACCOUNTING_TEST_LOG_LEVEL)
 
-$(USER_DOCS_VENV)/.requirements-ready: requirements-docs.txt
-	python3 -m venv $(USER_DOCS_VENV)
-	$(USER_DOCS_VENV)/bin/python -m pip install --disable-pip-version-check --requirement requirements-docs.txt
-	touch $(USER_DOCS_VENV)/.requirements-ready
+docs:
+	@python3 scripts/docs-index
 
-user-docs-deps: $(USER_DOCS_VENV)/.requirements-ready
-
-user-docs-serve: user-docs-deps
-	@$(USER_DOCS_PYTHON) -m mkdocs serve --config-file mkdocs.yml --dev-addr $(USER_DOCS_HOST):$(USER_DOCS_PORT)
-
-user-docs-build: user-docs-deps document-renderer-check
-	@$(USER_DOCS_PYTHON) -m mkdocs build --config-file mkdocs.yml
+docs-check:
+	@python3 scripts/check-docs
 
 action-helpers:
 	@python3 scripts/check_action_helpers.py custom-addons

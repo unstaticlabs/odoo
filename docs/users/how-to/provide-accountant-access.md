@@ -1,3 +1,14 @@
+---
+title: Provide read-only accountant access
+type: how-to
+description: Give an external accountant the Accountant Reviewer role on the right companies only.
+lang: en
+persona: administrator
+source:
+  - custom-addons/usl_access_control
+generated: false
+---
+
 # Provide Read-Only Accountant Access
 
 Assign the scoped **Accountant Reviewer** role and only the intended companies.

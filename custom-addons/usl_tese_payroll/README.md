@@ -16,7 +16,7 @@ source-dump or restoration machinery.
 Documentation:
 
 - product contract: `docs/product/paie-tese.md`;
-- French user guide: `docs/users/guides/paie-tese.md`.
+- French user guide: `docs/users/how-to/paie-tese.md`.
 
 Run the focused backend suite with:
 
