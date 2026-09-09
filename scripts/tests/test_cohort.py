@@ -4917,6 +4917,20 @@ class CohortContractTests(unittest.TestCase):
             ),
         )
         self.assertEqual(unknown["services"]["odoo-staging"]["environment"]["USL_GITOPS_COMMIT"], "Unknown")
+        # The user guide's evidence rides with the release into the odoo
+        # service, compact, so the viewer can stamp its pages.
+        evidence = {"schema": "usl-docs-evidence/v1", "journeys": {"x": {"status": "success"}}}
+        with_docs = json.loads(
+            _generation_overlay(
+                names, {**release, "qualification": {"evidence": {}, "docs_evidence": evidence}},
+                {"odoo-staging"}, target.value["ingress"], service_names={"odoo": "odoo-staging"},
+            ),
+        )
+        self.assertEqual(
+            json.loads(with_docs["services"]["odoo-staging"]["environment"]["USL_DOCS_EVIDENCE_JSON"]),
+            evidence,
+        )
+        self.assertNotIn("USL_DOCS_EVIDENCE_JSON", unknown["services"]["odoo-staging"]["environment"])
 
     def test_production_candidate_overlay_quarantines_external_workers(self) -> None:
         target = load_target("production", TARGETS)

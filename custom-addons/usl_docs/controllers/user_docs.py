@@ -39,6 +39,8 @@ DOCS_ROUTE = "/usl/user-docs"
 DOCS_ENV_VAR = "USL_USER_DOCS_PATH"
 EVIDENCE_ENV_VAR = "USL_DOCS_EVIDENCE_PATH"
 RELEASE_MANIFEST_ENV_VAR = "USL_RELEASE_MANIFEST_JSON"
+EVIDENCE_PARAMETER = "usl.docs.evidence"
+EVIDENCE_JSON_ENV_VAR = "USL_DOCS_EVIDENCE_JSON"
 READER_GROUP = "base.group_user"
 REPOSITORY_URL = "https://github.com/unstaticlabs/odoo"
 RELEASE_COMMIT_RE = re.compile(r"[0-9a-f]{40}")
@@ -279,13 +281,16 @@ def _evidence_from_file(path, mtime):
         return None
 
 
-def load_evidence():
+def load_evidence(env=None):
     """Return the docs evidence shipped with the running release, or ``None``.
 
     A file named by ``USL_DOCS_EVIDENCE_PATH`` wins (development stacks and
-    the CI database job). Otherwise the release manifest the stack injects as
-    ``USL_RELEASE_MANIFEST_JSON`` may carry a ``docs_evidence`` block. A
-    checkout with neither is an unverified build, and the pill says so.
+    the CI database job). Then ``USL_DOCS_EVIDENCE_JSON``, which the deployment
+    injects into the service from the release manifest's
+    ``qualification.docs_evidence``. Then the ``usl.docs.evidence`` parameter
+    (a database-side stamp). Then a whole release manifest in
+    ``USL_RELEASE_MANIFEST_JSON``. A build with none of them is unverified,
+    and the pill says so.
     """
     path = os.environ.get(EVIDENCE_ENV_VAR)
     if path:
@@ -297,13 +302,31 @@ def load_evidence():
             evidence = _evidence_from_file(path, mtime)
             if isinstance(evidence, dict):
                 return evidence
+    injected = os.environ.get(EVIDENCE_JSON_ENV_VAR)
+    if injected:
+        try:
+            evidence = json.loads(injected)
+        except ValueError:
+            evidence = None
+        if isinstance(evidence, dict):
+            return evidence
+    if env is not None:
+        stored = env["ir.config_parameter"].sudo().get_str(EVIDENCE_PARAMETER) or ""
+        if stored:
+            try:
+                evidence = json.loads(stored)
+            except ValueError:
+                evidence = None
+            if isinstance(evidence, dict):
+                return evidence
     raw = os.environ.get(RELEASE_MANIFEST_ENV_VAR)
     if raw:
         try:
             manifest = json.loads(raw)
         except ValueError:
             return None
-        evidence = manifest.get("docs_evidence") if isinstance(manifest, dict) else None
+        qualification = manifest.get("qualification") if isinstance(manifest, dict) else None
+        evidence = qualification.get("docs_evidence") if isinstance(qualification, dict) else None
         if isinstance(evidence, dict):
             return evidence
     return None
@@ -483,7 +506,7 @@ def _header_html(page, state, release_commit):
         if state["kind"] == "tested":
             pills.append(
                 f'<a class="pill pill-evidence pill-{state["kind"]}" href="{html.escape(state["proof"], quote=True)}" title="{title}">'
-                f'{html.escape(state["label"])} · proof</a>',
+                f'{html.escape(state["label"])}</a>',
             )
         else:
             pills.append(f'<span class="pill pill-evidence pill-{state["kind"]}" title="{title}">{html.escape(state["label"])}</span>')
@@ -631,7 +654,90 @@ def _wants_markdown():
     return first == "text/markdown"
 
 
+def _evidence_page_html(journey, entry, evidence, state, page_record):
+    """The test record behind a page's pill: run, commit, timings and captures."""
+    rows = "".join(
+        "<tr><td>{step}</td><td>{viewport}</td><td><code>{file}</code></td><td>{match}</td></tr>".format(
+            step=html.escape(str(shot.get("step", ""))),
+            viewport=html.escape(str(shot.get("viewport", ""))),
+            file=html.escape(str(shot.get("file", ""))),
+            match={"exact": "matches the published screenshot", "tolerance": "within tolerance of the published screenshot"}.get(
+                shot.get("match"), "not published",
+            ),
+        )
+        for shot in entry.get("screenshots", []) if isinstance(shot, dict)
+    )
+    started = _parse_timestamp(entry.get("started"))
+    finished = _parse_timestamp(entry.get("finished"))
+    duration = ""
+    if started and finished:
+        duration = f"{int((finished - started).total_seconds())} s"
+    run_url = evidence.get("run_url") if isinstance(evidence.get("run_url"), str) else ""
+    run_link = (
+        f'<a href="{html.escape(run_url, quote=True)}" rel="noopener">GitHub run {html.escape(str(evidence.get("workflow_run_id", "")))}</a>'
+        " (GitHub keeps a run for a limited time; this page is the durable record)"
+        if run_url else "no run link"
+    )
+    back = f'{DOCS_ROUTE}/{quote(page_record["path"], safe="/")}' if page_record else DOCS_ROUTE
+    facts = [
+        ("Page", f'<a href="{html.escape(back, quote=True)}">{html.escape(page_record["title"] if page_record else journey)}</a>'),
+        ("Journey", f"<code>{html.escape(journey)}</code>"),
+        ("Tour", f"<code>{html.escape(str(entry.get('tour', '')))}</code>"),
+        ("Test", f"<code>{html.escape(str(entry.get('source_test', '')))}</code>"),
+        ("Last passed", html.escape(state["label"]) + (f" ({html.escape(state['tested_at'])})" if state.get("tested_at") else "")),
+        ("Duration", html.escape(duration or "unknown")),
+        ("Viewports", html.escape(", ".join(str(v) for v in entry.get("viewports", [])))),
+        ("Qualified commit", f"<code>{html.escape(str(evidence.get('qualified_commit', '')))}</code>"),
+        ("Browser", html.escape(str(evidence.get("chromium", "")) or "unknown")),
+        ("Qualification", run_link),
+    ]
+    facts_html = "".join(f"<tr><th>{label}</th><td>{value}</td></tr>" for label, value in facts)
+    body = (
+        f"<h1>Test record for “{html.escape(page_record['title'] if page_record else journey)}”</h1>"
+        "<p>This page was generated from a browser journey that the qualification of the running release "
+        "replayed end to end. What follows is that run.</p>"
+        f"<table>{facts_html}</table>"
+        "<h2>Screens captured</h2>"
+        f"<table><thead><tr><th>Step</th><th>Viewport</th><th>File</th><th>Published copy</th></tr></thead><tbody>{rows}</tbody></table>"
+        f'<p><a href="{html.escape(back, quote=True)}">Back to the page</a></p>'
+    )
+    return body
+
+
 class UserDocsController(http.Controller):
+    @http.route(DOCS_ROUTE + "/evidence/<string:journey>", type="http", auth="user")
+    def user_docs_evidence(self, journey, **kwargs):
+        if not request.env.user.has_group(READER_GROUP):
+            return request.not_found()
+        root = _docs_root()
+        if not root:
+            return request.not_found()
+        evidence = load_evidence(request.env)
+        journeys = evidence.get("journeys") if isinstance(evidence, dict) and isinstance(evidence.get("journeys"), dict) else {}
+        entry = journeys.get(journey)
+        if not isinstance(entry, dict):
+            return request.not_found()
+        records = _doc_records(root)
+        page_record = next((record for record in records if record["journey"] == journey), None)
+        release_commit = _release_commit(request.env)
+        state = evidence_state({"type": "how-to", "journey": journey}, evidence, release_commit)
+        page = {
+            "path": f"evidence/{journey}",
+            "type": "home",
+            "title": f"Test record: {page_record['title'] if page_record else journey}",
+            "description": "",
+            "lang": page_record["lang"] if page_record else "en",
+            "persona": None,
+            "journey": journey,
+            "generated": False,
+            "source": [],
+        }
+        body_html = _evidence_page_html(journey, entry, evidence, state, page_record)
+        return request.make_response(
+            _page_html(page, body_html, records, None, release_commit),
+            headers=[("Content-Type", "text/html; charset=utf-8")],
+        )
+
     @http.route([DOCS_ROUTE, DOCS_ROUTE + "/", DOCS_ROUTE + "/<path:doc_path>"], type="http", auth="user")
     def user_docs(self, doc_path=None, **kwargs):
         if not request.env.user.has_group(READER_GROUP):
@@ -667,7 +773,7 @@ class UserDocsController(http.Controller):
                 headers=[("Content-Type", "text/markdown; charset=utf-8")],
             )
         release_commit = _release_commit(request.env)
-        state = evidence_state(page, load_evidence(), release_commit)
+        state = evidence_state(page, load_evidence(request.env), release_commit)
         body_html = render_markdown(page["body"], page["path"])
         return request.make_response(
             _page_html(page, body_html, _doc_records(root), state, release_commit),

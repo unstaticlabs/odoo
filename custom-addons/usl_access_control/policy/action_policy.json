@@ -5461,6 +5461,7 @@
         "route:http:ANY:/usl/user-docs",
         "route:http:ANY:/usl/user-docs/",
         "route:http:ANY:/usl/user-docs/<path:doc_path>",
+        "route:http:ANY:/usl/user-docs/evidence/<string:journey>",
         "route:http:GET,POST:/my/journal/<int:journal_id>/unsubscribe",
         "route:http:GET:/my/invoices/overdue",
         "route:http:GET:/payment/pay",
@@ -11877,9 +11878,10 @@
         "route:http:ANY:/my/invoices/<int:invoice_id>": "e42613684f6770934255b11f70f6285b36168b1e0d5b69914ab8dd5062db48d9",
         "route:http:ANY:/my/invoices/page/<int:page>": "dddf4d7e599c38c6de7d96392f74a5c95797f293d450775b32e837c521876160",
         "route:http:ANY:/terms": "67ff9f3d780f6ae5b4a2f97b92bd45d8e4b0e1a5d0186370b604107bb7126d61",
-        "route:http:ANY:/usl/user-docs": "cea22e5f943e06915bacbd3f87bf813b6645bedc2da46768142da33bba53f4a5",
-        "route:http:ANY:/usl/user-docs/": "cfd74cf5abe4b8c7d1ccb45b0dbe6e09059fc98198dfc7a36ee0ed154e1da260",
-        "route:http:ANY:/usl/user-docs/<path:doc_path>": "a9ac40361e6fb3d0510a026668c18f4c79719874b09c74681fcba375c6ab87b1",
+        "route:http:ANY:/usl/user-docs": "cbfb2b10cbb4f5c17a6f2241a8452f241b3a371b287d22be8bc44defa5ed9ed4",
+        "route:http:ANY:/usl/user-docs/": "2111566489ebb0ba26e5593b93b78a24c15e4436112740bc995e856badb7acd8",
+        "route:http:ANY:/usl/user-docs/<path:doc_path>": "632da2e5b8c8439b2d2c857fec19c17d61e1f890b4b36649170d7848d0453763",
+        "route:http:ANY:/usl/user-docs/evidence/<string:journey>": "4b4215ab71e962a9c64f4eba9663b340ddcc2da4070b768056a5b070712d88f5",
         "route:http:GET,POST:/my/journal/<int:journal_id>/unsubscribe": "f54a3c59ef385797cb8e5123181f8a8948bb8c7bef2229f01372e5717cb2f8da",
         "route:http:GET:/my/invoices/overdue": "c2721dc25abb1ae979c214510a312754be1ecc41243f289ff60fd8b40fac1e35",
         "route:http:GET:/payment/pay": "94057d46455c16e5778de00a461db6edb3528f5ad7c54e978d564e85d43e03f9",
@@ -183893,7 +183895,8 @@
     },
     {
       "action_keys": [
-        "sink:usl_docs:custom-addons/usl_docs/controllers/user_docs.py:_release_commit:sudo:1"
+        "sink:usl_docs:custom-addons/usl_docs/controllers/user_docs.py:_release_commit:sudo:1",
+        "sink:usl_docs:custom-addons/usl_docs/controllers/user_docs.py:load_evidence:sudo:1"
       ],
       "classification": "system_internal",
       "consequence": "Runs only as an internal helper, detected sink, or scheduler-owned job rather than an ordinary actor entry point.",
@@ -183903,11 +183906,15 @@
       "overrides": {
         "sink:usl_docs:custom-addons/usl_docs/controllers/user_docs.py:_release_commit:sudo:1": {
           "reachability_proof": "This private helper reads the usl.release.commit parameter with sudo so the guide can link sources at the running release; it writes nothing. It is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: route:http:ANY:/usl/user-docs, route:http:ANY:/usl/user-docs/, route:http:ANY:/usl/user-docs/<path:doc_path>"
+        },
+        "sink:usl_docs:custom-addons/usl_docs/controllers/user_docs.py:load_evidence:sudo:1": {
+          "reachability_proof": "This private helper reads the docs evidence the deployment injects, or the usl.docs.evidence parameter with sudo, so the guide can show when a page's journey last passed; it writes nothing. It is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: route:http:ANY:/usl/user-docs, route:http:ANY:/usl/user-docs/, route:http:ANY:/usl/user-docs/<path:doc_path>, route:http:ANY:/usl/user-docs/evidence/<string:journey>"
         }
       },
       "rationale": "Runtime registry and source reachability facts provide no direct ordinary RPC/controller access; any reviewed parent or manual scheduler entry is classified separately.",
       "reviewed_digests": {
-        "sink:usl_docs:custom-addons/usl_docs/controllers/user_docs.py:_release_commit:sudo:1": "fc73f2f8660302dafc346b432181f6bde589eb8fb0edbb29a1951cf031599b81"
+        "sink:usl_docs:custom-addons/usl_docs/controllers/user_docs.py:_release_commit:sudo:1": "fc73f2f8660302dafc346b432181f6bde589eb8fb0edbb29a1951cf031599b81",
+        "sink:usl_docs:custom-addons/usl_docs/controllers/user_docs.py:load_evidence:sudo:1": "4a6bcaf7a8cd709753ce5fa6b43e11d00bc75dba78b54a09bcdff2864c761bf3"
       }
     },
     {

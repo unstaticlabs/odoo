@@ -37,3 +37,29 @@ Same page on a 390x844 viewport. The content comes first and the pills wrap;
 the navigation follows the page instead of pushing it below the fold.
 
 ![Mobile layout with the header pills wrapping and the content first](user-guide-how-to-page-mobile.png)
+
+## A generated how-to with its evidence pill, desktop
+
+Captured on the same database after the pilot journey
+`usl_expense_batch_create_or_select` ran through `JourneyCase` and
+`make docs` rendered its page. The pill reads "Last tested 6 minutes ago", linking to the evidence page, from the docs evidence stored in the database, the steps are the
+journey's own sentences, and the screenshot is the one the journey captured
+inside the test container (Odoo's synthetic `company_1_data` fixtures).
+
+![Generated how-to with the Last tested pill and a journey screenshot](user-guide-generated-how-to-desktop.png)
+
+## The proof page behind the pill, desktop
+
+`/usl/user-docs/evidence/group-expenses-into-a-batch`: the journey, tour and
+test, when it last passed and how long it took, the qualified commit, the
+browser, the GitHub run (with the note that GitHub forgets runs), and each
+captured screen with whether it matches the published copy.
+
+![Proof page listing the run, commit, timings and captured screens](user-guide-proof-page-desktop.png)
+
+## The generated how-to, mobile
+
+Same page on a 390x844 viewport: pills wrap, the screenshot scales, the
+content comes before the navigation.
+
+![Mobile layout of the generated how-to](user-guide-generated-how-to-mobile.png)
