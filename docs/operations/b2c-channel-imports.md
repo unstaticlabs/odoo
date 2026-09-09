@@ -36,6 +36,15 @@ Medusa's item exports carry neither the destination nor the carriage. Without
 the destination there is no rate to charge, so a drop of those alone is stopped
 and the **orders** export is asked for by name. Export all three.
 
+**Two exports of one order have to agree about what the goods came to**, and a
+drop says so when they do not. A channel that states what the goods came to is
+compared against that; one that states only an order total is compared against
+the total less carriage and plus what was taken off, the rest of an order total
+being tax that each channel counts its own way. It is worth reading rather than
+dismissing: Medusa states a subtotal *before* tax, and reading that as the
+price of the goods would have priced every one of its sales at its own total
+less the VAT.
+
 ## The routine
 
 1. **B2C → Channel Imports → New.** Drop the files in. Name the drop.

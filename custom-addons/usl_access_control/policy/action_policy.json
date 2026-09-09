@@ -157043,6 +157043,7 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/product_alias.py:b2c.product.alias.action_verify:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/product_alias.py:b2c.product.alias.action_verify:orm_write:2",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._build_report:orm_write:1",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._check_order_money:orm_write:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._gather_issue:orm_write:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._raise_issue:orm_create:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:1",
@@ -161358,6 +161359,9 @@
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._build_report:orm_write:1": {
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._check_order_money:orm_write:1": {
+          "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
+        },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._gather_issue:orm_write:1": {
           "reachability_proof": "This sink is inside action_parse, whose only ordinary entry point is rpc:b2c.import.batch.action_parse — classified and reviewed in its own right."
         },
@@ -162957,6 +162961,7 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/product_alias.py:b2c.product.alias.action_verify:orm_write:1": "faa83647913fa7e6ed9815c09daf6a3548b344d7da32440b7dc226ce6ff2778e",
         "sink:usl_b2c:custom-addons/usl_b2c/models/product_alias.py:b2c.product.alias.action_verify:orm_write:2": "a5de9eb4739cbefdb3af9311537c81a2d6c81a78d226acf57989e58003aef686",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._build_report:orm_write:1": "a1780a50934b1dd134b88cf15d34cc7a8640e1493f173b4b20148c23e8d9b73e",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._check_order_money:orm_write:1": "ae53561c2a68d42b1a65481f6467d38e5377eb3c586618e13c7a1259f68cf51a",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._gather_issue:orm_write:1": "f464ceae0aa651a130430224afc917d66da65694fb332ec48985cecd0745090f",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._raise_issue:orm_create:1": "7e52af0959b51a8f4e1d5b48739cf6d29d1f86fd4f444d138b9b821f7bb9b0fd",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:1": "75aaa124795740391731c06c184b7c199778aa399b3e6ac10bcccc3f36d86aad",

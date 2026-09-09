@@ -433,6 +433,7 @@ class B2cImportBatch(models.Model):
                 )
             if row.resolution == "new" and "total_amount" not in values:
                 incomplete[row.provider].append(row)
+        self._check_orders_add_up(rows)
         for provider, provider_rows in incomplete.items():
             self._raise_issue(
                 "order_money_missing",
@@ -510,6 +511,72 @@ class B2cImportBatch(models.Model):
                 ),
             ),
         ]
+
+    def _check_orders_add_up(self, rows):
+        """Report an order whose lines and whose total tell different stories.
+
+        The lines of an order and the order itself have to agree about what
+        the goods came to.  Where they do not, one of the two exports means
+        something other than what it is being read as — which is how a subtotal
+        stated before tax came to be read as the price of the goods, and would
+        have priced every sale of one shop at its own total less the VAT.
+
+        A channel that states what the goods came to is compared against that.
+        One that states only an order total is compared against the total less
+        what was charged to send the goods and plus what was taken off, because
+        the rest of an order total is tax and each channel counts that its own
+        way.
+
+        Advisory, because a channel may state a rounding of its own and being
+        stopped by one is worse than being told about it.
+        """
+        self.ensure_one()
+        wrong = []
+        for row in rows.filtered(lambda item: item.grain == "order"):
+            values = row.values or {}
+            lines = self._lines_of(row)
+            if not lines:
+                continue
+            sold = sum(
+                (self._decimal(line.values, "subtotal_amount") for line in lines),
+                Decimal("0"),
+            )
+            if "subtotal_amount" in values:
+                stated = self._decimal(values, "subtotal_amount")
+            elif "total_amount" in values:
+                stated = (
+                    self._decimal(values, "total_amount")
+                    - self._decimal(values, "shipping_amount")
+                    + self._decimal(values, "discount_amount")
+                )
+            else:
+                continue
+            residual = sold - stated
+            if abs(residual) >= Decimal("0.01"):
+                wrong.append((row, sold, stated, residual))
+        for row, sold, stated, residual in wrong[:1]:
+            self._raise_issue(
+                "net_identity",
+                self.env._(
+                    "%(count)s order(s) do not come to what their lines say",
+                    count=len(wrong),
+                ),
+                external_order_id=row.external_order_id,
+                row=row,
+                severity="advisory",
+                note="\n".join(
+                    self.env._(
+                        "%(order)s: its lines come to %(sold)s where the order "
+                        "says %(stated)s — %(residual)s out.",
+                        order=item.external_order_id,
+                        sold=line_total,
+                        stated=total,
+                        residual=difference,
+                    )
+                    for item, line_total, total, difference in wrong[:20]
+                ),
+            )
+        return bool(wrong)
 
     def _settlement_report(self):
         """Say what became of the money: held, invoiced, given back, paid out."""

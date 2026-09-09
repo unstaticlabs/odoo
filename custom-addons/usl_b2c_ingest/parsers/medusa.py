@@ -121,7 +121,6 @@ def parse_full_orders(document):
                 "discount_amount": discount,
                 "tax_amount": tax,
                 "total_amount": total,
-                "line_amount_residual": total - (subtotal - discount + shipping + tax),
             },
         )
 
