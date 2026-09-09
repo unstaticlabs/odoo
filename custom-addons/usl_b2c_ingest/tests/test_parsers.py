@@ -131,3 +131,33 @@ class TestParsers(TransactionCase):
         rows = list(printful.parse_orders(fixtures.PRINTFUL_ORDERS, {}))
         self.assertEqual(rows[0].provider, "printful")
         self.assertEqual(rows[0].values["business_purpose"], "")
+
+    def test_a_shop_that_changes_its_separator_is_still_recognised(self):
+        """Medusa writes its orders with commas and its items with semicolons."""
+        with_commas = fixtures.medusa_full_orders().replace(b";", b",")
+        fmt, rows, _document = self._parse(with_commas)
+        self.assertEqual(fmt.format_id, "medusa_full_orders")
+        self.assertTrue(rows)
+
+    def test_read_with_the_wrong_separator_a_file_is_not_invented(self):
+        """One unrecognisable column is not a shape; it is a refusal."""
+        with self.assertRaises(parsers.SchemaError):
+            self._parse(b"one|two|three\n1|2|3\n")
+
+    def test_a_currency_is_a_name_and_not_a_spelling(self):
+        """Medusa writes eur where its own item export writes EUR."""
+        shouted = tuple(
+            {**row, "Currency Code": row["Currency Code"].lower()}
+            for row in fixtures.MEDUSA_FULL_ROWS
+        )
+        _fmt, parsed, _document = self._parse(fixtures.medusa_full_orders(shouted))
+        stated = {row.values["currency"] for row in parsed if row.grain == "order"}
+        self.assertTrue(stated)
+        self.assertEqual(stated, {name.upper() for name in stated})
+
+    def test_medusa_does_not_claim_a_subtotal_it_states_before_tax(self):
+        """Its Subtotal is not what the customer paid for the goods."""
+        _fmt, parsed, _document = self._parse(fixtures.medusa_full_orders())
+        order = next(row for row in parsed if row.grain == "order")
+        self.assertNotIn("subtotal_amount", order.values)
+        self.assertIn("total_amount", order.values)

@@ -39,7 +39,7 @@ CENT = Decimal("0.01")
 FEE_ENTRY_KINDS = frozenset(etsy.FEE_KINDS) | frozenset(stripe.FEE_KINDS)
 
 #: Findings the commission run owns, cleared each time it runs.
-FEE_KINDS = ("fee_source_missing",)
+FEE_KINDS = ("fee_source_missing", "period_closed")
 
 
 class B2cChannelSettlement(models.Model):
@@ -304,7 +304,16 @@ class B2cImportBatchSettlement(models.Model):
             residual = max(residual, Decimal("0"))
         if abs(residual) < CENT:
             return self.env["account.move"]
-        self._assert_period_open(date)
+        if not self._period_open(date):
+            # A statement covers years and only some of them are still open.
+            # The closed ones are said out loud and left alone, because the
+            # alternative is refusing the whole drop over a month nobody can
+            # post to anyway.
+            self._report_closed_period(
+                self.env._("what %(channel)s kept", channel=channel.name),
+                period, currency, residual,
+            )
+            return self.env["account.move"]
         partner, product = channel._fee_vendor(provider)
         if not (partner and product):
             raise UserError(
@@ -356,6 +365,25 @@ class B2cImportBatchSettlement(models.Model):
             },
         )
         return bill
+
+    def _report_closed_period(self, what, period, currency, amount):
+        """Say what a closed month would have cost, having posted nothing."""
+        self.ensure_one()
+        return self._raise_issue(
+            "period_closed",
+            self.env._(
+                "%(period)s is closed, so %(what)s was not posted",
+                period=f"{period:%B %Y}",
+                what=what,
+            ),
+            severity="advisory",
+            note=self.env._(
+                "%(amount)s %(currency)s, against books closed on %(closed)s.",
+                amount=amount,
+                currency=currency.name,
+                closed=self._closed_on(),
+            ),
+        )
 
     def _fee_reference(self, provider, period, currency):
         """Return a reference no month and currency can hold twice."""
