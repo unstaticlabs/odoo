@@ -473,8 +473,9 @@ class TestSupplyAgainstStatement(TestWallet):
         self._top_up(500)
         batch.action_settle_wallet()
         finding = batch.issue_ids.filtered(lambda issue: issue.kind == "wallet_disagrees")
-        self.assertTrue(finding)
-        self.assertIn("5.00", finding[0].note)
+        self.assertEqual(len(finding), 1)
+        self.assertIn("5.00", finding.note)
+        self.assertIn("5.00", finding.name)
 
     def test_a_statement_with_no_supplier_read_disagrees_with_nothing(self):
         """Without the supplier read there is nothing to compare against.

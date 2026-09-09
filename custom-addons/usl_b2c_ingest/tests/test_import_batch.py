@@ -185,6 +185,41 @@ class TestImportBatch(TransactionCase):
             ).mapped("resolution"),
         )
 
+    def test_an_order_that_does_not_come_to_what_its_lines_say_is_reported(self):
+        """Two exports have to agree about what the goods came to.
+
+        Where they do not, one of them means something other than what it is
+        read as — which is how a subtotal stated before tax came to be read as
+        the price of the goods.
+        """
+        shrunk = tuple(
+            {**row, "Total": str(round(float(row["Total"]) / 2, 2))}
+            for row in fixtures.MEDUSA_FULL_ROWS
+        )
+        batch = self._batch(
+            **{
+                "medusa-full.csv": fixtures.medusa_full_orders(shrunk),
+                "medusa-items.csv": fixtures.medusa_order_items(),
+            },
+        )
+        batch.action_parse()
+        finding = batch.issue_ids.filtered(lambda issue: issue.kind == "net_identity")
+        self.assertTrue(finding)
+        self.assertEqual(finding[0].severity, "advisory")
+        self.assertIn("out.", finding[0].note)
+
+    def test_an_order_that_adds_up_is_not_reported(self):
+        batch = self._batch(
+            **{
+                "medusa-full.csv": fixtures.medusa_full_orders(),
+                "medusa-items.csv": fixtures.medusa_order_items(),
+            },
+        )
+        batch.action_parse()
+        self.assertFalse(
+            batch.issue_ids.filtered(lambda issue: issue.kind == "net_identity"),
+        )
+
     def test_a_replaced_record_stops_being_the_sale(self):
         thin = self._order("medusa", "8000000001")
         full = self._order(

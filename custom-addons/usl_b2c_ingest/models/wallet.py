@@ -424,32 +424,50 @@ class B2cImportBatchWallet(models.Model):
             # disagree with. Saying every month differs would be true and
             # useless, and would bury the months that really do.
             return False
-        found = False
         # Only the months the supplier read covered: a statement reaches back
         # years further than the fulfilments this drop asked about.
-        for period in sorted(held):
-            difference = drawn[period] - held[period]
-            if abs(difference) < CENT:
-                continue
-            found = True
-            self._raise_issue(
-                "wallet_disagrees",
-                self.env._(
-                    "The supplier drew %(drawn)s in %(period)s; Odoo holds "
-                    "%(held)s of fulfilment",
-                    drawn=drawn[period],
-                    period=f"{period:%B %Y}",
-                    held=held[period],
-                ),
-                severity="advisory",
-                note=self.env._(
-                    "A difference of %(difference)s. Either a fulfilment has "
-                    "not reached Odoo, or one cost something other than what "
-                    "it was read as.",
-                    difference=difference,
-                ),
-            )
-        return found
+        differing = [
+            (period, drawn[period] - held[period])
+            for period in sorted(held)
+            if abs(drawn[period] - held[period]) >= CENT
+        ]
+        if not differing:
+            return False
+        # The net matters as much as the months. A cost dated either side of a
+        # month end shows up as two differences that cancel, and reading them
+        # apart sends somebody looking for two problems where there are none.
+        self._raise_issue(
+            "wallet_disagrees",
+            self.env._(
+                "%(count)s month(s) the supplier and Odoo count differently, "
+                "%(net)s apart in total",
+                count=len(differing),
+                net=sum(difference for _period, difference in differing),
+            ),
+            severity="advisory",
+            note="\n".join(
+                [
+                    *(
+                        self.env._(
+                            "%(period)s: the supplier drew %(drawn)s, Odoo holds "
+                            "%(held)s of fulfilment — %(difference)s.",
+                            period=f"{period:%B %Y}",
+                            drawn=drawn[period],
+                            held=held[period],
+                            difference=difference,
+                        )
+                        for period, difference in differing
+                    ),
+                    self.env._(
+                        "Two months differing by the same amount either way is "
+                        "one cost dated either side of a month end. What is left "
+                        "over is a fulfilment that never reached Odoo, or one "
+                        "that cost something other than it was read as.",
+                    ),
+                ],
+            ),
+        )
+        return True
 
     def _check_wallet_position(self):
         """Say so when the supplier has drawn more than was ever paid in."""
