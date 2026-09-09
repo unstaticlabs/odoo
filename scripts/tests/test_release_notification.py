@@ -14,7 +14,10 @@ import sys
 import types
 import unittest
 
-from operations.stack import RELEASE_NOTIFICATION_PROGRAM
+from operations.stack import (
+    RELEASE_ANNOUNCEMENT_AUDIT_PROGRAM,
+    RELEASE_NOTIFICATION_PROGRAM,
+)
 
 
 RELEASE_ID = "a" * 64
@@ -52,8 +55,9 @@ def _escape(value):
 
 
 class _Record:
-    def __init__(self, identifier: int | None):
+    def __init__(self, identifier: int | None, date: str | None = None):
         self.id = identifier
+        self.date = date
 
     def __bool__(self) -> bool:
         return self.id is not None
@@ -92,7 +96,7 @@ class _Messages:
             visible.update(self.database.uncommitted)
         for identifier, values in visible.items():
             if values["message_id"] == wanted:
-                return _Record(identifier)
+                return _Record(identifier, values.get("date", "2026-09-09 10:31:33"))
         return _Record(None)
 
 
@@ -348,6 +352,99 @@ class ReleaseChangelogRenderingTests(unittest.TestCase):
         result = run_program(database, NOTES_V1)
         body = str(database.committed[result["message_id"]]["body"])
         self.assertIn("<ul><li>Improved recovery &lt;b&gt;bold&lt;/b&gt;.</li></ul>", body)
+
+
+class _AuditEnvironment:
+    """The same fake database, seen by a program that may only read it."""
+
+    def __init__(self, database: _Database, entries: list[dict]):
+        self.database = database
+        self.context = {"usl_release_audit_identities": json.dumps(entries, sort_keys=True)}
+        self.cr = _Cursor(database)
+        self.channel = _Channel(database)
+
+    def ref(self, xmlid: str):
+        return {"usl_home.channel_distribution_updates": self.channel}[xmlid]
+
+    def __getitem__(self, model: str):
+        assert model == "mail.message", model
+        return _Messages(self.database)
+
+
+def run_audit(database: _Database, entries: list[dict]) -> dict:
+    database.fresh_transaction = False
+    output = io.StringIO()
+    with contextlib.redirect_stdout(output):
+        exec(
+            compile(RELEASE_ANNOUNCEMENT_AUDIT_PROGRAM, "audit", "exec"),
+            {"env": _AuditEnvironment(database, entries)},
+        )
+    line = next(
+        item for item in reversed(output.getvalue().splitlines())
+        if item.startswith("USL_RELEASE_ANNOUNCEMENT_AUDIT=")
+    )
+    return json.loads(line.removeprefix("USL_RELEASE_ANNOUNCEMENT_AUDIT="))
+
+
+class AnnouncementAuditTests(unittest.TestCase):
+    """A release can be admitted, healthy and never mentioned to anyone.
+
+    ``notify`` is stage thirteen of sixteen and forward-fix only, so its
+    failure leaves no trace the deployment ledger can see. This program is how
+    the host answers the question instead.
+    """
+
+    def entries(self) -> list[dict]:
+        return [
+            {"release": RELEASE_ID, "role": "active"},
+            {"release": "b" * 64, "role": "previous"},
+        ]
+
+    def test_a_posted_release_is_reported_with_its_message(self) -> None:
+        database = _Database()
+        run_program(database)
+        value = run_audit(database, self.entries())
+        active, previous = value["releases"]
+        self.assertTrue(active["announced"])
+        self.assertEqual(active["release"], RELEASE_ID)
+        self.assertEqual(active["role"], "active")
+        self.assertIsInstance(active["message_id"], int)
+        self.assertTrue(active["posted_at"])
+        self.assertFalse(previous["announced"])
+        self.assertIsNone(previous["message_id"])
+
+    def test_nothing_announced_is_reported_as_nothing(self) -> None:
+        value = run_audit(_Database(), self.entries())
+        self.assertEqual([item["announced"] for item in value["releases"]], [False, False])
+
+    def test_the_order_of_the_request_is_the_order_of_the_answer(self) -> None:
+        entries = list(reversed(self.entries()))
+        value = run_audit(_Database(), entries)
+        self.assertEqual(
+            [item["release"] for item in value["releases"]],
+            [entry["release"] for entry in entries],
+        )
+
+    def test_the_audit_never_writes(self) -> None:
+        """What makes it safe to reach through usl-stack-observe."""
+        database = _Database()
+        run_audit(database, self.entries())
+        self.assertNotIn("message_post", database.log)
+        self.assertNotIn("commit", database.log)
+        self.assertEqual(database.committed, {})
+        self.assertEqual(database.uncommitted, {})
+
+    def test_the_audit_program_holds_no_write_at_all(self) -> None:
+        for forbidden in ("message_post", "commit", "create(", "write(", "unlink("):
+            self.assertNotIn(forbidden, RELEASE_ANNOUNCEMENT_AUDIT_PROGRAM)
+
+    def test_it_names_the_same_channel_the_notification_posts_to(self) -> None:
+        self.assertIn(
+            "usl_home.channel_distribution_updates", RELEASE_ANNOUNCEMENT_AUDIT_PROGRAM,
+        )
+        self.assertIn(
+            "<usl-release-%s@unstaticlabs.com>", RELEASE_ANNOUNCEMENT_AUDIT_PROGRAM,
+        )
 
 
 if __name__ == "__main__":
