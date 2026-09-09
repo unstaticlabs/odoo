@@ -39,6 +39,11 @@
                             <field name="paperless_last_sync" readonly="1"/>
                         </setting>
                     </block>
+                    <block title="Email intake" name="document_email_intake">
+                        <setting string="Send documents by email" help="Employees may mail any file to this address. Each message is archived in Documents under the sender's company.">
+                            <field name="document_intake_email" readonly="1"/>
+                        </setting>
+                    </block>
                 </app>
             </xpath>
         </field>

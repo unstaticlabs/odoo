@@ -32488,6 +32488,10 @@
         "rpc:usl.document.download.grant.mail_allowed_qweb_expressions",
         "rpc:usl.document.download.grant.mail_get_partner_fields",
         "rpc:usl.document.get_empty_list_help",
+        "rpc:usl.document.intake.get_empty_list_help",
+        "rpc:usl.document.intake.mail_allowed_qweb_expressions",
+        "rpc:usl.document.intake.mail_get_partner_fields",
+        "rpc:usl.document.intake.message_get_followers",
         "rpc:usl.document.integrity_manifest",
         "rpc:usl.document.link.action_open_record",
         "rpc:usl.document.link.get_empty_list_help",
@@ -33006,6 +33010,7 @@
         "ui:snailmail.action_mail_letters",
         "ui:stock.action_lead_mass_mail",
         "ui:usl_documents.action_documents_workspace",
+        "ui:usl_documents.action_usl_document_intakes",
         "ui:usl_documents.action_usl_document_links",
         "ui:usl_documents.action_usl_document_operations",
         "ui:usl_documents.action_usl_document_quick_filters",
@@ -36327,6 +36332,10 @@
         "rpc:usl.document.download.grant.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
         "rpc:usl.document.download.grant.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
         "rpc:usl.document.get_empty_list_help": "4a45ae42c1905489f0e9be28813ed82287d8b540e4927b5f22dc4bbed6ddb486",
+        "rpc:usl.document.intake.get_empty_list_help": "4a45ae42c1905489f0e9be28813ed82287d8b540e4927b5f22dc4bbed6ddb486",
+        "rpc:usl.document.intake.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+        "rpc:usl.document.intake.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+        "rpc:usl.document.intake.message_get_followers": "485d5a0893a9f9abb3d517b4b09eefc2d37c4a934af9e774768f79fb6b6736a5",
         "rpc:usl.document.integrity_manifest": "415b46152111ff7f86b6c50099f4372c4b69d44eedb14e90cd810e77f01f6fce",
         "rpc:usl.document.link.action_open_record": "474e361102f6e3c836a5d7f88ea4a496a84f0f4a43f9053338150f9f463bbece",
         "rpc:usl.document.link.get_empty_list_help": "4a45ae42c1905489f0e9be28813ed82287d8b540e4927b5f22dc4bbed6ddb486",
@@ -36845,6 +36854,7 @@
         "ui:snailmail.action_mail_letters": "3d96a45d73581b2eceb1676fb01352751ca427abf2199210a63e1874b6dab341",
         "ui:stock.action_lead_mass_mail": "04c7d43c986134549b5e4516494b336fd2fa6bd70277a4d8313a90756456c1e6",
         "ui:usl_documents.action_documents_workspace": "6ec7867ddc9827b64b22a825d40a4df20597d9807a99733b09268c9300d61097",
+        "ui:usl_documents.action_usl_document_intakes": "e940c41e25250469fc20c0680d6ed7d534e5b2e9803ed56d27decc7108b5b4e5",
         "ui:usl_documents.action_usl_document_links": "66d3f261f609c9d79254386c55250298a2bca2b943f02478887f245da717c198",
         "ui:usl_documents.action_usl_document_operations": "2d173952ce811f60bc2eb8ae66dc89d363b2087b55050841847dc92a2cdbee8a",
         "ui:usl_documents.action_usl_document_quick_filters": "e7a551aa8b7c70c25d0342251178253508b96e127d79557dab66843c8252ec7e",
@@ -54579,6 +54589,38 @@
         "rpc:usl.document.has_access",
         "rpc:usl.document.has_field_access",
         "rpc:usl.document.hierarchy_read",
+        "rpc:usl.document.intake.action_archive",
+        "rpc:usl.document.intake.action_unarchive",
+        "rpc:usl.document.intake.check_field_access",
+        "rpc:usl.document.intake.copy_translations",
+        "rpc:usl.document.intake.default_get",
+        "rpc:usl.document.intake.export_data",
+        "rpc:usl.document.intake.fields_get",
+        "rpc:usl.document.intake.formatted_read_group",
+        "rpc:usl.document.intake.get_base_url",
+        "rpc:usl.document.intake.get_external_id",
+        "rpc:usl.document.intake.get_field_translations",
+        "rpc:usl.document.intake.get_formview_action",
+        "rpc:usl.document.intake.get_formview_id",
+        "rpc:usl.document.intake.get_import_templates",
+        "rpc:usl.document.intake.get_metadata",
+        "rpc:usl.document.intake.get_property_definition",
+        "rpc:usl.document.intake.has_access",
+        "rpc:usl.document.intake.has_field_access",
+        "rpc:usl.document.intake.hierarchy_read",
+        "rpc:usl.document.intake.load",
+        "rpc:usl.document.intake.name_search",
+        "rpc:usl.document.intake.rating_send_request",
+        "rpc:usl.document.intake.read",
+        "rpc:usl.document.intake.read_progress_bar",
+        "rpc:usl.document.intake.search",
+        "rpc:usl.document.intake.search_count",
+        "rpc:usl.document.intake.search_panel_select_multi_range",
+        "rpc:usl.document.intake.search_panel_select_range",
+        "rpc:usl.document.intake.search_read",
+        "rpc:usl.document.intake.view_header_get",
+        "rpc:usl.document.intake.web_name_search",
+        "rpc:usl.document.intake.web_read",
         "rpc:usl.document.link.action_archive",
         "rpc:usl.document.link.action_unarchive",
         "rpc:usl.document.link.check_field_access",
@@ -64783,6 +64825,38 @@
         "rpc:usl.document.has_access": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
         "rpc:usl.document.has_field_access": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
         "rpc:usl.document.hierarchy_read": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+        "rpc:usl.document.intake.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+        "rpc:usl.document.intake.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+        "rpc:usl.document.intake.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+        "rpc:usl.document.intake.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+        "rpc:usl.document.intake.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+        "rpc:usl.document.intake.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+        "rpc:usl.document.intake.fields_get": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
+        "rpc:usl.document.intake.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+        "rpc:usl.document.intake.get_base_url": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+        "rpc:usl.document.intake.get_external_id": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+        "rpc:usl.document.intake.get_field_translations": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+        "rpc:usl.document.intake.get_formview_action": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+        "rpc:usl.document.intake.get_formview_id": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+        "rpc:usl.document.intake.get_import_templates": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+        "rpc:usl.document.intake.get_metadata": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+        "rpc:usl.document.intake.get_property_definition": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+        "rpc:usl.document.intake.has_access": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+        "rpc:usl.document.intake.has_field_access": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+        "rpc:usl.document.intake.hierarchy_read": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+        "rpc:usl.document.intake.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+        "rpc:usl.document.intake.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+        "rpc:usl.document.intake.rating_send_request": "fff4486fcff746e1174ad48c341e87325cbfad003de78d24b8ea0101b7ce2486",
+        "rpc:usl.document.intake.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+        "rpc:usl.document.intake.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+        "rpc:usl.document.intake.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+        "rpc:usl.document.intake.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+        "rpc:usl.document.intake.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+        "rpc:usl.document.intake.search_panel_select_range": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+        "rpc:usl.document.intake.search_read": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+        "rpc:usl.document.intake.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+        "rpc:usl.document.intake.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+        "rpc:usl.document.intake.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
         "rpc:usl.document.link.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
         "rpc:usl.document.link.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:usl.document.link.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
@@ -70261,6 +70335,8 @@
         "rpc:trial.balance.report.wizard.button_export_html",
         "rpc:trial.balance.report.wizard.button_export_pdf",
         "rpc:trial.balance.report.wizard.button_export_xlsx",
+        "rpc:usl.document.intake.mcp_revise_own_message",
+        "rpc:usl.document.intake.message_post",
         "rpc:usl.document.link.mcp_revise_own_message",
         "rpc:usl.document.link.message_post",
         "rpc:usl.document.mcp_revise_own_message",
@@ -80342,6 +80418,12 @@
         "rpc:trial.balance.report.wizard.button_export_xlsx": {
           "reversal_action": "rpc:trial.balance.report.wizard.write"
         },
+        "rpc:usl.document.intake.mcp_revise_own_message": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.message_post": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
         "rpc:usl.document.link.mcp_revise_own_message": {
           "rationale": "Revising one Chatter message the caller posted itself is a narrower case of posting it: the same read bar on the business record, plus own authorship, a comment or note subtype, a non-tracking message, and a 24-hour window. It creates no message, notification or follower. Odoo marks the message edited and the Agent audit path records the write with the original body, so the prior state is preserved and the documented reversal restores it. Classified with this model's own message_post.",
           "reversal_action": "rpc:usl.document.link.write"
@@ -83859,6 +83941,8 @@
         "rpc:trial.balance.report.wizard.button_export_html": "3a6774d41ac8f24c4b2757e46f7b6dd893519b4e56770844bb43444629531fe9",
         "rpc:trial.balance.report.wizard.button_export_pdf": "251d040c413f2804eccf24b55f5d693d271a0f9bb311aca44d00325860f5a04b",
         "rpc:trial.balance.report.wizard.button_export_xlsx": "eed0104423af13e990935ba50ddef25fbe506b475fddb5a4fd6928079fd7b356",
+        "rpc:usl.document.intake.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
+        "rpc:usl.document.intake.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:usl.document.link.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:usl.document.link.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:usl.document.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
@@ -96192,6 +96276,22 @@
         "rpc:usl.document.cron_reconcile_linked_classification",
         "rpc:usl.document.cron_sync_from_paperless",
         "rpc:usl.document.get_views",
+        "rpc:usl.document.intake.action_archive_attachment",
+        "rpc:usl.document.intake.action_open_documents_workspace",
+        "rpc:usl.document.intake.get_views",
+        "rpc:usl.document.intake.message_change_thread",
+        "rpc:usl.document.intake.message_mail_with_source",
+        "rpc:usl.document.intake.message_new",
+        "rpc:usl.document.intake.message_notify",
+        "rpc:usl.document.intake.message_parse",
+        "rpc:usl.document.intake.message_post_with_source",
+        "rpc:usl.document.intake.message_process",
+        "rpc:usl.document.intake.message_route",
+        "rpc:usl.document.intake.message_subscribe",
+        "rpc:usl.document.intake.message_unsubscribe",
+        "rpc:usl.document.intake.message_update",
+        "rpc:usl.document.intake.notify_cancel_by_type",
+        "rpc:usl.document.intake.set_message_pin",
         "rpc:usl.document.link.create_for_record",
         "rpc:usl.document.link.get_views",
         "rpc:usl.document.link.message_change_thread",
@@ -101501,6 +101601,54 @@
         "rpc:usl.document.get_views": {
           "reversal_action": "rpc:usl.document.write"
         },
+        "rpc:usl.document.intake.action_archive_attachment": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.action_open_documents_workspace": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.get_views": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.message_change_thread": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.message_mail_with_source": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.message_new": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.message_notify": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.message_parse": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.message_post_with_source": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.message_process": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.message_route": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.message_subscribe": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.message_unsubscribe": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.message_update": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.notify_cancel_by_type": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.set_message_pin": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
         "rpc:usl.document.link.create_for_record": {
           "reversal_action": "rpc:usl.document.link.write"
         },
@@ -104197,6 +104345,22 @@
         "rpc:usl.document.cron_reconcile_linked_classification": "02b5dff40703dd75a4d0f086fdaefa47c2084e29a0a6157b45021a8bf70d0ae3",
         "rpc:usl.document.cron_sync_from_paperless": "d77aeb5498952e3520756240fc04c7f411f78820ac07504a29adffe682838b2c",
         "rpc:usl.document.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
+        "rpc:usl.document.intake.action_archive_attachment": "b709c664d814f18382ebd8438cd811570de88cb255a51bc05c7cad3e294c5b77",
+        "rpc:usl.document.intake.action_open_documents_workspace": "a77c4b201439ce301a99985661cf9f8dbe058829d55d16ea62e0b5fcaaecbaad",
+        "rpc:usl.document.intake.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
+        "rpc:usl.document.intake.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
+        "rpc:usl.document.intake.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
+        "rpc:usl.document.intake.message_new": "4f52faac42827530c2df55e171bddc621b744f1eb03f736243a528614172b89f",
+        "rpc:usl.document.intake.message_notify": "b568fe9d567d0b1007a82514c3532ab6c0e273860092814c1e754ab167ba0a86",
+        "rpc:usl.document.intake.message_parse": "c8e71ccbae570a707b8e261de28b25ea70dc463a1b40807f4b465ac337ac8707",
+        "rpc:usl.document.intake.message_post_with_source": "245fb964979dcb73e5a6189fb10c8ffceade74f7f6eada6d48977d1f86270d4e",
+        "rpc:usl.document.intake.message_process": "3649a84c1bb4f462dd7bacee43fb65b7322f2f54636d62ed0e7c7b6c44e35f75",
+        "rpc:usl.document.intake.message_route": "d61ba3fa54f5c4d768c7604cbbb24391e7ecb8c1e682277538660ff91b6732fd",
+        "rpc:usl.document.intake.message_subscribe": "11e84e993a9c306bbbf756e6e8a577bbc817a7b70df89500195ebc636507b9ea",
+        "rpc:usl.document.intake.message_unsubscribe": "2f4c8176186b0b87d075ee7cfad76d222ef778bba4292ca629e792b821d86172",
+        "rpc:usl.document.intake.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
+        "rpc:usl.document.intake.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
+        "rpc:usl.document.intake.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
         "rpc:usl.document.link.create_for_record": "ade7799d141415807e677c8591c24b6f1690c9540d7a37736cdad8a48e3bc475",
         "rpc:usl.document.link.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
         "rpc:usl.document.link.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
@@ -111906,6 +112070,10 @@
         "rpc:usl.document.download.grant.unlink",
         "rpc:usl.document.download.grant.write",
         "rpc:usl.document.get_view",
+        "rpc:usl.document.intake.create",
+        "rpc:usl.document.intake.get_view",
+        "rpc:usl.document.intake.unlink",
+        "rpc:usl.document.intake.write",
         "rpc:usl.document.link.create",
         "rpc:usl.document.link.get_view",
         "rpc:usl.document.link.mixin.create",
@@ -118595,6 +118763,18 @@
         "rpc:usl.document.get_view": {
           "reversal_action": "rpc:usl.document.write"
         },
+        "rpc:usl.document.intake.create": {
+          "reversal_action": "rpc:usl.document.intake.unlink"
+        },
+        "rpc:usl.document.intake.get_view": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.unlink": {
+          "reversal_action": "rpc:usl.document.intake.create"
+        },
+        "rpc:usl.document.intake.write": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
         "rpc:usl.document.link.create": {
           "reversal_action": "rpc:usl.document.link.unlink"
         },
@@ -121316,6 +121496,10 @@
         "rpc:usl.document.download.grant.unlink": "db26448e50a08448ddeaec03afd0620c4ef3ab7a4e3d8f8fbc84a8f02a8f5f05",
         "rpc:usl.document.download.grant.write": "b0373b6633d99d657d81a9aca3ec6bb0ebad5e3e7b41420276488a6f1ce1c8f4",
         "rpc:usl.document.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+        "rpc:usl.document.intake.create": "0ebda5a92e41005057fefbf8dc7ebe162af4ff04fc623216befcb77d430e9ed5",
+        "rpc:usl.document.intake.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+        "rpc:usl.document.intake.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
+        "rpc:usl.document.intake.write": "b765ae7e5b26511d34e6db72ea0798a0f0f9d0043b599901bba7e1699f27ed23",
         "rpc:usl.document.link.create": "6fb9b8a01e56f98a98a04dc9dea9b3f5f9ed5a8160353c93420ef1c467b098c4",
         "rpc:usl.document.link.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:usl.document.link.mixin.create": "37b76f9937e66a72c0555d93394a9e3336325c81c16eec20667bed140b30b44a",
@@ -125062,6 +125246,19 @@
         "rpc:usl.document.download.grant.web_save_multi",
         "rpc:usl.document.download.grant.web_search_read",
         "rpc:usl.document.formatted_read_grouping_sets",
+        "rpc:usl.document.intake.copy",
+        "rpc:usl.document.intake.copy_data",
+        "rpc:usl.document.intake.formatted_read_grouping_sets",
+        "rpc:usl.document.intake.name_create",
+        "rpc:usl.document.intake.onchange",
+        "rpc:usl.document.intake.rating_apply",
+        "rpc:usl.document.intake.update_field_translations",
+        "rpc:usl.document.intake.web_override_translations",
+        "rpc:usl.document.intake.web_read_group",
+        "rpc:usl.document.intake.web_resequence",
+        "rpc:usl.document.intake.web_save",
+        "rpc:usl.document.intake.web_save_multi",
+        "rpc:usl.document.intake.web_search_read",
         "rpc:usl.document.link.copy",
         "rpc:usl.document.link.copy_data",
         "rpc:usl.document.link.formatted_read_grouping_sets",
@@ -135651,6 +135848,45 @@
         "rpc:usl.document.formatted_read_grouping_sets": {
           "reversal_action": "rpc:usl.document.write"
         },
+        "rpc:usl.document.intake.copy": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.copy_data": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.formatted_read_grouping_sets": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.name_create": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.onchange": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.rating_apply": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.update_field_translations": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.web_override_translations": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.web_read_group": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.web_resequence": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.web_save": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.web_save_multi": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
+        "rpc:usl.document.intake.web_search_read": {
+          "reversal_action": "rpc:usl.document.intake.write"
+        },
         "rpc:usl.document.link.copy": {
           "reversal_action": "rpc:usl.document.link.unlink"
         },
@@ -141320,6 +141556,19 @@
         "rpc:usl.document.download.grant.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:usl.document.download.grant.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:usl.document.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
+        "rpc:usl.document.intake.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+        "rpc:usl.document.intake.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+        "rpc:usl.document.intake.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
+        "rpc:usl.document.intake.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+        "rpc:usl.document.intake.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+        "rpc:usl.document.intake.rating_apply": "67733772bfcfdda678ce0f33c63ce533bfce800bccc0212f07eeae88413c7cb4",
+        "rpc:usl.document.intake.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+        "rpc:usl.document.intake.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+        "rpc:usl.document.intake.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+        "rpc:usl.document.intake.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+        "rpc:usl.document.intake.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+        "rpc:usl.document.intake.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+        "rpc:usl.document.intake.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:usl.document.link.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:usl.document.link.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
         "rpc:usl.document.link.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
@@ -164221,6 +164470,9 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:3",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.create:orm_create:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.write:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake._intake_sender:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake._intake_sender:sudo:2",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake.message_new:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._queue_new_version:orm_create:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._queue_new_version:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._queue_new_version:orm_write:2",
@@ -168378,6 +168630,15 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.write:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.write"
         },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake._intake_sender:sudo:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake._intake_sender:sudo:2": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake.message_new:orm_write:1": {
+          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._queue_new_version:orm_create:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -171175,6 +171436,9 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:3": "5e0e80b713e5dbbdd5f109ab6c0820923ad2f211d58d8c0671f8b53eae3fde37",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.create:orm_create:1": "f83148114242df6b94bd08c8975f0f83e29e26180aceb64c6a42509e6ebcb13f",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.write:orm_write:1": "1e4eff140a45e54c8a3340b1869729192b018d1f887b1727778d7fef2985f709",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake._intake_sender:sudo:1": "0b6ebc74766497136062cb056916109e3db70c3bb6a35e0669a6a61f8ba9b36d",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake._intake_sender:sudo:2": "01efb40dd28b81e5f559faf12fb6f4633f556bd0d77c645c57a2193bfd083fee",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake.message_new:orm_write:1": "35a0ff0f630d12583d8bcd85a17a6ffa2d70fb215405c75bf6b2a4f82a768791",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._queue_new_version:orm_create:1": "bf201174f99314df3f86594d5e55f74e12b875437213b77b74eea96ec1c01b24",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._queue_new_version:orm_write:1": "d527ca2823661e8865a9390262e4688e6d8e24fd8cbfbd079b47cfb16f09c04e",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document._queue_new_version:orm_write:2": "4229a47fb69c28c0f8a5cf50ff9a055b2e0922563997390b6d8bb2b7c0a3ce8f",
@@ -191140,6 +191404,7 @@
         "ui:usl_documents.view_usl_document_form:button:object:action_preview:2",
         "ui:usl_documents.view_usl_document_form:button:object:action_restore_as_current:1",
         "ui:usl_documents.view_usl_document_form:button:object:action_sync_permissions:1",
+        "ui:usl_documents.view_usl_document_intake_form:button:object:action_open_documents_workspace:1",
         "ui:usl_documents.view_usl_document_link_form:button:object:action_open_record:1",
         "ui:usl_documents.view_usl_document_link_list:button:object:action_open_record:1",
         "ui:usl_documents.view_usl_document_smart_view_form:button:object:action_open_documents:1",
@@ -192359,6 +192624,11 @@
             "rpc:usl.document.action_sync_permissions"
           ]
         },
+        "ui:usl_documents.view_usl_document_intake_form:button:object:action_open_documents_workspace:1": {
+          "targets": [
+            "rpc:usl.document.intake.action_open_documents_workspace"
+          ]
+        },
         "ui:usl_documents.view_usl_document_link_form:button:object:action_open_record:1": {
           "targets": [
             "rpc:usl.document.link.action_open_record"
@@ -193154,6 +193424,7 @@
         "ui:usl_documents.view_usl_document_form:button:object:action_preview:2": "c40a867f5400c9b227a3d1737e37d200a16e328e955ae22c474b44c55bbe3d7d",
         "ui:usl_documents.view_usl_document_form:button:object:action_restore_as_current:1": "77310928ec4beb41da086a068c6ecce30acc3042c932665ecdabb7c0dc6ec49d",
         "ui:usl_documents.view_usl_document_form:button:object:action_sync_permissions:1": "d9a914764e231169c2f231b54466d2c927d5c6a54c8c1aec817b812f943b3706",
+        "ui:usl_documents.view_usl_document_intake_form:button:object:action_open_documents_workspace:1": "33325385e6bf86b791890f836269b6fe125d59075b90a077134b78edbf2642f6",
         "ui:usl_documents.view_usl_document_link_form:button:object:action_open_record:1": "cf732f88cdd5717c3f65ffa39faf6454a24f96205d0dead6d38964b666069ad1",
         "ui:usl_documents.view_usl_document_link_list:button:object:action_open_record:1": "4a012a843a756b0506527014b48f8db45fb208b3d2ff691a8846c27ff737ad56",
         "ui:usl_documents.view_usl_document_smart_view_form:button:object:action_open_documents:1": "5413d8b23896cc2b2940f9bb8be0a5737e8816139a6451bf75bf5912a7de0043",

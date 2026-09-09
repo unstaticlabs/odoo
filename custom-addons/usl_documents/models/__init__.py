@@ -2,6 +2,7 @@
 from . import (
     business_record,
     document,
+    document_intake,
     document_lifecycle,
     document_link,
     document_mcp,
