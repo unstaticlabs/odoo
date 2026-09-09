@@ -7,6 +7,8 @@ access_usl_document_version_user,usl.document.version.user,model_usl_document_ve
 access_usl_document_version_accountant,usl.document.version.accountant,model_usl_document_version,group_documents_accountant,1,0,0,0
 access_usl_document_version_manager,usl.document.version.manager,model_usl_document_version,group_documents_manager,1,0,0,0
 access_usl_document_link_manager,usl.document.link.manager,model_usl_document_link,group_documents_manager,1,1,1,1
+access_usl_document_intake_user,usl.document.intake.user,model_usl_document_intake,group_documents_user,1,0,0,0
+access_usl_document_intake_manager,usl.document.intake.manager,model_usl_document_intake,group_documents_manager,1,1,1,1
 access_usl_document_operation_user,usl.document.operation.user,model_usl_document_operation,group_documents_user,1,0,0,0
 access_usl_document_operation_manager,usl.document.operation.manager,model_usl_document_operation,group_documents_manager,1,0,0,0
 access_usl_document_context_tag_manager,usl.document.context.tag.manager,model_usl_document_context_tag,group_documents_manager,1,0,0,0

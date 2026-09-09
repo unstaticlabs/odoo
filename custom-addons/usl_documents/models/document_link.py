@@ -114,6 +114,7 @@ class UslDocumentLink(models.Model):
             "project.project",
             "project.task",
             "hr.employee",
+            "usl.document.intake",
         }
 
     @api.model
