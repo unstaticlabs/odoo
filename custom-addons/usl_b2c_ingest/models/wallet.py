@@ -27,7 +27,7 @@ from odoo.exceptions import UserError
 CENT = Decimal("0.01")
 
 #: Findings the wallet run owns, cleared each time it runs.
-WALLET_KINDS = ("wallet_overdrawn",)
+WALLET_KINDS = ("wallet_overdrawn", "wallet_disagrees")
 
 
 class ResCompanySupply(models.Model):
@@ -136,6 +136,7 @@ class B2cImportBatchWallet(models.Model):
             # finds nothing new must not forget what the first one did.
             batch.write({"wallet_move_ids": [Command.link(move.id) for move in settled]})
             batch._check_wallet_position()
+            batch._check_supply_against_statement()
             batch.write({"report": batch._build_report()})
         return True
 
@@ -386,6 +387,59 @@ class B2cImportBatchWallet(models.Model):
             aggregates=["balance:sum"],
         )
         return found[0][0] or 0.0
+
+    def _check_supply_against_statement(self):
+        """Compare what the supplier says it drew with what Odoo says it cost.
+
+        The cost of a fulfilment is read from the order the supplier fulfilled;
+        what it actually took out of the wallet is stated only in the account
+        the supplier keeps of itself.  They should be the same number.  When
+        they are not, either a fulfilment never reached Odoo or a cost changed
+        after it did, and both are things a person has to look at — so this
+        reports the difference and never quietly prefers one side.
+        """
+        self.ensure_one()
+        drawn = defaultdict(Decimal)
+        for row in self.row_ids.filtered(
+            lambda item: item.grain == "charge"
+            and item.provider == "printful"
+            and item.occurred_at,
+        ):
+            values = row.values or {}
+            if values.get("entry_kind") not in ("supply", "supply_refund"):
+                continue
+            drawn[row.occurred_at.date().replace(day=1)] += -Decimal(
+                str(values.get("wallet_amount") or "0"),
+            )
+        if not drawn:
+            return False
+        held = defaultdict(Decimal)
+        for event in self.fulfilment_event_ids.filtered("event_date"):
+            held[event.event_date.date().replace(day=1)] += Decimal(str(event.cogs_amount))
+        found = False
+        for period in sorted(drawn.keys() | held.keys()):
+            difference = drawn[period] - held[period]
+            if abs(difference) < CENT:
+                continue
+            found = True
+            self._raise_issue(
+                "wallet_disagrees",
+                self.env._(
+                    "The supplier drew %(drawn)s in %(period)s; Odoo holds "
+                    "%(held)s of fulfilment",
+                    drawn=drawn[period],
+                    period=f"{period:%B %Y}",
+                    held=held[period],
+                ),
+                severity="advisory",
+                note=self.env._(
+                    "A difference of %(difference)s. Either a fulfilment has "
+                    "not reached Odoo, or one cost something other than what "
+                    "it was read as.",
+                    difference=difference,
+                ),
+            )
+        return found
 
     def _check_wallet_position(self):
         """Say so when the supplier has drawn more than was ever paid in."""

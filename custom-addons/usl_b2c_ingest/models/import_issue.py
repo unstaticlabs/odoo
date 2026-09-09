@@ -34,6 +34,10 @@ ISSUE_KINDS = [
     ("cancelled_after_delivery", "A cancelled order has already shipped"),
     ("part_refund_unallocated", "Part of an order was refunded, without saying which part"),
     ("wallet_overdrawn", "The supplier drew more than the wallet holds"),
+    ("fee_source_missing", "A channel's own account of what it kept is all there is"),
+    ("payout_unattributed", "A payout left an account nothing names"),
+    ("transfer_amount_missing", "A movement is stated without an amount"),
+    ("wallet_disagrees", "The supplier's account of a month is not the one Odoo holds"),
 ]
 
 

@@ -5,8 +5,9 @@ name or the order of its columns, so a renamed export or a channel that
 reorders its columns still lands in the right parser.
 """
 
-from . import common, etsy, medusa, printful
+from . import common, etsy, medusa, printful, printful_transactions, stripe
 from .common import (
+    CHARGE_GRAIN,
     LINE_GRAIN,
     ORDER_GRAIN,
     ParsedRow,
@@ -22,7 +23,18 @@ from .common import (
 class CsvFormat:
     """One recognised CSV export shape."""
 
-    def __init__(self, format_id, label, provider, header, parse, *, precedence, delimiter=","):
+    def __init__(
+        self,
+        format_id,
+        label,
+        provider,
+        header,
+        parse,
+        *,
+        precedence,
+        delimiter=",",
+        exact=True,
+    ):
         self.format_id = format_id
         self.label = label
         self.provider = provider
@@ -30,7 +42,19 @@ class CsvFormat:
         self.parse = parse
         self.precedence = precedence
         self.delimiter = delimiter
+        #: A shape recognised by the columns it must contain rather than by all
+        #: of them.  Stripe appends one column per metadata key an account
+        #: writes, and a statement carried between tools arrives with a column
+        #: saying where it came from: demanding the whole set would refuse a
+        #: file that is in every respect the export it claims to be.
+        self.exact = exact
         self.signature = header_signature(self.header)
+
+    def recognises(self, header):
+        """Return whether a file's columns are this shape."""
+        if self.exact:
+            return header_signature(header) == self.signature
+        return set(self.header) <= {name.strip() for name in header}
 
 
 #: Lower precedence wins when two exports describe the same fact: an order file
@@ -79,10 +103,38 @@ CSV_FORMATS = (
         precedence=20,
         delimiter=medusa.DELIMITER,
     ),
+    CsvFormat(
+        "etsy_statement",
+        "Etsy — payment account statement",
+        etsy.PROVIDER,
+        etsy.STATEMENT_REQUIRED,
+        etsy.parse_statement,
+        precedence=30,
+        exact=False,
+    ),
+    CsvFormat(
+        "printful_transactions",
+        "Printful — wallet transactions",
+        printful_transactions.PROVIDER,
+        printful_transactions.TRANSACTIONS_REQUIRED,
+        printful_transactions.parse_transactions,
+        precedence=30,
+        exact=False,
+    ),
+    CsvFormat(
+        "stripe_balance_history",
+        "Stripe — balance history",
+        stripe.PROVIDER,
+        stripe.BALANCE_REQUIRED,
+        stripe.parse_balance_history,
+        precedence=30,
+        exact=False,
+    ),
 )
 
 FORMATS_BY_ID = {fmt.format_id: fmt for fmt in CSV_FORMATS}
-_FORMATS_BY_SIGNATURE = {fmt.signature: fmt for fmt in CSV_FORMATS}
+_FORMATS_BY_SIGNATURE = {fmt.signature: fmt for fmt in CSV_FORMATS if fmt.exact}
+_SUBSET_FORMATS = tuple(fmt for fmt in CSV_FORMATS if not fmt.exact)
 
 
 def detect(content):
@@ -102,13 +154,28 @@ def detect(content):
         if found is not None and found.delimiter == delimiter:
             return found
         attempts[delimiter] = document.header
+    # Only once no shape claims the whole header: a file that is exactly one
+    # export must never be read as another that merely fits inside it.
+    for delimiter, header in attempts.items():
+        matching = [
+            fmt
+            for fmt in _SUBSET_FORMATS
+            if fmt.delimiter == delimiter and fmt.recognises(header)
+        ]
+        if len(matching) == 1:
+            return matching[0]
+        if matching:
+            raise SchemaError(
+                "These columns are read by more than one parser, so which "
+                f"export this is cannot be told: {[fmt.label for fmt in matching]}",
+            )
     raise SchemaError(_unrecognised(attempts))
 
 
 def parse(fmt, name, content):
     """Return the parsed rows and the source document for a recognised file."""
     document = read_csv(name, content, delimiter=fmt.delimiter)
-    if header_signature(document.header) != fmt.signature:
+    if not fmt.recognises(document.header):
         raise SchemaError(
             f"{name} does not have the columns of {fmt.label}: "
             f"{_column_difference(fmt.header, document.header)}",

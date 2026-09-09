@@ -72,6 +72,14 @@ class B2cImportBatch(models.Model):
     new_order_count = fields.Integer(compute="_compute_counts", store=True)
     known_order_count = fields.Integer(compute="_compute_counts", store=True)
     conflicting_count = fields.Integer(compute="_compute_counts", store=True)
+    statement_entry_count = fields.Integer(
+        compute="_compute_counts",
+        store=True,
+        string="Statement entries",
+        help="What the parties holding the money say they kept, paid out or "
+             "were paid. It answers to no order, which is why it is counted "
+             "apart from them.",
+    )
     blocking_issue_count = fields.Integer(compute="_compute_counts", store=True)
     advisory_issue_count = fields.Integer(compute="_compute_counts", store=True)
 
@@ -91,7 +99,9 @@ class B2cImportBatch(models.Model):
     )
     def _compute_counts(self):
         for batch in self:
-            rows = batch.row_ids.filtered(lambda row: row.resolution != "supplier")
+            rows = batch.row_ids.filtered(
+                lambda row: row.resolution not in ("supplier", "statement"),
+            )
             orders = rows.filtered(lambda row: row.grain == "order")
             batch.file_count = len(batch.file_ids)
             batch.row_count = len(rows)
@@ -113,6 +123,9 @@ class B2cImportBatch(models.Model):
             )
             batch.conflicting_count = len(
                 rows.filtered(lambda row: row.resolution == "conflicting"),
+            )
+            batch.statement_entry_count = len(
+                batch.row_ids.filtered(lambda row: row.grain == "charge"),
             )
             batch.blocking_issue_count = len(
                 batch.issue_ids.filtered(lambda issue: issue.severity == "blocking"),
@@ -243,6 +256,12 @@ class B2cImportBatch(models.Model):
             if row.grain == "order"
         }
         for row in rows:
+            if row.grain == "charge":
+                # A statement entry answers to a month, not to an order, even
+                # when it names one: two hundred fee entries for one order are
+                # still one order.
+                row.resolution = "statement"
+                continue
             found = matches.get(row.external_order_id)
             if not found:
                 if row.grain == "line" and (row.provider, row.external_order_id) not in headers:
@@ -389,6 +408,25 @@ class B2cImportBatch(models.Model):
                 ),
             )
 
+    def _statement_report(self):
+        """Say what the statements added, and which of them nothing answers."""
+        self.ensure_one()
+        if not self.statement_entry_count:
+            return []
+        by_provider = Counter(
+            row.provider
+            for row in self.row_ids.filtered(lambda item: item.grain == "charge")
+        )
+        return [
+            self.env._(
+                "%(count)s statement entry(ies) read: %(detail)s.",
+                count=self.statement_entry_count,
+                detail=", ".join(
+                    f"{provider} {found}" for provider, found in sorted(by_provider.items())
+                ),
+            ),
+        ]
+
     def _settlement_report(self):
         """Say what became of the money: held, invoiced, given back, paid out."""
         self.ensure_one()
@@ -473,7 +511,17 @@ class B2cImportBatch(models.Model):
         return Country.search([("name", "=ilike", name)], limit=1)
 
     def _period(self, rows):
-        dates = [row.occurred_at for row in rows if row.occurred_at]
+        """Return the span of commerce the drop describes.
+
+        A statement is deliberately not counted.  It states money and can cover
+        a year at a time, and letting it widen the period would send the
+        supplier read looking for a year of fulfilments nobody asked about.
+        """
+        dates = [
+            row.occurred_at
+            for row in rows
+            if row.occurred_at and row.grain != "charge"
+        ]
         if not dates:
             return {"period_start": False, "period_end": False}
         return {"period_start": min(dates).date(), "period_end": max(dates).date()}
@@ -545,7 +593,9 @@ class B2cImportBatch(models.Model):
                     internal=cost["internal"],
                 ),
             )
+        lines.extend(self._statement_report())
         lines.extend(self._settlement_report())
+        lines.extend(self._transfer_report())
         if self.blocking_issue_count or self.advisory_issue_count:
             lines.append(
                 self.env._(

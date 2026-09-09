@@ -1,7 +1,7 @@
 {
     "name": "USL B2C Ingestion",
     "summary": "Ingest channel exports into B2C commerce, Sales, Inventory and Accounting",
-    "version": "saas~19.3.1.1.1",
+    "version": "saas~19.3.1.2.0",
     "category": "Sales/Sales",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
