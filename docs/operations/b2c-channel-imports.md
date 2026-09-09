@@ -122,7 +122,7 @@ Per channel (**B2C → Configuration → Channels**):
   payments cost, who bills it, and what it is bought as. It is a banking cost
   rather than a selling commission, and rarely the same account.
 
-Per company (**Settings → Accounting**, or on the company record):
+Per company (**Settings → B2C**):
 
 - **Print-on-demand supplier**, **Supplier wallet**, **Supply of goods sold**
   and **Supply for no sale** — who draws on the wallet, the journal the wallet
@@ -257,9 +257,11 @@ ledger carries it in the account for liabilities to be regularised.
 
 ## The Printful token
 
-Set the system parameter `usl_b2c_ingest.printful_token`. It is read-only
-access to the supplier's own orders. It is never in the repository and a
-rotated token needs no release.
+**Settings → B2C → The supplier → Printful token.** It is read-only access to
+the supplier's own orders, it is never in the repository, and a rotated token
+needs no release. It is held as the system parameter
+`usl_b2c_ingest.printful_token`, which is where it was before this page
+existed; setting it either way is the same setting.
 
 ## One sale recorded twice
 

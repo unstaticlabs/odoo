@@ -11,6 +11,7 @@
     "data": [
         "security/ir.model.access.csv",
         "security/ingest_security.xml",
+        "views/res_config_settings_views.xml",
         "views/channel_views.xml",
         "views/import_batch_views.xml",
         "views/import_row_views.xml",
