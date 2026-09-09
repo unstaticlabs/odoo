@@ -27,7 +27,7 @@ from odoo.exceptions import UserError
 CENT = Decimal("0.01")
 
 #: Findings the wallet run owns, cleared each time it runs.
-WALLET_KINDS = ("wallet_overdrawn", "wallet_disagrees", "period_closed")
+WALLET_KINDS = ("wallet_overdrawn", "wallet_disagrees", "supply_period_closed")
 
 
 class ResCompanySupply(models.Model):
@@ -237,6 +237,7 @@ class B2cImportBatchWallet(models.Model):
         # still owes both accounts their entry; only the wallet is untouched.
         if not self._period_open(date):
             self._report_closed_period(
+                "supply_period_closed",
                 self.env._("what the supplier drew"), period, currency, total,
             )
             return self.env["account.move"]
@@ -415,13 +416,18 @@ class B2cImportBatchWallet(models.Model):
             drawn[row.occurred_at.date().replace(day=1)] += -Decimal(
                 str(values.get("wallet_amount") or "0"),
             )
-        if not drawn:
-            return False
         held = defaultdict(Decimal)
         for event in self.fulfilment_event_ids.filtered("event_date"):
             held[event.event_date.date().replace(day=1)] += Decimal(str(event.cogs_amount))
+        if not (drawn and held):
+            # A drop carrying a statement and no supplier read has nothing to
+            # disagree with. Saying every month differs would be true and
+            # useless, and would bury the months that really do.
+            return False
         found = False
-        for period in sorted(drawn.keys() | held.keys()):
+        # Only the months the supplier read covered: a statement reaches back
+        # years further than the fulfilments this drop asked about.
+        for period in sorted(held):
             difference = drawn[period] - held[period]
             if abs(difference) < CENT:
                 continue

@@ -37,7 +37,7 @@ MATCH_WINDOW = timedelta(days=10)
 TRANSFER_KINDS = (
     "payout_unattributed",
     "transfer_amount_missing",
-    "period_closed",
+    "transfer_period_closed",
     "transfer_already_posted",
 )
 
@@ -153,7 +153,7 @@ class B2cImportBatchTransfers(models.Model):
             lambda item: item.grain == "charge" and item.occurred_at,
         ):
             values = row.values or {}
-            direction = self._direction(row.provider, values)
+            direction = self._direction(values)
             if not direction:
                 continue
             key = row.external_order_id
@@ -188,7 +188,7 @@ class B2cImportBatchTransfers(models.Model):
         return found
 
     @staticmethod
-    def _direction(provider, values):
+    def _direction(values):
         """Return which way a statement entry moved money, or nothing."""
         kind = values.get("entry_kind")
         if kind == "payout":
@@ -231,6 +231,7 @@ class B2cImportBatchTransfers(models.Model):
         currency = movement["currency"] or self.company_id.currency_id
         if not self._period_open(date):
             self._report_closed_period(
+                "transfer_period_closed",
                 self.env._("a %(direction)s", direction=movement["direction"]),
                 date.replace(day=1), currency, movement["amount"],
             )
@@ -260,17 +261,18 @@ class B2cImportBatchTransfers(models.Model):
             # per statement entry, so its identity cannot be recognised. What
             # can be recognised is the movement itself, already standing in the
             # account it would move.
-            self._raise_issue(
+            self._gather_issue(
                 "transfer_already_posted",
+                lambda count: self.env._(
+                    "%(count)s movement(s) the ledger already shows",
+                    count=count,
+                ),
                 self.env._(
-                    "%(date)s already shows %(amount)s leaving %(account)s",
+                    "%(date)s, %(amount)s out of %(account)s — posted as "
+                    "%(ref)s. Nothing was posted for %(key)s.",
                     date=date,
                     amount=movement["amount"],
                     account=held.code,
-                ),
-                severity="advisory",
-                note=self.env._(
-                    "Posted as %(ref)s. Nothing was posted for %(key)s.",
                     ref=standing.move_id.ref or standing.move_id.name,
                     key=movement["entry_key"],
                 ),
@@ -326,8 +328,11 @@ class B2cImportBatchTransfers(models.Model):
         ours = self.env["b2c.money.transfer"].search(
             [("company_id", "=", self.company_id.id)],
         ).move_id
-        sign = Decimal("-1") if movement["direction"] == "payout" else Decimal("1")
-        wanted = float(sign * movement["amount"])
+        # Money always leaves the account it was held in, whichever direction
+        # it went: a payout leaves the channel's clearing account and a top-up
+        # leaves the bank. So what would stand on that account is a credit, and
+        # a credit is what an earlier posting of the same movement left there.
+        wanted = float(-movement["amount"])
         for line in self.env["account.move.line"].search(
             [
                 ("account_id", "=", held.id),

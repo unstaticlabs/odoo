@@ -53,28 +53,34 @@
                             class="btn-primary" invisible="state != 'resolved'"
                             confirm="This creates sales and moves stock. Apply the drop?"
                             groups="usl_b2c.group_b2c_operator"/>
-                    <button name="action_invoice" type="object" string="Invoice"
-                            title="Invoice every sale this drop created and settle it to the channel that collected it."
-                            class="btn-primary" invisible="state != 'applied'"
-                            confirm="This posts invoices. Invoice the drop?"
+                    <button name="action_settle" type="object" string="Settle the drop"
+                            class="btn-primary"
+                            title="Do everything that follows applying, in the order it has to happen: reconcile what the exports now say, invoice what shipped, bill what the channel kept, settle what the supplier drew, and post what moved to the bank."
+                            invisible="state != 'applied'"
+                            confirm="This posts invoices, supplier documents and bank movements. Settle the drop?"
                             groups="usl_b2c.group_b2c_manager"/>
                     <button name="action_reconcile" type="object" string="Reconcile"
-                            title="Send what these exports now say has shipped, and credit or cancel what they say was taken back."
+                            title="Send what these exports now say has shipped, and credit or cancel what they say was taken back. Step 1 of Settle the drop; here for when it is wanted alone."
                             invisible="state != 'applied'"
                             confirm="This can post credit notes and cancel sales. Reconcile the drop?"
                             groups="usl_b2c.group_b2c_manager"/>
+                    <button name="action_invoice" type="object" string="Invoice"
+                            title="Invoice every sale whose goods have gone out, and hold the rest as an advance. Step 2 of Settle the drop."
+                            invisible="state != 'applied'"
+                            confirm="This posts invoices. Invoice the drop?"
+                            groups="usl_b2c.group_b2c_manager"/>
+                    <button name="action_bill_fees" type="object" string="Bill what was kept"
+                            title="Bill what each channel and each processor kept, for each month and currency this drop states. Step 3 of Settle the drop."
+                            invisible="state != 'applied'"
+                            groups="usl_b2c.group_b2c_manager"/>
                     <button name="action_settle_wallet" type="object" string="Settle the supply"
-                            title="Bill the supplier for what this drop shows it drew on the wallet, and empty the wallet by exactly that."
+                            title="Bill the supplier for what this drop shows it drew on the wallet, and empty the wallet by exactly that. Step 4 of Settle the drop."
                             invisible="state != 'applied'"
                             confirm="This posts supplier documents. Settle what the wallet paid for?"
                             groups="usl_b2c.group_b2c_manager"/>
-                    <button name="action_bill_fees" type="object" string="Bill the commission"
-                            title="Bill each channel's commission for each month this drop touches."
-                            invisible="state != 'applied'"
-                            groups="usl_b2c.group_b2c_manager"/>
                     <button name="action_post_transfers" type="object"
                             string="Post what moved to the bank"
-                            title="Post an entry for each payout and each wallet top-up the statements state, so one bank line meets one entry."
+                            title="Post an entry for each payout and each wallet top-up the statements state, so one bank line meets one entry. Step 5 of Settle the drop."
                             invisible="state != 'applied'"
                             groups="usl_b2c.group_b2c_manager"/>
                     <button name="action_reset" type="object" string="Reset"

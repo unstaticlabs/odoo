@@ -15263,6 +15263,7 @@
     "rpc:b2c.import.batch.action_retire_generic_positions",
     "rpc:b2c.import.batch.action_retire_shadowing_positions",
     "rpc:b2c.import.batch.action_reverse_charge_operators",
+    "rpc:b2c.import.batch.action_settle",
     "rpc:b2c.import.batch.action_settle_catalog_taxes",
     "rpc:b2c.import.batch.action_settle_product_taxes",
     "rpc:b2c.import.batch.action_settle_wallet",

@@ -38,7 +38,10 @@ ISSUE_KINDS = [
     ("payout_unattributed", "A payout left an account nothing names"),
     ("transfer_amount_missing", "A movement is stated without an amount"),
     ("wallet_disagrees", "The supplier's account of a month is not the one Odoo holds"),
-    ("period_closed", "A month the books are closed to"),
+    ("fee_period_closed", "A month the books are closed to, for what was kept"),
+    ("supply_period_closed", "A month the books are closed to, for the supply"),
+    ("transfer_period_closed", "A month the books are closed to, for a movement"),
+    ("fee_source_conflict", "Two parties state what one channel kept"),
     ("transfer_already_posted", "A movement the ledger already shows"),
 ]
 
