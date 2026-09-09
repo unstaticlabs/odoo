@@ -87,6 +87,41 @@ class TestStatementReading(TestWallet):
         self.assertEqual(len(deposit), 1)
         self.assertEqual(Decimal(deposit.values["gross_amount"]), Decimal("-104.00"))
 
+    def test_a_statement_entry_without_a_date_does_not_end_the_drop(self):
+        """Etsy writes a summary line carrying no date, and it settles nothing.
+
+        Every run that reads a statement asks for a date before it looks at
+        anything else, so such a line reaches none of them. Reading it must
+        still leave the rest of the statement readable: the alternative is a
+        month of real entries lost to a line that states nothing.
+        """
+        batch = self._read(
+            **{
+                "etsy-statement.csv": fixtures.etsy_statement(
+                    (
+                        {
+                            "Date": "",
+                            "Type": "Fee",
+                            "Title": "Total fees for March 2026",
+                            "Info": "",
+                            "Currency": "EUR",
+                            "Amount": "--",
+                            "Fees & Taxes": "-€15.20",
+                            "Net": "-€15.20",
+                        },
+                        *fixtures.ETSY_STATEMENT_ROWS,
+                    ),
+                ),
+            },
+        )
+        self.assertFalse(batch.file_ids.filtered(lambda item: item.state == "unreadable"))
+        undated = self._entries(batch, "etsy").filtered(lambda row: not row.occurred_at)
+        self.assertEqual(len(undated), 1)
+        self.assertEqual(
+            len(self._entries(batch, "etsy")),
+            len(fixtures.ETSY_STATEMENT_ROWS) + 1,
+        )
+
     def test_a_marketplace_tax_is_not_a_fee(self):
         batch = self._read(**{"etsy-statement.csv": fixtures.etsy_statement()})
         kinds = {
@@ -325,6 +360,54 @@ class TestTransfers(TestWallet):
         batch = self._moved(**{"stripe.csv": fixtures.stripe_balance_history()})
         self.assertEqual(len(batch.transfer_move_ids), 1)
         self.assertAlmostEqual(self._balance(self.suspense), 58.66, places=2)
+
+    def test_two_payouts_on_one_day_are_two_movements(self):
+        """A day is not an identity, and Etsy states no identity of its own.
+
+        A shop paid out in two currencies is paid out twice on the same day,
+        and Etsy also makes an extra deposit on request. Keyed on the day, the
+        second one is read as the first and never reaches the bank — money
+        that moved, with nothing in the ledger to meet its statement line.
+        """
+        deposits = tuple(
+            row for row in fixtures.ETSY_STATEMENT_ROWS if row["Type"] != "Deposit"
+        ) + (
+            {
+                "Date": "March 31, 2026",
+                "Type": "Deposit",
+                "Title": "€104.00 sent to your bank account",
+                "Info": "",
+                "Currency": "EUR",
+                "Amount": "--",
+                "Fees & Taxes": "--",
+                "Net": "--",
+            },
+            {
+                "Date": "March 31, 2026",
+                "Type": "Deposit",
+                "Title": "£88.00 sent to your bank account",
+                "Info": "",
+                "Currency": "GBP",
+                "Amount": "--",
+                "Fees & Taxes": "--",
+                "Net": "--",
+            },
+        )
+        batch = self._moved(**{"etsy-statement.csv": fixtures.etsy_statement(deposits)})
+        moved = self.env["b2c.money.transfer"].search(
+            [("move_id", "in", batch.transfer_move_ids.ids)],
+        )
+        self.assertEqual(len(moved), 2)
+        self.assertEqual(len(set(moved.mapped("entry_key"))), 2)
+        # And running it again still recognises both, rather than posting a
+        # third under a key that has since changed shape.
+        batch.action_post_transfers()
+        self.assertEqual(
+            self.env["b2c.money.transfer"].search_count(
+                [("move_id", "in", batch.transfer_move_ids.ids)],
+            ),
+            2,
+        )
 
     def test_moving_the_same_statement_again_moves_nothing(self):
         batch = self._moved(**STATEMENTS)
