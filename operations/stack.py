@@ -166,6 +166,18 @@ ODOO_RUNTIME_GID = "1000"
 # directory.  Materialization restores only ``filestore/<database>``, so this
 # directory has to be carried between generations explicitly.
 ODOO_SESSION_STORE_DIRECTORY = "sessions"
+# A session file is named after its session id.  Odoo rotates that id every few
+# hours but keeps the leading bytes, which is also what ``res.device.log``
+# stores to identify the device.  Whole session ids therefore differ between two
+# points in time for the same signed-in person; the identifier does not, so it
+# is the only thing a rollout can compare to prove nobody was signed out.
+ODOO_SESSION_IDENTIFIER_BYTES = 42
+# Anything that reaches Odoo without signing in is given a session file, and
+# the uptime probe reaches it once a minute and never comes back.  Those files
+# are landfill within seconds, but Odoo only reaps them after a week, so
+# production carries thousands of them.  A rollout keeps only the recent ones,
+# which are the in-flight Pocket ID handshakes it must not interrupt.
+SESSION_STORE_ANONYMOUS_GRACE_SECONDS = 3600
 # Local capture directories that the fixed release launcher creates under the
 # state directory.  Production runs are named after their release attempt;
 # staging runs are the attempt itself.
@@ -3972,9 +3984,87 @@ TREE_IDENTITY_PROGRAM = (
     "h.update(p.read_bytes()) if p.is_file() else None\");"
     "print(json.dumps({'files':n,'bytes':b,'sha256':h.hexdigest()},sort_keys=True))"
 )
-DIRECTORY_PRESENT_PROGRAM = (
-    "import json,pathlib,sys;"
-    "print(json.dumps({'present':pathlib.Path(sys.argv[1]).is_dir()}))"
+# Describe an Odoo session store: how many files it holds, how many of them
+# belong to somebody who is signed in, and the identifier of each of those.
+# Identifiers are reported as digests so release evidence never carries session
+# material.  Arguments: store root, staleness cutoff, identifier length.
+SESSION_STORE_SURVEY_PROGRAM = """
+import hashlib, json, pathlib, sys
+
+root = pathlib.Path(sys.argv[1])
+stale_before = float(sys.argv[2])
+identifier_bytes = int(sys.argv[3])
+survey = {
+    "present": root.is_dir(),
+    "files": 0,
+    "unreadable": 0,
+    "authenticated": 0,
+    "anonymous": 0,
+    "anonymous_stale": 0,
+}
+identities = set()
+if survey["present"]:
+    for path in root.glob("*/*"):
+        if not path.is_file():
+            continue
+        survey["files"] += 1
+        try:
+            session = json.loads(path.read_text(encoding="utf-8"))
+            modified = path.stat().st_mtime
+        except (OSError, ValueError):
+            survey["unreadable"] += 1
+            continue
+        if not isinstance(session, dict):
+            survey["unreadable"] += 1
+            continue
+        if not session.get("uid"):
+            survey["anonymous"] += 1
+            if modified < stale_before:
+                survey["anonymous_stale"] += 1
+            continue
+        survey["authenticated"] += 1
+        identities.add(
+            hashlib.sha256(path.name[:identifier_bytes].encode()).hexdigest()
+        )
+survey["identities"] = sorted(identities)
+print(json.dumps(survey, sort_keys=True))
+"""
+# Drop the session files nobody is signed in to and nobody has touched since
+# the cutoff.  A file that cannot be read is left alone: only a file this
+# program has positively identified as abandoned may be removed.  Arguments:
+# store root, staleness cutoff.
+SESSION_STORE_PRUNE_PROGRAM = """
+import json, pathlib, sys
+
+root = pathlib.Path(sys.argv[1])
+stale_before = float(sys.argv[2])
+removed = 0
+for path in sorted(root.glob("*/*")):
+    if not path.is_file():
+        continue
+    try:
+        session = json.loads(path.read_text(encoding="utf-8"))
+        recent = path.stat().st_mtime >= stale_before
+    except (OSError, ValueError):
+        continue
+    if recent or not isinstance(session, dict) or session.get("uid"):
+        continue
+    try:
+        path.unlink()
+    except OSError:
+        continue
+    removed += 1
+for scatter in sorted(root.glob("*")):
+    if scatter.is_dir():
+        try:
+            scatter.rmdir()
+        except OSError:
+            pass
+print(json.dumps({"removed": removed}, sort_keys=True))
+"""
+# The tallies both programs agree on, and the shape release evidence keeps.
+SESSION_STORE_COUNTS = (
+    "files", "unreadable", "authenticated", "anonymous", "anonymous_stale",
 )
 
 
@@ -4013,6 +4103,19 @@ def _preserve_staging_environment_state(target, runner, current: dict, volumes: 
     }
 
 
+def _session_store_survey(runner, path: str, stale_before: float) -> dict:
+    return json.loads(
+        runner.run([
+            "python3", "-c", SESSION_STORE_SURVEY_PROGRAM,
+            path, repr(stale_before), str(ODOO_SESSION_IDENTIFIER_BYTES),
+        ]).stdout,
+    )
+
+
+def _session_store_counts(survey: dict) -> dict:
+    return {name: survey[name] for name in SESSION_STORE_COUNTS}
+
+
 def _preserve_session_store(runner, current: dict, volumes: dict[str, str]) -> dict:
     """Carry the live Odoo HTTP session store into the candidate generation.
 
@@ -4022,6 +4125,12 @@ def _preserve_session_store(runner, current: dict, volumes: dict[str, str]) -> d
     hands the candidate an empty session store and returns every signed-in
     person to the Pocket ID login screen.
 
+    The receipt names the people the rollout is responsible for: the identifier
+    of every session that was signed in when the copy ran.  Comparing whole
+    session ids would prove nothing, because Odoo rotates the id of a live
+    session every few hours while keeping its identifier.  Identifiers are
+    recorded as digests, so the evidence carries no session material.
+
     Sessions are environment-local authentication material.  They are copied
     host-side between the outgoing and incoming generation volumes of the same
     target and never enter a backup repository or cross an environment
@@ -4030,12 +4139,15 @@ def _preserve_session_store(runner, current: dict, volumes: dict[str, str]) -> d
     release: logging people out is strictly better than refusing the rollout.
     """
     receipt: dict = {
-        "schema": "usl-session-store-preservation/v1",
+        "schema": "usl-session-store-preservation/v2",
         "sessions": None,
+        "identities": [],
+        "activated": None,
         "status": "skipped",
         "detail": "",
     }
     role = "odoo_filestore"
+    stale_before = time.time() - SESSION_STORE_ANONYMOUS_GRACE_SECONDS
     try:
         source = os.path.join(
             _volume_source_path(runner, current["volumes"][role]["name"]),
@@ -4053,29 +4165,85 @@ def _preserve_session_store(runner, current: dict, volumes: dict[str, str]) -> d
             "install", "-d", "-m", "0700",
             "-o", ODOO_RUNTIME_UID, "-g", ODOO_RUNTIME_GID, "--", destination,
         ])
-        present = json.loads(
-            runner.run(["python3", "-c", DIRECTORY_PRESENT_PROGRAM, source]).stdout,
-        )
-        if not present["present"]:
+        source_survey = _session_store_survey(runner, source, stale_before)
+        if not source_survey["present"]:
             receipt["status"] = "absent"
             return receipt
         runner.run([
             "rsync", "-aHAXS", "--numeric-ids", "--sparse", "--delete", "--",
             source.rstrip("/") + "/", destination.rstrip("/") + "/",
         ])
-        source_identity = json.loads(
-            runner.run(["python3", "-c", TREE_IDENTITY_PROGRAM, source]).stdout,
+        # Prune the candidate, never the outgoing generation: that store is the
+        # rollback target and has to survive this release untouched.
+        pruned = json.loads(
+            runner.run([
+                "python3", "-c", SESSION_STORE_PRUNE_PROGRAM,
+                destination, repr(stale_before),
+            ]).stdout,
         )
-        destination_identity = json.loads(
-            runner.run(["python3", "-c", TREE_IDENTITY_PROGRAM, destination]).stdout,
-        )
+        destination_survey = _session_store_survey(runner, destination, stale_before)
     except (builtins.RuntimeError, OSError, ValueError, KeyError) as error:
         receipt["detail"] = str(error)
+        receipt["status"] = "failed"
         return receipt
-    receipt["sessions"] = {"source": source_identity, "destination": destination_identity}
-    receipt["status"] = (
-        "preserved" if destination_identity == source_identity else "diverged"
-    )
+    carried = source_survey["identities"]
+    receipt["identities"] = carried
+    receipt["sessions"] = {
+        "source": _session_store_counts(source_survey),
+        "destination": _session_store_counts(destination_survey),
+        "pruned": pruned["removed"],
+    }
+    missing = set(carried) - set(destination_survey["identities"])
+    receipt["status"] = "preserved" if not missing else "diverged"
+    return receipt
+
+
+def _verify_session_store_activation(
+    runner, volumes: dict[str, str], receipt: dict | None,
+) -> dict | None:
+    """Prove the cohort that went live still serves the sessions it was handed.
+
+    A copy into a volume is not the claim anybody cares about; the claim is
+    that the people who were signed in before the rollout are still signed in
+    after it.  Reading the activated generation's own store, seconds after
+    cutover, is what turns the first into the second — and it is what tells a
+    later reader whether "I was signed out again" happened here or somewhere
+    else.  The answer is evidence, never a gate: the release is already live.
+
+    Unlike the copy, this reads a store that is being written to.  Rotating a
+    session replaces its file, and Odoo briefly removes the old one before
+    writing the new, so a single walk can step through the gap and report a
+    sign-out that never happened.  Only an identifier that two independent
+    walks both fail to find is reported, which is the difference between
+    evidence and noise.
+    """
+    if receipt is None or receipt["status"] not in {"preserved", "diverged"}:
+        return receipt
+    stale_before = time.time() - SESSION_STORE_ANONYMOUS_GRACE_SECONDS
+    carried = set(receipt["identities"])
+    try:
+        store = os.path.join(
+            _volume_source_path(runner, volumes["odoo_filestore"]),
+            ODOO_SESSION_STORE_DIRECTORY,
+        )
+        survey = _session_store_survey(runner, store, stale_before)
+        signed_out = carried - set(survey["identities"])
+        if signed_out:
+            survey = _session_store_survey(runner, store, stale_before)
+            signed_out &= carried - set(survey["identities"])
+    except (builtins.RuntimeError, OSError, ValueError, KeyError) as error:
+        receipt["detail"] = str(error)
+        if receipt["status"] == "preserved":
+            # ``diverged`` already names a failure and must not be softened
+            # into "we did not look".  Either way ``activated`` stays null,
+            # which is what says the live store went unread.
+            receipt["status"] = "unverified"
+        return receipt
+    receipt["activated"] = {**_session_store_counts(survey), "signed_out": len(signed_out)}
+    if signed_out and receipt["status"] == "preserved":
+        # A copy that already diverged keeps that name: it says where the
+        # sessions went, and ``signed_out`` says how many never arrived.
+        receipt["status"] = "lost"
     return receipt
 
 
@@ -6621,6 +6789,21 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     except Exception as error:
         rollback_active_candidate(error)
         raise
+    if session_store_preservation is not None:
+        # The copy happened before cutover, against a volume nobody was serving
+        # from yet.  Only the live generation can say whether the people who
+        # were signed in still are, so ask it, and record the answer either way.
+        session_store_preservation = _verify_session_store_activation(
+            target_runner, volumes, session_store_preservation,
+        )
+        _record_event(
+            target,
+            target_runner,
+            generation,
+            "restore",
+            "session-store",
+            session_store_preservation["status"],
+        )
     phase_started = time.monotonic()
     _record_event(target, target_runner, generation, "restore", "validation", "started")
     try:

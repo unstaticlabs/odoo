@@ -368,8 +368,31 @@ The copy is host-side between the two generation volumes: session material
 never enters a backup repository and never crosses an environment boundary, so
 a staging reset from production starts with an empty session store. Session
 continuity is convenience state rather than an integrity control. The run
-records the copy as `session_store_preservation`, and a failure to copy is
-reported there rather than failing the release.
+records it as `session_store_preservation`, and a failure is reported there
+rather than failing the release.
+
+That receipt states an outcome, not an intention. Before copying, the run reads
+the outgoing store and records the identifier of every session that is signed
+in; after cutover it reads the store the live generation is actually serving
+and reports how many of those identifiers are still there. It compares
+identifiers rather than session ids because Odoo rotates the id of a live
+session every few hours while keeping its identifier, so a rotation is not
+mistaken for a sign-out. Identifiers are recorded as digests, so the evidence
+carries no session material. The status is `preserved` when everyone survived,
+`diverged` when the copy itself dropped someone, `lost` when the live
+generation no longer serves a session the rollout carried, and `unverified`
+when the store could not be read after cutover. The release is already live by
+then, so none of these fail it — they answer "was I signed out by this
+release?" without an investigation.
+
+The copy also leaves the outgoing store's abandoned sessions behind. Anything
+that reaches Odoo without signing in is given a session file, including the
+uptime probe, which mints one a minute and never returns; Odoo only reaps them
+after a week. The rollout carries the sessions that are signed in plus the
+anonymous ones touched within the last hour, which are the in-flight Pocket ID
+handshakes it must not interrupt. Pruning happens on the candidate only: the
+outgoing generation's store is the rollback target and is left exactly as
+found.
 
 An ordinary `19-usl-staging` release never selects a production snapshot. It
 takes an attempt-bound staging checkpoint, clones the current staging database,
