@@ -308,6 +308,7 @@ jobs:
     timeout-minutes: 60
     permissions:
       contents: read
+      deployments: read
       pull-requests: read
       packages: write
       id-token: write
@@ -362,9 +363,12 @@ jobs:
           if [ -n "$GEMINI_API_KEY" ] && [ "$GITHUB_REF" = 'refs/heads/19-usl' ]; then
             summarize=(--summarize)
           fi
+          # --ref is what lets a production changelog start from the last
+          # release that actually reached users rather than from this push.
           scripts/release-notes \
             --repository "$GITHUB_REPOSITORY" \
             --before "$RELEASE_BEFORE_SHA" \
+            --ref "$GITHUB_REF" \
             --sha "$GITHUB_SHA" \
             --fallback operations/release-notes.json \
             "${summarize[@]}" \

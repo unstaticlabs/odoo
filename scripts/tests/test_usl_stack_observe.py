@@ -49,11 +49,16 @@ class TestUslStackObserve(unittest.TestCase):
                 self.assertEqual(argv[:3], ["usl-stack", "--target", "staging"])
                 self.assertEqual(argv[-1], "--json")
 
-    def test_mapped_actions_are_status_only(self):
+    # The read-only actions of the subcommands this wrapper maps. Naming them
+    # is the point: `release` also carries notify, run, abort and restore, and
+    # any of those appearing here would make the wrapper a mutating one.
+    READ_ONLY_ACTIONS = frozenset({"status", "announcements"})
+
+    def test_mapped_actions_are_read_only(self):
         for observation, verb in self.module.OBSERVATIONS.items():
             with self.subTest(observation=observation):
                 if len(verb) > 1:
-                    self.assertEqual(verb[1], "status")
+                    self.assertIn(verb[1], self.READ_ONLY_ACTIONS)
 
     def test_mutating_verbs_are_unreachable(self):
         # Real operations.stack subcommands and actions. None may be reachable
@@ -69,6 +74,9 @@ class TestUslStackObserve(unittest.TestCase):
             "adopt-gateway",
             "abort",
             "recovery-proof",
+            # `announcements` reads the channel; `notify` writes to it, and
+            # they are actions of the same subcommand.
+            "notify",
         ):
             with self.subTest(smuggled=smuggled):
                 self.assertNotIn(smuggled, self.module.OBSERVATIONS)

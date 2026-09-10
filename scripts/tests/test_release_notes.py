@@ -17,10 +17,13 @@ from operations.release_manifest import _release_notes
 from operations.release_notes import (
     ReleaseNotesError,
     build_notes,
+    delivered_base,
     generate,
+    is_ancestor,
     main,
     parse_title,
     range_commits,
+    resolve_base,
     select_pull_requests,
     summarize,
     summary_prompt,
@@ -28,7 +31,10 @@ from operations.release_notes import (
 
 
 REPOSITORY = "unstaticlabs/odoo"
-BEFORE = "0" * 39 + "1"
+# Deliberately not a ``commit(n)``: the fake narrows a range whose base it
+# knows, exactly as GitHub does, and a previous tip that is also a commit
+# in the range would make these fixtures mean two things at once.
+BEFORE = "b" * 40
 SHA = "f" * 40
 DATE = datetime.date(2026, 9, 5)
 
@@ -59,20 +65,44 @@ class FakeApi:
         *,
         compare_error: bool = False,
         commits_error: bool = False,
+        deployments: list[dict] | None = None,
+        statuses: dict[int, list[str]] | None = None,
+        compare_status: str = "ahead",
+        deployments_error: bool = False,
     ):
         self.commits = commits
         self.compare_error = compare_error
         self.commits_error = commits_error
+        self.deployments = deployments or []
+        self.statuses = statuses or {}
+        self.compare_status = compare_status
+        self.deployments_error = deployments_error
         self.calls: list[list[str]] = []
 
     def __call__(self, arguments: list[str]):
         self.calls.append(arguments)
         endpoint = arguments[0]
+        if "/deployments/" in endpoint and "/statuses" in endpoint:
+            identifier = int(endpoint.split("/deployments/")[1].split("/")[0])
+            return [{"state": state} for state in self.statuses.get(identifier, [])]
+        if endpoint.startswith(f"repos/{REPOSITORY}/deployments?"):
+            if self.deployments_error:
+                raise ReleaseNotesError("gh api deployments failed: HTTP 403")
+            return self.deployments
         if endpoint.startswith(f"repos/{REPOSITORY}/compare/"):
             if self.compare_error:
                 raise ReleaseNotesError("gh api compare failed: HTTP 404")
+            # The history is ordered oldest first, so a base it contains
+            # narrows the range exactly as GitHub would.
             shas = list(self.commits)
-            return {"total_commits": len(shas), "commits": [{"sha": sha} for sha in shas]}
+            base = endpoint.split("/compare/")[1].split("...")[0]
+            if base in shas:
+                shas = shas[shas.index(base) + 1:]
+            return {
+                "status": self.compare_status,
+                "total_commits": len(shas),
+                "commits": [{"sha": sha} for sha in shas],
+            }
         if endpoint.startswith(f"repos/{REPOSITORY}/commits?"):
             if self.commits_error:
                 raise ReleaseNotesError("gh api commits failed: connection refused")
@@ -94,6 +124,15 @@ class FakeApi:
 
 def commit(index: int) -> str:
     return f"{index:040x}"
+
+
+def deployment(identifier: int, sha: str, created: str) -> dict:
+    return {
+        "id": identifier,
+        "sha": sha,
+        "environment": "production-release",
+        "created_at": created,
+    }
 
 
 class ParseTitleTests(unittest.TestCase):
@@ -402,7 +441,8 @@ class MainTests(unittest.TestCase):
                 api,
             )
         self.assertEqual(code, 0, err)
-        self.assertIn("reaching back to the last deployed commit", err)
+        self.assertIn("reviewed record aaaaaaaaaaaa", err)
+        self.assertIn("remove", err)
         compare = next(call[0] for call in api.calls if "/compare/" in call[0])
         self.assertIn("a" * 40, compare)
         self.assertNotIn(BEFORE, compare)
@@ -428,7 +468,7 @@ class MainTests(unittest.TestCase):
     def test_no_record_keeps_the_pushed_range(self) -> None:
         api = FakeApi({commit(1): [node(9, "fix(home): keep the breadcrumb honest")]})
         with tempfile.TemporaryDirectory() as directory:
-            code, out, err = self.run_main(
+            code, _out, err = self.run_main(
                 [
                     "--repository", REPOSITORY, "--before", BEFORE, "--sha", SHA,
                     "--date", "2026-09-05",
@@ -437,7 +477,8 @@ class MainTests(unittest.TestCase):
                 api,
             )
         self.assertEqual(code, 0, err)
-        self.assertNotIn("reaching back", err)
+        self.assertNotIn("reviewed record", err)
+        self.assertIn("pushed range", err)
         compare = next(call[0] for call in api.calls if "/compare/" in call[0])
         self.assertIn(BEFORE, compare)
 
@@ -554,6 +595,282 @@ class MainTests(unittest.TestCase):
         notes = json.loads(out)
         self.assertEqual(notes["schema"], "usl-release-notes/v2")
         self.assertEqual(notes["changes"][0]["number"], 9)
+
+
+# The production releases of 2026-09-08 and 2026-09-09, as they actually
+# happened. #214 published and never deployed, so #203, #204, #205, #211 and
+# #213 fell out of the range the next release announced.
+DELIVERED = "6da8bf6dea4549fbaca624d51469a859022961ca"
+UNDELIVERED = "8f55edd3440a0683b39f99a7a0ca82f7ff2300ad"
+PROMOTED = "cab902594624840bbaa83b16ad3ca8188a43b34e"
+PRODUCTION_REF = "refs/heads/19-usl"
+
+
+def statuses_from(mapping: dict[int, list[str]]):
+    return lambda identifier: [{"state": state} for state in mapping.get(identifier, [])]
+
+
+class DeliveredBaseTests(unittest.TestCase):
+    def test_the_newest_successful_deployment_is_the_base(self) -> None:
+        api = FakeApi(
+            {},
+            deployments=[
+                deployment(1, commit(1), "2026-09-08T17:00:00Z"),
+                deployment(2, commit(2), "2026-09-09T04:00:00Z"),
+            ],
+            statuses={1: ["success"], 2: ["success"]},
+        )
+        self.assertEqual(delivered_base(REPOSITORY, api=api), commit(2))
+
+    def test_a_failed_newest_deployment_reaches_further_back(self) -> None:
+        api = FakeApi(
+            {},
+            deployments=[
+                deployment(1, commit(1), "2026-09-08T17:00:00Z"),
+                deployment(2, commit(2), "2026-09-09T04:00:00Z"),
+            ],
+            statuses={1: ["success"], 2: ["failure", "in_progress"]},
+        )
+        self.assertEqual(delivered_base(REPOSITORY, api=api), commit(1))
+
+    def test_a_superseded_deployment_is_not_a_delivery(self) -> None:
+        api = FakeApi(
+            {},
+            deployments=[deployment(1, commit(1), "2026-09-08T17:00:00Z")],
+            statuses={1: ["inactive"]},
+        )
+        self.assertIsNone(delivered_base(REPOSITORY, api=api))
+
+    def test_no_deployment_at_all_yields_no_base(self) -> None:
+        self.assertIsNone(delivered_base(REPOSITORY, api=FakeApi({})))
+
+    def test_an_unreadable_timestamp_becomes_a_release_notes_error(self) -> None:
+        api = FakeApi(
+            {},
+            deployments=[deployment(1, commit(1), "the day before yesterday")],
+            statuses={1: ["success"]},
+        )
+        with self.assertRaisesRegex(ReleaseNotesError, "unreadable"):
+            delivered_base(REPOSITORY, api=api)
+
+
+class IsAncestorTests(unittest.TestCase):
+    def test_ahead_and_identical_place_the_base(self) -> None:
+        for status in ("ahead", "identical"):
+            api = FakeApi({}, compare_status=status)
+            self.assertTrue(is_ancestor(REPOSITORY, commit(1), SHA, api))
+
+    def test_diverged_and_behind_do_not(self) -> None:
+        for status in ("diverged", "behind"):
+            api = FakeApi({}, compare_status=status)
+            self.assertFalse(is_ancestor(REPOSITORY, commit(1), SHA, api))
+
+
+class ResolveBaseTests(unittest.TestCase):
+    def ledger(self, **overrides) -> FakeApi:
+        options = {
+            "deployments": [deployment(1, DELIVERED, "2026-09-08T17:00:00Z")],
+            "statuses": {1: ["success"]},
+        }
+        options.update(overrides)
+        return FakeApi({}, **options)
+
+    def resolve(self, api, **overrides):
+        options = {
+            "before": BEFORE,
+            "sha": SHA,
+            "ref": PRODUCTION_REF,
+            "recorded": None,
+        }
+        options.update(overrides)
+        return resolve_base(REPOSITORY, api=api, **options)
+
+    def test_a_production_push_starts_from_the_last_delivered_release(self) -> None:
+        base, reason = self.resolve(self.ledger())
+        self.assertEqual(base, DELIVERED)
+        self.assertIn("last delivered production release", reason)
+
+    def test_a_staging_push_keeps_the_pushed_range(self) -> None:
+        api = self.ledger()
+        base, reason = self.resolve(api, ref="refs/heads/19-usl-staging")
+        self.assertEqual(base, BEFORE)
+        self.assertIn("only a production release is announced", reason)
+        self.assertEqual(api.calls, [])
+
+    def test_a_reviewed_record_outranks_the_ledger(self) -> None:
+        api = self.ledger()
+        base, reason = self.resolve(api, recorded="a" * 40)
+        self.assertEqual(base, "a" * 40)
+        self.assertIn("reviewed record", reason)
+        self.assertEqual(api.calls, [])
+
+    def test_a_base_that_is_not_an_ancestor_is_refused(self) -> None:
+        base, reason = self.resolve(self.ledger(compare_status="diverged"))
+        self.assertEqual(base, BEFORE)
+        self.assertIn("is not an ancestor", reason)
+
+    def test_an_unreadable_ledger_keeps_the_pushed_range(self) -> None:
+        base, reason = self.resolve(self.ledger(deployments_error=True))
+        self.assertEqual(base, BEFORE)
+        self.assertIn("deployment ledger is unreadable", reason)
+
+    def test_an_unplaceable_base_keeps_the_pushed_range(self) -> None:
+        base, reason = self.resolve(self.ledger(compare_error=True))
+        self.assertEqual(base, BEFORE)
+        self.assertIn("cannot be placed", reason)
+
+    def test_nothing_delivered_yet_keeps_the_pushed_range(self) -> None:
+        base, reason = self.resolve(self.ledger(deployments=[], statuses={}))
+        self.assertEqual(base, BEFORE)
+        self.assertIn("no production release has reached users yet", reason)
+
+    def test_a_ledger_that_agrees_with_the_push_changes_nothing(self) -> None:
+        api = self.ledger()
+        base, reason = self.resolve(api, before=DELIVERED)
+        self.assertEqual(base, DELIVERED)
+        self.assertIn("already starts at delivered", reason)
+
+    def test_a_re_run_of_a_delivered_release_keeps_the_pushed_range(self) -> None:
+        """Otherwise ``range_commits`` falls back to the last twenty commits.
+
+        A release workflow can be re-run after it has already deployed, and a
+        base equal to the pushed commit would announce a changelog of work that
+        was announced long ago.
+        """
+        api = self.ledger(
+            deployments=[deployment(1, SHA, "2026-09-09T10:31:00Z")],
+            statuses={1: ["success"]},
+        )
+        base, reason = self.resolve(api)
+        self.assertEqual(base, BEFORE)
+        self.assertIn("is this release", reason)
+
+    def test_an_invalid_identity_never_reaches_the_api(self) -> None:
+        api = self.ledger()
+        base, reason = self.resolve(api, sha="abc")
+        self.assertEqual(base, BEFORE)
+        self.assertIn("release identity is invalid", reason)
+        self.assertEqual(api.calls, [])
+
+
+class LedgerMainTests(MainTests):
+    def incident(self) -> FakeApi:
+        """The real 2026-09-09 history: one release that never deployed."""
+        return FakeApi(
+            {
+                DELIVERED: [],
+                "b22ff82261abbfbd1ea6b33948cc7964081f80d8": [
+                    node(203, "docs(delivery): answer the delivery-protocol review"),
+                ],
+                "fb1982bb03045a048c32f8e6c1804c644474ff71": [
+                    node(204, "fix(operations): name the Odoo service staging runs"),
+                ],
+                "a9b7c14e57a6f45e6dcc55cdced36e7759f9a33c": [
+                    node(205, "fix(navigation): make Official Documents reachable again"),
+                ],
+                "7deb707f4cb26635312abade45fefb2b28082d71": [
+                    node(211, "docs(agents): point every agent at its skills"),
+                ],
+                "a4a599fd01bf51b0873cf4efb1f812d9c36f9c46": [
+                    node(213, "fix(delivery): move agent worktrees out of harm"),
+                ],
+                UNDELIVERED: [
+                    node(
+                        214, "chore(release): promote qualified staging",
+                        baseRefName="19-usl", headRefName="19-usl-staging",
+                    ),
+                ],
+                "423b602afc03f60a1a8aeb0d4857476cf6dac023": [
+                    node(218, "fix(documents): keep a failed access push from failing a release"),
+                ],
+                PROMOTED: [
+                    node(
+                        220, "chore(release): promote qualified staging",
+                        baseRefName="19-usl", headRefName="19-usl-staging",
+                    ),
+                ],
+            },
+            deployments=[
+                deployment(1, DELIVERED, "2026-09-08T17:25:00Z"),
+                deployment(2, UNDELIVERED, "2026-09-09T04:09:00Z"),
+            ],
+            statuses={1: ["success"], 2: ["failure", "in_progress"]},
+        )
+
+    def announced(self, api, **extra) -> tuple[int, dict, str]:
+        code, out, err = self.run_main(
+            [
+                "--repository", REPOSITORY, "--before", UNDELIVERED,
+                "--sha", PROMOTED, "--date", "2026-09-09",
+                *[item for pair in extra.items() for item in pair],
+            ],
+            api,
+        )
+        return code, json.loads(out) if code == 0 and out.strip() else {}, err
+
+    def test_the_changelog_reaches_over_the_release_that_never_deployed(self) -> None:
+        """The regression this whole change exists for.
+
+        Production released #214 and it rolled back. The next release pushed
+        from that same tip, so the pull requests #214 carried were outside its
+        range and were never announced to anyone.
+        """
+        api = self.incident()
+        code, notes, err = self.announced(api, **{"--ref": "refs/heads/19-usl"})
+        self.assertEqual(code, 0, err)
+        self.assertEqual(
+            sorted(change["number"] for change in notes["changes"]),
+            [203, 204, 205, 211, 213, 218],
+        )
+        self.assertIn(f"last delivered production release {DELIVERED[:12]}", err)
+        # The notes still have to satisfy the sealed manifest contract.
+        _release_notes(notes)
+
+    def test_without_the_ledger_the_same_history_loses_five_changes(self) -> None:
+        """What the pushed range alone produces, which is the bug."""
+        api = self.incident()
+        code, notes, err = self.announced(api)
+        self.assertEqual(code, 0, err)
+        self.assertEqual([change["number"] for change in notes["changes"]], [218])
+
+    def test_a_ledger_failure_never_fails_the_changelog(self) -> None:
+        api = self.incident()
+        api.deployments_error = True
+        code, notes, err = self.announced(api, **{"--ref": "refs/heads/19-usl"})
+        self.assertEqual(code, 0, err)
+        self.assertEqual([change["number"] for change in notes["changes"]], [218])
+        self.assertIn("deployment ledger is unreadable", err)
+
+    def test_an_unreadable_fallback_still_produces_valid_notes(self) -> None:
+        """A changelog must never be the thing that stops a release."""
+        api = FakeApi({commit(1): []})
+        with tempfile.TemporaryDirectory() as directory:
+            broken = Path(directory) / "release-notes.json"
+            broken.write_text("{ not json", encoding="utf-8")
+            code, out, err = self.run_main(
+                [
+                    "--repository", REPOSITORY, "--before", BEFORE, "--sha", SHA,
+                    "--date", "2026-09-05", "--fallback", str(broken),
+                ],
+                api,
+            )
+        self.assertEqual(code, 0, err)
+        notes = json.loads(out)
+        self.assertEqual(notes["schema"], "usl-release-notes/v1")
+        self.assertIn("minimal built-in notes", err)
+        _release_notes(notes)
+
+    def test_a_missing_fallback_file_is_not_fatal_either(self) -> None:
+        api = FakeApi({commit(1): []})
+        code, out, err = self.run_main(
+            [
+                "--repository", REPOSITORY, "--before", BEFORE, "--sha", SHA,
+                "--date", "2026-09-05", "--fallback", "/nonexistent/notes.json",
+            ],
+            api,
+        )
+        self.assertEqual(code, 0, err)
+        _release_notes(json.loads(out))
 
 
 if __name__ == "__main__":

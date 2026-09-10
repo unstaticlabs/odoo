@@ -6153,6 +6153,126 @@ def _notify_release(target, runner, release_id: str) -> dict:
     raise RuntimeError("release notification returned no evidence")
 
 
+ANNOUNCEMENT_AUDIT_SCHEMA = "usl-release-announcements/v1"
+
+RELEASE_ANNOUNCEMENT_AUDIT_PROGRAM = """
+import json
+entries = json.loads(env.context.get("usl_release_audit_identities"))
+channel = env.ref("usl_home.channel_distribution_updates").sudo()
+found = []
+for entry in entries:
+    external_message_id = "<usl-release-%s@unstaticlabs.com>" % entry["release"]
+    message = env["mail.message"].sudo().search([
+        ("model", "=", channel._name),
+        ("res_id", "=", channel.id),
+        ("message_id", "=", external_message_id),
+    ], limit=1)
+    found.append({
+        "announced": bool(message),
+        "message_id": message.id if message else None,
+        "posted_at": str(message.date) if message else None,
+        "release": entry["release"],
+        "role": entry["role"],
+    })
+print("USL_RELEASE_ANNOUNCEMENT_AUDIT=" + json.dumps({
+    "channel": "usl_home.channel_distribution_updates",
+    "releases": found,
+}, sort_keys=True))
+"""
+
+
+def _audit_announcements(target, runner) -> dict:
+    """Report whether the releases this host runs were ever announced.
+
+    ``notify`` is stage thirteen of sixteen and its failure is forward-fix
+    only, so a release can be admitted, healthy and never mentioned to the
+    people it was built for. The deployment ledger cannot see that, because it
+    records the deploy and not the announcement. This reads the one place that
+    knows: the channel itself.
+
+    It only reads. There is no ``message_post`` and no commit here, which is
+    what makes it safe to reach through ``scripts/usl-stack-observe``.
+    """
+    if target.value["environment"] != "production":
+        raise RuntimeError("release announcements are production-only")
+    runtime = inspect_runtime(target, runner)
+    active = runtime.get("active_state") or {}
+    entries: list[dict] = []
+    seen: set[str] = set()
+    for role, manifest in (
+        ("active", active.get("release_manifest")),
+        ("previous", (active.get("previous") or {}).get("release_manifest")),
+    ):
+        if not manifest:
+            continue
+        identity = json.loads(_read_path(target, runner, manifest)).get("identity")
+        if not isinstance(identity, str) or not re.fullmatch(r"[0-9a-f]{64}", identity):
+            raise RuntimeError(f"{role} release identity is invalid")
+        if identity in seen:
+            continue
+        seen.add(identity)
+        entries.append({"release": identity, "role": role})
+    if not entries:
+        return {
+            "schema": ANNOUNCEMENT_AUDIT_SCHEMA,
+            "channel": "usl_home.channel_distribution_updates",
+            "releases": [],
+            "unannounced": [],
+        }
+    release, _release_sha, _release_raw = _release(target, runner, None)
+    network = target.value["compose"]["default_network"]
+    volumes = runtime["volumes"]
+    database = target.value["databases"]["odoo"]
+    result = runner.run(
+        [
+            "docker", "run", "--rm", "--interactive", "--network", network,
+            "--env-file", target.value["secrets"]["env_file"],
+            "--env", f"ODOO_DB_HOST={database['service']}",
+            "--env", "ODOO_DB_PORT=5432",
+            "--env", f"ODOO_DB_USER={database['user']}",
+            "--env", f"ODOO_DB_NAME={database['name']}",
+            "--env", "ODOO_MAX_CRON_THREADS=0",
+            "--env", "USL_EINVOICE_LIVE_ENABLED=0",
+            "--env", "USL_EREPORTING_LIVE_ENABLED=0",
+            "--volume", f"{volumes['odoo_filestore']['name']}:/var/lib/odoo",
+            release["components"]["distribution"]["digest_reference"],
+            "odoo", "shell", "--config=/etc/odoo/odoo.conf",
+            f"--database={database['name']}", "--no-http", "--max-cron-threads=0",
+        ],
+        input_text=(
+            "env = env(context=dict(env.context, usl_release_audit_identities="
+            + repr(json.dumps(entries, sort_keys=True))
+            + "))\n"
+            + RELEASE_ANNOUNCEMENT_AUDIT_PROGRAM
+        ),
+    )
+    prefix = "USL_RELEASE_ANNOUNCEMENT_AUDIT="
+    for line in reversed(result.stdout.splitlines()):
+        if line.startswith(prefix):
+            try:
+                value = json.loads(line.removeprefix(prefix))
+            except json.JSONDecodeError as error:
+                raise RuntimeError("release announcement audit returned invalid evidence") from error
+            reported = value.get("releases")
+            if (
+                value.get("channel") != "usl_home.channel_distribution_updates"
+                or not isinstance(reported, list)
+                or [item.get("release") for item in reported] != [
+                    entry["release"] for entry in entries
+                ]
+            ):
+                raise RuntimeError("release announcement audit evidence differs")
+            return {
+                "schema": ANNOUNCEMENT_AUDIT_SCHEMA,
+                "channel": value["channel"],
+                "releases": reported,
+                "unannounced": [
+                    item["release"] for item in reported if not item.get("announced")
+                ],
+            }
+    raise RuntimeError("release announcement audit returned no evidence")
+
+
 def _restore_unlocked(arguments: argparse.Namespace) -> int:
     restore_started = time.monotonic()
     source = load_target(arguments.source, arguments.targets)
@@ -10081,6 +10201,10 @@ def release_command(arguments: argparse.Namespace) -> int:
         value = _notify_release(target, runner, arguments.release_id or "")
         print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
         return 0
+    if arguments.action == "announcements":
+        value = _audit_announcements(target, runner)
+        print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
+        return 0
     if arguments.action == "activate":
         if not arguments.snapshot or not arguments.candidate_release:
             raise RuntimeError(
@@ -10638,7 +10762,7 @@ def build_parser() -> argparse.ArgumentParser:
             "staging-reset-intent",
             "resume-staging",
             "reconcile-staging", "staging-reset-from-production",
-            "activate", "status", "abort", "notify",
+            "activate", "status", "abort", "notify", "announcements",
         ),
     )
     release.add_argument("--target", dest="command_target")

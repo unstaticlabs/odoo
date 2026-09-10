@@ -14,7 +14,7 @@ mutating verb.
     scripts/usl-stack-observe <target> <observation>
 
     targets       staging | production | local
-    observations  runtime | release | health | smoke | storage
+    observations  runtime | release | health | smoke | storage | announcements
 
 Every observation prints JSON on stdout.
 """
@@ -33,12 +33,17 @@ TARGETS = ("staging", "production", "local")
 # Only the read-only side of each subcommand. `runtime` also accepts start,
 # stop and adopt-gateway; `release` also accepts run, abort and restore. Those
 # are deliberately unreachable from here.
+#
+# `announcements` answers a question `release` cannot: whether the releases
+# this host runs were ever told to the people who use them. Its program only
+# searches; it posts nothing and commits nothing.
 OBSERVATIONS = {
     "runtime": ("runtime", "status"),
     "release": ("release", "status"),
     "health": ("health",),
     "smoke": ("smoke",),
     "storage": ("storage", "status"),
+    "announcements": ("release", "announcements"),
 }
 
 
