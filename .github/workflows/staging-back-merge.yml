@@ -8,11 +8,14 @@ on:
   workflow_dispatch:
 
 # `contents: write` is deliberate and is the only workflow here that needs it.
-# Enabling auto-merge (enablePullRequestAutoMerge) requires write access to the
-# repository, and without it the run opens the back-merge pull request and then
-# cannot queue it, leaving 19-usl-staging behind 19-usl until somebody merges by
-# hand. The token still cannot bypass the ruleset on either release branch: the
-# merge queue and the required checks decide when the pull request lands.
+# Two things need it. The run pushes the back-merge head branch, because a pull
+# request opened directly from 19-usl inherits that branch's push-event runs and
+# one red run there blocks the back-merge for ever. And enabling auto-merge
+# (enablePullRequestAutoMerge) requires write access to the repository; without
+# it the run opens the pull request and then cannot queue it, leaving
+# 19-usl-staging behind 19-usl until somebody merges by hand. The token still
+# cannot bypass the ruleset on either release branch: the merge queue and the
+# required checks decide when the pull request lands.
 permissions:
   contents: write
   pull-requests: write
