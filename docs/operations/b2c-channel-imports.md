@@ -14,14 +14,36 @@ every stage can be run again without adding anything.
 | Medusa — sold items per order | The lines, one row per order |
 | Medusa — sold items | The lines, one row per line |
 | Printful (read over its API) | What fulfilment cost, and when it shipped |
+| Etsy — payment account statement | What Etsy kept, and what it paid out |
+| Stripe — balance history | What Stripe kept, and what it paid out |
+| Printful — wallet transactions | What drew on the wallet, and what topped it up |
 
-A file is recognised by the **set** of column names it declares, not by its
-name or the order of its columns. A channel that reorders its columns is still
-recognised; one that renames or drops a column is reported, naming the column.
+A file is recognised by the columns it declares, not by its name or the order
+of them. An order export is matched on the whole set; a statement on the columns
+its writer always writes, because Stripe adds one column per metadata key an
+account happens to use and nothing about that changes what the file is. A file
+no parser knows is reported, naming the columns it lacks and the closest export.
+
+**An order export is not an account of what a channel kept.** Etsy's sold-orders
+file states the card processing fee and nothing else — not the transaction fee,
+the listing fee, the regulatory fee or the advertising — and Medusa's states
+nothing at all, because Medusa keeps nothing and Stripe keeps everything. Drop
+the statements as well, or the clearing accounts keep the difference for ever.
+When one is missing the drop still completes, saying which account will keep it;
+dropping the statement later bills exactly the difference.
 
 Medusa's item exports carry neither the destination nor the carriage. Without
 the destination there is no rate to charge, so a drop of those alone is stopped
 and the **orders** export is asked for by name. Export all three.
+
+**Two exports of one order have to agree about what the goods came to**, and a
+drop says so when they do not. A channel that states what the goods came to is
+compared against that; one that states only an order total is compared against
+the total less carriage and plus what was taken off, the rest of an order total
+being tax that each channel counts its own way. It is worth reading rather than
+dismissing: Medusa states a subtotal *before* tax, and reading that as the
+price of the goods would have priced every one of its sales at its own total
+less the VAT.
 
 ## The routine
 
@@ -41,24 +63,38 @@ and the **orders** export is asked for by name. Export all three.
    finding stopping only the step it would spoil.
 6. **Apply.** Contacts, canonical orders, sales orders priced at what was
    actually paid, and deliveries completed on the day the goods left.
-7. **Reconcile.** What these exports now say has become of the orders they
-   name: goods an earlier drop could not send because they had not left yet,
-   and the sales the channel has since cancelled or refunded.
-8. **Invoice.** One invoice per sale whose goods have gone out, dated the day
-   of the sale, settled into the channel's clearing account. An order paid and
-   not yet shipped is held instead, and becomes an invoice in the drop that
-   says it shipped.
-9. **Bill the commission.** One bill per channel per month, paid out of the
-   same clearing account.
-10. **Settle the supply.** One document per month for what the supplier drew on
-    its wallet, paid out of the wallet itself.
+7. **Settle the drop.** The five runs that follow, in the order they have to
+   happen. Each is on its own button as well, for whoever needs one alone, and
+   each is safe to run again:
+   1. **Reconcile** what these exports now say became of the orders they name:
+      goods an earlier drop could not send because they had not left yet, and
+      the sales the channel has since cancelled or refunded.
+   2. **Invoice** each sale whose goods have gone out, dated the day of the
+      sale, settled into the channel's clearing account. An order paid and not
+      yet shipped is held instead, and becomes an invoice in the drop that says
+      it shipped.
+   3. **Bill what was kept** — one document per party, per month, per currency.
+   4. **Settle the supply** — one document per month for what the supplier drew
+      on its wallet, paid out of the wallet itself.
+   5. **Post what moved to the bank** — one entry per payout and per top-up.
 
-What is left is the bank: each payout meets the clearing account, which by then
-holds exactly what the payout brings, and each wallet top-up meets the wallet.
+What is left is the bank. Four kinds of line, each meeting one entry: supplier
+bills, Printful top-ups, Etsy payouts and Stripe payouts. A payout entry exists
+so that one bank line meets one entry rather than every receipt the payout
+settled.
 
-Every step can be run again. A drop applied, reconciled, invoiced, billed and
-settled twice leaves the ledger exactly as the first run left it — which is
-what makes re-dropping a wider export the way to correct a narrower one.
+Every step can be run again. A drop applied and settled twice leaves the ledger
+exactly as the first run left it — which is what makes re-dropping a wider
+export the way to correct a narrower one.
+
+The report ends with what is left for a person to do. Everything above it is
+what the drop did.
+
+A statement reaches back years further than the books are open, and a ledger
+already holds most of the movements one states. Findings that are true of many
+months at once are gathered into one rather than raised a hundred times: a
+closed-month finding names every month it covers, and so does one saying a
+movement was already posted.
 
 ## What happens to an order that does not stand
 
@@ -104,13 +140,21 @@ Per channel (**B2C → Configuration → Channels**):
   posting its payments to that channel's clearing account.
 - **Channel operator** and **Commission product** — who bills the commission
   and what it is bought as.
+- **Payment processor**, **Processor** and **Processing product** — for a shop
+  of one's own, which keeps nothing itself. Whose statement says what its
+  payments cost, who bills it, and what it is bought as. It is a banking cost
+  rather than a selling commission, and rarely the same account.
 
-Per company (**Settings → Accounting**, or on the company record):
+Per company (**Settings → B2C**):
 
 - **Print-on-demand supplier**, **Supplier wallet**, **Supply of goods sold**
   and **Supply for no sale** — who draws on the wallet, the journal the wallet
   is held in, and the two products a month of supply is bought as. Without them
   the supply cannot be settled and the button says so.
+- **B2C bank** and **B2C transfers** — the bank the channels pay into, whose
+  suspense account is where a payout waits for its statement line, and the
+  journal the movements are written in. Without them nothing can be posted for
+  a payout and the button says so.
 - **Registered for the One Stop Shop**, and the two accounts destination VAT
   reaches before and after registration. Until registration it accrues as a
   liability to be regularised rather than as VAT collected under a scheme the
@@ -136,8 +180,91 @@ In the chart:
   one needs the archived records to be visible: write the mapping with
   `active_test` disabled, or the ORM keeps it and says nothing.
 
-The readiness check reports each of these against the drop in hand, and makes
-the corrections that are a matter of fact rather than judgement.
+The readiness check reports each of these against the drop in hand. It also
+**puts right** the ones that are a matter of fact rather than judgement, unless
+*Keep the chart correct* is unticked on the drop. It is ticked by default: most
+of what the check would otherwise report is a defect in the chart rather than in
+the drop, and reporting a thing that can be put right without putting it right
+wastes the reader's attention. Untick it to see what the chart would be reported
+for without changing it.
+
+## Setting a shop up for the first time
+
+Rehearsed against a copy of the production ledger; the order matters, and each
+step says how to know it worked.
+
+**1. Give each account a journal that holds it.** A clearing account is money a
+third party holds for you, which in Odoo is a bank journal — the same way the
+Stripe and PayPal connectors model one. The journals the historical
+reconstruction wrote into are *Miscellaneous* journals holding no account at
+all, so they cannot be selected as a clearing journal, and no payment can be
+registered in one.
+
+Odoo allows the type to be changed and computes the payment methods when it is.
+Convert the three that hold an account, and add one per further currency:
+
+| Journal | Type becomes | Default account | Journal currency |
+| --- | --- | --- | --- |
+| Etsy (`ETSY`) | Bank | `511210 Etsy Clearing EUR` | — |
+| Stripe (`STRP`) | Bank | `511220 Stripe Clearing EUR` | — |
+| Printful Wallet (`PFW`) | Bank | `409110 Printful Wallet EUR` | — |
+| *new* Stripe Clearing GBP | Bank | `511221` | GBP |
+| *new* Stripe Clearing USD | Bank | `511222` | USD |
+
+Medusa (`MEDU`) stays Miscellaneous: it is where the payout and top-up entries
+are written. A shop of one's own holds no money of its own, so it needs no
+clearing account — its customers' money sits in Stripe's.
+
+*Worked when*: each converted journal shows one inbound and one outbound
+payment method, and its default account is the one above.
+
+**2. Give each cost something to be bought as.** A product per expense account,
+so a document reaches the account and not a general one:
+
+| Product | Expense account |
+| --- | --- |
+| Channel commission | `622200 Commissions et courtages sur ventes` |
+| Payment processing | `627800 Autres frais et commissions bancaires` |
+| Supply of goods sold | `607000 Achats de marchandises` |
+| Supply for no sale | the marketing and prototyping account |
+| Carriage charged *(income, not expense)* | `708500 Ports et frais accessoires facturés` |
+
+**3. Fill in Settings → B2C**, and the channels under **B2C → Configuration →
+Channels**. Every field is listed under *Configuration this depends on* below.
+
+*Worked when*: pressing **Settle the drop** on an applied batch raises no
+`UserError` naming something unset.
+
+**4. Let it adopt what came before.** Installing or upgrading the module records
+a settlement for every month the historical reconstruction already settled, so
+the tool can see those months are done. Nothing is posted.
+
+*Worked when*: the install log says how many months of commission and how many
+fulfilments it adopted, and a drop covering those months posts nothing for them.
+
+**5. Close the books you have filed.** The tool refuses to write behind
+`fiscalyear_lock_date` and `tax_lock_date`, and reports what it would have
+posted instead. That refusal is the strongest guarantee there is that a filed
+period stays as filed, and it costs nothing to set.
+
+## The four accounts, and what empties each
+
+| Account | Filled by | Emptied by |
+| --- | --- | --- |
+| Etsy clearing | Each invoice, settled to the channel | The commission bill, then the payout entry |
+| Stripe clearing | Each Medusa invoice | Stripe's own charge, then the payout entry |
+| Printful wallet | Each top-up entry | The monthly supply document |
+| Bank suspense | Payouts and top-ups waiting | The bank statement line, matched by hand |
+
+Medusa has no account of its own. A shop of one's own holds no money: what its
+customers paid sits in the Stripe clearing account, and it is Stripe that keeps
+a part of it.
+
+A month is billed the **difference** between what it is now said to have cost
+and what documents already stand for it, so the exports can arrive in any order
+and a wider one dropped later corrects a narrower one instead of charging twice.
+An order export may complete a month nothing has spoken for; it can never take
+back what a statement stated, being only part of the same account.
 
 **Correct the chart** settles all of them at once, across the chart rather than
 across the drop, because a chart defect is wrong whether or not anything is
@@ -212,9 +339,11 @@ ledger carries it in the account for liabilities to be regularised.
 
 ## The Printful token
 
-Set the system parameter `usl_b2c_ingest.printful_token`. It is read-only
-access to the supplier's own orders. It is never in the repository and a
-rotated token needs no release.
+**Settings → B2C → The supplier → Printful token.** It is read-only access to
+the supplier's own orders, it is never in the repository, and a rotated token
+needs no release. It is held as the system parameter
+`usl_b2c_ingest.printful_token`, which is where it was before this page
+existed; setting it either way is the same setting.
 
 ## One sale recorded twice
 

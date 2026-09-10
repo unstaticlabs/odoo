@@ -15,9 +15,11 @@ from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 
 #: Grain of a parsed row. An order row carries the money the channel charged;
-#: a line row carries what was actually bought.
+#: a line row carries what was actually bought; a charge row carries what the
+#: party holding the money kept or paid out, which belongs to no single order.
 ORDER_GRAIN = "order"
 LINE_GRAIN = "line"
+CHARGE_GRAIN = "charge"
 
 _CURRENCY_SYMBOLS = str.maketrans("", "", "€£$")
 _NON_BREAKING_SPACE = " "

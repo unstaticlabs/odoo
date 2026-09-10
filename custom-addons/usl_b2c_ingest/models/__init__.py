@@ -16,7 +16,9 @@ from . import (
     oss,
     oss_return,
     readiness,
+    settings,
     settlement,
     supplier,
+    transfers,
     wallet,
 )
