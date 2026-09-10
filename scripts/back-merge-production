@@ -25,35 +25,69 @@ if ! git merge-tree --write-tree "origin/$staging" "origin/$production" >/dev/nu
   exit 1
 fi
 
-number="$(gh pr list --repo "$GITHUB_REPOSITORY" --base "$staging" --head "$production" \
+# The pull request gets a head commit of its own; it is never opened directly
+# from 19-usl.
+#
+# A pull request whose head IS a release branch inherits that branch's whole
+# check history: GitHub's rollup takes the worst run of each check name on the
+# head commit, and pushes to 19-usl run workflows that pull requests do not. On
+# 2026-09-10 a push-event run that failed on production's tip made #227
+# unmergeable for ever -- the pull request's own run was green, the rollup was
+# red, and no rerun of anything the pull request owned could change it. Staging
+# fell behind until somebody opened the same merge from a fresh commit by hand.
+#
+# Merging production into a branch of our own, off staging, gives the pull
+# request a commit that only pull-request checks have ever touched, while the
+# merge commit still carries production's tip as a second parent -- which is the
+# whole point of the back-merge. The name pins both tips, so a rerun after a
+# failed push rebuilds the identical branch and never has to force-update one.
+branch="chore/back-merge-production-$(git rev-parse --short=12 "origin/$production")-$(git rev-parse --short=12 "origin/$staging")"
+
+number="$(gh pr list --repo "$GITHUB_REPOSITORY" --base "$staging" --head "$branch" \
   --state open --json number --jq '.[0].number // empty')"
 
 if [ -z "$number" ]; then
-  url="$(gh pr create --repo "$GITHUB_REPOSITORY" --base "$staging" --head "$production" \
+  if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+    echo "reusing the back-merge branch $branch already on origin"
+  else
+    git checkout --quiet -B "$branch" "origin/$staging"
+    git -c user.name="github-actions[bot]" \
+        -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+        merge --no-ff --no-edit \
+        -m "chore(release): back-merge production into staging" \
+        "origin/$production"
+    git push --quiet origin "HEAD:refs/heads/$branch"
+    echo "pushed $branch"
+  fi
+
+  url="$(gh pr create --repo "$GITHUB_REPOSITORY" --base "$staging" --head "$branch" \
     --title "chore(release): back-merge production into staging" \
     --body "Production is ahead of the integration branch. Merging it back restores the
 shared ancestry so \`19-usl-staging\` is never behind \`19-usl\`.
 
 Opened automatically; it carries no change of its own. The merge commit adds
 production's tip as a second parent, which is what stops the two lines from
-diverging again.")"
+diverging again.
+
+The head is a branch of this run's own making rather than \`19-usl\` itself, so
+the checks on it are only ever this pull request's. A pull request opened
+directly from a release branch inherits that branch's push-event runs, and one
+red run there blocks the back-merge permanently.")"
   echo "opened $url"
   number="${url##*/}"
 else
   echo "back-merge pull request #$number is already open"
 fi
 
-# The head commit is production's tip, which qualification already ran on when
-# it was pushed to 19-usl, so the queue admits it without a fresh build. Keep
-# --merge: a merge commit is what restores the ancestry, and squashing or
+# Keep --merge: a merge commit is what restores the ancestry, and squashing or
 # rebasing would defeat the point of the back-merge.
 #
-# Enabling auto-merge needs a token with write access to the repository, and
-# every workflow here deliberately runs with `contents: read`. When the mutation
-# is refused the pull request is still open and still correct, so say what needs
-# doing and leave the run green: reporting a failure on the very pull request
-# this just opened reads as "the back-merge is broken" and teaches people to
-# ignore a red check that is usually worth reading.
-if ! gh pr merge "$number" --repo "$GITHUB_REPOSITORY" --auto --merge; then
+# Enabling auto-merge needs a token with write access to the repository, which
+# this workflow -- alone among the workflows here -- is granted. When the
+# mutation is refused anyway the pull request is still open and still correct,
+# so say what needs doing and leave the run green: reporting a failure on the
+# very pull request this just opened reads as "the back-merge is broken" and
+# teaches people to ignore a red check that is usually worth reading.
+if ! gh pr merge "$number" --repo "$GITHUB_REPOSITORY" --auto --merge --delete-branch; then
   echo "::warning::Opened #${number} but could not enable auto-merge, which needs a token with write access. Merge #${number} to keep 19-usl-staging from falling behind 19-usl."
 fi
