@@ -58,6 +58,7 @@ from operations.stack import (
     _prepare_receipt,
     _release_attempt,
     _release_attempt_claim,
+    _unfinished_release_attempts,
     _release_boundary_receipt,
     _release_runtime_evidence,
     _legacy_staging_baseline,
@@ -614,6 +615,111 @@ class CohortContractTests(unittest.TestCase):
                     attempt=operation["attempt"],
                     release=operation["candidate_release"],
                 )
+
+    def _production_claim(self, **overrides):
+        operation = {
+            "target": "production",
+            "attempt": "attempt-20260910-a1b2c3d4",
+            "source": "production",
+            "candidate_release": "a" * 64,
+            "snapshot": "b" * 64,
+            "generation": "grelease-a1b2c3d4",
+            "gitops_commit": "9" * 40,
+            "upgrade_plan_sha256": "c" * 64,
+            "prepare_receipt_sha256": "d" * 64,
+            "maintenance_receipt_sha256": "e" * 64,
+            "operation_kind": "production-upgrade",
+            "source_receipt_sha256": "f" * 64,
+            "baseline_runtime_sha256": "1" * 64,
+        }
+        operation.update(overrides)
+        claim = {
+            "schema": "usl-release-attempt/v3",
+            **operation,
+            "baseline_generation": "gprevious-a1b2c3d4",
+            "operation_bundle_sha256": hashlib.sha256(
+                json.dumps(operation, sort_keys=True, separators=(",", ":")).encode(),
+            ).hexdigest(),
+            "claimed_at": "2026-09-10T02:00:00Z",
+            "status": "claimed",
+        }
+        claim["sha256"] = hashlib.sha256(
+            json.dumps(claim, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        return claim
+
+    def test_release_attempt_claim_accepts_the_recorded_gitops_commit(self) -> None:
+        """A target without a canonical checkout still records its GitOps commit.
+
+        Production has never declared compose.canonical, yet every claim the
+        launcher writes carries the exact GitOps commit from its prepare
+        receipt. Refusing that rejected every claim this system produces, which
+        wedged production retention and sat on the release-abort recovery path.
+        """
+        target = load_target("production", TARGETS)
+        self.assertIsNone(target.value["compose"].get("canonical"))
+        claim = self._production_claim()
+
+        self.assertEqual(
+            _release_attempt_claim(
+                claim,
+                target=target,
+                attempt=claim["attempt"],
+                release=claim["candidate_release"],
+            ),
+            claim,
+        )
+
+    def test_release_attempt_claim_still_refuses_a_malformed_gitops_commit(self) -> None:
+        target = load_target("production", TARGETS)
+        for commit in ("not-a-commit", "9" * 39, "9" * 41, "Z" * 40):
+            claim = self._production_claim(gitops_commit=commit)
+            with self.subTest(commit=commit):
+                with self.assertRaisesRegex(RuntimeError, "identity differs"):
+                    _release_attempt_claim(
+                        claim,
+                        target=target,
+                        attempt=claim["attempt"],
+                        release=claim["candidate_release"],
+                    )
+
+    def test_unfinished_attempts_ignore_archived_and_side_car_run_states(self) -> None:
+        """Only release-<identity>.json can still resume.
+
+        The launcher archives a failed attempt beside its run state as
+        release-<identity>.failed-<digest>.json. Treating that immutable
+        evidence as live unfinished work is what dragged a release that had
+        already succeeded back into the retention check.
+        """
+        target = load_target("production", TARGETS)
+        live = "a" * 64
+        archived = "b" * 64
+        names = {
+            f"release-{live}.json": {"status": "running", "attempt": "attempt-20260910-live0001"},
+            f"release-{archived}.json": {"status": "admitted", "attempt": "attempt-20260910-done0001"},
+            f"release-{archived}.failed-7a0ca97693f96152.json": {
+                "status": "failed", "attempt": "attempt-20260910-done0001",
+            },
+            f"release-{archived}.manual-read-only-retry1.json": {
+                "status": "failed", "attempt": "attempt-20260910-manual01",
+            },
+        }
+
+        class Runner:
+            def run(self, command, *, check=True, input_text=None):
+                if command[0] == "find":
+                    listing = "".join(f"{name}\tf\n" for name in names)
+                    return subprocess.CompletedProcess(command, 0, listing, "")
+                if command[0] == "cat":
+                    return subprocess.CompletedProcess(
+                        command, 0, json.dumps(names[command[1].rsplit("/", 1)[-1]]), "",
+                    )
+                raise AssertionError(command)
+
+        self.assertEqual(
+            _unfinished_release_attempts(target, Runner()),
+            {"attempt-20260910-live0001"},
+        )
 
     def test_release_boundary_rejects_a_different_operation_bundle(self) -> None:
         claim = {

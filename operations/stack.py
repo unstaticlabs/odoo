@@ -173,6 +173,7 @@ CAPTURE_ATTEMPT = re.compile(r"intent-[0-9a-f]{48}\Z")
 PRODUCTION_CAPTURE_PREFIXES = ("release-pre-", "release-candidate-", "release-admitted-")
 STAGING_CAPTURE_KEEP = 2
 UNFINISHED_RELEASE_STATUSES = frozenset({"running", "failed"})
+RELEASE_RUN_STATE = re.compile(r"release-[0-9a-f]{64}\.json\Z")
 GIT_COMMIT = re.compile(r"[0-9a-f]{40}\Z")
 RELEASE_ATTEMPT = re.compile(r"[a-z0-9][a-z0-9._-]{7,63}\Z")
 RECOVERY_PROOF_ID = re.compile(r"[a-z0-9][a-z0-9-]{7,23}\Z")
@@ -4405,7 +4406,15 @@ def _release_attempt_claim(value: object, *, target, attempt: str, release: str)
         or (
             not re.fullmatch(r"[0-9a-f]{40}", str(value["gitops_commit"]))
             if target.value["compose"].get("canonical") is not None
-            else value["gitops_commit"] is not None
+            # A target without a canonical Compose checkout still runs from a
+            # GitOps snapshot, so its prepare receipt records that commit and
+            # the claim carries it. Require a real commit when one is recorded
+            # and accept its absence; refusing a recorded commit rejected every
+            # claim this system writes.
+            else (
+                value["gitops_commit"] is not None
+                and not re.fullmatch(r"[0-9a-f]{40}", str(value["gitops_commit"]))
+            )
         )
         or not re.fullmatch(r"[a-z][a-z0-9-]{1,31}", str(value["source"]))
         or (value["schema"] == "usl-release-attempt/v3"
@@ -9048,6 +9057,12 @@ def _unfinished_release_attempts(target, runner) -> set[str]:
             raise RuntimeError("release run inventory is invalid") from error
         if kind != "f":
             raise RuntimeError(f"release run state is not a file: {name}")
+        if not RELEASE_RUN_STATE.fullmatch(name):
+            # The launcher archives a failed attempt beside its run state as
+            # release-<identity>.failed-<digest>.json, and operators leave
+            # similar side-cars. Those are immutable evidence of work that has
+            # already ended; only the exact run-state name can still resume.
+            continue
         try:
             value = json.loads(runner.run(["cat", f"{runs_root}/{name}"]).stdout)
         except json.JSONDecodeError as error:
