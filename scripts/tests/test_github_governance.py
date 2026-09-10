@@ -107,6 +107,21 @@ class GithubGovernanceTests(unittest.TestCase):
         self.assertIn('merge --no-ff', script)
         self.assertIn('"origin/$production"', script)
 
+    def test_back_merge_collects_only_branches_staging_already_contains(self):
+        # The merge queue refuses `gh pr merge --delete-branch`, so the run
+        # collects its own landed heads. The ancestry check is what keeps that
+        # from dropping a merge staging has not recorded.
+        script = BACK_MERGE_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            'gh pr merge "$number" --repo "$GITHUB_REPOSITORY" --auto --merge;',
+            script,
+        )
+        self.assertIn(
+            'git merge-base --is-ancestor FETCH_HEAD "origin/$staging"',
+            script,
+        )
+        self.assertIn('git push --quiet origin --delete "$name"', script)
+
     def test_back_merge_head_branch_is_never_force_updated(self):
         # The branch name pins both tips, so a rerun rebuilds an identical
         # branch. Force-updating a branch a pull request is open on would
