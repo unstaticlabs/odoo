@@ -4013,7 +4013,10 @@ if survey["present"]:
         except (OSError, ValueError):
             survey["unreadable"] += 1
             continue
-        if not isinstance(session, dict) or not session.get("uid"):
+        if not isinstance(session, dict):
+            survey["unreadable"] += 1
+            continue
+        if not session.get("uid"):
             survey["anonymous"] += 1
             if modified < stale_before:
                 survey["anonymous_stale"] += 1
@@ -4058,6 +4061,10 @@ for scatter in sorted(root.glob("*")):
             pass
 print(json.dumps({"removed": removed}, sort_keys=True))
 """
+# The tallies both programs agree on, and the shape release evidence keeps.
+SESSION_STORE_COUNTS = (
+    "files", "unreadable", "authenticated", "anonymous", "anonymous_stale",
+)
 
 
 def _preserve_staging_environment_state(target, runner, current: dict, volumes: dict[str, str]) -> dict:
@@ -4095,11 +4102,6 @@ def _preserve_staging_environment_state(target, runner, current: dict, volumes: 
     }
 
 
-SESSION_STORE_COUNTS = (
-    "files", "unreadable", "authenticated", "anonymous", "anonymous_stale",
-)
-
-
 def _session_store_survey(runner, path: str, stale_before: float) -> dict:
     return json.loads(
         runner.run([
@@ -4113,9 +4115,7 @@ def _session_store_counts(survey: dict) -> dict:
     return {name: survey[name] for name in SESSION_STORE_COUNTS}
 
 
-def _preserve_session_store(
-    runner, current: dict, volumes: dict[str, str], *, now: float | None = None,
-) -> dict:
+def _preserve_session_store(runner, current: dict, volumes: dict[str, str]) -> dict:
     """Carry the live Odoo HTTP session store into the candidate generation.
 
     Every rollout materializes a brand-new Odoo data volume and restores only
@@ -4146,7 +4146,7 @@ def _preserve_session_store(
         "detail": "",
     }
     role = "odoo_filestore"
-    stale_before = (time.time() if now is None else now) - SESSION_STORE_ANONYMOUS_GRACE_SECONDS
+    stale_before = time.time() - SESSION_STORE_ANONYMOUS_GRACE_SECONDS
     try:
         source = os.path.join(
             _volume_source_path(runner, current["volumes"][role]["name"]),
@@ -4198,7 +4198,7 @@ def _preserve_session_store(
 
 
 def _verify_session_store_activation(
-    runner, volumes: dict[str, str], receipt: dict | None, *, now: float | None = None,
+    runner, volumes: dict[str, str], receipt: dict | None,
 ) -> dict | None:
     """Prove the cohort that went live still serves the sessions it was handed.
 
@@ -4218,7 +4218,7 @@ def _verify_session_store_activation(
     """
     if receipt is None or receipt["status"] not in {"preserved", "diverged"}:
         return receipt
-    stale_before = (time.time() if now is None else now) - SESSION_STORE_ANONYMOUS_GRACE_SECONDS
+    stale_before = time.time() - SESSION_STORE_ANONYMOUS_GRACE_SECONDS
     carried = set(receipt["identities"])
     try:
         store = os.path.join(
@@ -4232,7 +4232,11 @@ def _verify_session_store_activation(
             signed_out &= carried - set(survey["identities"])
     except (builtins.RuntimeError, OSError, ValueError, KeyError) as error:
         receipt["detail"] = str(error)
-        receipt["status"] = "unverified"
+        if receipt["status"] == "preserved":
+            # ``diverged`` already names a failure and must not be softened
+            # into "we did not look".  Either way ``activated`` stays null,
+            # which is what says the live store went unread.
+            receipt["status"] = "unverified"
         return receipt
     receipt["activated"] = {**_session_store_counts(survey), "signed_out": len(signed_out)}
     if signed_out and receipt["status"] == "preserved":

@@ -5,6 +5,7 @@ import contextlib
 import hashlib
 import json
 import os
+import re
 import subprocess
 import tempfile
 import unittest
@@ -6964,11 +6965,20 @@ class SessionStorePreservationTests(unittest.TestCase):
         self.assertEqual(result["activated"]["signed_out"], 1)
 
     def test_an_unreadable_live_store_is_unverified_rather_than_preserved(self) -> None:
-        receipt = {"status": "preserved", "identities": list(self.carried)}
+        receipt = {"status": "preserved", "identities": list(self.carried), "activated": None}
         runner, _ = self._runner(fail="python3")
         result = _verify_session_store_activation(runner, self.volumes, receipt)
         self.assertEqual(result["status"], "unverified")
         self.assertIn("injected python3 failure", result["detail"])
+        self.assertIsNone(result["activated"])
+
+    def test_an_unreadable_live_store_does_not_soften_a_diverged_copy(self) -> None:
+        # "we did not look" must never overwrite "the copy dropped somebody".
+        receipt = {"status": "diverged", "identities": list(self.carried), "activated": None}
+        runner, _ = self._runner(fail="python3")
+        result = _verify_session_store_activation(runner, self.volumes, receipt)
+        self.assertEqual(result["status"], "diverged")
+        self.assertIsNone(result["activated"])
 
     def test_nothing_is_verified_when_nothing_was_carried(self) -> None:
         for status in ("skipped", "unchanged", "absent", "failed"):
@@ -7006,6 +7016,12 @@ class SessionStorePreservationTests(unittest.TestCase):
             corrupt.parent.mkdir(parents=True, exist_ok=True)
             corrupt.write_text("not json", encoding="utf-8")
             os.utime(corrupt, (now - 99_999, now - 99_999))
+            # Valid JSON that is not a session object: the prune refuses to
+            # delete it, so the survey must not count it as one it will.
+            not_an_object = root / "yy" / ("y" * 86)
+            not_an_object.parent.mkdir(parents=True, exist_ok=True)
+            not_an_object.write_text("[]", encoding="utf-8")
+            os.utime(not_an_object, (now - 99_999, now - 99_999))
 
             cutoff = repr(now - SESSION_STORE_ANONYMOUS_GRACE_SECONDS)
 
@@ -7021,8 +7037,9 @@ class SessionStorePreservationTests(unittest.TestCase):
             self.assertTrue(before["present"])
             self.assertEqual(before["authenticated"], 2)
             self.assertEqual(before["anonymous"], 2)
+            self.assertEqual(before["unreadable"], 2)
+            # Exactly the files the prune is about to remove.
             self.assertEqual(before["anonymous_stale"], 1)
-            self.assertEqual(before["unreadable"], 1)
             self.assertEqual(before["identities"], sorted({
                 hashlib.sha256(
                     written[seed].name[:ODOO_SESSION_IDENTIFIER_BYTES].encode(),
@@ -7043,10 +7060,25 @@ class SessionStorePreservationTests(unittest.TestCase):
             self.assertTrue(written["handshake"].exists())
             self.assertFalse(written["abandoned-probe"].exists())
             self.assertTrue(corrupt.exists())
+            self.assertTrue(not_an_object.exists())
+            self.assertEqual(after["anonymous_stale"], 0)
 
             missing = survey(Path(directory) / "absent")
             self.assertFalse(missing["present"])
             self.assertEqual(missing["files"], 0)
+
+    def test_the_identifier_length_tracks_the_one_odoo_actually_stores(self) -> None:
+        # An upstream catch-up that changes this would silently turn every
+        # rotation into a reported sign-out, and every release into a false
+        # alarm.  Read it from Odoo rather than trusting the copy of it here.
+        session = Path(__file__).resolve().parents[2] / "odoo" / "http" / "session.py"
+        declared = re.search(
+            r"^STORED_SESSION_BYTES = (\d+)$",
+            session.read_text(encoding="utf-8"),
+            re.MULTILINE,
+        )
+        self.assertIsNotNone(declared, "Odoo no longer declares STORED_SESSION_BYTES")
+        self.assertEqual(int(declared.group(1)), ODOO_SESSION_IDENTIFIER_BYTES)
 
     def test_sessions_never_enter_the_backup_repository(self) -> None:
         # The capture reads the whole Odoo data volume but copies only the
