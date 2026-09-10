@@ -5,6 +5,7 @@ import contextlib
 import hashlib
 import json
 import os
+import re
 import subprocess
 import tempfile
 import unittest
@@ -58,6 +59,7 @@ from operations.stack import (
     _prepare_receipt,
     _release_attempt,
     _release_attempt_claim,
+    _unfinished_release_attempts,
     _release_boundary_receipt,
     _release_runtime_evidence,
     _legacy_staging_baseline,
@@ -88,8 +90,14 @@ from operations.stack import (
     _staging_reset_intent_receipt,
     _staging_reset_deferred_receipt,
     _validate_backup_quiescence_receipt,
+    ODOO_SESSION_IDENTIFIER_BYTES,
+    ODOO_SESSION_STORE_DIRECTORY,
+    SESSION_STORE_ANONYMOUS_GRACE_SECONDS,
+    SESSION_STORE_PRUNE_PROGRAM,
+    SESSION_STORE_SURVEY_PROGRAM,
     _preserve_session_store,
     _preserve_staging_environment_state,
+    _verify_session_store_activation,
     _write_source_backup_environment,
     _write_adopt_generation,
     _validate_materialized_release,
@@ -614,6 +622,111 @@ class CohortContractTests(unittest.TestCase):
                     attempt=operation["attempt"],
                     release=operation["candidate_release"],
                 )
+
+    def _production_claim(self, **overrides):
+        operation = {
+            "target": "production",
+            "attempt": "attempt-20260910-a1b2c3d4",
+            "source": "production",
+            "candidate_release": "a" * 64,
+            "snapshot": "b" * 64,
+            "generation": "grelease-a1b2c3d4",
+            "gitops_commit": "9" * 40,
+            "upgrade_plan_sha256": "c" * 64,
+            "prepare_receipt_sha256": "d" * 64,
+            "maintenance_receipt_sha256": "e" * 64,
+            "operation_kind": "production-upgrade",
+            "source_receipt_sha256": "f" * 64,
+            "baseline_runtime_sha256": "1" * 64,
+        }
+        operation.update(overrides)
+        claim = {
+            "schema": "usl-release-attempt/v3",
+            **operation,
+            "baseline_generation": "gprevious-a1b2c3d4",
+            "operation_bundle_sha256": hashlib.sha256(
+                json.dumps(operation, sort_keys=True, separators=(",", ":")).encode(),
+            ).hexdigest(),
+            "claimed_at": "2026-09-10T02:00:00Z",
+            "status": "claimed",
+        }
+        claim["sha256"] = hashlib.sha256(
+            json.dumps(claim, sort_keys=True, separators=(",", ":")).encode(),
+        ).hexdigest()
+        return claim
+
+    def test_release_attempt_claim_accepts_the_recorded_gitops_commit(self) -> None:
+        """A target without a canonical checkout still records its GitOps commit.
+
+        Production has never declared compose.canonical, yet every claim the
+        launcher writes carries the exact GitOps commit from its prepare
+        receipt. Refusing that rejected every claim this system produces, which
+        wedged production retention and sat on the release-abort recovery path.
+        """
+        target = load_target("production", TARGETS)
+        self.assertIsNone(target.value["compose"].get("canonical"))
+        claim = self._production_claim()
+
+        self.assertEqual(
+            _release_attempt_claim(
+                claim,
+                target=target,
+                attempt=claim["attempt"],
+                release=claim["candidate_release"],
+            ),
+            claim,
+        )
+
+    def test_release_attempt_claim_still_refuses_a_malformed_gitops_commit(self) -> None:
+        target = load_target("production", TARGETS)
+        for commit in ("not-a-commit", "9" * 39, "9" * 41, "Z" * 40):
+            claim = self._production_claim(gitops_commit=commit)
+            with self.subTest(commit=commit):
+                with self.assertRaisesRegex(RuntimeError, "identity differs"):
+                    _release_attempt_claim(
+                        claim,
+                        target=target,
+                        attempt=claim["attempt"],
+                        release=claim["candidate_release"],
+                    )
+
+    def test_unfinished_attempts_ignore_archived_and_side_car_run_states(self) -> None:
+        """Only release-<identity>.json can still resume.
+
+        The launcher archives a failed attempt beside its run state as
+        release-<identity>.failed-<digest>.json. Treating that immutable
+        evidence as live unfinished work is what dragged a release that had
+        already succeeded back into the retention check.
+        """
+        target = load_target("production", TARGETS)
+        live = "a" * 64
+        archived = "b" * 64
+        names = {
+            f"release-{live}.json": {"status": "running", "attempt": "attempt-20260910-live0001"},
+            f"release-{archived}.json": {"status": "admitted", "attempt": "attempt-20260910-done0001"},
+            f"release-{archived}.failed-7a0ca97693f96152.json": {
+                "status": "failed", "attempt": "attempt-20260910-done0001",
+            },
+            f"release-{archived}.manual-read-only-retry1.json": {
+                "status": "failed", "attempt": "attempt-20260910-manual01",
+            },
+        }
+
+        class Runner:
+            def run(self, command, *, check=True, input_text=None):
+                if command[0] == "find":
+                    listing = "".join(f"{name}\tf\n" for name in names)
+                    return subprocess.CompletedProcess(command, 0, listing, "")
+                if command[0] == "cat":
+                    return subprocess.CompletedProcess(
+                        command, 0, json.dumps(names[command[1].rsplit("/", 1)[-1]]), "",
+                    )
+                raise AssertionError(command)
+
+        self.assertEqual(
+            _unfinished_release_attempts(target, Runner()),
+            {"attempt-20260910-live0001"},
+        )
 
     def test_release_boundary_rejects_a_different_operation_bundle(self) -> None:
         claim = {
@@ -6742,18 +6855,41 @@ class CohortContractTests(unittest.TestCase):
 
 
 class SessionStorePreservationTests(unittest.TestCase):
-    """A rollout must not sign every person out of Odoo.
+    """A rollout must not sign every person out of Odoo, and must prove it did not.
 
     Materialization restores only ``filestore/<database>`` into the candidate's
     brand-new data volume, so Odoo's ``sessions`` directory has to be carried
-    over explicitly or every signed-in person lands back on Pocket ID.
+    over explicitly or every signed-in person lands back on Pocket ID.  Copying
+    it is not the claim that matters, though: the claim is that the people who
+    were signed in before cutover are still signed in after it, and only the
+    generation that went live can answer that.
     """
 
     current = {"volumes": {"odoo_filestore": {"name": "old-odoo-data"}}}
     volumes = {"odoo_filestore": "new-odoo-data"}
+    # Two people signed in, plus the throwaway sessions the uptime probe mints.
+    carried = ["a" * 64, "b" * 64]
 
-    def _runner(self, *, present: bool = True, identity: dict | None = None, fail: str = ""):
-        identity = identity or {"files": 4, "bytes": 512, "sha256": "b" * 64}
+    @staticmethod
+    def _survey(identities, **counts) -> dict:
+        return {
+            "present": True,
+            "files": counts.get("files", 40),
+            "unreadable": counts.get("unreadable", 0),
+            "authenticated": len(identities),
+            "anonymous": counts.get("anonymous", 38),
+            "anonymous_stale": counts.get("anonymous_stale", 0),
+            "identities": list(identities),
+        }
+
+    def _runner(self, *, present=True, surveys=None, pruned=6, fail=""):
+        """A host that answers the survey, the prune and the copy."""
+        answers = list(surveys) if surveys is not None else [
+            self._survey(self.carried, anonymous=38, anonymous_stale=36),
+            self._survey(self.carried, files=4, anonymous=2),
+        ]
+        if not present:
+            answers = [{**self._survey([]), "present": False}]
         commands: list[list[str]] = []
 
         class Runner:
@@ -6766,22 +6902,25 @@ class SessionStorePreservationTests(unittest.TestCase):
                     return subprocess.CompletedProcess(
                         command, 0, json.dumps({"Mountpoint": f"/volumes/{command[3]}"}), "",
                     )
-                if command[:1] == ["python3"] and "is_dir" in command[2]:
+                if command[:2] == ["python3", "-c"] and "survey" in command[2]:
                     return subprocess.CompletedProcess(
-                        command, 0, json.dumps({"present": present}), "",
+                        command, 0, json.dumps(answers.pop(0)), "",
                     )
-                if command[:1] == ["python3"]:
-                    return subprocess.CompletedProcess(command, 0, json.dumps(identity), "")
+                if command[:2] == ["python3", "-c"] and "removed" in command[2]:
+                    return subprocess.CompletedProcess(
+                        command, 0, json.dumps({"removed": pruned}), "",
+                    )
                 return subprocess.CompletedProcess(command, 0, "", "")
 
         return Runner(), commands
 
     def test_live_sessions_are_copied_into_the_candidate_generation(self) -> None:
-        identity = {"files": 4, "bytes": 512, "sha256": "b" * 64}
-        runner, commands = self._runner(identity=identity)
+        runner, commands = self._runner()
         result = _preserve_session_store(runner, self.current, self.volumes)
         self.assertEqual(result["status"], "preserved")
-        self.assertEqual(result["sessions"], {"source": identity, "destination": identity})
+        self.assertEqual(result["identities"], self.carried)
+        self.assertEqual(result["sessions"]["source"]["authenticated"], 2)
+        self.assertEqual(result["sessions"]["destination"]["authenticated"], 2)
         copy = next(command for command in commands if command[0] == "rsync")
         self.assertEqual(copy[-2:], [
             "/volumes/old-odoo-data/sessions/", "/volumes/new-odoo-data/sessions/",
@@ -6795,6 +6934,28 @@ class SessionStorePreservationTests(unittest.TestCase):
             ["install", "-d", "-m", "0700", "-o", "1000", "-g", "1000", "--",
              "/volumes/new-odoo-data/sessions"],
         )
+
+    def test_the_abandoned_probe_sessions_are_left_behind(self) -> None:
+        # Anything that reaches Odoo without signing in gets a session file, and
+        # the uptime probe reaches it once a minute forever.  The rollout drops
+        # the ones nobody has touched, and only from the candidate.
+        runner, commands = self._runner(pruned=36)
+        result = _preserve_session_store(runner, self.current, self.volumes)
+        self.assertEqual(result["sessions"]["pruned"], 36)
+        prune = [
+            command for command in commands
+            if command[:2] == ["python3", "-c"] and "removed" in command[2]
+        ]
+        self.assertEqual(len(prune), 1)
+        self.assertEqual(prune[0][3], "/volumes/new-odoo-data/sessions")
+
+    def test_the_outgoing_store_is_never_pruned(self) -> None:
+        # It is the rollback target: this release must leave it exactly as found.
+        runner, commands = self._runner()
+        _preserve_session_store(runner, self.current, self.volumes)
+        for command in commands:
+            if command[:2] == ["python3", "-c"] and "removed" in command[2]:
+                self.assertNotIn("old-odoo-data", command[3])
 
     def test_a_copy_onto_the_live_store_itself_is_refused(self) -> None:
         # ``--delete`` against the outgoing store would destroy the sessions.
@@ -6819,7 +6980,7 @@ class SessionStorePreservationTests(unittest.TestCase):
             with self.subTest(step=step):
                 runner, _ = self._runner(fail=step)
                 result = _preserve_session_store(runner, self.current, self.volumes)
-                self.assertEqual(result["status"], "skipped")
+                self.assertEqual(result["status"], "failed")
                 self.assertIn(f"injected {step} failure", result["detail"])
                 self.assertIsNone(result["sessions"])
 
@@ -6831,51 +6992,199 @@ class SessionStorePreservationTests(unittest.TestCase):
                 raise RuntimeError("plain failure")
 
         result = _preserve_session_store(Runner(), self.current, self.volumes)
-        self.assertEqual(result["status"], "skipped")
+        self.assertEqual(result["status"], "failed")
         self.assertIn("plain failure", result["detail"])
 
-    def test_a_diverged_copy_is_named_rather_than_claimed_preserved(self) -> None:
-        moved = [
-            {"files": 4, "bytes": 512, "sha256": "b" * 64},
-            {"files": 5, "bytes": 640, "sha256": "c" * 64},
-        ]
-
-        class Runner:
-            def run(self, command, *, check=True, input_text=None):
-                if command[:3] == ["docker", "volume", "inspect"]:
-                    return subprocess.CompletedProcess(
-                        command, 0, json.dumps({"Mountpoint": f"/volumes/{command[3]}"}), "",
-                    )
-                if command[:1] == ["python3"] and "is_dir" in command[2]:
-                    return subprocess.CompletedProcess(
-                        command, 0, json.dumps({"present": True}), "",
-                    )
-                if command[:1] == ["python3"]:
-                    return subprocess.CompletedProcess(command, 0, json.dumps(moved.pop(0)), "")
-                return subprocess.CompletedProcess(command, 0, "", "")
-
-        result = _preserve_session_store(Runner(), self.current, self.volumes)
+    def test_a_copy_that_dropped_somebody_is_named_rather_than_claimed_preserved(self) -> None:
+        runner, _ = self._runner(surveys=[
+            self._survey(self.carried),
+            self._survey(self.carried[:1]),
+        ])
+        result = _preserve_session_store(runner, self.current, self.volumes)
         self.assertEqual(result["status"], "diverged")
 
-    def test_the_generated_probe_is_valid_python(self) -> None:
-        # Mocked runners cannot detect a broken inline program.
-        runner, commands = self._runner()
-        _preserve_session_store(runner, self.current, self.volumes)
-        program = next(
-            command[2] for command in commands
-            if command[0] == "python3" and "is_dir" in command[2]
-        )
+    def test_a_rotated_session_id_is_not_mistaken_for_a_lost_session(self) -> None:
+        # Odoo rotates a live session's id every few hours and keeps only its
+        # leading identifier, so the activated store holds the same identifiers
+        # under different file names.  Comparing identifiers is what makes the
+        # check survive an ordinary rotation.
+        receipt = {"status": "preserved", "identities": list(self.carried)}
+        runner, _ = self._runner(surveys=[
+            self._survey([*self.carried, "c" * 64], files=6, anonymous=3),
+        ])
+        result = _verify_session_store_activation(runner, self.volumes, receipt)
+        self.assertEqual(result["status"], "preserved")
+        self.assertEqual(result["activated"]["signed_out"], 0)
+        self.assertEqual(result["activated"]["authenticated"], 3)
+
+    def test_a_person_the_live_generation_lost_is_reported(self) -> None:
+        # This is the whole point: a copy into a volume proves nothing, and
+        # "I had to sign in again after the upgrade" has to be answerable from
+        # the release's own evidence.
+        receipt = {"status": "preserved", "identities": list(self.carried)}
+        runner, _ = self._runner(surveys=[
+            self._survey(self.carried[:1]),
+            self._survey(self.carried[:1]),
+        ])
+        result = _verify_session_store_activation(runner, self.volumes, receipt)
+        self.assertEqual(result["status"], "lost")
+        self.assertEqual(result["activated"]["signed_out"], 1)
+
+    def test_a_session_caught_mid_rotation_is_not_reported_as_signed_out(self) -> None:
+        # The live store is being written to while it is read.  Odoo removes a
+        # rotating session's old file before writing the new one, so a single
+        # walk can step through the gap; a second walk finds the session again.
+        receipt = {"status": "preserved", "identities": list(self.carried)}
+        runner, commands = self._runner(surveys=[
+            self._survey(self.carried[:1]),
+            self._survey(self.carried),
+        ])
+        result = _verify_session_store_activation(runner, self.volumes, receipt)
+        self.assertEqual(result["status"], "preserved")
+        self.assertEqual(result["activated"]["signed_out"], 0)
+        surveys = [
+            command for command in commands
+            if command[:2] == ["python3", "-c"] and "survey" in command[2]
+        ]
+        self.assertEqual(len(surveys), 2)
+
+    def test_the_store_is_read_once_when_everybody_is_accounted_for(self) -> None:
+        receipt = {"status": "preserved", "identities": list(self.carried)}
+        runner, commands = self._runner(surveys=[self._survey(self.carried)])
+        _verify_session_store_activation(runner, self.volumes, receipt)
+        surveys = [
+            command for command in commands
+            if command[:2] == ["python3", "-c"] and "survey" in command[2]
+        ]
+        self.assertEqual(len(surveys), 1)
+
+    def test_a_diverged_copy_keeps_its_name_after_activation(self) -> None:
+        # ``diverged`` already says the copy dropped somebody; overwriting it
+        # with ``lost`` would erase where they went.
+        receipt = {"status": "diverged", "identities": list(self.carried)}
+        runner, _ = self._runner(surveys=[
+            self._survey(self.carried[:1]),
+            self._survey(self.carried[:1]),
+        ])
+        result = _verify_session_store_activation(runner, self.volumes, receipt)
+        self.assertEqual(result["status"], "diverged")
+        self.assertEqual(result["activated"]["signed_out"], 1)
+
+    def test_an_unreadable_live_store_is_unverified_rather_than_preserved(self) -> None:
+        receipt = {"status": "preserved", "identities": list(self.carried), "activated": None}
+        runner, _ = self._runner(fail="python3")
+        result = _verify_session_store_activation(runner, self.volumes, receipt)
+        self.assertEqual(result["status"], "unverified")
+        self.assertIn("injected python3 failure", result["detail"])
+        self.assertIsNone(result["activated"])
+
+    def test_an_unreadable_live_store_does_not_soften_a_diverged_copy(self) -> None:
+        # "we did not look" must never overwrite "the copy dropped somebody".
+        receipt = {"status": "diverged", "identities": list(self.carried), "activated": None}
+        runner, _ = self._runner(fail="python3")
+        result = _verify_session_store_activation(runner, self.volumes, receipt)
+        self.assertEqual(result["status"], "diverged")
+        self.assertIsNone(result["activated"])
+
+    def test_nothing_is_verified_when_nothing_was_carried(self) -> None:
+        for status in ("skipped", "unchanged", "absent", "failed"):
+            with self.subTest(status=status):
+                receipt = {"status": status, "identities": []}
+                runner, commands = self._runner()
+                result = _verify_session_store_activation(runner, self.volumes, receipt)
+                self.assertEqual(result["status"], status)
+                self.assertEqual(commands, [])
+        self.assertIsNone(_verify_session_store_activation(object(), self.volumes, None))
+
+    def test_the_generated_programs_survey_and_prune_a_real_store(self) -> None:
+        # Mocked runners cannot detect a broken inline program, and they cannot
+        # detect one that deletes the wrong file either.
+        def session_id(seed: str) -> str:
+            return (hashlib.sha256(seed.encode()).hexdigest() * 2)[:86]
+
         with tempfile.TemporaryDirectory() as directory:
-            present = subprocess.run(
-                ["python3", "-c", program, directory],
+            root = Path(directory) / ODOO_SESSION_STORE_DIRECTORY
+            now = 1_000_000.0
+            written = {}
+            for seed, uid, age in (
+                ("signed-in", 5, 30.0),
+                ("signed-in-idle", 8, 200_000.0),
+                ("handshake", None, 10.0),
+                ("abandoned-probe", None, 7200.0),
+            ):
+                sid = session_id(seed)
+                path = root / sid[:2] / sid
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(json.dumps({"uid": uid}), encoding="utf-8")
+                os.utime(path, (now - age, now - age))
+                written[seed] = path
+            corrupt = root / "zz" / ("z" * 86)
+            corrupt.parent.mkdir(parents=True, exist_ok=True)
+            corrupt.write_text("not json", encoding="utf-8")
+            os.utime(corrupt, (now - 99_999, now - 99_999))
+            # Valid JSON that is not a session object: the prune refuses to
+            # delete it, so the survey must not count it as one it will.
+            not_an_object = root / "yy" / ("y" * 86)
+            not_an_object.parent.mkdir(parents=True, exist_ok=True)
+            not_an_object.write_text("[]", encoding="utf-8")
+            os.utime(not_an_object, (now - 99_999, now - 99_999))
+
+            cutoff = repr(now - SESSION_STORE_ANONYMOUS_GRACE_SECONDS)
+
+            def survey(path: Path) -> dict:
+                completed = subprocess.run(
+                    ["python3", "-c", SESSION_STORE_SURVEY_PROGRAM, str(path), cutoff,
+                     str(ODOO_SESSION_IDENTIFIER_BYTES)],
+                    capture_output=True, text=True, check=True,
+                )
+                return json.loads(completed.stdout)
+
+            before = survey(root)
+            self.assertTrue(before["present"])
+            self.assertEqual(before["authenticated"], 2)
+            self.assertEqual(before["anonymous"], 2)
+            self.assertEqual(before["unreadable"], 2)
+            # Exactly the files the prune is about to remove.
+            self.assertEqual(before["anonymous_stale"], 1)
+            self.assertEqual(before["identities"], sorted({
+                hashlib.sha256(
+                    written[seed].name[:ODOO_SESSION_IDENTIFIER_BYTES].encode(),
+                ).hexdigest()
+                for seed in ("signed-in", "signed-in-idle")
+            }))
+
+            pruned = subprocess.run(
+                ["python3", "-c", SESSION_STORE_PRUNE_PROGRAM, str(root), cutoff],
                 capture_output=True, text=True, check=True,
             )
-            self.assertTrue(json.loads(present.stdout)["present"])
-            absent = subprocess.run(
-                ["python3", "-c", program, str(Path(directory) / "sessions")],
-                capture_output=True, text=True, check=True,
-            )
-            self.assertFalse(json.loads(absent.stdout)["present"])
+            self.assertEqual(json.loads(pruned.stdout), {"removed": 1})
+            after = survey(root)
+            # Everyone who was signed in is still signed in; only the probe's
+            # abandoned session went, and the file it could not read stayed.
+            self.assertEqual(after["identities"], before["identities"])
+            self.assertTrue(written["signed-in-idle"].exists())
+            self.assertTrue(written["handshake"].exists())
+            self.assertFalse(written["abandoned-probe"].exists())
+            self.assertTrue(corrupt.exists())
+            self.assertTrue(not_an_object.exists())
+            self.assertEqual(after["anonymous_stale"], 0)
+
+            missing = survey(Path(directory) / "absent")
+            self.assertFalse(missing["present"])
+            self.assertEqual(missing["files"], 0)
+
+    def test_the_identifier_length_tracks_the_one_odoo_actually_stores(self) -> None:
+        # An upstream catch-up that changes this would silently turn every
+        # rotation into a reported sign-out, and every release into a false
+        # alarm.  Read it from Odoo rather than trusting the copy of it here.
+        session = Path(__file__).resolve().parents[2] / "odoo" / "http" / "session.py"
+        declared = re.search(
+            r"^STORED_SESSION_BYTES = (\d+)$",
+            session.read_text(encoding="utf-8"),
+            re.MULTILINE,
+        )
+        self.assertIsNotNone(declared, "Odoo no longer declares STORED_SESSION_BYTES")
+        self.assertEqual(int(declared.group(1)), ODOO_SESSION_IDENTIFIER_BYTES)
 
     def test_sessions_never_enter_the_backup_repository(self) -> None:
         # The capture reads the whole Odoo data volume but copies only the
@@ -6885,6 +7194,17 @@ class SessionStorePreservationTests(unittest.TestCase):
         self.assertIn('Path("/source/odoo-data/filestore") / odoo_database', source)
         self.assertNotIn("/source/odoo-data/sessions", source)
         self.assertNotIn("/target/odoo-data/sessions", source)
+
+    def test_release_evidence_carries_no_session_material(self) -> None:
+        # ``res.device.log`` stores a session identifier, but a release receipt
+        # is written, replayed and read by more things than Odoo is.  Digests
+        # answer the same question and are worth nothing if they leak.
+        runner, _ = self._runner()
+        result = _preserve_session_store(runner, self.current, self.volumes)
+        for identity in result["identities"]:
+            self.assertRegex(identity, r"\A[0-9a-f]{64}\Z")
+        self.assertIn("hashlib.sha256", SESSION_STORE_SURVEY_PROGRAM)
+        self.assertNotIn("path.name[:identifier_bytes])", SESSION_STORE_SURVEY_PROGRAM)
 
 
 if __name__ == "__main__":

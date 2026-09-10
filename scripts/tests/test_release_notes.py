@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime
 import io
 import json
+import os
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
@@ -401,9 +402,27 @@ class SummaryTests(unittest.TestCase):
 
 
 class MainTests(unittest.TestCase):
+    # main() takes argument defaults from ambient CI variables, so a test that
+    # omits an argument would otherwise assert whatever the runner exported.
+    # GITHUB_REF is the one that bites: it selects the deployment-ledger
+    # reach-over and equals a release branch only on a push to that branch, so
+    # the suite passed every pull-request gate and failed the moment it landed
+    # on 19-usl. Decide every default here, never in the environment.
+    AMBIENT_DEFAULTS = ("GITHUB_REF", "GITHUB_STEP_SUMMARY", "GEMINI_API_KEY")
+
     def run_main(self, arguments: list[str], api) -> tuple[int, str, str]:
         out, err = io.StringIO(), io.StringIO()
-        with mock.patch.object(release_notes, "gh_api", api), redirect_stdout(out), redirect_stderr(err):
+        hermetic = {
+            key: value
+            for key, value in os.environ.items()
+            if key not in self.AMBIENT_DEFAULTS
+        }
+        with (
+            mock.patch.dict(os.environ, hermetic, clear=True),
+            mock.patch.object(release_notes, "gh_api", api),
+            redirect_stdout(out),
+            redirect_stderr(err),
+        ):
             code = main(arguments)
         return code, out.getvalue(), err.getvalue()
 
@@ -830,6 +849,21 @@ class LedgerMainTests(MainTests):
         """What the pushed range alone produces, which is the bug."""
         api = self.incident()
         code, notes, err = self.announced(api)
+        self.assertEqual(code, 0, err)
+        self.assertEqual([change["number"] for change in notes["changes"]], [218])
+
+    def test_the_runner_branch_never_decides_the_result(self) -> None:
+        """A release-gate test must not read the branch it is running on.
+
+        `--ref` defaults to GITHUB_REF. Omitting it is how this suite asks for
+        the no-ledger path, but on a push to a release branch GITHUB_REF *is*
+        that branch, so the ledger reach-over ran and the assertion flipped.
+        Pull-request and merge-group refs never look like a release branch,
+        which is why every gate passed and only 19-usl failed.
+        """
+        api = self.incident()
+        with mock.patch.dict(os.environ, {"GITHUB_REF": "refs/heads/19-usl"}):
+            code, notes, err = self.announced(api)
         self.assertEqual(code, 0, err)
         self.assertEqual([change["number"] for change in notes["changes"]], [218])
 
