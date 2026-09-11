@@ -656,12 +656,12 @@ class CohortContractTests(unittest.TestCase):
         return claim
 
     def test_release_attempt_claim_accepts_the_recorded_gitops_commit(self) -> None:
-        """A target without a canonical checkout still records its GitOps commit.
+        """The SSH view of a target records no canonical checkout of its own.
 
-        Production has never declared compose.canonical, yet every claim the
-        launcher writes carries the exact GitOps commit from its prepare
-        receipt. Refusing that rejected every claim this system produces, which
-        wedged production retention and sat on the release-abort recovery path.
+        Every claim the launcher writes carries the exact GitOps commit from
+        its prepare receipt. Refusing that rejected, from this view, every
+        claim this system produces, which wedged production retention and sat
+        on the release-abort recovery path.
         """
         target = load_target("production", TARGETS)
         self.assertIsNone(target.value["compose"].get("canonical"))
@@ -676,6 +676,35 @@ class CohortContractTests(unittest.TestCase):
             ),
             claim,
         )
+
+    def test_release_attempt_claim_reads_the_same_in_every_target_view(self) -> None:
+        """A claim is immutable, so its identity cannot depend on who reads it.
+
+        One target has two definitions. ``operations/targets-host`` declares
+        ``compose.canonical`` and the launcher writes the claim there;
+        ``operations/targets`` is the SSH view an operator reads it back
+        through, and declares none. The recorded commit has to satisfy both, or
+        the side that writes a claim is not the side that can act on it.
+        """
+        views = {
+            "ssh": load_target("production", TARGETS),
+            "host": load_target("production", HOST_TARGETS),
+        }
+        self.assertIsNone(views["ssh"].value["compose"].get("canonical"))
+        self.assertIsNotNone(views["host"].value["compose"].get("canonical"))
+        claim = self._production_claim()
+
+        for view, target in views.items():
+            with self.subTest(view=view):
+                self.assertEqual(
+                    _release_attempt_claim(
+                        claim,
+                        target=target,
+                        attempt=claim["attempt"],
+                        release=claim["candidate_release"],
+                    ),
+                    claim,
+                )
 
     def test_release_attempt_claim_still_refuses_a_malformed_gitops_commit(self) -> None:
         target = load_target("production", TARGETS)
