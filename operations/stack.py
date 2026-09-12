@@ -4574,11 +4574,13 @@ def _release_attempt_claim(value: object, *, target, attempt: str, release: str)
         or (
             not re.fullmatch(r"[0-9a-f]{40}", str(value["gitops_commit"]))
             if target.value["compose"].get("canonical") is not None
-            # A target without a canonical Compose checkout still runs from a
-            # GitOps snapshot, so its prepare receipt records that commit and
-            # the claim carries it. Require a real commit when one is recorded
-            # and accept its absence; refusing a recorded commit rejected every
-            # claim this system writes.
+            # A claim is immutable, so its identity cannot depend on who reads
+            # it, and the two views of one target disagree about ``canonical``:
+            # ``operations/targets-host`` declares it and the launcher writes
+            # the claim there, while ``operations/targets`` -- the SSH view an
+            # operator uses -- does not. Require a real commit when one is
+            # recorded and accept its absence; refusing a recorded commit
+            # rejected, from the SSH view alone, every claim this system writes.
             else (
                 value["gitops_commit"] is not None
                 and not re.fullmatch(r"[0-9a-f]{40}", str(value["gitops_commit"]))
