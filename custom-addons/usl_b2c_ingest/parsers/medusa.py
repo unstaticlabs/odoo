@@ -98,7 +98,7 @@ def parse_full_orders(document):
             payload=_payload(row),
             occurred_at=parsed_datetime(row["Date"]),
             values={
-                "currency": text(row["Currency Code"]) or "EUR",
+                "currency": text(row["Currency Code"]).upper() or "EUR",
                 "internal_order_id": reference(row["Order_ID"]),
                 "original_provider_state": text(row["Order status"]),
                 "source_payment_state": text(row["Payment Status"]),
@@ -112,12 +112,15 @@ def parse_full_orders(document):
                 "shipping_city": text(row["Shipping City"]),
                 "shipping_zip": text(row["Shipping Postal Code"]),
                 "original_country": text(row["Shipping Country Code"]),
-                "subtotal_amount": subtotal,
+                # Medusa states its subtotal before tax, where every other
+                # export states what the customer paid. Publishing it under the
+                # same name would price a sale at its own total less the VAT,
+                # so the lines are left to say what the goods came to and only
+                # the check that the export adds up is kept.
                 "shipping_amount": shipping,
                 "discount_amount": discount,
                 "tax_amount": tax,
                 "total_amount": total,
-                "line_amount_residual": total - (subtotal - discount + shipping + tax),
             },
         )
 
@@ -151,7 +154,7 @@ def _item_values(item, currency):
 
 def _header_values(row):
     return {
-        "currency": text(row["currency"]) or "EUR",
+        "currency": text(row["currency"]).upper() or "EUR",
         "original_provider_state": text(row["order_status"]),
         "customer_email": text(row["customer_email"]),
     }
@@ -178,7 +181,7 @@ def parse_orders(document):
         order_id = reference(row["order_number"])
         occurred_at = parsed_datetime(row["date"])
         payload = _payload(row)
-        currency = text(row["currency"]) or "EUR"
+        currency = text(row["currency"]).upper() or "EUR"
         items = [
             item
             for item in (
@@ -227,7 +230,7 @@ def parse_order_items(document):
         order_id = reference(row["order_number"])
         occurred_at = parsed_datetime(row["date"])
         payload = _payload(row)
-        currency = text(row["currency"]) or "EUR"
+        currency = text(row["currency"]).upper() or "EUR"
         if order_id not in announced:
             announced.add(order_id)
             yield ParsedRow(

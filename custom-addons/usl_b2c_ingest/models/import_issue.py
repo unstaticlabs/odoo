@@ -14,6 +14,7 @@ ISSUE_KINDS = [
     ("duplicate_order", "Odoo holds the same order twice"),
     ("payload_conflict", "Files disagree about the same order"),
     ("net_identity", "Channel totals no longer add up"),
+    ("order_totals_disagree", "An order and its lines disagree about the goods"),
     ("orphan_line", "Line without an order"),
     ("order_money_missing", "Order-level money is not in the export"),
     ("unknown_product", "The channel sold something Odoo does not know"),
@@ -34,6 +35,15 @@ ISSUE_KINDS = [
     ("cancelled_after_delivery", "A cancelled order has already shipped"),
     ("part_refund_unallocated", "Part of an order was refunded, without saying which part"),
     ("wallet_overdrawn", "The supplier drew more than the wallet holds"),
+    ("fee_source_missing", "A channel's own account of what it kept is all there is"),
+    ("payout_unattributed", "A payout left an account nothing names"),
+    ("transfer_amount_missing", "A movement is stated without an amount"),
+    ("wallet_disagrees", "The supplier's account of a month is not the one Odoo holds"),
+    ("fee_period_closed", "A month the books are closed to, for what was kept"),
+    ("supply_period_closed", "A month the books are closed to, for the supply"),
+    ("transfer_period_closed", "A month the books are closed to, for a movement"),
+    ("fee_source_conflict", "Two parties state what one channel kept"),
+    ("transfer_already_posted", "A movement the ledger already shows"),
 ]
 
 
@@ -91,6 +101,10 @@ class B2cImportIssue(models.Model):
         retired.with_context(**batch._context()).sudo().write(
             {"state": "cancelled", "superseded_by_id": kept.id},
         )
+        # The finding this settles was raised when the files were read, and
+        # nothing else ever revisits it. Judge identity again so the rows stop
+        # conflicting and this stops blocking.
+        batch.action_resolve_identities()
         batch.action_resolve()
         return {
             "type": "ir.actions.act_window",

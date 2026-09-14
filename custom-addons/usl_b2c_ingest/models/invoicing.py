@@ -128,8 +128,8 @@ class B2cImportBatchInvoicing(models.Model):
             self._settle(sale, invoice, invoice_date)
         return invoice
 
-    def _assert_period_open(self, date):
-        """Refuse to write into a period that has been closed."""
+    def _period_open(self, date):
+        """Return whether the books are still open on a date."""
         self.ensure_one()
         locked = max(
             filter(None, (
@@ -138,6 +138,23 @@ class B2cImportBatchInvoicing(models.Model):
             )),
             default=None,
         )
+        return not (locked and date <= locked)
+
+    def _closed_on(self):
+        """Return the day the books were closed to, or nothing."""
+        self.ensure_one()
+        return max(
+            filter(None, (
+                self.company_id.fiscalyear_lock_date,
+                self.company_id.tax_lock_date,
+            )),
+            default=None,
+        )
+
+    def _assert_period_open(self, date):
+        """Refuse to write into a period that has been closed."""
+        self.ensure_one()
+        locked = self._closed_on()
         if locked and date <= locked:
             raise UserError(
                 self.env._(
