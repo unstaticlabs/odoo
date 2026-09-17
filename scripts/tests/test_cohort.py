@@ -3946,12 +3946,14 @@ class CohortContractTests(unittest.TestCase):
 
         runner = RecordingRunner()
         generation = "g20260901-a1b2c3d4"
+        volumes = generation_volume_names(target, generation)
+        network = f"{target.project}-{generation}-recovery"
         with self.assertRaisesRegex(RuntimeError, "materialization failed"):
-            with _materialization_cleanup(target, runner, generation) as containers:
+            with _materialization_cleanup(target, runner, generation, network, volumes) as containers:
                 containers.append("candidate-postgres")
                 raise RuntimeError("materialization failed")
         self.assertEqual(
-            runner.commands,
+            runner.commands[:2],
             [
                 ["docker", "rm", "--force", "candidate-postgres"],
                 [
@@ -3960,11 +3962,17 @@ class CohortContractTests(unittest.TestCase):
                 ],
             ],
         )
+        # The generation's network/volumes were never adopted, so a failure here
+        # must discard them too (see test_materialization_failure_discards_the_
+        # generation_network_and_volumes for the exact-order regression).
+        self.assertIn(["docker", "network", "rm", network], runner.commands)
 
     def test_source_secret_workspace_is_removed_on_each_database_start_failure(self) -> None:
         target = load_target("staging", TARGETS)
         generation = "g20260904-secrets"
         workspace = f"{target.value['state_directory']}/generations/{generation}/work"
+        volumes = generation_volume_names(target, generation)
+        network = f"{target.project}-{generation}-recovery"
         for completed_containers, failure in (
             ([], "first database failed"),
             (["temporary-odoo-db"], "second database failed"),
@@ -3972,7 +3980,7 @@ class CohortContractTests(unittest.TestCase):
             runner = mock.Mock()
             runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
             with self.assertRaisesRegex(RuntimeError, failure):
-                with _materialization_cleanup(target, runner, generation) as containers:
+                with _materialization_cleanup(target, runner, generation, network, volumes) as containers:
                     containers.extend(completed_containers)
                     raise RuntimeError(failure)
             commands = [call.args[0] for call in runner.run.call_args_list]
@@ -4980,6 +4988,63 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn(f"device={path}", database)
         self.assertIn("com.unstaticlabs.runtime.storage-tier=database", " ".join(database))
         self.assertNotIn("type=none", filestore)
+
+    def test_materialization_failure_discards_the_generation_network_and_volumes(self) -> None:
+        # Regression for the 2026-09-16 production outage: a failure inside
+        # _materialization_cleanup's block (e.g. the materialize step itself)
+        # left the generation's network and volumes created but never adopted
+        # and never torn down, leaking a `<project>-<generation>-recovery`
+        # network on every occurrence until the host's address pool was
+        # exhausted.
+        target = load_target("staging", TARGETS)
+
+        class RecordingRunner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                status = 1 if command[:3] in (["docker", "volume", "inspect"], ["docker", "network", "inspect"]) else 0
+                return subprocess.CompletedProcess(command, status, "", "")
+
+        runner = RecordingRunner()
+        generation = "g20260916-leak"
+        volumes, network = _create_generation_resources(target, runner, generation)
+        with self.assertRaisesRegex(RuntimeError, "materialize failed"):
+            with _materialization_cleanup(target, runner, generation, network, volumes) as database_containers:
+                database_containers.append("some-db-container")
+                raise RuntimeError("materialize failed")
+        commands = runner.commands
+        self.assertIn(["docker", "network", "rm", network], commands)
+        for name in volumes.values():
+            self.assertIn(["docker", "volume", "rm", name], commands)
+        self.assertIn(["docker", "rm", "--force", "some-db-container"], commands)
+        network_rm_index = commands.index(["docker", "network", "rm", network])
+        container_rm_index = commands.index(["docker", "rm", "--force", "some-db-container"])
+        self.assertLess(container_rm_index, network_rm_index)
+
+    def test_materialization_success_keeps_the_generation_network_and_volumes(self) -> None:
+        target = load_target("staging", TARGETS)
+
+        class RecordingRunner:
+            def __init__(self):
+                self.commands = []
+
+            def run(self, command, *, check=True):
+                self.commands.append(command)
+                status = 1 if command[:3] in (["docker", "volume", "inspect"], ["docker", "network", "inspect"]) else 0
+                return subprocess.CompletedProcess(command, status, "", "")
+
+        runner = RecordingRunner()
+        generation = "g20260916-ok"
+        volumes, network = _create_generation_resources(target, runner, generation)
+        with _materialization_cleanup(target, runner, generation, network, volumes) as database_containers:
+            database_containers.append("some-db-container")
+        commands = runner.commands
+        self.assertNotIn(["docker", "network", "rm", network], commands)
+        for name in volumes.values():
+            self.assertNotIn(["docker", "volume", "rm", name], commands)
+        self.assertIn(["docker", "rm", "--force", "some-db-container"], commands)
 
     def test_generation_database_path_rejects_traversal(self) -> None:
         target = load_target("staging", TARGETS)

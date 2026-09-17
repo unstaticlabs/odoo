@@ -2490,14 +2490,23 @@ def _remove_materialization_workspace(target, runner, generation: str) -> None:
 
 
 @contextmanager
-def _materialization_cleanup(target, runner, generation: str):
+def _materialization_cleanup(target, runner, generation: str, network: str, volumes: dict[str, str]):
     database_containers: list[str] = []
     try:
-        yield database_containers
-    finally:
-        for container in database_containers:
-            runner.run(["docker", "rm", "--force", container], check=False)
-        _remove_materialization_workspace(target, runner, generation)
+        try:
+            yield database_containers
+        finally:
+            for container in database_containers:
+                runner.run(["docker", "rm", "--force", container], check=False)
+            _remove_materialization_workspace(target, runner, generation)
+    except BaseException:
+        # The generation's network/volumes were already created by
+        # _create_generation_resources before this context manager started; if
+        # materialization fails after that, they are otherwise never adopted and
+        # never torn down, leaking a `<project>-<generation>-recovery` network and
+        # its volumes. Discard them once the database containers above are gone.
+        _discard_generation_resources(target, runner, generation, network, volumes)
+        raise
 
 
 def _prepare_generation_volume_ownership(runner, release: dict, volumes: dict[str, str]) -> None:
@@ -3811,6 +3820,20 @@ def _create_generation_resources(target, runner, generation: str) -> tuple[dict[
             runner.run(["rmdir", "--", path], check=False)
         raise
     return volumes, network
+
+
+def _discard_generation_resources(target, runner, generation: str, network: str, volumes: dict[str, str]) -> None:
+    """Roll back a fully-created generation whose materialization failed after creation.
+
+    Complements `_create_generation_resources`'s own rollback, which only undoes a
+    failure during creation itself; this undoes one whose network and volumes were
+    all created successfully but the generation was never adopted.
+    """
+    runner.run(["docker", "network", "rm", network], check=False)
+    for role, name in reversed(list(volumes.items())):
+        runner.run(["docker", "volume", "rm", name], check=False)
+        if target.value["volumes"][role]["tier"] == "database":
+            runner.run(["rmdir", "--", generation_volume_path(target, generation, role)], check=False)
 
 
 def _runtime_images(runner, identity: dict) -> dict[str, str]:
@@ -6552,7 +6575,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     target_runner.run(["install", "-d", "-m", "0700", generation_root])
     target_runner.run(["install", "-d", "-m", "0700", f"{generation_root}/work"])
     volumes, network = _create_generation_resources(target, target_runner, generation)
-    with _materialization_cleanup(target, target_runner, generation) as database_containers:
+    with _materialization_cleanup(target, target_runner, generation, network, volumes) as database_containers:
         source_backup_env = _write_source_backup_environment(
             source,
             source.runner(),
