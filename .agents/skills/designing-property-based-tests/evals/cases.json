@@ -1,0 +1,34 @@
+{
+  "skill": "designing-property-based-tests",
+  "cases": [
+    {
+      "id": "designs-roundtrip-property",
+      "kind": "should-trigger",
+      "prompt": "Add property-based tests for this encoder and decoder, including useful generators and shrunk failure handling.",
+      "expect": [
+        "The roundtrip property is grounded in the supported input contract.",
+        "Generators produce valid inputs and include meaningful boundaries.",
+        "The assertion does not reimplement the encoder or decoder.",
+        "The existing library is used or a new dependency is proposed before installation."
+      ]
+    },
+    {
+      "id": "does-not-own-ui-examples",
+      "kind": "should-not-trigger",
+      "prompt": "Write three browser tests for the checkout happy path and validation error message.",
+      "expect": [
+        "The request remains an example-based UI testing task."
+      ]
+    },
+    {
+      "id": "classifies-ambiguous-counterexample",
+      "kind": "ambiguous",
+      "prompt": "The generated test says normalize(null) should be idempotent, but the docs never say null is accepted. Is this a product bug?",
+      "expect": [
+        "The contract and generator domain are checked before blaming production code.",
+        "The result is classified as a code bug, invalid property, generator bug, or ambiguous specification with evidence.",
+        "Unspecified behavior is not reported as a confirmed product defect."
+      ]
+    }
+  ]
+}

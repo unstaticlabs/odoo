@@ -82,6 +82,7 @@ jobs:
           scripts/check-github-governance
           scripts/check-action-pins
           find custom-addons -name '*.xml' -print0 | xargs -0 -n1 python3 -c 'import sys,xml.etree.ElementTree as E; E.parse(sys.argv[1])'
+          python3 .usl/bin/agent_skills_lock.py verify
           git diff --check
 
   database:
