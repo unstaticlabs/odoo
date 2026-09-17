@@ -29,10 +29,39 @@ jobs:
     name: Back-merge production into staging
     runs-on: ubuntu-latest
     steps:
+      # A pull request opened with `github.token` is authored by the
+      # github-actions bot, and GitHub holds the workflow runs on such a pull
+      # request at `action_required` until a human presses "Approve and run".
+      # `USL qualification` is a required check on 19-usl-staging, so a
+      # back-merge opened that way can never satisfy its own ruleset: auto-merge
+      # is armed, the queue never admits it, and the pull request sits open
+      # until somebody approves the run by hand. On 2026-09-14 three had stacked
+      # up that way (#235, #236, #238), each waiting on an approval nobody knew
+      # was owed.
+      #
+      # An app installation token is a different actor, so the runs it triggers
+      # start on their own and the back-merge closes itself. Configure
+      # `BACK_MERGE_APP_ID` (variable) and `BACK_MERGE_APP_PRIVATE_KEY` (secret)
+      # for an app installed on this repository with contents:write and
+      # pull-requests:write. Until they exist the step is skipped and the run
+      # falls back to `github.token` — the previous behaviour, which still opens
+      # a correct pull request, still needs the manual approval, and now says so.
+      - id: app-token
+        if: vars.BACK_MERGE_APP_ID != ''
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ vars.BACK_MERGE_APP_ID }}
+          private-key: ${{ secrets.BACK_MERGE_APP_PRIVATE_KEY }}
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          # Push the head branch as the same actor that opens the pull request,
+          # so the branch and the pull request agree on who made them.
+          token: ${{ steps.app-token.outputs.token || github.token }}
+      - name: Warn when the back-merge will need a manual approval
+        if: steps.app-token.outputs.token == ''
+        run: echo "::warning::No back-merge app configured, so this run uses github.token and any pull request it opens holds its checks at action_required until somebody approves them. Set the BACK_MERGE_APP_ID variable and the BACK_MERGE_APP_PRIVATE_KEY secret to let the back-merge land on its own."
       - name: Open the back-merge pull request when staging is behind
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
         run: scripts/back-merge-production
