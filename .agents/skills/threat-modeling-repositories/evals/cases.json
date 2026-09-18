@@ -1,0 +1,42 @@
+{
+  "skill": "threat-modeling-repositories",
+  "cases": [
+    {
+      "id": "models-repository-threats",
+      "kind": "should-trigger",
+      "prompt": "Threat model the upload and processing paths in this repository, including trust boundaries and realistic abuse paths.",
+      "expect": [
+        "The selected scope is mapped to repository evidence.",
+        "Runtime entry points, assets, boundaries, attacker capabilities, and existing controls are distinguished.",
+        "Threats are concrete abuse paths with justified priority and confidence.",
+        "Mitigations point to relevant components or boundaries."
+      ]
+    },
+    {
+      "id": "does-not-own-general-review",
+      "kind": "should-not-trigger",
+      "prompt": "Review this authentication pull request for implementation bugs and fix them.",
+      "expect": [
+        "The task remains a code review and implementation request rather than expanding into a threat model."
+      ]
+    },
+    {
+      "id": "handles-missing-deployment-context",
+      "kind": "ambiguous",
+      "prompt": "Threat model this service. The repository does not say whether it is internet-facing or single-tenant.",
+      "expect": [
+        "Only context that materially changes ranking is requested.",
+        "If unanswered, assumptions and conditional priorities remain explicit.",
+        "The agent does not invent exposure or tenancy facts."
+      ]
+    },
+    {
+      "id": "does-not-own-known-bug-variants",
+      "kind": "should-not-trigger",
+      "prompt": "We found an authorization bypass in this handler. Search the repository for every variant of the same root cause.",
+      "expect": [
+        "The request routes to bug-variant analysis rather than a new threat model."
+      ]
+    }
+  ]
+}

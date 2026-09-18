@@ -137,6 +137,11 @@ friends. Nothing else depends on that, and the paths below always work.
 | hunting other instances of a defect whose root cause you already know | `.agents/skills/finding-bug-variants/SKILL.md` |
 | asked for trust boundaries, abuse paths or AppSec design risk | `.agents/skills/threat-modeling-repositories/SKILL.md` |
 
+`designing-property-based-tests`, `finding-bug-variants` and
+`threat-modeling-repositories` are snapshots from `unstaticlabs/agent-skills`,
+selected in `.usl/agent-skills.json` and pinned in `.usl/agent-skills.lock.json`.
+Do not edit them by hand; the qualification check verifies them.
+
 The five delivery skills score and choose work against `VALUES.md`, `ROADMAP.md`
 and `DECISIONS/0001-weekly-delivery-protocol.md`. Read those before deciding what
 is worth building; read the skill before building it.

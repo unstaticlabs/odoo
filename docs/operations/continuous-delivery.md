@@ -16,6 +16,22 @@ staging, and an hourly run catches anything the push-triggered run missed. The
 back-merge is the one operation that restores the shared ancestry; staging is
 never expected to sit behind production.
 
+The back-merge has to open its pull request as a GitHub app rather than as the
+default `github.token`. A pull request authored by the github-actions bot has
+its checks held at `action_required` until a human presses "Approve and run",
+and `USL qualification` is a required check on `19-usl-staging` — so such a
+pull request can never satisfy its own ruleset. Auto-merge is armed, the queue
+never admits it, and the back-merge waits on an approval nobody is told is
+owed. On 2026-09-14 three had stacked up that way (#235, #236 and #238) and
+staging had been behind production since the 11th.
+
+Set the `BACK_MERGE_APP_ID` repository variable and the
+`BACK_MERGE_APP_PRIVATE_KEY` secret to an app installed here with
+`contents: write` and `pull-requests: write`. Without them the workflow still
+opens a correct pull request under `github.token` and logs a warning saying it
+will need the manual approval; the back-merge keeps working, it just stops
+being unattended.
+
 An urgent fix therefore reaches staging after it merges to production rather
 than in parallel with it. The earlier arrangement mirrored the urgent branch
 into a second staging pull request, which kept the content in step but merged
