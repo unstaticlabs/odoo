@@ -7,6 +7,6 @@
     "impeccable:update": "impeccable update --providers=codex,claude,cursor,github --scope=project --yes"
   },
   "devDependencies": {
-    "impeccable": "3.6.0"
+    "impeccable": "4.1.0"
   }
 }
