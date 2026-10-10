@@ -154,7 +154,7 @@ jobs:
           echo "oca=$(PYTHONPATH=. python3 -c 'from operations.release_identity import oca_bundle_sha256; print(oca_bundle_sha256())')" >> "$GITHUB_OUTPUT"
           echo "action_risk=$(PYTHONPATH=. python3 -c 'from operations.release_identity import action_risk_policy_sha256; print(action_risk_policy_sha256())')" >> "$GITHUB_OUTPUT"
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
       - name: Log in to GHCR
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
         with:
@@ -185,7 +185,7 @@ jobs:
       - name: Build and publish missing content image
         id: build
         if: steps.existing.outputs.exists != 'true'
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .
           file: ${{ matrix.dockerfile }}
@@ -320,7 +320,7 @@ jobs:
         with:
           submodules: false
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
       - name: Log in to GHCR
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
         with:
@@ -348,7 +348,7 @@ jobs:
           subject-digest: ${{ steps.renderer.outputs.subject_digest }}
           create-storage-record: true
       - name: Install ORAS
-        uses: oras-project/setup-oras@1d808f7d7f6995cc68b7bf507bfe5c5446e1dc9d # v2.0.1
+        uses: oras-project/setup-oras@005458ad77f1c8facd38a094e4af2e69e5607ff4 # v2.0.2
       - name: Build release notes from merged pull requests
         env:
           GH_TOKEN: ${{ github.token }}
