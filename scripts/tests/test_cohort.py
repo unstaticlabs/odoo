@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import hashlib
+import io
 import json
 import os
 import re
@@ -106,6 +107,7 @@ from operations.stack import (
     _validate_runtime_release_images,
     _probe_staging_gateway_maintenance,
     _validated_cleanup_captures,
+    _retain_recovery_proof_captures,
     _validated_cleanup_resources,
     _validated_cleanup_containers,
     _validated_cleanup_network,
@@ -4523,12 +4525,14 @@ class CohortContractTests(unittest.TestCase):
             result["delete_captures"],
             sorted([f"release-admitted-{old}", f"release-pre-{old}", f"release-pre-{orphan}"]),
         )
+        # The proof capture has no qualified state, so it may still resume.
         self.assertEqual(
             result["protected_captures"],
             sorted([
                 f"release-pre-{active}", f"release-candidate-{active}",
                 f"release-admitted-{active}", f"release-admitted-{previous}",
                 f"release-pre-{running}", f"release-pre-{pending}",
+                "proof-daily-0123456789abcdef",
             ]),
         )
         paths = _validated_cleanup_captures(target, runner, result)
@@ -4571,6 +4575,65 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(
             result["protected_captures"], sorted([second, third, unqualified, resumable]),
         )
+
+    def _proof_state_root(self, target):
+        """Four qualified daily proofs, one still uploading, one unmanaged name."""
+        proofs = {
+            f"proof-daily-{digit * 16}": f"2026-09-0{day}T03:40:00Z"
+            for day, digit in enumerate("abcd", start=1)
+        }
+        entries = {"generations": "d", "attempts": "d", "backup-runs": "d", "proof-daily-0123": "d"}
+        files = {}
+        for run_id, created_at in proofs.items():
+            entries[run_id] = "d"
+            files.update(self._capture_files(target, run_id, created_at=created_at))
+        uploading = "proof-daily-" + "e" * 16
+        entries[uploading] = "d"
+        files.update(self._capture_files(
+            target, uploading, created_at="2026-08-30T03:40:00Z", status="uploaded",
+        ))
+        return self._capture_state_root(target, entries, files), sorted(proofs), uploading
+
+    def test_capture_retention_keeps_the_newest_qualified_proof_captures(self) -> None:
+        target = load_target("production", TARGETS)
+        runner, proofs, uploading = self._proof_state_root(target)
+
+        result = _cleanup_captures(target, runner, set())
+
+        self.assertEqual(result["delete_captures"], proofs[:2])
+        self.assertEqual(result["protected_captures"], sorted([*proofs[2:], uploading]))
+        paths = _validated_cleanup_captures(target, runner, result)
+        self.assertEqual(
+            paths, [f"{target.value['state_directory']}/{run_id}" for run_id in proofs[:2]],
+        )
+
+    def test_staging_capture_retention_ignores_proof_names(self) -> None:
+        target = load_target("staging", TARGETS)
+        runner, _proofs, _uploading = self._proof_state_root(target)
+        self.assertEqual(
+            _cleanup_captures(target, runner, set()),
+            {"protected_captures": [], "delete_captures": []},
+        )
+
+    def test_passed_proof_deletes_old_proof_captures_and_never_raises(self) -> None:
+        target = load_target("production", TARGETS)
+        runner, proofs, _uploading = self._proof_state_root(target)
+        with mock.patch.object(type(target), "runner", return_value=runner), \
+                mock.patch("operations.stack.runtime_lock", return_value=contextlib.nullcontext()):
+            result = _retain_recovery_proof_captures(target)
+        self.assertEqual(result, {"status": "applied", "deleted_captures": proofs[:2]})
+        self.assertEqual(
+            runner.removed, [f"{target.value['state_directory']}/{run_id}" for run_id in proofs[:2]],
+        )
+
+        runner, _proofs, _uploading = self._proof_state_root(target)
+        busy = RuntimeError("another operation already owns production")
+        with mock.patch.object(type(target), "runner", return_value=runner), \
+                mock.patch("operations.stack.runtime_lock", side_effect=busy), \
+                contextlib.redirect_stderr(io.StringIO()):
+            result = _retain_recovery_proof_captures(target)
+        self.assertEqual(result, {"status": "skipped", "deleted_captures": []})
+        self.assertEqual(runner.removed, [])
 
     def test_capture_retention_ignores_unmanaged_entries_and_rejects_symlinks(self) -> None:
         target = load_target("production", TARGETS)
