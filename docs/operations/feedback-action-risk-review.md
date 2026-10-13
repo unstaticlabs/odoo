@@ -76,11 +76,13 @@ the remaining changed entries carry shifted source line locations only.
 
 The operational `feedback_start` entry and its two existing draft-creation and
 parameter-read sinks now retain at most five untrusted action/model candidates
-on the transient draft. They accept no URL, search term, title or record content.
+on the transient draft. The native browser sends technical identifiers only;
+the transient draft can receive untrusted candidates containing extra keys.
 The private `_validated_page_context` assignment and three metadata-read sinks
 include the result of `_validated_navigation_context`: readable actions/models
-are checked without elevation, malformed candidates are omitted, and opting
-out stores neither current-page state nor navigation. Existing `sudo()` calls
+are checked without elevation, malformed candidates and extra keys are omitted
+before saving report/provider context. Opting out saves neither current-page
+state nor navigation on the report; it does not prevent transient receipt. Existing `sudo()` calls
 resolve validated model metadata; they do not grant business-record access.
 
 The private `_submit` three state-write sinks, `_poll` deadline-write sink and
