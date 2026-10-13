@@ -20,10 +20,15 @@ USL_WORKTREE_PORT_STEP=10
 USL_WORKTREE_PORT_BUCKETS=400
 USL_WORKTREE_PORT_BASE_OFFSET=10000
 
+usl_worktree_path_checksum() {
+    local path="$1"
+    printf '%s' "$path" | cksum | cut -d' ' -f1
+}
+
 usl_worktree_path_bucket() {
     local path="$1"
     local sum
-    sum="$(printf '%s' "$path" | cksum | cut -d' ' -f1)"
+    sum="$(usl_worktree_path_checksum "$path")"
     printf '%s' "$((sum % USL_WORKTREE_PORT_BUCKETS))"
 }
 
@@ -59,7 +64,10 @@ usl_worktree_env_assignments() {
     # COMPOSE_PROJECT_NAME rather than COMPOSE_PROJECT: Compose itself only
     # reads this spelling, and make now accepts it too, so one assignment
     # serves `make`, a bare `docker compose`, and a persisted .env.
-    printf 'COMPOSE_PROJECT_NAME=usl-wt-%s\n' "$(usl_worktree_slug "$path")"
+    # Managed worktrees often share the repository basename (such as odoo).
+    # The full path distinguishes their owners even when the slug is identical.
+    printf 'COMPOSE_PROJECT_NAME=usl-wt-%s-%s\n' \
+        "$(usl_worktree_slug "$path")" "$(usl_worktree_path_checksum "$path")"
     printf 'ODOO_HTTP_PORT=%s\n' "$((8069 + offset))"
     printf 'ODOO_GEVENT_PORT=%s\n' "$((8072 + offset))"
     printf 'POCKET_ID_HTTP_PORT=%s\n' "$((1411 + offset))"
