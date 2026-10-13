@@ -45,6 +45,7 @@ class FeedbackSubmission(models.TransientModel):
     source_model_name = fields.Char(readonly=True)
     source_record_id = fields.Integer(readonly=True)
     source_settings_section = fields.Char(readonly=True)
+    navigation_context = fields.Json(readonly=True)
     viewport_width = fields.Integer(readonly=True)
     viewport_height = fields.Integer(readonly=True)
 
@@ -64,6 +65,7 @@ class FeedbackSubmission(models.TransientModel):
             "source_settings_section": str(page_context.get("settings_section") or "")[:64],
             "viewport_width": self._safe_integer(page_context.get("viewport_width")),
             "viewport_height": self._safe_integer(page_context.get("viewport_height")),
+            "navigation_context": page_context.get("navigation")[-5:] if isinstance(page_context.get("navigation"), list) else [],
             "include_page_context": True,
         }
         draft = self.create(values)
@@ -71,7 +73,8 @@ class FeedbackSubmission(models.TransientModel):
             values["source_action_id"]
             or values["source_model_name"]
             or values["source_record_id"]
-            or values["source_settings_section"],
+            or values["source_settings_section"]
+            or values["navigation_context"],
         )
         params = self.env["ir.config_parameter"].sudo()
         assistant_enabled = params.get_bool("usl_feedback.gemini_enabled")
@@ -91,7 +94,7 @@ class FeedbackSubmission(models.TransientModel):
     def _safe_integer(value):
         try:
             value = int(value or 0)
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, OverflowError):
             return 0
         return value if value > 0 else 0
 
@@ -185,12 +188,33 @@ class FeedbackSubmission(models.TransientModel):
                 return (app.get("string") or key.replace("_", " ").title())[:128]
         return False
 
+    def _validated_navigation_context(self):
+        """Recheck the bounded browser candidates under the submitting user."""
+        result = []
+        candidates = self.navigation_context if isinstance(self.navigation_context, list) else []
+        for candidate in candidates[-5:]:
+            if not isinstance(candidate, dict):
+                continue
+            entry = {}
+            action_id = self._safe_integer(candidate.get("action_id"))
+            action = self.env["ir.actions.actions"].browse(action_id).exists()
+            if action and action.has_access("read"):
+                entry["action_id"] = action.id
+            name = candidate.get("model")
+            model = self.env.get(name) if isinstance(name, str) and len(name) <= 128 else None
+            if model is not None and model.browse().has_access("read"):
+                entry["model"] = name
+            if entry and (not result or entry != result[-1]):
+                result.append(entry)
+        return result
+
     def _validated_page_context(self):
         self.ensure_one()
         if not self.include_page_context:
             return {}, False
         values = {
             "usl_feedback_context_included": True,
+            "usl_feedback_navigation_context": self._validated_navigation_context(),
             "usl_feedback_viewport_width": self.viewport_width or False,
             "usl_feedback_viewport_height": self.viewport_height or False,
         }

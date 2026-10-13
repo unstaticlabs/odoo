@@ -1,5 +1,8 @@
 import { ChatHub } from "@mail/core/common/chat_hub";
+import { _t } from "@web/core/l10n/translation";
+import { router } from "@web/core/browser/router";
 import { browser } from "@web/core/browser/browser";
+import { useActiveElement } from "@web/core/ui/ui_service";
 import { localization } from "@web/core/l10n/localization";
 import { getActiveHotkey } from "@web/core/hotkeys/hotkey_service";
 import { registry } from "@web/core/registry";
@@ -8,10 +11,14 @@ import { isEventHandled } from "@web/core/utils/misc";
 import { patch } from "@web/core/utils/patch";
 import { useSubEnv } from "@web/owl2/utils";
 
-import { Component, reactive } from "@odoo/owl";
+import { Component, reactive, useState } from "@odoo/owl";
 
-import { FeedbackPanel } from "./feedback_messaging_menu";
+import { FeedbackPanel, feedbackPageContext } from "./feedback_messaging_menu";
+import { captureFeedbackPagePreview } from "./feedback_page_preview";
 
+
+// Keep the native palette; feedback is the first suggested command.
+registry.category("command_categories").add("usl_feedback", {}, { sequence: 5 });
 
 const FOCUS_EVENT = "usl-feedback-chat-window:focus";
 
@@ -19,11 +26,13 @@ export class FeedbackChatWindowService {
     constructor(env, services) {
         this.env = env;
         this.store = services["mail.store"];
+        this.action = services.action;
         this.mode = "closed";
         this.pageContext = false;
         this.screenshot = false;
         this.captureState = "idle";
         this.captureId = 0;
+        this.navigation = [];
     }
 
     get isClosed() {
@@ -39,6 +48,54 @@ export class FeedbackChatWindowService {
         this.reserveNativeWindowSpace();
         this.mode = "open";
         browser.setTimeout(() => this.env.bus.trigger(FOCUS_EVENT), 0);
+    }
+
+    recordNavigation(state = router.current) {
+        // Session-local technical identifiers only: never URLs, search terms,
+        // record titles or arbitrary action context.
+        const controller = this.action?.currentController;
+        const action = Number(controller?.action?.id || state?.action);
+        const candidateModel = controller?.props?.resModel || state?.model;
+        const model = typeof candidateModel === "string" && /^[a-z][a-z0-9_.]{0,127}$/.test(candidateModel)
+            ? candidateModel : false;
+        const entry = {
+            action_id: Number.isSafeInteger(action) && action > 0 ? action : false,
+            model,
+        };
+        if (!(entry.action_id || entry.model)) {
+            return;
+        }
+        if (JSON.stringify(this.navigation.at(-1)) !== JSON.stringify(entry)) {
+            this.navigation.push(entry);
+            this.navigation = this.navigation.slice(-5);
+        }
+    }
+
+    openFeedback() {
+        if (!this.isClosed) {
+            this.open();
+            return;
+        }
+        this.captureCurrentPage();
+    }
+
+    captureCurrentPage() {
+        this.recordNavigation();
+        const pageContext = {
+            ...feedbackPageContext(this.action.currentController),
+            navigation: this.navigation.map((entry) => ({ ...entry })),
+        };
+        const captureId = this.beginCapture(pageContext);
+        browser.requestAnimationFrame(() => {
+            browser.setTimeout(async () => {
+                try {
+                    this.completeCapture(captureId, await captureFeedbackPagePreview());
+                } catch {
+                    this.failCapture(captureId);
+                }
+            }, 0);
+        });
+        return pageContext;
     }
 
     fold() {
@@ -73,6 +130,7 @@ export class FeedbackChatWindowService {
     }
 
     clearScreenshot() {
+        this.captureId += 1;
         this.screenshot?.release?.();
         this.screenshot = false;
         this.captureState = "idle";
@@ -98,9 +156,15 @@ export class FeedbackChatWindowService {
 }
 
 export const feedbackChatWindowService = {
-    dependencies: ["mail.store"],
+    dependencies: ["mail.store", "action", "command"],
     start(env, services) {
         const service = reactive(new FeedbackChatWindowService(env, services));
+        service.recordNavigation();
+        env.bus.addEventListener("ACTION_MANAGER:UI-UPDATED", () => service.recordNavigation());
+        services.command.add(_t("Send product feedback"), () => service.openFeedback(), {
+            category: "usl_feedback",
+            global: true,
+        });
         browser.addEventListener("pagehide", () => service.cancelCapture());
         browser.addEventListener("popstate", () => service.cancelCapture());
         return service;
@@ -118,13 +182,22 @@ export class FeedbackChatWindow extends Component {
         useSubEnv({ inChatWindow: true });
         this.feedbackChatWindow = useService("usl_feedback.chat_window");
         this.ui = useService("ui");
+        this.focusState = useState({ isActive: false });
+        useBus(this.ui.bus, "active-element-changed", ({ detail }) => {
+            this.focusState.isActive = detail === this.rootRef.el;
+        });
+        useActiveElement("root");
         this.rootRef = useAutofocus({ refName: "root", mobile: true });
         useBackButton(() => this.close());
-        useBus(this.env.bus, FOCUS_EVENT, () => this.rootRef.el?.focus());
+        useBus(this.env.bus, FOCUS_EVENT, () => {
+            const root = this.rootRef.el;
+            (root?.querySelector("#usl_feedback_message") || root)?.focus();
+        });
     }
 
     get attClass() {
         return {
+            "o-usl-FeedbackChatWindow-active": this.focusState.isActive,
             "d-none": this.props.hidden,
             "w-100 h-100 o-mobile": this.ui.isSmall,
             "o-rounded-bubble border border-dark o-border-opacity-15 mb-2": !this.ui.isSmall,

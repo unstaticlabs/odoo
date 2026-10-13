@@ -1660,7 +1660,8 @@
           "rationale": "Exact owner/maintainer conversation or configured settings workflow; poll invokes processing, not merely reading. Native config parameter/attachment/task semantic guards remain in force."
         },
         "rpc:usl.feedback.submission.feedback_start": {
-          "rationale": "Exact owner/maintainer conversation or configured settings workflow; poll invokes processing, not merely reading. Native config parameter/attachment/task semantic guards remain in force."
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the internal reporter draft adds at most five untrusted technical navigation candidates; submission rechecks readable action/model candidates without elevation and opt-out stores none. Existing source-record checks and metadata-only sudo operations retain their original scope."
         },
         "rpc:usl.feedback.submission.feedback_submit_initial": {
           "rationale": "Exact owner/maintainer conversation or configured settings workflow; poll invokes processing, not merely reading. Native config parameter/attachment/task semantic guards remain in force."
@@ -1912,10 +1913,12 @@
           "rationale": "Exact reviewed workflow sink validates caller/native records before elevated changes; protected native task deletion and config boundaries remain in delegated super/semantic operations."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_start:orm_create:1": {
-          "rationale": "Exact reviewed workflow sink validates caller/native records before elevated changes; protected native task deletion and config boundaries remain in delegated super/semantic operations."
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the internal reporter draft adds at most five untrusted technical navigation candidates; submission rechecks readable action/model candidates without elevation and opt-out stores none. Existing source-record checks and metadata-only sudo operations retain their original scope."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_start:sudo:1": {
-          "rationale": "Exact reviewed workflow sink validates caller/native records before elevated changes; protected native task deletion and config boundaries remain in delegated super/semantic operations."
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the internal reporter draft adds at most five untrusted technical navigation candidates; submission rechecks readable action/model candidates without elevation and opt-out stores none. Existing source-record checks and metadata-only sudo operations retain their original scope."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:message_send:1": {
           "rationale": "Exact reviewed workflow sink validates caller/native records before elevated changes; protected native task deletion and config boundaries remain in delegated super/semantic operations."
@@ -1986,7 +1989,7 @@
         "rpc:usl.feedback.submission.create": "37b76f9937e66a72c0555d93394a9e3336325c81c16eec20667bed140b30b44a",
         "rpc:usl.feedback.submission.feedback_add_attachment": "601a8cd7b58c7d9e070b6015d61a6f05eef8c914c475e2c2f5e05917d657156a",
         "rpc:usl.feedback.submission.feedback_remove_attachment": "b6b0012e347bd0291ea2c328b407f5230827017904bd381c02517d1a8487cfcb",
-        "rpc:usl.feedback.submission.feedback_start": "758cb2fc11db1d24af03cc0ad085557c226f4b2b54d55c224e3a05b4604da35d",
+        "rpc:usl.feedback.submission.feedback_start": "ec7b0f7a0014f5bc6696f6e81e5ada9110a807514a62c48d6b447fa91a4c5b8a",
         "rpc:usl.feedback.submission.feedback_submit_initial": "65011343197f17be0153a3ae5a2d3e617d7e7c579d8ab81a023520fa4d66d80d",
         "rpc:usl.feedback.submission.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:usl.feedback.submission.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
@@ -2068,8 +2071,8 @@
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_add_attachment:sudo:2": "fde3bf76b2a6a30fd886e013311489ccace302be45031f4caf6b7686a09d0e68",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_remove_attachment:orm_write:1": "3d0940cc7b27fcf4422c5e447cb9148b4dc8f5ffe92139b65dbd04035b9162a4",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_remove_attachment:sudo:1": "401b0b1d2831fc9d898c90d5851b11ad0c9f198f375f7dc2579a0d147389b99a",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_start:orm_create:1": "9ecac400fac7fdd22b8da668ccc189bf624c725b786d53498a5753607d454c9f",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_start:sudo:1": "3a6873c806094fc4faf33d9ed7a034b854bf065ebf59ed9b29215c5520304cfe",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_start:orm_create:1": "fbc9b34c42ab16a3e6efdb6177127bfe798ffac4f65bfa2df8f3e2228753e563",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_start:sudo:1": "2206cad6e82a1aeb776fc80497a8fc021c764b3c2a7ad83a4b39ae949fc5f6b5",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:message_send:1": "5eeea3fa90b9014c41dbbd2b88a4c25a887bfdd3dd96de2597798b8e45c50f12",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:orm_create:1": "336c6aadd2d5a5e5ad0a913e0037fb56565bbebd088c8e06334bee9b2c5f52c1",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:orm_write:1": "3b2ca616049da9ec35d64f1e40d92c2e0243c6996dc3951cbb89d6ffb21328e3",
@@ -179162,13 +179165,22 @@
       "domain": "projects",
       "evidence_id": "feedback-provider-phases-20260906",
       "id": "system_internal.projects.feedback_provider_phases_20260906",
-      "overrides": {},
+      "overrides": {
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._accept_phase:orm_write:1": {
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the locked private provider workflow changes only bounded polling deadlines (two-second first/early checks, ten-second long-call checks). Provider endpoints, credentials, owner/company authority, neutralization, retries and stale-result validation are unchanged."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit:orm_write:3": {
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the locked private provider workflow changes only bounded polling deadlines (two-second first/early checks, ten-second long-call checks). Provider endpoints, credentials, owner/company authority, neutralization, retries and stale-result validation are unchanged."
+        }
+      },
       "rationale": "Reviewed in docs/operations/feedback-action-risk-review.md: phase-separated configured provider work, bounded task-owned images and temporary evidence, terminal cleanup and rate-limit recovery preserve owner/company checks, retained-run ACLs and the server-owned deployment snapshot. No protected guard or service-identity permission is changed.",
       "reachability_proof": "Underscore methods are not RPC-callable. The fixed cron or owner/maintainer-authorized task processing holds the run lock before submit, poll and phase transition. Configuration rejects neutralized databases before provider use; elevated parameter reads supply only the validated MCP connection, never business-record access.",
       "reviewed_digests": {
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._accept_phase:orm_write:1": "277914c737b4f248500ac6f11091d85887b309a7c2a358ead7ab3dba738506fd",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._accept_phase:orm_write:1": "d2eb211257b7bad8403d1ce2970d0600bf97646024948ed25ba845266991597a",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._phase_payload:sudo:1": "e26ba7fbf1b5788aaf349b3931bce359a71b411de00e4c2bd322dc7ce1bc6118",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit:orm_write:3": "bc5609ffbaeb6fd88a9af0d71b70b113b7dbc86ddad98bce0b2ad8ccb37bf674"
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit:orm_write:3": "28b2f7035ead918f3c789830b4f11176db131ebb0833a54244780ce54c67d0fb"
       }
     },
     {
@@ -179279,8 +179291,8 @@
           "reachability_proof": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._poll:orm_write:1": {
-          "evidence_id": "feedback-provider-phases-20260906",
-          "rationale": "Reviewed in docs/operations/feedback-action-risk-review.md: phase-separated configured provider work, bounded task-owned images and temporary evidence, terminal cleanup and rate-limit recovery preserve owner/company checks, retained-run ACLs and the server-owned deployment snapshot. No protected guard or service-identity permission is changed.",
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the locked private provider workflow changes only bounded polling deadlines (two-second first/early checks, ten-second long-call checks). Provider endpoints, credentials, owner/company authority, neutralization, retries and stale-result validation are unchanged.",
           "reachability_proof": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:orm_create:1": {
@@ -179315,13 +179327,13 @@
           "reachability_proof": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit:orm_write:1": {
-          "evidence_id": "feedback-provider-phases-20260906",
-          "rationale": "Reviewed in docs/operations/feedback-action-risk-review.md: phase-separated configured provider work, bounded task-owned images and temporary evidence, terminal cleanup and rate-limit recovery preserve owner/company checks, retained-run ACLs and the server-owned deployment snapshot. No protected guard or service-identity permission is changed.",
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the locked private provider workflow changes only bounded polling deadlines (two-second first/early checks, ten-second long-call checks). Provider endpoints, credentials, owner/company authority, neutralization, retries and stale-result validation are unchanged.",
           "reachability_proof": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit:orm_write:2": {
-          "evidence_id": "feedback-provider-phases-20260906",
-          "rationale": "Reviewed in docs/operations/feedback-action-risk-review.md: phase-separated configured provider work, bounded task-owned images and temporary evidence, terminal cleanup and rate-limit recovery preserve owner/company checks, retained-run ACLs and the server-owned deployment snapshot. No protected guard or service-identity permission is changed.",
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the locked private provider workflow changes only bounded polling deadlines (two-second first/early checks, ten-second long-call checks). Provider endpoints, credentials, owner/company authority, neutralization, retries and stale-result validation are unchanged.",
           "reachability_proof": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit_local:orm_write:1": {
@@ -179403,19 +179415,23 @@
           "reachability_proof": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:orm_write:1": {
-          "rationale": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs.",
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the internal reporter draft adds at most five untrusted technical navigation candidates; submission rechecks readable action/model candidates without elevation and opt-out stores none. Existing source-record checks and metadata-only sudo operations retain their original scope.",
           "reachability_proof": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:1": {
-          "rationale": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs.",
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the internal reporter draft adds at most five untrusted technical navigation candidates; submission rechecks readable action/model candidates without elevation and opt-out stores none. Existing source-record checks and metadata-only sudo operations retain their original scope.",
           "reachability_proof": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:2": {
-          "rationale": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs.",
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the internal reporter draft adds at most five untrusted technical navigation candidates; submission rechecks readable action/model candidates without elevation and opt-out stores none. Existing source-record checks and metadata-only sudo operations retain their original scope.",
           "reachability_proof": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:3": {
-          "rationale": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs.",
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the internal reporter draft adds at most five untrusted technical navigation candidates; submission rechecks readable action/model candidates without elevation and opt-out stores none. Existing source-record checks and metadata-only sudo operations retain their original scope.",
           "reachability_proof": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs."
         }
       },
@@ -179432,7 +179448,7 @@
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:3": "a9a9b4fd38ed51ae8e426c886935eceade06a04dc8fe46a577607264926d9243",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:4": "18964496abcc64ce83355313723ede4cdf8b6bcbf9f55326dca29d1517ae95fb",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._mark_withdrawn:orm_write:1": "5a6438ce3f68ea1e84a3daede5a481f180e9edfa4b69a2173742b15456994f3b",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._poll:orm_write:1": "e61f407ef13ff9c4c0dd0437565d28a8a2b821d0724ecbcb8c97898f373bf605",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._poll:orm_write:1": "4d2694e40bba8c7d7a6b499c7fa8dc32041154931aee47ff6e6bfd49bb44fd3b",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:orm_create:1": "79e28adc37cae681f49b2605cc70e4820dcf6dec2889c9ecb0de78f17821169d",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:orm_write:1": "404cc2dec8571324c25cc46050ebb766fb67c7640191e0648964e67d7ee131c2",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:orm_write:2": "710fb8546b80ccf4a8ebf4f877d9cd6577f66862a75e8347ea99f1e291cc3929",
@@ -179440,8 +179456,8 @@
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._restart_without_stored_state:orm_create:1": "ef64584c56208b450e4804ec175f0cf2909d4c6f8f544dda798006df4059a8f0",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._restart_without_stored_state:orm_write:1": "6c32430bb9347f0169df4e79b873a819feec262ee2dd6cd7fc857538c55ba8a1",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._restart_without_stored_state:orm_write:2": "58257185e8d1343eaf080194f7a833b4288f62a5344138791110ee8b4ea2db53",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit:orm_write:1": "4f6f955a7cda3bb5c4b8de283e878abcc8d025028c67b64a991633e425568d46",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit:orm_write:2": "662bd5a1f221d4b3f16cb62d37a79f14dda31ab0725aa574c5c7ecf291a228f2",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit:orm_write:1": "c2a378c2390be65b28cc4458b1bc1544d503709eaba09c3ad83026f3230ac694",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit:orm_write:2": "072c3de0f700ac67a154c6dabcb25d12a9563de76cb0d056f6edff45134b0d8e",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit_local:orm_write:1": "55c299ebdc66d4f8de23fe34da293d12aa080c0d4c1e9c348aeccbbcee0baddf",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit_local:orm_write:2": "0cc3a9125ddeae362ac287a4f155b9f4046a2a1224a3aac301341b982ff3c12a",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_related_security.py:_feedback_task_relation_domain:sudo:1": "176175ad2bc76d86d3a215c31b560b8e2e942d22bc0166fe5e0fd0a1cf976726",
@@ -179461,10 +179477,10 @@
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_attachments:sudo:1": "b4e7caade2b67c026a1668ff5a1b6eab0abab45610d23d40947fd533e0652a5d",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_attachments:sudo:2": "4818fd11e475141a97a9cdf619f7039039e31256a0a4800896ed0fc17d8fb640",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_attachments:sudo:3": "2cb79c6104ad9fb227833ae54b975b31925a6ce1c9a8c467d1f4a2a4322d72bb",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:orm_write:1": "6db944b13030fe4876d316a480f2345a0d7cbcda1dea1871732fe51bf8645998",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:1": "0a4223845d3fde2aa758baec8332b22b8d7e0e34e5c0c6abbeccbb86f2561b07",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:2": "8f30c19e2c0680e89c58007a6b008dd353e9638a2563c7a5ac07b8b7ad32a43a",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:3": "24d6394ce3d67f5450e1d12ae833ce076fc57e55b8a4bd24baa563848be3d530"
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:orm_write:1": "5bd0d7adf107e2f7e2920960ea617ee6ad747503227081b819d60618dafe4cf4",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:1": "cd214f2cd43dc04ceefe9349e3b1cf96f6d1fa163a1b064d7d56dbed8f453713",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:2": "44c6a48038a0f85355ca384d54697c362fcc236e50ec82d4bb3ac68a9a4b5027",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:3": "a6bc7ff288d2048429910d58a4bfb50f846b3552ca585e2ea59837ec0c7002f1"
       }
     },
     {
@@ -202330,6 +202346,17 @@
     }
   ],
   "evidence_families": {
+    "feedback-capture-20261013": {
+      "contract": "Bounded session technical navigation is checked under reporter access and omitted on opt-out; quick offline provider completion advances at two seconds while long calls retain ten-second polling. Existing ownership, company, service permissions, lock and stale-result checks remain enforced.",
+      "tests": [
+        "custom-addons/usl_feedback/tests/test_feedback.py::TestProductFeedback.test_navigation_candidates_are_bounded_sanitized_and_opt_out",
+        "custom-addons/usl_feedback/tests/test_feedback.py::TestProductFeedback.test_completed_provider_phase_advances_after_two_seconds",
+        "custom-addons/usl_feedback/tests/test_feedback.py::TestProductFeedback.test_quick_provider_completion_has_two_second_product_wait",
+        "custom-addons/usl_feedback/tests/test_feedback.py::TestProductFeedback.test_only_reporter_or_maintainer_can_drive_agent_rpc",
+        "custom-addons/usl_feedback/tests/test_feedback.py::TestProductFeedback.test_shared_board_preserves_source_company_without_cross_company_business_access",
+        "custom-addons/usl_feedback/tests/test_feedback.py::TestProductFeedback.test_claimed_agent_run_is_not_processed_twice"
+      ]
+    },
     "feedback-provider-phases-20260906": {
       "contract": "Offline phase separation, secret-safe diagnostics, task-owned bounded image evidence, rate-limit polling, cleanup and unchanged reporter/maintainer/company/service ACLs. Full live provider availability remains a staging release qualification, not a claim of these tests.",
       "tests": [
