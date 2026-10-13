@@ -276,7 +276,33 @@ def finalize(session: Session, env: Environment) -> None:
     })
 
 
+# USL-TRACE: temporary instrumentation that names the cause of a sign-out.
+# Read docs/operations/session-signout-investigation-20260910.md before
+# removing it, and remove it once the cause is named.
+USL_TRACE_LOGGABLE_ROUTES = ('/web/', '/odoo', '/auth_oauth/')
+
+
+def usl_trace_route() -> str:
+    """The route a sign-out happened on, when the route is safe to log.
+
+    ``/agent-documents/<grant>`` carries a bearer token in its path, which the
+    gateway goes out of its way to keep out of access and error logs. Anything
+    outside the routes named above is reported as ``(other)`` rather than
+    printed, so a route added later cannot start leaking one by default.
+    """
+    if not request:
+        return '(no request)'
+    path = request.httprequest.path
+    return path if path.startswith(USL_TRACE_LOGGABLE_ROUTES) else '(other)'
+
+
 def logout(session: Session, *, keep_db: bool = False) -> None:
+    if session.get('uid'):
+        # USL-TRACE
+        _logger.info(
+            "USL-TRACE sign-out: session=%s uid=%s route=%s",
+            session.sid[:8], session['uid'], usl_trace_route(),
+        )
     db = session.db if keep_db else get_default_session()['db']  # None
     debug = session.debug
     session.clear()
@@ -419,6 +445,12 @@ def check(session: Session, request_or_env: Request | Environment) -> None:
     session_store().delete_old_sessions(session)
     # Make sure we don't use a deleted session that can be saved again
     if session.get('deletion_time', float('+inf')) <= time.time():
+        # USL-TRACE
+        _logger.info(
+            "USL-TRACE expired: session=%s uid=%s deletion_time=%s now=%s",
+            session.sid[:8], session.get('uid'),
+            session.get('deletion_time'), time.time(),
+        )
         logout(session, keep_db=True)
         e = "session is too old"
         raise SessionExpiredException(e)
@@ -438,6 +470,12 @@ def check(session: Session, request_or_env: Request | Environment) -> None:
             if request:
                 env['res.device.log']._update_device(request)
             return
+    # USL-TRACE: a mismatch means a res.users column or database.secret moved
+    # under a session that was otherwise valid.
+    _logger.info(
+        "USL-TRACE token mismatch: session=%s uid=%s had_expected=%s",
+        session.sid[:8], session.get('uid'), bool(expected),
+    )
     logout(session, keep_db=True)
     e = "session token mismatch; likely because the user credentials changed"
     raise SessionExpiredException(e)
@@ -509,6 +547,12 @@ class SessionStore:
         session_path = self.get_session_path(session.sid)
         with suppress(OSError):
             os.unlink(session_path)
+            if session.get('uid'):
+                # USL-TRACE
+                _logger.info(
+                    "USL-TRACE file deleted: session=%s uid=%s",
+                    session.sid[:8], session['uid'],
+                )
 
     def get(self, sid: str, *, keep_sid: bool = False) -> Session:
         """
@@ -553,6 +597,7 @@ class SessionStore:
         Meanwhile with a hard rotation the entire session id is changed, which
         is useful in cases such as logging the user out.
         """
+        previous = session.sid  # USL-TRACE
         if soft:
             # Multiple network requests can occur at the same time, all using the old session.
             # We don't want to create a new session for each request, it's better to reference the one already made.
@@ -581,15 +626,30 @@ class SessionStore:
         session.should_rotate = False
         session['create_time'] = time.time()
         self.save(session)
+        if session.get('uid'):
+            # USL-TRACE: a soft rotation keeps the identifier and changes the
+            # rest, so a session that vanishes just after one did not rotate
+            # away — something removed it.
+            _logger.info(
+                "USL-TRACE rotated: uid=%s soft=%s from=%s to=%s",
+                session['uid'], soft, previous[:8], session.sid[:8],
+            )
 
     def vacuum(self, max_lifetime=SESSION_LIFETIME):
         """ Remove expired session files older than the given lifetime. """
         threshold = time.time() - max_lifetime
+        removed = 0
         for fname in glob.iglob(os.path.join(self.path, '*', '*')):
             path = os.path.join(self.path, fname)
             with suppress(OSError):
                 if os.path.getmtime(path) < threshold:
                     os.unlink(path)
+                    removed += 1
+        if removed:
+            # USL-TRACE
+            _logger.info(
+                "USL-TRACE vacuum: removed=%d max_lifetime=%ds", removed, max_lifetime,
+            )
 
     def get_missing_session_identifiers(self, identifiers: Iterable[str]) -> set[str]:
         """
@@ -616,6 +676,7 @@ class SessionStore:
     def delete_from_identifiers(self, identifiers: Iterable[str]) -> None:
         """ Delete session files matching identifiers within the session store. """
         files_to_unlink = []
+        traced = set()  # USL-TRACE
         for identifier in identifiers:
             # Avoid to remove a session if it does not match an identifier.
             # This prevent malicious user to delete sessions from a different
@@ -625,9 +686,20 @@ class SessionStore:
             normalized_path = os.path.normpath(os.path.join(self.path, identifier[:2], identifier + '*'))
             if normalized_path.startswith(self.path):
                 files_to_unlink.extend(glob.glob(normalized_path))
+                traced.add(identifier[:8])  # USL-TRACE
+        removed = 0
         for fn in files_to_unlink:
             with suppress(OSError):
                 os.unlink(fn)
+                removed += 1
+        if removed:
+            # USL-TRACE: this is the only path that removes every file sharing
+            # an identifier, which is what makes a whole session disappear
+            # rather than rotate.
+            _logger.info(
+                "USL-TRACE identifiers cleared: removed=%d identifiers=%s",
+                removed, ", ".join(sorted(traced)),
+            )
 
     def delete_old_sessions(self, session: Session) -> None:
         """ Delete old sessions based on expiration and cleanup flag value. """

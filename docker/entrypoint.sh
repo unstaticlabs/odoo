@@ -48,6 +48,39 @@ export ODOO_EMAIL_FROM ODOO_FROM_FILTER
 
 mkdir -p "$ODOO_DATA_DIR" /mnt/custom-addons "$(dirname "$ODOO_CONFIG")"
 
+# A test run serves HTTP from HttpCase against the ephemeral database named on
+# the command line. Any dbfilter that does not match it leaves `request.db`
+# empty, so Odoo serves the nodb routing map and every `auth="public"` route
+# answers 404 -- which reads as a broken controller rather than a misconfigured
+# filter. Pin the filter to that database, exactly as CI does.
+odoo_test_database=""
+odoo_test_enabled=""
+odoo_await_database=""
+for odoo_arg in "$@"; do
+    if [ -n "$odoo_await_database" ]; then
+        odoo_test_database="$odoo_arg"
+        odoo_await_database=""
+        continue
+    fi
+    case "$odoo_arg" in
+        --test-enable|--test-file=*|--test-tags=*) odoo_test_enabled=1 ;;
+        --database=*) odoo_test_database="${odoo_arg#--database=}" ;;
+        -d|--database) odoo_await_database=1 ;;
+        -d*) odoo_test_database="${odoo_arg#-d}" ;;
+    esac
+done
+if [ -n "$odoo_test_enabled" ] && [ -n "$odoo_test_database" ]; then
+    case "$odoo_test_database" in
+        *,*)
+            echo "Refusing to run tests against several databases: $odoo_test_database" >&2
+            exit 2
+            ;;
+    esac
+    ODOO_DB_FILTER="^${odoo_test_database}\$"
+    export ODOO_DB_FILTER
+fi
+unset odoo_arg odoo_test_database odoo_test_enabled odoo_await_database
+
 python - <<'PY'
 import os
 from pathlib import Path

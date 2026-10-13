@@ -277,7 +277,7 @@ class AccountMove(models.Model):
             )
         if self.partner_bank_id:
             parts.append(
-                document_env._("Bank account: %s", self.partner_bank_id.acc_number),
+                document_env._("Bank account: %s", self.partner_bank_id.account_number),
             )
         return "\n".join(part for part in parts if part)
 

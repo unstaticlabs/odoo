@@ -166,13 +166,32 @@ ODOO_RUNTIME_GID = "1000"
 # directory.  Materialization restores only ``filestore/<database>``, so this
 # directory has to be carried between generations explicitly.
 ODOO_SESSION_STORE_DIRECTORY = "sessions"
+# A session file is named after its session id.  Odoo rotates that id every few
+# hours but keeps the leading bytes, which is also what ``res.device.log``
+# stores to identify the device.  Whole session ids therefore differ between two
+# points in time for the same signed-in person; the identifier does not, so it
+# is the only thing a rollout can compare to prove nobody was signed out.
+ODOO_SESSION_IDENTIFIER_BYTES = 42
+# Anything that reaches Odoo without signing in is given a session file, and
+# the uptime probe reaches it once a minute and never comes back.  Those files
+# are landfill within seconds, but Odoo only reaps them after a week, so
+# production carries thousands of them.  A rollout keeps only the recent ones,
+# which are the in-flight Pocket ID handshakes it must not interrupt.
+SESSION_STORE_ANONYMOUS_GRACE_SECONDS = 3600
 # Local capture directories that the fixed release launcher creates under the
 # state directory.  Production runs are named after their release attempt;
 # staging runs are the attempt itself.
 CAPTURE_ATTEMPT = re.compile(r"intent-[0-9a-f]{48}\Z")
 PRODUCTION_CAPTURE_PREFIXES = ("release-pre-", "release-candidate-", "release-admitted-")
 STAGING_CAPTURE_KEEP = 2
+# A daily recovery proof captures production as proof-daily-<16 hex>. The
+# proof restores from Restic, never from this directory, so a qualified
+# capture is a local duplicate of its remote snapshots. Each one is about
+# 1 GB on the root filesystem of the Odoo host.
+PROOF_CAPTURE = re.compile(r"proof-daily-[0-9a-f]{16}\Z")
+PROOF_CAPTURE_KEEP = 2
 UNFINISHED_RELEASE_STATUSES = frozenset({"running", "failed"})
+RELEASE_RUN_STATE = re.compile(r"release-[0-9a-f]{64}\.json\Z")
 GIT_COMMIT = re.compile(r"[0-9a-f]{40}\Z")
 RELEASE_ATTEMPT = re.compile(r"[a-z0-9][a-z0-9._-]{7,63}\Z")
 RECOVERY_PROOF_ID = re.compile(r"[a-z0-9][a-z0-9-]{7,23}\Z")
@@ -2477,14 +2496,23 @@ def _remove_materialization_workspace(target, runner, generation: str) -> None:
 
 
 @contextmanager
-def _materialization_cleanup(target, runner, generation: str):
+def _materialization_cleanup(target, runner, generation: str, network: str, volumes: dict[str, str]):
     database_containers: list[str] = []
     try:
-        yield database_containers
-    finally:
-        for container in database_containers:
-            runner.run(["docker", "rm", "--force", container], check=False)
-        _remove_materialization_workspace(target, runner, generation)
+        try:
+            yield database_containers
+        finally:
+            for container in database_containers:
+                runner.run(["docker", "rm", "--force", container], check=False)
+            _remove_materialization_workspace(target, runner, generation)
+    except BaseException:
+        # The generation's network/volumes were already created by
+        # _create_generation_resources before this context manager started; if
+        # materialization fails after that, they are otherwise never adopted and
+        # never torn down, leaking a `<project>-<generation>-recovery` network and
+        # its volumes. Discard them once the database containers above are gone.
+        _discard_generation_resources(target, runner, generation, network, volumes)
+        raise
 
 
 def _prepare_generation_volume_ownership(runner, release: dict, volumes: dict[str, str]) -> None:
@@ -3800,6 +3828,20 @@ def _create_generation_resources(target, runner, generation: str) -> tuple[dict[
     return volumes, network
 
 
+def _discard_generation_resources(target, runner, generation: str, network: str, volumes: dict[str, str]) -> None:
+    """Roll back a fully-created generation whose materialization failed after creation.
+
+    Complements `_create_generation_resources`'s own rollback, which only undoes a
+    failure during creation itself; this undoes one whose network and volumes were
+    all created successfully but the generation was never adopted.
+    """
+    runner.run(["docker", "network", "rm", network], check=False)
+    for role, name in reversed(list(volumes.items())):
+        runner.run(["docker", "volume", "rm", name], check=False)
+        if target.value["volumes"][role]["tier"] == "database":
+            runner.run(["rmdir", "--", generation_volume_path(target, generation, role)], check=False)
+
+
 def _runtime_images(runner, identity: dict) -> dict[str, str]:
     result = runner.run(compose_command(identity, ["config", "--format", "json"]))
     try:
@@ -3971,9 +4013,87 @@ TREE_IDENTITY_PROGRAM = (
     "h.update(p.read_bytes()) if p.is_file() else None\");"
     "print(json.dumps({'files':n,'bytes':b,'sha256':h.hexdigest()},sort_keys=True))"
 )
-DIRECTORY_PRESENT_PROGRAM = (
-    "import json,pathlib,sys;"
-    "print(json.dumps({'present':pathlib.Path(sys.argv[1]).is_dir()}))"
+# Describe an Odoo session store: how many files it holds, how many of them
+# belong to somebody who is signed in, and the identifier of each of those.
+# Identifiers are reported as digests so release evidence never carries session
+# material.  Arguments: store root, staleness cutoff, identifier length.
+SESSION_STORE_SURVEY_PROGRAM = """
+import hashlib, json, pathlib, sys
+
+root = pathlib.Path(sys.argv[1])
+stale_before = float(sys.argv[2])
+identifier_bytes = int(sys.argv[3])
+survey = {
+    "present": root.is_dir(),
+    "files": 0,
+    "unreadable": 0,
+    "authenticated": 0,
+    "anonymous": 0,
+    "anonymous_stale": 0,
+}
+identities = set()
+if survey["present"]:
+    for path in root.glob("*/*"):
+        if not path.is_file():
+            continue
+        survey["files"] += 1
+        try:
+            session = json.loads(path.read_text(encoding="utf-8"))
+            modified = path.stat().st_mtime
+        except (OSError, ValueError):
+            survey["unreadable"] += 1
+            continue
+        if not isinstance(session, dict):
+            survey["unreadable"] += 1
+            continue
+        if not session.get("uid"):
+            survey["anonymous"] += 1
+            if modified < stale_before:
+                survey["anonymous_stale"] += 1
+            continue
+        survey["authenticated"] += 1
+        identities.add(
+            hashlib.sha256(path.name[:identifier_bytes].encode()).hexdigest()
+        )
+survey["identities"] = sorted(identities)
+print(json.dumps(survey, sort_keys=True))
+"""
+# Drop the session files nobody is signed in to and nobody has touched since
+# the cutoff.  A file that cannot be read is left alone: only a file this
+# program has positively identified as abandoned may be removed.  Arguments:
+# store root, staleness cutoff.
+SESSION_STORE_PRUNE_PROGRAM = """
+import json, pathlib, sys
+
+root = pathlib.Path(sys.argv[1])
+stale_before = float(sys.argv[2])
+removed = 0
+for path in sorted(root.glob("*/*")):
+    if not path.is_file():
+        continue
+    try:
+        session = json.loads(path.read_text(encoding="utf-8"))
+        recent = path.stat().st_mtime >= stale_before
+    except (OSError, ValueError):
+        continue
+    if recent or not isinstance(session, dict) or session.get("uid"):
+        continue
+    try:
+        path.unlink()
+    except OSError:
+        continue
+    removed += 1
+for scatter in sorted(root.glob("*")):
+    if scatter.is_dir():
+        try:
+            scatter.rmdir()
+        except OSError:
+            pass
+print(json.dumps({"removed": removed}, sort_keys=True))
+"""
+# The tallies both programs agree on, and the shape release evidence keeps.
+SESSION_STORE_COUNTS = (
+    "files", "unreadable", "authenticated", "anonymous", "anonymous_stale",
 )
 
 
@@ -4012,6 +4132,19 @@ def _preserve_staging_environment_state(target, runner, current: dict, volumes: 
     }
 
 
+def _session_store_survey(runner, path: str, stale_before: float) -> dict:
+    return json.loads(
+        runner.run([
+            "python3", "-c", SESSION_STORE_SURVEY_PROGRAM,
+            path, repr(stale_before), str(ODOO_SESSION_IDENTIFIER_BYTES),
+        ]).stdout,
+    )
+
+
+def _session_store_counts(survey: dict) -> dict:
+    return {name: survey[name] for name in SESSION_STORE_COUNTS}
+
+
 def _preserve_session_store(runner, current: dict, volumes: dict[str, str]) -> dict:
     """Carry the live Odoo HTTP session store into the candidate generation.
 
@@ -4021,6 +4154,12 @@ def _preserve_session_store(runner, current: dict, volumes: dict[str, str]) -> d
     hands the candidate an empty session store and returns every signed-in
     person to the Pocket ID login screen.
 
+    The receipt names the people the rollout is responsible for: the identifier
+    of every session that was signed in when the copy ran.  Comparing whole
+    session ids would prove nothing, because Odoo rotates the id of a live
+    session every few hours while keeping its identifier.  Identifiers are
+    recorded as digests, so the evidence carries no session material.
+
     Sessions are environment-local authentication material.  They are copied
     host-side between the outgoing and incoming generation volumes of the same
     target and never enter a backup repository or cross an environment
@@ -4029,12 +4168,15 @@ def _preserve_session_store(runner, current: dict, volumes: dict[str, str]) -> d
     release: logging people out is strictly better than refusing the rollout.
     """
     receipt: dict = {
-        "schema": "usl-session-store-preservation/v1",
+        "schema": "usl-session-store-preservation/v2",
         "sessions": None,
+        "identities": [],
+        "activated": None,
         "status": "skipped",
         "detail": "",
     }
     role = "odoo_filestore"
+    stale_before = time.time() - SESSION_STORE_ANONYMOUS_GRACE_SECONDS
     try:
         source = os.path.join(
             _volume_source_path(runner, current["volumes"][role]["name"]),
@@ -4052,29 +4194,85 @@ def _preserve_session_store(runner, current: dict, volumes: dict[str, str]) -> d
             "install", "-d", "-m", "0700",
             "-o", ODOO_RUNTIME_UID, "-g", ODOO_RUNTIME_GID, "--", destination,
         ])
-        present = json.loads(
-            runner.run(["python3", "-c", DIRECTORY_PRESENT_PROGRAM, source]).stdout,
-        )
-        if not present["present"]:
+        source_survey = _session_store_survey(runner, source, stale_before)
+        if not source_survey["present"]:
             receipt["status"] = "absent"
             return receipt
         runner.run([
             "rsync", "-aHAXS", "--numeric-ids", "--sparse", "--delete", "--",
             source.rstrip("/") + "/", destination.rstrip("/") + "/",
         ])
-        source_identity = json.loads(
-            runner.run(["python3", "-c", TREE_IDENTITY_PROGRAM, source]).stdout,
+        # Prune the candidate, never the outgoing generation: that store is the
+        # rollback target and has to survive this release untouched.
+        pruned = json.loads(
+            runner.run([
+                "python3", "-c", SESSION_STORE_PRUNE_PROGRAM,
+                destination, repr(stale_before),
+            ]).stdout,
         )
-        destination_identity = json.loads(
-            runner.run(["python3", "-c", TREE_IDENTITY_PROGRAM, destination]).stdout,
-        )
+        destination_survey = _session_store_survey(runner, destination, stale_before)
     except (builtins.RuntimeError, OSError, ValueError, KeyError) as error:
         receipt["detail"] = str(error)
+        receipt["status"] = "failed"
         return receipt
-    receipt["sessions"] = {"source": source_identity, "destination": destination_identity}
-    receipt["status"] = (
-        "preserved" if destination_identity == source_identity else "diverged"
-    )
+    carried = source_survey["identities"]
+    receipt["identities"] = carried
+    receipt["sessions"] = {
+        "source": _session_store_counts(source_survey),
+        "destination": _session_store_counts(destination_survey),
+        "pruned": pruned["removed"],
+    }
+    missing = set(carried) - set(destination_survey["identities"])
+    receipt["status"] = "preserved" if not missing else "diverged"
+    return receipt
+
+
+def _verify_session_store_activation(
+    runner, volumes: dict[str, str], receipt: dict | None,
+) -> dict | None:
+    """Prove the cohort that went live still serves the sessions it was handed.
+
+    A copy into a volume is not the claim anybody cares about; the claim is
+    that the people who were signed in before the rollout are still signed in
+    after it.  Reading the activated generation's own store, seconds after
+    cutover, is what turns the first into the second — and it is what tells a
+    later reader whether "I was signed out again" happened here or somewhere
+    else.  The answer is evidence, never a gate: the release is already live.
+
+    Unlike the copy, this reads a store that is being written to.  Rotating a
+    session replaces its file, and Odoo briefly removes the old one before
+    writing the new, so a single walk can step through the gap and report a
+    sign-out that never happened.  Only an identifier that two independent
+    walks both fail to find is reported, which is the difference between
+    evidence and noise.
+    """
+    if receipt is None or receipt["status"] not in {"preserved", "diverged"}:
+        return receipt
+    stale_before = time.time() - SESSION_STORE_ANONYMOUS_GRACE_SECONDS
+    carried = set(receipt["identities"])
+    try:
+        store = os.path.join(
+            _volume_source_path(runner, volumes["odoo_filestore"]),
+            ODOO_SESSION_STORE_DIRECTORY,
+        )
+        survey = _session_store_survey(runner, store, stale_before)
+        signed_out = carried - set(survey["identities"])
+        if signed_out:
+            survey = _session_store_survey(runner, store, stale_before)
+            signed_out &= carried - set(survey["identities"])
+    except (builtins.RuntimeError, OSError, ValueError, KeyError) as error:
+        receipt["detail"] = str(error)
+        if receipt["status"] == "preserved":
+            # ``diverged`` already names a failure and must not be softened
+            # into "we did not look".  Either way ``activated`` stays null,
+            # which is what says the live store went unread.
+            receipt["status"] = "unverified"
+        return receipt
+    receipt["activated"] = {**_session_store_counts(survey), "signed_out": len(signed_out)}
+    if signed_out and receipt["status"] == "preserved":
+        # A copy that already diverged keeps that name: it says where the
+        # sessions went, and ``signed_out`` says how many never arrived.
+        receipt["status"] = "lost"
     return receipt
 
 
@@ -4405,7 +4603,17 @@ def _release_attempt_claim(value: object, *, target, attempt: str, release: str)
         or (
             not re.fullmatch(r"[0-9a-f]{40}", str(value["gitops_commit"]))
             if target.value["compose"].get("canonical") is not None
-            else value["gitops_commit"] is not None
+            # A claim is immutable, so its identity cannot depend on who reads
+            # it, and the two views of one target disagree about ``canonical``:
+            # ``operations/targets-host`` declares it and the launcher writes
+            # the claim there, while ``operations/targets`` -- the SSH view an
+            # operator uses -- does not. Require a real commit when one is
+            # recorded and accept its absence; refusing a recorded commit
+            # rejected, from the SSH view alone, every claim this system writes.
+            else (
+                value["gitops_commit"] is not None
+                and not re.fullmatch(r"[0-9a-f]{40}", str(value["gitops_commit"]))
+            )
         )
         or not re.fullmatch(r"[a-z][a-z0-9-]{1,31}", str(value["source"]))
         or (value["schema"] == "usl-release-attempt/v3"
@@ -6153,6 +6361,126 @@ def _notify_release(target, runner, release_id: str) -> dict:
     raise RuntimeError("release notification returned no evidence")
 
 
+ANNOUNCEMENT_AUDIT_SCHEMA = "usl-release-announcements/v1"
+
+RELEASE_ANNOUNCEMENT_AUDIT_PROGRAM = """
+import json
+entries = json.loads(env.context.get("usl_release_audit_identities"))
+channel = env.ref("usl_home.channel_distribution_updates").sudo()
+found = []
+for entry in entries:
+    external_message_id = "<usl-release-%s@unstaticlabs.com>" % entry["release"]
+    message = env["mail.message"].sudo().search([
+        ("model", "=", channel._name),
+        ("res_id", "=", channel.id),
+        ("message_id", "=", external_message_id),
+    ], limit=1)
+    found.append({
+        "announced": bool(message),
+        "message_id": message.id if message else None,
+        "posted_at": str(message.date) if message else None,
+        "release": entry["release"],
+        "role": entry["role"],
+    })
+print("USL_RELEASE_ANNOUNCEMENT_AUDIT=" + json.dumps({
+    "channel": "usl_home.channel_distribution_updates",
+    "releases": found,
+}, sort_keys=True))
+"""
+
+
+def _audit_announcements(target, runner) -> dict:
+    """Report whether the releases this host runs were ever announced.
+
+    ``notify`` is stage thirteen of sixteen and its failure is forward-fix
+    only, so a release can be admitted, healthy and never mentioned to the
+    people it was built for. The deployment ledger cannot see that, because it
+    records the deploy and not the announcement. This reads the one place that
+    knows: the channel itself.
+
+    It only reads. There is no ``message_post`` and no commit here, which is
+    what makes it safe to reach through ``scripts/usl-stack-observe``.
+    """
+    if target.value["environment"] != "production":
+        raise RuntimeError("release announcements are production-only")
+    runtime = inspect_runtime(target, runner)
+    active = runtime.get("active_state") or {}
+    entries: list[dict] = []
+    seen: set[str] = set()
+    for role, manifest in (
+        ("active", active.get("release_manifest")),
+        ("previous", (active.get("previous") or {}).get("release_manifest")),
+    ):
+        if not manifest:
+            continue
+        identity = json.loads(_read_path(target, runner, manifest)).get("identity")
+        if not isinstance(identity, str) or not re.fullmatch(r"[0-9a-f]{64}", identity):
+            raise RuntimeError(f"{role} release identity is invalid")
+        if identity in seen:
+            continue
+        seen.add(identity)
+        entries.append({"release": identity, "role": role})
+    if not entries:
+        return {
+            "schema": ANNOUNCEMENT_AUDIT_SCHEMA,
+            "channel": "usl_home.channel_distribution_updates",
+            "releases": [],
+            "unannounced": [],
+        }
+    release, _release_sha, _release_raw = _release(target, runner, None)
+    network = target.value["compose"]["default_network"]
+    volumes = runtime["volumes"]
+    database = target.value["databases"]["odoo"]
+    result = runner.run(
+        [
+            "docker", "run", "--rm", "--interactive", "--network", network,
+            "--env-file", target.value["secrets"]["env_file"],
+            "--env", f"ODOO_DB_HOST={database['service']}",
+            "--env", "ODOO_DB_PORT=5432",
+            "--env", f"ODOO_DB_USER={database['user']}",
+            "--env", f"ODOO_DB_NAME={database['name']}",
+            "--env", "ODOO_MAX_CRON_THREADS=0",
+            "--env", "USL_EINVOICE_LIVE_ENABLED=0",
+            "--env", "USL_EREPORTING_LIVE_ENABLED=0",
+            "--volume", f"{volumes['odoo_filestore']['name']}:/var/lib/odoo",
+            release["components"]["distribution"]["digest_reference"],
+            "odoo", "shell", "--config=/etc/odoo/odoo.conf",
+            f"--database={database['name']}", "--no-http", "--max-cron-threads=0",
+        ],
+        input_text=(
+            "env = env(context=dict(env.context, usl_release_audit_identities="
+            + repr(json.dumps(entries, sort_keys=True))
+            + "))\n"
+            + RELEASE_ANNOUNCEMENT_AUDIT_PROGRAM
+        ),
+    )
+    prefix = "USL_RELEASE_ANNOUNCEMENT_AUDIT="
+    for line in reversed(result.stdout.splitlines()):
+        if line.startswith(prefix):
+            try:
+                value = json.loads(line.removeprefix(prefix))
+            except json.JSONDecodeError as error:
+                raise RuntimeError("release announcement audit returned invalid evidence") from error
+            reported = value.get("releases")
+            if (
+                value.get("channel") != "usl_home.channel_distribution_updates"
+                or not isinstance(reported, list)
+                or [item.get("release") for item in reported] != [
+                    entry["release"] for entry in entries
+                ]
+            ):
+                raise RuntimeError("release announcement audit evidence differs")
+            return {
+                "schema": ANNOUNCEMENT_AUDIT_SCHEMA,
+                "channel": value["channel"],
+                "releases": reported,
+                "unannounced": [
+                    item["release"] for item in reported if not item.get("announced")
+                ],
+            }
+    raise RuntimeError("release announcement audit returned no evidence")
+
+
 def _restore_unlocked(arguments: argparse.Namespace) -> int:
     restore_started = time.monotonic()
     source = load_target(arguments.source, arguments.targets)
@@ -6253,7 +6581,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     target_runner.run(["install", "-d", "-m", "0700", generation_root])
     target_runner.run(["install", "-d", "-m", "0700", f"{generation_root}/work"])
     volumes, network = _create_generation_resources(target, target_runner, generation)
-    with _materialization_cleanup(target, target_runner, generation) as database_containers:
+    with _materialization_cleanup(target, target_runner, generation, network, volumes) as database_containers:
         source_backup_env = _write_source_backup_environment(
             source,
             source.runner(),
@@ -6492,6 +6820,21 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     except Exception as error:
         rollback_active_candidate(error)
         raise
+    if session_store_preservation is not None:
+        # The copy happened before cutover, against a volume nobody was serving
+        # from yet.  Only the live generation can say whether the people who
+        # were signed in still are, so ask it, and record the answer either way.
+        session_store_preservation = _verify_session_store_activation(
+            target_runner, volumes, session_store_preservation,
+        )
+        _record_event(
+            target,
+            target_runner,
+            generation,
+            "restore",
+            "session-store",
+            session_store_preservation["status"],
+        )
     phase_started = time.monotonic()
     _record_event(target, target_runner, generation, "restore", "validation", "started")
     try:
@@ -8782,6 +9125,7 @@ def _recovery_proof_command_locked(
         )
         raise
     runner.run(["rm", "-f", "--", f"{proof_root}/failure.json"])
+    _retain_recovery_proof_captures(target)
     print(json.dumps(receipt, indent=None if arguments.json else 2, sort_keys=True))
     return 0
 
@@ -8843,8 +9187,9 @@ def _capture_attempt(target, run_id: str) -> str | None:
 
     Only the run identities that the fixed release launcher creates are
     managed: production ``release-{pre,candidate,admitted}-<attempt>`` and
-    staging ``<attempt>``.  Every other entry of the state directory is
-    outside capture retention and is never touched.
+    staging ``<attempt>``.  Production daily proof captures have no attempt;
+    ``_proof_capture`` names them.  Every other entry of the state directory
+    is outside capture retention and is never touched.
     """
     environment = target.value["environment"]
     if environment == "production":
@@ -8856,6 +9201,11 @@ def _capture_attempt(target, run_id: str) -> str | None:
     if environment == "staging":
         return run_id if CAPTURE_ATTEMPT.fullmatch(run_id) else None
     return None
+
+
+def _proof_capture(target, run_id: str) -> bool:
+    """Return whether one state-directory entry is a production daily proof capture."""
+    return target.value["environment"] == "production" and PROOF_CAPTURE.fullmatch(run_id) is not None
 
 
 def _qualified_capture(target, runner, run_id: str) -> dict | None:
@@ -8928,6 +9278,12 @@ def _unfinished_release_attempts(target, runner) -> set[str]:
             raise RuntimeError("release run inventory is invalid") from error
         if kind != "f":
             raise RuntimeError(f"release run state is not a file: {name}")
+        if not RELEASE_RUN_STATE.fullmatch(name):
+            # The launcher archives a failed attempt beside its run state as
+            # release-<identity>.failed-<digest>.json, and operators leave
+            # similar side-cars. Those are immutable evidence of work that has
+            # already ended; only the exact run-state name can still resume.
+            continue
         try:
             value = json.loads(runner.run(["cat", f"{runs_root}/{name}"]).stdout)
         except json.JSONDecodeError as error:
@@ -8963,34 +9319,25 @@ def _cleanup_captures(target, runner, protected_generations: set[str]) -> dict:
     Production keeps every capture whose attempt claimed a protected (active
     or previous) generation.  Staging keeps the newest ``STAGING_CAPTURE_KEEP``
     captures.  Both keep captures that are not ``qualified`` and captures of
-    attempts whose launcher run is still running or resumable.  Entries that
-    are not managed capture runs are ignored.
+    attempts whose launcher run is still running or resumable.  Production
+    also keeps the newest ``PROOF_CAPTURE_KEEP`` qualified daily proof
+    captures.  Entries that are not managed capture runs are ignored.
     """
-    state_root = target.value["state_directory"]
-    if runner.run(["test", "-L", state_root], check=False).returncode == 0:
-        raise RuntimeError("cleanup state root must not be a symlink")
-    listing = runner.run(
-        ["find", state_root, "-mindepth", "1", "-maxdepth", "1", "-printf", "%f\\t%y\\n"],
-        check=False,
-    )
-    if listing.returncode:
-        if runner.run(["test", "!", "-e", state_root], check=False).returncode == 0:
-            return {"protected_captures": [], "delete_captures": []}
-        raise RuntimeError("cleanup capture inventory cannot be inspected")
     captures: dict[str, str] = {}
-    for line in listing.stdout.splitlines():
-        try:
-            name, kind = line.split("\t", 1)
-        except ValueError as error:
-            raise RuntimeError("cleanup capture inventory is invalid") from error
+    proofs: list[str] = []
+    for name, kind in _state_root_entries(target, runner):
         attempt = _capture_attempt(target, name)
-        if attempt is None:
+        if attempt is None and not _proof_capture(target, name):
             continue
         if kind != "d":
             raise RuntimeError(f"cleanup capture is not a directory: {name}")
-        captures[name] = attempt
+        if attempt is None:
+            proofs.append(name)
+        else:
+            captures[name] = attempt
+    proof_retention = _select_proof_captures(target, runner, proofs)
     if not captures:
-        return {"protected_captures": [], "delete_captures": []}
+        return proof_retention
     unfinished = _unfinished_release_attempts(target, runner)
     protected: set[str] = set()
     qualified: dict[str, datetime] = {}
@@ -9013,9 +9360,82 @@ def _cleanup_captures(target, runner, protected_generations: set[str]) -> dict:
         newest = sorted(qualified, key=lambda run_id: (qualified[run_id], run_id), reverse=True)
         protected.update(newest[:STAGING_CAPTURE_KEEP])
     return {
+        "protected_captures": sorted(protected | set(proof_retention["protected_captures"])),
+        "delete_captures": sorted(
+            (set(qualified) - protected) | set(proof_retention["delete_captures"]),
+        ),
+    }
+
+
+def _state_root_entries(target, runner) -> list[tuple[str, str]]:
+    """List the names and find(1) types directly under the state directory."""
+    state_root = target.value["state_directory"]
+    if runner.run(["test", "-L", state_root], check=False).returncode == 0:
+        raise RuntimeError("cleanup state root must not be a symlink")
+    listing = runner.run(
+        ["find", state_root, "-mindepth", "1", "-maxdepth", "1", "-printf", "%f\\t%y\\n"],
+        check=False,
+    )
+    if listing.returncode:
+        if runner.run(["test", "!", "-e", state_root], check=False).returncode == 0:
+            return []
+        raise RuntimeError("cleanup capture inventory cannot be inspected")
+    entries = []
+    for line in listing.stdout.splitlines():
+        try:
+            name, kind = line.split("\t", 1)
+        except ValueError as error:
+            raise RuntimeError("cleanup capture inventory is invalid") from error
+        entries.append((name, kind))
+    return entries
+
+
+def _select_proof_captures(target, runner, run_ids: list[str]) -> dict:
+    """Keep the newest ``PROOF_CAPTURE_KEEP`` qualified daily proof captures.
+
+    A capture that is not ``qualified`` is kept: its backup may still resume
+    from it. Nothing reads a qualified proof capture again, because the proof
+    and every restore read the Restic snapshots.
+    """
+    protected: set[str] = set()
+    qualified: dict[str, datetime] = {}
+    for run_id in run_ids:
+        capture = _qualified_capture(target, runner, run_id)
+        if capture is None:
+            protected.add(run_id)
+        else:
+            qualified[run_id] = capture["created_at"]
+    newest = sorted(qualified, key=lambda run_id: (qualified[run_id], run_id), reverse=True)
+    protected.update(newest[:PROOF_CAPTURE_KEEP])
+    return {
         "protected_captures": sorted(protected),
         "delete_captures": sorted(set(qualified) - protected),
     }
+
+
+def _retain_recovery_proof_captures(target) -> dict:
+    """Delete the old qualified daily proof captures after a passed proof.
+
+    Releases run the same rule through ``cleanup apply``, but a host can go
+    weeks without a release while each daily proof adds a capture. This step
+    never fails the proof: when another operation owns the runtime lock, it
+    reports ``skipped`` and the next proof or release retries it.
+    """
+    runner = target.runner()
+    run_id = f"proof-retention-{datetime.now(UTC):%Y%m%dt%H%M%S}"
+    try:
+        with runtime_lock(target, runner, "proof-retention", run_id):
+            proofs = [
+                name for name, kind in _state_root_entries(target, runner)
+                if kind == "d" and _proof_capture(target, name)
+            ]
+            inventory = _select_proof_captures(target, runner, proofs)
+            paths = _validated_cleanup_captures(target, runner, inventory)
+            _delete_cleanup_resources(runner, [], [], [], [], paths)
+    except Exception as error:  # noqa: BLE001 - the proof already passed and is recorded
+        print(f"recovery proof capture retention skipped: {error}", file=sys.stderr)
+        return {"status": "skipped", "deleted_captures": []}
+    return {"status": "applied", "deleted_captures": inventory["delete_captures"]}
 
 
 def _cleanup_inventory(target, runner, current: dict) -> dict:
@@ -9294,7 +9714,7 @@ def _validated_cleanup_captures(target, runner, inventory: dict) -> list[str]:
     state_root = target.value["state_directory"]
     paths = []
     for run_id in inventory["delete_captures"]:
-        if _capture_attempt(target, run_id) is None:
+        if _capture_attempt(target, run_id) is None and not _proof_capture(target, run_id):
             raise RuntimeError(f"cleanup capture identity is invalid: {run_id}")
         path = f"{state_root}/{run_id}"
         probe = runner.run(
@@ -10081,6 +10501,10 @@ def release_command(arguments: argparse.Namespace) -> int:
         value = _notify_release(target, runner, arguments.release_id or "")
         print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
         return 0
+    if arguments.action == "announcements":
+        value = _audit_announcements(target, runner)
+        print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
+        return 0
     if arguments.action == "activate":
         if not arguments.snapshot or not arguments.candidate_release:
             raise RuntimeError(
@@ -10638,7 +11062,7 @@ def build_parser() -> argparse.ArgumentParser:
             "staging-reset-intent",
             "resume-staging",
             "reconcile-staging", "staging-reset-from-production",
-            "activate", "status", "abort", "notify",
+            "activate", "status", "abort", "notify", "announcements",
         ),
     )
     release.add_argument("--target", dest="command_target")

@@ -29,6 +29,9 @@ SNAPSHOT ?=
 ACCOUNTING_TEST_DB ?= odoo_rebuild_accounting_unit_$(shell date -u +%Y%m%d%H%M%S)
 ACCOUNTING_TEST_TAGS ?= rebuild_account_migration_unit
 ACCOUNTING_TEST_LOG_LEVEL ?= warn
+ADDON_TEST_DB ?= odoo_addon_test_$(shell date -u +%Y%m%d%H%M%S)
+ADDON_TEST_TAGS ?= /$(MODULE)
+ADDON_TEST_LOG_LEVEL ?= info
 USER_DOCS_HOST ?= 127.0.0.1
 USER_DOCS_PORT ?= 8079
 USER_DOCS_VENV ?= .venv-docs
@@ -40,7 +43,7 @@ ACTION_RISK_RUNTIME_CANDIDATE ?= artifacts/action-risk/runtime.candidate.json
 .PHONY: configure-pocket-id repair-pocket-id paperless-users disable-tours
 .PHONY: oca-addons-sync document-renderer-certs document-renderer-check
 .PHONY: product-migration-source-boundary product-migration-boundary sign-product-validate
-.PHONY: accounting-addon-tests accounting-multicompany-acceptance
+.PHONY: accounting-addon-tests accounting-multicompany-acceptance addon-tests
 .PHONY: user-docs-deps user-docs-serve user-docs-build
 .PHONY: action-helpers action-risk-discover action-risk-refresh action-risk-compile-policy
 .PHONY: action-risk-inventory action-risk-runtime product-assets french-translations
@@ -72,6 +75,7 @@ help:
 	  '  make health TARGET=production       Run fast read-only runtime checks' \
 	  '  make smoke TARGET=staging           Run read-only business controls' \
 	  '  make product-migration-boundary     Check the product and private-data boundary' \
+	  '  make addon-tests MODULE=usl_documents  Run one add-on'"'"'s test suite' \
 	  '  make accounting-addon-tests         Run focused Accounting module tests' \
 	  '  make user-docs-build                Render user documentation' \
 	  '' \
@@ -200,6 +204,20 @@ accounting-addon-tests: oca-addons-sync document-renderer-certs
 		--init=rebuild_account_migration --without-demo=true --test-enable \
 		--test-tags=$(ACCOUNTING_TEST_TAGS) --stop-after-init \
 		--log-level=$(ACCOUNTING_TEST_LOG_LEVEL)
+
+# One add-on's suite against a throwaway database, shaped like ci-product-database.
+# HttpCase serves from the database named here, so the dbfilter has to match it;
+# the image entrypoint pins it for any --test-enable run.
+addon-tests: oca-addons-sync
+	@if [ -z "$(strip $(MODULE))" ]; then printf 'Usage: make addon-tests MODULE=<addon> [ADDON_TEST_TAGS=/addon:Class]\n' >&2; exit 2; fi
+	@docker compose -p $(COMPOSE_PROJECT) --profile test run --rm \
+		-e ODOO_INIT_DB=$(ADDON_TEST_DB) \
+		-e USL_EINVOICE_LIVE_ENABLED=0 -e USL_EREPORTING_LIVE_ENABLED=0 \
+		test odoo \
+		--config=/etc/odoo/odoo.conf --database=$(ADDON_TEST_DB) \
+		--init=$(MODULE) --without-demo=true --workers=0 --max-cron-threads=0 \
+		--test-enable --test-tags=$(ADDON_TEST_TAGS) --stop-after-init \
+		--log-level=$(ADDON_TEST_LOG_LEVEL)
 
 $(USER_DOCS_VENV)/.requirements-ready: requirements-docs.txt
 	python3 -m venv $(USER_DOCS_VENV)

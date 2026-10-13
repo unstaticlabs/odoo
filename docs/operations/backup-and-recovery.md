@@ -318,9 +318,13 @@ Retention keeps a capture when one of these conditions is true:
 - `state.json` does not report the status `qualified`. The cohort tool writes
   `qualified` only after it restored and verified both snapshots from the
   repositories.
-- The attempt of the capture has a release run in `runs/release-*.json` with
-  the status `running` or `failed`. A failed run can resume, and the resumed
-  upload needs the capture.
+- The attempt of the capture has a live release run state,
+  `runs/release-<identity>.json`, with the status `running` or `failed`. A
+  failed run can resume, and the resumed upload needs the capture. The launcher
+  keeps its superseded records beside the live one, as
+  `release-<identity>.<suffix>.json`; retention ignores them, because a
+  historical failure of a release that later succeeded must not protect its
+  capture for ever.
 - On production, the attempt claimed the active generation or the previous
   generation. The claim is `attempts/<attempt>/claim.json`.
 - On staging, the capture is one of the two newest qualified captures.
