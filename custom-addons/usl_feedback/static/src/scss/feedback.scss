@@ -396,8 +396,8 @@
     --mail-ChatWindow-mobileZindex: #{$zindex-modal + 1};
 }
 
-.o-usl-FeedbackPanel-previewToggle img {
-    max-height: 7rem;
+.o-usl-FeedbackPanel-screenshot img {
+    max-height: 4.5rem;
     object-fit: contain;
     &.o-expanded {
         max-height: 20rem;

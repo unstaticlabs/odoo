@@ -123,24 +123,6 @@
                         <label class="form-check-label small" for="usl_feedback_context">Page details</label>
                     </div>
                 </div>
-                <div t-if="props.captureState === 'preparing'" class="o-usl-FeedbackPanel-previewStatus alert alert-light border mb-3" role="status" aria-live="polite">
-                    <i class="fa fa-circle-o-notch fa-spin me-2"/>Preparing page preview…
-                </div>
-                <div t-elif="props.screenshot" class="o-usl-FeedbackPanel-screenshot mb-3 border rounded-3 overflow-hidden bg-100">
-                    <label class="d-flex align-items-center gap-2 px-2 py-2 mb-0">
-                        <input type="checkbox" class="form-check-input mt-0" t-att-checked="state.screenshotSelected" t-on-change="toggleScreenshot"/>
-                        <span>Include page preview</span>
-                        <span class="small text-muted ms-auto">Odoo only</span>
-                    </label>
-                    <button class="o-usl-FeedbackPanel-previewToggle btn btn-light w-100 p-0" type="button" t-on-click="() => state.previewExpanded = !state.previewExpanded" t-att-aria-expanded="state.previewExpanded ? 'true' : 'false'">
-                        <img t-att-src="props.screenshot.previewUrl" alt="Preview of the Odoo page you were viewing" class="w-100" t-att-class="{ 'o-expanded': state.previewExpanded }"/>
-                        <span class="small d-block py-1"><t t-if="state.previewExpanded">Collapse preview</t><t t-else="">Expand preview</t></span>
-                    </button>
-                </div>
-                <div t-elif="props.captureState === 'error'" class="alert alert-light border mb-3" role="status">
-                    Page preview unavailable. Add an image if needed.
-                </div>
-
                 <div class="mb-2">
                     <div class="d-flex flex-wrap gap-1 mt-2" t-if="state.attachments.length">
                         <span class="badge rounded-pill text-bg-light border d-inline-flex align-items-center gap-1" t-foreach="state.attachments" t-as="attachment" t-key="attachment.id">
@@ -155,6 +137,25 @@
                     <t t-else="">The assistant is off. Odoo will still save your feedback.</t>
                     Files stay in Odoo. Your workspace can view the feedback.
                 </p>
+                <div t-if="props.captureState === 'preparing'" class="o-usl-FeedbackPanel-previewStatus alert alert-light border mb-3" role="status" aria-live="polite">
+                    <i class="fa fa-circle-o-notch fa-spin me-2"/>Preparing page preview…
+                </div>
+                <div t-elif="props.screenshot" class="o-usl-FeedbackPanel-screenshot mb-3 border rounded-3 overflow-hidden bg-100">
+                    <div class="d-flex align-items-center gap-2 px-2 py-2">
+                    <label class="d-flex align-items-center gap-2 mb-0 flex-grow-1">
+                        <input type="checkbox" class="form-check-input mt-0" t-att-checked="state.screenshotSelected" t-on-change="toggleScreenshot"/>
+                        <span>Include page preview</span>
+                    </label>
+                    <button class="o-usl-FeedbackPanel-previewToggle btn btn-link btn-sm px-0 flex-shrink-0" type="button" t-on-click="() => state.previewExpanded = !state.previewExpanded" t-att-aria-expanded="state.previewExpanded ? 'true' : 'false'">
+                        <t t-if="state.previewExpanded">Collapse preview</t><t t-else="">Expand preview</t>
+                    </button>
+                    </div>
+                    <img t-att-src="props.screenshot.previewUrl" alt="Preview of the Odoo page you were viewing" class="w-100" t-att-class="{ 'o-expanded': state.previewExpanded }"/>
+                </div>
+                <div t-elif="props.captureState === 'error'" class="alert alert-light border mb-3" role="status">
+                    Page preview unavailable. Add an image if needed.
+                </div>
+
                 </div>
                 <footer class="o-usl-FeedbackPanel-submit flex-shrink-0 border-top p-3 bg-view">
                     <div t-if="state.error" class="alert alert-danger py-2 px-3 mb-2" role="alert" aria-live="assertive" t-out="state.error"/>
