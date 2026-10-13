@@ -23,11 +23,15 @@ Text paste behaves normally. Clipboard images share the same ten-file and
 10 MB per-file limits as picked files. On mobile, sending a report or reply
 leaves the keyboard dismissed; tapping the composer starts another reply.
 
-When **Page details** is selected, feedback includes up to five distinct
-recent navigation steps from this tab's current session, oldest first. These
-contain only action and model identifiers, rechecked under the submitting
-user's permissions. URLs, search terms, record titles and browser history are
-never collected. Clearing **Page details** also clears navigation evidence.
+When **Page details** is selected, the saved report includes up to five distinct
+recent navigation steps from this tab's current session, oldest first. The
+native browser sends only action and model identifiers; it does not collect
+URLs, search terms, record titles or browser history. The transient draft can
+receive untrusted candidates with extra keys. On submission, the server checks
+the reporter's access and strips other data before saving navigation on the
+report or sharing it with the provider. Clearing **Page details** excludes
+navigation from the saved report and provider context; it does not prevent
+transient receipt of candidates.
 A preview that finishes after Send is discarded; it cannot appear on another
 conversation.
 
