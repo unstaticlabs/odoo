@@ -44,6 +44,13 @@ ORDERS_HEADER = _HEADER_COLUMNS + tuple(
 )
 ITEMS_HEADER = _HEADER_COLUMNS + _ITEM_COLUMNS
 
+#: What the wide layout must state to be that export at all: the order, and a
+#: first item to hang on it.  Medusa widens the layout as orders grow — a file
+#: written when the largest order held six items states six slots, and one
+#: written after a seventh was sold states seven — so demanding an exact width
+#: refuses next month's export of the same thing.
+ORDERS_REQUIRED = _HEADER_COLUMNS + tuple(f"item_1_{column}" for column in _ITEM_COLUMNS)
+
 DELIMITER = ";"
 
 #: Medusa's full order export, the only one of its exports that carries the
@@ -175,6 +182,19 @@ def _read_item(row, prefix=""):
     }
 
 
+def _item_slots(row):
+    """Return how many item slots this export states.
+
+    Counting what the file declares reads every item of a six-slot export and
+    of a seven-slot one; a fixed count reads the wider file and silently drops
+    its last item, which is worse than refusing it.
+    """
+    slot = 1
+    while f"item_{slot}_sku" in row:
+        slot += 1
+    return slot - 1
+
+
 def parse_orders(document):
     """Yield the order and its lines from the wide, one-row-per-order layout."""
     for row in document.rows:
@@ -186,7 +206,7 @@ def parse_orders(document):
             item
             for item in (
                 _read_item(row, prefix=f"item_{slot}_")
-                for slot in range(1, WIDE_ITEM_SLOTS + 1)
+                for slot in range(1, _item_slots(row) + 1)
             )
             if item is not None
         ]
