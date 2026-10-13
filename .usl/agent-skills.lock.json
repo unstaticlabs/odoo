@@ -1,0 +1,58 @@
+{
+  "hub": {
+    "repository": "unstaticlabs/agent-skills",
+    "revision": "ed0b3789b941689d9024229960e92fc6a1832f41"
+  },
+  "links": {},
+  "manifest_sha256": "a9d2384801608f0668faad222156815c44416d7b2df677c48954ef7d1c882743",
+  "schema": 1,
+  "skills": {
+    "designing-property-based-tests": {
+      "agents": [
+        "codex"
+      ],
+      "files": {
+        "LICENSE.txt": "7abe19ec9bb73b36141b999b861d24ad855e808bafe0f81e84cce28556f6c297",
+        "NOTICE.md": "da33940e8a6e272d4e84857ea99a3fb1509e530d0ff809a4a699d48e966c5898",
+        "SKILL.md": "285c19b2a7559cb6f98a295dffae88b03408cafdf3fa440c9014edd9407aab75",
+        "evals/cases.json": "8f53e24c677bc5f1ac3e4b16309d6b1d5c354281a8d74e8e63426030d7f931b1"
+      },
+      "path": ".agents/skills/designing-property-based-tests",
+      "risk": "low",
+      "status": "experimental",
+      "version": "0.1.0"
+    },
+    "finding-bug-variants": {
+      "agents": [
+        "codex"
+      ],
+      "files": {
+        "LICENSE.txt": "7abe19ec9bb73b36141b999b861d24ad855e808bafe0f81e84cce28556f6c297",
+        "NOTICE.md": "98107358a94a72e4f1f419854bc6507a93ce651189269aba20eef8d92b2b764f",
+        "SKILL.md": "455153c25eb3cb8337a1c07fd94a5b2206d525b08812a10cd50f7ffaa54e8eda",
+        "evals/cases.json": "955afca368cfb2b298004e3230090dc0616bf6bb5571939353116da09291e19f"
+      },
+      "path": ".agents/skills/finding-bug-variants",
+      "risk": "medium",
+      "status": "experimental",
+      "version": "0.1.0"
+    },
+    "threat-modeling-repositories": {
+      "agents": [
+        "codex"
+      ],
+      "files": {
+        "LICENSE.txt": "4dd13869245e356246a5b770723247bbb80a8f07a181d1d3d873a1734297cdb9",
+        "NOTICE.md": "1c5688261cd75c926bfd0d133cf59b471ab7181509b1cc7447dcfc36cbeee783",
+        "SKILL.md": "4f6998426b2adf8520c69107889b0a9aee840d13b1f8f810c370c096d76823a9",
+        "evals/cases.json": "4b3ea40c7a8def8a2cc5fa805a40807d470fe35018597268fc8a39703104ab2d",
+        "references/report-format.md": "9d12769b478cb52299481559ac9a689aed2587144848f398eedacaf7113fc0ce"
+      },
+      "path": ".agents/skills/threat-modeling-repositories",
+      "risk": "low",
+      "status": "experimental",
+      "version": "0.1.0"
+    }
+  },
+  "verifier_sha256": "10e47af513ba0bc320a6c4af162f4e6be9994d8dc73596e9e7b61385b63267fc"
+}

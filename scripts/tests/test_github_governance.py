@@ -87,8 +87,47 @@ class GithubGovernanceTests(unittest.TestCase):
             'git merge-base --is-ancestor "origin/$production" "origin/$staging"',
             script,
         )
-        self.assertIn('--base "$staging" --head "$production"', script)
+        self.assertIn('--base "$staging" --head "$branch"', script)
         # A conflicting back-merge must stop rather than leave staging behind.
         self.assertIn("::error::", script)
         # Merge commits are what restore the ancestry; never squash or rebase.
         self.assertIn("--auto --merge", script)
+
+    def test_back_merge_never_opens_a_pull_request_headed_by_a_release_branch(self):
+        # A pull request whose head is 19-usl inherits every push-event run on
+        # that commit, and the check rollup takes the worst of them. One red
+        # push run then blocks the back-merge for ever -- #227, 2026-09-10 --
+        # because nothing the pull request owns can rerun the offending run.
+        script = BACK_MERGE_SCRIPT.read_text(encoding="utf-8")
+        self.assertNotIn('--head "$production"', script)
+        self.assertIn('branch="chore/back-merge-production-', script)
+        # The head must be built off staging and carry production as a parent,
+        # or the merge would not restore the ancestry it exists to restore.
+        self.assertIn('git checkout --quiet -B "$branch" "origin/$staging"', script)
+        self.assertIn('merge --no-ff', script)
+        self.assertIn('"origin/$production"', script)
+
+    def test_back_merge_collects_only_branches_staging_already_contains(self):
+        # The merge queue refuses `gh pr merge --delete-branch`, so the run
+        # collects its own landed heads. The ancestry check is what keeps that
+        # from dropping a merge staging has not recorded.
+        script = BACK_MERGE_SCRIPT.read_text(encoding="utf-8")
+        self.assertIn(
+            'gh pr merge "$number" --repo "$GITHUB_REPOSITORY" --auto --merge;',
+            script,
+        )
+        self.assertIn(
+            'git merge-base --is-ancestor FETCH_HEAD "origin/$staging"',
+            script,
+        )
+        self.assertIn('git push --quiet origin --delete "$name"', script)
+
+    def test_back_merge_head_branch_is_never_force_updated(self):
+        # The branch name pins both tips, so a rerun rebuilds an identical
+        # branch. Force-updating a branch a pull request is open on would
+        # rewrite history the queue may already be building.
+        script = BACK_MERGE_SCRIPT.read_text(encoding="utf-8")
+        self.assertNotIn("push --force", script)
+        self.assertNotIn("--force-with-lease", script)
+        self.assertIn('git rev-parse --short=12 "origin/$production"', script)
+        self.assertIn('git rev-parse --short=12 "origin/$staging"', script)

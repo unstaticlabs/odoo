@@ -169,7 +169,9 @@ make authentication tests pass.
   account never appears on the normal login page.
 - Release rollout: a session survives an upgrade of the same environment. The
   release carries the Odoo session store into the new generation, so people who
-  were signed in stay signed in. A staging reset from production keeps no
+  were signed in stay signed in, and after cutover it reads the store the live
+  generation serves to confirm they still are. If anybody was signed out, the
+  run says so and says how many. A staging reset from production keeps no
   sessions, because it replaces the users they were issued for.
 
 Sensitive Odoo actions reauthenticate against the same immutable Pocket ID

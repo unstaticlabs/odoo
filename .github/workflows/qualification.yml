@@ -82,6 +82,7 @@ jobs:
           scripts/check-github-governance
           scripts/check-action-pins
           find custom-addons -name '*.xml' -print0 | xargs -0 -n1 python3 -c 'import sys,xml.etree.ElementTree as E; E.parse(sys.argv[1])'
+          python3 .usl/bin/agent_skills_lock.py verify
           git diff --check
 
   database:
@@ -101,9 +102,9 @@ jobs:
       - name: Resolve pinned OCA sources
         run: scripts/sync-oca-addons
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
       - name: Build and load the qualified test image
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .
           target: test
@@ -334,6 +335,10 @@ jobs:
       attestations: write
       artifact-metadata: write
       contents: read
+      # The changelog reads the production deployment ledger to find the last
+      # release that reached users. A called workflow's token cannot exceed
+      # its caller's, so this grant has to exist here too.
+      deployments: read
       id-token: write
       packages: write
       pull-requests: read

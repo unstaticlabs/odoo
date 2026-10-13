@@ -151,9 +151,29 @@ the next `make dev` recreates the containers against the confirming checkout.
 
 ## Targets that do not check
 
-Six targets call `docker compose` directly and never consult the scope guard:
+Seven targets call `docker compose` directly and never consult the scope guard:
 `action-risk-discover`, `action-risk-runtime`, `accounting-addon-tests`,
-`accounting-multicompany-acceptance`, `product-assets` and
+`addon-tests`, `accounting-multicompany-acceptance`, `product-assets` and
 `french-translations`. Run them from a worktree only with an explicit
 `COMPOSE_PROJECT`; otherwise they attach to the canonical project and create
 the mixed ownership the guard exists to prevent.
+
+## Running one add-on's tests
+
+```bash
+make addon-tests MODULE=usl_documents
+make addon-tests MODULE=usl_documents ADDON_TEST_TAGS=/usl_documents:TestDocumentDownloadGrantHttp
+```
+
+Each run installs the module into a throwaway database and drops the container
+afterwards, so it never touches the development database.
+
+`HttpCase` serves real HTTP from that throwaway database, and Odoo resolves the
+database of an incoming request through `dbfilter`. A filter that does not match
+leaves `request.db` empty, Odoo serves the nodb routing map, and every
+`auth="public"` route answers 404 — which reads as a broken controller. The
+development default is `^odoo_dev$`, so a hand-written `docker compose run`
+against `odoo_mytest_20260101` hits exactly that. The image entrypoint pins
+`dbfilter` to the `--database` value for any `--test-enable` run, matching what
+`scripts/ci-product-database` passes explicitly; a normal server run keeps the
+configured filter untouched.

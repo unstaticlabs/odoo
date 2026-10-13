@@ -110,6 +110,24 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
         publish = caller[caller.index("  publish:\n"):]
         self.assertIn("pull-requests: read", publish)
 
+    def test_the_changelog_can_read_the_production_deployment_ledger(self) -> None:
+        """A production changelog starts from the last release users saw.
+
+        Without ``deployments: read`` in *both* places the ledger read 403s
+        and the changelog silently falls back to the pushed range, which is
+        the failure this grant exists to prevent. A called workflow's token
+        cannot exceed its caller's, so one grant is not enough.
+        """
+        notes_step = self.workflow.index("name: Build release notes from merged pull requests")
+        manifest_step = self.workflow.index("name: Create release manifest from published components")
+        step = self.workflow[notes_step:manifest_step]
+        self.assertIn('--ref "$GITHUB_REF"', step)
+        release_job = self.workflow[self.workflow.index("  release:\n"):notes_step]
+        self.assertIn("deployments: read", release_job)
+        caller = (ROOT / ".github/workflows/qualification.yml").read_text(encoding="utf-8")
+        publish = caller[caller.index("  publish:\n"):caller.index("    uses: ./.github/workflows/product-image.yml")]
+        self.assertIn("deployments: read", publish)
+
     def test_release_notes_are_summarized_for_users_on_production_only(self) -> None:
         notes_step = self.workflow.index("name: Build release notes from merged pull requests")
         manifest_step = self.workflow.index("name: Create release manifest from published components")

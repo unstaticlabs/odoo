@@ -534,7 +534,7 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         self.assertEqual(attachment.company_id, payslip.company_id)
         self.assertEqual(attachment.res_model, payslip._name)
         self.assertEqual(attachment.res_id, payslip.id)
-        self.assertEqual(reconciliation, {"reconciled": 1, "queued": 0})
+        self.assertEqual(reconciliation, {"reconciled": 1, "queued": 0, "skipped": 0})
         self.assertEqual(
             self.env["usl.document.operation"].sudo().search_count(
                 [("source_attachment_id", "=", attachment.id)],
@@ -559,6 +559,93 @@ class TestTesePayroll(AccountTestInvoicingCommon):
             original=True,
         )
 
+
+    def _linked_archived_payslip(self):
+        payslip = self._new_payslip()
+        document, version, content = self._archived_pdf()
+        wizard = (
+            self.env["usl.tese.document.link.wizard"]
+            .with_user(self.workflow_user)
+            .with_context(allowed_company_ids=self.company.ids)
+            .create({
+                "payslip_id": payslip.id,
+                "document_id": document.id,
+            })
+        )
+        archive_context = self._archive_context_for_payslip(payslip)
+        patches = (
+            patch.object(
+                PaperlessClient,
+                "download",
+                autospec=True,
+                return_value=(content, {"Content-Type": "application/pdf"}),
+            ),
+            patch.object(
+                type(self.env["usl.document"]),
+                "_prepare_archive_context",
+                autospec=True,
+                return_value=archive_context,
+            ),
+            patch.object(
+                type(self.env["usl.document"]),
+                "_recompute_linked_record_access",
+                autospec=True,
+                return_value=True,
+            ),
+            patch.object(
+                type(self.env["usl.document"]),
+                "reconcile_linked_classification",
+                autospec=True,
+                return_value={"considered": 0},
+            ),
+        )
+        return payslip, document, wizard, patches
+
+    def test_reconcile_links_a_document_whose_access_push_failed(self):
+        """A live document whose last Paperless access push failed still links.
+
+        Ten production payroll records sat in this state for a day; the old
+        guard refused them and the scheduled job failed on every run.
+        """
+        payslip, document, wizard, patches = self._linked_archived_payslip()
+        with patches[0], patches[1], patches[2], patches[3]:
+            wizard.action_link_document()
+            document.sudo().with_context(usl_documents_cache_write=True).write({
+                "availability_state": "permission_error",
+                "permission_sync_state": "failed",
+            })
+            reconciliation = payslip.sudo()._reconcile_archived_payslip_document()
+
+        self.assertEqual(reconciliation, {"reconciled": 1, "queued": 0, "skipped": 0})
+        self.assertTrue(
+            document.link_ids.filtered(
+                lambda link: (
+                    link.active
+                    and link.res_model == payslip._name
+                    and link.res_id == payslip.id
+                ),
+            ),
+        )
+
+    def test_reconcile_skips_a_failing_payslip_and_keeps_the_pass_clean(self):
+        """One record that cannot be classified is skipped, never raised.
+
+        The scheduled job's failure count feeds the release smoke, so a single
+        stuck payroll PDF must not be able to fail a production release.
+        """
+        payslip, document, wizard, patches = self._linked_archived_payslip()
+        with patches[0], patches[1], patches[2], patches[3]:
+            wizard.action_link_document()
+            with patch.object(
+                type(self.env["usl.document"]),
+                "_apply_archive_context",
+                autospec=True,
+                side_effect=UserError("archive refused"),
+            ):
+                reconciliation = payslip.sudo()._reconcile_archived_payslip_document()
+
+        self.assertEqual(reconciliation, {"reconciled": 0, "queued": 0, "skipped": 1})
+        self.assertTrue(payslip.exists())
     def test_archived_pdf_chooser_rejects_checksum_mismatch_without_side_effects(self):
         payslip = self._new_payslip()
         document, _version, _content = self._archived_pdf()

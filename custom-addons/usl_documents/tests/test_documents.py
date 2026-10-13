@@ -5115,6 +5115,74 @@ class TestDocuments(TransactionCase):
             ),
         )
 
+    def test_sync_cron_retries_documents_whose_access_push_failed(self):
+        """A failed access push is retried on the next sync pass by itself.
+
+        The incremental sync only revisits documents Paperless reports as
+        modified, so a push that failed while Paperless was paused stayed
+        failed until someone edited the document. Ten payroll records did.
+        """
+        document = self._document(
+            1514,
+            permission_sync_state="failed",
+            availability_state="permission_error",
+        )
+        self.env["usl.paperless.user.mapping"].search([
+            ("user_id", "in", [self.user.id, self.manager.id]),
+        ]).unlink()
+        self._verified_mapping([
+            {
+                "user_id": self.manager.id,
+                "paperless_user_id": 22,
+                "paperless_username": "admin",
+                "sync_state": "synchronized",
+            },
+        ])
+        payload = {"count": 0, "next": None, "results": []}
+        with (
+            patch.object(PaperlessClient, "compatibility", return_value={"ok": True}),
+            patch.object(UslDocumentSync, "_sync_metadata_catalogs", return_value=None),
+            patch.object(PaperlessClient, "list_documents", return_value=payload),
+            patch.object(PaperlessClient, "list_trashed_documents", return_value=[]),
+            patch.object(
+                type(self.env["usl.paperless.user.mapping"]),
+                "_reconcile_remote_identity_state",
+                autospec=True,
+                return_value=None,
+            ),
+            patch.object(PaperlessClient, "set_document_permissions") as push,
+        ):
+            result = (
+                self.env["usl.document"]
+                .with_user(self.env.ref("base.user_root"))
+                .cron_sync_from_paperless()
+            )
+
+        self.assertEqual(result["permission_retries"], 1)
+        push.assert_called_once()
+        self.assertIn(1514, push.call_args.args)
+        self.assertEqual(document.permission_sync_state, "synchronized")
+        self.assertEqual(document.availability_state, "available")
+
+    def test_document_whose_access_push_failed_still_accepts_a_link(self):
+        document = self._document(
+            1515,
+            permission_sync_state="failed",
+            availability_state="permission_error",
+        )
+        trashed = self._document(1516, availability_state="trashed")
+        with patch.object(PaperlessClient, "set_document_permissions"):
+            link = self.env["usl.document.link"].with_user(
+                self.manager,
+            ).create_for_record(document, "res.partner", self.partner_a.id)
+            with self.assertRaisesRegex(UserError, "available archived document"):
+                self.env["usl.document.link"].with_user(
+                    self.manager,
+                ).create_for_record(trashed, "res.partner", self.partner_a.id)
+
+        self.assertTrue(link.active)
+        self.assertEqual(link.document_id, document)
+
     def test_identity_mapping_cannot_bypass_verification_state(self):
         mapping = self.env["usl.paperless.user.mapping"].create(
             {

@@ -16,6 +16,9 @@ from .paperless_client import PaperlessError, PaperlessNotFound
 
 _logger = logging.getLogger(__name__)
 
+# Failed access pushes retried per incremental sync pass, oldest first.
+PERMISSION_RETRY_LIMIT = 200
+
 
 class UslDocument(models.Model):
     _inherit = "usl.document"
@@ -719,6 +722,32 @@ class UslDocument(models.Model):
         return touched
 
     @api.model
+    def _retry_failed_permission_syncs(self, limit=PERMISSION_RETRY_LIMIT):
+        """Re-push access for live documents whose last Paperless sync failed.
+
+        The incremental sync only revisits documents Paperless reports as
+        modified, so a document whose access push failed while Paperless was
+        paused (a release backup, a restart) stayed ``failed`` until someone
+        happened to edit it. Retry the oldest failures on every pass instead.
+        """
+        if not self.env["usl.paperless.user.mapping"].sudo().search_count(
+            [("active", "=", True), ("sync_state", "=", "synchronized")],
+        ):
+            return 0
+        failed = self.sudo().search(
+            [
+                ("permission_sync_state", "=", "failed"),
+                ("paperless_id", "!=", False),
+                ("availability_state", "in", ("available", "permission_error")),
+            ],
+            order="permission_checked_at asc, id asc",
+            limit=limit,
+        )
+        if failed:
+            failed.with_user(self.env.ref("base.user_root")).action_sync_permissions()
+        return len(failed)
+
+    @api.model
     def cron_sync_from_paperless(self):
         self._require_manager()
         try:
@@ -727,6 +756,7 @@ class UslDocument(models.Model):
                 "usl.paperless.user.mapping"
             ]._reconcile_remote_identity_state(client=client)
             result = self.sync_from_paperless(limit_pages=20, client=client)
+            result["permission_retries"] = self._retry_failed_permission_syncs()
             if result.get("complete"):
                 result["classification"] = self.reconcile_linked_classification(
                     limit=1000,

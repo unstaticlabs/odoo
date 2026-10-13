@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "hub": "unstaticlabs/agent-skills",
+  "visibility": "public",
+  "agents": ["codex"],
+  "skills": [
+    "designing-property-based-tests",
+    "finding-bug-variants",
+    "threat-modeling-repositories"
+  ],
+  "bundles": []
+}

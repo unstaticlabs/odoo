@@ -1,0 +1,42 @@
+{
+  "skill": "finding-bug-variants",
+  "cases": [
+    {
+      "id": "hunts-known-authorization-variant",
+      "kind": "should-trigger",
+      "prompt": "This handler permits access when both owner IDs are null. Find every variant of that root cause in the repository.",
+      "expect": [
+        "The violated invariant and original instance are confirmed first.",
+        "An exact search is calibrated before one-axis-at-a-time generalization.",
+        "Candidates are triaged using surrounding guards, callers, types, and reachability.",
+        "Confirmed variants, false positives, failed searches, and coverage limits are retained."
+      ]
+    },
+    {
+      "id": "does-not-own-initial-audit",
+      "kind": "should-not-trigger",
+      "prompt": "Audit this unfamiliar payments repository and discover any security vulnerabilities you can find.",
+      "expect": [
+        "The request remains an initial security audit because no known defect or root cause exists."
+      ]
+    },
+    {
+      "id": "controls-noisy-generalization",
+      "kind": "ambiguous",
+      "prompt": "The exact query finds the bug, but generalizing two variables returns hundreds of unrelated matches. Keep going until nothing is missed.",
+      "expect": [
+        "The two abstractions are separated and evaluated independently.",
+        "The noisy change is reverted or narrowed when marginal coverage does not justify triage cost.",
+        "Coverage limits remain explicit rather than claiming completeness."
+      ]
+    },
+    {
+      "id": "does-not-replace-threat-model",
+      "kind": "should-not-trigger",
+      "prompt": "Map this repository's trust boundaries, attacker capabilities, and top abuse paths before launch.",
+      "expect": [
+        "The request routes to repository threat modeling."
+      ]
+    }
+  ]
+}

@@ -11,6 +11,13 @@ _build/
 !.devcontainer/**
 !.agents/
 !.agents/**
+!.usl/
+.usl/*
+!.usl/agent-skills.json
+!.usl/agent-skills.lock.json
+!.usl/bin/
+.usl/bin/*
+!.usl/bin/agent_skills_lock.py
 !.env.example
 !.github
 !.mailmap

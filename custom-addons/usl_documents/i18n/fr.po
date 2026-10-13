@@ -411,6 +411,11 @@ msgid "Additional details"
 msgstr "Détails supplémentaires"
 
 #. module: usl_documents
+#: model:ir.model.fields,help:usl_documents.field_res_config_settings__document_intake_email
+msgid "Address that archives any file mailed to it. Restricted to employees."
+msgstr "Adresse qui archive tout fichier qui lui est envoyé. Réservée aux salariés."
+
+#. module: usl_documents
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "Adds a new current file. Earlier versions remain available."
@@ -1590,6 +1595,31 @@ msgid "Email Thread"
 msgstr "Discussion par e-mail"
 
 #. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.res_config_settings_view_form_documents
+msgid "Email intake"
+msgstr "Réception par e-mail"
+
+#. module: usl_documents
+#: model:ir.model,name:usl_documents.model_usl_document_intake
+msgid "Emailed Document"
+msgstr "Document reçu par e-mail"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_intake.py:0
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_intake_form
+msgid "Emailed document"
+msgstr "Document reçu par e-mail"
+
+#. module: usl_documents
+#: model:ir.actions.act_window,name:usl_documents.action_usl_document_intakes
+#: model:ir.ui.menu,name:usl_documents.menu_usl_documents_intakes
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_intake_list
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_intake_search
+msgid "Emailed documents"
+msgstr "Documents reçus par e-mail"
+
+#. module: usl_documents
 #: model:ir.model,name:usl_documents.model_hr_employee
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__linked_employee_id
 #: model:ir.model.fields.selection,name:usl_documents.selection__usl_document_quick_filter__group_by_1__linked_employee_id
@@ -1598,6 +1628,13 @@ msgstr "Discussion par e-mail"
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_search
 msgid "Employee"
 msgstr "Employé"
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.res_config_settings_view_form_documents
+msgid ""
+"Employees may mail any file to this address. Each message is archived in "
+"Documents under the sender's company."
+msgstr "Les salariés peuvent envoyer n’importe quel fichier à cette adresse. Chaque message est archivé dans Documents, dans la société de l’expéditeur."
 
 #. module: usl_documents
 #. odoo-python
@@ -2150,6 +2187,11 @@ msgstr "Interne"
 #: model_terms:ir.ui.view,arch_db:usl_documents.res_config_settings_view_form_documents
 msgid "Internal service URL"
 msgstr "Service interne URL"
+
+#. module: usl_documents
+#: model:ir.model.fields,help:usl_documents.field_usl_document_intake__sender_user_id
+msgid "Internal user matched to the sending address, when it matched one."
+msgstr "Utilisateur interne correspondant à l’adresse d’expédition, lorsqu’elle en désigne un."
 
 #. module: usl_documents
 #. odoo-python
@@ -3147,6 +3189,13 @@ msgid "Open the authorized document preview in a new tab."
 msgstr "Ouvrez l'aperçu du document autorisé dans un nouvel onglet."
 
 #. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_intake_form
+msgid ""
+"Open the documents archived from this message and review any archive "
+"processing issue."
+msgstr "Ouvrir les documents archivés à partir de ce message et examiner les incidents d’archivage."
+
+#. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.account_payment_form_documents
 msgid ""
 "Open the documents linked to this payment and review any archive processing "
@@ -3870,6 +3919,12 @@ msgid "Ready for review"
 msgstr "Prêt pour vérification"
 
 #. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_intake__received_at
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_intake_search
+msgid "Received"
+msgstr "Reçu le"
+
+#. module: usl_documents
 #. odoo-javascript
 #. odoo-python
 #: code:addons/usl_documents/models/document.py:0
@@ -4222,6 +4277,17 @@ msgid "Semantic similarity: %s%%"
 msgstr "Similarité sémantique : %s %%"
 
 #. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.res_config_settings_view_form_documents
+msgid "Send documents by email"
+msgstr "Envoyer des documents par e-mail"
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_intake__sender_user_id
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_intake_search
+msgid "Sender"
+msgstr "Expéditeur"
+
+#. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__semantic_text
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_search
 msgid "Meaning (Semantic)"
@@ -4482,6 +4548,11 @@ msgstr ""
 "En retard : l'échéance est déjà dépassée\n"
 "Aujourd'hui : la date d'activité est aujourd'hui\n"
 "Planifié : activités futures."
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_intake__name
+msgid "Subject"
+msgstr "Sujet"
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document__submitted_at
@@ -5218,6 +5289,12 @@ msgstr "Non disponible"
 
 #. module: usl_documents
 #. odoo-python
+#: code:addons/usl_documents/models/res_config_settings.py:0
+msgid "Unavailable until the documents alias has an email domain."
+msgstr "Indisponible tant que l’alias documents n’a pas de domaine de messagerie."
+
+#. module: usl_documents
+#. odoo-python
 #: code:addons/usl_documents/models/metadata.py:0
 msgid "Unnamed"
 msgstr "Sans nom"
@@ -5567,6 +5644,11 @@ msgid "Website communication history"
 msgstr "Historique de communication du site web"
 
 #. module: usl_documents
+#: model:ir.model.fields,help:usl_documents.field_usl_document_intake__received_at
+msgid "When Odoo accepted the message, not the date its sender wrote."
+msgstr "Date à laquelle Odoo a accepté le message, et non celle inscrite par son expéditeur."
+
+#. module: usl_documents
 #: model:ir.model.fields,help:usl_documents.field_usl_document__archive_added_at
 msgid ""
 "Original creation time supplied with imported documents. New uploads use "
@@ -5833,6 +5915,11 @@ msgid "Sending to Documents"
 msgstr "Envoi vers Documents"
 
 #. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_intake__email_from
+msgid "Sent by"
+msgstr "Expédié par"
+
+#. module: usl_documents
 #. odoo-python
 #: code:addons/usl_documents/models/attachment_bridge.py:0
 msgid "Documents is indexing this file"
@@ -6029,6 +6116,11 @@ msgid "Documents could not finish this file safely. Retry the operation or ask a
 msgstr "Documents n’a pas pu terminer le traitement de ce fichier en toute sécurité. Relancez l’opération ou demandez à un administrateur Documents de la vérifier."
 
 #. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_res_config_settings__document_intake_email
+msgid "Documents intake address"
+msgstr "Adresse de réception des documents"
+
+#. module: usl_documents
 #. odoo-python
 #: code:addons/usl_documents/models/attachment_bridge.py:0
 msgid "Source business record was deleted"
@@ -6153,6 +6245,11 @@ msgstr "Vérifiez avant d’appliquer."
 #: code:addons/usl_documents/static/src/documents_app.js:0
 msgid "From"
 msgstr "De"
+
+#. module: usl_documents
+#: model:ir.model.fields,help:usl_documents.field_usl_document_intake__email_from
+msgid "From header of the message this record was created from."
+msgstr "En-tête From du message à l’origine de cet enregistrement."
 
 #. module: usl_documents
 #. odoo-javascript

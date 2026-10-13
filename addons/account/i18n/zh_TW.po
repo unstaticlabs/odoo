@@ -15,7 +15,7 @@ msgstr ""
 "Project-Id-Version: Odoo Server saas~18.3\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-31 17:36+0000\n"
-"PO-Revision-Date: 2026-08-26 08:37+0000\n"
+"PO-Revision-Date: 2026-09-08 09:11+0000\n"
 "Last-Translator: \"Tony Ng (ngto)\" <ngto@odoo.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.odoo.com/"
 "projects/odoo-s19-3/account/zh_Hant/>\n"
@@ -459,7 +459,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/account/tools/partner_identifiers.py:0
 msgid "11111111111 (NIN) or 2222222222 (VKN)"
-msgstr ""
+msgstr "11111111111 (NIN) 或 2222222222 (VKN)"
 
 #. module: account
 #. odoo-python
@@ -470,17 +470,15 @@ msgstr ""
 #. module: account
 #. odoo-python
 #: code:addons/account/tools/partner_identifiers.py:0
-#, fuzzy
 msgid ""
 "12345678 or UA12345678 (EDRPOU), 1234567890 (RNOPP) or 123456789012 (IPN)"
-msgstr ""
-"12345678 或 UA12345678（EDRPOU），1234567890（RNOPP）或 123456789012（IPN）"
+msgstr "12345678 或 UA12345678（EDRPOU），1234567890（RNOPP）或 123456789012（IPN）"
 
 #. module: account
 #. odoo-python
 #: code:addons/account/tools/partner_identifiers.py:0
 msgid "12345678-1-11 or 8071592153"
-msgstr ""
+msgstr "12345678-1-11 或 8071592153"
 
 #. module: account
 #: model:account.payment.term,name:account.account_payment_term_15days
@@ -490,7 +488,6 @@ msgstr "15 天"
 #. module: account
 #. odoo-python
 #: code:addons/account/tools/partner_identifiers.py:0
-#, fuzzy
 msgid "1792060346001 or 1792060346"
 msgstr "1792060346001 或 1792060346"
 
@@ -532,7 +529,6 @@ msgstr "即時繳付 30%，餘額 60 天內"
 #. module: account
 #. odoo-python
 #: code:addons/account/tools/partner_identifiers.py:0
-#, fuzzy
 msgid "310175397400003 [Fifteen digits, first and last digits should be \"3\"]"
 msgstr "310175397400003【十五位數字，第一及最後一位數字應為 3】"
 
@@ -739,6 +735,71 @@ msgid ""
 "</div>\n"
 "            "
 msgstr ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
+"        <t t-if=\"object.partner_id.parent_id\">\n"
+"            <t t-if=\"object.partner_id.name\">\n"
+"                <t t-out=\"object.partner_id.name\">Brandon Freeman</t> (<t "
+"t-out=\"object.partner_id.parent_id.name or ''\">Azure Interior</t>) \n"
+"            </t>\n"
+"            <t t-else=\"\">\n"
+"                <t t-out=\"object.partner_id.parent_id.name or ''\">Azure "
+"Interior</t> \n"
+"            </t>\n"
+"        </t>\n"
+"        <t t-else=\"\">\n"
+"            <t t-out=\"object.partner_id.name or ''\">Brandon Freeman</t> \n"
+"        </t>\n"
+"        你好！\n"
+"        <br/><br/>\n"
+"        附上你的\n"
+"        <t t-if=\"object.name\">\n"
+"            發票 <span style=\"font-weight:bold;\" t-out=\"object.name or "
+"''\">INV/2021/05/0005</span>\n"
+"        </t>\n"
+"        <t t-else=\"\">\n"
+"            發票\n"
+"        </t>\n"
+"        <t t-if=\"object.invoice_origin\">\n"
+"            （參考編號：<t t-out=\"object.invoice_origin or ''\">SUB003</t>"
+"）\n"
+"        </t>\n"
+"        ，款項總額為 <span style=\"font-weight:bold;\" t-out=\"format_amount"
+"(object.amount_total, object.currency_id) or ''\">$ 143,750.00</span>，\n"
+"        由 <t t-out=\"object.company_id.name or ''\">YourCompany</t> 發出。\n"
+"        <t t-if=\"object.payment_state in ('paid', 'in_payment')\">\n"
+"            發票款項已全數繳清。\n"
+"        </t>\n"
+"        <t t-else=\"\">\n"
+"            請盡快付款。\n"
+"            <t t-if=\"object.payment_reference\">\n"
+"                <br/><br/>\n"
+"                <t t-if=\"object.partner_bank_id\">\n"
+"                    以賬戶 <strong t-"
+"out=\"object.partner_bank_id.account_number\"/> \n"
+"                </t>\n"
+"                付款時，請註明以下資料：<strong t-"
+"out=\"object.payment_reference or ''\">INV/2021/05/0005</strong>\n"
+"                。\n"
+"            </t>\n"
+"        </t>\n"
+"        <t t-if=\"hasattr(object, 'timesheet_count') and "
+"object.timesheet_count\">\n"
+"            <br/><br/>\n"
+"            註：你可登入<a t-att-href=\"'/my/"
+"timesheets?search_in=invoice&amp;search=%s' % object.name\">客戶平台</a>，查"
+"看你的工時表。\n"
+"        </t>\n"
+"        <br/><br/>\n"
+"        如有疑問，歡迎聯絡我們。\n"
+"        <t t-if=\"not is_html_empty(object.invoice_user_id.signature)\">\n"
+"            <br/><br/>\n"
+"            <div data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/><t t-"
+"out=\"object.invoice_user_id.signature or ''\">Mitchell Admin</t></div>\n"
+"        </t>\n"
+"    </p>\n"
+"</div>\n"
+"            "
 
 #. module: account
 #: model:mail.template,body_html:account.email_template_edi_self_billing_invoice

@@ -41,6 +41,22 @@ class ResConfigSettings(models.TransientModel):
         compute="_compute_paperless_status",
     )
     paperless_health = fields.Char(compute="_compute_paperless_status")
+    document_intake_email = fields.Char(
+        string="Documents intake address",
+        compute="_compute_document_intake_email",
+        help="Address that archives any file mailed to it. Restricted to employees.",
+    )
+
+    def _compute_document_intake_email(self):
+        alias = self.env.ref(
+            "usl_documents.mail_alias_document_intake",
+            raise_if_not_found=False,
+        )
+        address = alias.alias_full_name if alias else False
+        for settings in self:
+            settings.document_intake_email = address or _(
+                "Unavailable until the documents alias has an email domain.",
+            )
 
     def _compute_paperless_status(self):
         params = self.env["ir.config_parameter"].sudo()

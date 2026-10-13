@@ -103,5 +103,84 @@ class TestReleaseHealth(unittest.TestCase):
             )
 
 
+class TestLastDelivered(unittest.TestCase):
+    """What the chain last delivered, which is where a changelog starts."""
+
+    def test_the_newest_success_is_returned(self):
+        deployments = [
+            deployment(1, 200, sha="a" * 40, environment=h.PRODUCTION),
+            deployment(2, 100, sha="b" * 40, environment=h.PRODUCTION),
+        ]
+        self.assertEqual(
+            h.last_delivered(
+                h.PRODUCTION, deployments, states({1: ["success"], 2: ["success"]}),
+            ),
+            "b" * 40,
+        )
+
+    def test_a_failed_release_is_skipped_so_its_changes_are_not_lost(self):
+        deployments = [
+            deployment(1, 200, sha="a" * 40, environment=h.PRODUCTION),
+            deployment(2, 100, sha="b" * 40, environment=h.PRODUCTION),
+        ]
+        self.assertEqual(
+            h.last_delivered(
+                h.PRODUCTION, deployments,
+                states({1: ["success"], 2: ["failure", "in_progress"]}),
+            ),
+            "a" * 40,
+        )
+
+    def test_a_pending_release_is_not_a_delivery(self):
+        deployments = [
+            deployment(1, 200, sha="a" * 40, environment=h.PRODUCTION),
+            deployment(2, 100, sha="b" * 40, environment=h.PRODUCTION),
+        ]
+        self.assertEqual(
+            h.last_delivered(
+                h.PRODUCTION, deployments,
+                states({1: ["success"], 2: ["in_progress"]}),
+            ),
+            "a" * 40,
+        )
+
+    def test_supersession_alone_is_not_a_delivery(self):
+        self.assertIsNone(
+            h.last_delivered(
+                h.PRODUCTION,
+                [deployment(1, 100, environment=h.PRODUCTION)],
+                states({1: ["inactive"]}),
+            ),
+        )
+
+    def test_the_other_environment_is_ignored(self):
+        self.assertIsNone(
+            h.last_delivered(
+                h.PRODUCTION,
+                [deployment(1, 100, environment=h.STAGING)],
+                states({1: ["success"]}),
+            ),
+        )
+
+    def test_order_comes_from_the_timestamps_not_the_api_order(self):
+        deployments = [
+            deployment(2, 10, sha="b" * 40, environment=h.PRODUCTION),
+            deployment(1, 500, sha="a" * 40, environment=h.PRODUCTION),
+        ]
+        self.assertEqual(
+            h.last_delivered(
+                h.PRODUCTION, deployments, states({1: ["success"], 2: ["success"]}),
+            ),
+            "b" * 40,
+        )
+
+    def test_nothing_deployed_yet_is_no_base(self):
+        self.assertIsNone(h.last_delivered(h.PRODUCTION, [], states({})))
+
+    def test_an_unknown_environment_is_refused(self):
+        with self.assertRaises(ValueError):
+            h.last_delivered("somewhere", [], states({}))
+
+
 if __name__ == "__main__":
     unittest.main()

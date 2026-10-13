@@ -16,6 +16,22 @@ staging, and an hourly run catches anything the push-triggered run missed. The
 back-merge is the one operation that restores the shared ancestry; staging is
 never expected to sit behind production.
 
+The back-merge has to open its pull request as a GitHub app rather than as the
+default `github.token`. A pull request authored by the github-actions bot has
+its checks held at `action_required` until a human presses "Approve and run",
+and `USL qualification` is a required check on `19-usl-staging` — so such a
+pull request can never satisfy its own ruleset. Auto-merge is armed, the queue
+never admits it, and the back-merge waits on an approval nobody is told is
+owed. On 2026-09-14 three had stacked up that way (#235, #236 and #238) and
+staging had been behind production since the 11th.
+
+Set the `BACK_MERGE_APP_ID` repository variable and the
+`BACK_MERGE_APP_PRIVATE_KEY` secret to an app installed here with
+`contents: write` and `pull-requests: write`. Without them the workflow still
+opens a correct pull request under `github.token` and logs a warning saying it
+will need the manual approval; the back-merge keeps working, it just stops
+being unattended.
+
 An urgent fix therefore reaches staging after it merges to production rather
 than in parallel with it. The earlier arrangement mirrored the urgent branch
 into a second staging pull request, which kept the content in step but merged
@@ -148,6 +164,7 @@ scripts/usl-stack --target production release prepare \
   --upgrade-plan /path/to/upgrade-plan.json
 
 scripts/usl-stack --target production release status
+scripts/usl-stack --target production release announcements
 scripts/usl-stack --target production release abort --attempt-id <attempt>
 scripts/usl-stack --target production backup create
 scripts/usl-stack --target production backup list
@@ -194,6 +211,23 @@ transaction back at exit. The program commits after `message_post`, reads the
 message again in a fresh transaction, and fails when the message is not
 stored. Before the commit step existed, the launcher recorded message ids that
 never existed in the database.
+
+`release announcements` answers the question the deployment ledger cannot.
+`notify` is stage thirteen of sixteen and its failure is forward-fix only, so a
+release can be admitted, healthy, and never mentioned to the people it was built
+for; a deployment marked `success` does not by itself prove an announcement. The
+audit reads the channel for the message id of the active release and of the
+generation before it, and reports which of them were posted. It only searches:
+there is no `message_post` and no commit in its program, which is what lets
+`scripts/usl-stack-observe production announcements` reach it while every
+mutating verb, `notify` included, stays unreachable. Run it alongside the deploy
+proof when promoting.
+
+Whether the residual gap is real depends on when the launcher reports the
+deployment status. If it reports `success` only once the controller reaches
+`admitted`, after `notify`, then the last successful deployment *is* the last
+announcement and the audit is a belt-and-braces check. If it reports at
+admission instead, the gap is real and the audit is the only thing that sees it.
 ### Changelog source
 
 The release notes are a changelog of the pull requests merged since the
@@ -215,14 +249,43 @@ previous release. The `Distribution release` workflow runs
    Commit type, and `action_required` from the title of a pull request
    labelled `action-required`.
 
-A release that publishes but never reaches production leaves its changes out of
-every later changelog, because the next push starts from the branch tip that
-already carried them. `operations/release-notes-base.json` records the commit
-production actually runs; while that file exists the generator starts the range
-there instead of at `github.event.before`, so the next changelog reaches back
-over the gap. It fails loudly rather than silently narrowing the range when the
-record is malformed. Remove the file in the first pull request after the
-release it covers is deployed.
+A release that publishes but never reaches production would otherwise leave its
+changes out of every later changelog, because the next push starts from the
+branch tip that already carried them. On 2026-09-09 the promotion of
+`8f55edd3440a` failed at 04:09 and rolled back; the release that replaced it at
+10:31 announced one pull request and never mentioned the five that the failed
+release carried, one of which users could see.
+
+The changelog therefore does not start at `github.event.before` on a production
+push. It starts at the last production release that actually reached users,
+read from the `production-release` GitHub deployments the GitOps launcher
+already writes and that `scripts/check-release-health` and the promotion gate in
+`operations/staging_deployment.py` already trust. No second ledger is kept, and
+no one has to remember anything. `--ref` is what tells the generator the push is
+a production one; a staging changelog nobody reads keeps the pushed range.
+
+Both `product-image.yml` and the `publish` job that calls it grant
+`deployments: read`. A called workflow's token cannot exceed its caller's, so
+one grant alone would 403 and the changelog would silently narrow to the pushed
+range — the exact failure the ledger exists to prevent.
+
+The base resolves in this order: the reviewed record, then the last delivered
+release, then the pushed range. Every uncertainty resolves towards the older
+base. A base that is too old repeats a change across two announcements; a base
+that is too new loses it for good, and only one of those is recoverable. So an
+unreadable ledger, a deployment naming a commit this branch no longer contains,
+a compare that fails, or nothing delivered yet all fall back to the pushed range
+and say so in the job log and the step summary. Nothing here can fail the
+release: the changelog is built before the GitOps hand-off, and a changelog that
+raises would leave every component image published and production never told to
+collect them. The reviewed fallback notes are read the same way, and a minimal
+built-in set of notes is used when even that file cannot be parsed.
+
+`operations/release-notes-base.json` remains as the reviewed manual override for
+the case the ledger cannot answer. While it exists the generator starts there,
+and it fails loudly rather than silently narrowing the range when the record is
+malformed — a record a person wrote by hand is never silently ignored. Remove
+the file in the first pull request after the release it covers is deployed.
 
 When no pull request was merged, or when GitHub is unreachable, the generator
 writes the reviewed `operations/release-notes.json` (`usl-release-notes/v1`)
@@ -321,8 +384,31 @@ The copy is host-side between the two generation volumes: session material
 never enters a backup repository and never crosses an environment boundary, so
 a staging reset from production starts with an empty session store. Session
 continuity is convenience state rather than an integrity control. The run
-records the copy as `session_store_preservation`, and a failure to copy is
-reported there rather than failing the release.
+records it as `session_store_preservation`, and a failure is reported there
+rather than failing the release.
+
+That receipt states an outcome, not an intention. Before copying, the run reads
+the outgoing store and records the identifier of every session that is signed
+in; after cutover it reads the store the live generation is actually serving
+and reports how many of those identifiers are still there. It compares
+identifiers rather than session ids because Odoo rotates the id of a live
+session every few hours while keeping its identifier, so a rotation is not
+mistaken for a sign-out. Identifiers are recorded as digests, so the evidence
+carries no session material. The status is `preserved` when everyone survived,
+`diverged` when the copy itself dropped someone, `lost` when the live
+generation no longer serves a session the rollout carried, and `unverified`
+when the store could not be read after cutover. The release is already live by
+then, so none of these fail it — they answer "was I signed out by this
+release?" without an investigation.
+
+The copy also leaves the outgoing store's abandoned sessions behind. Anything
+that reaches Odoo without signing in is given a session file, including the
+uptime probe, which mints one a minute and never returns; Odoo only reaps them
+after a week. The rollout carries the sessions that are signed in plus the
+anonymous ones touched within the last hour, which are the in-flight Pocket ID
+handshakes it must not interrupt. Pruning happens on the candidate only: the
+outgoing generation's store is the rollback target and is left exactly as
+found.
 
 An ordinary `19-usl-staging` release never selects a production snapshot. It
 takes an attempt-bound staging checkpoint, clones the current staging database,

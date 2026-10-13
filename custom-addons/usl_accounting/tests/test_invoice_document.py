@@ -118,6 +118,21 @@ class TestInvoiceDocument(AccountTestInvoicingCommon):
         )
         self.assertEqual(refund_payload["kind"], "credit_note")
 
+    def test_payment_terms_print_the_recipient_bank_account(self):
+        invoice = self._invoice(post=False)
+        invoice.partner_bank_id = self.env["res.partner.bank"].create(
+            {
+                "account_number": "FR7630001007941234567890185",
+                "partner_id": self.company.partner_id.id,
+                "allow_out_payment": True,
+            }
+        )
+        invoice.action_post()
+        payload, _assets = invoice._usl_document_render_payload(
+            None, self.template, {}, "en_US"
+        )
+        self.assertIn("Bank account: FR76 3000 1007 9412 3456 7890 185", payload["payment_terms"])
+
     def test_proforma_can_render_before_invoice_date(self):
         invoice = self._invoice(invoice_date=False, post=False)
         payload, _assets = invoice._usl_document_render_payload(
