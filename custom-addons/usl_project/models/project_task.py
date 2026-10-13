@@ -269,6 +269,11 @@ class ProjectTask(models.Model):
                 values["user_ids"] = list(values.get("user_ids") or []) + [
                     sender_user_ids[0],
                 ]
+            # The personal to-do alias identifies the inbox, not an assignee.
+            # Native project mail also assigns users whose address matches To;
+            # that can accidentally opt a service identity into the task.
+            # Preserve explicit alias defaults and the original gateway headers.
+            msg_dict = dict(msg_dict, to="")
         return super().message_new(msg_dict, custom_values=values)
 
     @api.depends(

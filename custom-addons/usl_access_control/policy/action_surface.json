@@ -5269,7 +5269,7 @@
       ]
     },
     {
-      "digest": "75b818ae3c810bc9d2c8bc8f565f8a9623c67e1e7541f7b102937a63f4ed966c",
+      "digest": "8c24b101bda90edfd48c398c543fccb564266027c477c1c7a480fd8aa4b19743",
       "key": "guard:authorization.user.change",
       "kind": "guard",
       "modules": [
@@ -5280,7 +5280,7 @@
       ],
       "sources": [
         {
-          "line": 268,
+          "line": 289,
           "path": "custom-addons/usl_access_control/models/res_users.py"
         }
       ]
@@ -5297,7 +5297,7 @@
       ],
       "sources": [
         {
-          "line": 252,
+          "line": 255,
           "path": "custom-addons/usl_access_control/models/res_users.py"
         }
       ]
@@ -5314,7 +5314,7 @@
       ],
       "sources": [
         {
-          "line": 309,
+          "line": 334,
           "path": "custom-addons/usl_access_control/models/res_users.py"
         }
       ]
@@ -603791,27 +603791,36 @@
       "abstract": false,
       "archiveable": true,
       "delegates": [
-        "rpc:mail.activity.filtered"
+        "rpc:mail.activity.filtered",
+        "rpc:mail.activity.with_context"
       ],
-      "digest": "5b98b7259488619bec7c9442e079dde7ad695feb069c41ddaadd10d885471681",
+      "digest": "ece50847d5f70c270d8a398835d4fc49cc0c721f8d003782947e081c556e6aee",
       "guards": [],
       "key": "rpc:mail.activity.action_notify",
       "kind": "rpc",
       "method": "action_notify",
       "model": "mail.activity",
       "modules": [
-        "mail"
+        "mail",
+        "usl_access_control"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "cda2b9ae7b27e247b3301b35c4d1b2fe3a7b010fa5f6e3f44dc9911024b0acde",
+      "runtime_digest": "ed73ecf85c10025cc78fabfbf0fb89c36a5b2987fdd937c2283411b38eb532f8",
       "sinks": [
         "sudo"
       ],
       "sources": [
         {
+          "line": 51,
+          "path": "custom-addons/usl_access_control/models/notification_delivery.py"
+        },
+        {
           "line": 512,
           "path": "addons/mail/models/mail_activity.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/notification_delivery.py"
         },
         {
           "path": "odoo/addons/mail/models/mail_activity.py"
@@ -603819,7 +603828,8 @@
       ],
       "transient": false,
       "unresolved_delegates": [
-        "rpc:mail.activity.filtered"
+        "rpc:mail.activity.filtered",
+        "rpc:mail.activity.with_context"
       ]
     },
     {
@@ -868026,7 +868036,7 @@
         "rpc:project.task.with_context",
         "rpc:res.partner.concat"
       ],
-      "digest": "c3ec1aad017fc35667f6311b9e35471d6ba2a1b5f3c785ffcd21ce496ad623f3",
+      "digest": "75688a068460fda486fbcb4e650c386900c4f942857ecb1f28320782657799df",
       "guards": [],
       "key": "rpc:project.task.message_new",
       "kind": "rpc",
@@ -868039,7 +868049,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "bd9e080e4ba0c99f2a352cb7e368abcad328b9eaab2ad70b836168cbeb980a29",
+      "runtime_digest": "c62510eac769268dafe48e8f94281f0cf940e392c3955d7e7c8db3c14ebb0505",
       "sinks": [
         "orm_create",
         "orm_write",
@@ -1092165,7 +1092175,7 @@
           "path": "odoo/addons/base/models/res_groups.py"
         },
         {
-          "line": 323,
+          "line": 348,
           "path": "custom-addons/usl_access_control/models/res_users.py"
         },
         {
@@ -1109668,7 +1109678,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 135,
+          "line": 138,
           "path": "custom-addons/usl_access_control/models/res_users.py"
         },
         {
@@ -1115764,7 +1115774,7 @@
           "path": "custom-addons/usl_accounting/models/multi_company_expenses.py"
         },
         {
-          "line": 252,
+          "line": 255,
           "path": "custom-addons/usl_access_control/models/res_users.py"
         },
         {
@@ -1117940,7 +1117950,7 @@
           "path": "addons/auth_signup/models/res_users.py"
         },
         {
-          "line": 194,
+          "line": 197,
           "path": "custom-addons/usl_access_control/models/res_users.py"
         },
         {
@@ -1127587,12 +1127597,12 @@
       ],
       "sources": [
         {
-          "line": 309,
-          "path": "custom-addons/usl_access_control/models/res_users.py"
-        },
-        {
           "line": 31,
           "path": "addons/mail/models/discuss/res_users.py"
+        },
+        {
+          "line": 334,
+          "path": "custom-addons/usl_access_control/models/res_users.py"
         },
         {
           "line": 3550,
@@ -1128026,7 +1128036,7 @@
         "rpc:usl.document.sudo",
         "rpc:usl.paperless.user.mapping.sudo"
       ],
-      "digest": "8a24ca606bf3235e0adb3c7978e9953c3140528c2429819f062fe0a8a2b65210",
+      "digest": "50f4c10e1770f3e8889adf71ea66690c83225d086ae84d7c6763825ede824014",
       "guards": [
         "guard:authorization.user.change"
       ],
@@ -1128047,7 +1128057,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "ba11f84b316f597db3331d1e15439639769d434aac576bc29ef50220ad9c86cf",
+      "runtime_digest": "069666760da972da81bd29d7ab7bfe138e8da6ab7478c68a7d7e2bcb25291640",
       "sinks": [
         "message_send",
         "orm_create",
@@ -1128084,7 +1128094,7 @@
           "path": "custom-addons/usl_accounting/models/multi_company_expenses.py"
         },
         {
-          "line": 268,
+          "line": 289,
           "path": "custom-addons/usl_access_control/models/res_users.py"
         },
         {
@@ -1597368,6 +1597378,36 @@
       ]
     },
     {
+      "digest": "181d530284413e5f4ed134da754be47456b7dd58b0bc0be666239f50374fd4e4",
+      "key": "sink:usl_access_control:custom-addons/usl_access_control/models/notification_delivery.py:mail.thread._notify_get_recipients:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_access_control"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 13,
+          "path": "custom-addons/usl_access_control/models/notification_delivery.py"
+        }
+      ]
+    },
+    {
+      "digest": "b1b45db3b430b005da5ad8c20a79477c5b991e79c763fa5a1faf058f96557914",
+      "key": "sink:usl_access_control:custom-addons/usl_access_control/models/notification_delivery.py:mail.thread._notify_get_recipients:sudo:2",
+      "kind": "sink",
+      "modules": [
+        "usl_access_control"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 13,
+          "path": "custom-addons/usl_access_control/models/notification_delivery.py"
+        }
+      ]
+    },
+    {
       "digest": "cfaec38dcfe43f7041d048db2fa0cb711d751c46c9b5392f6523b143e4a7785f",
       "guards": [
         "guard:automation.server_action.execute"
@@ -1597461,7 +1597501,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 323,
+          "line": 348,
           "path": "custom-addons/usl_access_control/models/res_users.py"
         }
       ]
@@ -1597476,7 +1597516,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 44,
+          "line": 47,
           "path": "custom-addons/usl_access_control/models/res_users.py"
         }
       ]
@@ -1597491,7 +1597531,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 86,
+          "line": 89,
           "path": "custom-addons/usl_access_control/models/res_users.py"
         }
       ]
@@ -1597506,7 +1597546,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 126,
+          "line": 129,
           "path": "custom-addons/usl_access_control/models/res_users.py"
         }
       ]
@@ -1597521,7 +1597561,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 120,
+          "line": 123,
           "path": "custom-addons/usl_access_control/models/res_users.py"
         }
       ]
@@ -1597542,7 +1597582,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 252,
+          "line": 255,
           "path": "custom-addons/usl_access_control/models/res_users.py"
         }
       ]
@@ -1597563,13 +1597603,13 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 309,
+          "line": 334,
           "path": "custom-addons/usl_access_control/models/res_users.py"
         }
       ]
     },
     {
-      "digest": "04ca6e018a98c18f4dc21a46b6f14ed5a8afc935d572a79ee78780b1d0afd10f",
+      "digest": "1cb7080bec1f2d878eb084f245f071192976f764ca7631efdd95722cdadc93e8",
       "guards": [
         "guard:authorization.user.change"
       ],
@@ -1597584,7 +1597624,28 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 268,
+          "line": 289,
+          "path": "custom-addons/usl_access_control/models/res_users.py"
+        }
+      ]
+    },
+    {
+      "digest": "a20c3284c9476282a8bd968f2b5ddb8b5a6d399610a82f117299de94a359405c",
+      "guards": [
+        "guard:authorization.user.change"
+      ],
+      "key": "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.write:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "usl_access_control"
+      ],
+      "parents": [
+        "rpc:res.users.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 289,
           "path": "custom-addons/usl_access_control/models/res_users.py"
         }
       ]
@@ -1621590,7 +1621651,7 @@
       ]
     },
     {
-      "digest": "45999d831ad93908e44e811ba99c73420b4c69b5324df265263c7a7d4646ee0b",
+      "digest": "6315ba5c2ea793bc0a4c377bab8ac83f853b653fae0a6a19df56953b01e150d6",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.message_new:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1689123,7 +1689184,7 @@
       "manifest_sha256": "37275965675a2f2334525a33e1e4ab3d4fc7930f2e4d226948af851120ae86c3",
       "name": "usl_access_control",
       "origin": "custom",
-      "source_sha256": "7629d5523ac379ba6a57c3fe55e54db4715f5cb402066a3a4ebe6a474307cd07",
+      "source_sha256": "9e48db0c28febdc3ff4a311aa5d34d149c2558191ae89d5fa93bc608a5204470",
       "version": "saas~19.3.1.8.0"
     },
     {
@@ -1689228,7 +1689289,7 @@
       "manifest_sha256": "69732383a0664fa54d31befbe856a8944e513bbb7ff9eebcd9aa8e56941a676b",
       "name": "usl_project",
       "origin": "custom",
-      "source_sha256": "2c79cb187756ea5b60f5dc3ae37d7b86eb6368cba503119d6930dc3d802da320",
+      "source_sha256": "76ac95db841a1c6298cc08fb965a3d80ba9186471fa52eb96ac21fb1537bcffe",
       "version": "saas~19.3.1.0.11"
     },
     {

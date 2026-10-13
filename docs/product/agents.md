@@ -4,6 +4,24 @@ Agents are non-human Odoo identities owned by one accountable human. They use
 Odoo through API credentials and remain visible as the actor in audit history.
 They are not shared human accounts and cannot sign in through the browser.
 
+## Notifications
+
+Agent accounts receive notifications in Odoo's Inbox. Internal colleagues also
+receive Agent-authored conversations in Inbox, even if their usual preference
+is email. External contacts and portal users retain normal email delivery.
+Conversations written by people follow each recipient's own preference.
+This delivery rule does not rewrite stored preferences or old queued email.
+
+Task and activity assignment notices no longer duplicate the same work in
+Inbox. The assigned task and Activities remain available, and ordinary comments,
+mentions and email assignment notices continue normally. People can change
+their own **By Emails / In Odoo** preference through native Preferences.
+
+Email sent to the personal `todo` alias assigns its internal sender and any
+explicit alias assignees. A service identity whose address happens to match
+the alias is not added implicitly; starting an AI pipeline remains an explicit
+assignment or separate action.
+
 ## Authority
 
 An Agent can use only the intersection of:
