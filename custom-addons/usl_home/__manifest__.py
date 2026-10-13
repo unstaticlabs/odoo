@@ -1,7 +1,7 @@
 {
     "name": "USL Home",
     "summary": "Personalized launcher and operational attention cockpit",
-    "version": "saas~19.3.1.0.8",
+    "version": "saas~19.3.1.0.9",
     "category": "Productivity",
     "author": "Unstatic Labs",
     "license": "LGPL-3",

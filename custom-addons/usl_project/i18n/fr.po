@@ -128,3 +128,8 @@ msgstr ""
 "    !!! Définir la tâche comme priorité urgente  \n"
 "\n"
 "    Veillez à utiliser le bon format et l’ordre correct, par exemple : Améliorer l’écran de configuration 5h #feature #v16 @Mitchell !"
+
+#. module: usl_project
+#: model_terms:ir.ui.view,arch_db:usl_project.project_task_kanban_reference
+msgid "Task ID"
+msgstr "Identifiant de la tâche"

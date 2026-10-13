@@ -41986,7 +41986,12 @@
       "domain": "projects",
       "evidence_id": "read-only-no-sink-v1",
       "id": "read_only.projects.actions",
-      "overrides": {},
+      "overrides": {
+        "rpc:project.milestone.action_view_tasks": {
+          "evidence_id": "task-navigation-20261014",
+          "rationale": "Reviewed 2026-10-14 in docs/operations/task-navigation-action-risk-review.md: the native milestone task action adds only a readable display name and active milestone identifiers to its returned action context. Native task domain, project/milestone defaults and single-task form behavior remain in place; no record write, elevation or external effect is added."
+        }
+      },
       "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
       "reviewed_digests": {
         "route:http:ANY:/my/projects": "ce72e785324e3b48a4ddb539bc8a75ff51da3bd1562f96ea6e2aebc5476535d4",
@@ -42037,7 +42042,7 @@
         "rpc:project.milestone.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
         "rpc:project.milestone.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:project.milestone.action_view_sale_order": "0c85d9739300b2f7d37fc6fd8696633930b8f454b234703b2884a6bc4712765c",
-        "rpc:project.milestone.action_view_tasks": "22a8e40ebc9388211577e5b86170bdcc14509ed9892082d3e99fee7248329479",
+        "rpc:project.milestone.action_view_tasks": "7dec8da18c2cd9786e31673044b3d881eaa06dab1f5dabf20e9ac4ee0a3adfe3",
         "rpc:project.milestone.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
         "rpc:project.milestone.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
         "rpc:project.milestone.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
@@ -202487,6 +202492,16 @@
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_json2_policy_denies_unknown_mutations_and_secrets",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_profile_exposes_every_owner_application",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_scope_uses_owner_private_project_and_assignment_rules"
+      ]
+    },
+    "task-navigation-20261014": {
+      "contract": "Milestone task navigation returns its readable milestone identity and native task action, preserving task defaults and direct single-task behavior without changing records or elevating permissions. Explicit Home metrics override default saved searches while preserving native manual favorites and durable domain behavior.",
+      "tests": [
+        "custom-addons/usl_project/tests/test_task_navigation.py::TestTaskNavigation.test_milestone_task_action_has_a_durable_identity",
+        "custom-addons/usl_project/tests/test_task_navigation.py::TestTaskNavigation.test_single_task_keeps_native_direct_form_behavior",
+        "custom-addons/usl_project/tests/test_task_navigation.py::TestTaskNavigationTour.test_milestone_title_cards_and_view_switches",
+        "custom-addons/usl_home/tests/test_home_tour.py::TestUslHomeTour.test_home_metrics_override_default_saved_search",
+        "custom-addons/usl_home/tests/test_home.py::TestUslHome.test_my_task_metric_actions_match_the_displayed_counts"
       ]
     },
     "transport-exact-targets-v1": {

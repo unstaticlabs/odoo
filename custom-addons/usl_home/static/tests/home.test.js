@@ -233,6 +233,8 @@ test("every task metric opens its exact filtered action", async () => {
     expect(actions[1].domain).toEqual([["user_ids", "in", 5]]);
     expect(actions[0].usl_home_filter).toBe(undefined);
     expect(actions[1].usl_home_filter).toBe(undefined);
+    expect(actionOptions[0].additionalContext).toEqual({ search_disable_custom_filters: true });
+    expect(actionOptions[1].additionalContext).toEqual({ search_disable_custom_filters: true });
     expect(actionOptions[0].props.dynamicFilters).toEqual([
         {
             description: "overdue",

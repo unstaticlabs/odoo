@@ -59,3 +59,14 @@ New widgets must use a bounded provider method on `usl.home.service`, declare a
 stable widget key and availability rule, and navigate into an existing product
 workflow. Home is not a generic dashboard or a second implementation of the
 source application.
+
+
+### Explicit task metrics and saved searches
+
+Clicking a task signal or stage opens the population counted by that metric,
+with its named active search facet. This explicit choice takes precedence over
+a default saved My Tasks search. Saved searches remain available to select
+manually, and **Open My Tasks** keeps its normal default saved-search behavior.
+Browser Back returns to Home; clicking another metric uses its own population.
+Refresh preserves the filtered records through the native shared URL domain,
+which can appear as a **Shared** facet rather than the original metric label.

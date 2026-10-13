@@ -324,6 +324,8 @@ export class UslHome extends Component {
         delete action.usl_home_filter;
         return this.action.doAction(action, {
             clearBreadcrumbs: true,
+            // An explicit metric takes precedence over the user's default saved search.
+            additionalContext: { search_disable_custom_filters: true },
             props: { dynamicFilters },
         });
     }

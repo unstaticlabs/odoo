@@ -3034,11 +3034,11 @@
       ],
       "sources": [
         {
-          "line": 349,
+          "line": 351,
           "path": "custom-addons/usl_home/static/src/home/home.js"
         },
         {
-          "line": 382,
+          "line": 384,
           "path": "custom-addons/usl_home/static/src/home/home.js"
         }
       ]
@@ -3056,7 +3056,7 @@
       ],
       "sources": [
         {
-          "line": 332,
+          "line": 334,
           "path": "custom-addons/usl_home/static/src/home/home.js"
         }
       ]
@@ -846148,23 +846148,31 @@
       "delegates": [
         "rpc:project.milestone.ensure_one"
       ],
-      "digest": "22a8e40ebc9388211577e5b86170bdcc14509ed9892082d3e99fee7248329479",
+      "digest": "7dec8da18c2cd9786e31673044b3d881eaa06dab1f5dabf20e9ac4ee0a3adfe3",
       "guards": [],
       "key": "rpc:project.milestone.action_view_tasks",
       "kind": "rpc",
       "method": "action_view_tasks",
       "model": "project.milestone",
       "modules": [
-        "project"
+        "project",
+        "usl_project"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "a5a6fb043dbca121074854ea7abf35b61869d70f635b2237f1a4fea988d2a860",
+      "runtime_digest": "74517752b4f294050b401d5358101cd022dd3dad5adde2d79e0f812b5abceea1",
       "sinks": [],
       "sources": [
         {
           "line": 101,
           "path": "addons/project/models/project_milestone.py"
+        },
+        {
+          "line": 7,
+          "path": "custom-addons/usl_project/models/project_milestone.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/project_milestone.py"
         },
         {
           "path": "odoo/addons/project/models/project_milestone.py"
@@ -1689190,11 +1689198,11 @@
       "version": "saas~19.3.2.0.18"
     },
     {
-      "manifest_sha256": "bddababb11153d3ede6cb9e423fb9df7b42bcf4a173c24ab1d01129d7b06673a",
+      "manifest_sha256": "f4d7789a1a0797389b62624f5f13321e5b4e74a51db2e5663bf5dd00dc4d449c",
       "name": "usl_home",
       "origin": "custom",
-      "source_sha256": "d3bb328c74b02048640b88509413f3d266e842f053fd7669dfb96df09b058d7c",
-      "version": "saas~19.3.1.0.8"
+      "source_sha256": "9f20bcc56447fc85a81240a3ab94fcfb83654285f1974610697b78d49c48bbac",
+      "version": "saas~19.3.1.0.9"
     },
     {
       "manifest_sha256": "bb43850f670e0acf9f0173cad4c0c93680767addca24c5251f053d2d1eaf7e0b",
@@ -1689225,11 +1689233,11 @@
       "version": "saas~19.3.1.4.4"
     },
     {
-      "manifest_sha256": "69732383a0664fa54d31befbe856a8944e513bbb7ff9eebcd9aa8e56941a676b",
+      "manifest_sha256": "6a224d21518c378e0cc16ce67e852d792884872f898aaede108926bdcff62dcb",
       "name": "usl_project",
       "origin": "custom",
-      "source_sha256": "2c79cb187756ea5b60f5dc3ae37d7b86eb6368cba503119d6930dc3d802da320",
-      "version": "saas~19.3.1.0.11"
+      "source_sha256": "afd7d89cca8ee8c8a1df710abf6dc4063deb78dc1568cd8dfe17b349c5d413f3",
+      "version": "saas~19.3.1.0.12"
     },
     {
       "manifest_sha256": "fdc17bc172de42c3680d2f856c88ec910045db940de6d0fd31988944400cb74a",
