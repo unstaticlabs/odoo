@@ -70,3 +70,10 @@ manually, and **Open My Tasks** keeps its normal default saved-search behavior.
 Browser Back returns to Home; clicking another metric uses its own population.
 Refresh preserves the filtered records through the native shared URL domain,
 which can appear as a **Shared** facet rather than the original metric label.
+
+Activity rows use Odoo's native activity destination. When you can read the
+linked record, the row opens it. When an assigned activity remains available
+but its record does not, the row opens the native activity form so you can
+review your work without gaining access to that record. Home reads only the
+generic translated model label with elevated metadata access; your activity
+and business record permissions remain native.

@@ -3034,11 +3034,29 @@
       ],
       "sources": [
         {
-          "line": 351,
+          "line": 356,
           "path": "custom-addons/usl_home/static/src/home/home.js"
         },
         {
-          "line": 384,
+          "line": 389,
+          "path": "custom-addons/usl_home/static/src/home/home.js"
+        }
+      ]
+    },
+    {
+      "delegates": [
+        "rpc:mail.activity.action_open_document"
+      ],
+      "digest": "bd0ce0b0649160e69d93c4ff43e193873e0c9a53d21180340ee46da0c2af6d3c",
+      "handler": "openActivity",
+      "key": "client:usl_home:custom-addons/usl_home/static/src/home/home.js:openActivity:rpc:1",
+      "kind": "client",
+      "modules": [
+        "usl_home"
+      ],
+      "sources": [
+        {
+          "line": 288,
           "path": "custom-addons/usl_home/static/src/home/home.js"
         }
       ]
@@ -3056,7 +3074,7 @@
       ],
       "sources": [
         {
-          "line": 334,
+          "line": 339,
           "path": "custom-addons/usl_home/static/src/home/home.js"
         }
       ]
@@ -1366134,7 +1366152,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 634,
+          "line": 635,
           "path": "custom-addons/usl_home/models/home_service.py"
         },
         {
@@ -1366167,7 +1366185,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 552,
+          "line": 553,
           "path": "custom-addons/usl_home/models/home_service.py"
         },
         {
@@ -1366182,7 +1366200,7 @@
       "delegates": [
         "rpc:mail.activity.sudo"
       ],
-      "digest": "b7d73ea473d98128279df006b46e23ef3237719d5b706804a47f58d10b668897",
+      "digest": "a19c72b1c338cf066f2c6f4d6bd87cf8248986146cf917cbc54f52d3a744a1fa",
       "guards": [],
       "key": "rpc:usl.home.service.get_activities",
       "kind": "rpc",
@@ -1366193,7 +1366211,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "c408da857a5a6e8a77cba1bd0d770aab4f7bbb7c5b17cf7307de96f34036ab6e",
+      "runtime_digest": "b5226cf4f5b82c7cd53d4cc40656a2c5e18a069668396fc8b5408dd82d367b99",
       "sinks": [
         "sudo"
       ],
@@ -1366233,7 +1366251,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 473,
+          "line": 474,
           "path": "custom-addons/usl_home/models/home_service.py"
         },
         {
@@ -1366263,7 +1366281,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 536,
+          "line": 537,
           "path": "custom-addons/usl_home/models/home_service.py"
         },
         {
@@ -1366554,7 +1366572,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 372,
+          "line": 373,
           "path": "custom-addons/usl_home/models/home_service.py"
         },
         {
@@ -1366584,7 +1366602,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 408,
+          "line": 409,
           "path": "custom-addons/usl_home/models/home_service.py"
         },
         {
@@ -1618589,8 +1618607,26 @@
       ]
     },
     {
-      "digest": "9339d16ac88afecdd2f8e7b642f407ed995999123b3c7aa3d54abb0d9b7b8f71",
+      "digest": "294b82875620694cf0c604fb6f6abcc50ccdb64e7713c5f05bfc307adb29c657",
       "key": "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_activities:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [
+        "rpc:usl.home.service.get_activities"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 318,
+          "path": "custom-addons/usl_home/models/home_service.py"
+        }
+      ]
+    },
+    {
+      "digest": "03b1a697b23542a7171b4618e878434feda2946a1b0d601adb4c5dc4472e7e3a",
+      "key": "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_activities:sudo:2",
       "kind": "sink",
       "modules": [
         "usl_home"
@@ -1689201,7 +1689237,7 @@
       "manifest_sha256": "f4d7789a1a0797389b62624f5f13321e5b4e74a51db2e5663bf5dd00dc4d449c",
       "name": "usl_home",
       "origin": "custom",
-      "source_sha256": "9f20bcc56447fc85a81240a3ab94fcfb83654285f1974610697b78d49c48bbac",
+      "source_sha256": "ca514da9b5c49491fb0881145e2d3405ca442ccc9528ed0d85595ab025b755f6",
       "version": "saas~19.3.1.0.9"
     },
     {

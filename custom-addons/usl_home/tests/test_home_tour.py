@@ -46,3 +46,16 @@ class TestUslHomeTour(HttpCase):
             "domain": "[]", "context": "{}", "is_default": True,
         })
         self.start_tour("/odoo/home", "usl_home_task_metrics_saved_search", login=self.user.login)
+
+    def test_activity_widget_works_without_schema_access(self):
+        task = self.env["project.task"].create({
+            "name": "[QA Navigation] Activity target", "user_ids": [Command.set(self.user.ids)],
+        })
+        self.env["mail.activity"].create({
+            "res_model_id": self.env["ir.model"]._get_id("project.task"),
+            "res_id": task.id, "user_id": self.user.id,
+            "activity_type_id": self.env.ref("mail.mail_activity_data_todo").id,
+            "summary": "[QA Navigation] Review the next action",
+            "date_deadline": fields.Date.context_today(self.user),
+        })
+        self.start_tour("/odoo/home", "usl_home_activity_metadata_access", login=self.user.login)

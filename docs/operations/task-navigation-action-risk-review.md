@@ -1,8 +1,12 @@
 # Task navigation action-risk review — 14 October 2026
 
-Runtime discovery uses the canonical 164-module closure. It adds and removes no
-action keys. Only `usl_project` and `usl_home` module identities change, and only
-one normalized action digest changes: `rpc:project.milestone.action_view_tasks`.
+Runtime discovery uses the canonical 164-module closure. It adds two action
+keys: the Home activity client transport and the internal model-label elevation
+sink. It removes no keys. Only `usl_project` and `usl_home` module identities
+change. Three normalized digests change against the target: the milestone task
+action, Home activity response and its existing internal elevation sink. Existing
+classifications remain unchanged; the new client is `transport` to native
+`mail.activity.action_open_document`, and the new sink is `system_internal`.
 
 The override calls the native milestone action first, then adds its display
 name and active model/identifier values to the returned action dictionary. The
@@ -27,3 +31,17 @@ and agreement between metric counts and record domains. Reverting milestone
 identity and Home metric precedence makes both regressions fail again;
 restoring them passes the same cases. Live synthetic browser reload preserves
 the requested record population through the native Shared domain facet.
+
+Home activities read their translated generic model label with metadata-only
+`sudo()`. Ordinary Project users cannot read `ir.model`; a fresh authenticated
+HTTP request previously failed the entire widget at that label. Activity
+summary, record name, due date and identifiers remain reads under the caller.
+No business record is elevated and no permission is granted.
+
+Native Odoo permits assignees to see their activity even when its linked record
+is unreadable. Home retains that work and delegates opening to native
+`mail.activity.action_open_document`: it returns the target when readable and
+the native activity form otherwise. Direct access to the inaccessible target
+still fails. A regression covers both destinations and the HTTP journey from
+Home to My Activities. Summary already precedes Linked to in upstream Odoo;
+this delivery verifies the existing order rather than adding another reorder.

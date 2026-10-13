@@ -62,3 +62,20 @@ registry.category("web_tour.tours").add("usl_home_task_metrics_saved_search", {
         { trigger: ".o_view_nocontent" },
     ],
 });
+
+
+registry.category("web_tour.tours").add("usl_home_activity_metadata_access", {
+    steps: () => [
+        { trigger: ".o_usl_home_widget[data-widget='activities'] strong:contains('[QA Navigation] Review the next action')" },
+        { trigger: ".o_usl_home_widget[data-widget='activities'] footer button", run: "click" },
+        {
+            trigger: ".o_list_table .o_data_row:contains('[QA Navigation] Review the next action')",
+            run() {
+                const columns = [...document.querySelectorAll(".o_list_table th[data-name]")].map((node) => node.dataset.name);
+                if (columns.indexOf("summary") < 0 || columns.indexOf("res_name") < 0 || columns.indexOf("summary") > columns.indexOf("res_name")) {
+                    throw new Error("Summary must precede the secondary linked document in native My Activities");
+                }
+            },
+        },
+    ],
+});

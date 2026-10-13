@@ -403,3 +403,53 @@ class TestUslHome(TransactionCase):
         self.assertNotIn("accounting", restricted_service._available_widgets())
         with self.assertRaises(AccessError):
             restricted_service.get_accounting_alerts()
+
+    def test_activity_model_label_does_not_require_schema_access(self):
+        task = self._task("[QA Navigation] Activity label")
+        self.env["mail.activity"].create({
+            "res_model_id": self.env["ir.model"]._get_id("project.task"),
+            "res_id": task.id, "user_id": self.project_user.id,
+            "activity_type_id": self.env.ref("mail.mail_activity_data_todo").id,
+            "summary": "[QA Navigation] Review the next action",
+        })
+        # A warm administrator cache masks the metadata ACL failure seen by
+        # a fresh non-admin HTTP request. Retain the direct metadata ACL;
+        # the authenticated tour separately exercises the fresh HTTP request.
+        self.env.invalidate_all()
+        with self.assertRaises(AccessError):
+            self.env["ir.model"].with_user(self.project_user).search_read(
+                [("model", "=", "project.task")], ["name"],
+            )
+        items = self.env["usl.home.service"].with_user(self.project_user).get_activities()["items"]
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0]["model_name"], "Task")
+        self.assertEqual(items[0]["res_id"], task.id)
+
+    def test_activity_keeps_assigned_work_without_granting_target_access(self):
+        company = self.env["res.company"].create({"name": "[QA Navigation] Other company"})
+        project = self.env["project.project"].create({
+            "name": "[QA Navigation] Private company plan", "company_id": company.id,
+            "privacy_visibility": "employees",
+        })
+        hidden_task = self.env["project.task"].create({
+            "name": "[QA Navigation] Inaccessible activity target", "project_id": project.id,
+        })
+        visible_task = self._task("[QA Navigation] Visible activity target")
+        activities = self.env["mail.activity"].create([
+            {"res_model_id": self.env["ir.model"]._get_id("project.task"),
+             "res_id": task.id, "user_id": self.project_user.id,
+             "activity_type_id": self.env.ref("mail.mail_activity_data_todo").id,
+             "summary": task.name}
+            for task in (hidden_task, visible_task)
+        ])
+        with self.assertRaises(AccessError):
+            hidden_task.with_user(self.project_user).read(["name"])
+        items = self.env["usl.home.service"].with_user(self.project_user).get_activities()["items"]
+        self.assertEqual({item["res_id"] for item in items}, {hidden_task.id, visible_task.id})
+        hidden_action = activities[0].with_user(self.project_user).action_open_document()
+        self.assertEqual(hidden_action["res_model"], "mail.activity")
+        self.assertEqual(hidden_action["res_id"], activities[0].id)
+        self.assertEqual(hidden_action["views"], [(self.env.ref("mail.mail_activity_view_form_without_record_access").id, "form")])
+        visible_action = activities[1].with_user(self.project_user).action_open_document()
+        self.assertEqual(visible_action["res_model"], "project.task")
+        self.assertEqual(visible_action["res_id"], visible_task.id)

@@ -284,6 +284,11 @@ export class UslHome extends Component {
         return this.formatDate(item.deadline);
     }
 
+    async openActivity(activityId) {
+        const action = await this.orm.call("mail.activity", "action_open_document", [[activityId]]);
+        return this.action.doAction(action, { clearBreadcrumbs: true });
+    }
+
     async openRecord(resModel, resId) {
         await this.action.doAction(
             {
