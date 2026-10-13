@@ -82,8 +82,9 @@ The private `_validated_page_context` assignment and three metadata-read sinks
 include the result of `_validated_navigation_context`: readable actions/models
 are checked without elevation, malformed candidates and extra keys are omitted
 before saving report/provider context. Opting out saves neither current-page
-state nor navigation on the report; it does not prevent transient receipt. Existing `sudo()` calls
-resolve validated model metadata; they do not grant business-record access.
+state nor navigation on the report; it does not prevent transient receipt.
+Existing `sudo()` calls resolve validated model metadata; they do not grant
+business-record access.
 
 The private `_submit` three state-write sinks, `_poll` deadline-write sink and
 `_accept_phase` transition-write sink receive a two-second first check, two-second
