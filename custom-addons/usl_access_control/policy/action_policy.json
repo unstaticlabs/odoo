@@ -1424,7 +1424,6 @@
     {
       "action_keys": [
         "cron:usl_feedback.ir_cron_feedback_agent",
-        "rpc:mail.activity.unlink",
         "rpc:project.task.feedback_confirm_triage",
         "rpc:project.task.feedback_poll_agent",
         "rpc:project.task.feedback_queue_chat_reply",
@@ -1560,9 +1559,6 @@
       "overrides": {
         "cron:usl_feedback.ir_cron_feedback_agent": {
           "rationale": "Fixed bounded locked assistant processing; saved task/run evidence, stale/withdrawal checks, reporter confirmation, paid/provider configuration, and neutralized runtime refusal."
-        },
-        "rpc:mail.activity.unlink": {
-          "rationale": "Reviewed feedback override preserves prior native consequence and enforcement/reversal; adds maintainer checks, restricted follows/activities, or immutable per-task identity consolidation."
         },
         "rpc:project.task.feedback_confirm_triage": {
           "rationale": "Exact owner/maintainer conversation or configured settings workflow; poll invokes processing, not merely reading. Native config parameter/attachment/task semantic guards remain in force."
@@ -1954,7 +1950,6 @@
       "rationale": "Reviewed feedback workflow; see docs/operations/feedback-action-risk-review.md and exact per-action rationale.",
       "reviewed_digests": {
         "cron:usl_feedback.ir_cron_feedback_agent": "9519549a44d42b074704725214c5ef0ffa901107eecb91dc10d9fa308a2f90b5",
-        "rpc:mail.activity.unlink": "b780ff2ac21ce43bd920e81795f4adff8df71fde8ca0160bbe0325fe1a03412c",
         "rpc:project.task.feedback_confirm_triage": "6ab2e9e639bd85cf892cd46d4140082b8b1a981df17dc0e30392df686a5a740d",
         "rpc:project.task.feedback_poll_agent": "86e7bca0487621e2d21be3ece0767ff35951a384ac4e1129de5580bf5eb482ac",
         "rpc:project.task.feedback_queue_chat_reply": "877f89f6e1e81563e4604acc9266180ea2e9a9ddf678cc6cbe0b5c8827e28c09",
@@ -41304,7 +41299,6 @@
         "rpc:project.milestone.view_header_get",
         "rpc:project.milestone.web_name_search",
         "rpc:project.milestone.web_read",
-        "rpc:project.project.action_archive",
         "rpc:project.project.action_create_invoice",
         "rpc:project.project.action_estimated_margin",
         "rpc:project.project.action_get_list_view",
@@ -41319,7 +41313,6 @@
         "rpc:project.project.action_real_margin",
         "rpc:project.project.action_share",
         "rpc:project.project.action_toggle_project_template_mode",
-        "rpc:project.project.action_unarchive",
         "rpc:project.project.action_view_all_rating",
         "rpc:project.project.action_view_mrp_bom",
         "rpc:project.project.action_view_mrp_production",
@@ -41553,7 +41546,6 @@
         "rpc:project.tags.view_header_get",
         "rpc:project.tags.web_name_search",
         "rpc:project.tags.web_read",
-        "rpc:project.task.action_archive",
         "rpc:project.task.action_convert_to_subtask",
         "rpc:project.task.action_convert_to_task",
         "rpc:project.task.action_create_from_template",
@@ -41572,7 +41564,6 @@
         "rpc:project.task.action_recurring_tasks",
         "rpc:project.task.action_redirect_to_project_task_form",
         "rpc:project.task.action_share",
-        "rpc:project.task.action_unarchive",
         "rpc:project.task.action_unlink_recurrence",
         "rpc:project.task.action_view_so",
         "rpc:project.task.burndown.chart.report.action_archive",
@@ -42068,7 +42059,6 @@
         "rpc:project.milestone.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
         "rpc:project.milestone.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:project.milestone.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
-        "rpc:project.project.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
         "rpc:project.project.action_create_invoice": "5c97ed36a91fee4ad849b5730fdc3106f67b5401d5ba48529092a1f4ca15c2e8",
         "rpc:project.project.action_estimated_margin": "b47d6414b6ad757ccdc74637a821cbe708e8c50dde6b81ef3444412ba1e62301",
         "rpc:project.project.action_get_list_view": "6fb942a397dfd5274f49ef282a9d6750d8f09ae7beba07b9a178f8385d21de22",
@@ -42083,7 +42073,6 @@
         "rpc:project.project.action_real_margin": "25b0ba461228d8a19e50e6f3eae62b190a7e53b5b5e7a9a3d2cbafcd00b92b3f",
         "rpc:project.project.action_share": "fdc25b000f103307c619157641a916be9a7fc0c22d79621543798abe15fbd4f9",
         "rpc:project.project.action_toggle_project_template_mode": "27f1a0563e7676808a5609419c9c7d04b8e0f5a445a471147104ef9a61a3d925",
-        "rpc:project.project.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:project.project.action_view_all_rating": "e1912853399bdc4ae86e4aeca63e2a6a28c6b340c2053b9b6550c63582da4c6a",
         "rpc:project.project.action_view_mrp_bom": "1411b596d6637b6811130f0f3a582cb82b535703e0a3e40bbcab91c41fbf68e1",
         "rpc:project.project.action_view_mrp_production": "b4903bc65e8be27df59caf7e56c3e46cdcfe5f881f2ec37fd33f0d4fac1995a3",
@@ -42317,7 +42306,6 @@
         "rpc:project.tags.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
         "rpc:project.tags.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:project.tags.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
-        "rpc:project.task.action_archive": "5d92b01ba74813261254dad7543ab8955e5327f7cca0dbd26e707d2a4dc12b3e",
         "rpc:project.task.action_convert_to_subtask": "a0d65f606ad86ca9419fac641692c9d324ceb7b790d9c4b448313d5fe4f870cf",
         "rpc:project.task.action_convert_to_task": "147878ed38ca377cfb49c0e6afeac32c224af9dd92a4a7353c61ad536ce2d44e",
         "rpc:project.task.action_create_from_template": "a323edd9bb5dd7193ee7131542f7744f533e843063d77725f6b1fb714317a5a5",
@@ -42336,7 +42324,6 @@
         "rpc:project.task.action_recurring_tasks": "6a9e605653e033ea0ac3ca6e65f44b8f164da5adb4c84d7f47cf3f3a83982d7d",
         "rpc:project.task.action_redirect_to_project_task_form": "4469b32f91e820d37827c738cfe2f379bf36000baee3d5b51f9ec68b7d15ac6a",
         "rpc:project.task.action_share": "fdc25b000f103307c619157641a916be9a7fc0c22d79621543798abe15fbd4f9",
-        "rpc:project.task.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:project.task.action_unlink_recurrence": "14fa34f1fd2e1bc431c904470cadcdc33085484a3616d1626a742f56564c61dc",
         "rpc:project.task.action_view_so": "2e18b4578a97709ed01433373ed89f02bc5d4bf5987b9b07bf1397145e63204e",
         "rpc:project.task.burndown.chart.report.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
@@ -96792,7 +96779,6 @@
         "rpc:hr.expense.message_update",
         "rpc:hr.expense.notify_cancel_by_type",
         "rpc:hr.expense.set_message_pin",
-        "rpc:hr.expense.update_activities_and_mails",
         "rpc:hr.job.get_views",
         "rpc:hr.job.message_change_thread",
         "rpc:hr.job.message_mail_with_source",
@@ -99315,9 +99301,6 @@
           "reversal_action": "rpc:hr.expense.write"
         },
         "rpc:hr.expense.set_message_pin": {
-          "reversal_action": "rpc:hr.expense.write"
-        },
-        "rpc:hr.expense.update_activities_and_mails": {
           "reversal_action": "rpc:hr.expense.write"
         },
         "rpc:hr.job.get_views": {
@@ -105176,7 +105159,6 @@
         "rpc:hr.expense.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
         "rpc:hr.expense.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:hr.expense.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
-        "rpc:hr.expense.update_activities_and_mails": "7f4ce25c1b6439d815a75f44c8a016a6250234df61b50d735587dff8a4fc37b9",
         "rpc:hr.job.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
         "rpc:hr.job.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:hr.job.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
@@ -202327,9 +202309,112 @@
         "client:usl_home:custom-addons/usl_home/static/src/home/home.js:openAiPipelines:rpc:1": "c2ae301a4f259a291c2303291ee26fb1473f7b49623f327e8b8940d36837ee11",
         "client:usl_home:custom-addons/usl_home/static/src/home/home.js:saveLayout:rpc:1": "a602c94e22e4d67ecd18b71b991608f1891e908b3fd80bdc9b6da399da9d10bd"
       }
+    },
+    {
+      "action_keys": [
+        "rpc:project.task.action_archive",
+        "rpc:project.task.action_unarchive",
+        "rpc:project.project.action_archive",
+        "rpc:project.project.action_unarchive"
+      ],
+      "classification": "recoverable",
+      "consequence": "Hide or restore accessible projects and tasks while retaining their records and history.",
+      "domain": "projects",
+      "evidence_id": "agent-project-archive",
+      "id": "recoverable.projects.agent_archive",
+      "overrides": {
+        "rpc:project.project.action_archive": {
+          "reversal_action": "rpc:project.project.action_unarchive"
+        },
+        "rpc:project.project.action_unarchive": {
+          "reversal_action": "rpc:project.project.action_archive"
+        },
+        "rpc:project.task.action_archive": {
+          "reversal_action": "rpc:project.task.action_unarchive"
+        },
+        "rpc:project.task.action_unarchive": {
+          "reversal_action": "rpc:project.task.action_archive"
+        }
+      },
+      "rationale": "Native archive and restore require business write access and preserve chatter, attachments and record identity.",
+      "reviewed_digests": {
+        "rpc:project.project.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+        "rpc:project.project.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+        "rpc:project.task.action_archive": "5d92b01ba74813261254dad7543ab8955e5327f7cca0dbd26e707d2a4dc12b3e",
+        "rpc:project.task.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:project.task.mcp_update_activity",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:project.task.mcp_update_activity:orm_write:1"
+      ],
+      "classification": "operational",
+      "consequence": "Correct one accessible task activity without changing its identity or completion state.",
+      "domain": "projects",
+      "evidence_id": "agent-task-activity-edit",
+      "id": "operational.projects.agent_activity_update",
+      "rationale": "Task write access and activity ownership are checked before updating only the deadline, summary, note and assignee.",
+      "reviewed_digests": {
+        "rpc:project.task.mcp_update_activity": "618d451891f6496de1e68e6191de2634c28986b9851780483722b839c8c07e9f",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:project.task.mcp_update_activity:orm_write:1": "907e56efc327e0d9b65d1cc0a1bb81ee1e6751d42cb5d6e9ee92ef21d9aac625"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:hr.expense.update_activities_and_mails"
+      ],
+      "classification": "operational",
+      "consequence": "Maintain native expense approval activities and notifications as part of an authorized expense lifecycle operation.",
+      "domain": "expenses",
+      "evidence_id": "agent-expense-approval-cleanup",
+      "id": "operational.expenses.agent_approval_cleanup",
+      "rationale": "The Agent must have native business write access to the selected expenses before collaboration scope is granted to the fixed native implementation. General activity unlink remains denied.",
+      "reviewed_digests": {
+        "rpc:hr.expense.update_activities_and_mails": "547a8ca86fb66e57a7cef2824b9d42af90ba49d8182c0cc4145a8c8bbe903af3"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:mail.activity.unlink",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.activity.unlink:orm_unlink:1"
+      ],
+      "classification": "operational",
+      "consequence": "Perform native activity cleanup only within existing approved Agent collaboration scope; preserve ordinary human activity access.",
+      "domain": "communications",
+      "evidence_id": "agent-expense-approval-cleanup",
+      "id": "operational.collaboration.approved_activity_cleanup",
+      "rationale": "The Agent mutation guard executes before native unlink can queue bus work. Approved expense lifecycle scope remains usable; direct and forged-context Agent deletion is refused without side effects.",
+      "reviewed_digests": {
+        "rpc:mail.activity.unlink": "3ca5d9891385909abb86023106537fd8066df5eb4e15934e8a731a81860e51a4",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.activity.unlink:orm_unlink:1": "1c895b2ae090b026ae7b72826df385e96bb7b94a195e96ecd53c6cceb8b1f905"
+      }
     }
   ],
   "evidence_families": {
+    "agent-expense-approval-cleanup": {
+      "contract": "Native expense draft creation and unposted reset can clean approval activities; unrelated activities and generic unlink remain refused.",
+      "tests": [
+        "custom-addons/usl_access_control/tests/test_agent_expense_decisions.py::TestAgentReceiptDecisions.test_agent_creates_draft_expense_despite_empty_activity_cleanup",
+        "custom-addons/usl_access_control/tests/test_agent_expense_decisions.py::TestAgentReceiptDecisions.test_agent_cleans_only_expense_approval_activities",
+        "custom-addons/usl_access_control/tests/test_agent_expense_decisions.py::TestAgentReceiptDecisions.test_agent_resets_unposted_expense_and_preserves_other_activities",
+        "custom-addons/usl_access_control/tests/test_agent_expense_decisions.py::TestAgentReceiptDecisions.test_expense_cleanup_denials_preserve_expense_and_activity"
+      ]
+    },
+    "agent-project-archive": {
+      "contract": "Writable Agents archive and restore accessible project and task records with unchanged history; read-only and foreign-company operations are refused.",
+      "tests": [
+        "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_project_agent_archive_is_reversible_and_preserves_history",
+        "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_agent_activity_edit_refuses_other_tasks_and_companies"
+      ]
+    },
+    "agent-task-activity-edit": {
+      "contract": "An owner-scoped writable Agent changes one selected task activity in place without completing it; linkage, other-task and foreign-company mutations are refused.",
+      "tests": [
+        "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_project_agent_edits_one_activity_without_completing_it",
+        "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_agent_activity_edit_refuses_other_tasks_and_companies"
+      ]
+    },
     "feedback-provider-phases-20260906": {
       "contract": "Offline phase separation, secret-safe diagnostics, task-owned bounded image evidence, rate-limit polling, cleanup and unchanged reporter/maintainer/company/service ACLs. Full live provider availability remains a staging release qualification, not a claim of these tests.",
       "tests": [

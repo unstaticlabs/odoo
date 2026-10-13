@@ -249,8 +249,45 @@ class MailActivityMixin(models.AbstractModel):
         return super(MailActivityMixin, records).activity_reschedule(*args, **kwargs)
 
 
+class ProjectTask(models.Model):
+    _inherit = "project.task"
+
+    def mcp_update_activity(self, activity_id, values):
+        """Correct one task activity in place without completing or replacing it."""
+        self.ensure_one()
+        if not isinstance(activity_id, int) or isinstance(activity_id, bool) or activity_id <= 0:
+            raise AccessError(self.env._("That activity does not belong to this task."))
+        if not isinstance(values, dict) or not values or set(values) - {
+            "date_deadline", "summary", "note", "user_id",
+        }:
+            raise AccessError(self.env._("Only the activity deadline, summary, note and assignee can be changed."))
+        records = self._usl_agent_collaboration(operation="write")
+        records.check_access("write")
+        activity = records.env["mail.activity"].browse(activity_id).exists()
+        if not activity or activity.res_model != self._name or activity.res_id != self.id:
+            raise AccessError(self.env._("That activity does not belong to this task."))
+        activity.check_access("write")
+        activity.write(values)
+        return activity.read(["date_deadline", "summary", "note", "user_id"])[0]
+
+
+class HrExpense(models.Model):
+    _inherit = "hr.expense"
+
+    def update_activities_and_mails(self):
+        """Keep native approval cleanup inside the authorized expense workflow."""
+        records = self._usl_agent_collaboration(operation="write")
+        return super(HrExpense, records).update_activities_and_mails()
+
+
 class MailActivity(models.Model):
     _inherit = "mail.activity"
+
+    def unlink(self):
+        # Native unlink queues notifications before reaching Base.unlink.
+        # Reject an unapproved caller before it registers deferred work.
+        self._usl_reject_readonly_agent_mutation("unlink")
+        return super().unlink()
 
     def _usl_agent_complete_activity(self):
         """Authorize completion against the activity's business record."""
