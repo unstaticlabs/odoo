@@ -1,4 +1,5 @@
 import { expect, test } from "@odoo/hoot";
+import { ExpenseListController } from "@hr_expense/views/list";
 
 import {
     batchActionIsPrimary,
@@ -28,6 +29,17 @@ function record(state, expenseBatchId = false) {
         },
     };
 }
+
+test("batch-oriented selection hides Submit while standalone native submission stays available", () => {
+    const show = (context, records) => Boolean(ExpenseListController.prototype.displaySubmit.call({
+        props: { context }, model: { root: { selection: records } },
+    }));
+    expect(show({ usl_expense_batch_flow: true }, [record("draft")])).toBe(false);
+    expect(show({}, [record("draft", [11, "[QA] Batch"])] )).toBe(false);
+    expect(show({}, [record("draft"), record("draft", [11, "[QA] Batch"])] )).toBe(false);
+    expect(show({}, [record("draft")])).toBe(true);
+    expect(show({}, [record("approved")])).toBe(false);
+});
 
 test("batch creation accepts only unbatched eligible expense states", () => {
     expect(canCreateExpenseBatch([])).toBe(false);

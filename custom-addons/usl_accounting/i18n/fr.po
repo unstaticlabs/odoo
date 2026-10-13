@@ -6315,3 +6315,59 @@ msgstr "Recherche de justificatifs terminée"
 #: code:addons/usl_accounting/models/linked_receipt.py:0
 msgid "Found receipt links for %(count)s expenses. Existing requests and expenses with receipts were skipped."
 msgstr "Des liens vers des justificatifs ont été trouvés pour %(count)s notes de frais. Les demandes existantes et les notes de frais avec justificatif ont été ignorées."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/linked_receipt_handoff.js:0
+msgid "Reload Odoo, then open the receipt website again."
+msgstr "Rechargez Odoo, puis ouvrez à nouveau le site du justificatif."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/linked_receipt_handoff.js:0
+msgid "Allow popups for Odoo, then open the receipt website again."
+msgstr "Autorisez les fenêtres contextuelles pour Odoo, puis ouvrez à nouveau le site du justificatif."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/linked_receipt_handoff.js:0
+msgid "Opening receipt website"
+msgstr "Ouverture du site du justificatif"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/linked_receipt_handoff.js:0
+msgid "The receipt website could not be opened. Try again from the expense."
+msgstr "Le site du justificatif n'a pas pu être ouvert. Réessayez depuis la dépense."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
+msgid "Receipt downloads are paused in this environment. Attach the PDF manually or ask an operator to restore processing."
+msgstr "Le téléchargement des justificatifs est suspendu dans cet environnement. Joignez le PDF manuellement ou demandez à un opérateur de rétablir le traitement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
+msgid "The receipt download worker is unavailable. Attach the PDF manually or ask an operator to check processing."
+msgstr "Le service de téléchargement des justificatifs est indisponible. Joignez le PDF manuellement ou demandez à un opérateur de vérifier le traitement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
+#, python-format
+msgid "The receipt has been queued for at least %(minutes)s minutes. Retry this request or ask an operator to check the queue."
+msgstr "Le justificatif attend dans la file depuis au moins %(minutes)s minutes. Relancez cette demande ou demandez à un opérateur de vérifier la file."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
+msgid "The receipt is waiting for the download worker."
+msgstr "Le justificatif attend le service de téléchargement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#, python-format
+msgid "Retry a receipt needing attention, or one queued for at least %(minutes)s minutes."
+msgstr "Relancez un justificatif nécessitant une intervention ou en attente depuis au moins %(minutes)s minutes."

@@ -6,9 +6,77 @@ from odoo.tools import format_date
 from odoo.addons.hr_expense.tests.common import TestExpenseCommon
 from odoo.addons.mail.tests.common import mail_new_test_user
 
+from ..models.hr_expense import _BATCH_SUBMISSION_TOKEN
+
 
 @tagged("post_install", "-at_install", "usl_expense_batch")
 class TestExpenseBatch(TestExpenseCommon):
+    def test_batched_expense_cannot_bypass_batch_submission(self):
+        expense = self._expense("[QA] Submit through its batch")
+        batch = self._batch(expense, name="[QA] Submission batch")
+        with self.assertRaisesRegex(UserError, "Submit.*batch"), self.env.cr.savepoint():
+            expense.with_user(self.expense_user_employee).action_submit()
+        self.assertEqual(expense.state, "draft")
+        self.assertFalse(batch.submitted_by_id)
+        batch.with_user(self.expense_user_employee).action_submit()
+        self.assertEqual(expense.state, "submitted")
+        self.assertEqual(batch.submitted_by_id, self.expense_user_employee)
+        self.assertTrue(batch.submitted_date)
+
+    def test_add_to_batch_wizard_has_only_add_and_cancel_actions(self):
+        view = self.env.ref("usl_expense_batch.view_expense_batch_create_wizard_form")
+        arch = self.env["usl.expense.batch.create.wizard"].with_user(
+            self.expense_user_employee,
+        ).get_view(view_id=view.id, view_type="form")["arch"]
+        self.assertNotIn('name="action_create_and_submit"', arch)
+        self.assertIn('name="action_create_batch"', arch)
+
+    def test_forged_batch_context_and_mixed_submission_are_atomic(self):
+        batched = self._expense("[QA] Batched draft")
+        standalone = self._expense("[QA] Standalone draft")
+        batch = self._batch(batched, name="[QA] Context scope")
+        for expenses, token, batch_id in (
+            (batched, True, batch.id),
+            (batched, _BATCH_SUBMISSION_TOKEN, batch.id + 1000),
+            (batched + standalone, _BATCH_SUBMISSION_TOKEN, batch.id),
+        ):
+            with self.assertRaises(UserError), self.env.cr.savepoint():
+                expenses.with_user(self.expense_user_employee).with_context(
+                    usl_batch_submission_token=token, usl_batch_submission_id=batch_id,
+                ).action_submit()
+        self.assertEqual(batched.state, "draft")
+        self.assertEqual(standalone.state, "draft")
+        self.assertFalse(batch.submitted_by_id)
+        standalone.with_user(self.expense_user_employee).action_submit()
+        self.assertEqual(standalone.state, "submitted")
+
+    def test_private_batch_delegate_cannot_bypass_selected_company_rules(self):
+        other = self.company_data_2["company"]
+        self.expense_user_employee.company_ids = [Command.link(other.id)]
+        employee = self.env["hr.employee"].sudo().with_company(other).create({
+            "name": "[QA] Other-company employee",
+            "user_id": self.expense_user_employee.id, "company_id": other.id,
+        })
+        expense = self.env["hr.expense"].sudo().with_company(other).create({
+            "name": "[QA] Other-company draft", "employee_id": employee.id,
+            "company_id": other.id, "product_id": self.product_c.id,
+            "total_amount_currency": 42, "payment_mode": "own_account",
+            "account_id": self.company_data_2["default_account_expense"].id,
+        })
+        batch = self.env["usl.expense.batch"].sudo().with_company(other).create({
+            "name": "[QA] Other-company batch", "purpose": "[QA] Company boundary",
+            "employee_id": employee.id, "company_id": other.id,
+            "expense_ids": [Command.set(expense.ids)],
+        })
+        with self.assertRaises(AccessError), self.env.cr.savepoint():
+            expense.with_user(self.expense_user_employee).with_context(
+                allowed_company_ids=self.env.company.ids,
+                usl_batch_submission_token=_BATCH_SUBMISSION_TOKEN,
+                usl_batch_submission_id=batch.id,
+            ).action_submit()
+        self.assertEqual(expense.state, "draft")
+        self.assertFalse(batch.submitted_by_id)
+
     def _expense(
         self,
         name,
@@ -1163,14 +1231,10 @@ class TestExpenseBatch(TestExpenseCommon):
             wizard_lines.xpath("./field[@name='batch_attachment_status']"),
         )
         self.assertTrue(wizard_lines.xpath("./field[@name='state']"))
-        wizard_submit = wizard_form.xpath(
-            "//button[@name='action_create_and_submit']",
-        )[0]
-        self.assertIn("only its draft expenses", wizard_submit.get("title"))
-        self.assertIn(
-            "draft_incomplete_count",
-            wizard_submit.get("invisible"),
-        )
+        self.assertFalse(wizard_form.xpath("//button[@name='action_create_and_submit']"))
+        wizard_add = wizard_form.xpath("//button[@name='action_create_batch']")[0]
+        self.assertIn("btn-primary", wizard_add.get("class"))
+        self.assertIn("without submitting", wizard_add.get("title"))
 
         batch = self._batch(self._expense("Toronto action contract"))
         self.assertEqual(

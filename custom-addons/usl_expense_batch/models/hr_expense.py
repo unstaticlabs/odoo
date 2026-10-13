@@ -4,6 +4,7 @@ from odoo import Command, _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 EXPENSE_BATCH_ELIGIBLE_STATES = ("draft", "approved", "posted")
+_BATCH_SUBMISSION_TOKEN = object()
 
 # States a reviewer can no longer act on: the accounting is booked, or the
 # expense was refused. Advisory notes on these lines are history, not work.
@@ -20,6 +21,21 @@ CONTEXT_SOURCES = [
 
 class HrExpense(models.Model):
     _inherit = "hr.expense"
+
+    def action_submit(self):
+        self.check_access("write")
+        batched = self.filtered("expense_batch_id")
+        delegated = (
+            self.env.context.get("usl_batch_submission_token") is _BATCH_SUBMISSION_TOKEN
+            and len(batched) == len(self)
+            and batched.expense_batch_id.ids == [self.env.context.get("usl_batch_submission_id")]
+        )
+        if batched and not delegated:
+            raise UserError(_(
+                "Open %(batch)s and choose Submit batch for these expenses.",
+                batch=", ".join(batched.expense_batch_id.mapped("display_name")),
+            ))
+        return super().action_submit()
 
     expense_batch_id = fields.Many2one(
         "usl.expense.batch",
@@ -682,6 +698,7 @@ class HrExpense(models.Model):
             "views": [(False, "form")],
             "res_id": wizard.id,
             "target": "new",
+            "context": {"usl_expense_batch_flow": True},
         }
 
     def action_return_from_batch(self):

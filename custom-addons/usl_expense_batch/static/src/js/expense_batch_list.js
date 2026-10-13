@@ -28,6 +28,16 @@ export async function refreshExpenseList(controller) {
 }
 
 patch(ExpenseListController.prototype, {
+    displaySubmit() {
+        if (
+            this.props.context?.usl_expense_batch_flow ||
+            this.model.root.selection.some((record) => record.data.expense_batch_id)
+        ) {
+            return false;
+        }
+        return super.displaySubmit();
+    },
+
     displayCreateExpenseBatch() {
         return canCreateExpenseBatch(this.model.root.selection);
     },

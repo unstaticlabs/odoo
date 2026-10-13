@@ -7,6 +7,8 @@ from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools import format_date
 
+from .hr_expense import _BATCH_SUBMISSION_TOKEN
+
 
 class UslExpenseBatch(models.Model):
     _name = "usl.expense.batch"
@@ -668,6 +670,7 @@ class UslExpenseBatch(models.Model):
             "views": [(False, "form")],
             "res_id": wizard.id,
             "target": "new",
+            "context": {"usl_expense_batch_flow": True},
         }
 
     @api.model
@@ -1094,7 +1097,10 @@ class UslExpenseBatch(models.Model):
             raise UserError(
                 _("Complete the following expenses before submission:\n%s", details),
             )
-        expenses.action_submit()
+        expenses.with_context(
+            usl_batch_submission_token=_BATCH_SUBMISSION_TOKEN,
+            usl_batch_submission_id=self.id,
+        ).action_submit()
         self.write({
             "submitted_by_id": self.env.user.id,
             "submitted_date": fields.Datetime.now(),
