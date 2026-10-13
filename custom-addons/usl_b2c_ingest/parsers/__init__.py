@@ -84,10 +84,11 @@ CSV_FORMATS = (
         "medusa_orders",
         "Medusa — sold items per order",
         medusa.PROVIDER,
-        medusa.ORDERS_HEADER,
+        medusa.ORDERS_REQUIRED,
         medusa.parse_orders,
         precedence=10,
         delimiter=medusa.DELIMITER,
+        exact=False,
     ),
     CsvFormat(
         "medusa_full_orders",

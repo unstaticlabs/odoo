@@ -6,7 +6,7 @@ from odoo.tests import TransactionCase, tagged
 
 from . import fixtures
 from odoo.addons.usl_b2c_ingest import parsers
-from odoo.addons.usl_b2c_ingest.parsers import printful
+from odoo.addons.usl_b2c_ingest.parsers import medusa, printful
 
 
 @tagged("post_install", "-at_install", "usl_b2c_ingest")
@@ -94,6 +94,30 @@ class TestParsers(TransactionCase):
         }
         self.assertEqual(by_key["wide"], by_key["long"])
         self.assertEqual(len(by_key["wide"]), 4)
+
+    def test_medusa_widening_its_layout_loses_no_item(self):
+        """A seventh item slot is read, not quietly dropped.
+
+        Reading a fixed six slots makes a wider export parse successfully and
+        state one item fewer than the shop sold, which no finding would catch.
+        """
+        slot = medusa.WIDE_ITEM_SLOTS + 1
+        row = dict(fixtures.MEDUSA_WIDE_ROWS[0]) | {
+            f"item_{slot}_sku": "SEVENTH",
+            f"item_{slot}_product": "A seventh thing",
+            f"item_{slot}_variant": "One size",
+            f"item_{slot}_qty": "1",
+            f"item_{slot}_unit_price": "12.00",
+            f"item_{slot}_total": "12.00",
+        }
+        narrow = self._parse(fixtures.medusa_orders([fixtures.MEDUSA_WIDE_ROWS[0]]))[1]
+        fmt, parsed, _document = self._parse(fixtures.medusa_orders_one_slot_wider([row]))
+        self.assertEqual(fmt.format_id, "medusa_orders")
+        lines = self._by_grain(parsed, parsers.LINE_GRAIN)
+        self.assertEqual(len(lines), len(self._by_grain(narrow, parsers.LINE_GRAIN)) + 1)
+        self.assertIn("SEVENTH", {line.values["original_sku"] for line in lines})
+        order = next(row for row in parsed if row.grain == parsers.ORDER_GRAIN)
+        self.assertEqual(order.values["line_count"], Decimal(len(lines)))
 
     def test_a_repeated_line_keeps_two_identities(self):
         _fmt, rows, _document = self._parse(fixtures.medusa_order_items())

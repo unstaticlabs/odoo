@@ -45,6 +45,20 @@ def medusa_orders(rows=None):
     )
 
 
+def medusa_orders_one_slot_wider(rows):
+    """Return the wide export as Medusa writes it once a wider order is sold.
+
+    Medusa states as many item slots as its largest order needs, so the same
+    export gains six columns in the month a seventh item goes out.
+    """
+    slot = medusa.WIDE_ITEM_SLOTS + 1
+    header = medusa.ORDERS_HEADER + tuple(
+        f"item_{slot}_{column}"
+        for column in ("sku", "product", "variant", "qty", "unit_price", "total")
+    )
+    return _csv(header, rows, delimiter=medusa.DELIMITER)
+
+
 def medusa_full_orders(rows=None):
     return _csv(
         medusa.FULL_ORDERS_HEADER,
