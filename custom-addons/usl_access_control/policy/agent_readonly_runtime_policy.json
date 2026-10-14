@@ -17162,6 +17162,7 @@
     "rpc:hr.expense.approve.duplicate.web_search_read",
     "rpc:hr.expense.approve.duplicate.write",
     "rpc:hr.expense.attach_document",
+    "rpc:hr.expense.configure_draft_expense",
     "rpc:hr.expense.copy",
     "rpc:hr.expense.copy_data",
     "rpc:hr.expense.create",

@@ -1454,3 +1454,177 @@ msgstr "Sélectionnez au moins une dépense à ajouter."
 #. module: usl_expense_batch
 msgid "Add Expenses to Batch"
 msgstr "Ajouter des dépenses au lot"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+#, python-format
+msgid "%(field)s must be a finite number."
+msgstr "%(field)s doit être un nombre fini."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+#, python-format
+msgid "%(field)s must be a positive record ID."
+msgstr "%(field)s doit être un identifiant de fiche strictement positif."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+#, python-format
+msgid "%(field)s must be bounded text."
+msgstr "%(field)s doit être un texte respectant la longueur autorisée."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+msgid "Analytic distribution must be a bounded object."
+msgstr "La répartition analytique doit respecter le nombre de lignes autorisé."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+msgid "Analytic keys must contain positive account IDs."
+msgstr "Les clés analytiques doivent contenir des identifiants de comptes strictement positifs."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+msgid "Analytic percentages must be finite nonnegative numbers."
+msgstr "Les pourcentages analytiques doivent être des nombres finis, positifs ou nuls."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+msgid "Choose a draft or posted supplier bill."
+msgstr "Choisissez une facture fournisseur à l’état brouillon ou comptabilisée."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+msgid "Choose an employee belonging to the target company."
+msgstr "Choisissez un salarié appartenant à la société de destination."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+msgid "Choose an expense category."
+msgstr "Choisissez une catégorie de dépense."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+msgid "Choose at most 50 tax record IDs."
+msgstr "Sélectionnez au maximum 50 identifiants de taxes."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+msgid "Choose employee or company payment."
+msgstr "Choisissez un paiement par le salarié ou par la société."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+msgid "Choose the supplier belonging to the selected bill, or clear the supplier."
+msgstr "Choisissez le fournisseur de la facture sélectionnée, ou videz le fournisseur."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+#, python-format
+msgid "Draft expense company corrected from %(source)s to %(target)s."
+msgstr "Société de la dépense en brouillon corrigée : de %(source)s vers %(target)s."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+msgid "Every selected tax must exist."
+msgstr "Toutes les taxes sélectionnées doivent exister."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+msgid "Only draft expenses without a journal entry can be corrected."
+msgstr "Seules les dépenses à l’état brouillon, sans écriture comptable, peuvent être corrigées."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+msgid "Quantity must be positive."
+msgstr "La quantité doit être strictement positive."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+#, python-format
+msgid "Replace or clear %(field)s for the target company."
+msgstr "Remplacez ou videz %(field)s pour la société de destination."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+msgid "Replace or clear analytics for the target company."
+msgstr "Remplacez ou videz la répartition analytique pour la société de destination."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+msgid "Replace or clear taxes for the target company."
+msgstr "Remplacez ou videz les taxes pour la société de destination."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+msgid "Replace or clear the batch to match the target company and employee."
+msgstr "Remplacez ou retirez le lot pour qu’il corresponde à la société et au salarié de destination."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+msgid "Select an authorized target company in your company context."
+msgstr "Sélectionnez une société de destination autorisée dans votre sélection de sociétés."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+msgid "Supply supported draft expense fields."
+msgstr "Renseignez des champs de préparation de dépense autorisés."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+msgid "The expense needs a name."
+msgstr "La dépense doit avoir un libellé."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+#, python-format
+msgid "The selected %(field)s must exist."
+msgstr "La fiche sélectionnée pour %(field)s doit exister."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+msgid "This expense shares an origin and receipt with other split expenses. Open Split Expenses to inspect the family. Its company and employee must be corrected together in one transaction so categories, batches, evidence and history remain consistent. This action currently prepares one expense; its other draft fields remain available."
+msgstr "Cette dépense partage une origine et un justificatif avec d’autres dépenses issues de la même ventilation. Ouvrez les dépenses ventilées pour les consulter. Leur société et leur salarié doivent être corrigés ensemble, en une seule transaction, pour préserver la cohérence des catégories, des lots, des justificatifs et de l’historique. Cette action prépare actuellement une seule dépense ; ses autres champs de brouillon restent modifiables."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+msgid "Use a valid expense date in YYYY-MM-DD format."
+msgstr "Saisissez une date de dépense valide au format AAAA-MM-JJ."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+msgid "has_existing_bill must be a boolean."
+msgstr "has_existing_bill doit être un booléen."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_draft_configuration.py:0
+msgid "Clear existing_bill_id when has_existing_bill is false."
+msgstr "Videz existing_bill_id lorsque has_existing_bill est faux."

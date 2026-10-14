@@ -202327,9 +202327,39 @@
         "client:usl_home:custom-addons/usl_home/static/src/home/home.js:openAiPipelines:rpc:1": "c2ae301a4f259a291c2303291ee26fb1473f7b49623f327e8b8940d36837ee11",
         "client:usl_home:custom-addons/usl_home/static/src/home/home.js:saveLayout:rpc:1": "a602c94e22e4d67ecd18b71b991608f1891e908b3fd80bdc9b6da399da9d10bd"
       }
+    },
+    {
+      "action_keys": [
+        "rpc:hr.expense.configure_draft_expense",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense.configure_draft_expense:message_send:1",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense.configure_draft_expense:orm_write:1",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense.configure_draft_expense:orm_write:2",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense.configure_draft_expense:orm_write:3",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense.configure_draft_expense:orm_write:4"
+      ],
+      "classification": "operational",
+      "consequence": "Prepares one existing draft expense and its owned evidence; recalculates native target-company amounts and records the correction without submitting, posting, paying or deleting history.",
+      "domain": "accounting",
+      "evidence_id": "draft-expense-correction-20261014",
+      "id": "operational.draft-expense-correction",
+      "rationale": "The fixed bounded method locks and rechecks the draft, requires source and target authority, validates explicit company-compatible relations, delegates native batch removal and receipt supersession, and scopes the existing in-process collaboration marker only to evidence owned by that expense. It never accepts arbitrary records, fields, sudo flags or serializable authority tokens. Split-family ownership changes remain a separately coordinated workflow. Financial reference preflight applies to company moves or explicitly supplied relations, preserving ordinary label edits without demanding unrelated supplier-bill read access.",
+      "reviewed_digests": {
+        "rpc:hr.expense.configure_draft_expense": "193749c1707be1c9a45ec16c2de65783df48a6010fe07e554d4232388e689591",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense.configure_draft_expense:message_send:1": "93c919b75d13a3679d0ef2d54787c137e275be85d20b134f8f87bf7d367e2e04",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense.configure_draft_expense:orm_write:1": "b88189d4647f6741c382835fcd822c75e61b6237d09e8e74982c7a24334a7b4e",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense.configure_draft_expense:orm_write:2": "058503f3a371a2f5278e2da8f8c30085a6a88d2601f5f1aed734e31e6a754d86",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense.configure_draft_expense:orm_write:3": "1b2eab26f6dc85850138d0bfb057a8ed77423da7a199e0234f8e27e3c5fa7d3a",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense.configure_draft_expense:orm_write:4": "bf42c2a12ba58524929e28ffd30f04f0180c49d91f41b5123fc0871a5082142a"
+      }
     }
   ],
   "evidence_families": {
+    "draft-expense-correction-20261014": {
+      "contract": "One native transaction corrects an authorized draft company/employee pair using explicit compatible financial mappings or clears, preserving expense/evidence identity and document currency. Source and target access, batch detach rollback, queued receipt supersession, managed Agent authority, real non-draft financial states and repeat-patch preservation are exercised with synthetic fixtures.",
+      "tests": [
+        "custom-addons/usl_expense_batch/tests/test_draft_expense_configuration.py::TestDraftExpenseConfiguration"
+      ]
+    },
     "feedback-provider-phases-20260906": {
       "contract": "Offline phase separation, secret-safe diagnostics, task-owned bounded image evidence, rate-limit polling, cleanup and unchanged reporter/maintainer/company/service ACLs. Full live provider availability remains a staging release qualification, not a claim of these tests.",
       "tests": [

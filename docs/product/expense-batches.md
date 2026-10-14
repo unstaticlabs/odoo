@@ -35,6 +35,30 @@ An SBFH travel is an Epic, not a new Trip record. For example,
 `625600 Missions` while Products continue to distinguish transport, meals and
 gifts.
 
+## Correct draft ownership
+
+`hr.expense.configure_draft_expense(values)` prepares one existing draft in one
+transaction. The MCP companion exposes it through `expenses_update_draft`.
+Select both authorized companies and supply an employee belonging to the target
+company. Replace incompatible category/account references or clear them with
+`false`; clear taxes with `[]` and analytics with `{}`. An incompatible batch or
+supplier bill/vendor link also needs an explicit replacement or clear.
+
+The correction keeps the expense, receipt bytes and history. It moves owned
+attachment company metadata, supersedes pending receipt work from the previous
+ownership, preserves the document currency and amount, and recalculates the
+company amount using the target company's native dated rate. The final expense
+is returned by the same transaction. Native batch removal and its context
+restoration participate in that transaction, so a later validation failure
+leaves the original batch and evidence intact.
+
+Submitted, approved, posted, paid or already-accounted expenses are refused.
+Ordinary label edits keep their normal access requirements, including when an
+unchanged supplier bill exists. Split-family ownership needs a coordinated
+family correction; this action does not silently move sibling expenses. Other
+draft fields on split parts remain available. No expense is submitted, posted
+or paid by this action.
+
 ## Alternatives considered
 
 Native Odoo multi-record submission remains the execution engine, but it does
