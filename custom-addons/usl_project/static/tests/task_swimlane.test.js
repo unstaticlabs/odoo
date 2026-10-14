@@ -344,3 +344,22 @@ test('native saved favorite keeps property grouping and ordinary filter domain',
     expect(bar.env.searchModel.domain).toEqual([['priority', '=', '1']]);
     expect('.o_searchview_facet').toHaveText(/Saved review lanes/);
 });
+
+
+test('registered task view restores native portable property lanes before validation', async () => {
+    projectModels.ProjectTask._fields.task_properties = fields.Properties({ definition_record: 'project_id', definition_record_field: 'task_properties_definition', string: 'Properties' });
+    projectModels.ProjectProject._fields.task_properties_definition = fields.PropertiesDefinition();
+    projectModels.ProjectTask._records = [];
+    onRpc('get_kanban_property_definition', ({ args }) => {
+        expect(args).toEqual(['task_properties.review_lane']);
+        return { name: 'review_lane', string: 'Review lane', type: 'selection', selection: [['a', 'A'], ['b', 'B']] };
+    });
+    onRpc('web_read_group', () => ({ groups: [], length: 0 }));
+    await mountView({ resModel: 'project.task', type: 'kanban',
+        urlState: { groupBy: JSON.stringify(['stage_id', 'task_properties.review_lane']) },
+        searchViewArch: `<search><filter name="stage" string="Stage" context="{'group_by':'stage_id'}"/><filter name="properties" string="Properties" context="{'group_by':'task_properties'}"/></search>`,
+        arch: `<kanban js_class="usl_task_swimlanes"><field name="stage_id"/><field name="task_properties"/><templates><t t-name="card"><field name="name"/></t></templates></kanban>` });
+    expect('.o_usl_axes').toHaveText(/Columns: Stage.*Lanes: Review lane/);
+    expect('.o_usl_lane_grid').toHaveCount(1);
+    expect('.o_kanban_record').toHaveCount(0);
+});
