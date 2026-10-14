@@ -276,6 +276,15 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
             company_ids=[Command.set(self.company.ids)])
         self.assertFalse(bill.with_user(reader).invoice_outstanding_credits_debits_widget["content"][0]["can_post_match"])
 
+    def test_post_and_match_preview_never_calls_persistent_bill_write(self):
+        bill, statement, source_line = self._draft_post_match_fixture()
+        with patch.object(type(bill), "write", side_effect=AssertionError("Read-only preview wrote the bill")):
+            preview = bill.get_draft_post_match_preview(source_line.id)
+        self.assertEqual(preview["bill_id"], bill.id)
+        self.assertEqual(preview["line_id"], source_line.id)
+        self.assertEqual(bill.state, "draft")
+        self.assertFalse(source_line.reconciled)
+
     def test_post_and_match_preview_matches_native_posting_date_after_lock(self):
         bill, statement, source_line = self._draft_post_match_fixture()
         before = bill.get_draft_post_match_preview(source_line.id)

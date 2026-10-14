@@ -458,7 +458,10 @@ class AccountMove(models.Model):
             raise UserError(_("The bill changed after the confirmation was opened. Refresh and review it again."))
         if isinstance(line_id, bool) or not isinstance(line_id, int) or line_id <= 0:
             raise UserError(_("Choose an eligible payment from this bill's suggestions."))
-        self._compute_payments_widget_to_reconcile_info()
+        # Recompute through the native field getter. Calling the compute
+        # method directly assigns outside Odoo's protected compute context
+        # and invokes write(), even though this widget is not stored.
+        self.invalidate_recordset(["invoice_outstanding_credits_debits_widget"])
         candidates = (self.invoice_outstanding_credits_debits_widget or {}).get("content", [])
         candidate = next((item for item in candidates if item["id"] == line_id), None)
         if not candidate:
