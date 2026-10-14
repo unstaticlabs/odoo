@@ -14,7 +14,7 @@ _WIZARD_INIT = object()
 _WIZARD_INIT_KEY = "usl_vendor_bill_merge_init"
 _HEADERS = (
     "partner_id", "company_id", "move_type", "state", "currency_id", "journal_id",
-    "invoice_date", "date", "invoice_date_due", "ref", "payment_reference",
+    "invoice_date", "date", "invoice_date_due", "ref", "payment_reference", "invoice_origin",
     "fiscal_position_id", "invoice_payment_term_id", "invoice_cash_rounding_id",
     "invoice_currency_rate", "narration", "payment_state", "auto_post", "auto_post_origin_id",
 )
@@ -23,12 +23,15 @@ _LINE_FACTS = (
     "partner_id", "currency_id", "quantity", "price_unit", "discount", "tax_ids",
     "tax_line_id", "tax_repartition_line_id", "analytic_distribution",
     "balance", "amount_currency", "date_maturity", "debit", "credit",
+    "purchase_line_id", "expense_id",
 )
 
 
 def _facts(record, names):
     values = {}
     for name in names:
+        if name not in record._fields:
+            continue  # Native purchase/expense links depend on installed apps.
         value = record[name]
         if isinstance(value, models.BaseModel):
             value = value.ids
@@ -108,7 +111,21 @@ class AccountMove(models.Model):
         if not target:
             raise UserError(_("This bill is not an active merged duplicate."))
         target.check_access("read")
-        return target.get_formview_action()
+        return target._vendor_bill_merge_form_action()
+
+    @api.private
+    def _vendor_bill_merge_form_action(self):
+        action = self.get_formview_action()
+        # Native form actions copy all context, including in-process Agent
+        # provenance. Return only the ordinary UI context, never authority.
+        action["context"] = {
+            "allowed_company_ids": self.env.companies.ids,
+            "lang": self.env.lang,
+            "tz": self.env.context.get("tz") if isinstance(self.env.context.get("tz"), str) else self.env.user.tz,
+            "default_move_type": "in_invoice",
+            "active_model": self._name, "active_id": self.id, "active_ids": self.ids,
+        }
+        return action
 
     @api.private
     def _check_vendor_bill_merge(self):
@@ -128,6 +145,9 @@ class AccountMove(models.Model):
                or any(l.reconciled or l.matched_debit_ids or l.matched_credit_ids for l in b.line_ids)
                for b in self):
             raise UserError(_("Bills with payments or reconciliations cannot be merged. Use the native payment recovery workflow first."))
+    @api.private
+    def _check_vendor_bill_merge_cancellation(self):
+        """Preflight actual losers; a retained winner is never reset/cancelled."""
         posted = self.filtered(lambda b: b.state == "posted")
         if any(b.need_cancel_request for b in posted):
             raise UserError(_("A selected bill requires native cancellation approval before it can be merged."))
@@ -224,6 +244,7 @@ class AccountMove(models.Model):
             self, "_usl_agent_collaboration",
         ) else self
         native_losers = records.browse(losers.ids)
+        native_losers._check_vendor_bill_merge_cancellation()
         native_losers.button_cancel()
         native_losers._set_vendor_bill_merge_target(winner)
         if conflicting:
@@ -233,5 +254,4 @@ class AccountMove(models.Model):
                 _("Merged as a duplicate. Bill kept:"), winner._get_html_link()), subtype_xmlid="mail.mt_note")
             records.browse(winner.ids).message_post(body=Markup("<p>%s %s</p>") % (
                 _("Original bill retained with its files and history:"), original._get_html_link()), subtype_xmlid="mail.mt_note")
-        # Return the original, ordinary context; never serialize a private token.
-        return winner.get_formview_action()
+        return winner._vendor_bill_merge_form_action()

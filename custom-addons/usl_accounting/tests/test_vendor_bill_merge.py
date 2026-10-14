@@ -1,4 +1,5 @@
 from datetime import timedelta
+import json
 from unittest.mock import patch
 
 from odoo import Command, fields
@@ -253,8 +254,10 @@ class TestVendorBillMerge(AccountTestInvoicingCommon):
         following = self._bill()
         second.auto_post_origin_id = first
         following.write({"auto_post_origin_id": first.id, "date": self.day + timedelta(days=1)})
+        wizard = self._conflict_wizard(first | second)
+        wizard.winning_bill_id = first
         with self.assertRaises(UserError):
-            (first | second).action_merge_vendor_bills()
+            wizard.action_merge()
         self.assertTrue(following.exists())
         self.assertEqual(following.state, "draft")
         self.assertEqual((first | second).mapped("state"), ["posted", "posted"])
@@ -434,3 +437,60 @@ class TestVendorBillMerge(AccountTestInvoicingCommon):
         with self.assertRaises(AccessError):
             (first | second).with_user(agent.user_id).action_merge_vendor_bills()
         self.assertEqual((first | second).mapped("state"), ["draft", "draft"])
+
+    def test_native_server_agent_scope_never_leaves_returned_bill_action(self):
+        first, second = self._bill(), self._bill()
+        agent = self._merge_agent("read_write", "serialized action")
+        from odoo.addons.usl_access_control.models.agent_policy_tokens import (
+            AGENT_OPERATION_SCOPE_CONTEXT_KEY, create_agent_operation_scope,
+        )
+        scoped = (first | second).with_user(agent.user_id).with_context(**{
+            AGENT_OPERATION_SCOPE_CONTEXT_KEY: create_agent_operation_scope(
+                agent_user_id=agent.user_id.id, root_model="account.move",
+                root_method="action_merge_vendor_bills", access="write",
+            ),
+        })
+        action = scoped.action_merge_vendor_bills()
+        json.dumps(action)
+        self.assertNotIn(AGENT_OPERATION_SCOPE_CONTEXT_KEY, action["context"])
+        self.assertEqual(action["context"]["allowed_company_ids"], first.company_id.ids)
+        self.assertEqual(action["res_id"], first.id)
+
+    def test_different_native_origins_require_explicit_choice(self):
+        first, second = self._bill(), self._bill()
+        first.invoice_origin = "[QA] First acquisition"
+        second.invoice_origin = "[QA] Second acquisition"
+        self._conflict_wizard(first | second)
+
+    def test_kept_recurring_winner_preserves_its_future_draft(self):
+        first, second = self._bill(), self._bill()
+        (first | second).action_post()
+        following = self._bill()
+        first.auto_post_origin_id = first
+        following.write({"auto_post_origin_id": first.id, "date": self.day + timedelta(days=1)})
+        wizard = self._conflict_wizard(first | second)
+        wizard.winning_bill_id = first
+        wizard.action_merge()
+        self.assertEqual(first.state, "posted")
+        self.assertEqual(second.state, "cancel")
+        self.assertTrue(following.exists())
+        self.assertEqual(following.state, "draft")
+
+    def test_managed_agent_posted_merge_preserves_financial_lines_and_distribution(self):
+        first, second = self._bill(), self._bill()
+        plan = self.env["account.analytic.plan"].create({"name": "[QA] Posted merge allocation"})
+        analytic = self.env["account.analytic.account"].create({"name": "[QA] Posted purpose", "plan_id": plan.id})
+        distribution = {str(analytic.id): 100.0}
+        (first | second).invoice_line_ids.write({"analytic_distribution": distribution})
+        (first | second).action_post()
+        first_lines, second_lines = first.line_ids.ids, second.line_ids.ids
+        self.assertTrue(second.line_ids.analytic_line_ids)
+        agent = self._merge_agent("read_write", "posted analytics")
+        (first | second).with_user(agent.user_id).action_merge_vendor_bills()
+        self.assertEqual(first.state, "posted")
+        self.assertEqual(second.state, "cancel")
+        self.assertEqual(first.line_ids.ids, first_lines)
+        self.assertEqual(second.line_ids.ids, second_lines)
+        self.assertEqual(first.invoice_line_ids.analytic_distribution, distribution)
+        self.assertEqual(second.invoice_line_ids.analytic_distribution, distribution)
+        self.assertFalse(second.line_ids.analytic_line_ids, "Native cancelled projections are derived, not original financial lines.")

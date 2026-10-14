@@ -8,8 +8,9 @@ write-capable Agent.
 Empty bills for the same identified supplier merge immediately: the first-created
 bill keeps its own headers, including its currency and reference. Exact duplicates
 also merge immediately. Equality includes state, supplier, currency, journal,
-dates, references, payment terms, historical rate, taxes, accounts, analytics and
-financial lines; an equal total alone is not enough. Generated posting numbers
+dates, references and origins, payment terms, historical rate, taxes, accounts,
+analytics, financial lines and installed purchase/expense source links; an equal
+total alone is not enough. Generated posting numbers
 and record identifiers do not make otherwise identical bills different.
 
 For differences, use **Choose this bill** on the comparison row. Amount, currency,
@@ -37,8 +38,9 @@ Eligible posted unpaid bills are supported using native cancellation rules. Bill
 with payments/reconciliations, cancellation-approval requirements, locks, hashes,
 protected settlements or certified bank dependencies retain their normal
 protections. A payment hold alone does not make an unpaid bill ineligible. If
-native reset would delete the immediate next recurring draft, merge refuses
-without deleting it. A posted immediate next recurrence does not block a later
+reset of a bill being cancelled would delete the immediate next recurring draft,
+merge refuses without deleting it. A kept recurring bill retains its future draft.
+A posted immediate next recurrence does not block a later
 draft merely because both exist. Cancellation may remove native derived analytic
 entries; original financial lines and their analytic distribution remain.
 
