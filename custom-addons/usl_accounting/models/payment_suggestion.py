@@ -445,7 +445,7 @@ class AccountMove(models.Model):
             widget["draft_suggestions"] = move.state == "draft"
             move.invoice_outstanding_credits_debits_widget = widget
 
-    def _check_draft_post_match(self, line_id, *, expected_write_date=None):
+    def _check_draft_match_candidate(self, line_id, *, expected_write_date=None):
         self.ensure_one()
         self.check_access("write")
         if not self.env.user.has_group("account.group_account_invoice"):
@@ -477,7 +477,7 @@ class AccountMove(models.Model):
         return line, candidate
 
     def get_draft_post_match_preview(self, line_id):
-        line, candidate = self._check_draft_post_match(line_id)
+        line, candidate = self._check_draft_match_candidate(line_id)
         affects_tax_report = self._affect_tax_report()
         lock_dates = self._get_violated_lock_dates(self.date, affects_tax_report)
         posting_date = self._get_accounting_date(
@@ -524,7 +524,7 @@ class AccountMove(models.Model):
     def js_post_and_match_outstanding_line(self, line_id, *, confirmed=False, expected_write_date=None, expected_confirmation=None):
         if confirmed is not True:
             raise UserError(_("Confirm that this bill will be posted before matching its payment."))
-        line, _candidate = self._check_draft_post_match(line_id, expected_write_date=expected_write_date)
+        line, _candidate = self._check_draft_match_candidate(line_id, expected_write_date=expected_write_date)
         if expected_confirmation and self.get_draft_post_match_preview(line_id)["confirmation_key"] != expected_confirmation:
             raise UserError(_("The bill or payment changed after confirmation. Refresh and review them again."))
         # Native non-blocking locks prevent a second request from posting the
@@ -540,7 +540,7 @@ class AccountMove(models.Model):
             statement_line.invalidate_recordset()
         bill_lines.invalidate_recordset()
         line.invalidate_recordset()
-        self._check_draft_post_match(line_id, expected_write_date=expected_write_date)
+        self._check_draft_match_candidate(line_id, expected_write_date=expected_write_date)
         if expected_confirmation and self.get_draft_post_match_preview(line_id)["confirmation_key"] != expected_confirmation:
             raise UserError(_("The bill or payment changed after confirmation. Refresh and review them again."))
         self.action_post()
