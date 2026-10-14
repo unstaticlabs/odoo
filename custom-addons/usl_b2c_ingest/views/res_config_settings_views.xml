@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_b2c_ingest" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.b2c.ingest</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="usl_b2c.res_config_settings_view_form_b2c_history"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='usl_b2c']" position="inside">
+                <block title="The supplier" name="usl_b2c_supply"
+                       help="Who fulfils print-on-demand orders, what it costs and where it is paid from.">
+                    <setting string="Printful token"
+                             help="A read-only token. Without it a drop cannot ask the supplier what an order cost or when it shipped.">
+                        <field name="usl_b2c_printful_token" password="True"/>
+                    </setting>
+                    <setting string="Supplier"
+                             help="Who draws on the wallet, and who the monthly supply document is billed by.">
+                        <field name="usl_b2c_supply_partner_id"/>
+                    </setting>
+                    <setting string="Wallet"
+                             help="The journal holding the prepaid balance the supplier draws on. A top-up pays into it and a month of supply empties it.">
+                        <field name="usl_b2c_wallet_journal_id"/>
+                    </setting>
+                    <setting string="Supply of goods sold"
+                             help="What the supplier's fulfilment of a sale is bought as, so it reaches the cost-of-sales account.">
+                        <field name="usl_b2c_supply_product_id"/>
+                    </setting>
+                    <setting string="Supply for no sale"
+                             help="What a fulfilment answering to no sale is bought as. It is the cost of finding out what to sell, never the cost of something sold.">
+                        <field name="usl_b2c_internal_supply_product_id"/>
+                    </setting>
+                </block>
+                <block title="Where the money meets the bank" name="usl_b2c_transfers"
+                       help="A channel collects for weeks and pays out once. These say where that payout waits for its statement line.">
+                    <setting string="Bank"
+                             help="The bank the channels pay into and the wallet is topped up from. Its suspense account is where a payout waits.">
+                        <field name="usl_b2c_bank_journal_id"/>
+                    </setting>
+                    <setting string="Transfers"
+                             help="Where the entries for payouts and top-ups are written, so they read as one movement rather than as bookkeeping inside a bank.">
+                        <field name="usl_b2c_transfer_journal_id"/>
+                    </setting>
+                </block>
+                <block title="What a sale owes" name="usl_b2c_vat"
+                       help="Goods dispatched from another Member State owe destination VAT from the first euro.">
+                    <setting string="Registered for the One Stop Shop"
+                             help="Until registration, destination VAT accrues as a liability to be regularised rather than as VAT collected under a scheme the shop is not in.">
+                        <field name="usl_b2c_oss_registered"/>
+                    </setting>
+                    <setting string="Before registration">
+                        <field name="usl_b2c_pending_vat_account_id"/>
+                    </setting>
+                    <setting string="After registration">
+                        <field name="usl_b2c_oss_vat_account_id"/>
+                    </setting>
+                    <setting string="Sales outside the Union"
+                             help="A consumer buying goods and a business buying services are both untaxed for entirely different reasons. Nothing in a customer record tells them apart, so the position for consumer goods is named rather than deduced. Leave it empty to let the fiscal positions decide.">
+                        <field name="usl_b2c_export_position_id"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

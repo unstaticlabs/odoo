@@ -20,3 +20,9 @@ access_b2c_oss_return_line_manager,b2c oss return line manager,model_b2c_oss_ret
 access_b2c_supply_settlement_reader,b2c supply settlement reader,model_b2c_supply_settlement,usl_b2c.group_b2c_reader,1,0,0,0
 access_b2c_supply_settlement_operator,b2c supply settlement operator,model_b2c_supply_settlement,usl_b2c.group_b2c_operator,1,0,0,0
 access_b2c_supply_settlement_manager,b2c supply settlement manager,model_b2c_supply_settlement,usl_b2c.group_b2c_manager,1,1,1,1
+access_b2c_channel_settlement_reader,b2c channel settlement reader,model_b2c_channel_settlement,usl_b2c.group_b2c_reader,1,0,0,0
+access_b2c_channel_settlement_operator,b2c channel settlement operator,model_b2c_channel_settlement,usl_b2c.group_b2c_operator,1,0,0,0
+access_b2c_channel_settlement_manager,b2c channel settlement manager,model_b2c_channel_settlement,usl_b2c.group_b2c_manager,1,1,1,1
+access_b2c_money_transfer_reader,b2c money transfer reader,model_b2c_money_transfer,usl_b2c.group_b2c_reader,1,0,0,0
+access_b2c_money_transfer_operator,b2c money transfer operator,model_b2c_money_transfer,usl_b2c.group_b2c_operator,1,0,0,0
+access_b2c_money_transfer_manager,b2c money transfer manager,model_b2c_money_transfer,usl_b2c.group_b2c_manager,1,1,1,1
