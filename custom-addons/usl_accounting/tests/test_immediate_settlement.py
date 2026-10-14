@@ -246,6 +246,60 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
         self.assertEqual(bill.state, "draft")
         self.assertFalse(source_line.reconciled)
 
+    def _post_match_managed_agent(self, mode):
+        if "usl.agent" not in self.env:
+            self.skipTest("Managed Agent is not installed in this standalone module registry.")
+        owner = new_test_user(self.env, login="post-match-owner-" + mode,
+            groups="account.group_account_manager", company_id=self.company.id,
+            company_ids=[Command.set(self.company.ids)])
+        return self.env["usl.agent"].with_user(owner).create({
+            "name": "[QA] Draft bill assistant", "purpose": "[QA] Native bill posting qualification",
+            "owner_id": owner.id, "company_id": self.company.id,
+            "company_ids": [Command.set(self.company.ids)],
+            "delegated_group_ids": [Command.set(self.env.ref("account.group_account_manager").ids)],
+            "access_mode": mode,
+        })
+
+    def test_post_and_match_managed_read_write_agent_uses_native_authority(self):
+        agent = self._post_match_managed_agent("read_write")
+        bill, statement, source_line = self._draft_post_match_fixture()
+        caller = bill.with_user(agent.user_id)
+        self.assertFalse(caller.env.user.has_group("usl_access_control.group_irreversible_actions"))
+        preview = caller.get_draft_post_match_preview(source_line.id)
+        # JSON-2 establishes the native root-operation scope before delegates
+        # perform posting side effects such as the supplier-rank update.
+        from odoo.addons.usl_access_control.controllers.json2 import UslAgentJson2Controller
+        kwargs = {"line_id": source_line.id, "confirmed": True,
+            "expected_confirmation": preview["confirmation_key"]}
+        access = UslAgentJson2Controller._check_agent_call(agent=agent,
+            model_name="account.move", method_name="js_post_and_match_outstanding_line", kwargs=kwargs)
+        context = UslAgentJson2Controller._agent_call_context(context=caller.env.context,
+            agent=agent, model_name="account.move",
+            method_name="js_post_and_match_outstanding_line", access=access)
+        caller.with_context(context).js_post_and_match_outstanding_line(**kwargs)
+        self.assertEqual(bill.state, "posted")
+        self.assertEqual(bill.payment_state, "paid")
+        self.assertTrue(source_line.reconciled)
+        self.assertEqual(bill.write_uid, agent.user_id)
+
+    def test_post_and_match_managed_read_only_agent_cannot_post_even_with_sudo(self):
+        agent = self._post_match_managed_agent("read_only")
+        bill, statement, source_line = self._draft_post_match_fixture()
+        caller = bill.with_user(agent.user_id)
+        from odoo.addons.usl_access_control.controllers.json2 import UslAgentJson2Controller
+        with self.assertRaises(AccessError):
+            UslAgentJson2Controller._check_agent_call(agent=agent, model_name="account.move",
+                method_name="js_post_and_match_outstanding_line",
+                kwargs={"line_id": source_line.id, "confirmed": True})
+        with self.assertRaises(AccessError):
+            caller.get_draft_post_match_preview(source_line.id)
+        for records in (caller, caller.sudo()):
+            with self.assertRaises(AccessError), self.env.cr.savepoint():
+                records.js_post_and_match_outstanding_line(source_line.id, confirmed=True)
+        self.assertEqual(bill.state, "draft")
+        self.assertFalse(bill.posted_before)
+        self.assertFalse(source_line.reconciled)
+
     def test_post_and_match_reused_request_never_posts_twice(self):
         bill, statement, source_line = self._draft_post_match_fixture()
         preview = bill.get_draft_post_match_preview(source_line.id)

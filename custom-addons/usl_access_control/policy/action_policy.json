@@ -202327,9 +202327,55 @@
         "client:usl_home:custom-addons/usl_home/static/src/home/home.js:openAiPipelines:rpc:1": "c2ae301a4f259a291c2303291ee26fb1473f7b49623f327e8b8940d36837ee11",
         "client:usl_home:custom-addons/usl_home/static/src/home/home.js:saveLayout:rpc:1": "a602c94e22e4d67ecd18b71b991608f1891e908b3fd80bdc9b6da399da9d10bd"
       }
+    },
+    {
+      "action_keys": [
+        "rpc:account.move.get_draft_post_match_preview"
+      ],
+      "classification": "read_only",
+      "consequence": "Reads authorized draft-bill eligibility, posting date and current confirmation facts without changing persistent state.",
+      "domain": "accounting",
+      "evidence_id": "draft-post-match-20261014",
+      "id": "read_only.accounting.draft_post_match_20261014",
+      "rationale": "Native write and posting rights are checked for the proposed workflow; the native protected field getter computes suggestions without invoking persistent bill write. No number, reconciliation, bank mutation or external effect occurs.",
+      "reviewed_digests": {
+        "rpc:account.move.get_draft_post_match_preview": "1e1ef9ba90772bae6c0fd0625fda7cefa997d9126d41514cc42ebe7aea6a2daa"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:account.move.js_post_and_match_outstanding_line"
+      ],
+      "classification": "operational",
+      "consequence": "Posts one reviewed draft vendor bill and attempts its selected native payment reconciliation, preserving the posted bill if matching subsequently fails.",
+      "domain": "accounting",
+      "evidence_id": "draft-post-match-20261014",
+      "id": "operational.accounting.draft_post_match_20261014",
+      "rationale": "This fixed workflow delegates to native posting and matching under current ACL, company, accounting and irreversible-action rules; record locks and reviewed facts reject stale or duplicate requests. No sudo, arbitrary code, provider effects or explicit commit is added. Matching failures roll back only the matching savepoint and return a clear posted-unmatched result.",
+      "reviewed_digests": {
+        "rpc:account.move.js_post_and_match_outstanding_line": "aa85e7155851e67de44ff3f3136fd87b518a001e392ca802f405c2be23a00b73"
+      }
     }
   ],
   "evidence_families": {
+    "draft-post-match-20261014": {
+      "contract": "Native bill and selected-company authority; read-only eligibility preview without persistent writes or numbering; explicit reviewed confirmation; current candidate and line-fingerprint rechecks; native posting and matching, atomic late matching rollback with honest posted-unmatched recovery, duplicate-request rejection and actor attribution. See docs/operations/draft-post-match-action-risk-review.md.",
+      "tests": [
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_confirmed_post_and_match_posts_and_reconciles_draft_bill",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_retains_posted_bill_when_matching_fails_late",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_requires_explicit_confirmation",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_detects_line_edit_without_parent_timestamp_change",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_posting_failure_leaves_bill_draft_and_bank_unchanged",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_read_only_user_cannot_preview_or_post",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_reused_request_never_posts_twice",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_preview_is_read_only_and_user_specific",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_preview_never_calls_persistent_bill_write",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_preview_matches_native_posting_date_after_lock",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_respects_selected_company_and_other_company_payment",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_managed_read_write_agent_uses_native_authority",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_managed_read_only_agent_cannot_post_even_with_sudo"
+      ]
+    },
     "feedback-provider-phases-20260906": {
       "contract": "Offline phase separation, secret-safe diagnostics, task-owned bounded image evidence, rate-limit polling, cleanup and unchanged reporter/maintainer/company/service ACLs. Full live provider availability remains a staging release qualification, not a claim of these tests.",
       "tests": [

@@ -14300,6 +14300,7 @@
     "rpc:account.move.get_view",
     "rpc:account.move.get_views",
     "rpc:account.move.js_assign_outstanding_line",
+    "rpc:account.move.js_post_and_match_outstanding_line",
     "rpc:account.move.js_settle_outstanding_line",
     "rpc:account.move.js_use_payment_rate_outstanding_line",
     "rpc:account.move.line.action_reconcile_manually",

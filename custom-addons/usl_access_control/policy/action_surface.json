@@ -142293,6 +142293,45 @@
       "abstract": false,
       "archiveable": false,
       "delegates": [
+        "rpc:account.move.check_access",
+        "rpc:account.move.ensure_one",
+        "rpc:account.move.invalidate_recordset",
+        "rpc:account.move.line.browse"
+      ],
+      "digest": "1e1ef9ba90772bae6c0fd0625fda7cefa997d9126d41514cc42ebe7aea6a2daa",
+      "guards": [],
+      "key": "rpc:account.move.get_draft_post_match_preview",
+      "kind": "rpc",
+      "method": "get_draft_post_match_preview",
+      "model": "account.move",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f5f15fc714a724ef36455dfbd35b23264ee695dfd1e42a30d2bfbdfc59fe8a11",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 479,
+          "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:account.move.check_access",
+        "rpc:account.move.ensure_one",
+        "rpc:account.move.invalidate_recordset",
+        "rpc:account.move.line.browse"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
         "rpc:mail.alias.search"
       ],
       "digest": "4a45ae42c1905489f0e9be28813ed82287d8b540e4927b5f22dc4bbed6ddb486",
@@ -143214,7 +143253,7 @@
       ],
       "sources": [
         {
-          "line": 436,
+          "line": 564,
           "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
         },
         {
@@ -143232,6 +143271,48 @@
       "unresolved_delegates": [
         "rpc:account.account.browse",
         "rpc:account.move.ensure_one",
+        "rpc:account.move.line.browse"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:account.move.action_post",
+        "rpc:account.move.check_access",
+        "rpc:account.move.ensure_one",
+        "rpc:account.move.get_draft_post_match_preview",
+        "rpc:account.move.invalidate_recordset",
+        "rpc:account.move.js_assign_outstanding_line",
+        "rpc:account.move.line.browse"
+      ],
+      "digest": "aa85e7155851e67de44ff3f3136fd87b518a001e392ca802f405c2be23a00b73",
+      "guards": [],
+      "key": "rpc:account.move.js_post_and_match_outstanding_line",
+      "kind": "rpc",
+      "method": "js_post_and_match_outstanding_line",
+      "model": "account.move",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "084a9f59fb2cabb91e117cf0a5f50614622ce9b2617dff108fedca445266c49e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 524,
+          "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:account.move.check_access",
+        "rpc:account.move.ensure_one",
+        "rpc:account.move.invalidate_recordset",
         "rpc:account.move.line.browse"
       ]
     },
@@ -1603791,7 +1603872,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 436,
+          "line": 564,
           "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
         }
       ]
@@ -1603809,7 +1603890,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 436,
+          "line": 564,
           "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
         }
       ]
@@ -1603827,7 +1603908,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 436,
+          "line": 564,
           "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
         }
       ]
@@ -1603845,7 +1603926,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 436,
+          "line": 564,
           "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
         }
       ]
@@ -1603863,7 +1603944,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 436,
+          "line": 564,
           "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
         }
       ]
@@ -1689128,11 +1689209,11 @@
       "version": "saas~19.3.1.8.0"
     },
     {
-      "manifest_sha256": "311cc0fdfab62ea6c4b58cc2446795404ccddda9946103f357974396825e6d59",
+      "manifest_sha256": "3b36569d627240b8c148938e0250df3f99ccb5006eb02e9856811b55c2ed9684",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "0ca8daca2f8c098bf442cfd2b4d014932c3a7e44a35d7481b4ec791c46212b72",
-      "version": "saas~19.3.2.2.6"
+      "source_sha256": "07f010dbb308964755c8e2032a14eb8154fea12f0d24eb33143b7ac8162e9ab4",
+      "version": "saas~19.3.2.2.7"
     },
     {
       "manifest_sha256": "d3991a85f02eca8b6b43179b39270cc15cfaf68325f4ff2181e354ccb01c4cf0",
