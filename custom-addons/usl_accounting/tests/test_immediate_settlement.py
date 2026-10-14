@@ -4,6 +4,7 @@ from unittest.mock import patch
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
+from odoo.tests.common import new_test_user
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 
@@ -133,6 +134,91 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
         statement_line = self.env["account.bank.statement.line"].create(vals)
         _liquidity, suspense_lines, _other = statement_line._seek_for_lines()
         return statement_line, suspense_lines
+
+    def _draft_post_match_fixture(self):
+        bill = self._create_invoice(
+            move_type="in_invoice", partner_id=self.partner_a,
+            company_id=self.company, currency_id=self.company.currency_id,
+            journal_id=self.company_data["default_journal_purchase"],
+            invoice_date=self.document_date, date=self.document_date,
+            invoice_line_ids=[self._prepare_invoice_line(
+                name="Synthetic draft payment example",
+                account_id=self.company_data["default_account_expense"],
+                quantity=1.0, price_unit=24.0, tax_ids=self.env["account.tax"],
+            )], post=False,
+        )
+        statement, source_line = self._bank_candidate(bill, company_amount=24.0)
+        statement.payment_ref = "Synthetic draft payment"
+        manager = new_test_user(
+            self.env, login="post-match-manager",
+            groups="account.group_account_manager",
+            company_id=self.company.id,
+            company_ids=[Command.set(self.company.ids)],
+        )
+        bill = bill.with_user(manager).with_context(allowed_company_ids=self.company.ids)
+        self.assertEqual(bill.state, "draft")
+        self.assertFalse(bill.posted_before)
+        self.assertIn(source_line.id, [
+            item["id"] for item in bill.invoice_outstanding_credits_debits_widget["content"]
+        ])
+        return bill, statement, source_line
+
+    def test_confirmed_post_and_match_posts_and_reconciles_draft_bill(self):
+        bill, statement, source_line = self._draft_post_match_fixture()
+        bank_facts = (statement.amount, statement.date, statement.payment_ref)
+        result = bill.js_post_and_match_outstanding_line(source_line.id, confirmed=True)
+        self.assertEqual(result["status"], "matched")
+        self.assertEqual(bill.state, "posted")
+        self.assertNotEqual(bill.name, "/")
+        self.assertEqual(bill.payment_state, "paid")
+        self.assertEqual(bill.amount_residual, 0.0)
+        self.assertTrue(source_line.reconciled)
+        self.assertEqual((statement.amount, statement.date, statement.payment_ref), bank_facts)
+
+    def test_post_and_match_retains_posted_bill_when_matching_fails_late(self):
+        bill, statement, source_line = self._draft_post_match_fixture()
+        source_account_id = source_line.account_id.id
+        bank_facts = (statement.amount, statement.date, statement.payment_ref)
+        before_partials = self.env["account.partial.reconcile"].search([]).ids
+        original_match = type(bill).js_assign_outstanding_line
+
+        def fail_after_matching(record, line_id):
+            original_match(record, line_id)
+            raise UserError("Synthetic late matching failure")
+
+        with patch.object(type(bill), "js_assign_outstanding_line", fail_after_matching):
+            result = bill.js_post_and_match_outstanding_line(source_line.id, confirmed=True)
+        self.assertEqual(result["status"], "posted_unmatched")
+        self.assertEqual(bill.state, "posted")
+        self.assertNotEqual(bill.name, "/")
+        self.assertEqual(bill.payment_state, "not_paid")
+        self.assertEqual(bill.amount_residual, 24.0)
+        self.assertFalse(source_line.reconciled)
+        self.assertEqual(source_line.account_id.id, source_account_id)
+        self.assertEqual(self.env["account.partial.reconcile"].search([]).ids, before_partials)
+        self.assertEqual((statement.amount, statement.date, statement.payment_ref), bank_facts)
+
+    def test_post_and_match_requires_explicit_confirmation(self):
+        bill, statement, source_line = self._draft_post_match_fixture()
+        with self.assertRaisesRegex(UserError, "Confirm"):
+            bill.js_post_and_match_outstanding_line(source_line.id)
+        self.assertEqual(bill.state, "draft")
+        self.assertFalse(source_line.reconciled)
+
+    def test_post_and_match_detects_line_edit_without_parent_timestamp_change(self):
+        bill, statement, source_line = self._draft_post_match_fixture()
+        preview = bill.get_draft_post_match_preview(source_line.id)
+        previous_write_date = bill.write_date
+        bill.invoice_line_ids.name = "Synthetic revised invoice detail"
+        # Line editing is a real separate ORM operation, not a fake timestamp.
+        self.assertEqual(bill.write_date, previous_write_date)
+        self.assertNotEqual(bill.get_draft_post_match_preview(source_line.id)["confirmation_key"], preview["confirmation_key"])
+        with self.assertRaisesRegex(UserError, "changed after confirmation"):
+            bill.js_post_and_match_outstanding_line(
+                source_line.id, confirmed=True, expected_confirmation=preview["confirmation_key"],
+            )
+        self.assertEqual(bill.state, "draft")
+        self.assertFalse(source_line.reconciled)
 
     def test_bank_suggestion_keeps_bank_label_separate_from_entry_reference(self):
         bill = self._document()

@@ -1,8 +1,14 @@
+import hashlib
+import json
+import logging
 import re
 from datetime import date, timedelta
 
 from odoo import _, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import AccessError, UserError
+
+
+_logger = logging.getLogger(__name__)
 
 
 class AccountMove(models.Model):
@@ -432,6 +438,119 @@ class AccountMove(models.Model):
             widget["title"] = _("Suggested payments")
             widget["draft_suggestions"] = move.state == "draft"
             move.invoice_outstanding_credits_debits_widget = widget
+
+    def _check_draft_post_match(self, line_id, *, expected_write_date=None):
+        self.ensure_one()
+        self.check_access("write")
+        if not self.env.user.has_group("account.group_account_invoice"):
+            raise AccessError(_("You need bill-posting rights to post and match a payment."))
+        if self.company_id not in self.env.companies:
+            raise AccessError(_("Select the bill's company before posting and matching."))
+        if self.move_type != "in_invoice" or self.state != "draft":
+            raise UserError(_("Post and match is available only on a draft vendor bill."))
+        if expected_write_date and fields.Datetime.to_string(self.write_date) != expected_write_date:
+            raise UserError(_("The bill changed after the confirmation was opened. Refresh and review it again."))
+        if isinstance(line_id, bool) or not isinstance(line_id, int) or line_id <= 0:
+            raise UserError(_("Choose an eligible payment from this bill's suggestions."))
+        self._compute_payments_widget_to_reconcile_info()
+        candidates = (self.invoice_outstanding_credits_debits_widget or {}).get("content", [])
+        candidate = next((item for item in candidates if item["id"] == line_id), None)
+        if not candidate:
+            raise UserError(_("This payment is no longer an eligible suggestion. Refresh the bill before posting."))
+        line = self.env["account.move.line"].browse(line_id).exists()
+        line.check_access("write")
+        if not line or line.company_id != self.company_id or line.reconciled:
+            raise UserError(_("This payment is no longer available for this bill."))
+        if line.move_id.statement_line_id:
+            line.move_id.statement_line_id.check_access("write")
+        if line.move_id.state != "posted":
+            raise UserError(_("The suggested payment must already have a posted journal entry."))
+        return line, candidate
+
+    def get_draft_post_match_preview(self, line_id):
+        line, candidate = self._check_draft_post_match(line_id)
+        affects_tax_report = self._affect_tax_report()
+        lock_dates = self._get_violated_lock_dates(self.date, affects_tax_report)
+        posting_date = self._get_accounting_date(
+            self._get_accounting_date_source(), affects_tax_report, lock_dates=lock_dates,
+        ) if lock_dates else self.date
+        preview = {
+            "bill_id": self.id,
+            "bill_name": self.display_name,
+            "company_name": self.company_id.display_name,
+            "supplier_name": self.commercial_partner_id.display_name,
+            "amount": self.amount_total,
+            "currency_id": self.currency_id.id,
+            "currency_name": self.currency_id.name,
+            "bill_date": fields.Date.to_string(self.invoice_date),
+            "accounting_date": fields.Date.to_string(posting_date),
+            "current_accounting_date": fields.Date.to_string(self.date),
+            "numbering_note": _("Odoo assigns the bill number when posting."),
+            "bill_write_date": fields.Datetime.to_string(self.write_date),
+            "payment_label": candidate.get("bank_label") or candidate["move_name"],
+            "payment_entry": candidate["move_name"],
+            "line_id": line.id,
+        }
+        # A concurrency fingerprint, not an authorization capability. Include
+        # line facts because an external line edit may not change move.write_date.
+        facts = {
+            "preview": preview,
+            "candidate": candidate,
+            "source_write_date": line.write_date,
+            "bill_lines": [{
+                "id": item.id, "write_date": item.write_date,
+                "name": item.name, "product_id": item.product_id.id,
+                "account_id": item.account_id.id,
+                "quantity": item.quantity, "price_unit": item.price_unit,
+                "discount": item.discount, "tax_ids": item.tax_ids.ids,
+                "balance": item.balance, "amount_currency": item.amount_currency,
+                "analytic_distribution": item.analytic_distribution,
+            } for item in self.invoice_line_ids.sorted("id")],
+        }
+        preview["confirmation_key"] = hashlib.sha256(
+            json.dumps(facts, sort_keys=True, default=str).encode(),
+        ).hexdigest()
+        return preview
+
+    def js_post_and_match_outstanding_line(self, line_id, *, confirmed=False, expected_write_date=None, expected_confirmation=None):
+        if confirmed is not True:
+            raise UserError(_("Confirm that this bill will be posted before matching its payment."))
+        line, _candidate = self._check_draft_post_match(line_id, expected_write_date=expected_write_date)
+        if expected_confirmation and self.get_draft_post_match_preview(line_id)["confirmation_key"] != expected_confirmation:
+            raise UserError(_("The bill or payment changed after confirmation. Refresh and review them again."))
+        # Native non-blocking locks prevent a second request from posting the
+        # same bill or changing the selected entry during the operation.
+        (self | line.move_id).lock_for_update()
+        (self | line.move_id).invalidate_recordset()
+        bill_lines = self.line_ids
+        bill_lines.lock_for_update(allow_referencing=True)
+        line.lock_for_update(allow_referencing=True)
+        statement_line = line.move_id.statement_line_id
+        if statement_line:
+            statement_line.lock_for_update(allow_referencing=True)
+            statement_line.invalidate_recordset()
+        bill_lines.invalidate_recordset()
+        line.invalidate_recordset()
+        self._check_draft_post_match(line_id, expected_write_date=expected_write_date)
+        if expected_confirmation and self.get_draft_post_match_preview(line_id)["confirmation_key"] != expected_confirmation:
+            raise UserError(_("The bill or payment changed after confirmation. Refresh and review them again."))
+        self.action_post()
+        status = "matched"
+        message = _("The bill was posted and its payment was matched.")
+        try:
+            with self.env.cr.savepoint():
+                self.js_assign_outstanding_line(line_id)
+        except Exception:
+            # Keep posting in the outer transaction and remove every partial
+            # matching write. Raising here would roll posting back as well.
+            _logger.exception("Payment matching failed after posting a bill")
+            status = "posted_unmatched"
+            message = _("The bill was posted, but its payment could not be matched. Refresh the bill and review the available payments.")
+        return {
+            "status": status, "bill_id": self.id, "bill_name": self.name,
+            "state": self.state, "accounting_date": fields.Date.to_string(self.date),
+            "message": message,
+        }
 
     def js_assign_outstanding_line(self, line_id):
         self.ensure_one()
