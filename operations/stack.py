@@ -184,6 +184,12 @@ SESSION_STORE_ANONYMOUS_GRACE_SECONDS = 3600
 CAPTURE_ATTEMPT = re.compile(r"intent-[0-9a-f]{48}\Z")
 PRODUCTION_CAPTURE_PREFIXES = ("release-pre-", "release-candidate-", "release-admitted-")
 STAGING_CAPTURE_KEEP = 2
+# A daily recovery proof captures production as proof-daily-<16 hex>. The
+# proof restores from Restic, never from this directory, so a qualified
+# capture is a local duplicate of its remote snapshots. Each one is about
+# 1 GB on the root filesystem of the Odoo host.
+PROOF_CAPTURE = re.compile(r"proof-daily-[0-9a-f]{16}\Z")
+PROOF_CAPTURE_KEEP = 2
 UNFINISHED_RELEASE_STATUSES = frozenset({"running", "failed"})
 RELEASE_RUN_STATE = re.compile(r"release-[0-9a-f]{64}\.json\Z")
 GIT_COMMIT = re.compile(r"[0-9a-f]{40}\Z")
@@ -9119,6 +9125,7 @@ def _recovery_proof_command_locked(
         )
         raise
     runner.run(["rm", "-f", "--", f"{proof_root}/failure.json"])
+    _retain_recovery_proof_captures(target)
     print(json.dumps(receipt, indent=None if arguments.json else 2, sort_keys=True))
     return 0
 
@@ -9180,8 +9187,9 @@ def _capture_attempt(target, run_id: str) -> str | None:
 
     Only the run identities that the fixed release launcher creates are
     managed: production ``release-{pre,candidate,admitted}-<attempt>`` and
-    staging ``<attempt>``.  Every other entry of the state directory is
-    outside capture retention and is never touched.
+    staging ``<attempt>``.  Production daily proof captures have no attempt;
+    ``_proof_capture`` names them.  Every other entry of the state directory
+    is outside capture retention and is never touched.
     """
     environment = target.value["environment"]
     if environment == "production":
@@ -9193,6 +9201,11 @@ def _capture_attempt(target, run_id: str) -> str | None:
     if environment == "staging":
         return run_id if CAPTURE_ATTEMPT.fullmatch(run_id) else None
     return None
+
+
+def _proof_capture(target, run_id: str) -> bool:
+    """Return whether one state-directory entry is a production daily proof capture."""
+    return target.value["environment"] == "production" and PROOF_CAPTURE.fullmatch(run_id) is not None
 
 
 def _qualified_capture(target, runner, run_id: str) -> dict | None:
@@ -9306,34 +9319,25 @@ def _cleanup_captures(target, runner, protected_generations: set[str]) -> dict:
     Production keeps every capture whose attempt claimed a protected (active
     or previous) generation.  Staging keeps the newest ``STAGING_CAPTURE_KEEP``
     captures.  Both keep captures that are not ``qualified`` and captures of
-    attempts whose launcher run is still running or resumable.  Entries that
-    are not managed capture runs are ignored.
+    attempts whose launcher run is still running or resumable.  Production
+    also keeps the newest ``PROOF_CAPTURE_KEEP`` qualified daily proof
+    captures.  Entries that are not managed capture runs are ignored.
     """
-    state_root = target.value["state_directory"]
-    if runner.run(["test", "-L", state_root], check=False).returncode == 0:
-        raise RuntimeError("cleanup state root must not be a symlink")
-    listing = runner.run(
-        ["find", state_root, "-mindepth", "1", "-maxdepth", "1", "-printf", "%f\\t%y\\n"],
-        check=False,
-    )
-    if listing.returncode:
-        if runner.run(["test", "!", "-e", state_root], check=False).returncode == 0:
-            return {"protected_captures": [], "delete_captures": []}
-        raise RuntimeError("cleanup capture inventory cannot be inspected")
     captures: dict[str, str] = {}
-    for line in listing.stdout.splitlines():
-        try:
-            name, kind = line.split("\t", 1)
-        except ValueError as error:
-            raise RuntimeError("cleanup capture inventory is invalid") from error
+    proofs: list[str] = []
+    for name, kind in _state_root_entries(target, runner):
         attempt = _capture_attempt(target, name)
-        if attempt is None:
+        if attempt is None and not _proof_capture(target, name):
             continue
         if kind != "d":
             raise RuntimeError(f"cleanup capture is not a directory: {name}")
-        captures[name] = attempt
+        if attempt is None:
+            proofs.append(name)
+        else:
+            captures[name] = attempt
+    proof_retention = _select_proof_captures(target, runner, proofs)
     if not captures:
-        return {"protected_captures": [], "delete_captures": []}
+        return proof_retention
     unfinished = _unfinished_release_attempts(target, runner)
     protected: set[str] = set()
     qualified: dict[str, datetime] = {}
@@ -9356,9 +9360,82 @@ def _cleanup_captures(target, runner, protected_generations: set[str]) -> dict:
         newest = sorted(qualified, key=lambda run_id: (qualified[run_id], run_id), reverse=True)
         protected.update(newest[:STAGING_CAPTURE_KEEP])
     return {
+        "protected_captures": sorted(protected | set(proof_retention["protected_captures"])),
+        "delete_captures": sorted(
+            (set(qualified) - protected) | set(proof_retention["delete_captures"]),
+        ),
+    }
+
+
+def _state_root_entries(target, runner) -> list[tuple[str, str]]:
+    """List the names and find(1) types directly under the state directory."""
+    state_root = target.value["state_directory"]
+    if runner.run(["test", "-L", state_root], check=False).returncode == 0:
+        raise RuntimeError("cleanup state root must not be a symlink")
+    listing = runner.run(
+        ["find", state_root, "-mindepth", "1", "-maxdepth", "1", "-printf", "%f\\t%y\\n"],
+        check=False,
+    )
+    if listing.returncode:
+        if runner.run(["test", "!", "-e", state_root], check=False).returncode == 0:
+            return []
+        raise RuntimeError("cleanup capture inventory cannot be inspected")
+    entries = []
+    for line in listing.stdout.splitlines():
+        try:
+            name, kind = line.split("\t", 1)
+        except ValueError as error:
+            raise RuntimeError("cleanup capture inventory is invalid") from error
+        entries.append((name, kind))
+    return entries
+
+
+def _select_proof_captures(target, runner, run_ids: list[str]) -> dict:
+    """Keep the newest ``PROOF_CAPTURE_KEEP`` qualified daily proof captures.
+
+    A capture that is not ``qualified`` is kept: its backup may still resume
+    from it. Nothing reads a qualified proof capture again, because the proof
+    and every restore read the Restic snapshots.
+    """
+    protected: set[str] = set()
+    qualified: dict[str, datetime] = {}
+    for run_id in run_ids:
+        capture = _qualified_capture(target, runner, run_id)
+        if capture is None:
+            protected.add(run_id)
+        else:
+            qualified[run_id] = capture["created_at"]
+    newest = sorted(qualified, key=lambda run_id: (qualified[run_id], run_id), reverse=True)
+    protected.update(newest[:PROOF_CAPTURE_KEEP])
+    return {
         "protected_captures": sorted(protected),
         "delete_captures": sorted(set(qualified) - protected),
     }
+
+
+def _retain_recovery_proof_captures(target) -> dict:
+    """Delete the old qualified daily proof captures after a passed proof.
+
+    Releases run the same rule through ``cleanup apply``, but a host can go
+    weeks without a release while each daily proof adds a capture. This step
+    never fails the proof: when another operation owns the runtime lock, it
+    reports ``skipped`` and the next proof or release retries it.
+    """
+    runner = target.runner()
+    run_id = f"proof-retention-{datetime.now(UTC):%Y%m%dt%H%M%S}"
+    try:
+        with runtime_lock(target, runner, "proof-retention", run_id):
+            proofs = [
+                name for name, kind in _state_root_entries(target, runner)
+                if kind == "d" and _proof_capture(target, name)
+            ]
+            inventory = _select_proof_captures(target, runner, proofs)
+            paths = _validated_cleanup_captures(target, runner, inventory)
+            _delete_cleanup_resources(runner, [], [], [], [], paths)
+    except Exception as error:  # noqa: BLE001 - the proof already passed and is recorded
+        print(f"recovery proof capture retention skipped: {error}", file=sys.stderr)
+        return {"status": "skipped", "deleted_captures": []}
+    return {"status": "applied", "deleted_captures": inventory["delete_captures"]}
 
 
 def _cleanup_inventory(target, runner, current: dict) -> dict:
@@ -9637,7 +9714,7 @@ def _validated_cleanup_captures(target, runner, inventory: dict) -> list[str]:
     state_root = target.value["state_directory"]
     paths = []
     for run_id in inventory["delete_captures"]:
-        if _capture_attempt(target, run_id) is None:
+        if _capture_attempt(target, run_id) is None and not _proof_capture(target, run_id):
             raise RuntimeError(f"cleanup capture identity is invalid: {run_id}")
         path = f"{state_root}/{run_id}"
         probe = runner.run(

@@ -29,6 +29,7 @@ activation or domain-specific response:
 - [Personal Gemini](personal-gemini-runbook.md)
 - [Shine bank export](shine-bank-export-runbook.md)
 - [Importing channel exports](b2c-channel-imports.md)
+- [Rolling out the money-handler statements](b2c-statements-rollout-runbook.md)
 - [Access controls](distribution-access-control-runbook.md)
 - [Product performance](product-performance.md)
 - [Action-risk inventory](action-risk-inventory.md)

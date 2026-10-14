@@ -6,12 +6,16 @@ bought.  Neither is sufficient alone, so both are parsed into the same
 canonical rows and reconciled by order identity.
 """
 
+import re
+from collections import Counter
 from decimal import Decimal
 
 from .common import (
+    CHARGE_GRAIN,
     LINE_GRAIN,
     ORDER_GRAIN,
     ParsedRow,
+    digest,
     money,
     parsed_datetime,
     quantity,
@@ -142,7 +146,7 @@ def parse_orders(document):
             payload=_payload(row),
             occurred_at=parsed_datetime(row["Sale Date"]),
             values={
-                "currency": text(row["Currency"]) or "EUR",
+                "currency": text(row["Currency"]).upper() or "EUR",
                 "subtotal_amount": gross,
                 "discount_amount": discount + shipping_discount,
                 "shipping_amount": shipping,
@@ -192,7 +196,7 @@ def parse_order_items(document):
             payload=_payload(row),
             occurred_at=parsed_datetime(row["Date Paid"]) or parsed_datetime(row["Sale Date"]),
             values={
-                "currency": text(row["Currency"]) or "EUR",
+                "currency": text(row["Currency"]).upper() or "EUR",
                 "original_name": text(row["Item Name"]),
                 "original_variation": text(row["Variations"]),
                 "original_sku": text(row["SKU"]),
@@ -214,3 +218,114 @@ def parse_order_items(document):
 
 def _payload(row):
     return {key: value for key, value in row.items() if not key.startswith("_")}
+
+
+#: Etsy's payment account statement, which is the only export naming what Etsy
+#: kept.  The sold-orders export states the card processing fee and nothing
+#: else — not the transaction fee, the listing fee, the regulatory fee or the
+#: advertising — so an account built from orders alone can never empty.
+#:
+#: Matched on the columns Etsy always writes rather than the whole set, because
+#: a statement carried between tools tends to arrive with a column naming which
+#: month it came from.
+STATEMENT_REQUIRED = (
+    "Date",
+    "Type",
+    "Title",
+    "Info",
+    "Currency",
+    "Amount",
+    "Fees & Taxes",
+    "Net",
+)
+
+#: What each statement entry is, in the vocabulary the ledger cares about.
+#: Etsy's own word is kept alongside, so a word this does not know stays
+#: readable in the evidence instead of being read as something it is not.
+STATEMENT_KINDS = {
+    "fee": "fee",
+    "marketing": "fee",
+    "tax": "marketplace_tax",
+    "sale": "sale",
+    "refund": "refund",
+    "deposit": "payout",
+    "payment": "bill_payment",
+}
+
+#: The kinds whose money Etsy kept, and which therefore have to be bought.
+FEE_KINDS = ("fee",)
+
+_ORDER_IN_TEXT = re.compile(r"#(\d{6,})")
+
+#: Etsy leaves a deposit's Amount column empty and states the figure only in the
+#: sentence it writes as the entry's title.  Reading it there is the only way to
+#: know what it paid out; a change of wording stops matching and is reported,
+#: rather than being read as a payout of nothing.
+_DEPOSIT_AMOUNT = re.compile(r"([€£$]\s*[\d.,]+)\s+sent to your bank", re.IGNORECASE)
+
+
+def parse_statement(document):
+    """Yield one row per statement entry.
+
+    A statement entry carries no identifier of its own, and Etsy writes many
+    that are identical — two hundred and sixty-eight listing fees of the same
+    twenty cents.  So identity is what the entry says plus how many identical
+    ones came before it on the same day, which makes a month re-exported inside
+    a wider file resolve to the entries already read rather than to new ones.
+    """
+    seen = Counter()
+    for row in document.rows:
+        stated = text(row["Type"])
+        kind = STATEMENT_KINDS.get(stated.lower(), "other")
+        occurred_at = parsed_datetime(row["Date"])
+        gross = money(row["Amount"], default=Decimal("0"))
+        if kind == "payout" and not gross:
+            gross = -_deposit_amount(text(row["Title"]))
+        # Etsy states what it kept as a negative, being a deduction from the
+        # balance. It is bought as a positive cost, and a credit as a negative.
+        kept = -money(row["Fees & Taxes"], default=Decimal("0"))
+        identity = digest(
+            [stated, text(row["Title"]), text(row["Info"]), text(row["Currency"]),
+             str(gross), str(kept)],
+        )[:12]
+        # Etsy writes a summary line with no date of its own. It moves nothing
+        # and settles nothing, and every run that reads a statement asks for a
+        # date before it looks at anything else — so it is carried through as
+        # evidence rather than ending the drop it arrived in.
+        day = occurred_at.date() if occurred_at else None
+        seen[day, identity] += 1
+        yield ParsedRow(
+            format_id="etsy_statement",
+            provider=PROVIDER,
+            grain=CHARGE_GRAIN,
+            external_order_id=f"{day:%Y-%m-%d}" if day else "",
+            external_line_id=f"{identity}:{seen[day, identity]}",
+            row_number=row["_row_number"],
+            occurred_at=occurred_at,
+            payload=row,
+            values={
+                "entry_kind": kind,
+                "stated_kind": stated,
+                "currency": text(row["Currency"]).upper(),
+                "gross_amount": gross,
+                "fee_amount": kept,
+                "net_amount": money(row["Net"], default=Decimal("0")),
+                "description": text(row["Title"]),
+                "names_order_id": _named_order(row),
+            },
+        )
+
+
+def _deposit_amount(title):
+    """Return what a deposit paid out, read from the sentence stating it."""
+    found = _DEPOSIT_AMOUNT.search(title)
+    return money(found.group(1), default=Decimal("0")) if found else Decimal("0")
+
+
+def _named_order(row):
+    """Return the order a statement entry answers for, when it names one."""
+    for column in ("Info", "Title"):
+        found = _ORDER_IN_TEXT.search(text(row[column]))
+        if found:
+            return found.group(1)
+    return ""

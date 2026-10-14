@@ -27,7 +27,7 @@ from odoo.exceptions import UserError
 CENT = Decimal("0.01")
 
 #: Findings the wallet run owns, cleared each time it runs.
-WALLET_KINDS = ("wallet_overdrawn",)
+WALLET_KINDS = ("wallet_overdrawn", "wallet_disagrees", "supply_period_closed")
 
 
 class ResCompanySupply(models.Model):
@@ -136,6 +136,7 @@ class B2cImportBatchWallet(models.Model):
             # finds nothing new must not forget what the first one did.
             batch.write({"wallet_move_ids": [Command.link(move.id) for move in settled]})
             batch._check_wallet_position()
+            batch._check_supply_against_statement()
             batch.write({"report": batch._build_report()})
         return True
 
@@ -226,7 +227,6 @@ class B2cImportBatchWallet(models.Model):
         """Bill, or credit, one month of what the supplier drew in one currency."""
         self.ensure_one()
         date = self._period_end(period)
-        self._assert_period_open(date)
         by_purpose = defaultdict(Decimal)
         for event, residual in residuals.items():
             by_purpose[bool(event.order_id)] += residual
@@ -235,6 +235,12 @@ class B2cImportBatchWallet(models.Model):
             return self.env["account.move"]
         # A month whose cost of sales and prototyping cancel each other out
         # still owes both accounts their entry; only the wallet is untouched.
+        if not self._period_open(date):
+            self._report_closed_period(
+                "supply_period_closed",
+                self.env._("what the supplier drew"), period, currency, total,
+            )
+            return self.env["account.move"]
         credit = total < 0
         sign = Decimal("-1") if credit else Decimal("1")
         company = self.company_id
@@ -386,6 +392,82 @@ class B2cImportBatchWallet(models.Model):
             aggregates=["balance:sum"],
         )
         return found[0][0] or 0.0
+
+    def _check_supply_against_statement(self):
+        """Compare what the supplier says it drew with what Odoo says it cost.
+
+        The cost of a fulfilment is read from the order the supplier fulfilled;
+        what it actually took out of the wallet is stated only in the account
+        the supplier keeps of itself.  They should be the same number.  When
+        they are not, either a fulfilment never reached Odoo or a cost changed
+        after it did, and both are things a person has to look at — so this
+        reports the difference and never quietly prefers one side.
+        """
+        self.ensure_one()
+        drawn = defaultdict(Decimal)
+        for row in self.row_ids.filtered(
+            lambda item: item.grain == "charge"
+            and item.provider == "printful"
+            and item.occurred_at,
+        ):
+            values = row.values or {}
+            if values.get("entry_kind") not in ("supply", "supply_refund"):
+                continue
+            drawn[row.occurred_at.date().replace(day=1)] += -Decimal(
+                str(values.get("wallet_amount") or "0"),
+            )
+        held = defaultdict(Decimal)
+        for event in self.fulfilment_event_ids.filtered("event_date"):
+            held[event.event_date.date().replace(day=1)] += Decimal(str(event.cogs_amount))
+        if not (drawn and held):
+            # A drop carrying a statement and no supplier read has nothing to
+            # disagree with. Saying every month differs would be true and
+            # useless, and would bury the months that really do.
+            return False
+        # Only the months the supplier read covered: a statement reaches back
+        # years further than the fulfilments this drop asked about.
+        differing = [
+            (period, drawn[period] - held[period])
+            for period in sorted(held)
+            if abs(drawn[period] - held[period]) >= CENT
+        ]
+        if not differing:
+            return False
+        # The net matters as much as the months. A cost dated either side of a
+        # month end shows up as two differences that cancel, and reading them
+        # apart sends somebody looking for two problems where there are none.
+        self._raise_issue(
+            "wallet_disagrees",
+            self.env._(
+                "%(count)s month(s) the supplier and Odoo count differently, "
+                "%(net)s apart in total",
+                count=len(differing),
+                net=sum(difference for _period, difference in differing),
+            ),
+            severity="advisory",
+            note="\n".join(
+                [
+                    *(
+                        self.env._(
+                            "%(period)s: the supplier drew %(drawn)s, Odoo holds "
+                            "%(held)s of fulfilment — %(difference)s.",
+                            period=f"{period:%B %Y}",
+                            drawn=drawn[period],
+                            held=held[period],
+                            difference=difference,
+                        )
+                        for period, difference in differing
+                    ),
+                    self.env._(
+                        "Two months differing by the same amount either way is "
+                        "one cost dated either side of a month end. What is left "
+                        "over is a fulfilment that never reached Odoo, or one "
+                        "that cost something other than it was read as.",
+                    ),
+                ],
+            ),
+        )
+        return True
 
     def _check_wallet_position(self):
         """Say so when the supplier has drawn more than was ever paid in."""

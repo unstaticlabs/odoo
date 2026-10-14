@@ -6,7 +6,7 @@ error.  A check states what it expects, names what it found, and where the
 correction is a matter of fact rather than judgement it can make it.
 """
 
-from odoo import Command, models
+from odoo import Command, fields, models
 from odoo.exceptions import UserError
 
 #: What each finding would spoil, so a drop is stopped by what it is about to
@@ -26,9 +26,29 @@ READINESS_KINDS = (*BLOCKS_INVOICING, *BLOCKS_SETTLEMENT, "tax_added_to_price")
 class B2cImportBatchReadiness(models.Model):
     _inherit = "b2c.import.batch"
 
+    correct_chart = fields.Boolean(
+        string="Keep the chart correct",
+        default=True,
+        help="Correct the chart's own defects before reporting on this drop: "
+             "retire a fiscal position answering for a country that has one of "
+             "its own, state channel rates as inside the price, give each "
+             "product the one rate its kind of thing is charged at, give "
+             "revenue and carriage accounts of their own, and put the reverse "
+             "charge on the channel operators. Each correction states the fact "
+             "it depends on and does nothing where that fact does not hold.",
+    )
+
     def action_check_readiness(self):
-        """Report what would make this drop post the wrong numbers."""
+        """Report what would make this drop post the wrong numbers.
+
+        The chart is corrected first unless that has been turned off, because
+        most of what the checks would report is a defect in the chart rather
+        than in the drop, and reporting a thing that can be put right without
+        putting it right wastes the reader's attention.
+        """
         for batch in self:
+            if batch.correct_chart:
+                batch._correct_chart()
             batch.issue_ids.filtered(lambda issue: issue.kind in READINESS_KINDS).unlink()
             batch._check_destination_positions()
             batch._check_product_taxes()
@@ -308,12 +328,22 @@ class B2cImportBatchReadiness(models.Model):
     # -- corrections -------------------------------------------------------
 
     def action_correct_chart(self):
+        """Correct the chart, and report what is left."""
+        self.ensure_one()
+        self._correct_chart()
+        self.action_check_readiness()
+        return True
+
+    def _correct_chart(self):
         """Correct the chart itself, not just what this drop happens to touch.
 
         The narrower corrections settle a finding.  These settle the chart the
         findings come from, whose defects are wrong whether or not anything is
         being imported.  Each one is stated separately because each is undone
         separately, and each says in the log what it changed.
+
+        It reports nothing itself, so that the check which reports can call it
+        without calling itself.
         """
         self.ensure_one()
         self.action_retire_generic_positions()
@@ -321,7 +351,6 @@ class B2cImportBatchReadiness(models.Model):
         self.action_settle_catalog_taxes()
         self.action_account_for_revenue()
         self.action_reverse_charge_operators()
-        self.action_check_readiness()
         return True
 
     def action_retire_generic_positions(self):

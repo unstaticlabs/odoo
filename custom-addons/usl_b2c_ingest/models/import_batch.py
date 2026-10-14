@@ -32,6 +32,14 @@ RECONCILED_VALUES = frozenset(
     },
 )
 
+#: How many of a repeated finding are worth naming before the rest are the
+#: same thing said again.
+SHOWN = 20
+
+#: What a row's identity was judged to be. Superseding a duplicate settles one
+#: of these, so they are re-judged rather than left standing.
+IDENTITY_KINDS = ("duplicate_order", "identity_conflict")
+
 BATCH_STATES = [
     ("draft", "Draft"),
     ("parsed", "Read"),
@@ -72,6 +80,14 @@ class B2cImportBatch(models.Model):
     new_order_count = fields.Integer(compute="_compute_counts", store=True)
     known_order_count = fields.Integer(compute="_compute_counts", store=True)
     conflicting_count = fields.Integer(compute="_compute_counts", store=True)
+    statement_entry_count = fields.Integer(
+        compute="_compute_counts",
+        store=True,
+        string="Statement entries",
+        help="What the parties holding the money say they kept, paid out or "
+             "were paid. It answers to no order, which is why it is counted "
+             "apart from them.",
+    )
     blocking_issue_count = fields.Integer(compute="_compute_counts", store=True)
     advisory_issue_count = fields.Integer(compute="_compute_counts", store=True)
 
@@ -91,7 +107,9 @@ class B2cImportBatch(models.Model):
     )
     def _compute_counts(self):
         for batch in self:
-            rows = batch.row_ids.filtered(lambda row: row.resolution != "supplier")
+            rows = batch.row_ids.filtered(
+                lambda row: row.resolution not in ("supplier", "statement"),
+            )
             orders = rows.filtered(lambda row: row.grain == "order")
             batch.file_count = len(batch.file_ids)
             batch.row_count = len(rows)
@@ -113,6 +131,9 @@ class B2cImportBatch(models.Model):
             )
             batch.conflicting_count = len(
                 rows.filtered(lambda row: row.resolution == "conflicting"),
+            )
+            batch.statement_entry_count = len(
+                batch.row_ids.filtered(lambda row: row.grain == "charge"),
             )
             batch.blocking_issue_count = len(
                 batch.issue_ids.filtered(lambda issue: issue.severity == "blocking"),
@@ -136,6 +157,43 @@ class B2cImportBatch(models.Model):
             batch._check_order_money(rows)
             batch.write(batch._period(rows))
             batch.write({"state": "parsed", "report": batch._build_report()})
+        return True
+
+    def action_resolve_identities(self):
+        """Judge again which order each row is, and report what conflicts.
+
+        Identity is judged when the files are read, but what Odoo holds can
+        change afterwards — superseding a duplicate is exactly that. Without
+        judging again, a row stays conflicting and a finding stays blocking
+        long after the thing they describe has been settled.
+        """
+        self.ensure_one()
+        self.issue_ids.filtered(lambda issue: issue.kind in IDENTITY_KINDS).unlink()
+        rows = self.row_ids
+        self._resolve(rows)
+        self._check_conflicts(rows)
+        self.write({"report": self._build_report()})
+        return True
+
+    def action_settle(self):
+        """Do everything that follows applying, in the order it has to happen.
+
+        Five separate runs, each safe to repeat, and each meaningless before
+        the one in front of it: what an export says became of an order decides
+        whether there is an invoice to write, an invoice decides what is left
+        in the clearing account, and only then can what the channel kept and
+        what the supplier drew leave it.  An operator should not have to hold
+        that order in their head, so this holds it for them — and each run
+        stays on its own button for whoever needs one of them alone.
+        """
+        for batch in self:
+            if batch.state != "applied":
+                raise UserError(batch.env._("Apply the drop before settling it."))
+            batch.action_reconcile()
+            batch.action_invoice()
+            batch.action_bill_fees()
+            batch.action_settle_wallet()
+            batch.action_post_transfers()
         return True
 
     def action_reset(self):
@@ -243,6 +301,12 @@ class B2cImportBatch(models.Model):
             if row.grain == "order"
         }
         for row in rows:
+            if row.grain == "charge":
+                # A statement entry answers to a month, not to an order, even
+                # when it names one: two hundred fee entries for one order are
+                # still one order.
+                row.resolution = "statement"
+                continue
             found = matches.get(row.external_order_id)
             if not found:
                 if row.grain == "line" and (row.provider, row.external_order_id) not in headers:
@@ -373,6 +437,7 @@ class B2cImportBatch(models.Model):
                 )
             if row.resolution == "new" and "total_amount" not in values:
                 incomplete[row.provider].append(row)
+        self._check_orders_add_up(rows)
         for provider, provider_rows in incomplete.items():
             self._raise_issue(
                 "order_money_missing",
@@ -388,6 +453,151 @@ class B2cImportBatch(models.Model):
                     orders=", ".join(sorted(row.external_order_id for row in provider_rows)),
                 ),
             )
+
+    def _remaining_report(self):
+        """Say what is left for a person to do, which is the point of all this.
+
+        Everything above is what the drop did.  This is the only part an
+        operator has to act on, so it is last and it is plain.
+        """
+        self.ensure_one()
+        if self.state != "applied":
+            return []
+        waiting = self.env["b2c.money.transfer"].search(
+            [
+                ("move_id", "in", self.transfer_move_ids.ids),
+                ("move_id.state", "=", "posted"),
+            ],
+        )
+        if not waiting:
+            return [self.env._("Nothing is waiting for the bank.")]
+        labels = dict(waiting._fields["direction"].selection)
+        totals = defaultdict(lambda: [0, Decimal("0")])
+        for transfer in waiting:
+            found = totals[transfer.direction, transfer.currency_id]
+            found[0] += 1
+            found[1] += Decimal(str(transfer.amount))
+        return [
+            self.env._(
+                "Left for you: %(count)s line(s) to match in %(bank)s — %(detail)s.",
+                count=len(waiting),
+                bank=self.company_id.usl_b2c_bank_journal_id.display_name
+                or self.env._("the bank"),
+                detail=", ".join(
+                    self.env._(
+                        "%(count)s %(direction)s totalling %(amount)s %(currency)s",
+                        count=count,
+                        direction=labels[direction].lower(),
+                        amount=f"{total:.2f}",
+                        currency=currency.name,
+                    )
+                    for (direction, currency), (count, total) in sorted(
+                        totals.items(), key=lambda item: item[0][0],
+                    )
+                ),
+            ),
+        ]
+
+    def _statement_report(self):
+        """Say what the statements added, and which of them nothing answers."""
+        self.ensure_one()
+        if not self.statement_entry_count:
+            return []
+        by_provider = Counter(
+            row.provider
+            for row in self.row_ids.filtered(lambda item: item.grain == "charge")
+        )
+        return [
+            self.env._(
+                "%(count)s statement entry(ies) read: %(detail)s.",
+                count=self.statement_entry_count,
+                detail=", ".join(
+                    f"{provider} {found}" for provider, found in sorted(by_provider.items())
+                ),
+            ),
+        ]
+
+    def _check_orders_add_up(self, rows):
+        """Report an order whose lines and whose total tell different stories.
+
+        The lines of an order and the order itself have to agree about what
+        the goods came to.  Where they do not, one of the two exports means
+        something other than what it is being read as — which is how a subtotal
+        stated before tax came to be read as the price of the goods, and would
+        have priced every sale of one shop at its own total less the VAT.
+
+        A channel that states what the goods came to is compared against that.
+        One that states only an order total is compared against the total less
+        what was charged to send the goods and plus what was taken off, because
+        the rest of an order total is tax and each channel counts that its own
+        way.
+
+        Advisory, because a channel may state a rounding of its own and being
+        stopped by one is worse than being told about it.
+        """
+        self.ensure_one()
+        wrong = []
+        for row in rows.filtered(lambda item: item.grain == "order"):
+            values = row.values or {}
+            lines = self._lines_of(row)
+            if not lines:
+                continue
+            sold = sum(
+                (self._decimal(line.values, "subtotal_amount") for line in lines),
+                Decimal("0"),
+            )
+            if "subtotal_amount" in values:
+                stated = self._decimal(values, "subtotal_amount")
+            elif "total_amount" in values:
+                stated = (
+                    self._decimal(values, "total_amount")
+                    - self._decimal(values, "shipping_amount")
+                    + self._decimal(values, "discount_amount")
+                )
+            else:
+                continue
+            residual = sold - stated
+            if abs(residual) >= Decimal("0.01"):
+                wrong.append((row, sold, stated, residual))
+        if wrong:
+            first = wrong[0][0]
+            self._raise_issue(
+                "order_totals_disagree",
+                self.env._(
+                    "%(count)s order(s) do not come to what their lines say",
+                    count=len(wrong),
+                ),
+                external_order_id=first.external_order_id,
+                row=first,
+                severity="advisory",
+                note="\n".join(
+                    [
+                        *(
+                            self.env._(
+                                "%(order)s: its lines come to %(sold)s where the "
+                                "order says %(stated)s — %(residual)s out.",
+                                order=item.external_order_id,
+                                sold=line_total,
+                                stated=total,
+                                residual=difference,
+                            )
+                            for item, line_total, total, difference in wrong[:SHOWN]
+                        ),
+                        *(
+                            [
+                                self.env._(
+                                    "… and %(count)s more, all of them the same "
+                                    "shape as these.",
+                                    count=len(wrong) - SHOWN,
+                                ),
+                            ]
+                            if len(wrong) > SHOWN
+                            else []
+                        ),
+                    ],
+                ),
+            )
+        return bool(wrong)
 
     def _settlement_report(self):
         """Say what became of the money: held, invoiced, given back, paid out."""
@@ -439,11 +649,37 @@ class B2cImportBatch(models.Model):
                 self.env._(
                     # Read rather than taken from the stored field: the run
                     # that writes this report is the one that just moved it.
-                    "The supplier's wallet holds %(balance)s.",
-                    balance=self._wallet_position(),
+                    "The supplier's wallet holds %(balance)s %(currency)s.",
+                    balance=f"{self._wallet_position():.2f}",
+                    currency=(
+                        self.company_id._usl_b2c_wallet_account().currency_id
+                        or self.company_id.currency_id
+                    ).name,
                 ),
             )
         return lines
+
+    def _gather_issue(self, kind, headline, line, *, severity="advisory"):
+        """Add a line to one finding of this kind, rather than raise another.
+
+        Some things are true of many months at once — a statement reaches back
+        years past the date the books closed, and a ledger already holds most
+        of the movements one states.  Raised one by one they are a hundred
+        findings nobody reads; gathered they are one an operator can act on.
+
+        ``headline`` is called with how many lines the finding now holds, so it
+        can say so in whatever way its language counts.
+        """
+        self.ensure_one()
+        found = self.issue_ids.filtered(lambda issue, k=kind: issue.kind == k)[:1]
+        if not found:
+            return self._raise_issue(kind, headline(1), note=line, severity=severity)
+        lines = (found.note or "").splitlines()
+        found.write({
+            "name": headline(len(lines) + 1),
+            "note": "\n".join([*lines, line]),
+        })
+        return found
 
     def _raise_issue(self, kind, name, *, note=None, external_order_id=None, row=None,
                      severity="blocking", proposal=None):
@@ -473,7 +709,17 @@ class B2cImportBatch(models.Model):
         return Country.search([("name", "=ilike", name)], limit=1)
 
     def _period(self, rows):
-        dates = [row.occurred_at for row in rows if row.occurred_at]
+        """Return the span of commerce the drop describes.
+
+        A statement is deliberately not counted.  It states money and can cover
+        a year at a time, and letting it widen the period would send the
+        supplier read looking for a year of fulfilments nobody asked about.
+        """
+        dates = [
+            row.occurred_at
+            for row in rows
+            if row.occurred_at and row.grain != "charge"
+        ]
         if not dates:
             return {"period_start": False, "period_end": False}
         return {"period_start": min(dates).date(), "period_end": max(dates).date()}
@@ -489,17 +735,26 @@ class B2cImportBatch(models.Model):
             self.env._(
                 "%(files)s file(s) read, covering %(start)s to %(end)s.",
                 files=self.file_count,
-                start=self.period_start or self.env._("no date"),
-                end=self.period_end or self.env._("no date"),
-            ),
-            self.env._(
-                "%(orders)s order(s) and %(items)s line(s): %(new)s new, %(known)s already in Odoo.",
-                orders=self.order_count,
-                items=self.line_count,
-                new=self.new_order_count,
-                known=self.known_order_count,
+                start=self.period_start,
+                end=self.period_end,
+            )
+            if self.period_start
+            else self.env._(
+                "%(files)s file(s) read, naming no orders of their own.",
+                files=self.file_count,
             ),
         ]
+        if self.order_count or self.line_count:
+            lines.append(
+                self.env._(
+                    "%(orders)s order(s) and %(items)s line(s): %(new)s new, "
+                    "%(known)s already in Odoo.",
+                    orders=self.order_count,
+                    items=self.line_count,
+                    new=self.new_order_count,
+                    known=self.known_order_count,
+                ),
+            )
         by_provider = defaultdict(Counter)
         for row in self.row_ids.filtered(
             lambda item: item.grain == "order" and item.resolution != "supplier",
@@ -518,7 +773,7 @@ class B2cImportBatch(models.Model):
                     count=counts["conflicting"],
                 )
             lines.append(line)
-        if self.state in ("resolved", "applied"):
+        if self.state in ("resolved", "applied") and self.line_count:
             lines.append(
                 self.env._(
                     "%(mapped)s line(s) map to a product, %(unmapped)s still need one.",
@@ -545,7 +800,9 @@ class B2cImportBatch(models.Model):
                     internal=cost["internal"],
                 ),
             )
+        lines.extend(self._statement_report())
         lines.extend(self._settlement_report())
+        lines.extend(self._remaining_report())
         if self.blocking_issue_count or self.advisory_issue_count:
             lines.append(
                 self.env._(
