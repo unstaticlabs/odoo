@@ -403,6 +403,7 @@ class AccountMove(models.Model):
                 candidate.update(
                     {
                         "can_assign": move.state == "posted",
+                        "bank_label": (line.move_id.statement_line_id.payment_ref or "").strip(),
                         "match_confidence": confidence,
                         "match_reason": reason,
                         "match_summary": summary,

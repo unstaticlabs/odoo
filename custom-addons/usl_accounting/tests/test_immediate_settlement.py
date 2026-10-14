@@ -134,6 +134,19 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
         _liquidity, suspense_lines, _other = statement_line._seek_for_lines()
         return statement_line, suspense_lines
 
+    def test_bank_suggestion_keeps_bank_label_separate_from_entry_reference(self):
+        bill = self._document()
+        statement, source_line = self._bank_candidate(bill)
+        statement.payment_ref = "Synthetic office equipment payment"
+        source_line.ref = "Synthetic bookkeeping reference"
+        bill._compute_payments_widget_to_reconcile_info()
+        candidates = bill.invoice_outstanding_credits_debits_widget["content"]
+        candidate = next(item for item in candidates if item["id"] == source_line.id)
+        self.assertEqual(candidate.get("bank_label"), statement.payment_ref)
+        self.assertEqual(candidate["move_name"], statement.move_id.name)
+        self.assertEqual(candidate["move_id"], statement.move_id.id)
+        self.assertEqual(candidate["ref"], source_line.ref)
+
     def test_settle_replaces_synthetic_foreign_amount_and_keeps_native_fx(self):
         bill = self._document()
         term_line = self._term_lines(bill)

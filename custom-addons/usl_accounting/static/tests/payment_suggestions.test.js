@@ -72,6 +72,7 @@ class AccountMove extends models.Model {
                         id: 44,
                         move_id: 86,
                         move_name: "BNK1/25-26/0298",
+                        bank_label: "Synthetic office equipment payment",
                         amount: 166.8,
                         currency_id: 1,
                         date: "2026-07-16",
@@ -336,6 +337,32 @@ class AccountMove extends models.Model {
 
 defineMailModels();
 defineModels([AccountMove]);
+
+test("bank suggestion shows its label and keeps native entry navigation", async () => {
+    onRpc("action_open_business_doc", ({ args }) => {
+        expect.step("open-bank-entry");
+        expect(args).toEqual([86]);
+        return { type: "ir.actions.act_window", res_model: "account.move", res_id: 86 };
+    });
+    mockService("action", { doAction: () => {} });
+    await mountView({
+        type: "form", resModel: "account.move", resId: 3,
+        arch: '<form><field name="invoice_outstanding_credits_debits_widget" widget="payment"/></form>',
+    });
+    expect(".open_account_move").toHaveText("Synthetic office equipment payment");
+    expect(".open_account_move").toHaveAttribute("title", "BNK1/25-26/0298");
+    expect(".open_account_move").toHaveAttribute("aria-label", "Synthetic office equipment payment — BNK1/25-26/0298");
+    await contains(".open_account_move").click();
+    expect.verifySteps(["open-bank-entry"]);
+});
+
+test("a bank suggestion without a label keeps the entry identifier", async () => {
+    await mountView({
+        type: "form", resModel: "account.move", resId: 4,
+        arch: '<form><field name="invoice_outstanding_credits_debits_widget" widget="payment"/></form>',
+    });
+    expect(".open_account_move").toHaveText("BNK1/25-26/0300");
+});
 
 test("draft bill payment suggestion keeps matching details outside the native row", async () => {
     await mountView({

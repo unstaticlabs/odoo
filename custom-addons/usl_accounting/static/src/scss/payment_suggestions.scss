@@ -21,6 +21,11 @@
             padding-bottom: map-get($spacers, 1);
         }
 
+        .open_account_move {
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
         .outstanding_credit_assign,
         .immediate_settlement_assign,
         .payment_rate_assign {
