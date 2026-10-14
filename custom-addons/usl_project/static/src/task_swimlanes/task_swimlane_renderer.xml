@@ -1,0 +1,62 @@
+<templates xml:space="preserve">
+    <t t-name="usl_project.TaskSwimlaneRenderer">
+        <t t-if="!this.matrixMode">
+            <div t-if="this.unavailableGrouping" class="alert alert-warning m-3 o_usl_grouping_recovery" role="status">A grouping is unavailable. Remove it using the search controls. These task results keep your current filters without grouping.</div>
+            <t t-call="project.ProjectTaskKanbanRenderer"/>
+        </t>
+        <div t-else="" class="o_kanban_renderer o_renderer o_kanban_grouped o_usl_swimlanes" tabindex="-1" t-custom-ref="root">
+            <div class="o_usl_axes px-3 py-2 text-muted">Columns: <t t-out="this.axisCaption[0]"/> · Lanes: <t t-out="this.axisCaption[1]"/></div>
+            <div t-if="this.env.searchModel?.groupBy.length > 2" class="px-3 pb-2 text-muted">This board shows the first two groupings. Remove a grouping using Group By, or switch to List for deeper grouping.</div>
+            <div class="o_usl_lane_grid" t-att-style="'--usl-columns:' + this.props.list.groups.length">
+                <div class="o_usl_lane_heading"/>
+                <div t-foreach="this.props.list.groups" t-as="column" t-key="column.id" class="o_usl_column_heading">
+                    <KanbanHeader activeActions="this.props.archInfo.activeActions" canQuickCreate="false" deleteGroup="(group) => this.deleteGroup(group)" dialogClose="this.dialogClose" group="column" list="this.props.list" quickCreateState="this.props.quickCreateState" scrollTop="this.props.scrollTop" tooltipInfo="this.props.archInfo.tooltipInfo" progressBarState="this.props.progressBarState"/>
+                    <button t-if="this.props.archInfo.activeActions.create" class="btn btn-link btn-sm" t-on-click="() => this.createColumn(column)">New task</button>
+                    <button t-if="column.isFolded" class="btn btn-link btn-sm" t-on-click="() => column.toggle()">Open column</button>
+                    <button t-if="!column.isFolded and column.list.groups.length &lt; column.list.count" class="btn btn-link btn-sm" t-on-click="() => this.moreLanes(column)">Load more lanes</button>
+                </div>
+                <t t-foreach="this.rows" t-as="row" t-key="row.key">
+                    <div class="o_usl_lane_heading px-2 py-3 fw-bold" t-out="row.group.displayName"/>
+                    <div t-foreach="row.cells" t-as="cell" t-key="cell.id" class="o_kanban_group o_usl_lane_cell" tabindex="-1" t-att-aria-label="cell.column.displayName + ' / ' + cell.row.displayName" t-att-data-id="cell.id">
+                        <div class="d-flex align-items-center justify-content-end gap-2 mb-2">
+                            <span t-if="cell.leaf" class="text-muted small" title="Task memberships" t-out="cell.leaf.count"/>
+                            <button t-if="this.props.archInfo.activeActions.create" class="btn btn-link btn-sm" title="New task in this cell" t-on-click="() => this.createCell(cell)"><i class="fa fa-plus"/> <span class="visually-hidden">New task</span></button>
+                        </div>
+                        <t t-if="cell.status === 'loaded'">
+                            <KanbanRecordQuickCreate t-if="cell.leaf.id === this.props.quickCreateState.id" quickCreateState="this.props.quickCreateState" onValidate="(record, mode) => this.validateQuickCreate(record, mode, cell.leaf)" resModel="cell.leaf.resModel" context="this.cellContext(cell)"/>
+                            <t t-foreach="cell.leaf.list.records" t-as="record" t-key="record.id">
+                                <KanbanRecord archInfo="this.props.archInfo" Compiler="this.props.Compiler" canResequence="!this.isProcessing(record.id) and this.canResequenceRecords" forceGlobalClick="this.props.forceGlobalClick" group="cell.leaf" groupByField="this.cardGroupField" getSelection.bind="this.getSelection" toggleSelection.bind="this.toggleSelection" deleteRecord="this.props.deleteRecord" archiveRecord.bind="this.archiveRecord" openRecord="this.props.openRecord" readonly="this.props.readonly" record="record" progressBarState="this.props.progressBarState" selectionAvailable="this.state.selectionAvailable"/>
+                                <button t-if="this.canMoveRecords" class="btn btn-link btn-sm o_usl_move_task" t-att-disabled="this.isProcessing(record.id)" t-on-click="() => this.openMove(record, cell)">Move</button>
+                            </t>
+                            <button t-if="cell.leaf.list.records.length &lt; cell.leaf.count" class="btn btn-outline-primary btn-sm w-100" t-on-click="() => this.loadMore(cell.leaf)">Load more tasks</button>
+                            <span t-if="!cell.leaf.count" class="text-muted small">No tasks</span>
+                        </t>
+                        <span t-elif="cell.status === 'empty'" class="text-muted small">No tasks</span>
+                        <button t-else="" class="btn btn-link btn-sm" t-on-click="() => this.openCell(cell)"><t t-if="cell.status === 'closed'">Open cell</t><t t-else="">Load lanes</t></button>
+                    </div>
+                </t>
+            </div>
+            <button t-if="this.props.list.groups.length &lt; this.props.list.count" class="btn btn-link" t-on-click="this.moreColumns">Load more columns</button>
+            <ActionHelper t-if="!this.props.list.groups.length" noContentHelp="this.props.noContentHelp"/>
+        </div>
+    </t>
+    <t t-name="usl_project.MoveTaskDialog">
+        <Dialog title="this.title">
+            <p t-out="this.props.record.data.name"/>
+            <label class="form-label" for="usl_move_column">Column</label>
+            <select id="usl_move_column" class="form-select mb-3" t-model="this.state.column" t-att-disabled="this.state.pending">
+                <option t-foreach="this.props.columns" t-as="column" t-key="column.id" t-att-value="column.id" t-out="column.displayName"/>
+            </select>
+            <label class="form-label" for="usl_move_lane">Lane</label>
+            <select id="usl_move_lane" class="form-select" t-model="this.state.row" t-att-disabled="this.state.pending">
+                <option t-foreach="this.props.rows" t-as="row" t-key="row.key" t-att-value="row.key" t-out="row.group.displayName"/>
+            </select>
+            <p t-if="this.reason" class="text-muted mt-3" t-out="this.reason"/>
+            <t t-set-slot="footer">
+                <button t-if="!this.reason" class="btn btn-primary" t-att-disabled="this.state.pending" t-on-click="this.move">Move</button>
+                <button t-else="" class="btn btn-primary" t-on-click="() => { this.props.close(); this.props.open(); }">Open task form</button>
+                <button class="btn btn-secondary" t-att-disabled="this.state.pending" t-on-click="this.props.close">Cancel</button>
+            </t>
+        </Dialog>
+    </t>
+</templates>
