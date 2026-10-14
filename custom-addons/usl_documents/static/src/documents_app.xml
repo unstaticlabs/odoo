@@ -619,38 +619,38 @@
                             <table class="o_list_table table table-sm table-hover mb-0">
                                 <thead>
                                     <tr>
-                                        <th t-if="state.canEditMetadata">Select</th>
-                                        <th class="o_column_sortable"
+                                        <th t-if="state.canEditMetadata" class="o_usl_document_column_select">Select</th>
+                                        <th class="o_column_sortable o_usl_document_column_document"
                                             t-on-click="() => this.sortDocuments('name')">
                                             Document
                                             <i t-att-class="sortIcon('name')"/>
                                         </th>
-                                        <th class="o_column_sortable"
+                                        <th class="o_column_sortable o_usl_document_column_date"
                                             t-on-click="() => this.sortDocuments('document_date')">
                                             Date
                                             <i t-att-class="sortIcon('document_date')"/>
                                         </th>
-                                        <th class="o_column_sortable"
+                                        <th class="o_column_sortable o_usl_document_column_correspondent"
                                             t-on-click="() => this.sortDocuments('correspondent_id')">
                                             Correspondent
                                             <i t-att-class="sortIcon('correspondent_id')"/>
                                         </th>
-                                        <th class="o_column_sortable"
+                                        <th class="o_column_sortable o_usl_document_column_type"
                                             t-on-click="() => this.sortDocuments('document_type_id')">
                                             Type
                                             <i t-att-class="sortIcon('document_type_id')"/>
                                         </th>
-                                        <th class="o_column_sortable"
+                                        <th class="o_column_sortable o_usl_document_column_company"
                                             t-on-click="() => this.sortDocuments('company_id')">
                                             Company
                                             <i t-att-class="sortIcon('company_id')"/>
                                         </th>
-                                        <th class="o_column_sortable"
+                                        <th class="o_column_sortable o_usl_document_column_tags"
                                             t-on-click="() => this.sortDocuments('tag_sort_key')">
                                             Tags
                                             <i t-att-class="sortIcon('tag_sort_key')"/>
                                         </th>
-                                        <th class="o_column_sortable"
+                                        <th class="o_column_sortable o_usl_document_column_status"
                                             t-on-click="() => this.sortDocuments('status_sort_key')">
                                             Status
                                             <i t-att-class="sortIcon('status_sort_key')"/>

@@ -468,25 +468,29 @@
             vertical-align: middle;
         }
 
-        th:nth-child(1) {
+        .o_usl_document_column_select {
+            width: 3.5rem;
+        }
+
+        .o_usl_document_column_document {
             width: 25%;
         }
 
-        th:nth-child(2) {
+        .o_usl_document_column_date {
             width: 10%;
         }
 
-        th:nth-child(3),
-        th:nth-child(4),
-        th:nth-child(5) {
+        .o_usl_document_column_correspondent,
+        .o_usl_document_column_type,
+        .o_usl_document_column_company {
             width: 13%;
         }
 
-        th:nth-child(6) {
+        .o_usl_document_column_tags {
             width: 16%;
         }
 
-        th:nth-child(7) {
+        .o_usl_document_column_status {
             width: 10%;
         }
 

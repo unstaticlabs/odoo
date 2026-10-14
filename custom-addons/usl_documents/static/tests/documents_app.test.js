@@ -2597,3 +2597,44 @@ test("batch metadata changes preserve the filter and recover a page emptied by t
     expect(".o_usl_document_card").toHaveText(/Remaining document/);
     expect(pages.slice(-2)).toEqual([2, 1]);
 });
+
+for (const canEditMetadata of [true, false]) {
+    for (const width of [1280, 390]) {
+        test(`compact list keeps title space with ${canEditMetadata ? "editor selection" : "viewer columns"} at ${width}px`, async () => {
+            const name = "[QA] Quarterly archive review document";
+            onRpc("usl.document", "workspace_data", () => ({
+                ...emptyWorkspace,
+                can_edit_metadata: canEditMetadata,
+                documents: [{ id: 9401, name, availability_state: "available", tags: [], link_count: 0 }],
+                count: 1,
+            }));
+            await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
+            const workspace = document.querySelector(".o_usl_documents");
+            workspace.style.width = `${width}px`;
+            workspace.style.maxWidth = "none";
+            await contains('button[title="Compact list"]').click();
+            await animationFrame();
+            const table = workspace.querySelector(".o_list_table");
+            const headers = [...table.querySelectorAll("thead th")];
+            const documentHeader = headers.find((header) => header.textContent.trim() === "Document");
+            const title = table.querySelector("tbody td strong");
+            expect(documentHeader.getBoundingClientRect().width).toBeGreaterThan(199);
+            expect(title.clientWidth).toBeGreaterThan(139);
+            expect(title.textContent).toBe(name);
+            const selection = headers.find((header) => header.textContent.trim() === "Select");
+            expect(Boolean(selection)).toBe(canEditMetadata);
+            if (selection) {
+                expect(selection.getBoundingClientRect().width).toBeLessThan(65);
+                await contains('input[aria-label="Select [QA] Quarterly archive review document"]').click();
+                expect(".o_usl_batch_toolbar").toHaveText(/1 selected/);
+            }
+            await contains("th.o_column_sortable", { text: "Document" }).click();
+            expect(table.querySelector("tbody td strong").textContent).toBe(name);
+            const scroll = table.closest(".table-responsive");
+            expect(scroll.clientWidth <= workspace.clientWidth).toBe(true);
+            if (width === 390) {
+                expect(scroll.scrollWidth > scroll.clientWidth).toBe(true);
+            }
+        });
+    }
+}
