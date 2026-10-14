@@ -1235,9 +1235,17 @@ class TestDeclarationAndClosing(TransactionCase):
         self.assertIn(company_rule, selected)
         self.assertNotIn(shared_rule, selected)
 
-        declarations = self.env[
-            "rebuild.account.declaration"
-        ].with_company(company).sync_for_company(company)
+        # Every sync test in this file pins the clock, and this is why: the
+        # governed rules are versioned by calendar year, so the 2026 CA12 is in
+        # force only to 2026-12-31, while this company closes on 30 September.
+        # sync_for_company asks for the fiscal year holding today, so from
+        # 1 October 2026 it asks for a year no published rule covers.
+        with patch.object(
+            fields.Date, "context_today", return_value=date(2026, 9, 15),
+        ):
+            declarations = self.env[
+                "rebuild.account.declaration"
+            ].with_company(company).sync_for_company(company)
         ca12 = declarations.filtered(
             lambda declaration: declaration.rule_id == company_rule,
         )
