@@ -393,6 +393,27 @@ class TestTransfers(TestWallet):
                 "Net": "--",
             },
         )
+        # The scenario is a shop paid out in two currencies, and such a shop
+        # holds each in its own account — which is what this distribution's own
+        # setup notes provide for. Without the sterling journal the GBP deposit
+        # has nowhere to land, so it is reported rather than posted: true, and a
+        # different thing entirely from the day collapsing two movements into one.
+        sterling = self.env.ref("base.GBP")
+        sterling.active = True
+        self.channels["etsy"].clearing_journal_ids = [
+            (4, self.env["account.journal"].create(
+                {
+                    "name": "Invented Etsy sterling",
+                    "code": "INEG",
+                    "type": "bank",
+                    "company_id": self.company.id,
+                    "currency_id": sterling.id,
+                    "default_account_id": self._account(
+                        "Invented Etsy clearing GBP", "asset_current",
+                    ).id,
+                },
+            ).id),
+        ]
         batch = self._moved(**{"etsy-statement.csv": fixtures.etsy_statement(deposits)})
         moved = self.env["b2c.money.transfer"].search(
             [("move_id", "in", batch.transfer_move_ids.ids)],
