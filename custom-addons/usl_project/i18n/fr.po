@@ -128,3 +128,30 @@ msgstr ""
 "    !!! Définir la tâche comme priorité urgente  \n"
 "\n"
 "    Veillez à utiliser le bon format et l’ordre correct, par exemple : Améliorer l’écran de configuration 5h #feature #v16 @Mitchell !"
+
+#. module: usl_project
+#: model:ir.model.fields,field_description:usl_project.field_project_task__github_url
+msgid "GitHub URL"
+msgstr "URL GitHub"
+
+#. module: usl_project
+#: model:ir.model.fields,help:usl_project.field_project_task__github_url
+msgid "The canonical GitHub issue, pull request or repository link for this task."
+msgstr "Le lien GitHub canonique de ticket, de pull request ou de dépôt pour cette tâche."
+
+#. module: usl_project
+#: model_terms:ir.ui.view,arch_db:usl_project.project_task_form_github_reference
+msgid "GitHub issue or pull request URL"
+msgstr "URL du ticket ou de la pull request GitHub"
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/task_github_properties.js:0
+msgid "Legacy GitHub"
+msgstr "Ancienne référence GitHub"
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/task_github_properties.xml:0
+msgid "Legacy GitHub:"
+msgstr "Ancienne référence GitHub :"

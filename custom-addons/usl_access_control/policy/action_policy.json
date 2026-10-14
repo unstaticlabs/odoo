@@ -202327,6 +202327,25 @@
         "client:usl_home:custom-addons/usl_home/static/src/home/home.js:openAiPipelines:rpc:1": "c2ae301a4f259a291c2303291ee26fb1473f7b49623f327e8b8940d36837ee11",
         "client:usl_home:custom-addons/usl_home/static/src/home/home.js:saveLayout:rpc:1": "a602c94e22e4d67ecd18b71b991608f1891e908b3fd80bdc9b6da399da9d10bd"
       }
+    },
+    {
+      "action_keys": [
+        "sink:usl_project:custom-addons/usl_project/models/task_github_reference.py:project.task._usl_migrate_github_references:orm_write:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Copies eligible legacy references during module installation or upgrade without deleting history or replacing existing canonical values.",
+      "domain": "projects",
+      "evidence_id": "task-github-reference-20261014",
+      "id": "system_internal.projects.task_github_reference_20261014",
+      "overrides": {
+        "sink:usl_project:custom-addons/usl_project/models/task_github_reference.py:project.task._usl_migrate_github_references:orm_write:1": {
+          "reachability_proof": "The underscore-prefixed helper has no independent ordinary RPC or controller entry. Its only callers are the addon post-init hook and version 13 post-migration, running under the module lifecycle identity. It writes only github_url on tasks with an empty canonical value and exactly one valid populated legacy GitHub property."
+        }
+      },
+      "rationale": "Private module lifecycle helper; normal form and card URL interactions use native Odoo fields and task access.",
+      "reviewed_digests": {
+        "sink:usl_project:custom-addons/usl_project/models/task_github_reference.py:project.task._usl_migrate_github_references:orm_write:1": "a121831bb61bc7d4b48b286c1a25e1c6b7d42e27a70ed93c2522f2127d14ab49"
+      }
     }
   ],
   "evidence_families": {
@@ -202487,6 +202506,14 @@
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_json2_policy_denies_unknown_mutations_and_secrets",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_profile_exposes_every_owner_application",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_scope_uses_owner_private_project_and_assignment_rules"
+      ]
+    },
+    "task-github-reference-20261014": {
+      "contract": "Install and version 13 upgrade copy one unambiguous valid legacy GitHub reference into an empty canonical field. Existing canonical values, raw legacy task properties and project definitions remain unchanged; native task permissions continue to govern ordinary edits.",
+      "tests": [
+        "custom-addons/usl_project/tests/test_task_github_reference.py",
+        "custom-addons/usl_project/tests/test_task_github_reference_tour.py",
+        "custom-addons/usl_project/static/tests/task_github_properties.test.js"
       ]
     },
     "transport-exact-targets-v1": {

@@ -1621821,6 +1621821,21 @@
       ]
     },
     {
+      "digest": "a121831bb61bc7d4b48b286c1a25e1c6b7d42e27a70ed93c2522f2127d14ab49",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_github_reference.py:project.task._usl_migrate_github_references:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 36,
+          "path": "custom-addons/usl_project/models/task_github_reference.py"
+        }
+      ]
+    },
+    {
       "digest": "0fdb170370dcaafc4ca8d976db1b02f1c5b352355ef28bdc6f0a31578d8308be",
       "key": "sink:usl_sign:custom-addons/usl_sign/controllers/portal.py:SignPortalController._secure_signer:sudo:1",
       "kind": "sink",
@@ -1689225,11 +1689240,11 @@
       "version": "saas~19.3.1.4.4"
     },
     {
-      "manifest_sha256": "69732383a0664fa54d31befbe856a8944e513bbb7ff9eebcd9aa8e56941a676b",
+      "manifest_sha256": "e258de063f4b19b47c66a23febbe8314eee3c6404e6fd5188ad003474b86c181",
       "name": "usl_project",
       "origin": "custom",
-      "source_sha256": "2c79cb187756ea5b60f5dc3ae37d7b86eb6368cba503119d6930dc3d802da320",
-      "version": "saas~19.3.1.0.11"
+      "source_sha256": "d3f0c5d2f92d1962a5b2bc6789aa8a6e2efc07d6b2710a8909c0c37e02515cd2",
+      "version": "saas~19.3.1.0.13"
     },
     {
       "manifest_sha256": "fdc17bc172de42c3680d2f856c88ec910045db940de6d0fd31988944400cb74a",
