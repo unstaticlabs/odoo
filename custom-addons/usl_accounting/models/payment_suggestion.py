@@ -4,7 +4,7 @@ import logging
 import re
 from datetime import date, timedelta
 
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
 
 
@@ -351,6 +351,7 @@ class AccountMove(models.Model):
             )
         return candidates
 
+    @api.depends_context("uid", "allowed_company_ids")
     def _compute_payments_widget_to_reconcile_info(self):
         super()._compute_payments_widget_to_reconcile_info()
 
@@ -409,6 +410,11 @@ class AccountMove(models.Model):
                 candidate.update(
                     {
                         "can_assign": move.state == "posted",
+                        "can_post_match": (
+                            move.state == "draft" and move.move_type == "in_invoice"
+                            and move.company_id in self.env.companies
+                            and self.env.user.has_group("account.group_account_invoice")
+                        ),
                         "bank_label": (line.move_id.statement_line_id.payment_ref or "").strip(),
                         "match_confidence": confidence,
                         "match_reason": reason,

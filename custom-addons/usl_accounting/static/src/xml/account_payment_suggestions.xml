@@ -134,6 +134,14 @@
                     Use payment rate
                 </button>
             </div>
+            <button t-elif="line.can_post_match"
+                    type="button"
+                    class="btn btn-outline-secondary o_draft_post_match d-print-none"
+                    t-att-disabled="this.isSettlementRowPending(line.id)"
+                    t-att-aria-busy="this.isSettlementActionPending(line.id, 'post_match') ? 'true' : 'false'"
+                    t-on-click.stop.prevent="() => this.postAndMatchOutstandingCredit(info.moveId, line.id)">
+                Post and match
+            </button>
             <span t-else=""
                   class="small text-muted text-nowrap"
                   aria-disabled="true"

@@ -17,6 +17,7 @@ class AccountMove extends models.Model {
 
     invoice_outstanding_credits_debits_widget = fields.Json();
     invoice_payments_widget = fields.Json();
+    name = fields.Char();
 
     _records = [
         {
@@ -334,6 +335,15 @@ class AccountMove extends models.Model {
         },
     ];
 }
+
+AccountMove._records.push({
+    id: 10, name: "QA saved bill",
+    invoice_outstanding_credits_debits_widget: {
+        content: [{ id: 51, move_id: 93, move_name: "QA/BANK/001", amount: 24,
+            currency_id: 1, can_assign: false, can_post_match: true }],
+        move_id: 10, outstanding: true, title: "Suggested payments",
+    },
+});
 
 defineMailModels();
 defineModels([AccountMove]);
@@ -757,4 +767,102 @@ test("all three actions remain visible in a compact mobile layout", async () => 
     expect(".o_rebuild_payment_suggestion_context").toHaveText(
         /Best match\s*Bank transaction\s*Reference match\s*Larger available payment\s*1-day gap from due date/
     );
+});
+
+
+const draftPostPreview = {
+    bill_name: "QA draft bill", supplier_name: "QA supplier", company_name: "QA company",
+    amount: 24, currency_id: 1, currency_name: "EUR", bill_date: "2026-10-01",
+    accounting_date: "2026-10-14", current_accounting_date: "2026-10-01",
+    numbering_note: "Odoo assigns the bill number when posting.",
+    payment_label: "QA supplier payment", payment_entry: "QA/BANK/001",
+    bill_write_date: "2026-10-14 00:00:00", confirmation_key: "qa-fingerprint",
+};
+
+async function mountDraftPostMatch() {
+    return mountView({ type: "form", resModel: "account.move", resId: 10,
+        arch: '<form><field name="name"/><field name="invoice_outstanding_credits_debits_widget" widget="payment"/></form>',
+    });
+}
+
+test("Post and match previews posting and cancel never mutates", async () => {
+    onRpc("get_draft_post_match_preview", ({ args }) => {
+        expect(args).toEqual([10, 51]);
+        expect.step("preview");
+        return draftPostPreview;
+    });
+    onRpc("js_post_and_match_outstanding_line", () => expect.step("unexpected-mutation"));
+    await mountDraftPostMatch();
+    expect(".outstanding_credit_assign").toHaveCount(0);
+    await contains(".o_draft_post_match").click();
+    expect(".modal-body").toHaveText(/QA draft bill.*QA supplier.*QA company.*EUR.*2026-10-14.*lock dates.*QA supplier payment.*remain posted/s);
+    expect(".o_draft_post_match").toHaveAttribute("disabled");
+    await contains(".modal-footer button:contains(Cancel)").click();
+    expect(".modal").toHaveCount(0);
+    expect(".o_draft_post_match").not.toHaveAttribute("disabled");
+    expect.verifySteps(["preview"]);
+});
+
+test("Post and match sends reviewed facts once and reports posted unmatched honestly", async () => {
+    const pending = new Deferred();
+    onRpc("get_draft_post_match_preview", () => draftPostPreview);
+    onRpc("js_post_and_match_outstanding_line", ({ args, kwargs }) => {
+        expect(args).toEqual([10, 51]);
+        expect(kwargs.confirmed).toBe(true);
+        expect(kwargs.expected_confirmation).toBe("qa-fingerprint");
+        expect(kwargs.expected_write_date).toBe("2026-10-14 00:00:00");
+        expect.step("post-once");
+        return pending;
+    });
+    mockService("notification", { add: (message, options) => {
+        expect(message).toBe("The bill was posted, but its payment could not be matched.");
+        expect(options.type).toBe("warning");
+        expect(options.sticky).toBe(true);
+        expect.step("posted-unmatched");
+    } });
+    await mountDraftPostMatch();
+    await contains(".o_draft_post_match").click();
+    await contains(".modal-footer button:contains(Post and match)").click();
+    expect(".modal-footer button").toHaveAttribute("disabled");
+    pending.resolve({ status: "posted_unmatched", message: "The bill was posted, but its payment could not be matched." });
+    await animationFrame();
+    expect(".modal").toHaveCount(0);
+    expect.verifySteps(["post-once", "posted-unmatched"]);
+});
+
+test("an uncertain posting response asks for readback and never retries", async () => {
+    onRpc("get_draft_post_match_preview", () => draftPostPreview);
+    onRpc("js_post_and_match_outstanding_line", () => {
+        expect.step("one-request");
+        throw new Error("Network interrupted");
+    });
+    mockService("notification", { add: (message, options) => {
+        expect(message).toMatch(/Refresh the bill and check whether it was posted or matched/);
+        expect(options.type).toBe("danger");
+        expect(options.sticky).toBe(true);
+        expect.step("readback");
+    } });
+    await mountDraftPostMatch();
+    await contains(".o_draft_post_match").click();
+    await contains(".modal-footer button:contains(Post and match)").click();
+    expect(".modal").toHaveCount(0);
+    expect.verifySteps(["one-request", "readback"]);
+});
+
+
+test("Post and match never saves dirty bill edits or requests a preview", async () => {
+    onRpc("get_draft_post_match_preview", () => expect.step("unexpected-preview"));
+    onRpc("write", () => expect.step("unexpected-save"));
+    mockService("notification", { add: (message, options) => {
+        expect(message).toBe("Save your bill changes before reviewing Post and match.");
+        expect(options.type).toBe("warning");
+        expect.step("save-first");
+    } });
+    await mountDraftPostMatch();
+    await contains(".o_field_widget[name='name'] input").edit("QA unsaved change");
+    await contains(".o_draft_post_match").click();
+    expect(".modal").toHaveCount(0);
+    expect(".o_field_widget[name='name'] input").toHaveValue("QA unsaved change");
+    expect(".o_draft_post_match").not.toHaveAttribute("disabled");
+    expect.verifySteps(["save-first"]);
 });

@@ -220,6 +220,46 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
         self.assertEqual(bill.state, "draft")
         self.assertFalse(source_line.reconciled)
 
+    def test_post_and_match_posting_failure_leaves_bill_draft_and_bank_unchanged(self):
+        bill, statement, source_line = self._draft_post_match_fixture()
+        bank_facts = (statement.amount, statement.date, statement.payment_ref, source_line.account_id.id)
+        before_partials = self.env["account.partial.reconcile"].search([]).ids
+        with patch.object(type(bill), "action_post", side_effect=UserError("Synthetic posting refusal")):
+            with self.assertRaisesRegex(UserError, "posting refusal"):
+                bill.js_post_and_match_outstanding_line(source_line.id, confirmed=True)
+        self.assertEqual(bill.state, "draft")
+        self.assertFalse(bill.posted_before)
+        self.assertFalse(source_line.reconciled)
+        self.assertEqual(self.env["account.partial.reconcile"].search([]).ids, before_partials)
+        self.assertEqual((statement.amount, statement.date, statement.payment_ref, source_line.account_id.id), bank_facts)
+
+    def test_post_and_match_read_only_user_cannot_preview_or_post(self):
+        bill, statement, source_line = self._draft_post_match_fixture()
+        reader = new_test_user(self.env, login="post-match-reader",
+            groups="account.group_account_readonly", company_id=self.company.id,
+            company_ids=[Command.set(self.company.ids)])
+        caller_bill = bill.with_user(reader)
+        with self.assertRaises(AccessError):
+            caller_bill.get_draft_post_match_preview(source_line.id)
+        with self.assertRaises(AccessError):
+            caller_bill.js_post_and_match_outstanding_line(source_line.id, confirmed=True)
+        self.assertEqual(bill.state, "draft")
+        self.assertFalse(source_line.reconciled)
+
+    def test_post_and_match_reused_request_never_posts_twice(self):
+        bill, statement, source_line = self._draft_post_match_fixture()
+        preview = bill.get_draft_post_match_preview(source_line.id)
+        bill.js_post_and_match_outstanding_line(source_line.id, confirmed=True,
+            expected_confirmation=preview["confirmation_key"])
+        number = bill.name
+        partials = self.env["account.partial.reconcile"].search([]).ids
+        with self.assertRaisesRegex(UserError, "draft vendor bill"):
+            bill.js_post_and_match_outstanding_line(source_line.id, confirmed=True,
+                expected_confirmation=preview["confirmation_key"])
+        self.assertEqual(bill.name, number)
+        self.assertEqual(self.env["account.partial.reconcile"].search([]).ids, partials)
+        self.assertTrue(source_line.reconciled)
+
     def test_bank_suggestion_keeps_bank_label_separate_from_entry_reference(self):
         bill = self._document()
         statement, source_line = self._bank_candidate(bill)
