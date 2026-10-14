@@ -666,9 +666,26 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
                 [("document_id", "=", bill.id)],
             ),
         )
+
         self.assertFalse(statement_line.foreign_currency_id)
         self.assertEqual(statement_line.amount_currency, 0.0)
         self.assertEqual(statement_line.amount, -4.40)
+
+    def test_billing_cancel_guard_retains_private_settlement_protection(self):
+        bill = self._document()
+        statement_line, source_line = self._bank_candidate(bill)
+        bill.js_use_payment_rate_outstanding_line(source_line.id)
+        settlement = bill.immediate_settlement_ids
+        clerk = new_test_user(self.env, login="qa-settlement-billing-guard",
+            groups="account.group_account_invoice", company_id=self.company.id,
+            company_ids=[Command.set(self.company.ids)])
+        with self.assertRaises(AccessError):
+            settlement.with_user(clerk).check_access("read")
+        with self.assertRaisesRegex(UserError, "Undo the linked settlement"):
+            bill.with_user(clerk).button_cancel()
+        self.assertEqual(bill.state, "posted")
+        self.assertEqual(settlement.state, "settled")
+        self.assertTrue(statement_line.is_reconciled)
 
     def test_use_payment_rate_reprices_document_without_technical_entry(self):
         bill = self._document()

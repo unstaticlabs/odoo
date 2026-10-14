@@ -28,4 +28,5 @@ from . import (
     queue_job,
     readonly_evidence,
     vendor_bill_configuration,
+    vendor_bill_merge,
 )

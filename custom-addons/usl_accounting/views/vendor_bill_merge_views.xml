@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="vendor_bill_merge_wizard_form" model="ir.ui.view">
+        <field name="name">usl.vendor.bill.merge.wizard.form</field>
+        <field name="model">usl.vendor.bill.merge.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Choose the bill to keep" create="false" delete="false">
+                <field name="id" invisible="1"/>
+                <div class="alert alert-info" role="status">These bills differ. Keep one bill's existing content and amount. The other bills will be cancelled and remain available with their original files and history. The kept bill will be marked To Review.</div>
+                <field name="bill_ids" readonly="1">
+                    <list create="false" delete="false" edit="false">
+                        <field name="id" string="Record"/><field name="partner_id"/><field name="ref"/>
+                        <field name="invoice_date"/><field name="state"/>
+                        <field name="currency_id" column_invisible="1"/>
+                        <field name="amount_total" widget="monetary"/>
+                        <button name="action_choose_vendor_bill_merge_winner" type="object" string="Choose this bill" context="{'vendor_bill_merge_wizard_id': parent.id}"/>
+                    </list>
+                </field>
+                <field name="winning_bill_id" invisible="1"/>
+                <group invisible="not winning_bill_id"><field name="winning_details" readonly="1"/></group>
+                <footer><button name="action_merge" type="object" string="Keep this bill and merge" class="btn-primary" invisible="not winning_bill_id"/><button string="Cancel" special="cancel"/></footer>
+            </form>
+        </field>
+    </record>
+    <record id="vendor_bill_merge_list" model="ir.ui.view">
+        <field name="name">account.invoice.list.vendor.bill.merge</field><field name="model">account.move</field><field name="inherit_id" ref="account.view_invoice_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside"><button name="action_merge_vendor_bills" type="object" string="Merge Bills" groups="account.group_account_invoice" invisible="context.get('default_move_type') != 'in_invoice'"/></xpath>
+            <xpath expr="//field[@name='review_state']" position="after"><field name="review_state" string="Review" widget="badge" readonly="1" optional="show" groups="account.group_account_invoice,!account.group_account_user" column_invisible="context.get('default_move_type') != 'in_invoice'" invisible="review_state not in ('todo', 'anomaly')" decoration-info="review_state == 'todo'" decoration-danger="review_state == 'anomaly'"/></xpath>
+        </field>
+    </record>
+    <record id="vendor_bill_merge_form" model="ir.ui.view">
+        <field name="name">account.move.vendor.bill.merge</field><field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_vendor_bill_merge_originals" type="object" class="oe_stat_button" icon="fa-files-o" invisible="not vendor_bill_merge_original_count"><field name="vendor_bill_merge_original_count" widget="statinfo" string="Original Bills"/></button>
+            </xpath>
+            <xpath expr="//sheet" position="before">
+                <field name="vendor_bill_merge_target_id" invisible="1"/>
+                <div class="alert alert-info" role="status" invisible="not vendor_bill_merge_target_id or state != 'cancel'">This original bill is retained as a merged duplicate. Its files and history stay here. <button name="action_open_vendor_bill_merge_target" type="object" string="Open the bill kept" class="btn btn-link"/> Use Reset to Draft to restore this bill independently.</div>
+            </xpath>
+            <xpath expr="//header/field[@name='review_state']" position="before"><field name="review_state" widget="badge" readonly="1" class="ms-auto me-3 align-self-center" groups="account.group_account_invoice" invisible="move_type != 'in_invoice' or state != 'draft' or review_state not in ('todo', 'anomaly')" decoration-info="review_state == 'todo'" decoration-danger="review_state == 'anomaly'"/></xpath>
+        </field>
+    </record>
+    <record id="vendor_bill_merge_search" model="ir.ui.view">
+        <field name="name">account.move.vendor.bill.merge.search</field><field name="model">account.move</field><field name="inherit_id" ref="account.view_account_invoice_filter"/>
+        <field name="arch" type="xml"><xpath expr="//filter[@name='to_check']" position="attributes"><attribute name="domain">[('review_state', 'in', ('todo', 'anomaly')), '|', ('state', '=', 'posted'), '&amp;', ('state', '=', 'draft'), ('move_type', '=', 'in_invoice')]</attribute></xpath></field>
+    </record>
+</odoo>

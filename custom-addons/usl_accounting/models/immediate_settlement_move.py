@@ -777,8 +777,13 @@ class AccountMove(models.Model):
             move.invoice_payments_widget = widget
 
     def _immediate_settlement_protected_moves(self):
-        settlements = self.env["account.immediate.settlement"].search(
+        self.check_access("read")
+        # Billing users can cancel their bills without reading settlement audit
+        # records. Inspect only protection for these authorized moves; return
+        # the original recordset, never privileged settlement data or authority.
+        settlements = self.env["account.immediate.settlement"].sudo().search(
             [
+                ("company_id", "in", self.company_id.ids),
                 ("state", "=", "settled"),
                 "|",
                 "|",

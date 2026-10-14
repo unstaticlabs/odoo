@@ -15,3 +15,5 @@ from . import (
     test_multi_company_cards,
     test_multi_company_expenses,
 )
+
+from . import test_vendor_bill_merge
