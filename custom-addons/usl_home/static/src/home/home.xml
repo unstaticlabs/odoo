@@ -19,7 +19,7 @@
                     </button>
                 </div>
             </header>
-            <HomeContentSearch query="props.state?.contentSearchQuery || ''" revision="state.searchRevision"/>
+            <HomeContentSearch query="props.state?.contentSearchQuery ?? props.globalState?.contentSearchQuery ?? ''" revision="state.searchRevision"/>
 
             <section t-if="state.customize" class="o_usl_home_customize" aria-labelledby="usl-home-customize-title">
                 <div>

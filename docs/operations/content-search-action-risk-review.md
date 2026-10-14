@@ -1,8 +1,9 @@
 # Live content search action review
 
 The canonical runtime review adds three Home RPCs and five frontend transports.
-It removes no existing action and changes no existing action digest or risk
-class. The module closure remains the tracked 164 modules.
+It removes no existing action. The later native history correction changes only
+the existing Home UI action digest for its unique route; no existing risk class
+changes. The module closure remains the tracked 164 modules.
 
 `search_records` accepts an internal caller, a text query and a finite business
 category list. It uses native model/field/record read access and selected-company
@@ -40,3 +41,12 @@ selected companies, portal denial, stale destination access, readonly Accounting
 scoped OCR results, independent provider completion and native keyboard/opening.
 Offline provider fixtures exercise transport and authorization; they do not
 claim real archive availability or semantic model quality.
+
+
+The Home UI route is `usl-home`, with unchanged action ID/tag/menu/default-user
+references. It avoids the built-in native `home` redirect without replacing that
+command. Native local/global query export stores only a string in hidden browser
+history; both result services recompute current caller-scoped data on return.
+No router override, custom persistent storage or query URL is added. The single
+existing UI digest is reviewed separately from the eight new search entries;
+all unrelated action digests remain unchanged.

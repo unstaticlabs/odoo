@@ -4,7 +4,8 @@ Home has a live search above its attention cards. People can find a task from a
 sentence in its description, a custom property, or an activity note, without
 remembering its title. Results show the record, accessible project/company
 context, and a short matching excerpt. Opening a result uses its native form;
-Back returns to the Home query.
+Native Odoo Back and ordinary browser history Back return to the Home query.
+Only the query is restored; results are requested again under current access.
 
 The native Tasks search field uses the same content search. Existing Open,
 My Tasks, project, company, Group By and saved-filter restrictions still apply.
@@ -59,3 +60,18 @@ search input does not automatically claim focus on mobile.
 
 The existing command palette and its first-suggested Feedback command retain
 their own native shortcut and behavior.
+
+
+## Home route and upgrade boundary
+
+Home uses the native action path `/odoo/usl-home`. Its action ID, menu, component
+tag and users’ configured default action remain unchanged. The unique path avoids
+Odoo’s built-in `home` command, which redirects and reloads the page. Old
+`/odoo/home` bookmarks retain native default-home fallback behavior; an existing
+pre-upgrade history entry does not gain query recovery retroactively.
+
+The query uses Odoo’s hidden history state and does not enter the URL. An explicit
+clear stays empty across Forward and Back. Ordinary result navigation and native
+breadcrumbs are qualified separately. Explicit hard reload or leaving the app for
+another document is a separate native startup boundary; no custom persistent
+storage is introduced here.

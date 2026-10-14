@@ -14,7 +14,10 @@ export class HomeContentSearch extends Component {
         this.input = useRef("input");
         this.state = useState({ query: this.props.query || "", groups: [], documents: null, loading: false, documentsLoading: false, error: false, documentError: false, selected: null });
         this.generation = 0;
-        useSetupAction({ getLocalState: () => ({ contentSearchQuery: this.state.query }) });
+        useSetupAction({
+            getLocalState: () => ({ contentSearchQuery: this.state.query }),
+            getGlobalState: () => ({ contentSearchQuery: this.state.query }),
+        });
         onMounted(() => this.search());
         onWillUpdateProps((props) => {
             if (props.revision !== this.props.revision) {

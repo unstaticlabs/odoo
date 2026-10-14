@@ -55,6 +55,7 @@ const ACCOUNTING_ICONS = {
 
 export class UslHome extends Component {
     static template = "usl_home.Home";
+    static path = "usl-home";
     static components = { HomeContentSearch };
     static props = { "*": true };
 

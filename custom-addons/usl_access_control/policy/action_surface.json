@@ -3033,7 +3033,7 @@
       ],
       "sources": [
         {
-          "line": 93,
+          "line": 96,
           "path": "custom-addons/usl_home/static/src/home/content_search.js"
         }
       ]
@@ -3051,7 +3051,7 @@
       ],
       "sources": [
         {
-          "line": 142,
+          "line": 145,
           "path": "custom-addons/usl_home/static/src/home/content_search.js"
         }
       ]
@@ -3069,7 +3069,7 @@
       ],
       "sources": [
         {
-          "line": 114,
+          "line": 117,
           "path": "custom-addons/usl_home/static/src/home/content_search.js"
         }
       ]
@@ -3087,7 +3087,7 @@
       ],
       "sources": [
         {
-          "line": 157,
+          "line": 160,
           "path": "custom-addons/usl_home/static/src/home/content_search.js"
         }
       ]
@@ -3106,11 +3106,11 @@
       ],
       "sources": [
         {
-          "line": 354,
+          "line": 355,
           "path": "custom-addons/usl_home/static/src/home/home.js"
         },
         {
-          "line": 387,
+          "line": 388,
           "path": "custom-addons/usl_home/static/src/home/home.js"
         }
       ]
@@ -3128,7 +3128,7 @@
       ],
       "sources": [
         {
-          "line": 337,
+          "line": 338,
           "path": "custom-addons/usl_home/static/src/home/home.js"
         }
       ]
@@ -3146,7 +3146,7 @@
       ],
       "sources": [
         {
-          "line": 230,
+          "line": 231,
           "path": "custom-addons/usl_home/static/src/home/home.js"
         }
       ]
@@ -1683813,7 +1683813,7 @@
       "xmlid": "usl_feedback.res_config_settings_view_form_feedback"
     },
     {
-      "digest": "e633b7b8c0f68298548cd7238c7d392555f835d1b4e15a67250b485ee8f112ab",
+      "digest": "5291a73f9661860d4cd0689b8d4847fed56888912507d49ce984aa04e1b2b229",
       "guards": [],
       "key": "ui:usl_home.action_usl_home",
       "kind": "ui",
@@ -1683822,7 +1683822,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "f93e928d66ed79e814bb6267fb427db76789bccdefb6191f6fa87b85ac95f320",
+      "runtime_digest": "1f166f67f2befe821e8e56acdcf4ed7aed87b651bbd88bd48f44b1c85a0a5b09",
       "sinks": [],
       "sources": [
         {
@@ -1689369,11 +1689369,11 @@
       "version": "saas~19.3.2.0.18"
     },
     {
-      "manifest_sha256": "9881b4bd7689a650f6efd6b4106125a7e26daa28cf95ad80876902f121a33efb",
+      "manifest_sha256": "e790c3f438dd1ea6aea6a7f891a02c104e702bacca69ec236e33d7e319322d84",
       "name": "usl_home",
       "origin": "custom",
-      "source_sha256": "02457004a3a3488d0b168521069aa857cb251ba179b6da6f80b49095fa8109d4",
-      "version": "saas~19.3.1.0.10"
+      "source_sha256": "e731bfd1656ac3c3a214a213e57c7cb00774bb3e013b9fc7c45655a1dc9ebb0c",
+      "version": "saas~19.3.1.0.11"
     },
     {
       "manifest_sha256": "bb43850f670e0acf9f0173cad4c0c93680767addca24c5251f053d2d1eaf7e0b",

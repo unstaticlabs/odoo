@@ -1,8 +1,10 @@
 # Live content search QA captures
 
+Illustrative captures taken before the later browser-history correction.
 Captured on14 October2026, Paris, from product source
 `9e412111cc27474e8002866e168165da5f556a4f`. The capture commit adds
-only screenshots and this documentation.
+only screenshots and this documentation. The later unique-route/query-export
+fix has the same visible layout; these are not recaptures of that later source.
 
 Ordinary non-admin synthetic collaborator, selected CompanyA; isolated QA
 registry contains the complete164-module distribution. Document OCR comes from
