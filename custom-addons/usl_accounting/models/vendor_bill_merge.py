@@ -15,13 +15,13 @@ _WIZARD_INIT_KEY = "usl_vendor_bill_merge_init"
 _HEADERS = (
     "partner_id", "company_id", "move_type", "state", "currency_id", "journal_id",
     "invoice_date", "date", "invoice_date_due", "ref", "payment_reference", "invoice_origin",
-    "fiscal_position_id", "invoice_payment_term_id", "invoice_cash_rounding_id",
+    "partner_bank_id", "fiscal_position_id", "invoice_payment_term_id", "invoice_cash_rounding_id",
     "invoice_currency_rate", "narration", "payment_state", "auto_post", "auto_post_origin_id",
 )
 _LINE_FACTS = (
     "display_type", "name", "product_id", "product_uom_id", "account_id",
     "partner_id", "currency_id", "quantity", "price_unit", "discount", "tax_ids",
-    "tax_line_id", "tax_repartition_line_id", "analytic_distribution",
+    "tax_line_id", "tax_repartition_line_id", "tax_tag_ids", "analytic_distribution",
     "balance", "amount_currency", "date_maturity", "debit", "credit",
     "purchase_line_id", "expense_id",
 )
@@ -34,7 +34,7 @@ def _facts(record, names):
             continue  # Native purchase/expense links depend on installed apps.
         value = record[name]
         if isinstance(value, models.BaseModel):
-            value = value.ids
+            value = sorted(value.ids) if name == "tax_tag_ids" else value.ids
         values[name] = value
     return values
 

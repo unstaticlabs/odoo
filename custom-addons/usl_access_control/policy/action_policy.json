@@ -193233,7 +193233,7 @@
         "ui:usl_accounting.view_bank_statement_reopen_form:button:object:action_reopen:1": "f69e40686b209f814b0ae1a486af944a28a38d7325a1ae991d3a0444d6fb02ee",
         "ui:usl_accounting.view_hr_expense_form_bank_matching:button:object:action_open_confirmation:1": "9d99b687efe8cddf4ab1f73f4a6738fc14a85139d323e06922966fe13823d28d",
         "ui:usl_accounting.view_hr_expense_form_bank_matching:button:object:action_refresh_bank_match_candidates:1": "e3e384a535f10ea8f1b9ccdd0acd05546a14ce48278a1ac87253eefa98f3d038",
-        "ui:usl_accounting.view_move_form_immediate_settlement:button:object:action_open_immediate_settlement:1": "85de08e69d7a9c47ccec6100f3a0d3d706a69c6c80659fd56af33bc48a929280",
+        "ui:usl_accounting.view_move_form_immediate_settlement:button:object:action_open_immediate_settlement:1": "8f2fc5ebb66b853eda188be530a098fe67865b15881522a1224ffb94de2672a6",
         "ui:usl_accounting.view_users_form_multi_company_expenses:button:object:action_usl_sync_expense_company_profiles:1": "637fa9782374ce1e55c96a1ff11fb8957e32b4044cc2135c4936ade889385fdd",
         "ui:usl_accounting.view_usl_expense_bank_match_wizard_form:button:object:action_confirm:1": "5134266cd80f83f71d57e890e7f75984bcb2e112a586af883e980b08574a4d63",
         "ui:usl_b2c.view_b2c_accounting_link_form:button:object:action_reject:1": "850ed4ab0ef799df51f89ef35af25209cce74759e1bb2e6b4a5226d22c3c7dd6",
@@ -203186,13 +203186,22 @@
       ]
     },
     "vendor-bill-merge-20261014": {
-      "contract": "Native actor/company/creator and Agent-owner ceiling; immutable selection/child/evidence snapshot; keep existing winning identity and financial lines, native guarded cancellation/recovery, retained original files/history; explicit conflict choice/todo and atomic rollback. Runtime, installation/upgrade and live protocol qualification remain separate required delivery evidence.",
+      "contract": "Native actor/company/creator and Agent-owner ceiling; immutable selection/child/evidence snapshot; keep existing winning identity and financial lines, native guarded cancellation/recovery, retained original files/history; explicit conflict choice/todo and atomic rollback. Runtime, installation/upgrade and live protocol qualification remain separate required delivery evidence. Nonempty equality and stale checks include recipient-bank identity and normalized tax reporting tags; Billing bill details omit the inaccessible settlement audit control while Accounting audit access and native protection remain.",
       "tests": [
         "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_identical_bills_keep_one_amount_and_original_winning_lines",
         "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_managed_agent_creator_owner_ceiling_and_sibling_boundaries",
         "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_late_native_cancellation_failure_restores_all_selected_bills",
         "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_public_lineage_write_and_serializable_default_are_rejected",
-        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_billing_cancel_guard_retains_private_settlement_protection"
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_billing_cancel_guard_retains_private_settlement_protection",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_recipient_bank_difference_requires_explicit_winner",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_recipient_bank_change_after_preview_rejects_merge",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_empty_shell_bank_difference_keeps_first_without_prompt",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_posted_reporting_tag_difference_requires_explicit_winner",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_reporting_tag_change_after_preview_rejects_merge",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_same_reporting_tag_set_keeps_one_posted_bill",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_different_untagged_line_counts_do_not_claim_reporting_tags_differ",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_billing_bill_form_excludes_inaccessible_settlement_audit",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_accountant_retains_native_settlement_audit_count"
       ]
     }
   },

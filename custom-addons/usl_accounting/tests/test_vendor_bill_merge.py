@@ -2,6 +2,8 @@ from datetime import timedelta
 import json
 from unittest.mock import patch
 
+from lxml import etree
+
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
@@ -283,7 +285,38 @@ class TestVendorBillMerge(AccountTestInvoicingCommon):
         first, second = self._bill(), self._bill(amount=47)
         with patch.object(type(first), "write", side_effect=AssertionError("Preview wrote a bill")), \
              patch.object(type(first.line_ids), "write", side_effect=AssertionError("Preview wrote a line")):
-            self._conflict_wizard(first | second)
+            wizard = self._conflict_wizard(first | second)
+            self.assertEqual(wizard.with_context(lang="en_US").difference_summary,
+                             "Amounts or other bill details differ.")
+
+    def test_different_untagged_line_counts_do_not_claim_reporting_tags_differ(self):
+        first, second = self._bill(), self._bill(amount=47)
+        second.invoice_line_ids.with_env(self.env).copy({"move_id": second.id})
+        wizard = self._conflict_wizard(first | second)
+        self.assertEqual(wizard.with_context(lang="en_US").difference_summary,
+                         "Amounts or other bill details differ.")
+
+    def test_billing_bill_form_excludes_inaccessible_settlement_audit(self):
+        first, second = self._bill(), self._bill(amount=47)
+        for bill in (first, second):
+            arch = etree.fromstring(bill.get_view(view_type="form")["arch"])
+            self.assertFalse(arch.xpath(".//field[@name='immediate_settlement_count']"))
+            self.assertFalse(arch.xpath(".//button[@name='action_open_immediate_settlement']"))
+        wizard = self._conflict_wizard(first | second)
+        wizard.winning_bill_id = first
+        wizard.action_merge()
+        arch = etree.fromstring(first.get_view(view_type="form")["arch"])
+        self.assertFalse(arch.xpath(".//field[@name='immediate_settlement_count']"))
+        self.assertTrue(arch.xpath(".//button[@name='action_open_vendor_bill_merge_originals']"))
+        with self.assertRaises(AccessError):
+            first.env["account.immediate.settlement"].check_access("read")
+
+    def test_accountant_retains_native_settlement_audit_count(self):
+        bill = self._bill().with_env(self.env)
+        arch = etree.fromstring(bill.get_view(view_type="form")["arch"])
+        self.assertTrue(arch.xpath(".//field[@name='immediate_settlement_count']"))
+        self.assertTrue(arch.xpath(".//button[@name='action_open_immediate_settlement']"))
+        self.assertEqual(bill.immediate_settlement_count, 0)
 
     def test_changed_original_evidence_invalidates_conflict_choice(self):
         first, second = self._bill(), self._bill(amount=47)
@@ -302,6 +335,100 @@ class TestVendorBillMerge(AccountTestInvoicingCommon):
         })
         self.assertEqual(first.amount_total, second.amount_total)
         self._conflict_wizard(first | second)
+
+    def _recipient_banks(self, bill):
+        return self.env["res.partner.bank"].create([
+            {"partner_id": bill.partner_id.id, "account_number": "QA-MERGE-RECIPIENT-A"},
+            {"partner_id": bill.partner_id.id, "account_number": "QA-MERGE-RECIPIENT-B"},
+        ])
+
+    def test_recipient_bank_difference_requires_explicit_winner(self):
+        first, second = self._bill(), self._bill()
+        banks = self._recipient_banks(first)
+        first.partner_bank_id, second.partner_bank_id = banks[0], banks[1]
+        wizard = self._conflict_wizard(first | second)
+        self.assertIn("Recipient bank accounts differ.", wizard.with_context(lang="en_US").difference_summary)
+        wizard.winning_bill_id = second
+        self.assertIn("Recipient bank: " + banks[1].display_name,
+                      wizard.with_context(lang="en_US").winning_details)
+        self.assertEqual((first | second).mapped("state"), ["draft", "draft"])
+        self.assertEqual((first | second).mapped("amount_total"), [24.0, 24.0])
+        self.assertFalse((first | second).mapped("vendor_bill_merge_target_id"))
+
+    def test_recipient_bank_change_after_preview_rejects_merge(self):
+        first, second = self._bill(), self._bill(amount=47.0)
+        banks = self._recipient_banks(first)
+        first.partner_bank_id = banks[0]
+        wizard = self._conflict_wizard(first | second)
+        wizard.winning_bill_id = second
+        first.partner_bank_id = banks[1]
+        line_ids = (first | second).line_ids.ids
+        with self.assertRaises(UserError):
+            wizard.action_merge()
+        self.assertEqual((first | second).mapped("state"), ["draft", "draft"])
+        self.assertEqual(first.partner_bank_id, banks[1])
+        self.assertEqual((first | second).line_ids.ids, line_ids)
+        self.assertFalse((first | second).mapped("vendor_bill_merge_target_id"))
+
+    def test_empty_shell_bank_difference_keeps_first_without_prompt(self):
+        first, second = self._bill(empty=True), self._bill(empty=True)
+        banks = self._recipient_banks(first)
+        first.partner_bank_id, second.partner_bank_id = banks[0], banks[1]
+        action = (first | second).action_merge_vendor_bills()
+        self.assertEqual(action["res_model"], "account.move")
+        self.assertEqual(action["res_id"], first.id)
+        self.assertEqual(first.partner_bank_id, banks[0])
+        self.assertEqual(second.partner_bank_id, banks[1])
+        self.assertEqual((first | second).mapped("state"), ["draft", "cancel"])
+
+    def _reporting_tag(self):
+        return self.env["account.account.tag"].create({
+            "name": "[QA] Alternate reporting classification", "applicability": "taxes",
+        })
+
+    def test_posted_reporting_tag_difference_requires_explicit_winner(self):
+        first, second = self._bill(), self._bill()
+        (first | second).action_post()
+        tag = self._reporting_tag()
+        second.invoice_line_ids.with_env(self.env).tax_tag_ids = tag
+        self.assertEqual(first.amount_total, second.amount_total)
+        wizard = self._conflict_wizard(first | second)
+        self.assertIn("Tax reporting tags differ.", wizard.with_context(lang="en_US").difference_summary)
+        self.assertEqual((first | second).mapped("state"), ["posted", "posted"])
+        self.assertEqual(second.invoice_line_ids.tax_tag_ids, tag)
+        self.assertFalse((first | second).mapped("vendor_bill_merge_target_id"))
+
+    def test_reporting_tag_change_after_preview_rejects_merge(self):
+        first, second = self._bill(), self._bill(amount=47.0)
+        (first | second).action_post()
+        wizard = self._conflict_wizard(first | second)
+        wizard.winning_bill_id = second
+        tag = self._reporting_tag()
+        first.invoice_line_ids.with_env(self.env).tax_tag_ids = tag
+        line_ids = (first | second).line_ids.ids
+        with self.assertRaises(UserError):
+            wizard.action_merge()
+        self.assertEqual((first | second).mapped("state"), ["posted", "posted"])
+        self.assertEqual(first.invoice_line_ids.tax_tag_ids, tag)
+        self.assertEqual((first | second).line_ids.ids, line_ids)
+        self.assertFalse((first | second).mapped("vendor_bill_merge_target_id"))
+
+    def test_same_reporting_tag_set_keeps_one_posted_bill(self):
+        first, second, native_control = self._bill(), self._bill(), self._bill()
+        (first | second | native_control).action_post()
+        first_tag, second_tag = self._reporting_tag(), self._reporting_tag()
+        first.invoice_line_ids.with_env(self.env).tax_tag_ids = [Command.set([second_tag.id, first_tag.id])]
+        second.invoice_line_ids.with_env(self.env).tax_tag_ids = [Command.set([first_tag.id, second_tag.id])]
+        native_control.invoice_line_ids.with_env(self.env).tax_tag_ids = [Command.set([first_tag.id, second_tag.id])]
+        original_line_ids = second.line_ids.ids
+        native_control.button_cancel()
+        action = (first | second).action_merge_vendor_bills()
+        self.assertEqual(action["res_model"], "account.move")
+        self.assertEqual(action["res_id"], first.id)
+        self.assertEqual((first | second).mapped("state"), ["posted", "cancel"])
+        self.assertEqual(set(first.invoice_line_ids.tax_tag_ids.ids), {first_tag.id, second_tag.id})
+        self.assertEqual(second.line_ids.ids, original_line_ids)
+        self.assertEqual(set(second.invoice_line_ids.tax_tag_ids.ids), set(native_control.invoice_line_ids.tax_tag_ids.ids))
 
     def test_paid_reconciled_bills_refused_without_changing_native_payment(self):
         first, second = self._bill(), self._bill()

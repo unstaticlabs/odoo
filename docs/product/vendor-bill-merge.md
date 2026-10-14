@@ -9,13 +9,17 @@ Empty bills for the same identified supplier merge immediately: the first-create
 bill keeps its own headers, including its currency and reference. Exact duplicates
 also merge immediately. Equality includes state, supplier, currency, journal,
 dates, references and origins, payment terms, historical rate, taxes, accounts,
-analytics, financial lines and installed purchase/expense source links; an equal
+analytics, recipient bank, tax-reporting tag sets, financial lines and installed
+purchase/expense source links; an equal
 total alone is not enough. Generated posting numbers
 and record identifiers do not make otherwise identical bills different.
 
 For differences, use **Choose this bill** on the comparison row. Amount, currency,
 state, reference and stable record number distinguish even bills whose native
-display names are identical. Check the selected details, then confirm **Keep this
+display names are identical. The dialog explains recipient-bank and tax-reporting
+differences. Open a record number for native read-only bill details, then return
+to the comparison; opening details changes no bill or choice. Check the selected
+details, then confirm **Keep this
 bill and merge** separately. Selection alone changes no bill. Its state is shown
 explicitly, including when selecting a draft alongside a posted bill.
 The chosen bill keeps its existing lines, amount and state, and is marked with
@@ -62,3 +66,9 @@ authority ceiling, and exact creator checks before selection or confirmation.
 The accountable owner can inspect their Agent's choice, but cannot confirm that
 Agent's dialog as a different actor. Open a new selection instead. Selection and
 snapshot initialization remain private and cannot be forged by public context.
+
+Billing users can open the native bill details before and after merging. The
+foreign-currency Settlement audit button remains available to Accounting
+read-only and full Accounting roles, which can read its underlying audit records.
+Billing users do not receive settlement-record access or bypass cancellation
+protections.

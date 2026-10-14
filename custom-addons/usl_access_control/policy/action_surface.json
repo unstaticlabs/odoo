@@ -1470916,7 +1470916,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 53,
+          "line": 74,
           "path": "custom-addons/usl_accounting/wizard/vendor_bill_merge_wizard.py"
         },
         {
@@ -1471095,12 +1471095,12 @@
       ],
       "sources": [
         {
-          "line": 32,
-          "path": "custom-addons/usl_accounting/wizard/vendor_bill_merge_wizard.py"
-        },
-        {
           "line": 3980,
           "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 53,
+          "path": "custom-addons/usl_accounting/wizard/vendor_bill_merge_wizard.py"
         },
         {
           "line": 532,
@@ -1472545,12 +1472545,12 @@
           "path": "odoo/orm/models.py"
         },
         {
-          "line": 40,
-          "path": "custom-addons/usl_accounting/wizard/vendor_bill_merge_wizard.py"
-        },
-        {
           "line": 559,
           "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "line": 61,
+          "path": "custom-addons/usl_accounting/wizard/vendor_bill_merge_wizard.py"
         },
         {
           "path": "custom-addons/usl_access_control/models/base.py"
@@ -1610152,7 +1610152,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 32,
+          "line": 53,
           "path": "custom-addons/usl_accounting/wizard/vendor_bill_merge_wizard.py"
         }
       ]
@@ -1610170,7 +1610170,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 40,
+          "line": 61,
           "path": "custom-addons/usl_accounting/wizard/vendor_bill_merge_wizard.py"
         }
       ]
@@ -1685647,7 +1685647,7 @@
       "delegates": [
         "rpc:account.move.action_open_immediate_settlement"
       ],
-      "digest": "85de08e69d7a9c47ccec6100f3a0d3d706a69c6c80659fd56af33bc48a929280",
+      "digest": "8f2fc5ebb66b853eda188be530a098fe67865b15881522a1224ffb94de2672a6",
       "guards": [],
       "key": "ui:usl_accounting.view_move_form_immediate_settlement:button:object:action_open_immediate_settlement:1",
       "kind": "ui",
@@ -1685656,7 +1685656,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "2bd50434dd0371be418896e6f635f24c125fcba65bb575a9acfb76e9dd81b9a3",
+      "runtime_digest": "a63bfa2979de316d7b0dce1c5a819f16bc9b95b89634b458bcc70165af0066d1",
       "sinks": [],
       "sources": [
         {
@@ -1695196,7 +1695196,7 @@
       "manifest_sha256": "8d25cc51cffcc5c6642dd71537beb82e2798e1a6eba06ad88c77b23bd77e4583",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "e4763277b83eec0572203fbd318ef2313536ffba06cf44b8a0d17fc9e6defe1f",
+      "source_sha256": "37f34be0656773378aa619f372f87350f3ffee96751ba04725812b69ff635cab",
       "version": "saas~19.3.2.2.8"
     },
     {

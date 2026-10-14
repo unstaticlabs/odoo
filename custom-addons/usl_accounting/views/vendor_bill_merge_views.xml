@@ -7,10 +7,13 @@
             <form string="Choose the bill to keep" create="false" delete="false">
                 <field name="id" invisible="1"/>
                 <div class="alert alert-info" role="status">These bills differ. Keep one bill's existing content and amount. The other bills will be cancelled and remain available with their original files and history. The kept bill will be marked To Review.</div>
-                <field name="bill_ids" readonly="1">
+                <field name="difference_summary" readonly="1" nolabel="1" class="fw-semibold"/>
+                <p class="text-muted">Open a record number to inspect the bill, then return here to choose.</p>
+                <field name="bill_ids" readonly="1" write="0">
                     <list create="false" delete="false" edit="false">
                         <field name="id" string="Record"/><field name="partner_id"/><field name="ref"/>
                         <field name="invoice_date"/><field name="state"/>
+                        <field name="partner_bank_id"/>
                         <field name="currency_id" column_invisible="1"/>
                         <field name="amount_total" widget="monetary"/>
                         <button name="action_choose_vendor_bill_merge_winner" type="object" string="Choose this bill" context="{'vendor_bill_merge_wizard_id': parent.id}"/>

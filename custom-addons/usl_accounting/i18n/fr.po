@@ -6761,3 +6761,34 @@ msgstr "Le résultat du paiement n’a pas pu être confirmé. Actualisez la fac
 #: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
 msgid "This view could not be refreshed. Reload the bill to review its posting and payment status."
 msgstr "Cette vue n’a pas pu être actualisée. Rechargez la facture pour vérifier sa comptabilisation et son paiement."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__difference_summary
+msgid "Why these bills differ"
+msgstr "Pourquoi ces factures diffèrent"
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/wizard/vendor_bill_merge_wizard.py:0
+msgid "Recipient bank accounts differ."
+msgstr "Les comptes bancaires destinataires diffèrent."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/wizard/vendor_bill_merge_wizard.py:0
+msgid "Tax reporting tags differ."
+msgstr "Les étiquettes de déclaration fiscale diffèrent."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/wizard/vendor_bill_merge_wizard.py:0
+msgid "Amounts or other bill details differ."
+msgstr "Les montants ou d’autres détails des factures diffèrent."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_wizard_form
+msgid "Open a record number to inspect the bill, then return here to choose."
+msgstr "Ouvrez un numéro de fiche pour consulter la facture, puis revenez ici pour choisir."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/vendor_bill_merge_wizard.py:0
+msgid "\nRecipient bank: %(bank)s"
+msgstr "\nCompte bancaire destinataire : %(bank)s"
