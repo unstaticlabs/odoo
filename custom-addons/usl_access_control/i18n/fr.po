@@ -288,3 +288,13 @@ msgstr "Tout définir au niveau maximal"
 #. module: usl_access_control
 msgid "Irreversible actions are always blocked."
 msgstr "Les actions irréversibles sont toujours bloquées."
+
+#. module: usl_access_control
+#: code:addons/usl_access_control/models/agent_collaboration.py:0
+msgid "Only the activity deadline, summary, note and assignee can be changed."
+msgstr "Seuls la date limite, le résumé, la note et le responsable de l’activité peuvent être modifiés."
+
+#. module: usl_access_control
+#: code:addons/usl_access_control/models/agent_collaboration.py:0
+msgid "That activity does not belong to this task."
+msgstr "Cette activité n’appartient pas à cette tâche."
