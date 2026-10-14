@@ -202374,6 +202374,30 @@
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_split.py:hr.expense.split.wizard.action_split_expense:message_send:1": "6cf16f5c2a8826f45f5c0f0bb8f90e5bd01f67969eb99544d2de78feb9efa74e",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_split.py:hr.expense.split.wizard.action_split_expense:orm_write:1": "7cc71b0755da6e4edbb73498ebecbfe876c58db81e9b2b907d05e1e334b1bad1"
       }
+    },
+    {
+      "action_keys": [
+        "rpc:account.move.attach_source_evidence",
+        "rpc:hr.expense.attach_source_evidence",
+        "sink:usl_documents:custom-addons/usl_documents/models/source_evidence.py:usl.document._attach_source_evidence:message_send:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/source_evidence.py:usl.document._attach_source_evidence:orm_create:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/source_evidence.py:usl.document._attach_source_evidence:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/source_evidence.py:usl.document._attach_source_evidence:orm_write:2"
+      ],
+      "classification": "operational",
+      "consequence": "Attaches caller-provided exact source bytes to one authorized expense or accounting record, optionally selects its main attachment and appends an attributable note without financial transitions.",
+      "domain": "documents_and_communications",
+      "evidence_id": "source-evidence-upload-20261014",
+      "id": "operational.source-evidence-upload",
+      "rationale": "The fixed business-model adapters delegate a private native helper that checks read/write and selected-company authority, validates bounded exact source bytes and metadata, locks only the authorized target, reuses same-target evidence or creates an owned native attachment, and verifies persisted content before commit. Native archive policy and physical filestore deduplication are retained. The existing source-authorized Agent collaboration token delegates native attachment/chatter side effects without sudo or generic attachment creation authority. First creation retains the current main attachment through an ordinary native source write to advance its MVCC/audit version; native whole-transaction serialization retry then observes a concurrently committed duplicate, while reused evidence avoids the write.",
+      "reviewed_digests": {
+        "rpc:account.move.attach_source_evidence": "8fc3fb4147c638aba76cda3d84b9878809bdfcc907bb0e9b8fd65061bf21ca7a",
+        "rpc:hr.expense.attach_source_evidence": "8fc3fb4147c638aba76cda3d84b9878809bdfcc907bb0e9b8fd65061bf21ca7a",
+        "sink:usl_documents:custom-addons/usl_documents/models/source_evidence.py:usl.document._attach_source_evidence:message_send:1": "c920b622346a31b468abe533ce0abb043921abe0ec2d0f9e03183e5033f8e396",
+        "sink:usl_documents:custom-addons/usl_documents/models/source_evidence.py:usl.document._attach_source_evidence:orm_create:1": "2e5d9ef82b8aa64cb74cf294b11e001d566f63ac8116ad87cb321294da65e726",
+        "sink:usl_documents:custom-addons/usl_documents/models/source_evidence.py:usl.document._attach_source_evidence:orm_write:1": "9eb5ac078766ec31803cff8be2099f1dfc019b1d0256f4da0f69b5ee4f14a143",
+        "sink:usl_documents:custom-addons/usl_documents/models/source_evidence.py:usl.document._attach_source_evidence:orm_write:2": "8139366699ec251c8441385a1a69d3c919161460b456a1dbe3a268f2d32038c5"
+      }
     }
   ],
   "evidence_families": {
@@ -202547,6 +202571,12 @@
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_json2_policy_denies_unknown_mutations_and_secrets",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_profile_exposes_every_owner_application",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_scope_uses_owner_private_project_and_assignment_rules"
+      ]
+    },
+    "source-evidence-upload-20261014": {
+      "contract": "Exact source PDF/image bytes, filename/MIME/size/checksum, owned target evidence and optional main selection are preserved. Repeat uploads do not duplicate owned rows or notes; two authorized records retain separate owned rows with native physical binary deduplication. Malformed or transformed content and late audit failures roll back. Posted accounting lines remain unchanged; selected secondary companies, unrelated users, portal, readonly Agent and forged generic attachment creation are covered. Native queue policy retains direct-record accounting evidence without claiming a completed external archive.",
+      "tests": [
+        "custom-addons/usl_documents/tests/test_source_evidence.py::TestSourceEvidence"
       ]
     },
     "transport-exact-targets-v1": {

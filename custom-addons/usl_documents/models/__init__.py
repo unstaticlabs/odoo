@@ -21,4 +21,5 @@ from . import (
     res_users,
     attachment_bridge,
     attachment_native,
+    source_evidence,
 )

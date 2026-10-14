@@ -404,3 +404,46 @@ and relationship make that deliberate duplication explicit. A trusted
 `generated_final` origin queues that archival copy as `odoo_generated`
 evidence; it follows the same retry, duplicate, and permission workflow as
 other authoritative archive operations.
+
+## Direct client source evidence
+
+A client can hand a new source file directly to an existing expense or accounting
+entry through `attach_source_evidence`. The connector-facing shortcut is
+`documents_attach_source_evidence`: its file parameter receives the client's
+file reference, and the MCP runtime transfers the exact binary rather than
+asking the model to paste base64.
+
+The native action checks the target's read/write authority and selected company,
+locks that target, validates the source filename, MIME, byte size and SHA-256,
+and creates a private native attachment. Image resizing is disabled for this
+source-evidence operation; persisted bytes and MIME are checked before commit.
+A native MIME safety conversion that cannot retain the stated source type is
+refused atomically. Explicit attachment fields prevent contextual defaults from
+publishing, granting a bearer token or binding the evidence to another record.
+Missing or generic source MIME uses the maintained native inference method;
+the result discloses `mime_inferred` and reports the actual persisted MIME.
+
+The original attachment remains usable through the native viewer immediately.
+Normal Documents policy queues archival where eligible; a pending archive status
+does not mean the external archive has finished. The result returns the native
+attachment ID, fingerprints and uploader/time. An attributable note records the
+source filename. Source download URLs and connector file IDs are not persisted.
+
+`set_main_attachment=True` selects that owned file with the native main-attachment
+method. Without the flag, an existing main attachment is retained. Repeating the
+same target, filename, MIME and checksum reuses the attachment without another
+upload note; another authorized target gets its own evidence row while the
+native content-addressed filestore deduplicates the physical binary. Different
+filenames remain distinct evidence rows. Neither action changes financial fields
+or submits, approves, posts, pays or reconciles anything.
+On first creation, a native write retains the current main-attachment value and
+advances the target's audit/MVCC version. This lets Odoo's whole-transaction
+serialization retry see evidence committed by a simultaneous handoff instead of
+creating a duplicate from a stale snapshot. Existing main selection and financial
+fields stay unchanged; already-owned repeated evidence does not require that write.
+
+The file is bounded to 20 MiB. Failed validation or a later native error rolls
+back the attachment, main selection and audit append. Unknown transport completion
+requires native readback of the target's attachments before any retry. Version
+`saas~19.3.1.9.1` adds methods and validation only, with no data migration or rewrite
+of existing evidence rows.
