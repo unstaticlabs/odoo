@@ -1,6 +1,7 @@
 import { registry } from '@web/core/registry';
 import { projectTaskKanbanView } from '@project/views/project_task_kanban/project_task_kanban_view';
 import { ProjectTaskKanbanController } from '@project/views/project_task_kanban/project_task_kanban_controller';
+import { TaskSwimlaneSearchModel } from './task_swimlane_search_model';
 import { TaskSwimlaneModel } from './task_swimlane_model';
 import { TaskSwimlaneRenderer } from './task_swimlane_renderer';
 
@@ -20,6 +21,6 @@ class TaskSwimlaneController extends ProjectTaskKanbanController {
     }
 }
 registry.category('views').add('usl_task_swimlanes', {
-    ...projectTaskKanbanView, Model: TaskSwimlaneModel,
+    ...projectTaskKanbanView, SearchModel: TaskSwimlaneSearchModel, Model: TaskSwimlaneModel,
     Controller: TaskSwimlaneController, Renderer: TaskSwimlaneRenderer,
 });

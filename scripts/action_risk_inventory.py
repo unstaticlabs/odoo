@@ -120,6 +120,7 @@ AGENT_READONLY_GENERIC_METHODS = frozenset(
 )
 AGENT_READONLY_EXPLICIT_ACTIONS = frozenset(
     {
+        "rpc:project.task.get_kanban_property_definition",
         "rpc:usl.agent.current_identity",
         "rpc:usl.document.mcp_find_similar",
         "rpc:usl.document.mcp_get",

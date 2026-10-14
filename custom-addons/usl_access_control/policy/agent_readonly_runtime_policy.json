@@ -7612,6 +7612,7 @@
     "rpc:project.task.formatted_read_group",
     "rpc:project.task.get_external_id",
     "rpc:project.task.get_field_translations",
+    "rpc:project.task.get_kanban_property_definition",
     "rpc:project.task.get_metadata",
     "rpc:project.task.has_access",
     "rpc:project.task.has_field_access",

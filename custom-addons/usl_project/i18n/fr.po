@@ -565,3 +565,14 @@ msgstr "<i class=\"fa fa-plus\"/> <span class=\"visually-hidden\">Nouvelle tâch
 #: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
 msgid "None"
 msgstr "Aucun"
+
+#. module: usl_project
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+msgid "This task property is unavailable."
+msgstr "Cette propriété de tâche est indisponible."
+
+#. module: usl_project
+#: model:ir.ui.view,arch_db:usl_project.project_task_search_content
+msgid "Personal Stage"
+msgstr "Étape personnelle"

@@ -60,7 +60,7 @@ export class TaskSwimlaneRenderer extends ProjectTaskKanbanRenderer {
     get canMoveRecords() { return this.matrixMode ? !this.props.list.model.useSampleModel && !this.props.readonly && this.props.archInfo.activeActions.edit : super.canMoveRecords; }
     get canResequenceRecords() { return super.canResequenceRecords && (!this.matrixMode || (!this.props.readonly && this.props.archInfo.activeActions.edit)); }
     get unavailableGrouping() { return this.props.list.model.unavailableGrouping; }
-    get canResequenceGroups() { return this.matrixMode ? false : super.canResequenceGroups; }
+    get canResequenceGroups() { return super.canResequenceGroups && (!this.matrixMode || !this.props.readonly); }
     get cardGroupField() {
         const fields = this.props.list.groupBy.map((spec) => this.props.list.fields[spec.split(':')[0]]);
         // Native cards suppress deletion in a membership grouping; retain that

@@ -65,3 +65,15 @@ memberships, prepares both changes and performs one write. Empty expanded
 groups cannot validate a forged source membership. Native constraints and
 company rules remain authoritative. Unsupported changed dimensions recover in
 the native form instead of guessing a date or replacing a property dictionary.
+
+
+Shared stage headers retain native Fold, Edit, Delete, reorder and Add column
+behavior where the existing view and role permit them. Header reorder changes
+native stage sequence; it does not move tasks between stages. My Tasks keeps
+its native implicit personal stages. Its conditional Personal Stage Group By
+option lets you select that same first axis explicitly before adding a lane.
+
+A restored property grouping loads its requested schema before native shared
+filter validation. Reopening Properties toggles the same grouping. Schema is
+available only through caller-readable tasks in the selected companies; a
+removed or inaccessible definition falls back to native search recovery.

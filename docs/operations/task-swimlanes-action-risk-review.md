@@ -2,8 +2,9 @@
 
 Task swimlanes reuse native task permissions and task writes. They do not add
 an administrator gate, grant new access or change existing action classifications.
-Runtime discovery against the canonical 164-module registry adds three entries:
-the task move RPC, its native write sink and the client that calls that RPC.
+Runtime discovery against the canonical 164-module registry adds four entries:
+the task move RPC, its native write sink, its client transport and the fixed
+read-only task property schema getter.
 
 The RPC and write sink are **operational**: moving a task changes at most two
 reviewed grouping fields and can produce native tracking, assignment and audit
@@ -48,3 +49,12 @@ readonly controls, unavailable grouping recovery and empty-result behavior.
 Literal reversions and real synthetic browser journeys are recorded separately
 in the PR qualification evidence; screenshots illustrate states rather than
 prove those behaviors.
+
+
+The view's property restore reads only the requested schema from native
+Properties metadata on caller-readable task representatives in the selected
+companies. It does not enumerate elevated project owners or return parent
+names, property values or defaults. Revoking access to the last relevant task
+makes that schema unavailable. This fixed getter is read-only; its exact Agent
+allowlist entry still requires existing application delegation. The global
+native definition getter and its existing Agent restrictions remain unchanged.

@@ -202434,6 +202434,21 @@
       "reviewed_digests": {
         "client:usl_project:custom-addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:moveCell:rpc:1": "fc7a661393977e0e80b5ade10b3f041e426d3d8235689d4c154dd55278c08d0e"
       }
+    },
+    {
+      "action_keys": [
+        "rpc:project.task.get_kanban_property_definition"
+      ],
+      "classification": "read_only",
+      "consequence": "Returns only the requested task property schema; it performs no business mutation or external call.",
+      "domain": "projects",
+      "evidence_id": "task-swimlanes-property-schema-20261014",
+      "id": "read_only.project.task_swimlane_schema",
+      "overrides": {},
+      "rationale": "Current native task read and field authority, record rules and selected companies derive readable task representatives. The native Properties accessor reads only their definition metadata. No private parent name, task value, elevated owner enumeration, security change or external sink is returned or reachable.",
+      "reviewed_digests": {
+        "rpc:project.task.get_kanban_property_definition": "13c15c3bd85ec6736ed16d52c683c3f2f39e599e513b58f5515f6b9fa59c68a1"
+      }
     }
   ],
   "evidence_families": {
@@ -202616,6 +202631,16 @@
       "contract": "One attributable native task write transfers at most two exact displayed memberships, preserves unrelated memberships, rejects stale or inaccessible destinations and retains human, delegated Agent, readonly and company boundaries. No authority grant or guessed date/property value.",
       "tests": [
         "custom-addons/usl_project/tests/test_task_swimlane.py::TestTaskSwimlane.test_two_dimensions_reach_destination",
+        "custom-addons/usl_project/tests/test_task_swimlane.py::TestTaskSwimlane.test_governed_agents_keep_native_write_and_readonly_boundaries",
+        "custom-addons/usl_project/static/tests/task_swimlane.test.js"
+      ]
+    },
+    "task-swimlanes-property-schema-20261014": {
+      "contract": "Requested schema is available for a caller-readable task even with a private definition parent, unavailable after last-task access is revoked or outside selected companies, and invokes no mutation or external sink. Existing Agent application approvals remain required.",
+      "tests": [
+        "custom-addons/usl_project/tests/test_task_swimlane.py::TestTaskSwimlane.test_native_property_metadata_restores_readable_task_without_private_parent_name",
+        "custom-addons/usl_project/tests/test_task_swimlane.py::TestTaskSwimlane.test_property_metadata_disappears_when_last_relevant_task_access_is_revoked",
+        "custom-addons/usl_project/tests/test_task_swimlane.py::TestTaskSwimlane.test_property_metadata_respects_selected_company_and_field_read_authority",
         "custom-addons/usl_project/tests/test_task_swimlane.py::TestTaskSwimlane.test_governed_agents_keep_native_write_and_readonly_boundaries",
         "custom-addons/usl_project/static/tests/task_swimlane.test.js"
       ]

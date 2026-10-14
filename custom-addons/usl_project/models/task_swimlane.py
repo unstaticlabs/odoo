@@ -1,11 +1,39 @@
 """A single native task transaction for a two-dimensional Kanban move."""
-from odoo import Command, _, fields, models
+from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, RedirectWarning, UserError, ValidationError
 from odoo.fields import Domain
+from odoo.orm.fields_properties import check_property_field_value_name
+
+from .content_search import company_domain
 
 
 class ProjectTask(models.Model):
     _inherit = 'project.task'
+
+    @api.model
+    def get_kanban_property_definition(self, fullname):
+        """Restore one schema only when a relevant task is readable by this caller."""
+        self.check_access('read')
+        field_name, separator, property_name = fullname.partition('.')
+        field = self._fields.get(field_name)
+        if not separator or field_name != 'task_properties' or not field:
+            return {}
+        check_property_field_value_name(property_name)
+        owner_field = self._fields[field.definition_record]
+        if not self.has_field_access(field, 'read') or not self.has_field_access(owner_field, 'read'):
+            raise AccessError(_('This task property is unavailable.'))
+        # Reuse the content-search metadata boundary: native record rules and
+        # current companies determine task representatives, never an elevated
+        # enumeration of project owners or a private parent display name.
+        grouped = self._read_group(company_domain(self) & Domain(owner_field.name, '!=', False),
+                                   [owner_field.name], ['id:min'], order='id:min')
+        records = self.browse([record_id for _owner, record_id in grouped])._filtered_access('read')
+        records.fetch([owner_field.name])
+        for record in records.with_context(prefetch_fields=False):
+            for definition in field._get_properties_definition(record) or []:
+                if definition.get('name') == property_name:
+                    return {key: definition[key] for key in ('name', 'string', 'type', 'selection', 'tags', 'comodel') if key in definition}
+        return {}
 
     def _web_read_group_groupby_properties_formatter(self, groupby_spec, values):
         formatter = super()._web_read_group_groupby_properties_formatter(groupby_spec, values)

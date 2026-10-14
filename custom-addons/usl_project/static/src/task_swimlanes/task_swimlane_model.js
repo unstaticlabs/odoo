@@ -50,9 +50,12 @@ export class TaskSwimlaneModel extends ProjectTaskKanbanModel {
                 }
                 if (name.includes('.') && !config.fields[name]) {
                     try {
-                        await super._getPropertyDefinition(config, name);
+                        const definition = await this.orm.call(config.resModel, 'get_kanban_property_definition', [name], { context: config.context });
+                        if (!definition?.type) config.groupBy = null;
+                        else config.fields[name] = { ...definition, propertyName: definition.name, name, relation: definition.comodel,
+                            relatedPropertyField: { fieldName: name.split('.')[0] } };
                     } catch (error) {
-                        if (error.data?.name !== 'odoo.exceptions.AccessError') throw error;
+                        if (!['odoo.exceptions.AccessError', 'builtins.ValueError'].includes(error.data?.name)) throw error;
                         this.unavailableGrouping = true;
                     }
                     if (!config.groupBy) this.unavailableGrouping = true;
@@ -143,7 +146,7 @@ export class TaskSwimlaneModel extends ProjectTaskKanbanModel {
             try {
                 names = await this.orm.searchRead(relation, [['id', 'in', [...new Set(entries.map(({ group }) => group.value))]]], ['display_name'], { context: { ...config.context, active_test: false } });
             } catch (error) {
-                if (error.data?.name !== 'odoo.exceptions.AccessError') throw error;
+                if (!['odoo.exceptions.AccessError', 'builtins.ValueError'].includes(error.data?.name)) throw error;
                 names = [];
             }
             const labels = new Map(names.map((record) => [record.id, record.display_name]));

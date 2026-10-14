@@ -143,9 +143,15 @@ class TestTaskSwimlane(TransactionCase):
         personal = self.env['project.task.type'].create([{'name': '[QA] Personal ready', 'user_id': self.actor.id}, {'name': '[QA] Personal next', 'user_id': self.actor.id}])
         task = self.env['project.task'].with_user(self.actor).create({'name': '[QA] Personal task', 'project_id': self.project.id, 'user_ids': [Command.link(self.actor.id)], 'personal_stage_type_id': personal[0].id})
         self.assertEqual(task.personal_stage_type_id, personal[0])
+        original_stage = task.stage_id
+        other_actor = self.users[0]
+        task.user_ids = [Command.link(other_actor.id)]
+        other_stage = task.with_user(other_actor).personal_stage_type_id
         task.action_move_kanban_cell([{'field': 'personal_stage_type_id', 'source': personal[0].id, 'target': personal[1].id}, {'field': 'priority', 'source': '0', 'target': '1'}])
         self.assertEqual(task.personal_stage_type_id, personal[1])
         self.assertEqual(task.priority, '1')
+        self.assertEqual(task.stage_id, original_stage)
+        self.assertEqual(task.with_user(other_actor).personal_stage_type_id, other_stage)
 
     def test_native_paged_groups_honor_explicit_leaf_opening_beyond_auto_budget(self):
         tasks = self.env['project.task'].create([{'name': f'[QA] Page task {n:02}', 'project_id': self.project.id, 'stage_id': self.stages[0].id} for n in range(85)])
@@ -272,7 +278,14 @@ class TestTaskSwimlane(TransactionCase):
         self.assertTrue(all(events.mapped('actor_is_agent')))
         self.assertTrue(all(events.mapped('correlation_id')))
         readonly_task = self.task().with_user(agents['read_only'].user_id)
+        self.project.task_properties_definition = [{'name': 'qa_lane', 'string': 'Lane', 'type': 'char'}]
+        with self.assertRaises(AccessError):
+            UslAgentJson2Controller._check_agent_call(agent=agents['read_only'], model_name='project.task', method_name='get_property_definition', kwargs={})
         self.assertEqual(readonly_task.read(['name'])[0]['name'], '[QA] Swimlane Task')
+        schema_access = UslAgentJson2Controller._check_agent_call(agent=agents['read_only'], model_name='project.task', method_name='get_kanban_property_definition', kwargs={})
+        schema_context = UslAgentJson2Controller._agent_call_context(context={}, agent=agents['read_only'], model_name='project.task', method_name='get_kanban_property_definition', access=schema_access)
+        self.assertEqual(schema_access, 'read_only')
+        self.assertEqual(readonly_task.with_context(schema_context).get_kanban_property_definition('task_properties.qa_lane')['string'], 'Lane')
         with self.assertRaises(AccessError):
             UslAgentJson2Controller._check_agent_call(
                 agent=agents['read_only'], model_name='project.task',
@@ -281,3 +294,92 @@ class TestTaskSwimlane(TransactionCase):
         with self.assertRaises(AccessError):
             self.move(readonly_task)
         self.assertEqual((readonly_task.sudo().stage_id, readonly_task.sudo().priority), (self.stages[0], '0'))
+        # Removing all application delegations denies the getter through the
+        # existing API policy, without inventing a stricter generic-user rule.
+        agents['read_only'].with_user(self.actor).write({'delegated_group_ids': [Command.clear()], 'read_only_group_ids': [Command.clear()]})
+        with self.assertRaises(AccessError):
+            UslAgentJson2Controller._check_agent_call(agent=agents['read_only'], model_name='project.task', method_name='get_kanban_property_definition', kwargs={})
+
+
+    def test_native_property_metadata_restores_readable_task_without_private_parent_name(self):
+        self.project.write({'privacy_visibility': 'followers', 'task_properties_definition': [
+            {'name': 'qa_lane', 'string': 'Lane', 'type': 'selection', 'selection': [('a', 'A'), ('b', 'B')]},
+        ]})
+        task = self.task(user_ids=[Command.link(self.actor.id)], task_properties=[{'name': 'qa_lane', 'value': 'a'}])
+        self.assertTrue(task.has_access('read'))
+        parent = self.project.with_user(self.actor)
+        with self.assertRaises(AccessError):
+            parent.read(['name'])
+        definition = task.get_kanban_property_definition('task_properties.qa_lane')
+        self.assertEqual(definition, {'name': 'qa_lane', 'string': 'Lane', 'type': 'selection', 'selection': [['a', 'A'], ['b', 'B']]})
+        self.assertFalse(task.get_kanban_property_definition('task_properties.qa_deleted'))
+        with self.assertRaises(ValueError):
+            task.get_kanban_property_definition('task_properties.invalid/name')
+        self.project.task_properties_definition = []
+        self.assertFalse(task.get_kanban_property_definition('task_properties.qa_lane'))
+
+    def test_native_personal_groupby_filter_does_not_replace_implicit_default(self):
+        from odoo.tools.safe_eval import safe_eval
+        arch = self.env.ref('project.view_task_search_form_base')._get_combined_arch()
+        filters = arch.xpath("//filter[@name='usl_personal_stage']")
+        self.assertEqual(len(filters), 1)
+        self.assertEqual(safe_eval(filters[0].get('context')), {'group_by': 'personal_stage_type_id'})
+        self.assertFalse(safe_eval(filters[0].get('invisible'), {'context': {'my_tasks': 1}}))
+        self.assertTrue(safe_eval(filters[0].get('invisible'), {'context': {}}))
+        self.assertEqual(self.env.ref('project.view_task_kanban_inherit_my_task')._get_combined_arch().get('default_group_by'), 'personal_stage_type_id')
+
+
+    def test_property_metadata_disappears_when_last_relevant_task_access_is_revoked(self):
+        self.project.write({'privacy_visibility': 'followers', 'task_properties_definition': [
+            {'name': 'qa_revoked_lane', 'string': '[QA] Private lane label', 'type': 'char'},
+        ]})
+        task = self.task(user_ids=[Command.link(self.actor.id)], task_properties=[{'name': 'qa_revoked_lane', 'value': 'Synthetic'}])
+        self.assertTrue(task.has_access('read'))
+        self.assertEqual(task.get_kanban_property_definition('task_properties.qa_revoked_lane')['string'], '[QA] Private lane label')
+        task.sudo().write({'user_ids': [Command.clear()]})
+        task.sudo().message_unsubscribe(partner_ids=self.actor.partner_id.ids)
+        # Native per-request read access is memoized; simulate the next request.
+        self.env.transaction.clear_access_cache()
+        self.assertFalse(task.has_access('read'))
+        # Native global metadata remains discoverable: this is the literal
+        # before behavior, not a mocked AccessError or deleted definition.
+        self.assertEqual(task.get_property_definition('task_properties.qa_revoked_lane')['string'], '[QA] Private lane label')
+        caller = self.env['project.task'].with_user(self.actor)
+        self.assertFalse(caller.get_kanban_property_definition('task_properties.qa_revoked_lane'))
+
+    def test_property_metadata_respects_selected_company_and_field_read_authority(self):
+        other = self.env['res.company'].create({'name': '[QA] Schema company'})
+        self.actor.company_ids = [Command.link(other.id)]
+        project = self.env['project.project'].with_company(other).create({'name': '[QA] Schema board', 'company_id': other.id, 'privacy_visibility': 'employees', 'task_properties_definition': [
+            {'name': 'qa_other_company', 'string': '[QA] Other company lane', 'type': 'char'},
+        ]})
+        self.env['project.task'].with_company(other).create({'name': '[QA] Schema task', 'project_id': project.id})
+        caller = self.env['project.task'].with_user(self.actor)
+        self.assertFalse(caller.with_context(allowed_company_ids=[self.env.company.id]).get_kanban_property_definition('task_properties.qa_other_company'))
+        self.assertEqual(caller.with_context(allowed_company_ids=[other.id]).get_kanban_property_definition('task_properties.qa_other_company')['string'], '[QA] Other company lane')
+
+
+    def test_restored_property_metadata_keeps_native_tags_date_and_many2many_grouping(self):
+        cases = [
+            ({'name': 'qa_kind', 'string': 'Labels', 'type': 'tags', 'tags': [['amber', 'Amber tag', 2], ['cobalt', 'Cobalt tag', 3]]}, ['amber'], 'task_properties.qa_kind', 1),
+            ({'name': 'qa_kind', 'string': 'Date', 'type': 'date'}, '2026-10-23', 'task_properties.qa_kind:month', 1),
+            ({'name': 'qa_kind', 'string': 'Reviewers', 'type': 'many2many', 'comodel': 'res.users'}, [self.actor.id, self.users[0].id], 'task_properties.qa_kind', 2),
+        ]
+        for definition, value, spec, count in cases:
+            self.project.task_properties_definition = [definition]
+            task = self.task(task_properties=[{'name': 'qa_kind', 'value': value}])
+            before = task.read(['task_properties'])[0]['task_properties']
+            schema = task.get_kanban_property_definition('task_properties.qa_kind')
+            self.assertEqual(schema, definition)
+            result = task.with_context(usl_task_swimlanes=True).web_read_group([('id', '=', task.id)], ['stage_id', spec], ['__count'], auto_unfold=True, unfold_read_default_limit=80, unfold_read_specification={'name': {}})
+            column = next(group for group in result['groups'] if group['stage_id'][0] == self.stages[0].id)
+            leaves = column['__groups']['groups']
+            self.assertEqual(len(leaves), count)
+            self.assertEqual(sum(leaf['__count'] for leaf in leaves), count)
+            if definition['type'] == 'tags':
+                self.assertEqual(leaves[0]['task_properties.qa_kind'], ('amber', 'Amber tag', 2))
+            elif definition['type'] == 'date':
+                self.assertIn('October', leaves[0][spec][1])
+            else:
+                self.assertEqual({leaf[spec][0] for leaf in leaves}, {self.actor.id, self.users[0].id})
+            self.assertEqual(task.read(['task_properties'])[0]['task_properties'], before)

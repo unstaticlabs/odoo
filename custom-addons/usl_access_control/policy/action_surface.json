@@ -3205,7 +3205,7 @@
       ],
       "sources": [
         {
-          "line": 158,
+          "line": 161,
           "path": "custom-addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js"
         }
       ]
@@ -863892,7 +863892,7 @@
       ],
       "sources": [
         {
-          "line": 36,
+          "line": 64,
           "path": "custom-addons/usl_project/models/task_swimlane.py"
         },
         {
@@ -867441,6 +867441,42 @@
         }
       ],
       "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": true,
+      "delegates": [
+        "rpc:project.task.browse",
+        "rpc:project.task.check_access",
+        "rpc:project.task.has_field_access"
+      ],
+      "digest": "13c15c3bd85ec6736ed16d52c683c3f2f39e599e513b58f5515f6b9fa59c68a1",
+      "guards": [],
+      "key": "rpc:project.task.get_kanban_property_definition",
+      "kind": "rpc",
+      "method": "get_kanban_property_definition",
+      "model": "project.task",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "222b601c59303d451ff7f1899b6f4ae4acf4baa10859dae1265b747f1333625e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 14,
+          "path": "custom-addons/usl_project/models/task_swimlane.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/task_swimlane.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.browse",
+        "rpc:project.task.check_access"
+      ]
     },
     {
       "abstract": false,
@@ -1622073,7 +1622109,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 36,
+          "line": 64,
           "path": "custom-addons/usl_project/models/task_swimlane.py"
         }
       ]
@@ -1689486,7 +1689522,7 @@
       "manifest_sha256": "61b38b749c5ba939cae7607352e1b414da568536077cf2544f4cef637e2174ee",
       "name": "usl_project",
       "origin": "custom",
-      "source_sha256": "be5a11b23c2547b8e810d3f01f486feacd6506972edf3c338a7a095e72c39a52",
+      "source_sha256": "4957f8e314a368e762f52c11df695129b22fb168a5038096cdfd8e7f72e39199",
       "version": "saas~19.3.1.0.15"
     },
     {
