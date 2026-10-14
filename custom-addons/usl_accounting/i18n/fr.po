@@ -6315,3 +6315,190 @@ msgstr "Recherche de justificatifs terminée"
 #: code:addons/usl_accounting/models/linked_receipt.py:0
 msgid "Found receipt links for %(count)s expenses. Existing requests and expenses with receipts were skipped."
 msgstr "Des liens vers des justificatifs ont été trouvés pour %(count)s notes de frais. Les demandes existantes et les notes de frais avec justificatif ont été ignorées."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "You need bill-posting rights to post and match a payment."
+msgstr "Vous devez être autorisé à comptabiliser les factures pour comptabiliser une facture et rapprocher son paiement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Select the bill's company before posting and matching."
+msgstr "Sélectionnez la société de la facture avant de la comptabiliser et de rapprocher son paiement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Post and match is available only on a draft vendor bill."
+msgstr "Comptabiliser et rapprocher est disponible uniquement pour une facture fournisseur en brouillon."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "The bill changed after the confirmation was opened. Refresh and review it again."
+msgstr "La facture a changé depuis l’ouverture de la confirmation. Actualisez-la et vérifiez-la à nouveau."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Choose an eligible payment from this bill's suggestions."
+msgstr "Choisissez un paiement disponible parmi les suggestions de cette facture."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "This payment is no longer an eligible suggestion. Refresh the bill before posting."
+msgstr "Ce paiement n’est plus une suggestion disponible. Actualisez la facture avant de la comptabiliser."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "This payment is no longer available for this bill."
+msgstr "Ce paiement n’est plus disponible pour cette facture."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "The suggested payment must already have a posted journal entry."
+msgstr "Le paiement suggéré doit déjà avoir une écriture comptabilisée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Odoo assigns the bill number when posting."
+msgstr "Odoo attribue le numéro de la facture lors de sa comptabilisation."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Confirm that this bill will be posted before matching its payment."
+msgstr "Confirmez que cette facture sera comptabilisée avant de rapprocher son paiement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "The bill or payment changed after confirmation. Refresh and review them again."
+msgstr "La facture ou le paiement a changé depuis la confirmation. Actualisez-les et vérifiez-les à nouveau."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "The bill was posted and its payment was matched."
+msgstr "La facture a été comptabilisée et son paiement rapproché."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "The bill was posted, but its payment could not be matched. Refresh the bill and review the available payments."
+msgstr "La facture a été comptabilisée, mais son paiement n’a pas pu être rapproché. Actualisez la facture et vérifiez les paiements disponibles."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Save your bill changes before reviewing Post and match."
+msgstr "Enregistrez vos modifications avant de vérifier l’action Comptabiliser et rapprocher."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "This will post the bill and then match the selected payment."
+msgstr "Cette action comptabilisera la facture, puis rapprochera le paiement sélectionné."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Bill: %s"
+msgstr "Facture : %s"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Supplier: %s"
+msgstr "Fournisseur : %s"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Company: %s"
+msgstr "Société : %s"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Total: %s (%s)"
+msgstr "Total : %s (%s)"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Bill date: %s"
+msgstr "Date de la facture : %s"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Not set"
+msgstr "Non renseignée"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Accounting date: %s"
+msgstr "Date comptable : %s"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Odoo will move the accounting date from %s because of the lock dates."
+msgstr "Odoo modifiera la date comptable initiale (%s) en raison des dates de verrouillage."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Payment: %s"
+msgstr "Paiement : %s"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Journal entry: %s"
+msgstr "Écriture comptable : %s"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "If matching fails, the bill will remain posted. Review its available payments before trying again."
+msgstr "Si le rapprochement échoue, la facture restera comptabilisée. Vérifiez les paiements disponibles avant de réessayer."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Post bill and match payment?"
+msgstr "Comptabiliser la facture et rapprocher le paiement ?"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Post and match"
+msgstr "Comptabiliser et rapprocher"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "The bill was posted, but this view could not be refreshed. Reload the bill to review its current payment status."
+msgstr "La facture a été comptabilisée, mais cette vue n’a pas pu être actualisée. Rechargez la facture pour vérifier l’état actuel de son paiement."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "The outcome could not be confirmed. Refresh the bill and check whether it was posted or matched before trying again."
+msgstr "Le résultat n’a pas pu être confirmé. Actualisez la facture et vérifiez si elle a été comptabilisée ou son paiement rapproché avant de réessayer."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "The confirmation could not be loaded. Refresh the bill and review its available payments."
+msgstr "La confirmation n’a pas pu être chargée. Actualisez la facture et vérifiez les paiements disponibles."

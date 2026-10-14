@@ -61,7 +61,6 @@ patch(AccountPaymentField.prototype, {
         }
     },
 
-
     async postAndMatchOutstandingCredit(moveId, lineId) {
         if (this.immediateSettlementState.pendingLineId) {
             return;
@@ -111,7 +110,14 @@ patch(AccountPaymentField.prototype, {
                             type: result.status === "matched" ? "success" : "warning",
                             sticky: result.status !== "matched",
                         });
-                        await this.props.record.model.root.load();
+                        try {
+                            await this.props.record.model.root.load();
+                        } catch {
+                            this.notification.add(
+                                _t("The bill was posted, but this view could not be refreshed. Reload the bill to review its current payment status."),
+                                { type: "warning", sticky: true }
+                            );
+                        }
                     } catch (error) {
                         this.notification.add([error?.data?.message,
                             _t("The outcome could not be confirmed. Refresh the bill and check whether it was posted or matched before trying again.")].filter(Boolean).join("\n\n"),

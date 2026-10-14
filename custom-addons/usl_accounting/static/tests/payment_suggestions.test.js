@@ -866,3 +866,35 @@ test("Post and match never saves dirty bill edits or requests a preview", async 
     expect(".o_draft_post_match").not.toHaveAttribute("disabled");
     expect.verifySteps(["save-first"]);
 });
+
+
+test("a confirmed result survives a failed view refresh without claiming an unknown outcome", async () => {
+    let completed = false;
+    onRpc("get_draft_post_match_preview", () => draftPostPreview);
+    onRpc("js_post_and_match_outstanding_line", () => {
+        completed = true;
+        expect.step("posted-matched");
+        return { status: "matched", message: "The bill was posted and its payment was matched." };
+    });
+    onRpc("web_read", () => {
+        if (completed) {
+            throw new Error("Synthetic view refresh failure");
+        }
+    });
+    mockService("notification", { add: (message, options) => {
+        if (options.type === "success") {
+            expect(message).toBe("The bill was posted and its payment was matched.");
+            expect.step("known-result");
+        } else {
+            expect(message).toBe("The bill was posted, but this view could not be refreshed. Reload the bill to review its current payment status.");
+            expect(options.type).toBe("warning");
+            expect(options.sticky).toBe(true);
+            expect.step("refresh-view");
+        }
+    } });
+    await mountDraftPostMatch();
+    await contains(".o_draft_post_match").click();
+    await contains(".modal-footer button:contains(Post and match)").click();
+    expect(".modal").toHaveCount(0);
+    expect.verifySteps(["posted-matched", "known-result", "refresh-view"]);
+});

@@ -260,6 +260,67 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
         self.assertEqual(self.env["account.partial.reconcile"].search([]).ids, partials)
         self.assertTrue(source_line.reconciled)
 
+    def test_post_and_match_preview_is_read_only_and_user_specific(self):
+        bill, statement, source_line = self._draft_post_match_fixture()
+        before = (bill.state, bill.name, bill.date, bill.write_date, bill.posted_before,
+            statement.amount, statement.date, source_line.account_id.id, source_line.reconciled)
+        preview = bill.get_draft_post_match_preview(source_line.id)
+        self.assertEqual(preview["amount"], 24.0)
+        self.assertEqual(preview["currency_name"], "EUR")
+        self.assertEqual(preview["company_name"], self.company.display_name)
+        self.assertEqual((bill.state, bill.name, bill.date, bill.write_date, bill.posted_before,
+            statement.amount, statement.date, source_line.account_id.id, source_line.reconciled), before)
+        self.assertTrue(bill.invoice_outstanding_credits_debits_widget["content"][0]["can_post_match"])
+        reader = new_test_user(self.env, login="post-match-widget-reader",
+            groups="account.group_account_readonly", company_id=self.company.id,
+            company_ids=[Command.set(self.company.ids)])
+        self.assertFalse(bill.with_user(reader).invoice_outstanding_credits_debits_widget["content"][0]["can_post_match"])
+
+    def test_post_and_match_preview_matches_native_posting_date_after_lock(self):
+        bill, statement, source_line = self._draft_post_match_fixture()
+        before = bill.get_draft_post_match_preview(source_line.id)
+        self.company.sudo().fiscalyear_lock_date = self.document_date
+        preview = bill.get_draft_post_match_preview(source_line.id)
+        self.assertNotEqual(preview["accounting_date"], fields.Date.to_string(self.document_date))
+        self.assertEqual(bill.state, "draft")
+        self.assertFalse(bill.posted_before)
+        with self.assertRaisesRegex(UserError, "changed after confirmation"):
+            bill.js_post_and_match_outstanding_line(source_line.id, confirmed=True,
+                expected_confirmation=before["confirmation_key"])
+        self.assertEqual(bill.state, "draft")
+        result = bill.js_post_and_match_outstanding_line(source_line.id, confirmed=True,
+            expected_confirmation=preview["confirmation_key"])
+        self.assertEqual(result["state"], "posted")
+        self.assertEqual(result["accounting_date"], preview["accounting_date"])
+        self.assertEqual(fields.Date.to_string(bill.date), preview["accounting_date"])
+
+    def test_post_and_match_respects_selected_company_and_other_company_payment(self):
+        bill, statement, source_line = self._draft_post_match_fixture()
+        other_data = self.setup_other_company()
+        other_company = other_data["company"]
+        dual_manager = new_test_user(self.env, login="post-match-dual-company-manager",
+            groups="account.group_account_manager", company_id=self.company.id,
+            company_ids=[Command.set([self.company.id, other_company.id])])
+        bill = bill.with_user(dual_manager).with_context(allowed_company_ids=self.company.ids)
+        deselected = bill.with_context(allowed_company_ids=other_company.ids)
+        with self.assertRaises(AccessError):
+            deselected.js_post_and_match_outstanding_line(source_line.id, confirmed=True)
+        other_journal = other_data["default_journal_bank"]
+        other_journal.reconcile_mode = "edit"
+        other_journal.suspense_account_id.reconcile = True
+        other_statement = self.env["account.bank.statement.line"].with_company(other_company).create({
+            "journal_id": other_journal.id, "date": self.statement_date,
+            "payment_ref": "Synthetic other-company payment", "amount": -24.0,
+            "partner_id": bill.commercial_partner_id.id,
+        })
+        _, other_line, _ = other_statement._seek_for_lines()
+        both_selected = bill.with_context(allowed_company_ids=[self.company.id, other_company.id])
+        with self.assertRaises(UserError):
+            both_selected.js_post_and_match_outstanding_line(other_line.id, confirmed=True)
+        self.assertEqual(bill.state, "draft")
+        self.assertFalse(source_line.reconciled)
+        self.assertFalse(other_line.reconciled)
+
     def test_bank_suggestion_keeps_bank_label_separate_from_entry_reference(self):
         bill = self._document()
         statement, source_line = self._bank_candidate(bill)
