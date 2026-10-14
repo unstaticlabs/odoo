@@ -330,8 +330,8 @@
                                 <field name="unresolved_count"/>
                                 <field name="last_refreshed_at"/>
                             </group>
-                            <group string="Automated Validation"><field name="validation_summary" nolabel="1"/></group>
-                            <group string="Unresolved Information"><field name="unresolved_information" nolabel="1"/></group>
+                            <group string="Automated Validation"><field name="validation_summary" nolabel="1" colspan="2"/></group>
+                            <group string="Unresolved Information"><field name="unresolved_information" nolabel="1" colspan="2"/></group>
                         </page>
                         <page string="Review and Filing">
                             <group>
