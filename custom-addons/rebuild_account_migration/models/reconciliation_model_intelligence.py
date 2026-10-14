@@ -1,8 +1,6 @@
-import re
 from collections import defaultdict
-from datetime import timedelta
 
-from odoo import Command, _, api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools import SQL
 
@@ -423,10 +421,7 @@ class AccountReconcileModel(models.Model):
             trigger=trigger,
         )
         query.add_where(
-            SQL(
-                "%s IS NOT TRUE",
-                SQL.identifier(self._table, "rebuild_is_proposal"),
-            ),
+            self._rebuild_proposal_query_scope(),
         )
         return query
 
@@ -453,30 +448,6 @@ class AccountReconcileModel(models.Model):
                 "Only an Accounting Manager can govern bank matching rules.",
             ))
 
-    def action_rebuild_approve_proposal(self):
-        self.ensure_one()
-        self._rebuild_check_rule_manager()
-        if not self.rebuild_is_proposal:
-            return True
-        if not self.match_label and not self.match_amount and not self.match_partner_ids:
-            raise UserError(_(
-                "Add at least one reliable matching condition before approval.",
-            ))
-        if not self.line_ids:
-            raise UserError(_(
-                "Add the expected counterpart entry before approval.",
-            ))
-        self.write({
-            "rebuild_is_proposal": False,
-            "trigger": self.rebuild_proposed_trigger or "manual",
-        })
-        self.message_post(body=_(
-            "Rule suggestion approved by %(user)s. Evidence retained: %(evidence)s",
-            user=self.env.user.display_name,
-            evidence=self.rebuild_proposal_evidence or _("No evidence supplied"),
-        ))
-        return True
-
     def action_rebuild_dismiss_proposal(self):
         self.ensure_one()
         self._rebuild_check_rule_manager()
@@ -501,165 +472,3 @@ class AccountReconcileModel(models.Model):
             ).get(self.rebuild_health_state, self.rebuild_health_state),
         ))
         return {"type": "ir.actions.act_window_close"}
-
-    @staticmethod
-    def _rebuild_normalize_rule_label(value):
-        return re.sub(r"\s+", " ", (value or "").strip()).casefold()
-
-    def _rebuild_rule_opportunity_groups(self):
-        date_from = fields.Date.today() - timedelta(days=730)
-        statement_lines = self.env["account.bank.statement.line"].search([
-            ("company_id", "=", self.env.company.id),
-            ("move_id.state", "=", "posted"),
-            ("is_reconciled", "=", True),
-            ("date", ">=", date_from),
-        ])
-        groups = defaultdict(list)
-        for statement_line in statement_lines:
-            label = re.sub(r"\s+", " ", (statement_line.payment_ref or "").strip())
-            normalized_label = self._rebuild_normalize_rule_label(label)
-            if len(normalized_label) < 4:
-                continue
-            excluded_accounts = (
-                statement_line.journal_id.default_account_id
-                | statement_line.journal_id.suspense_account_id
-            )
-            counterparts = statement_line.move_id.line_ids.filtered(
-                lambda line: (
-                    line.account_id not in excluded_accounts
-                    and line.account_id.account_type
-                    not in (
-                        "asset_receivable",
-                        "liability_payable",
-                        "off_balance",
-                    )
-                    and not line.tax_repartition_line_id
-                ),
-            )
-            if len(counterparts) != 1:
-                continue
-            counterpart = counterparts[0]
-            partner = (
-                counterpart.partner_id
-                or statement_line.partner_id
-            ).commercial_partner_id
-            key = (
-                statement_line.journal_id.id,
-                counterpart.account_id.id,
-                partner.id,
-                normalized_label,
-            )
-            groups[key].append((statement_line, counterpart, label))
-        return groups
-
-    def action_rebuild_analyze_rule_opportunities(self):
-        """Create inert rule suggestions from repeated reconciled patterns.
-
-        Keep this public method record-style: list-header object actions send
-        the selected record IDs as their first RPC argument, even when the
-        button is displayed without a selection.
-        """
-        self._rebuild_check_rule_manager()
-        created = self.browse()
-        groups = self._rebuild_rule_opportunity_groups()
-        ranked_groups = sorted(
-            groups.items(),
-            key=lambda item: (-len(item[1]), item[0]),
-        )
-        for key, evidence_rows in ranked_groups:
-            if len(evidence_rows) < 3 or len(created) >= 12:
-                continue
-            journal_id, account_id, partner_id, normalized_label = key
-            statement_lines = self.env["account.bank.statement.line"].browse(
-                [row[0].id for row in evidence_rows],
-            )
-            label = evidence_rows[0][2]
-            account = self.env["account.account"].browse(account_id)
-            proposal_key = (
-                f"{self.env.company.id}:{journal_id}:{account_id}:"
-                f"{partner_id}:{normalized_label}"
-            )
-            if self.with_context(active_test=False).search_count([
-                ("rebuild_proposal_key", "=", proposal_key),
-            ]):
-                continue
-            equivalent_rules = self.with_context(active_test=False).search([
-                ("company_id", "=", self.env.company.id),
-                ("rebuild_is_proposal", "=", False),
-                ("match_label", "=", "contains"),
-                ("line_ids.account_id", "=", account_id),
-            ])
-            if any(
-                self._rebuild_normalize_rule_label(rule.match_label_param)
-                == normalized_label
-                and (
-                    not rule.match_journal_ids
-                    or journal_id in rule.match_journal_ids.ids
-                )
-                for rule in equivalent_rules
-            ):
-                continue
-            first_date = min(statement_lines.mapped("date"))
-            last_date = max(statement_lines.mapped("date"))
-            confidence = min(95, 55 + len(evidence_rows) * 5)
-            created |= self.create({
-                "name": _(
-                    "Suggested: %(label)s → %(account)s",
-                    label=label[:60],
-                    account=account.display_name,
-                ),
-                "company_id": self.env.company.id,
-                "active": True,
-                "trigger": "manual",
-                "match_label": "contains",
-                "match_label_param": label,
-                "match_journal_ids": [Command.set([journal_id])],
-                "line_ids": [Command.create({
-                    "account_id": account_id,
-                    "partner_id": partner_id or False,
-                    "amount_type": "percentage",
-                    "amount_string": "100",
-                    "label": label,
-                })],
-                "rebuild_is_proposal": True,
-                "rebuild_proposal_source": "deterministic",
-                "rebuild_proposed_trigger": "manual",
-                "rebuild_proposal_confidence": confidence,
-                "rebuild_proposal_key": proposal_key,
-                "rebuild_business_purpose": _(
-                    "Categorize recurring bank transactions labelled “%s”.",
-                    label,
-                ),
-                "rebuild_proposal_evidence": _(
-                    "%(count)s reconciled transactions used the same label, "
-                    "journal and counterpart account from %(first)s to "
-                    "%(last)s. Review the samples before approval.",
-                    count=len(evidence_rows),
-                    first=fields.Date.to_string(first_date),
-                    last=fields.Date.to_string(last_date),
-                ),
-                "rebuild_evidence_statement_line_ids": [
-                    Command.set(statement_lines.ids),
-                ],
-            })
-        if created:
-            action = self.env["ir.actions.actions"]._for_xml_id(
-                "account.action_account_reconcile_model",
-            )
-            action.update({
-                "name": _("Rule Suggestions"),
-                "domain": [("id", "in", created.ids)],
-            })
-            return action
-        return {
-            "type": "ir.actions.client",
-            "tag": "display_notification",
-            "params": {
-                "title": _("No new suggestions"),
-                "message": _(
-                    "No repeated, consistently categorized bank pattern "
-                    "without an existing rule was found.",
-                ),
-                "type": "info",
-            },
-        }

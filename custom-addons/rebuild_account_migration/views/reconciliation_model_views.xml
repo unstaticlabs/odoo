@@ -82,6 +82,14 @@
                             title="Activate the reviewed rule with its proposed behavior. Future matching transactions may then use it."
                         />
                         <button
+                            name="action_rebuild_recheck_evidence"
+                            type="object"
+                            string="Recheck evidence"
+                            groups="account.group_account_manager"
+                            invisible="not rebuild_is_proposal and (not rebuild_generated_proof or active)"
+                            title="Replay the current rule against its supporting transactions and check current overlaps. This does not change any accounting entry or activate the rule."
+                        />
+                        <button
                             name="action_rebuild_dismiss_proposal"
                             type="object"
                             string="Dismiss"
@@ -137,6 +145,7 @@
                     <field name="active" invisible="1"/>
                     <field name="company_id" invisible="1"/>
                     <field name="rebuild_is_proposal" invisible="1"/>
+                    <field name="rebuild_generated_proof" invisible="1"/>
                     <field name="rebuild_has_actionable_guidance" invisible="1"/>
                     <sheet class="o_usl_reconcile_rule_form">
                         <div class="oe_button_box" name="button_box">
@@ -199,6 +208,23 @@
                                 nolabel="1"
                                 readonly="1"
                             />
+                        </div>
+
+                        <group string="Evidence check" invisible="not rebuild_generated_proof">
+                            <field name="rebuild_evidence_count" readonly="1"/>
+                            <field name="rebuild_replay_summary" readonly="1"/>
+                        </group>
+                        <div class="alert alert-warning" role="status" invisible="not rebuild_overlap_warning">
+                            <strong>Review possible overlap</strong>
+                            <field name="rebuild_overlap_warning" nolabel="1" readonly="1"/>
+                            <field name="rebuild_overlap_rule_ids" readonly="1" nolabel="1">
+                                <list create="0" edit="0" delete="0">
+                                    <field name="name"/>
+                                    <field name="rebuild_scope_summary"/>
+                                    <field name="trigger"/>
+                                </list>
+                            </field>
+                            <p class="mb-0">The samples do not prove that every future transaction is disjoint. Review the named rules and examples before approval.</p>
                         </div>
 
                         <div class="row g-3 o_usl_rule_configuration">
@@ -366,7 +392,7 @@
                                 </div>
                                 <div
                                     class="o_usl_rule_proposal_evidence"
-                                    invisible="not rebuild_is_proposal"
+                                    invisible="not rebuild_is_proposal and not rebuild_generated_proof"
                                 >
                                     <h4>Suggestion evidence</h4>
                                     <div class="row g-3">
@@ -374,7 +400,7 @@
                                             <label for="rebuild_proposal_source"/>
                                             <field name="rebuild_proposal_source"/>
                                         </div>
-                                        <div class="col-12 col-lg-4">
+                                        <div class="col-12 col-lg-4" invisible="rebuild_generated_proof">
                                             <label for="rebuild_proposal_confidence"/>
                                             <field
                                                 name="rebuild_proposal_confidence"
@@ -388,9 +414,17 @@
                                     />
                                     <field
                                         name="rebuild_evidence_statement_line_ids"
-                                        widget="many2many_tags"
+                                        readonly="1"
                                         nolabel="1"
-                                    />
+                                    >
+                                        <list create="0" edit="0" delete="0">
+                                            <field name="date"/>
+                                            <field name="payment_ref"/>
+                                            <field name="partner_id" optional="hide"/>
+                                            <field name="amount"/>
+                                            <field name="currency_id" column_invisible="True"/>
+                                        </list>
+                                    </field>
                                 </div>
                             </div>
                         </details>

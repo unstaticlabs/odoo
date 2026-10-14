@@ -13178,3 +13178,267 @@ msgstr "La décision de revue enregistrée est conservée ; les contrôles autom
 #: code:addons/rebuild_account_migration/models/declaration_sync.py:0
 msgid "Recorded reviewer decision preserved. The current declaration schedule no longer includes this obligation; review the schedule change before superseding the decision."
 msgstr "La décision de revue enregistrée est conservée. Le calendrier actuel des déclarations ne prévoit plus cette obligation ; examinez ce changement avant de remplacer la décision."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "%(count)s distinct reconciled transactions. Examples: %(examples)s. The count describes support, not a probability."
+msgstr "%(count)s transactions rapprochées distinctes. Exemples : %(examples)s. Ce nombre décrit les éléments disponibles, pas une probabilité."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "A copied generated rule remains a suggestion until its evidence is rechecked and approved."
+msgstr "Une copie de règle générée reste une suggestion tant que ses transactions n’ont pas été revérifiées et approuvées."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "All %(count)s supporting transactions match and reproduce their native accounting result."
+msgstr "Les %(count)s transactions à l’appui correspondent à la règle et leur résultat comptable natif est reproduit."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "An active generated rule has changed evidence or settings. Archive it and Recheck evidence before activating it again."
+msgstr "Les transactions ou les paramètres d’une règle générée active ont changé. Archivez-la et revérifiez les transactions avant de la réactiver."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "Apply the demonstrated accounting result to this recurring bank label shape."
+msgstr "Appliquer le résultat comptable constaté aux libellés bancaires récurrents de cette forme."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "Archive this rule before rechecking its evidence."
+msgstr "Archivez cette règle avant de revérifier ses transactions."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "At least three distinct surviving supporting transactions are required. Recheck evidence."
+msgstr "Au moins trois transactions distinctes toujours disponibles sont nécessaires. Revérifiez les transactions."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "Copied suggestion. Recheck evidence before approval."
+msgstr "Suggestion copiée. Revérifiez les transactions avant de l’approuver."
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_account_reconcile_model__rebuild_replay_summary
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_reconcile_model_form
+msgid "Evidence check"
+msgstr "Vérification des transactions"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "Generated evidence cannot be replaced through the rule editor."
+msgstr "Les éléments d’une suggestion générée ne peuvent pas être remplacés dans l’éditeur de règles."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "Generated evidence is prepared by Find or Recheck evidence."
+msgstr "Les éléments d’une suggestion générée sont préparés par Rechercher ou Revérifier les transactions."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "Native replay reproduces all %s supporting transactions."
+msgstr "Le calcul natif reproduit les %s transactions à l’appui."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "No new supported recurring pattern was found. Existing suggestions and dismissed history are retained."
+msgstr "Aucun nouveau cas récurrent pris en charge n’a été trouvé. Les suggestions existantes et l’historique des suggestions écartées sont conservés."
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_account_reconcile_model__rebuild_overlap_warning
+msgid "Overlap review"
+msgstr "Vérification des chevauchements"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "Recheck evidence before approving this suggestion."
+msgstr "Revérifiez les transactions avant d’approuver cette suggestion."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "Rule approved after native replay of %(count)s supporting transactions. Uncertain overlaps remain available for review."
+msgstr "Règle approuvée après reproduction native de %(count)s transactions à l’appui. Les chevauchements possibles restent disponibles pour vérification."
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_account_reconcile_model__rebuild_overlap_rule_ids
+msgid "Rules to review"
+msgstr "Règles à vérifier"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "Settings changed. Recheck evidence before approval."
+msgstr "Les paramètres ont changé. Revérifiez les transactions avant l’approbation."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "Some patterns were not offered: %s"
+msgstr "Certains cas n’ont pas été proposés : %s"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "Suggested: %s"
+msgstr "Suggestion : %s"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_account_reconcile_model__rebuild_evidence_count
+msgid "Supporting transactions"
+msgstr "Transactions à l’appui"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "Supporting transactions must belong to the current company."
+msgstr "Les transactions à l’appui doivent appartenir à la société active."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "Switch to the rule's company before reviewing its evidence."
+msgstr "Passez à la société de la règle avant de vérifier ses transactions."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:0
+msgid "The complete rule company scope must be resolved before editing."
+msgstr "Toutes les sociétés concernées par la règle doivent être déterminées avant sa modification."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "The rule no longer matches every supporting transaction in the native matcher. Recheck evidence."
+msgstr "La règle ne correspond plus à toutes les transactions à l’appui dans le rapprochement natif. Revérifiez les transactions."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "The rule no longer reproduces a supporting transaction's accounting result. Recheck evidence or configure the rule manually."
+msgstr "La règle ne reproduit plus le résultat comptable d’une transaction à l’appui. Revérifiez les transactions ou configurez la règle manuellement."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "The supporting bank transaction is no longer a surviving reconciled entry. Recheck evidence."
+msgstr "La transaction bancaire à l’appui n’est plus une écriture rapprochée toujours disponible. Revérifiez les transactions."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "The supporting evidence or rule settings changed. Recheck evidence before approval."
+msgstr "Les transactions à l’appui ou les paramètres de la règle ont changé. Revérifiez les transactions avant l’approbation."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "This rule overlaps “%(rule)s” on “%(example)s”. Review its scope before approval."
+msgstr "Cette règle chevauche « %(rule)s » sur « %(example)s ». Vérifiez son périmètre avant l’approbation."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "This rule overlaps “%(rule)s” on “%(example)s”. Review its scope before continuing."
+msgstr "Cette règle chevauche « %(rule)s » sur « %(example)s ». Vérifiez son périmètre avant de continuer."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "This suggestion could overlap with “%s”. Review its conditions and the supporting examples before approval."
+msgstr "Cette suggestion pourrait chevaucher « %s ». Vérifiez ses conditions et les exemples à l’appui avant l’approbation."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "This transaction needs native manual rule configuration; its settlement effect cannot be inferred."
+msgstr "Cette transaction nécessite une configuration manuelle native de la règle ; son résultat de règlement ne peut pas être déduit."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "This would overlap the evidence-backed rule “%(rule)s” on “%(example)s”. Keep the rules separate before saving."
+msgstr "Cette modification chevaucherait la règle justifiée « %(rule)s » sur « %(example)s ». Séparez les conditions des règles avant d’enregistrer."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "Use Approve Rule to activate an evidence-backed suggestion."
+msgstr "Utilisez Approuver la règle pour activer une suggestion appuyée par des transactions vérifiées."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "You can no longer read every supporting transaction. Restore the appropriate access before reviewing this suggestion."
+msgstr "Vous ne pouvez plus consulter toutes les transactions à l’appui. Rétablissez les accès appropriés avant de vérifier cette suggestion."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "“%(label)s” overlaps “%(rule)s” on “%(example)s”."
+msgstr "« %(label)s » chevauche « %(rule)s » sur « %(example)s »."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+msgid "“%s”: the native rule cannot reproduce all observed accounting results."
+msgstr "« %s » : la règle native ne peut pas reproduire tous les résultats comptables constatés."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_reconcile_model_form
+msgid "Recheck evidence"
+msgstr "Revérifier les transactions"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_reconcile_model_form
+msgid "Replay the current rule against its supporting transactions and check current overlaps. This does not change any accounting entry or activate the rule."
+msgstr "Reproduire le calcul de la règle sur ses transactions à l’appui et vérifier les chevauchements actuels. Cette action ne modifie aucune écriture comptable et n’active pas la règle."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_reconcile_model_form
+msgid "Review possible overlap"
+msgstr "Vérifier le chevauchement possible"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_reconcile_model_form
+msgid "The samples do not prove that every future transaction is disjoint. Review the named rules and examples before approval."
+msgstr "Ces exemples ne garantissent pas l’absence de chevauchement pour toute transaction future. Vérifiez les règles indiquées et les exemples avant l’approbation."
+
+#. module: rebuild_account_migration
+#: model:ir.model.constraint,message:rebuild_account_migration.constraint_rebuild_reconcile_rule_coordination_company_unique
+msgid "One coordination row per company."
+msgstr "Une seule ligne de coordination par société."
+
+#. module: rebuild_account_migration
+#: model:ir.model,name:rebuild_account_migration.model_rebuild_reconcile_rule_coordination
+msgid "Private reconciliation rule authoring coordination"
+msgstr "Coordination privée de création des règles de rapprochement"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_account_reconcile_model__rebuild_generated_proof
+msgid "Rebuild Generated Proof"
+msgstr "Preuve générée"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_account_reconcile_model__rebuild_proof_digest
+msgid "Rebuild Proof Digest"
+msgstr "Empreinte de la preuve"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_account_reconcile_model__rebuild_pattern_shape
+msgid "Rebuild Pattern Shape"
+msgstr "Forme du libellé"
