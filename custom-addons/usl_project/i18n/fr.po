@@ -544,3 +544,24 @@ msgstr "Tâche déplacée. Elle ne figure plus dans les résultats de ce tableau
 #: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
 msgid "A grouping is unavailable. Remove it using the search controls. These task results keep your current filters without grouping."
 msgstr "Un regroupement est indisponible. Retirez-le avec les contrôles de recherche. Ces résultats conservent vos filtres actuels sans regroupement."
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+msgid "· Lanes:"
+msgstr "· Lignes :"
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+msgid "<i class=\"fa fa-plus\"/> <span class=\"visually-hidden\">New task</span>"
+msgstr "<i class=\"fa fa-plus\"/> <span class=\"visually-hidden\">Nouvelle tâche</span>"
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+msgid "None"
+msgstr "Aucun"

@@ -1,5 +1,5 @@
 from odoo import Command, fields
-from odoo.exceptions import RedirectWarning, UserError, ValidationError
+from odoo.exceptions import AccessError, RedirectWarning, UserError, ValidationError
 from odoo.tests import TransactionCase, new_test_user, tagged
 
 
@@ -233,3 +233,51 @@ class TestTaskSwimlane(TransactionCase):
         column = next(group for group in result['groups'] if group['stage_id'][0] == self.stages[0].id)
         self.assertEqual(column['__groups']['groups'][0]['task_properties.qa_reference'], (reference.id, reference.name))
         self.assertEqual(column['__groups']['groups'][0]['__count'], 1)
+
+
+    def test_governed_agents_keep_native_write_and_readonly_boundaries(self):
+        if 'usl.agent' not in self.env:
+            self.skipTest('Governed Agent policy is qualified in the full distribution registry.')
+        group = self.env.ref('project.group_project_user')
+        agents = {}
+        for mode in ('read_write', 'read_only'):
+            agents[mode] = self.env['usl.agent'].with_user(self.actor).create({
+                'name': f'[QA] Swimlane {mode}',
+                'purpose': 'Qualify task swimlane permissions.',
+                'owner_id': self.actor.id,
+                'company_id': self.actor.company_id.id,
+                'company_ids': [Command.set(self.actor.company_ids.ids)],
+                'delegated_group_ids': [Command.set(group.ids)],
+                'access_mode': mode,
+            })
+        from odoo.addons.usl_access_control.controllers.json2 import UslAgentJson2Controller
+        access = UslAgentJson2Controller._check_agent_call(
+            agent=agents['read_write'], model_name='project.task',
+            method_name='action_move_kanban_cell', kwargs={},
+        )
+        context = UslAgentJson2Controller._agent_call_context(
+            context={}, agent=agents['read_write'], model_name='project.task',
+            method_name='action_move_kanban_cell', access=access,
+        )
+        task = self.task().with_user(agents['read_write'].user_id).with_context(context)
+        self.move(task)
+        self.assertEqual((task.stage_id, task.priority), (self.stages[1], '1'))
+        self.assertEqual(task.write_uid, agents['read_write'].user_id)
+        events = self.env['usl.audit.event'].sudo().search([
+            ('actor_id', '=', agents['read_write'].user_id.id),
+            ('model_name', '=', 'project.task'),
+            ('operation', '=', 'write'),
+        ])
+        self.assertTrue(events)
+        self.assertTrue(all(events.mapped('actor_is_agent')))
+        self.assertTrue(all(events.mapped('correlation_id')))
+        readonly_task = self.task().with_user(agents['read_only'].user_id)
+        self.assertEqual(readonly_task.read(['name'])[0]['name'], '[QA] Swimlane Task')
+        with self.assertRaises(AccessError):
+            UslAgentJson2Controller._check_agent_call(
+                agent=agents['read_only'], model_name='project.task',
+                method_name='action_move_kanban_cell', kwargs={},
+            )
+        with self.assertRaises(AccessError):
+            self.move(readonly_task)
+        self.assertEqual((readonly_task.sudo().stage_id, readonly_task.sudo().priority), (self.stages[0], '0'))

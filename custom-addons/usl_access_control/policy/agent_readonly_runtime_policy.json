@@ -21999,6 +21999,7 @@
     "rpc:project.tags.write",
     "rpc:project.task.action_archive_attachment",
     "rpc:project.task.action_convert_to_template",
+    "rpc:project.task.action_move_kanban_cell",
     "rpc:project.task.action_open_documents_workspace",
     "rpc:project.task.action_undo_convert_to_template",
     "rpc:project.task.activity_reschedule",

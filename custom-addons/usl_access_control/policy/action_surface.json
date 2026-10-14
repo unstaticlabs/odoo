@@ -3194,6 +3194,24 @@
     },
     {
       "delegates": [
+        "rpc:project.task.action_move_kanban_cell"
+      ],
+      "digest": "fc7a661393977e0e80b5ade10b3f041e426d3d8235689d4c154dd55278c08d0e",
+      "handler": "moveCell",
+      "key": "client:usl_project:custom-addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:moveCell:rpc:1",
+      "kind": "client",
+      "modules": [
+        "usl_project"
+      ],
+      "sources": [
+        {
+          "line": 158,
+          "path": "custom-addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js"
+        }
+      ]
+    },
+    {
+      "delegates": [
         "rpc:res.users.action_open_usl_sign_requests"
       ],
       "digest": "2b1199e7fe2fde01bf0748af1c1fc88f01568245f728b31f3811c8a6199801cb",
@@ -863850,6 +863868,49 @@
       "abstract": false,
       "archiveable": true,
       "delegates": [
+        "rpc:project.task.check_access",
+        "rpc:project.task.ensure_one",
+        "rpc:project.task.fields_get",
+        "rpc:project.task.invalidate_recordset",
+        "rpc:project.task.lock_for_update",
+        "rpc:project.task.write"
+      ],
+      "digest": "c2575ea4cace25865314d7df19b2494c43a683106c77995a7b7cb65d8e27554e",
+      "guards": [],
+      "key": "rpc:project.task.action_move_kanban_cell",
+      "kind": "rpc",
+      "method": "action_move_kanban_cell",
+      "model": "project.task",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1705b800dadc31beceb347b7cb998264f83bfc799bbd224d9e8fd7e9bafc8fb4",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 36,
+          "path": "custom-addons/usl_project/models/task_swimlane.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/task_swimlane.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.check_access",
+        "rpc:project.task.ensure_one",
+        "rpc:project.task.invalidate_recordset",
+        "rpc:project.task.lock_for_update"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": true,
+      "delegates": [
         "rpc:usl.document.link.mixin.ensure_one",
         "rpc:usl.document.link.mixin.sudo",
         "rpc:usl.document.link.mixin.with_context"
@@ -1622000,6 +1622061,24 @@
       ]
     },
     {
+      "digest": "34dd55e9158f2060bc13eab38473887fc494c9aa476d761e799b0503175d1154",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_swimlane.py:project.task.action_move_kanban_cell:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.action_move_kanban_cell"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 36,
+          "path": "custom-addons/usl_project/models/task_swimlane.py"
+        }
+      ]
+    },
+    {
       "digest": "0fdb170370dcaafc4ca8d976db1b02f1c5b352355ef28bdc6f0a31578d8308be",
       "key": "sink:usl_sign:custom-addons/usl_sign/controllers/portal.py:SignPortalController._secure_signer:sudo:1",
       "kind": "sink",
@@ -1689404,11 +1689483,11 @@
       "version": "saas~19.3.1.4.4"
     },
     {
-      "manifest_sha256": "8419ba71a0d41bded73d0e4efe4205bd92b02d747130da9cd998ca4e38fd0f0d",
+      "manifest_sha256": "61b38b749c5ba939cae7607352e1b414da568536077cf2544f4cef637e2174ee",
       "name": "usl_project",
       "origin": "custom",
-      "source_sha256": "b83c63caab6d1aa56c5a73e63f19a7f7dbf0fee47814c46e678c5dffbf8bf980",
-      "version": "saas~19.3.1.0.14"
+      "source_sha256": "be5a11b23c2547b8e810d3f01f486feacd6506972edf3c338a7a095e72c39a52",
+      "version": "saas~19.3.1.0.15"
     },
     {
       "manifest_sha256": "fdc17bc172de42c3680d2f856c88ec910045db940de6d0fd31988944400cb74a",

@@ -123,6 +123,11 @@ export class TaskSwimlaneModel extends ProjectTaskKanbanModel {
         const relationGroups = new Map();
         const collect = (groups, spec) => {
             const field = config.fields[spec.split(':')[0]];
+            for (const group of groups) {
+                if (group.value === false && group.displayName == null) {
+                    group.displayName = field?.falsy_value_label || _t('None');
+                }
+            }
             if (field?.relation) {
                 const entries = relationGroups.get(field.relation) || [];
                 entries.push(...groups.filter((g) => typeof g.value === 'number' && g.value > 0).map((g) => ({ group: g, field })));

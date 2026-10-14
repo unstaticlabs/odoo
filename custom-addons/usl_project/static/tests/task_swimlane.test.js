@@ -186,3 +186,33 @@ test('unavailable grouping with no matching tasks never presents sample tasks as
     expect('.o_usl_grouping_recovery').toHaveCount(1);
     expect('.o_kanban_record:not(.o_kanban_ghost)').toHaveCount(0);
 });
+
+
+test('unset native selection lane has a readable heading, cell label and Move option', async () => {
+    projectModels.ProjectTask._records = [
+        { id: 1, name: 'Amber task', stage_id: 1, priority: false },
+        { id: 2, name: 'Cobalt task', stage_id: 2, priority: '1' },
+    ];
+    await mountView({ resModel: 'project.task', type: 'kanban', groupBy: ['stage_id', 'priority'],
+        arch: `<kanban js_class="usl_task_swimlanes"><field name="stage_id"/><field name="priority"/><templates><t t-name="card"><field name="name"/></t></templates></kanban>` });
+    expect('.o_usl_lane_heading:contains(None)').toHaveCount(1);
+    expect('.o_usl_lane_cell[aria-label="Todo / None"]').toHaveCount(1);
+    expect('.o_usl_lane_cell[aria-label="Todo / None"] .o_kanban_record').toHaveText('Amber task');
+    await contains('.o_usl_lane_cell[aria-label="Todo / None"] .o_usl_move_task').click();
+    expect('#usl_move_lane option:contains(None)').toHaveCount(1);
+    expect(document.querySelector('#usl_move_lane').selectedOptions[0].textContent).toBe('None');
+});
+
+
+test('unset native selection column retains its exact false identity with a readable label', async () => {
+    projectModels.ProjectTask._records = [
+        { id: 1, name: 'Amber task', stage_id: 1, priority: false },
+        { id: 2, name: 'Cobalt task', stage_id: 2, priority: '1' },
+    ];
+    await mountView({ resModel: 'project.task', type: 'kanban', groupBy: ['priority', 'stage_id'],
+        arch: `<kanban js_class="usl_task_swimlanes"><field name="stage_id"/><field name="priority"/><templates><t t-name="card"><field name="name"/></t></templates></kanban>` });
+    expect('.o_usl_column_heading:contains(None)').toHaveCount(1);
+    expect('.o_usl_lane_cell[aria-label="None / Todo"] .o_kanban_record').toHaveText('Amber task');
+    await contains('.o_usl_lane_cell[aria-label="None / Todo"] .o_usl_move_task').click();
+    expect(document.querySelector('#usl_move_column').selectedOptions[0].textContent).toBe('None');
+});

@@ -15,7 +15,8 @@ it displays the first two; List supports deeper nesting.
 The column headers are shared across all lanes. Each cell shows native task
 cards and its membership count. A task assigned to two people can appear in two
 assignee lanes; these counts describe memberships rather than a unique-task
-total. Unassigned groups retain their native identity.
+total. Unassigned groups retain their native identity. Unset selection values appear
+as **None**, including in the Move controls.
 
 “No tasks” means the loaded native groups prove the cell is empty. “Load lanes”
 means that part of the grouping is not loaded yet. Closed cells have an explicit

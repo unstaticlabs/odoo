@@ -202396,6 +202396,44 @@
         "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:open:rpc:1": "3f0592da92b3e4b1340a371af2a2a814ea4ad31584594c1aaf32703ab122d484",
         "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:if:rpc:1": "558c88b9cbf9bf37c219046e7a3b624925203424cacf607716f2789c68db3a27"
       }
+    },
+    {
+      "action_keys": [
+        "rpc:project.task.action_move_kanban_cell",
+        "sink:usl_project:custom-addons/usl_project/models/task_swimlane.py:project.task.action_move_kanban_cell:orm_write:1"
+      ],
+      "classification": "operational",
+      "consequence": "Moves the displayed task memberships through one native task write, with native mail tracking, assignment and attribution effects.",
+      "domain": "projects",
+      "evidence_id": "task-swimlanes-20261014",
+      "id": "operational.project.task_swimlanes",
+      "overrides": {},
+      "rationale": "The fixed workflow checks caller read/write access, locks and verifies current source memberships, validates both destinations and preserves unrelated memberships. Native task write governs companies, constraints and audit. It cannot grant authority, erase evidence or execute unreviewed code; reversal is a later attributable task edit, not a claim of bitwise rollback.",
+      "reviewed_digests": {
+        "rpc:project.task.action_move_kanban_cell": "c2575ea4cace25865314d7df19b2494c43a683106c77995a7b7cb65d8e27554e",
+        "sink:usl_project:custom-addons/usl_project/models/task_swimlane.py:project.task.action_move_kanban_cell:orm_write:1": "34dd55e9158f2060bc13eab38473887fc494c9aa476d761e799b0503175d1154"
+      }
+    },
+    {
+      "action_keys": [
+        "client:usl_project:custom-addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:moveCell:rpc:1"
+      ],
+      "classification": "transport",
+      "consequence": "Forwards the selected task and two native grouping memberships to the fixed task move operation, then reloads native board data.",
+      "domain": "system_framework",
+      "evidence_id": "transport-exact-targets-v1",
+      "id": "transport.project.task_swimlanes",
+      "overrides": {
+        "client:usl_project:custom-addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:moveCell:rpc:1": {
+          "targets": [
+            "rpc:project.task.action_move_kanban_cell"
+          ]
+        }
+      },
+      "rationale": "The client has one exact RPC target. The server independently checks task authority, source memberships and destination types; browser labels or supplied domains do not grant access.",
+      "reviewed_digests": {
+        "client:usl_project:custom-addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:moveCell:rpc:1": "fc7a661393977e0e80b5ade10b3f041e426d3d8235689d4c154dd55278c08d0e"
+      }
     }
   ],
   "evidence_families": {
@@ -202572,6 +202610,14 @@
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_json2_policy_denies_unknown_mutations_and_secrets",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_profile_exposes_every_owner_application",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_scope_uses_owner_private_project_and_assignment_rules"
+      ]
+    },
+    "task-swimlanes-20261014": {
+      "contract": "One attributable native task write transfers at most two exact displayed memberships, preserves unrelated memberships, rejects stale or inaccessible destinations and retains human, delegated Agent, readonly and company boundaries. No authority grant or guessed date/property value.",
+      "tests": [
+        "custom-addons/usl_project/tests/test_task_swimlane.py::TestTaskSwimlane.test_two_dimensions_reach_destination",
+        "custom-addons/usl_project/tests/test_task_swimlane.py::TestTaskSwimlane.test_governed_agents_keep_native_write_and_readonly_boundaries",
+        "custom-addons/usl_project/static/tests/task_swimlane.test.js"
       ]
     },
     "transport-exact-targets-v1": {
