@@ -1,0 +1,7 @@
+# Draft bill posting and matching QA
+
+Captured 14 October 2026 from tested product revision `211886e7309f74884870518a2385f259592eba60` in a disposable local QA database. All suppliers, bills, bank transactions, amounts, identities and references are invented fixtures. The delivery lead inspected each image and its JPEG metadata before publication. Only standard JFIF metadata is present; private capture sidecars are excluded.
+
+The desktop confirmation is 1280×900. The mobile confirmation and result are 390×844 browser viewport captures, not photographs of a physical phone. The confirmation clearly names the bill, supplier, company, total, dates, selected payment, numbering and the posted-but-unmatched recovery warning. Cancel leaves the fixture draft. The result shows the separate synthetic bill posted and paid by the native JSON-2 Agent workflow; desktop shows the native invoice table and zero amount due, while mobile shows the native Posted/Paid header.
+
+These still images illustrate the final layout. Functional evidence comes from native accounting and policy tests, physical database readback, separate HTTP preview/cancellation checks, actual desktop/mobile browser confirmation, concurrent-request rejection, and live Agent JSON-2 authorization and posting checks. A matching failure, refresh failure or uncertain request must be handled through the explicit recovery message and native readback; these images alone do not prove those outcomes.
