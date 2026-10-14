@@ -441,6 +441,17 @@ class RebuildAccountDeclaration(models.Model):
             ("id", "not in", current.ids),
             ("status", "not in", ["filed", "paid", "archived"]),
         ])
+        reviewed = stale._with_recorded_review()
+        if reviewed:
+            reviewed.write({
+                "validation_status": "warning",
+                "validation_summary": (
+                    "Recorded reviewer decision preserved. The current declaration schedule no longer includes this obligation; "
+                    "review the schedule change before superseding the decision."
+                ),
+                "last_refreshed_at": fields.Datetime.now(),
+            })
+        stale -= reviewed
         if stale:
             stale.write({
                 "applicability": "not_applicable",
