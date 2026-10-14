@@ -771,6 +771,7 @@ test("all three actions remain visible in a compact mobile layout", async () => 
 
 
 const draftPostPreview = {
+    bill_id: 10, company_id: 1, supplier_id: 2, reviewed_match_key: "a".repeat(64),
     bill_name: "QA draft bill", supplier_name: "QA supplier", company_name: "QA company",
     amount: 24, currency_id: 1, currency_name: "EUR", bill_date: "2026-10-01",
     accounting_date: "2026-10-14", current_accounting_date: "2026-10-01",
@@ -874,7 +875,7 @@ test("a confirmed result survives a failed view refresh without claiming an unkn
     onRpc("js_post_and_match_outstanding_line", () => {
         completed = true;
         expect.step("posted-matched");
-        return { status: "matched", message: "The bill was posted and its payment was matched." };
+        return { status: "matched", state: "posted", message: "The bill was posted and its payment was matched." };
     });
     onRpc("web_read", () => {
         if (completed) {
@@ -897,4 +898,99 @@ test("a confirmed result survives a failed view refresh without claiming an unkn
     await contains(".modal-footer button:contains(Post and match)").click();
     expect(".modal").toHaveCount(0);
     expect.verifySteps(["posted-matched", "known-result", "refresh-view"]);
+});
+
+
+const postedWarningBill = {
+    id: 10, state: "posted", company_id: [1, "QA company"],
+    commercial_partner_id: [2, "QA supplier"], currency_id: [1, "EUR"], amount_total: 24,
+};
+
+async function openNativePostConfirmation() {
+    let close;
+    onRpc("get_draft_post_match_preview", () => draftPostPreview);
+    onRpc("js_post_and_match_outstanding_line", () => ({
+        status: "posting_confirmation_required", state: "draft",
+        native_action: { type: "ir.actions.act_window", res_model: "validate.account.move", res_id: 7, target: "new" },
+    }));
+    mockService("action", { doAction: async (action, options) => {
+        if (action.res_model === "validate.account.move") {
+            expect.step("native-confirmation");
+            close = options.onClose;
+        } else {
+            expect.step("native-setup");
+        }
+    } });
+    await mountDraftPostMatch();
+    await contains(".o_draft_post_match").click();
+    await contains(".modal-footer button:contains(Post and match)").click();
+    expect(".o_draft_post_match").toHaveAttribute("disabled");
+    return async (info) => {
+        await close(info);
+        await animationFrame();
+    };
+}
+
+const nativePostedConfirmation = {
+    usl_post_match_validated: true, bill_id: 10, posted_ids: [10], native_action: false,
+};
+
+test("native posting Cancel never matches even if another request posted the bill", async () => {
+    onRpc("read", () => { expect.step("unexpected-read"); return [postedWarningBill]; });
+    onRpc("js_assign_outstanding_line", () => expect.step("unexpected-match"));
+    const close = await openNativePostConfirmation();
+    await close(undefined);
+    expect(".o_draft_post_match").not.toHaveAttribute("disabled");
+    expect.verifySteps(["native-confirmation"]);
+});
+
+test("native posting confirmation matches reviewed facts once after actual posted readback", async () => {
+    onRpc("read", ({ args }) => { expect(args[0]).toBe(10); expect.step("read-posted"); return [postedWarningBill]; });
+    onRpc("js_assign_outstanding_line", ({ args, kwargs }) => {
+        expect(args).toEqual([10, 51]);
+        expect(kwargs.expected_reviewed_match_key).toBe(draftPostPreview.reviewed_match_key);
+        expect.step("match-once");
+        return true;
+    });
+    const close = await openNativePostConfirmation();
+    await close(nativePostedConfirmation);
+    await close(nativePostedConfirmation);
+    expect(".o_draft_post_match").not.toHaveAttribute("disabled");
+    expect.verifySteps(["native-confirmation", "read-posted", "match-once"]);
+});
+
+test("native future or hash confirmation left draft never attempts matching", async () => {
+    onRpc("read", () => expect.step("unexpected-read"));
+    onRpc("js_assign_outstanding_line", () => expect.step("unexpected-match"));
+    const close = await openNativePostConfirmation();
+    await close({ ...nativePostedConfirmation, posted_ids: [] });
+    expect(".o_draft_post_match").not.toHaveAttribute("disabled");
+    expect.verifySteps(["native-confirmation"]);
+});
+
+test("native posting readback with changed amount recovers without matching", async () => {
+    onRpc("read", () => { expect.step("read-current"); return [{ ...postedWarningBill, amount_total: 25 }]; });
+    onRpc("js_assign_outstanding_line", () => expect.step("unexpected-match"));
+    const close = await openNativePostConfirmation();
+    await close(nativePostedConfirmation);
+    expect.verifySteps(["native-confirmation", "read-current"]);
+});
+
+test("native posting marker for a different bill never matches", async () => {
+    onRpc("read", () => expect.step("unexpected-read"));
+    onRpc("js_assign_outstanding_line", () => expect.step("unexpected-match"));
+    const close = await openNativePostConfirmation();
+    await close({ ...nativePostedConfirmation, bill_id: 11, posted_ids: [11] });
+    expect.verifySteps(["native-confirmation"]);
+});
+
+test("native setup follows the confirmed accounting outcome without repeating matching", async () => {
+    onRpc("read", () => [postedWarningBill]);
+    onRpc("js_assign_outstanding_line", () => { expect.step("match-once"); return true; });
+    const close = await openNativePostConfirmation();
+    await close({ ...nativePostedConfirmation, native_action: {
+        type: "ir.actions.act_window", res_model: "account.autopost.bills.wizard", res_id: 8, target: "new",
+    } });
+    await animationFrame();
+    expect.verifySteps(["native-confirmation", "match-once", "native-setup"]);
 });

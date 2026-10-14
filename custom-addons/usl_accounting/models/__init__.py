@@ -17,6 +17,7 @@ from . import (
     multi_company_expenses,
     multi_company_setup,
     payment_suggestion,
+    post_match_confirmation,
     immediate_settlement,
     immediate_settlement_move,
     immediate_settlement_foreign,

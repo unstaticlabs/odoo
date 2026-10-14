@@ -2,7 +2,7 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from odoo import Command, fields
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import tagged
 from odoo.tests.common import new_test_user
 
@@ -174,6 +174,165 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
         self.assertEqual(bill.amount_residual, 0.0)
         self.assertTrue(source_line.reconciled)
         self.assertEqual((statement.amount, statement.date, statement.payment_ref), bank_facts)
+
+    def _native_warning_fixture(self):
+        bill, statement, source_line = self._draft_post_match_fixture()
+        history = self.env["account.move"]
+        for index in range(10):
+            prior = bill.copy({"invoice_date": self.document_date - timedelta(days=index + 1),
+                "date": self.document_date - timedelta(days=index + 1)})
+            prior.invoice_line_ids.price_unit = 12.0
+            history |= prior
+        history.action_post()
+        bill = bill.with_context(disable_abnormal_invoice_detection=False)
+        bill.invalidate_recordset(["abnormal_amount_warning", "abnormal_date_warning"])
+        self.assertTrue(bill.abnormal_amount_warning)
+        return bill, statement, source_line
+
+    def test_post_and_match_native_warning_never_claims_a_draft_was_posted(self):
+        bill, statement, source_line = self._native_warning_fixture()
+        bank_facts = (statement.amount, statement.date, statement.payment_ref,
+            source_line.account_id.id, source_line.reconciled)
+        partials = self.env["account.partial.reconcile"].search([]).ids
+        preview = bill.get_draft_post_match_preview(source_line.id)
+        result = bill.with_context(disable_abnormal_invoice_detection=True).js_post_and_match_outstanding_line(
+            source_line.id, confirmed=True, expected_confirmation=preview["confirmation_key"])
+        self.assertEqual(result["status"], "posting_confirmation_required")
+        self.assertEqual(result["state"], "draft")
+        self.assertEqual(result["native_action"]["res_model"], "validate.account.move")
+        self.assertFalse(result["native_action"]["context"]["disable_abnormal_invoice_detection"])
+        self.assertTrue(result["native_action"]["context"]["validate_analytic"])
+        self.assertEqual(bill.state, "draft")
+        self.assertFalse(bill.posted_before)
+        self.assertEqual(self.env["account.partial.reconcile"].search([]).ids, partials)
+        self.assertEqual((statement.amount, statement.date, statement.payment_ref,
+            source_line.account_id.id, source_line.reconciled), bank_facts)
+
+    def test_native_warning_confirmation_continues_with_one_reviewed_match(self):
+        bill, statement, line = self._native_warning_fixture()
+        preview = bill.get_draft_post_match_preview(line.id)
+        result = bill.js_post_and_match_outstanding_line(line.id, confirmed=True,
+            expected_confirmation=preview["confirmation_key"])
+        action = result["native_action"]
+        wizard = self.env[action["res_model"]].with_user(bill.env.user).with_context(action["context"]).browse(action["res_id"])
+        close = wizard.validate_move()
+        self.assertEqual(close["type"], "ir.actions.act_window_close")
+        self.assertTrue(close["infos"]["usl_post_match_validated"])
+        self.assertEqual(close["infos"]["posted_ids"], bill.ids)
+        self.assertEqual(bill.state, "posted")
+        self.assertFalse(line.reconciled)
+        bill.js_assign_outstanding_line(line.id, expected_reviewed_match_key=preview["reviewed_match_key"])
+        self.assertEqual(bill.payment_state, "paid")
+        self.assertTrue(line.reconciled)
+        self.assertEqual(bill.amount_residual, 0)
+        with self.assertRaises(UserError):
+            bill.js_assign_outstanding_line(line.id, expected_reviewed_match_key=preview["reviewed_match_key"])
+
+    def test_reviewed_match_rejects_same_amount_line_edit_after_native_confirmation(self):
+        bill, statement, line = self._draft_post_match_fixture()
+        preview = bill.get_draft_post_match_preview(line.id)
+        bill.action_post()
+        bill.invoice_line_ids.name = "Synthetic unreviewed service with the same price"
+        self.assertEqual(bill.amount_total, preview["amount"])
+        with self.assertRaisesRegex(UserError, "changed during posting confirmation"):
+            bill.js_assign_outstanding_line(line.id, expected_reviewed_match_key=preview["reviewed_match_key"])
+        self.assertEqual(bill.state, "posted")
+        self.assertFalse(line.reconciled)
+        self.assertEqual(bill.amount_residual, 24)
+
+    def test_reviewed_match_rejects_changed_bank_reference_after_native_confirmation(self):
+        bill, statement, line = self._draft_post_match_fixture()
+        preview = bill.get_draft_post_match_preview(line.id)
+        bill.action_post()
+        statement.payment_ref = "Synthetic different bank meaning"
+        with self.assertRaisesRegex(UserError, "changed during posting confirmation"):
+            bill.js_assign_outstanding_line(line.id, expected_reviewed_match_key=preview["reviewed_match_key"])
+        self.assertFalse(line.reconciled)
+        self.assertEqual(bill.amount_residual, 24)
+
+    def test_ordinary_native_posting_confirmation_return_stays_native(self):
+        bill, statement, line = self._draft_post_match_fixture()
+        wizard = self.env["validate.account.move"].with_user(bill.env.user).create({"move_ids": [Command.set(bill.ids)]})
+        result = wizard.validate_move()
+        self.assertEqual(result, {"type": "ir.actions.act_window_close"})
+        self.assertEqual(bill.state, "posted")
+        self.assertFalse(line.reconciled)
+
+    def test_native_warning_future_confirmation_reports_not_posted_without_matching(self):
+        bill, _old_statement, _old_line = self._native_warning_fixture()
+        future = fields.Date.today() + timedelta(days=10)
+        bill.write({"invoice_date": future, "date": future})
+        statement, line = self._bank_candidate(bill, company_amount=24,
+            payment_date=future + timedelta(days=1))
+        preview = bill.get_draft_post_match_preview(line.id)
+        result = bill.js_post_and_match_outstanding_line(line.id, confirmed=True,
+            expected_confirmation=preview["confirmation_key"])
+        action = result["native_action"]
+        wizard = self.env[action["res_model"]].with_user(bill.env.user).with_context(action["context"]).browse(action["res_id"])
+        self.assertTrue(wizard.display_force_post)
+        self.assertFalse(wizard.force_post)
+        close = wizard.validate_move()
+        self.assertEqual(close["infos"]["posted_ids"], [])
+        self.assertEqual(bill.state, "draft")
+        self.assertEqual(bill.auto_post, "at_date")
+        self.assertFalse(line.reconciled)
+        with self.assertRaisesRegex(UserError, "not posted"):
+            bill.js_assign_outstanding_line(line.id, expected_reviewed_match_key=preview["reviewed_match_key"])
+        self.assertFalse(line.reconciled)
+
+    def test_native_analytic_validation_cannot_be_disabled_for_post_and_match(self):
+        bill, statement, line = self._draft_post_match_fixture()
+        self.analytic_plan.with_company(self.company).default_applicability = "mandatory"
+        bill.invoice_line_ids.analytic_distribution = {}
+        with self.assertRaisesRegex(ValidationError, "100% analytic"):
+            bill.with_context(validate_analytic=False).js_post_and_match_outstanding_line(line.id, confirmed=True)
+        self.assertEqual(bill.state, "draft")
+        self.assertFalse(line.reconciled)
+        self.assertFalse(bill.posted_before)
+
+    def test_native_after_post_autopost_action_is_retained_after_matching(self):
+        bill, statement, line = self._draft_post_match_fixture()
+        # Company setup belongs to the fixture administrator, not the bill actor.
+        bill.company_id.with_env(self.env).autopost_bills = True
+        bill.partner_id.with_env(self.env).autopost_bills = "ask"
+        history = self.env["account.move"]
+        for index in range(2):
+            prior = bill.with_context(skip_is_manually_modified=True).copy({
+                "invoice_date": self.document_date - timedelta(days=index + 1),
+                "date": self.document_date - timedelta(days=index + 1),
+                "is_manually_modified": False})
+            prior.invoice_line_ids.with_context(skip_is_manually_modified=True).is_imported = True
+            history |= prior
+        history.action_post()
+        bill.invoice_line_ids.with_context(skip_is_manually_modified=True).is_imported = True
+        bill.with_context(skip_is_manually_modified=True).is_manually_modified = False
+        result = bill.js_post_and_match_outstanding_line(line.id, confirmed=True)
+        self.assertEqual(result["status"], "matched")
+        self.assertEqual(bill.state, "posted")
+        self.assertEqual(bill.payment_state, "paid")
+        self.assertTrue(line.reconciled)
+        self.assertEqual(result["native_action"]["res_model"], "account.autopost.bills.wizard")
+        self.assertTrue(self.env["account.autopost.bills.wizard"].browse(result["native_action"]["res_id"]).exists())
+
+    def test_native_agent_warning_action_context_contains_no_private_scope(self):
+        import json
+        from odoo.addons.usl_access_control.controllers.json2 import UslAgentJson2Controller
+        agent = self._post_match_managed_agent("read_write")
+        bill, statement, line = self._native_warning_fixture()
+        caller = bill.with_user(agent.user_id)
+        preview = caller.get_draft_post_match_preview(line.id)
+        kwargs = {"line_id": line.id, "confirmed": True,
+            "expected_confirmation": preview["confirmation_key"]}
+        access = UslAgentJson2Controller._check_agent_call(agent=agent, model_name="account.move",
+            method_name="js_post_and_match_outstanding_line", kwargs=kwargs)
+        context = UslAgentJson2Controller._agent_call_context(context=caller.env.context,
+            agent=agent, model_name="account.move", method_name="js_post_and_match_outstanding_line", access=access)
+        result = caller.with_context(context).js_post_and_match_outstanding_line(**kwargs)
+        self.assertEqual(result["status"], "posting_confirmation_required")
+        self.assertNotIn("usl_agent_operation_scope", result["native_action"]["context"])
+        json.dumps(result)
+        self.assertEqual(bill.state, "draft")
+        self.assertFalse(line.reconciled)
 
     def test_post_and_match_retains_posted_bill_when_matching_fails_late(self):
         bill, statement, source_line = self._draft_post_match_fixture()

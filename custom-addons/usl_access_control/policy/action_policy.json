@@ -74826,6 +74826,8 @@
           "reversal_action": "rpc:account.move.write"
         },
         "rpc:account.move.js_assign_outstanding_line": {
+          "evidence_id": "draft-post-match-20261014",
+          "rationale": "The optional reviewed-match fingerprint adds native authority and under-lock semantic checks only for a Post and match continuation; ordinary native Add and its reviewed reversal remain unchanged.",
           "reversal_action": "rpc:account.move.write"
         },
         "rpc:account.move.js_settle_outstanding_line": {
@@ -81425,6 +81427,8 @@
           "reversal_action": "rpc:validate.account.move.write"
         },
         "rpc:validate.account.move.validate_move": {
+          "evidence_id": "draft-post-match-20261014",
+          "rationale": "Native validation runs first with its existing authority, scheduling and hashing behavior. Only this workflow’s exact singleton bill context receives a UI-only validation marker and any optional native setup action; ordinary wizard results and native reversal remain unchanged. Cancel/X invokes no validation or continuation.",
           "reversal_action": "rpc:validate.account.move.write"
         },
         "rpc:validate.account.move.web_override_translations": {
@@ -82886,7 +82890,7 @@
         "rpc:account.move.get_portal_url": "cf615202047785444a096d896d386448012f5516ba93b1a72ef702adfcdb8506",
         "rpc:account.move.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:account.move.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
-        "rpc:account.move.js_assign_outstanding_line": "9df2389d87516fbff3683a84ea2512e8384a3a68d7495008dc27640ce79e581a",
+        "rpc:account.move.js_assign_outstanding_line": "da62728f1f59493ae7dc077cdd0ba715bdcb70dd29faf56fd076dadaf577a516",
         "rpc:account.move.js_settle_outstanding_line": "7483f11b03c088bc5e23d689190845c73692129bc91fb79b4b8345785ac3a75f",
         "rpc:account.move.js_use_payment_rate_outstanding_line": "a82125efa1c78d4946be715d3d79f8cd1a51bd5c9816b1e463b799d46536701a",
         "rpc:account.move.line.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
@@ -85033,7 +85037,7 @@
         "rpc:validate.account.move.onchange_batch": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
         "rpc:validate.account.move.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:validate.account.move.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
-        "rpc:validate.account.move.validate_move": "9f25b572a68f815afcacaee1e117dad88d3817e67bcdce331f2a6ee4b4810756",
+        "rpc:validate.account.move.validate_move": "92579e86e55a64809d0e830cf058062e00e4554c24e919b9d4098baba83b8875",
         "rpc:validate.account.move.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
         "rpc:validate.account.move.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
         "rpc:validate.account.move.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
@@ -158112,11 +158116,11 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/multi_company_setup.py:res.company._usl_ensure_operational_accounting_journals:sudo:3": "b563ead711712b649d7e287fc8a4bb5829a998bfb75c5dd10786459a890816ce",
         "sink:usl_accounting:custom-addons/usl_accounting/models/multi_company_setup.py:res.company._usl_ensure_operational_accounting_journals:sudo:4": "f1152fb5922d8b107fe0d07cfee713c245564f7b6e34549c383575845a7fa070",
         "sink:usl_accounting:custom-addons/usl_accounting/models/multi_company_setup.py:res.company._usl_ensure_operational_accounting_journals:sudo:5": "febcfae8512b6300c158523a60106a76be5ae5126e88e9865dcd6fb523c9cc70",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/payment_suggestion.py:account.move.js_assign_outstanding_line:message_send:1": "a1be0b5938dd0507aa7f1afa7d37262fe5cf13419c6b0ec1b16d8295db40e2e2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/payment_suggestion.py:account.move.js_assign_outstanding_line:message_send:2": "b6cc97d107a7477b3dfefe05ddfd5a395df0186220e174e62af51a12b0dd6cd1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/payment_suggestion.py:account.move.js_assign_outstanding_line:orm_write:1": "9b3802e07321308cc3d7ff3cf743317bb8c2a3455dd9ba899a181e17aa466a71",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/payment_suggestion.py:account.move.js_assign_outstanding_line:orm_write:2": "a0df06c45a89ea45eb9bccd5314bc475947dee8c13158a087128f9638dc83aa8",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/payment_suggestion.py:account.move.js_assign_outstanding_line:orm_write:3": "3bcef537769d5b068fac1ebc13791da511e78a0c67a02eaebd4a8301bc15136b",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/payment_suggestion.py:account.move.js_assign_outstanding_line:message_send:1": "b01cb627ddf9c173f5d16db12c0c646d11eb9c706e85f6ec59cbce44865d9e99",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/payment_suggestion.py:account.move.js_assign_outstanding_line:message_send:2": "cdfabfcbfeec2835af1dfb9660e6fb87b1fded9babf400eda23a04fea13932dc",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/payment_suggestion.py:account.move.js_assign_outstanding_line:orm_write:1": "d51a6e14bc25ff33a6a419b9c16dcbcd792753c80c8e51f247f212f6e2da1e03",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/payment_suggestion.py:account.move.js_assign_outstanding_line:orm_write:2": "9a5c786125dcb7ffcee1e899ed3448b84e5ce904bda9eb0e99755300198718de",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/payment_suggestion.py:account.move.js_assign_outstanding_line:orm_write:3": "f8cc000379b63df26b8d17ea1a3e4ee0adef4f011be2f5fed1da39f0875ce026",
         "sink:usl_accounting:custom-addons/usl_accounting/models/readonly_evidence.py:ir.attachment.create:orm_create:1": "00ebf51e358ead39e994bdd4c147eefa022a1fe53c59894e3928e78cde7fe842",
         "sink:usl_accounting:custom-addons/usl_accounting/models/readonly_evidence.py:ir.attachment.unlink:orm_unlink:1": "a599e9828cd71aa239ea5429ea0b50e99fe8800b024e57a21fa38580dd4224d4",
         "sink:usl_accounting:custom-addons/usl_accounting/models/readonly_evidence.py:ir.attachment.write:orm_write:1": "653a331d2087bb25577194f0fa6ef43c553307a6b6058fd0b185291687b4bbfd",
@@ -202339,7 +202343,7 @@
       "id": "read_only.accounting.draft_post_match_20261014",
       "rationale": "Native write and posting rights are checked for the proposed workflow; the native protected field getter computes suggestions without invoking persistent bill write. No number, reconciliation, bank mutation or external effect occurs.",
       "reviewed_digests": {
-        "rpc:account.move.get_draft_post_match_preview": "1e1ef9ba90772bae6c0fd0625fda7cefa997d9126d41514cc42ebe7aea6a2daa"
+        "rpc:account.move.get_draft_post_match_preview": "0e4e693df9714cb0af2cdc8964c10f289533bca0a7f01e37d1435a25c63a643e"
       }
     },
     {
@@ -202347,19 +202351,19 @@
         "rpc:account.move.js_post_and_match_outstanding_line"
       ],
       "classification": "operational",
-      "consequence": "Posts one reviewed draft vendor bill and attempts its selected native payment reconciliation, preserving the posted bill if matching subsequently fails.",
+      "consequence": "Requests native posting confirmation when Odoo requires it; otherwise posts one reviewed draft vendor bill and attempts its selected native payment reconciliation, preserving a posted bill if matching subsequently fails.",
       "domain": "accounting",
       "evidence_id": "draft-post-match-20261014",
       "id": "operational.accounting.draft_post_match_20261014",
-      "rationale": "This fixed workflow delegates to native posting and matching under current ACL, company, accounting and irreversible-action rules; record locks and reviewed facts reject stale or duplicate requests. No sudo, arbitrary code, provider effects or explicit commit is added. Matching failures roll back only the matching savepoint and return a clear posted-unmatched result.",
+      "rationale": "Delegates to native posting with the ordinary warning and analytic validation context under current ACL, company, accounting and irreversible-action rules. A native warning leaves the bill Draft and returns its native dialog without matching. Native record locks and reviewed facts reject stale or duplicate requests. No sudo, arbitrary code, provider effects or explicit commit is added. Matching failures roll back only matching and report the actual posted state.",
       "reviewed_digests": {
-        "rpc:account.move.js_post_and_match_outstanding_line": "aa85e7155851e67de44ff3f3136fd87b518a001e392ca802f405c2be23a00b73"
+        "rpc:account.move.js_post_and_match_outstanding_line": "ba1ffde2827273ded1ae5c7f23d295258e85eac47b627341300fa025ad55673f"
       }
     }
   ],
   "evidence_families": {
     "draft-post-match-20261014": {
-      "contract": "Native bill and selected-company authority; read-only eligibility preview without persistent writes or numbering; explicit reviewed confirmation; current candidate and line-fingerprint rechecks; native posting and matching, atomic late matching rollback with honest posted-unmatched recovery, duplicate-request rejection and actor attribution. See docs/operations/draft-post-match-action-risk-review.md.",
+      "contract": "Native bill and selected-company authority; read-only eligibility preview without persistent writes or numbering; explicit reviewed confirmation; current candidate and line-fingerprint rechecks; native posting and matching, atomic late matching rollback with honest posted-unmatched recovery, duplicate-request rejection and actor attribution. See docs/operations/draft-post-match-action-risk-review.md. Native warning dialogs preserve Draft until actual validation; Cancel/X never matches, even after external posting. Successful continuation rechecks current bill and bank semantics under locks before one native matching request. Future scheduling, mandatory analytics, optional native setup and Agent context serialization are exercised.",
       "tests": [
         "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_confirmed_post_and_match_posts_and_reconciles_draft_bill",
         "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_retains_posted_bill_when_matching_fails_late",
@@ -202373,7 +202377,12 @@
         "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_preview_matches_native_posting_date_after_lock",
         "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_respects_selected_company_and_other_company_payment",
         "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_managed_read_write_agent_uses_native_authority",
-        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_managed_read_only_agent_cannot_post_even_with_sudo"
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_managed_read_only_agent_cannot_post_even_with_sudo",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_native_warning_never_claims_a_draft_was_posted",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_native_warning_confirmation_continues_with_one_reviewed_match",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_reviewed_match_rejects_same_amount_line_edit_after_native_confirmation",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_reviewed_match_rejects_changed_bank_reference_after_native_confirmation",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_native_after_post_autopost_action_is_retained_after_matching"
       ]
     },
     "feedback-provider-phases-20260906": {

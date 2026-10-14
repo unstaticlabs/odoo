@@ -476,6 +476,80 @@ class AccountMove(models.Model):
             raise UserError(_("The suggested payment must already have a posted journal entry."))
         return line, candidate
 
+    def _reviewed_match_key(self, line):
+        """Bind semantic bill/payment facts across native posting metadata changes.
+
+        This is a concurrency fingerprint, never an authorization capability.
+        Posting changes the number, state and write timestamps; it must not
+        silently change the reviewed bill content or selected payment.
+        """
+        statement = line.move_id.statement_line_id
+        facts = {
+            "bill_id": self.id, "company_id": self.company_id.id,
+            "supplier_id": self.commercial_partner_id.id,
+            "currency_id": self.currency_id.id, "amount": self.amount_total,
+            "invoice_date": self.invoice_date, "reference": self.ref,
+            "origin": self.invoice_origin, "terms": self.narration,
+            "fiscal_position_id": self.fiscal_position_id.id,
+            "payment_term_id": self.invoice_payment_term_id.id,
+            "term_accounts": sorted(self.line_ids.filtered(
+                lambda item: item.display_type == "payment_term").mapped("account_id").ids),
+            "bill_lines": [{
+                "id": item.id, "name": item.name, "product_id": item.product_id.id,
+                "account_id": item.account_id.id, "quantity": item.quantity,
+                "price_unit": item.price_unit, "discount": item.discount,
+                "tax_ids": sorted(item.tax_ids.ids),
+                "analytic_distribution": item.analytic_distribution,
+            } for item in self.invoice_line_ids.sorted("id")],
+            "payment": {
+                "id": line.id, "move_id": line.move_id.id,
+                "company_id": line.company_id.id, "account_id": line.account_id.id,
+                "partner_id": line.partner_id.id, "currency_id": line.currency_id.id,
+                "date": line.date, "balance": line.balance,
+                "amount_currency": line.amount_currency,
+                "residual": line.amount_residual,
+                "residual_currency": line.amount_residual_currency,
+                "name": line.name, "reference": line.move_id.ref,
+                "statement_id": statement.id, "bank_amount": statement.amount,
+                "bank_date": statement.date, "bank_label": statement.payment_ref,
+                "bank_partner_id": statement.partner_id.id,
+            },
+        }
+        return hashlib.sha256(json.dumps(facts, sort_keys=True, default=str).encode()).hexdigest()
+
+    def _check_reviewed_match(self, line_id, expected_key):
+        self.ensure_one()
+        self.check_access("write")
+        if not self.env.user.has_group("account.group_account_invoice"):
+            raise AccessError(_("You need bill-posting rights to post and match a payment."))
+        if self.company_id not in self.env.companies:
+            raise AccessError(_("Select the bill's company before posting and matching."))
+        if not isinstance(expected_key, str) or len(expected_key) != 64:
+            raise UserError(_("Review the bill and selected payment before continuing their match."))
+        if isinstance(line_id, bool) or not isinstance(line_id, int) or line_id <= 0:
+            raise UserError(_("Choose an eligible payment from this bill's suggestions."))
+        line = self.env["account.move.line"].browse(line_id).exists()
+        line.check_access("write")
+        if not line or line.company_id != self.company_id:
+            raise UserError(_("This payment is no longer available for this bill."))
+        (self | line.move_id).lock_for_update()
+        (self | line.move_id).invalidate_recordset()
+        bill_lines = self.line_ids
+        bill_lines.lock_for_update(allow_referencing=True)
+        line.lock_for_update(allow_referencing=True)
+        statement = line.move_id.statement_line_id
+        if statement:
+            statement.check_access("write")
+            statement.lock_for_update(allow_referencing=True)
+            statement.invalidate_recordset()
+        bill_lines.invalidate_recordset()
+        line.invalidate_recordset()
+        if self.move_type != "in_invoice" or self.state != "posted" or line.move_id.state != "posted":
+            raise UserError(_("The bill was not posted; its payment has not been matched. Review the native posting confirmation."))
+        if line.reconciled or self._reviewed_match_key(line) != expected_key:
+            raise UserError(_("The reviewed bill or payment changed during posting confirmation. Review the available payments before matching."))
+        self.invalidate_recordset(["invoice_outstanding_credits_debits_widget"])
+
     def get_draft_post_match_preview(self, line_id):
         line, candidate = self._check_draft_match_candidate(line_id)
         affects_tax_report = self._affect_tax_report()
@@ -487,7 +561,9 @@ class AccountMove(models.Model):
             "bill_id": self.id,
             "bill_name": self.display_name,
             "company_name": self.company_id.display_name,
+            "company_id": self.company_id.id,
             "supplier_name": self.commercial_partner_id.display_name,
+            "supplier_id": self.commercial_partner_id.id,
             "amount": self.amount_total,
             "currency_id": self.currency_id.id,
             "currency_name": self.currency_id.name,
@@ -499,6 +575,7 @@ class AccountMove(models.Model):
             "payment_label": candidate.get("bank_label") or candidate["move_name"],
             "payment_entry": candidate["move_name"],
             "line_id": line.id,
+            "reviewed_match_key": self._reviewed_match_key(line),
         }
         # A concurrency fingerprint, not an authorization capability. Include
         # line facts because an external line edit may not change move.write_date.
@@ -543,7 +620,29 @@ class AccountMove(models.Model):
         self._check_draft_match_candidate(line_id, expected_write_date=expected_write_date)
         if expected_confirmation and self.get_draft_post_match_preview(line_id)["confirmation_key"] != expected_confirmation:
             raise UserError(_("The bill or payment changed after confirmation. Refresh and review them again."))
-        self.action_post()
+        posting_bill = self.with_context(validate_analytic=True, disable_abnormal_invoice_detection=False)
+        posting_bill.invalidate_recordset(["abnormal_amount_warning", "abnormal_date_warning"])
+        native_action = posting_bill.action_post()
+        self.invalidate_recordset(["state"])
+        if self.state != "posted":
+            if isinstance(native_action, dict):
+                native_action = dict(native_action)
+                # Return ordinary serializable UI context, never the in-process
+                # Agent operation scope used by this JSON-2 request.
+                native_context = native_action.get("context")
+                native_action["context"] = dict(
+                    native_context if isinstance(native_context, dict) else {},
+                    allowed_company_ids=self.env.companies.ids,
+                    lang=self.env.lang, tz=self.env.context.get("tz"),
+                    active_model=self._name, active_id=self.id, active_ids=self.ids,
+                    usl_post_match_bill_id=self.id,
+                    validate_analytic=True, disable_abnormal_invoice_detection=False)
+            return {
+                "status": "posting_confirmation_required" if isinstance(native_action, dict) else "not_posted",
+                "bill_id": self.id, "bill_name": self.name, "state": self.state,
+                "native_action": native_action or False,
+                "message": _("Odoo requires its native posting confirmation. The bill is not posted and its payment has not been matched."),
+            }
         status = "matched"
         message = _("The bill was posted and its payment was matched.")
         try:
@@ -558,11 +657,14 @@ class AccountMove(models.Model):
         return {
             "status": status, "bill_id": self.id, "bill_name": self.name,
             "state": self.state, "accounting_date": fields.Date.to_string(self.date),
+            "native_action": native_action or False,
             "message": message,
         }
 
-    def js_assign_outstanding_line(self, line_id):
+    def js_assign_outstanding_line(self, line_id, *, expected_reviewed_match_key=None):
         self.ensure_one()
+        if expected_reviewed_match_key is not None:
+            self._check_reviewed_match(line_id, expected_reviewed_match_key)
         candidate = False
         if self.is_invoice(include_receipts=True):
             if self.state != "posted":

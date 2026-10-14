@@ -6502,3 +6502,63 @@ msgstr "Le résultat n’a pas pu être confirmé. Actualisez la facture et vér
 #: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
 msgid "The confirmation could not be loaded. Refresh the bill and review its available payments."
 msgstr "La confirmation n’a pas pu être chargée. Actualisez la facture et vérifiez les paiements disponibles."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Review the bill and selected payment before continuing their match."
+msgstr "Vérifiez la facture et le paiement sélectionné avant de poursuivre leur rapprochement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "The bill was not posted; its payment has not been matched. Review the native posting confirmation."
+msgstr "La facture n’a pas été comptabilisée ; son paiement n’a pas été rapproché. Vérifiez la confirmation de comptabilisation d’Odoo."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "The reviewed bill or payment changed during posting confirmation. Review the available payments before matching."
+msgstr "La facture ou le paiement vérifié a changé pendant la confirmation de comptabilisation. Vérifiez les paiements disponibles avant de les rapprocher."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Odoo requires its native posting confirmation. The bill is not posted and its payment has not been matched."
+msgstr "Odoo demande sa confirmation de comptabilisation. La facture n’est pas comptabilisée et son paiement n’a pas été rapproché."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "The accounting result is unchanged, but Odoo's additional setup dialog could not be opened. Reload the bill to review it."
+msgstr "Le résultat comptable est inchangé, mais la fenêtre de configuration complémentaire d’Odoo n’a pas pu être ouverte. Rechargez la facture pour la vérifier."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Odoo may ask for its native additional posting confirmation."
+msgstr "Odoo peut demander une confirmation de comptabilisation supplémentaire."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "The posting outcome changed. Review the bill and its available payments before matching."
+msgstr "Le résultat de la comptabilisation a changé. Vérifiez la facture et ses paiements disponibles avant de les rapprocher."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "The bill was posted and its payment was matched, but this view could not be refreshed. Reload the bill to review its current status."
+msgstr "La facture a été comptabilisée et son paiement rapproché, mais cette vue n’a pas pu être actualisée. Rechargez la facture pour vérifier son état actuel."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "The payment outcome could not be confirmed. Refresh the bill and check its current status before trying again."
+msgstr "Le résultat du paiement n’a pas pu être confirmé. Actualisez la facture et vérifiez son état actuel avant de réessayer."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "This view could not be refreshed. Reload the bill to review its posting and payment status."
+msgstr "Cette vue n’a pas pu être actualisée. Rechargez la facture pour vérifier sa comptabilisation et son paiement."
