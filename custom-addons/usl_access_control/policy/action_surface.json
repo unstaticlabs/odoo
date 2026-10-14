@@ -142313,7 +142313,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 553,
+          "line": 554,
           "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
         },
         {
@@ -143259,7 +143259,7 @@
           "path": "addons/account/models/account_move.py"
         },
         {
-          "line": 664,
+          "line": 667,
           "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
         },
         {
@@ -143290,7 +143290,7 @@
         "rpc:account.move.line.browse",
         "rpc:account.move.with_context"
       ],
-      "digest": "ba1ffde2827273ded1ae5c7f23d295258e85eac47b627341300fa025ad55673f",
+      "digest": "898f5b6cf412e76a017f944e3d39b41f97bfa336ce096fdb6d26f170efd57113",
       "guards": [],
       "key": "rpc:account.move.js_post_and_match_outstanding_line",
       "kind": "rpc",
@@ -143301,11 +143301,11 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "6d8b6cd7e8740c5bdd690c22dbec70103092a383ba6c1161f1c183db2fa1993d",
+      "runtime_digest": "ca82a3e2788bfd13b1b9e1dbab03f20367e3619ee15cd22607f62c578bebff1d",
       "sinks": [],
       "sources": [
         {
-          "line": 601,
+          "line": 602,
           "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
         },
         {
@@ -1478611,7 +1478611,7 @@
     {
       "abstract": false,
       "archiveable": false,
-      "digest": "92579e86e55a64809d0e830cf058062e00e4554c24e919b9d4098baba83b8875",
+      "digest": "849851ff1397358fa9203c234d415e8c3d9df0f2c921505ebf7b926c6a7b5e73",
       "guards": [],
       "key": "rpc:validate.account.move.validate_move",
       "kind": "rpc",
@@ -1478623,7 +1478623,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "302e9c989830c47bf39f11562f8bd72802e9492e72056b417e379c07b2056af7",
+      "runtime_digest": "e862b67ec0aabbad39a056e384118ad3199e7603716bd096f2695646b6bac13a",
       "sinks": [
         "orm_write"
       ],
@@ -1478633,7 +1478633,7 @@
           "path": "addons/account/wizard/account_validate_account_move.py"
         },
         {
-          "line": 7,
+          "line": 8,
           "path": "custom-addons/usl_accounting/models/post_match_confirmation.py"
         },
         {
@@ -1603885,7 +1603885,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 664,
+          "line": 667,
           "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
         }
       ]
@@ -1603903,7 +1603903,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 664,
+          "line": 667,
           "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
         }
       ]
@@ -1603921,7 +1603921,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 664,
+          "line": 667,
           "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
         }
       ]
@@ -1603939,7 +1603939,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 664,
+          "line": 667,
           "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
         }
       ]
@@ -1603957,7 +1603957,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 664,
+          "line": 667,
           "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
         }
       ]
@@ -1689225,7 +1689225,7 @@
       "manifest_sha256": "3b36569d627240b8c148938e0250df3f99ccb5006eb02e9856811b55c2ed9684",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "939639669f4ffae45537325ace274122d663c7b87d7130cef08623c12a3f78f4",
+      "source_sha256": "77ab577b2a62ec9e3052f5bc0f5c3b966ae3cb4d4d9a23683d0b93d8fd8c8026",
       "version": "saas~19.3.2.2.7"
     },
     {

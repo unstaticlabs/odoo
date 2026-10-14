@@ -6,6 +6,7 @@ from datetime import date, timedelta
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
+from odoo.addons.web.controllers.utils import clean_action
 
 
 _logger = logging.getLogger(__name__)
@@ -637,6 +638,8 @@ class AccountMove(models.Model):
                     active_model=self._name, active_id=self.id, active_ids=self.ids,
                     usl_post_match_bill_id=self.id,
                     validate_analytic=True, disable_abnormal_invoice_detection=False)
+                # Nested RPC results bypass call_button’s ordinary action cleanup.
+                native_action = clean_action(native_action, self.env)
             return {
                 "status": "posting_confirmation_required" if isinstance(native_action, dict) else "not_posted",
                 "bill_id": self.id, "bill_name": self.name, "state": self.state,
@@ -657,7 +660,7 @@ class AccountMove(models.Model):
         return {
             "status": status, "bill_id": self.id, "bill_name": self.name,
             "state": self.state, "accounting_date": fields.Date.to_string(self.date),
-            "native_action": native_action or False,
+            "native_action": clean_action(native_action, self.env) if isinstance(native_action, dict) else False,
             "message": message,
         }
 

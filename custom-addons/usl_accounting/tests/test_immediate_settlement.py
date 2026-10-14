@@ -200,6 +200,7 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
         self.assertEqual(result["status"], "posting_confirmation_required")
         self.assertEqual(result["state"], "draft")
         self.assertEqual(result["native_action"]["res_model"], "validate.account.move")
+        self.assertEqual(result["native_action"]["views"], [(False, "form")])
         self.assertFalse(result["native_action"]["context"]["disable_abnormal_invoice_detection"])
         self.assertTrue(result["native_action"]["context"]["validate_analytic"])
         self.assertEqual(bill.state, "draft")
@@ -312,6 +313,7 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
         self.assertEqual(bill.payment_state, "paid")
         self.assertTrue(line.reconciled)
         self.assertEqual(result["native_action"]["res_model"], "account.autopost.bills.wizard")
+        self.assertEqual(result["native_action"]["views"], [(False, "form")])
         self.assertTrue(self.env["account.autopost.bills.wizard"].browse(result["native_action"]["res_id"]).exists())
 
     def test_native_agent_warning_action_context_contains_no_private_scope(self):

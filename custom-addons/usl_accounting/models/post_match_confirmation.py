@@ -1,4 +1,5 @@
 from odoo import models
+from odoo.addons.web.controllers.utils import clean_action
 
 
 class ValidateAccountMove(models.TransientModel):
@@ -18,7 +19,7 @@ class ValidateAccountMove(models.TransientModel):
                 "usl_post_match_validated": True,
                 "bill_id": bill_id,
                 "posted_ids": self.move_ids.filtered(lambda move: move.state == "posted").ids,
-                "native_action": result if isinstance(result, dict)
+                "native_action": clean_action(result, self.env) if isinstance(result, dict)
                     and result.get("type") != "ir.actions.act_window_close" else False,
             },
         }

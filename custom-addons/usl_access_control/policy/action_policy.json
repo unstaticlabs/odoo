@@ -85037,7 +85037,7 @@
         "rpc:validate.account.move.onchange_batch": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
         "rpc:validate.account.move.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:validate.account.move.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
-        "rpc:validate.account.move.validate_move": "92579e86e55a64809d0e830cf058062e00e4554c24e919b9d4098baba83b8875",
+        "rpc:validate.account.move.validate_move": "849851ff1397358fa9203c234d415e8c3d9df0f2c921505ebf7b926c6a7b5e73",
         "rpc:validate.account.move.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
         "rpc:validate.account.move.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
         "rpc:validate.account.move.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
@@ -202357,13 +202357,13 @@
       "id": "operational.accounting.draft_post_match_20261014",
       "rationale": "Delegates to native posting with the ordinary warning and analytic validation context under current ACL, company, accounting and irreversible-action rules. A native warning leaves the bill Draft and returns its native dialog without matching. Native record locks and reviewed facts reject stale or duplicate requests. No sudo, arbitrary code, provider effects or explicit commit is added. Matching failures roll back only matching and report the actual posted state.",
       "reviewed_digests": {
-        "rpc:account.move.js_post_and_match_outstanding_line": "ba1ffde2827273ded1ae5c7f23d295258e85eac47b627341300fa025ad55673f"
+        "rpc:account.move.js_post_and_match_outstanding_line": "898f5b6cf412e76a017f944e3d39b41f97bfa336ce096fdb6d26f170efd57113"
       }
     }
   ],
   "evidence_families": {
     "draft-post-match-20261014": {
-      "contract": "Native bill and selected-company authority; read-only eligibility preview without persistent writes or numbering; explicit reviewed confirmation; current candidate and line-fingerprint rechecks; native posting and matching, atomic late matching rollback with honest posted-unmatched recovery, duplicate-request rejection and actor attribution. See docs/operations/draft-post-match-action-risk-review.md. Native warning dialogs preserve Draft until actual validation; Cancel/X never matches, even after external posting. Successful continuation rechecks current bill and bank semantics under locks before one native matching request. Future scheduling, mandatory analytics, optional native setup and Agent context serialization are exercised.",
+      "contract": "Native bill and selected-company authority; read-only eligibility preview without persistent writes or numbering; explicit reviewed confirmation; current candidate and line-fingerprint rechecks; native posting and matching, atomic late matching rollback with honest posted-unmatched recovery, duplicate-request rejection and actor attribution. See docs/operations/draft-post-match-action-risk-review.md. Native warning dialogs preserve Draft until actual validation; Cancel/X never matches, even after external posting. Successful continuation rechecks current bill and bank semantics under locks before one native matching request. Future scheduling, mandatory analytics, optional native setup and Agent context serialization are exercised. Nested native actions use upstream clean_action, preserving the same views generated for ordinary call_button actions; actual browser handoff and native view-descriptor regressions cover this boundary.",
       "tests": [
         "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_confirmed_post_and_match_posts_and_reconciles_draft_bill",
         "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_retains_posted_bill_when_matching_fails_late",
