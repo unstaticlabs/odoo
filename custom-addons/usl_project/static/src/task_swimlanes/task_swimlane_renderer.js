@@ -104,6 +104,10 @@ export class TaskSwimlaneRenderer extends ProjectTaskKanbanRenderer {
         const source = this.cells.get(sourceId), target = this.cells.get(parent?.dataset.id);
         const record = source?.leaf?.list.records.find((r) => r.id === recordId);
         if (!record || !target) return;
+        if (target.column.isFolded) {
+            await this.props.list.model.load();
+            return;
+        }
         parent.classList.remove('o_kanban_hover');
         if (source.id === target.id) {
             while (previous && !previous.dataset.id) previous = previous.previousElementSibling;

@@ -85,3 +85,8 @@ board's filters and groupings. The URL keeps precedence over a default saved
 search. Selecting an available profile uses the native favorite toggle to
 replace the query; reopening the board does not activate a default profile for
 you. Native favorite loading options and caller access remain unchanged.
+
+Folding a shared column hides its task cards and cell controls in every lane,
+while keeping the native header count. Desktop folds to a compact column; mobile
+keeps its native column width. Open column restores the same task population and
+groupings. Hidden folded cells do not accept drag moves.

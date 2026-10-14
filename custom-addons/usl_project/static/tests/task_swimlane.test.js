@@ -446,3 +446,40 @@ test('shared native header Settings appears for keyboard focus without changing 
     expect('.o_usl_column_heading:first .o_group_config').toHaveStyle({ visibility: 'hidden' });
     expect('.o_kanban_record').toHaveCount(2);
 });
+
+
+test.tags('desktop');
+test('native Fold hides already-loaded lane cards and narrows the shared column until Open', async () => {
+    onRpc('project.task', 'write', () => { throw new Error('Fold/Open must not write task dimensions'); });
+    const view = await mountView({ resModel: 'project.task', type: 'kanban', groupBy: ['stage_id', 'priority'],
+        arch: `<kanban js_class="usl_task_swimlanes"><field name="stage_id"/><templates><t t-name="card"><field name="name"/></t></templates></kanban>` });
+    const beforeWidth = document.querySelector('.o_usl_column_heading').getBoundingClientRect().width;
+    expect('.o_kanban_record:contains(Amber task)').toHaveCount(1);
+    await contains('.o_usl_column_heading:first button:contains(New task)').focus();
+    await contains('.o_usl_column_heading:first .o_group_config button').click();
+    await contains('.o-dropdown--menu .dropdown-item:contains(Fold)').click();
+    expect('.o_usl_column_heading:first').toHaveClass('o_usl_column_folded');
+    expect('.o_kanban_record:contains(Amber task)').toHaveCount(0);
+    expect('.o_kanban_record:contains(Cobalt task)').toHaveCount(1);
+    expect('.o_usl_lane_cell.o_usl_column_folded .o_usl_move_task').toHaveCount(0);
+    expect('.o_usl_lane_cell.o_usl_column_folded button').toHaveCount(0);
+    expect(document.querySelector('.o_usl_column_heading').getBoundingClientRect().width).toBeLessThan(beforeWidth);
+    expect('.o_usl_column_heading:first').toHaveText(/1/);
+    await contains('.o_usl_column_heading:first button:contains(Open column)').click();
+    expect('.o_kanban_record:contains(Amber task)').toHaveCount(1);
+    expect('.o_usl_column_heading:first').toHaveText(/1/);
+});
+
+test('folded root hides cell controls on every viewport and native Open restores cards', async () => {
+    projectModels.ProjectTaskType._fields.fold = fields.Boolean();
+    projectModels.ProjectTaskType._records[0].fold = true;
+    const view = await mountView({ resModel: 'project.task', type: 'kanban', groupBy: ['stage_id', 'priority'],
+        arch: `<kanban js_class="usl_task_swimlanes"><field name="stage_id"/><templates><t t-name="card"><field name="name"/></t></templates></kanban>` });
+    await waitFor('.o_usl_column_heading.o_usl_column_folded');
+    expect('.o_kanban_record:contains(Amber task)').toHaveCount(0);
+    expect('.o_usl_lane_cell.o_usl_column_folded button').toHaveCount(0);
+    await contains('.o_usl_column_heading:first button:contains(Open column)').click();
+    expect('.o_kanban_record:contains(Amber task)').toHaveCount(1);
+    expect('.o_kanban_record:contains(Cobalt task)').toHaveCount(1);
+    expect('.o_usl_axes').toHaveText(/Columns: Stage/);
+});

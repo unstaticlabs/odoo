@@ -8,17 +8,18 @@
             <div class="o_usl_axes px-3 py-2 text-muted">Columns: <t t-out="this.axisCaption[0]"/> · Lanes: <t t-out="this.axisCaption[1]"/></div>
             <div t-if="this.env.searchModel?.groupBy.length > 2" class="px-3 pb-2 text-muted">This board shows the first two groupings. Remove a grouping using Group By, or switch to List for deeper grouping.</div>
             <div class="o_usl_matrix_columns d-flex align-items-stretch">
-            <div class="o_usl_lane_grid" t-att-style="'--usl-columns:' + this.props.list.groups.length">
+            <div class="o_usl_lane_grid" t-att-style="'--usl-column-tracks:' + this.props.list.groups.map((column) => column.isFolded ? 'var(--usl-folded-column-width)' : 'var(--usl-column-width)').join(' ')">
                 <div class="o_usl_lane_heading"/>
-                <div t-foreach="this.props.list.groups" t-as="column" t-key="column.id" class="o_usl_column_heading" t-att-data-id="column.id" t-att-class="{o_group_draggable: this.canResequenceGroups and column.value and !this.isProcessing(column.id)}" t-on-click="(ev) => this.onGroupClick(column, ev)">
+                <div t-foreach="this.props.list.groups" t-as="column" t-key="column.id" class="o_usl_column_heading" t-att-data-id="column.id" t-att-class="{o_usl_column_folded: column.isFolded, o_group_draggable: this.canResequenceGroups and column.value and !this.isProcessing(column.id)}" t-on-click="(ev) => this.onGroupClick(column, ev)">
                     <KanbanHeader activeActions="this.props.archInfo.activeActions" canQuickCreate="false" deleteGroup="(group) => this.deleteGroup(group)" dialogClose="this.dialogClose" group="column" list="this.props.list" quickCreateState="this.props.quickCreateState" scrollTop="this.props.scrollTop" tooltipInfo="this.props.archInfo.tooltipInfo" progressBarState="this.props.progressBarState"/>
-                    <button t-if="this.props.archInfo.activeActions.create" class="btn btn-link btn-sm" t-on-click="() => this.createColumn(column)">New task</button>
+                    <button t-if="!column.isFolded and this.props.archInfo.activeActions.create" class="btn btn-link btn-sm" t-on-click="() => this.createColumn(column)">New task</button>
                     <button t-if="column.isFolded" class="btn btn-link btn-sm" t-on-click.stop="() => column.toggle()">Open column</button>
                     <button t-if="!column.isFolded and column.list.groups.length &lt; column.list.count" class="btn btn-link btn-sm" t-on-click="() => this.moreLanes(column)">Load more lanes</button>
                 </div>
                 <t t-foreach="this.rows" t-as="row" t-key="row.key">
                     <div class="o_usl_lane_heading px-2 py-3 fw-bold" t-out="row.group.displayName"/>
-                    <div t-foreach="row.cells" t-as="cell" t-key="cell.id" class="o_kanban_group o_usl_lane_cell" tabindex="-1" t-att-aria-label="cell.column.displayName + ' / ' + cell.row.displayName" t-att-data-id="cell.id">
+                    <div t-foreach="row.cells" t-as="cell" t-key="cell.id" class="o_kanban_group o_usl_lane_cell" tabindex="-1" t-att-class="{o_usl_column_folded: cell.column.isFolded}" t-att-aria-label="cell.column.displayName + ' / ' + cell.row.displayName" t-att-data-id="cell.id">
+                        <t t-if="!cell.column.isFolded">
                         <div class="d-flex align-items-center justify-content-end gap-2 mb-2">
                             <span t-if="cell.leaf" class="text-muted small" title="Task memberships" t-out="cell.leaf.count"/>
                             <button t-if="this.props.archInfo.activeActions.create" class="btn btn-link btn-sm" title="New task in this cell" t-on-click="() => this.createCell(cell)"><i class="fa fa-plus"/> <span class="visually-hidden">New task</span></button>
@@ -34,6 +35,7 @@
                         </t>
                         <span t-elif="cell.status === 'empty'" class="text-muted small">No tasks</span>
                         <button t-else="" class="btn btn-link btn-sm" t-on-click="() => this.openCell(cell)"><t t-if="cell.status === 'closed'">Open cell</t><t t-else="">Load lanes</t></button>
+                        </t>
                     </div>
                 </t>
             </div>

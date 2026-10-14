@@ -1,9 +1,11 @@
 .o_kanban_renderer.o_usl_swimlanes {
     --usl-lane-heading-width: 140px;
+    --usl-column-width: 300px;
+    --usl-folded-column-width: 80px;
     overflow: auto !important; scroll-snap-type: none; min-width: 0; width: 100%;
     .o_usl_axes { position: sticky; left: 0; }
     .o_usl_matrix_columns { width: max-content; min-width: 100%; }
-    .o_usl_lane_grid { display: grid; grid-template-columns: var(--usl-lane-heading-width) repeat(var(--usl-columns), 300px); width: max-content; flex-shrink: 0; }
+    .o_usl_lane_grid { display: grid; grid-template-columns: var(--usl-lane-heading-width) var(--usl-column-tracks); width: max-content; flex-shrink: 0; }
     .o_usl_column_heading { position: sticky; top: 0; z-index: 2; background: var(--o-view-background-color, #{$o-view-background-color}); padding: 0 12px; }
     @include media-breakpoint-up(md) {
         .o_usl_column_heading:hover .o_group_config,
@@ -11,7 +13,9 @@
     }
     .o_usl_lane_heading { position: sticky; left: 0; z-index: 1; background: var(--o-view-background-color, #{$o-view-background-color}); border-top: 1px solid var(--border-color, #{$border-color}); overflow-wrap: anywhere; }
     .o_usl_lane_cell { --KanbanGroup-width: 0px; --KanbanGroup-max-width: none; --KanbanRecord-width: 100%; min-width: 0; width: auto; overflow: visible; scroll-snap-align: none; min-height: 100px; padding: 12px; border-top: 1px solid var(--border-color, #{$border-color}); }
+    .o_usl_column_heading.o_usl_column_folded { padding: 0 4px; overflow-wrap: anywhere; }
+    .o_usl_lane_cell.o_usl_column_folded { padding: 0; }
     .o_usl_lane_cell, .o_kanban_record { scroll-margin-inline-start: calc(var(--usl-lane-heading-width) + 12px); }
     .o_usl_move_task { min-height: 32px; margin-bottom: 8px; }
-    @include media-breakpoint-down(md) { --usl-lane-heading-width: 100px; .o_usl_lane_grid { grid-template-columns: var(--usl-lane-heading-width) repeat(var(--usl-columns), 280px); } .o_usl_move_task { min-height: 44px; } }
+    @include media-breakpoint-down(md) { --usl-lane-heading-width: 100px; --usl-column-width: 280px; --usl-folded-column-width: 280px; .o_usl_move_task { min-height: 44px; } }
 }
