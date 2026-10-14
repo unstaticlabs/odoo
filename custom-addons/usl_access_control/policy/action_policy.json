@@ -203186,7 +203186,7 @@
       ]
     },
     "vendor-bill-merge-20261014": {
-      "contract": "Native actor/company/creator and Agent-owner ceiling; immutable selection/child/evidence snapshot; keep existing winning identity and financial lines, native guarded cancellation/recovery, retained original files/history; explicit conflict choice/todo and atomic rollback. Runtime, installation/upgrade and live protocol qualification remain separate required delivery evidence. Nonempty equality and stale checks include recipient-bank identity and normalized tax reporting tags; Billing bill details omit the inaccessible settlement audit control while Accounting audit access and native protection remain.",
+      "contract": "Native actor/company/creator and Agent-owner ceiling; immutable selection/child/evidence snapshot; keep existing winning identity and financial lines, native guarded cancellation/recovery, retained original files/history; explicit conflict choice/todo and atomic rollback. Runtime, installation/upgrade and live protocol qualification remain separate required delivery evidence. Nonempty equality and stale checks include recipient-bank identity and normalized tax reporting tags; Billing bill details omit the inaccessible settlement audit control while Accounting audit access and native protection remain. Comparison-only native inspection includes financial facts, evidence and history without lifecycle/payment/edit controls; ordinary native lifecycle and recovery authority remain unchanged.",
       "tests": [
         "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_identical_bills_keep_one_amount_and_original_winning_lines",
         "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_managed_agent_creator_owner_ceiling_and_sibling_boundaries",
@@ -203201,7 +203201,9 @@
         "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_same_reporting_tag_set_keeps_one_posted_bill",
         "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_different_untagged_line_counts_do_not_claim_reporting_tags_differ",
         "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_billing_bill_form_excludes_inaccessible_settlement_audit",
-        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_accountant_retains_native_settlement_audit_count"
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_accountant_retains_native_settlement_audit_count",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_comparison_details_exclude_all_object_and_action_buttons",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_normal_bill_form_retains_native_lifecycle_and_recovery"
       ]
     }
   },

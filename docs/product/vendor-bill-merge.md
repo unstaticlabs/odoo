@@ -17,7 +17,10 @@ and record identifiers do not make otherwise identical bills different.
 For differences, use **Choose this bill** on the comparison row. Amount, currency,
 state, reference and stable record number distinguish even bills whose native
 display names are identical. The dialog explains recipient-bank and tax-reporting
-differences. Open a record number for native read-only bill details, then return
+differences. Open a record number for a dedicated native inspection form with financial
+headers, invoice and journal lines, reporting tags, analytics, original-file
+downloads and readable history. It has no posting, cancellation, duplicate
+deletion, payment or editing controls. Close it, then return
 to the comparison; opening details changes no bill or choice. Check the selected
 details, then confirm **Keep this
 bill and merge** separately. Selection alone changes no bill. Its state is shown

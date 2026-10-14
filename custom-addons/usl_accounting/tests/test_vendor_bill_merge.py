@@ -8,6 +8,7 @@ from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
 from odoo.tests.common import new_test_user
+from odoo.tools.safe_eval import safe_eval
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 
 
@@ -317,6 +318,31 @@ class TestVendorBillMerge(AccountTestInvoicingCommon):
         self.assertTrue(arch.xpath(".//field[@name='immediate_settlement_count']"))
         self.assertTrue(arch.xpath(".//button[@name='action_open_immediate_settlement']"))
         self.assertEqual(bill.immediate_settlement_count, 0)
+
+    def _comparison_detail_arch(self, first, second):
+        wizard = self._conflict_wizard(first | second)
+        arch = etree.fromstring(wizard.get_view(view_type="form")["arch"])
+        field = arch.xpath(".//field[@name='bill_ids']")[0]
+        context = safe_eval(field.get("context", "{}"))
+        return etree.fromstring(first.with_context(**context).get_view(view_type="form")["arch"])
+
+    def test_comparison_details_exclude_all_object_and_action_buttons(self):
+        first, second = self._bill(), self._bill(amount=47)
+        before = [(bill.state, bill.amount_total, bill.line_ids.ids) for bill in (first | second)]
+        arch = self._comparison_detail_arch(first, second)
+        self.assertFalse(arch.xpath(".//button[@type='object' or @type='action']"))
+        self.assertFalse(arch.xpath(".//field[@widget='actionable_errors' or @widget='payment' or @widget='account_payment']"))
+        for name in ("partner_bank_id", "amount_total", "currency_id", "invoice_date",
+                     "invoice_line_ids", "line_ids", "tax_tag_ids", "analytic_distribution",
+                     "attachment_ids", "message_ids"):
+            self.assertTrue(arch.xpath(".//field[@name='%s']" % name), name)
+        self.assertEqual([(bill.state, bill.amount_total, bill.line_ids.ids) for bill in (first | second)], before)
+
+    def test_normal_bill_form_retains_native_lifecycle_and_recovery(self):
+        first = self._bill()
+        arch = etree.fromstring(first.get_view(view_type="form")["arch"])
+        for name in ("action_post", "button_cancel", "button_draft", "action_delete_duplicates"):
+            self.assertTrue(arch.xpath(".//button[@name='%s']" % name), name)
 
     def test_changed_original_evidence_invalidates_conflict_choice(self):
         first, second = self._bill(), self._bill(amount=47)

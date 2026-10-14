@@ -6792,3 +6792,33 @@ msgstr "Ouvrez un numéro de fiche pour consulter la facture, puis revenez ici p
 #: code:addons/usl_accounting/wizard/vendor_bill_merge_wizard.py:0
 msgid "\nRecipient bank: %(bank)s"
 msgstr "\nCompte bancaire destinataire : %(bank)s"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_inspection_form
+msgid "Inspect this bill"
+msgstr "Consulter cette facture"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_inspection_form
+msgid "Read-only inspection. Close these details to return to your choice; confirm the merge separately in the comparison."
+msgstr "Consultation en lecture seule. Fermez ces détails pour revenir à votre choix ; confirmez la fusion séparément dans la comparaison."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_inspection_form
+msgid "Invoice lines"
+msgstr "Lignes de facture"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_inspection_form
+msgid "Journal items"
+msgstr "Écritures comptables"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_inspection_form
+msgid "Original files"
+msgstr "Fichiers d’origine"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_inspection_form
+msgid "History"
+msgstr "Historique"

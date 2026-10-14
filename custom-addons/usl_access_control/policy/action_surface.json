@@ -1695196,7 +1695196,7 @@
       "manifest_sha256": "8d25cc51cffcc5c6642dd71537beb82e2798e1a6eba06ad88c77b23bd77e4583",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "37f34be0656773378aa619f372f87350f3ffee96751ba04725812b69ff635cab",
+      "source_sha256": "916447b98ff99d84768831e2f9756d60a43640c26a8f65ac94be7b257c0bb160",
       "version": "saas~19.3.2.2.8"
     },
     {
