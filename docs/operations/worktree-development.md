@@ -19,7 +19,7 @@ It prints one assignment per line, derived from the checkout path, so the same
 worktree always resolves to the same project and ports:
 
 ```
-COMPOSE_PROJECT_NAME=usl-wt-<worktree-directory>
+COMPOSE_PROJECT_NAME=usl-wt-<worktree-directory>-<path-checksum>
 ODOO_HTTP_PORT=<derived>
 ODOO_GEVENT_PORT=<derived>
 POCKET_ID_HTTP_PORT=<derived>
@@ -31,6 +31,14 @@ inside one set are 3, 59 and 6599, none of them a multiple of ten, so no
 worktree's port can land on another worktree's. Two worktrees collide only when
 their paths fall in the same bucket of four hundred, and Docker then reports a
 plain bind failure rather than silently sharing a runtime.
+
+The project name includes the full checkout path's checksum. Managed checkouts
+such as `worktrees/feedback/odoo` and `worktrees/agents/odoo` both end in `odoo`,
+but must own different Compose projects. Persisted `.env` settings and explicit
+project names keep their existing values; this changes newly generated defaults.
+For an existing stack, keep its current project name until you intentionally
+move that stack. Changing the name starts a separate project rather than adopting
+the existing containers or volumes.
 
 ## Use them
 
