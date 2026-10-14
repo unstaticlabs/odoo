@@ -143214,7 +143214,7 @@
       ],
       "sources": [
         {
-          "line": 435,
+          "line": 436,
           "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
         },
         {
@@ -1603791,7 +1603791,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 435,
+          "line": 436,
           "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
         }
       ]
@@ -1603809,7 +1603809,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 435,
+          "line": 436,
           "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
         }
       ]
@@ -1603827,7 +1603827,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 435,
+          "line": 436,
           "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
         }
       ]
@@ -1603845,7 +1603845,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 435,
+          "line": 436,
           "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
         }
       ]
@@ -1603863,7 +1603863,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 435,
+          "line": 436,
           "path": "custom-addons/usl_accounting/models/payment_suggestion.py"
         }
       ]
@@ -1688134,6 +1688134,7 @@
     }
   ],
   "country_codes": [
+    "fr",
     "us"
   ],
   "diagnostics": [],
@@ -1689127,11 +1689128,11 @@
       "version": "saas~19.3.1.8.0"
     },
     {
-      "manifest_sha256": "323128a1a3117d55f07decae37664f748c53665fc432ac515a1df8d25cd696c3",
+      "manifest_sha256": "311cc0fdfab62ea6c4b58cc2446795404ccddda9946103f357974396825e6d59",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "46542210a246fbcef81d9f42e2b6ae82b05b0e853c977dfae982ce3a35e4628f",
-      "version": "saas~19.3.2.2.4"
+      "source_sha256": "0ca8daca2f8c098bf442cfd2b4d014932c3a7e44a35d7481b4ec791c46212b72",
+      "version": "saas~19.3.2.2.6"
     },
     {
       "manifest_sha256": "d3991a85f02eca8b6b43179b39270cc15cfaf68325f4ff2181e354ccb01c4cf0",

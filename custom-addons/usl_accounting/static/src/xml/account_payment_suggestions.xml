@@ -66,6 +66,10 @@
             <attribute name="style">max-width: 20rem;</attribute>
         </xpath>
         <xpath expr="//a[hasclass('open_account_move')]" position="attributes">
+            <attribute name="href">#</attribute>
+            <attribute name="role">link</attribute>
+            <attribute name="t-on-click"/>
+            <attribute name="t-on-click.prevent">() => this.openMove(line.move_id)</attribute>
             <attribute name="t-out">line.bank_label or line.move_name</attribute>
             <attribute name="t-att-title">line.bank_label ? line.move_name : (line.ref or '')</attribute>
             <attribute name="t-att-aria-label">line.bank_label ? line.bank_label + ' — ' + line.move_name : undefined</attribute>

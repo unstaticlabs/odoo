@@ -66,7 +66,7 @@
         font-weight: $font-weight-semibold;
     }
 
-    @include media-breakpoint-down(sm) {
+    @mixin stack-payment-suggestions {
         & {
             width: 100% !important;
         }
@@ -137,4 +137,17 @@
             flex-basis: 100%;
         }
     }
+
+    @include media-breakpoint-down(sm) {
+        @include stack-payment-suggestions;
+    }
+
+    // The native totals column is narrow even on a desktop screen.
+    @container usl-payment-suggestions (max-width: 34rem) {
+        @include stack-payment-suggestions;
+    }
+}
+
+.oe_invoice_outstanding_credits_debits {
+    container: usl-payment-suggestions / inline-size;
 }
