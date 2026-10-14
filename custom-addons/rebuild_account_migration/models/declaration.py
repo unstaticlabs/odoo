@@ -3,7 +3,7 @@ from datetime import date
 
 from dateutil.relativedelta import relativedelta
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import float_compare
 
@@ -261,7 +261,7 @@ class RebuildAccountDeclaration(models.Model):
                 messages.append("Ledger-derived fields and confirmed facts currently pass automated checks.")
             if declaration in reviewed:
                 preparation_status = "reviewed"
-                messages.insert(0, "Recorded reviewer decision preserved; the automated checks below describe current data.")
+                messages.insert(0, _("Recorded reviewer decision preserved; the automated checks below describe current data."))
             vals = {
                 "validation_status": validation_status,
                 "preparation_status": preparation_status,

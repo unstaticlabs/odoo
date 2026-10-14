@@ -4,7 +4,7 @@ from datetime import date, timedelta
 
 from dateutil.relativedelta import relativedelta
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 
 from .declaration import EU_COUNTRY_CODES, _month_end
 
@@ -445,7 +445,7 @@ class RebuildAccountDeclaration(models.Model):
         if reviewed:
             reviewed.write({
                 "validation_status": "warning",
-                "validation_summary": (
+                "validation_summary": _(
                     "Recorded reviewer decision preserved. The current declaration schedule no longer includes this obligation; "
                     "review the schedule change before superseding the decision."
                 ),
