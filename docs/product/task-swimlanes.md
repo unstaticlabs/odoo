@@ -69,7 +69,9 @@ the native form instead of guessing a date or replacing a property dictionary.
 
 Shared stage headers retain native Fold, Edit, Delete, reorder and Add column
 behavior where the existing view and role permit them. Header reorder changes
-native stage sequence; it does not move tasks between stages. My Tasks keeps
+native stage sequence; it does not move tasks between stages. Desktop header
+settings appear on hover or when a header control has keyboard focus. Mobile
+visibility and role-dependent menu items stay native. My Tasks keeps
 its native implicit personal stages. Its conditional Personal Stage Group By
 option lets you select that same first axis explicitly before adding a lane.
 

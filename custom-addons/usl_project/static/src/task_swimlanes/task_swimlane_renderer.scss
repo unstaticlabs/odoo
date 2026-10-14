@@ -5,6 +5,10 @@
     .o_usl_matrix_columns { width: max-content; min-width: 100%; }
     .o_usl_lane_grid { display: grid; grid-template-columns: var(--usl-lane-heading-width) repeat(var(--usl-columns), 300px); width: max-content; flex-shrink: 0; }
     .o_usl_column_heading { position: sticky; top: 0; z-index: 2; background: var(--o-view-background-color, #{$o-view-background-color}); padding: 0 12px; }
+    @include media-breakpoint-up(md) {
+        .o_usl_column_heading:hover .o_group_config,
+        .o_usl_column_heading:focus-within .o_group_config { visibility: visible; }
+    }
     .o_usl_lane_heading { position: sticky; left: 0; z-index: 1; background: var(--o-view-background-color, #{$o-view-background-color}); border-top: 1px solid var(--border-color, #{$border-color}); overflow-wrap: anywhere; }
     .o_usl_lane_cell { --KanbanGroup-width: 0px; --KanbanGroup-max-width: none; --KanbanRecord-width: 100%; min-width: 0; width: auto; overflow: visible; scroll-snap-align: none; min-height: 100px; padding: 12px; border-top: 1px solid var(--border-color, #{$border-color}); }
     .o_usl_lane_cell, .o_kanban_record { scroll-margin-inline-start: calc(var(--usl-lane-heading-width) + 12px); }

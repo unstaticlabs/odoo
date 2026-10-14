@@ -430,3 +430,19 @@ test('registered property URL offers loaded favorites without activating their d
     expect('.o_kanban_record').toHaveCount(1);
     expect('.o_kanban_record').toHaveText('Cobalt task');
 });
+
+
+test.tags('desktop');
+test('shared native header Settings appears for keyboard focus without changing its group identity', async () => {
+    await mountView({ resModel: 'project.task', type: 'kanban', groupBy: ['stage_id', 'priority'],
+        arch: `<kanban js_class="usl_task_swimlanes"><field name="stage_id"/><templates><t t-name="card"><field name="name"/></t></templates></kanban>` });
+    const header = document.querySelector('.o_usl_column_heading');
+    expect(header.closest('.o_kanban_group')).toBe(null);
+    expect('.o_usl_column_heading:first .o_group_config').toHaveStyle({ visibility: 'hidden' });
+    await contains('.o_usl_column_heading:first button:contains(New task)').focus();
+    expect(header.matches(':focus-within')).toBe(true);
+    expect('.o_usl_column_heading:first .o_group_config').toHaveStyle({ visibility: 'visible' });
+    await contains('.o_searchview_input').focus();
+    expect('.o_usl_column_heading:first .o_group_config').toHaveStyle({ visibility: 'hidden' });
+    expect('.o_kanban_record').toHaveCount(2);
+});
