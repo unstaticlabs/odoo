@@ -268,7 +268,7 @@
                                 decoration-warning="status in ('to_prepare', 'data_missing')"
                                 decoration-danger="status == 'blocked'"
                                 decoration-muted="status == 'not_applicable'"/>
-                            <field name="validation_status" widget="badge" readonly="1"
+                            <field name="validation_status" string="Automated Validation" widget="badge" readonly="1"
                                 decoration-success="validation_status == 'ready'"
                                 decoration-warning="validation_status == 'warning'"
                                 decoration-danger="validation_status == 'blocked'"
