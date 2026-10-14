@@ -77,3 +77,9 @@ A restored property grouping loads its requested schema before native shared
 filter validation. Reopening Properties toggles the same grouping. Schema is
 available only through caller-readable tasks in the selected companies; a
 removed or inaccessible definition falls back to native search recovery.
+
+Saved searches remain available in Favorites when a shared URL restores the
+board's filters and groupings. The URL keeps precedence over a default saved
+search. Selecting an available profile uses the native favorite toggle to
+replace the query; reopening the board does not activate a default profile for
+you. Native favorite loading options and caller access remain unchanged.

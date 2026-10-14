@@ -363,3 +363,70 @@ test('registered task view restores native portable property lanes before valida
     expect('.o_usl_lane_grid').toHaveCount(1);
     expect('.o_kanban_record').toHaveCount(0);
 });
+
+
+for (const [label, loadOptions, supplied] of [
+    ['omitted flag with loaded favorites', {}, true],
+    ['false flag with loaded favorites', { loadIrFilters: false }, true],
+    ['true flag fetches native favorites', { loadIrFilters: true }, false],
+    ['omitted flag does not fetch favorites', {}, false],
+    ['false flag does not fetch favorites', { loadIrFilters: false }, false],
+]) {
+    test(`registered task URL keeps native favorites and query precedence: ${label}`, async () => {
+        const favorites = [
+            { id: 1, name: 'Saved matching tasks', user_ids: [1], is_default: true,
+                domain: "[['priority', '=', '1']]", context: "{'group_by': ['stage_id', 'priority']}", sort: '[]' },
+            { id: 2, name: 'Shared matching tasks', user_ids: [], is_default: false,
+                domain: "[['priority', '=', '1']]", context: "{'group_by': ['stage_id', 'priority']}", sort: '[]' },
+        ];
+        projectModels.ProjectTask._filters = favorites;
+        onRpc('get_views', ({ kwargs }) => { expect(kwargs.options.load_filters).toBe(loadOptions.loadIrFilters || false); });
+        await mountView({ resModel: 'project.task', type: 'kanban', ...loadOptions,
+            ...(supplied ? { irFilters: favorites } : {}),
+            urlState: { domain: JSON.stringify([['priority', '=', '0']]), groupBy: JSON.stringify(['stage_id', 'priority']) },
+            searchViewArch: `<search><filter name="stage" string="Stage" context="{'group_by':'stage_id'}"/><field name="priority"/></search>`,
+            arch: `<kanban js_class="usl_task_swimlanes"><field name="stage_id"/><field name="priority"/><templates><t t-name="card"><field name="name"/></t></templates></kanban>` });
+        expect('.o_kanban_record').toHaveCount(1);
+        expect('.o_kanban_record').toHaveText('Amber task');
+        await toggleSearchBarMenu();
+        if (!supplied && !loadOptions.loadIrFilters) {
+            expect('.o_favorite_menu .o_favorite_item').toHaveCount(0);
+            expect('.o_kanban_record').toHaveText('Amber task');
+            return;
+        }
+        expect('.o_favorite_menu .o_menu_item:contains(Saved matching tasks)').toHaveCount(1);
+        expect('.o_favorite_menu .o_menu_item:contains(Shared matching tasks)').toHaveCount(1);
+        expect('.o_favorite_menu .o_menu_item:contains(Saved matching tasks)').toHaveAttribute('aria-checked', 'false');
+        await toggleMenuItem('Saved matching tasks');
+        expect('.o_kanban_record').toHaveCount(1);
+        expect('.o_kanban_record').toHaveText('Cobalt task');
+        expect('.o_favorite_menu .o_menu_item:contains(Saved matching tasks)').toHaveCount(1);
+        expect('.o_favorite_menu .o_menu_item:contains(Saved matching tasks)').toHaveAttribute('aria-checked', 'true');
+    });
+}
+
+test('registered property URL offers loaded favorites without activating their default query', async () => {
+    projectModels.ProjectTask._fields.task_properties = fields.Properties({ definition_record: 'project_id', definition_record_field: 'task_properties_definition', string: 'Properties' });
+    projectModels.ProjectProject._fields.task_properties_definition = fields.PropertiesDefinition();
+    onRpc('get_kanban_property_definition', () => ({ name: 'review_lane', string: 'Review lane', type: 'selection', selection: [['a', 'A'], ['b', 'B']] }));
+    onRpc('web_read_group', ({ kwargs }) => {
+        if (kwargs.groupby.includes('task_properties.review_lane')) {
+            expect(kwargs.domain).toEqual(['&', ['priority', '=', '0'], ['display_in_project', '=', true]]);
+            return { groups: [], length: 0 };
+        }
+    });
+    await mountView({ resModel: 'project.task', type: 'kanban',
+        irFilters: [{ id: 1, name: 'Saved matching tasks', user_ids: [1], is_default: true,
+            domain: "[['priority', '=', '1']]", context: "{'group_by': ['stage_id', 'priority']}", sort: '[]' }],
+        urlState: { domain: JSON.stringify([['priority', '=', '0']]), groupBy: JSON.stringify(['stage_id', 'task_properties.review_lane']) },
+        searchViewArch: `<search><filter name="stage" string="Stage" context="{'group_by':'stage_id'}"/><filter name="properties" string="Properties" context="{'group_by':'task_properties'}"/><field name="priority"/></search>`,
+        arch: `<kanban js_class="usl_task_swimlanes"><field name="stage_id"/><field name="priority"/><field name="task_properties"/><templates><t t-name="card"><field name="name"/></t></templates></kanban>` });
+    expect('.o_usl_axes').toHaveText(/Columns: Stage.*Lanes: Review lane/);
+    await toggleSearchBarMenu();
+    expect('.o_favorite_menu .o_menu_item:contains(Saved matching tasks)').toHaveCount(1);
+    expect('.o_favorite_menu .o_menu_item:contains(Saved matching tasks)').toHaveAttribute('aria-checked', 'false');
+    await toggleMenuItem('Saved matching tasks');
+    expect('.o_usl_axes').toHaveText(/Columns: Stage.*Lanes: Priority/);
+    expect('.o_kanban_record').toHaveCount(1);
+    expect('.o_kanban_record').toHaveText('Cobalt task');
+});

@@ -3,13 +3,22 @@ import { SearchModel } from '@web/search/search_model';
 /** Restore only requested property metadata before native portable Group By validation. */
 export class TaskSwimlaneSearchModel extends SearchModel {
     async load(config) {
+        const loadNative = async (options) => {
+            await super.load(options);
+            // Native URL precedence skips default favorite activation and also
+            // skips creating its menu items. Offer only already-loaded native
+            // profiles without changing the current query or its precedence.
+            if (!Object.values(this.searchItems).some((item) => item.type === 'favorite')) {
+                this._createGroupOfFavorites(this.irFilters || []);
+            }
+        };
         let requested;
         try { requested = JSON.parse(config.urlState?.groupBy || '[]'); }
-        catch { return super.load(config); }
-        if (!Array.isArray(requested)) return super.load(config);
+        catch { return loadNative(config); }
+        if (!Array.isArray(requested)) return loadNative(config);
         const names = [...new Set(requested.filter((spec) => typeof spec === 'string')
             .map((spec) => spec.split(':')[0]).filter((name) => /^[^.]+\.[^.]+$/.test(name)))];
-        if (!names.length) return super.load(config);
+        if (!names.length) return loadNative(config);
 
         let { searchViewFields, searchViewArch, irFilters } = config;
         if (config.searchViewId !== undefined && (!searchViewFields || !searchViewArch || (!irFilters && config.loadIrFilters))) {
@@ -37,7 +46,7 @@ export class TaskSwimlaneSearchModel extends SearchModel {
                 searchable: false, selection: definition.selection, sortable: true, store: true,
                 string: definition.string, type: definition.type, relatedPropertyField: field };
         }
-        return super.load({ ...config, searchViewFields: fields, searchViewArch, irFilters });
+        return loadNative({ ...config, searchViewFields: fields, searchViewArch, irFilters });
     }
 
     createNewGroupBy(name, options) {

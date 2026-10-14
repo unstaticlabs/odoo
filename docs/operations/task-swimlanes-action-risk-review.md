@@ -58,3 +58,9 @@ names, property values or defaults. Revoking access to the last relevant task
 makes that schema unavailable. This fixed getter is read-only; its exact Agent
 allowlist entry still requires existing application delegation. The global
 native definition getter and its existing Agent restrictions remain unchanged.
+
+After native search loading, this task view creates missing menu items only
+from favorites already loaded by native Odoo. It does not activate a default,
+fetch filters against the caller's loading options, save another profile or
+change the URL's query precedence. Favorite selection remains native. The
+normal action inventory confirms no new or changed actions for this correction.
