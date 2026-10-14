@@ -7,6 +7,7 @@ from . import (
     test_materialise,
     test_oss_return,
     test_parsers,
+    test_statements,
     test_supplier,
     test_wallet,
 )
