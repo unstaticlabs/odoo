@@ -101,6 +101,10 @@ class HrExpense(models.Model):
 
     def configure_draft_expense(self, values):
         """Prepare one authorized draft and return its native state in this transaction."""
+        return self._configure_draft_expense(values)
+
+    @api.private
+    def _configure_draft_expense(self, values, *, family_members=None):
         self.ensure_one()
         self.check_access("write")
         values = self._draft_configuration_values(values)
@@ -121,7 +125,9 @@ class HrExpense(models.Model):
                 raise ValidationError(_("Choose an employee belonging to the target company."))
             company_changed = company != self.company_id
             identity_changed = company_changed or employee != self.employee_id
-            if identity_changed and (self.split_expense_origin_id or self.split_expense_count):
+            if identity_changed and (self.split_expense_origin_id or self.split_expense_count) and (
+                family_members is None or self not in family_members
+            ):
                 raise UserError(_("This expense shares an origin and receipt with other split expenses. Open Split Expenses to inspect the family. Its company and employee must be corrected together in one transaction so categories, batches, evidence and history remain consistent. This action currently prepares one expense; its other draft fields remain available."))
             target = self.with_company(company)
             batch_id = values.get("expense_batch_id", self.expense_batch_id.id)

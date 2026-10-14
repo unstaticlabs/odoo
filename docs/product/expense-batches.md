@@ -61,6 +61,58 @@ or paid by this action.
 
 ## Alternatives considered
 
+### Draft splits and linked ownership corrections
+
+For genuinely different expense natures, accounts or analytics, use the native
+Split Expenses wizard or the `expenses_split_draft` MCP shortcut. Supply two to
+fifty gross parts whose total matches the source in its document currency. A
+service part uses its own native purchase taxes; a direct import-VAT part can use
+the appropriate account with no percentage tax. The workflow never guesses one
+VAT rate for mixed accounting components and never submits or posts a part.
+
+Fixed-cost categories retain their native unit-price and quantity behavior. A
+fixed-cost category that would change a foreign receipt to the company currency
+is refused with a variable-price category suggested as the recovery path. Each
+saved part is checked against its planned gross amount and original defaults;
+incompatible native recomputation rolls back the whole split.
+
+The source record becomes the first financial part and remains the native split
+origin. Further parts are native copies, with copied evidence carrying the same
+checksum. Employee, company, document currency, payment method and date are
+retained; descriptions and analytic choices follow the source unless explicitly
+changed. An existing Batch is retained across the parts, and explicit accounting
+exceptions keep their provenance. Source receipt work is superseded, without
+deleting its history. Results contain every part and the before/after gross total.
+
+Read the split origin/count through `expenses_get_context`, then review all linked
+records in Split Expenses before an ownership correction. The separate
+`expenses_correct_draft_family` shortcut requires their complete explicit ID list,
+the intended company/employee pair and one mapping choice per part. Compatible
+existing values remain; incompatible categories, accounts, taxes, analytics or
+Batch memberships need explicit replacements or clears. Document gross amounts
+and currencies stay unchanged, while target-company amounts use native dated
+rates. A hidden, submitted or accounted part, a stale member list or an invalid
+mapping leaves the whole family unchanged. The single-expense preparation action
+continues to refuse ownership edits of one sibling.
+
+Unknown transport completion is not replayed automatically. Read the source's
+split origin and resulting parts, or every named family member after correction,
+and compare persisted totals and mappings first. A completed wizard cannot be
+applied twice; another deliberate UI split uses a fresh native wizard.
+
+The addon keeps the native wizard's write/copy/attachment/origin algorithm from
+`addons/hr_expense/wizard/hr_expense_split_wizard.py` at `fb119fee0b5a`.
+Its copy delegate merges `from_split_wizard=True` into the existing context,
+instead of replacing that context: selected companies and the source-authorized
+in-process Agent marker must survive native child creation. Generic helper,
+follower and copy operations receive no additional grant. Upstream sync must
+compare that delegate with the upstream method; accounting, context-retention,
+generic-denial and evidence tests cover its compatibility responsibility.
+
+These changes add native transient wizard fields only. Module version 15 uses
+normal idempotent ORM upgrades and preserves existing expense, attachment,
+message and financial rows; no historical data reconstruction is involved.
+
 Native Odoo multi-record submission remains the execution engine, but it does
 not persist a business grouping or shared context. Reintroducing the removed
 expense sheet would add a second state machine and make optional grouping
