@@ -120,6 +120,7 @@ AGENT_READONLY_GENERIC_METHODS = frozenset(
 )
 AGENT_READONLY_EXPLICIT_ACTIONS = frozenset(
     {
+        "rpc:account.move.get_draft_post_match_preview",
         "rpc:usl.agent.current_identity",
         "rpc:usl.document.mcp_find_similar",
         "rpc:usl.document.mcp_get",

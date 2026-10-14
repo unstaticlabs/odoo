@@ -265,7 +265,15 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
         bill, statement, source_line = self._draft_post_match_fixture()
         caller = bill.with_user(agent.user_id)
         self.assertFalse(caller.env.user.has_group("usl_access_control.group_irreversible_actions"))
-        preview = caller.get_draft_post_match_preview(source_line.id)
+        from odoo.addons.usl_access_control.controllers.json2 import UslAgentJson2Controller
+        preview_access = UslAgentJson2Controller._check_agent_call(agent=agent,
+            model_name="account.move", method_name="get_draft_post_match_preview",
+            kwargs={"line_id": source_line.id})
+        self.assertEqual(preview_access, "read_only")
+        preview_context = UslAgentJson2Controller._agent_call_context(context=caller.env.context,
+            agent=agent, model_name="account.move", method_name="get_draft_post_match_preview",
+            access=preview_access)
+        preview = caller.with_context(preview_context).get_draft_post_match_preview(source_line.id)
         # JSON-2 establishes the native root-operation scope before delegates
         # perform posting side effects such as the supplier-rank update.
         from odoo.addons.usl_access_control.controllers.json2 import UslAgentJson2Controller
