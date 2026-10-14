@@ -36628,7 +36628,7 @@
         "rpc:usl.document.version.action_restore_as_current": "0c629bdb6b052f0a2dd90e726c0a777b06bf0f75f3b71cce5cd46f918c1dd986",
         "rpc:usl.document.version.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
         "rpc:usl.document.version.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
-        "rpc:usl.document.workspace_data": "9d672158f912c8e845b04c6df13f226d469b7d7fe8ce85ad17dc437877598b4c",
+        "rpc:usl.document.workspace_data": "963cb38ba18fe21d7c506b44c9b77bfe58254cb72317d2b7a05ea8014f6a2968",
         "rpc:usl.expense.bank.match.candidate.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
         "rpc:usl.expense.bank.match.candidate.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
         "rpc:usl.expense.bank.match.wizard.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
@@ -98635,7 +98635,6 @@
         "rpc:usl.document.smart.view.synchronize_archive_views",
         "rpc:usl.document.sync_from_paperless",
         "rpc:usl.document.unlink_from_record",
-        "rpc:usl.document.update_archive_metadata",
         "rpc:usl.document.upload_from_odoo",
         "rpc:usl.document.upload_new_version",
         "rpc:usl.document.user.state.copy",
@@ -104316,9 +104315,6 @@
         "rpc:usl.document.unlink_from_record": {
           "reversal_action": "rpc:usl.document.write"
         },
-        "rpc:usl.document.update_archive_metadata": {
-          "reversal_action": "rpc:usl.document.write"
-        },
         "rpc:usl.document.upload_from_odoo": {
           "reversal_action": "rpc:usl.document.write"
         },
@@ -107019,7 +107015,6 @@
         "rpc:usl.document.smart.view.synchronize_archive_views": "0fd6b0b3f5b9c1a3242fc5c47d34f03ad6a93512649c1fe0792db72b0ae2c253",
         "rpc:usl.document.sync_from_paperless": "9384a9ad1efcfbcf9d829842f940ec6b3de90245f546a46d5c67120081f96560",
         "rpc:usl.document.unlink_from_record": "a2d5b1a5b93bd2f6d1adff8e73bb0667fcefe65162a2daf754f927bb4ed7d4fc",
-        "rpc:usl.document.update_archive_metadata": "954a8dc7725f908b0d8e948ddc0c361000b46bc90e2d13a5fd975c7879ddfadf",
         "rpc:usl.document.upload_from_odoo": "86212354adaccf41c389c8a52ce6bc9d25a3fcf2b929cae659012e61b0b8d6de",
         "rpc:usl.document.upload_new_version": "ca2a7068b69a2b9eaced44bc71620f9d9c7408982c7598defb5c3124fa96c91d",
         "rpc:usl.document.user.state.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
@@ -169643,6 +169638,8 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:3",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.create:orm_create:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.write:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_batch.py:usl.document._batch_refresh_archive_metadata:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_batch.py:usl.document._batch_refresh_archive_metadata:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake._intake_sender:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake._intake_sender:sudo:2",
         "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake.message_new:orm_write:1",
@@ -173794,6 +173791,12 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.write:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.write"
         },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_batch.py:usl.document._batch_refresh_archive_metadata:orm_write:1": {
+          "reachability_proof": "The underscore helper is not an RPC entry. Its only caller is the classified fixed batch workflow; that caller checks current document write/company access before the cache-only sudo/write region, whose values exclude company and privacy ownership."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_batch.py:usl.document._batch_refresh_archive_metadata:sudo:1": {
+          "reachability_proof": "The underscore helper is not an RPC entry. Its only caller is the classified fixed batch workflow; that caller checks current document write/company access before the cache-only sudo/write region, whose values exclude company and privacy ownership."
+        },
         "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake._intake_sender:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -176597,6 +176600,8 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:3": "5e0e80b713e5dbbdd5f109ab6c0820923ad2f211d58d8c0671f8b53eae3fde37",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.create:orm_create:1": "f83148114242df6b94bd08c8975f0f83e29e26180aceb64c6a42509e6ebcb13f",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.write:orm_write:1": "1e4eff140a45e54c8a3340b1869729192b018d1f887b1727778d7fef2985f709",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_batch.py:usl.document._batch_refresh_archive_metadata:orm_write:1": "7d6898ac70c080d40f8f7a829180eeab94cb9d932a29ac1500d296f5c11677bc",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_batch.py:usl.document._batch_refresh_archive_metadata:sudo:1": "de75f49f148fca1c29e37c53a2b5c5f1d7ae4f73b73862f3072b2cede10c770c",
         "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake._intake_sender:sudo:1": "0b6ebc74766497136062cb056916109e3db70c3bb6a35e0669a6a61f8ba9b36d",
         "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake._intake_sender:sudo:2": "01efb40dd28b81e5f559faf12fb6f4633f556bd0d77c645c57a2193bfd083fee",
         "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake.message_new:orm_write:1": "35a0ff0f630d12583d8bcd85a17a6ffa2d70fb215405c75bf6b2a4f82a768791",
@@ -176630,9 +176635,9 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.set_company:orm_write:1": "53d2f90bf64c8124168e30b2f92d0d43244ea9ad8f619d6d60241d7ecabc85aa",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.set_company:sudo:1": "94a4009e2c6ed18d71cec35bb5ccd74e561c406e994d258a481f450fc29a59a7",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.unlink_from_record:sudo:1": "daf436b3469e81dcd3036a9d0aff86168fb1665f18a2c334f2a5b9a28c064cbc",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:orm_write:1": "384e98004da0037aff29194ebf14f49a72687505fb67df33e92f99987efc5514",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:orm_write:2": "0f15298722e6f914f7be9a81e322118441190705a1089e7f125aa4bccc457442",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:sudo:1": "7afc77d0bcf8448fad884578157da4947abc0c7c49b39ef92e2f9045dc187211",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:orm_write:1": "bcd4fe0fc34b2a134f5cbf936bb7546d106246ad6fc04151da8e5fd381e7d789",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:orm_write:2": "22d19d7c5e54d9285fac1725cb8ec8813b61c93cbb1550bd66b7c8d2a4b2840a",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:sudo:1": "860d3ab34bfaa91d68a3e735d363f660133169290c4fe07c50f2b8855e2a2c87",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:1": "41a1f0c6e51c7777d2165d53a7081adb9235089fe11afacfaa27ca98639b5a8a",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:2": "5b97495bf8fcbc55f6fc0eab75156b67048db4aa2984b23e1ffd62bf11576612",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:1": "b6fb22c9c46002f37c2cf2f96a35823ec4e2499cf930e5c49f810a4d6e28f004",
@@ -176735,7 +176740,7 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document._workspace_selected_view:sudo:1": "2c3efd5ccac4c26a37211d2e1735b920bbd3182bbb054d0fd0628e9003c2ddc5",
         "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.document_detail:sudo:1": "36b2b698b972405a74d437c129fe3a55a4d293048660243ca63c846accd47663",
         "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.document_detail:sudo:2": "9e5b4d0365731ad9ed5d52122cba120b046846b80abc8ec07f2e69f7360f1748",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.workspace_data:sudo:1": "74059f7e24a66a179f1a6eec4c5305aa32cec89c8b509b1be875d65ba93a4daa",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.workspace_data:sudo:1": "02ae76f7f112b26404d2d3ef6224f8156584dd04ef2bf7322b71a97ab4bea9c2",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document._canonical_download_base_url:sudo:1": "261582d4ba0b97b6771a23d36217c6b466cbd1084d41e364d4ffb29839236148",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._audit:orm_create:1": "5fb1d525c21789ef10860bb8cfd76bc645da0d3809763d3ac441c8e85fff998d",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._audit:sudo:1": "10c27722974a02ef9af93a4e46bd7abc48c6fda998c04d350949f63148a866af",
@@ -202755,9 +202760,43 @@
         "client:usl_home:custom-addons/usl_home/static/src/home/home.js:openAiPipelines:rpc:1": "c2ae301a4f259a291c2303291ee26fb1473f7b49623f327e8b8940d36837ee11",
         "client:usl_home:custom-addons/usl_home/static/src/home/home.js:saveLayout:rpc:1": "a602c94e22e4d67ecd18b71b991608f1891e908b3fd80bdc9b6da399da9d10bd"
       }
+    },
+    {
+      "action_keys": [
+        "rpc:usl.document.apply_batch_archive_metadata",
+        "rpc:usl.document.update_archive_metadata"
+      ],
+      "classification": "operational",
+      "consequence": "Sets only explicitly chosen archive tags, correspondent or document type under current native document authority; remote writes are independent and cannot roll back with the Odoo transaction.",
+      "domain": "documents_and_communications",
+      "evidence_id": "documents-batch-metadata-20261014",
+      "id": "operational.documents_and_communications.batch_metadata_20261014",
+      "overrides": {},
+      "rationale": "These fixed metadata workflows neither alter company/privacy authority nor remove governed evidence. Existing metadata editing falsely named a cache-only write as remote reversal; operational classification accurately describes sanctioned manual correction and explicit confirmation/retry without promising undo.",
+      "reviewed_digests": {
+        "rpc:usl.document.apply_batch_archive_metadata": "03e282864ef1e5e830e1a6712ef5fe053bbbd75313aa43decb569860c7fc560c",
+        "rpc:usl.document.update_archive_metadata": "5494f22d9019ed195bd73b9d6c28970207baf19bf608233d81e337683f7a8e84"
+      }
     }
   ],
   "evidence_families": {
+    "documents-batch-metadata-20261014": {
+      "contract": "Fixed current-actor per-document metadata edits use the sanctioned Paperless-authoritative path. Each selected document and active chosen item is authorized before a request. Remote effects are confirmed by identity-bound readback; a failed acknowledgement remains uncertain and a retry reads current remote state instead of repeating known success. Native cache/chatter attribution remains the caller; local savepoints never imply remote rollback.",
+      "tests": [
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_additive_remote_tags_and_repeated_apply",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_explicit_correspondent_and_type_replace_only_selected_field",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_before_request_failure_sends_no_change",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_after_write_failure_retry_confirms_without_repeating_write",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_viewer_and_current_company_denied_before_http",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_unavailable_metadata_and_crafted_operations_denied_before_http",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_acknowledged_but_unapplied_write_is_not_reported_completed",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_wrong_remote_identity_refused_before_write_or_cache_rebinding",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_stale_cached_correspondent_does_not_skip_authoritative_change",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_managed_agent_write_and_readonly_scope_use_the_same_native_boundaries",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_satisfied_change_does_not_rebind_binary_or_lifecycle_cache",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_workspace_reports_native_metadata_write_access_for_review_and_edit"
+      ]
+    },
     "feedback-provider-phases-20260906": {
       "contract": "Offline phase separation, secret-safe diagnostics, task-owned bounded image evidence, rate-limit polling, cleanup and unchanged reporter/maintainer/company/service ACLs. Full live provider availability remains a staging release qualification, not a claim of these tests.",
       "tests": [

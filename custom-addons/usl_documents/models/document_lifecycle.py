@@ -20,10 +20,12 @@ from .paperless_client import PaperlessError
 class UslDocument(models.Model):
     _inherit = "usl.document"
 
-    def update_archive_metadata(self, values):
+    def update_archive_metadata(self, values, *, add_tags=False):
         """Write Paperless-authoritative metadata, then refresh the local cache."""
         self.ensure_one()
         self.check_access("write")
+        if not isinstance(add_tags, bool):
+            raise ValidationError(_("Invalid additive tag option."))
         allowed = {
             "name",
             "document_date",
@@ -55,6 +57,9 @@ class UslDocument(models.Model):
             record = self.env[model_name].browse(
                 int(values[local_field]) if values[local_field] else 0,
             ).exists()
+            if values[local_field] and not record:
+                raise ValidationError(_("Choose an available Paperless metadata item."))
+            record.check_access("read")
             if record and not record.active:
                 raise ValidationError(_("Choose an active Paperless metadata item."))
             if record != self[local_field]:
@@ -66,11 +71,26 @@ class UslDocument(models.Model):
             )
             if set(tags.ids) != requested:
                 raise ValidationError(_("One or more selected tags are unavailable."))
-            if set(tags.ids) != set(self.tag_ids.ids):
+            if add_tags:
+                # Include every current remote tag, even one not yet cached in
+                # Odoo. Additive editing must never erase an unrelated tag.
+                remote = self._paperless().get_document(self.paperless_id)
+                if remote.get("id") != self.paperless_id:
+                    raise ValidationError(_("The archive returned a different document."))
+                remote_ids = {
+                    int(tag.get("id") if isinstance(tag, dict) else tag)
+                    for tag in remote.get("tags") or []
+                }
+                requested_ids = set(tags.mapped("paperless_id"))
+                if not requested_ids.issubset(remote_ids):
+                    payload["tags"] = sorted(remote_ids | requested_ids)
+            elif set(tags.ids) != set(self.tag_ids.ids):
                 payload["tags"] = tags.mapped("paperless_id")
         if payload:
             self._paperless().update_document_metadata(self.paperless_id, payload)
             refreshed = self._paperless().get_document(self.paperless_id)
+            if refreshed.get("id") != self.paperless_id:
+                raise ValidationError(_("The archive returned a different document."))
             cache_values = self._paperless_values(refreshed)
             cache_values.pop("source", None)
             self.sudo().with_context(

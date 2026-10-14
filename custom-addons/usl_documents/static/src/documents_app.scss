@@ -736,3 +736,9 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+.o_usl_batch_metadata_choices {
+    max-height: 18rem;
+    overflow-y: auto;
+    overflow-wrap: anywhere;
+}

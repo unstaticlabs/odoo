@@ -26917,6 +26917,7 @@
     "rpc:usl.document.action_sync_permissions",
     "rpc:usl.document.activity_reschedule",
     "rpc:usl.document.activity_send_mail",
+    "rpc:usl.document.apply_batch_archive_metadata",
     "rpc:usl.document.context.tag.copy",
     "rpc:usl.document.context.tag.copy_data",
     "rpc:usl.document.context.tag.create",

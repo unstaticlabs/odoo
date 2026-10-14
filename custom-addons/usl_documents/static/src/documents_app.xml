@@ -1,5 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
+    <t t-name="usl_documents.DocumentBatchDialog">
+        <Dialog title="'Edit selected documents'" size="'md'">
+            <p t-esc="selectionSummary"/>
+            <t t-if="state.phase === 'choose'">
+                <label for="usl_batch_operation" class="form-label">Change</label>
+                <select id="usl_batch_operation" class="form-select mb-3" t-on-change="changeOperation">
+                    <option value="add_tags">Add tags</option>
+                    <option value="set_correspondent">Set correspondent</option>
+                    <option value="set_document_type">Set document type</option>
+                </select>
+                <p class="text-muted" t-if="state.operation === 'add_tags'">Existing tags are kept.</p>
+                <p class="text-muted" t-else="">This replaces the chosen field on every selected document.</p>
+                <fieldset>
+                    <legend class="fs-6">Choose metadata</legend>
+                    <p t-if="!catalog.length" class="text-muted">No available items. Close and refresh Documents.</p>
+                    <label for="usl_batch_metadata_search" class="form-label">Find metadata</label>
+                    <input id="usl_batch_metadata_search" type="search" class="form-control mb-2" t-model="state.query"/>
+                    <p t-if="catalog.length &amp;&amp; !matchingCatalog.length" class="text-muted">No matching items. Try another search.</p>
+                    <p t-if="matchingCatalog.length &gt; 100" class="text-muted">Showing the first 100 matches. Refine your search.</p>
+                    <div class="o_usl_batch_metadata_choices">
+                    <label t-foreach="visibleCatalog" t-as="item" t-key="item.id" class="d-flex align-items-center gap-2 py-2">
+                        <input t-att-type="state.operation === 'add_tags' ? 'checkbox' : 'radio'"
+                               name="usl_batch_metadata" t-att-checked="state.metadataIds.includes(item.id)"
+                               t-on-change="() => this.choose(item)"/>
+                        <span t-esc="item.name"/>
+                    </label>
+                    </div>
+                </fieldset>
+            </t>
+            <t t-else="">
+                <p class="fw-semibold text-break" t-esc="changeLabel"/>
+                <p t-if="state.phase === 'review'" class="text-muted">Review this fixed selection before applying. Each document is checked with your current access.</p>
+                <ul class="list-unstyled mb-0">
+                    <li t-foreach="props.documents" t-as="document" t-key="document.id" class="py-2 border-bottom">
+                        <span class="d-block text-break" t-esc="document.name"/>
+                        <t t-if="state.phase === 'results'">
+                            <strong class="d-block" t-esc="this.resultLabel(document)"/>
+                            <span class="small text-muted" t-esc="this.resultMessage(document)"/>
+                        </t>
+                    </li>
+                </ul>
+                <p t-if="state.busy &amp;&amp; state.stopRequested" class="text-muted mt-3">Stopping after the current document is checked. Completed changes are kept.</p>
+                <p t-if="state.phase === 'results'" class="small text-muted mt-3">Retry checks unresolved documents only. Completed changes are kept. Closing does not undo changes.</p>
+            </t>
+            <t t-set-slot="footer">
+                <button t-if="state.phase === 'choose'" class="btn btn-primary" t-att-disabled="!state.metadataIds.length" t-on-click="review">Review changes</button>
+                <button t-elif="state.phase === 'review'" class="btn btn-primary" t-on-click="apply">Apply to selected documents</button>
+                <button t-elif="unresolved.length" class="btn btn-primary" t-att-disabled="state.busy" t-on-click="apply">Retry unresolved documents</button>
+                <button t-if="state.busy" class="btn btn-secondary" t-att-disabled="state.stopRequested" t-on-click="() => state.stopRequested = true">Stop after this document</button>
+                <button t-if="state.phase === 'review'" class="btn btn-secondary" t-on-click="() => state.phase = 'choose'">Back</button>
+                <button class="btn btn-secondary" t-att-disabled="state.busy" t-on-click="props.close"><t t-if="state.phase === 'results'">Close</t><t t-else="">Cancel</t></button>
+            </t>
+        </Dialog>
+    </t>
+
     <t t-name="usl_documents.PermanentDeleteDialog">
         <Dialog title="'Permanently delete document?'" size="'md'">
             <p>
@@ -463,6 +518,13 @@
                             <span t-if="state.dragged"
                                   class="badge text-bg-primary fs-6">Drop to upload</span>
                         </div>
+                        <div t-if="state.canEditMetadata" class="d-flex flex-wrap align-items-center gap-2 mb-3 o_usl_batch_toolbar">
+                            <button class="btn btn-outline-secondary" t-on-click="selectBatchPage" t-att-disabled="state.loading">Select this page</button>
+                            <span><t t-esc="state.batchIds.length"/> selected</span>
+                            <button t-if="state.batchIds.length" class="btn btn-primary" t-on-click="editBatchMetadata">Edit metadata</button>
+                            <button t-if="state.batchIds.length" class="btn btn-link" t-on-click="() => state.batchIds = []">Clear selection</button>
+                            <small class="text-muted">Selection covers only documents shown on this page.</small>
+                        </div>
                         <section t-foreach="documentGroups" t-as="documentGroup"
                                  t-key="documentGroup.key"
                                  class="o_usl_document_group mb-4">
@@ -477,6 +539,11 @@
                                      t-att-aria-label="'Open ' + document.name"
                                      t-on-click="() => this.select(document)"
                                      t-on-keydown="(event) => this.onDocumentKeydown(event, document)">
+                                <label t-if="state.canEditMetadata" class="d-flex gap-2 align-items-center p-2" t-on-click.stop="() => {}" t-on-keydown.stop="() => {}">
+                                    <input type="checkbox" class="form-check-input m-0" t-att-checked="state.batchIds.includes(document.id)"
+                                           t-att-aria-label="this.batchSelectionLabel(document)" t-on-change="() => this.toggleBatchDocument(document)"/>
+                                    <span>Select</span>
+                                </label>
                                 <div class="o_usl_document_thumb">
                                     <button type="button"
                                             t-att-class="'o_usl_star_button btn btn-light rounded-circle ' + (document.is_starred ? 'is-starred' : '')"
@@ -552,6 +619,7 @@
                             <table class="o_list_table table table-sm table-hover mb-0">
                                 <thead>
                                     <tr>
+                                        <th t-if="state.canEditMetadata">Select</th>
                                         <th class="o_column_sortable"
                                             t-on-click="() => this.sortDocuments('name')">
                                             Document
@@ -596,6 +664,10 @@
                                         tabindex="0"
                                         t-on-click="() => this.select(document)"
                                         t-on-keydown="(event) => this.onDocumentKeydown(event, document)">
+                                        <td t-if="state.canEditMetadata" t-on-click.stop="() => {}" t-on-keydown.stop="() => {}">
+                                            <input type="checkbox" class="form-check-input" t-att-checked="state.batchIds.includes(document.id)"
+                                                   t-att-aria-label="this.batchSelectionLabel(document)" t-on-change="() => this.toggleBatchDocument(document)"/>
+                                        </td>
                                         <td>
                                             <div class="d-flex align-items-center gap-2 min-w-0">
                                                 <img t-if="document.availability_state === 'available' &amp;&amp; !document.access_error"

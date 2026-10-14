@@ -404,3 +404,45 @@ and relationship make that deliberate duplication explicit. A trusted
 `generated_final` origin queues that archival copy as `odoo_generated`
 evidence; it follows the same retry, duplicate, and permission workflow as
 other authoritative archive operations.
+
+## Edit metadata on several documents
+
+In Documents, filter the archive and use the separate selection checkboxes or
+**Select this page**. Selection includes only the displayed page, never unseen
+search results. Changing the search or page clears selection. Opening a document
+still opens its detail without selecting it for an edit.
+
+Choose **Edit metadata**, then **Add tags**, **Set correspondent** or **Set document
+type**. Adding tags keeps existing archive tags, including tags not yet cached in
+Odoo. Setting a correspondent or type replaces that field only. Review the fixed
+list and change, then apply. Back and Cancel before applying make no changes.
+
+Each document is checked using the current user's write access and selected
+companies before an archive request. Completed changes remain completed if
+another document is refused or unavailable. **Retry unresolved documents** checks
+only the remaining documents and reads the archive before trying again. A lost
+response after a remote write is shown as **Needs confirmation**, rather than a
+claim that the document stayed unchanged. Closing the result does not undo edits.
+During processing, **Stop after this document** lets the current request finish
+and leaves remaining documents marked **Not attempted**. Completed changes are
+kept; retry can continue the fixed selection.
+After a browser reload, select the relevant documents again; reapplying the same
+change reads current archive metadata and avoids repeating an already satisfied
+write. Changes made separately in Paperless remain subject to Paperless's normal
+concurrency behavior; this workflow does not lock the remote archive.
+
+Batch editing does not change legal company, confidentiality, links, document
+lifecycle or classifier settings. It uses the same per-document metadata path as
+the detail editor, not Paperless's privileged bulk endpoint. Documents1.10.0 adds
+this workspace workflow without a stored batch model or record backfill. The
+independent evidence-upload1.9.1 change requires normal version reconciliation
+when both branches are combined.
+
+The workspace extension uses Odoo's native dialog, controls and permission facts.
+Native server-action field updates and the pinned OCA `server_action_mass_edit`
+wizard both use generic ORM `write`. They cannot update these intentionally
+read-only cache fields or establish Paperless readback and per-document remote
+outcomes. The existing archive metadata method supplies that supported boundary.
+Its action policy is operational: writing the Odoo cache cannot reverse an
+already completed Paperless edit. Ordinary sanctioned metadata editing remains
+the supported way to make a deliberate correction.

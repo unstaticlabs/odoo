@@ -44,6 +44,7 @@ const emptyWorkspace = {
     truncated: false,
     semantic_scores_loaded: false,
     can_upload: true,
+    can_edit_metadata: true,
     active_operation: false,
     failed_operations: [],
     selected_workspace: "recent",
@@ -442,6 +443,7 @@ test("read-only evidence users do not see upload controls", async () => {
     onRpc("usl.document", "workspace_data", () => ({
         ...emptyWorkspace,
         can_upload: false,
+        can_edit_metadata: false,
     }));
 
     await mountWithCleanup(DocumentsWorkspace, {
@@ -2449,4 +2451,149 @@ test("the permanent favorites shortcut filters the active result set", async () 
     await animationFrame();
 
     expect(calls.at(-1).search_domain).toEqual([["is_starred", "=", true]]);
+});
+
+test("batch selection is separate from opening and preview cancel sends no writes", async () => {
+    const document = { id: 9201, name: "[QA] Selected document", availability_state: "available", tags: [], link_count: 0 };
+    onRpc("usl.document", "workspace_data", () => ({ ...emptyWorkspace,
+        documents: [document], count: 500, tags: [{ id: 21, name: "[QA] Add tag" }] }));
+    onRpc("usl.document", "document_detail", () => { throw new Error("Selection must not open detail"); });
+    onRpc("usl.document", "apply_batch_archive_metadata", () => { throw new Error("Cancel must not write"); });
+    await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
+    await contains('input[aria-label="Select [QA] Selected document"]').click();
+    expect(".o_usl_batch_toolbar").toHaveText(/1 selected/);
+    await contains("button", { text: "Edit metadata" }).click();
+    await contains('.modal input[name="usl_batch_metadata"]').click();
+    await contains("button", { text: "Review changes" }).click();
+    expect(".modal").toHaveText(/1 selected document/);
+    expect(".modal").toHaveText(/Add tags: \[QA\] Add tag/);
+    await contains("button", { text: "Cancel" }).click();
+    expect(".modal").toHaveCount(0);
+});
+test("batch retry retains completed outcomes and retries only unresolved fixed targets", async () => {
+    const documents = [9201, 9202].map((id) => ({ id, name: `[QA] Document ${id}`,
+        availability_state: "available", tags: [], link_count: 0 }));
+    onRpc("usl.document", "workspace_data", () => ({ ...emptyWorkspace,
+        documents, count: 1000, tags: [{ id: 21, name: "[QA] Add tag" }] }));
+    let secondAttempts = 0;
+    onRpc("usl.document", "apply_batch_archive_metadata", ({ args }) => {
+        expect(args[1]).toBe("add_tags");
+        expect(args[2]).toEqual([21]);
+        expect.step(String(args[0][0]));
+        if (args[0][0] === 9202 && !secondAttempts++) {
+            return { status: "uncertain", message: "Retry to check archive" };
+        }
+        return { status: "completed", message: "Confirmed in archive" };
+    });
+    await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
+    await contains("button", { text: "Select this page" }).click();
+    expect(".o_usl_batch_toolbar").toHaveText(/2 selected/);
+    await contains("button", { text: "Edit metadata" }).click();
+    await contains('.modal input[name="usl_batch_metadata"]').click();
+    await contains("button", { text: "Review changes" }).click();
+    await contains("button", { text: "Apply to selected documents" }).click();
+    expect(".modal").toHaveText(/Needs confirmation/);
+    await contains("button", { text: "Retry unresolved documents" }).click();
+    expect.verifySteps(["9201", "9202", "9202"]);
+    expect(".modal").not.toHaveText(/Needs confirmation/);
+    expect(".o_usl_batch_toolbar").toHaveText(/2 selected/);
+});
+
+test("changing a native search predicate clears page-local batch selection", async () => {
+    const document = { id: 9201, name: "[QA] Selected document", availability_state: "available", tags: [], link_count: 0 };
+    onRpc("usl.document", "workspace_data", () => ({ ...emptyWorkspace, documents: [document], count: 1 }));
+    await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
+    await contains("button", { text: "Select this page" }).click();
+    expect(".o_usl_batch_toolbar").toHaveText(/1 selected/);
+    await contains(".o_searchview_input").fill("different predicate");
+    await contains(".o_searchview_input").press("Enter");
+    expect(".o_usl_batch_toolbar").toHaveText(/0 selected/);
+});
+
+test("batch metadata catalog is bounded and searchable without changing chosen values", async () => {
+    const document = { id: 9201, name: "[QA] Selected document", availability_state: "available", tags: [], link_count: 0 };
+    const tags = Array.from({ length: 150 }, (_, i) => ({ id: i + 1, name: `[QA] Tag ${i + 1}` }));
+    onRpc("usl.document", "workspace_data", () => ({ ...emptyWorkspace, documents: [document], count: 1, tags }));
+    await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
+    await contains("button", { text: "Select this page" }).click();
+    await contains("button", { text: "Edit metadata" }).click();
+    expect('.modal input[name="usl_batch_metadata"]').toHaveCount(100);
+    await contains("#usl_batch_metadata_search").fill("Tag 150");
+    expect('.modal input[name="usl_batch_metadata"]').toHaveCount(1);
+    await contains('.modal input[name="usl_batch_metadata"]').click();
+    await contains("#usl_batch_metadata_search").fill("not present");
+    expect(".modal").toHaveText(/No matching items/);
+    await contains("button", { text: "Review changes" }).click();
+    expect(".modal").toHaveText(/Add tags: \[QA\] Tag 150/);
+});
+
+
+test("read-only document viewers keep review navigation without batch edit controls", async () => {
+    const document = { id: 9201, name: "[QA] View-only document", availability_state: "available", tags: [], link_count: 0 };
+    onRpc("usl.document", "workspace_data", () => ({ ...emptyWorkspace, documents: [document], count: 1,
+        can_upload: false, can_edit_metadata: false }));
+    await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
+    expect(".o_usl_document_card").toHaveCount(1);
+    expect(".o_usl_batch_toolbar").toHaveCount(0);
+    expect('input[aria-label="Select [QA] View-only document"]').toHaveCount(0);
+});
+
+test("batch processing can stop after the current document and resume only remaining targets", async () => {
+    const documents = [9201, 9202].map((id) => ({ id, name: `[QA] Document ${id}`,
+        availability_state: "available", tags: [], link_count: 0 }));
+    onRpc("usl.document", "workspace_data", () => ({ ...emptyWorkspace, documents, count: 2,
+        tags: [{ id: 21, name: "[QA] Add tag" }] }));
+    let releaseCurrent;
+    let first = true;
+    const calls = [];
+    onRpc("usl.document", "apply_batch_archive_metadata", ({ args }) => {
+        calls.push(args[0][0]);
+        if (first) {
+            first = false;
+            return new Promise((resolve) => { releaseCurrent = () => resolve({ status: "completed", message: "Confirmed" }); });
+        }
+        return { status: "completed", message: "Confirmed" };
+    });
+    await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
+    await contains("button", { text: "Select this page" }).click();
+    await contains("button", { text: "Edit metadata" }).click();
+    await contains('.modal input[name="usl_batch_metadata"]').click();
+    await contains("button", { text: "Review changes" }).click();
+    await contains("button", { text: "Apply to selected documents" }).click();
+    await contains("button", { text: "Stop after this document" }).click();
+    expect(".modal").toHaveText(/Stopping after the current document/);
+    releaseCurrent();
+    await animationFrame();
+    expect(calls).toEqual([9201]);
+    expect(".modal").toHaveText(/Not attempted/);
+    await contains("button", { text: "Retry unresolved documents" }).click();
+    expect(calls).toEqual([9201, 9202]);
+    expect(".modal").not.toHaveText(/Not attempted/);
+});
+
+test("batch metadata changes preserve the filter and recover a page emptied by the edit", async () => {
+    browser.sessionStorage.setItem(storageKey("global"), JSON.stringify({ page: 2, pageSize: 1, workspace: "recent" }));
+    const target = { id: 9202, name: "[QA] Current-page document", availability_state: "available", tags: [], link_count: 0 };
+    const remaining = { id: 9201, name: "[QA] Remaining document", availability_state: "available", tags: [], link_count: 0 };
+    let edited = false;
+    const pages = [];
+    onRpc("usl.document", "workspace_data", ({ kwargs }) => {
+        pages.push(kwargs.page);
+        return { ...emptyWorkspace, page: kwargs.page, page_size: 1, count: edited ? 1 : 2,
+            documents: kwargs.page === 2 ? (edited ? [] : [target]) : [remaining],
+            tags: [{ id: 21, name: "[QA] Add tag" }] };
+    });
+    onRpc("usl.document", "apply_batch_archive_metadata", () => {
+        edited = true;
+        return { status: "completed", message: "Confirmed" };
+    });
+    await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
+    await contains("button", { text: "Select this page" }).click();
+    await contains("button", { text: "Edit metadata" }).click();
+    await contains('.modal input[name="usl_batch_metadata"]').click();
+    await contains("button", { text: "Review changes" }).click();
+    await contains("button", { text: "Apply to selected documents" }).click();
+    expect(".modal").toHaveText(/Completed/);
+    expect(".o_usl_document_card").toHaveText(/Remaining document/);
+    expect(pages.slice(-2)).toEqual([2, 1]);
 });
