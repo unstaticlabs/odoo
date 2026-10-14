@@ -190,6 +190,9 @@ class TestAccounting(TestMaterialise):
     def test_a_shadowing_position_is_reported_and_can_be_retired(self):
         shadow = self._position("Invented catch-all", False, self.home_tax, sequence=1)
         batch, _jersey, _cap = self._etsy_drop()
+        # What the check reports, with the stage that would put it right first
+        # turned off. That the stage does put it right is its own test.
+        batch.correct_chart = False
         batch.action_check_readiness()
         findings = batch.issue_ids.filtered(
             lambda issue: issue.kind == "shadowed_destination",
@@ -205,6 +208,7 @@ class TestAccounting(TestMaterialise):
         batch, jersey, _cap = self._etsy_drop()
         second = self._tax("Invented 20% FR other", 20, self.france)
         jersey.product_tmpl_id.taxes_id = [(4, second.id)]
+        batch.correct_chart = False
         batch.action_check_readiness()
         self.assertTrue(
             batch.issue_ids.filtered(lambda issue: issue.kind == "product_tax_unclear"),
@@ -275,10 +279,34 @@ class TestAccounting(TestMaterialise):
 
     def test_an_operator_that_would_not_reverse_charge_is_reported(self):
         batch, _jersey, _cap = self._etsy_drop()
+        batch.correct_chart = False
         batch.action_check_readiness()
         issue = batch.issue_ids.filtered(lambda item: item.kind == "operator_untaxed")
         self.assertTrue(issue)
         self.assertIn("no tax number", issue[0].note)
+
+    def test_the_chart_is_put_right_before_it_is_reported_on(self):
+        """The default is to correct, because a defect put right is not news.
+
+        Most of what the checks would report is a defect in the chart rather
+        than in the drop, and reporting a thing that can be put right without
+        putting it right wastes the reader's attention.
+        """
+        shadow = self._position("Invented catch-all", False, self.home_tax, sequence=1)
+        batch, _jersey, _cap = self._etsy_drop()
+        self.assertTrue(batch.correct_chart)
+        batch.action_check_readiness()
+        self.assertFalse(shadow.active)
+        self.assertFalse(
+            batch.issue_ids.filtered(lambda issue: issue.kind == "shadowed_destination"),
+        )
+
+    def test_the_chart_is_left_alone_when_that_is_asked_for(self):
+        shadow = self._position("Invented catch-all", False, self.home_tax, sequence=1)
+        batch, _jersey, _cap = self._etsy_drop()
+        batch.correct_chart = False
+        batch.action_check_readiness()
+        self.assertTrue(shadow.active)
 
     # -- goods that have not left yet --------------------------------------
 
