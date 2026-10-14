@@ -291,6 +291,14 @@ archive root when content and classification match, otherwise creates one root
 and links it back to the record. Replacing the content of that same attachment
 later creates a new version rather than a second root.
 
+A file that has never been sent to Documents can be removed through Odoo’s
+existing **Delete Attachment** confirmation, without archiving it first.
+**Discard** closes the confirmation and keeps the file. Deletion permanently
+removes the local file; it does not put it in Documents Trash. Existing attachment
+ownership and record access still apply. Deleting a file on a saved business
+record also requires the existing **Irreversible Actions** permission. Once archiving has started, removal continues through the
+existing Documents workflow; shared archived originals remain protected.
+
 The attachment card shows whether the request is queued, being sent, indexed,
 or needs review. After completion, **Open in Documents** opens that exact
 archive identity in the Documents app. The record smart button shows one native

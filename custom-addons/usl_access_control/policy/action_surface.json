@@ -12711,18 +12711,41 @@
       ]
     },
     {
-      "digest": "05b2fb8e165e50dba1b29afaecf8c11acab872cb3e9a81bec4b7472b651dc611",
+      "delegates": [
+        "rpc:ir.attachment.browse",
+        "rpc:mail.message.sudo",
+        "rpc:usl.document.operation.sudo"
+      ],
+      "digest": "0ffb674c28e75a5f603c1db2d25a27306da921b4b6fac0a93bdb4dba0f1dcb7c",
+      "guards": [
+        "guard:evidence.attachment.delete"
+      ],
       "key": "route:jsonrpc:POST:/mail/attachment/delete",
       "kind": "route",
       "modules": [
         "usl_documents"
       ],
+      "parents": [],
+      "risk_flags": [],
       "route": "/mail/attachment/delete",
-      "runtime_digest": "05b2fb8e165e50dba1b29afaecf8c11acab872cb3e9a81bec4b7472b651dc611",
+      "runtime_digest": "8f02de6ff928996fb19cb1711d29d3c4f58dde767c90c7a91a53e99c41626a5b",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
       "sources": [
+        {
+          "line": 66,
+          "path": "custom-addons/usl_documents/controllers/attachment.py"
+        },
         {
           "path": "custom-addons/usl_documents/controllers/attachment.py"
         }
+      ],
+      "unresolved_delegates": [
+        "rpc:ir.attachment.browse",
+        "rpc:mail.message.sudo",
+        "rpc:usl.document.operation.sudo"
       ]
     },
     {
@@ -1612146,7 +1612169,7 @@
       ]
     },
     {
-      "digest": "1f0dca72e96acb276e7d14a5b3a75f1d06aaf73848211737756f94e1c0dcec80",
+      "digest": "87ddeca77fcdb45317870d8c3415f397f9692e93c9d8522310fbadd72e7869fd",
       "key": "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1612155,13 +1612178,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 61,
+          "line": 66,
           "path": "custom-addons/usl_documents/controllers/attachment.py"
         }
       ]
     },
     {
-      "digest": "209a607ba29e5e96cfbf27c834a5373f0e2ef0957fee897826864b52583024ae",
+      "digest": "cfb2726bbc8927181179791efb7935338076e318a75aa39b6856b831745b9b42",
       "key": "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1612170,13 +1612193,28 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 61,
+          "line": 66,
           "path": "custom-addons/usl_documents/controllers/attachment.py"
         }
       ]
     },
     {
-      "digest": "0c741ab67a00a533cf8d2cbe7bccd8880b4d0240b30a29e6068ec8c61c3837ee",
+      "digest": "91b90cf8b8801c2b3c3a315086b34c43ab972cfd0b1825dded217cb1b68aaec6",
+      "key": "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:3",
+      "kind": "sink",
+      "modules": [
+        "usl_documents"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 66,
+          "path": "custom-addons/usl_documents/controllers/attachment.py"
+        }
+      ]
+    },
+    {
+      "digest": "2c80ba865459e7c19b78369b35cbd79eb49aa188752eb35f9eee24dd341b1210",
       "key": "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1612185,7 +1612223,52 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 61,
+          "line": 66,
+          "path": "custom-addons/usl_documents/controllers/attachment.py"
+        }
+      ]
+    },
+    {
+      "digest": "bd8d448ebc33897f4abdbb776b62b64ec83b0e69e052765eec3825f9aae43da1",
+      "key": "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:2",
+      "kind": "sink",
+      "modules": [
+        "usl_documents"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 66,
+          "path": "custom-addons/usl_documents/controllers/attachment.py"
+        }
+      ]
+    },
+    {
+      "digest": "b98cbbfff5f60540788735efb741ec4280a3dba7c5ca1be8283508c020bf5bb9",
+      "key": "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:3",
+      "kind": "sink",
+      "modules": [
+        "usl_documents"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 66,
+          "path": "custom-addons/usl_documents/controllers/attachment.py"
+        }
+      ]
+    },
+    {
+      "digest": "bb41b9d569a34fa2c8c4a2d8cf41d6d152783611b7834e1cc9fffb4ea3614a4c",
+      "key": "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:4",
+      "kind": "sink",
+      "modules": [
+        "usl_documents"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 66,
           "path": "custom-addons/usl_documents/controllers/attachment.py"
         }
       ]
@@ -1692946,11 +1693029,11 @@
       "version": "saas~19.3.1.1.4"
     },
     {
-      "manifest_sha256": "4db8df28c5566906934c7356170e54052f52241beca387d73c7b0586834d184a",
+      "manifest_sha256": "5cc9416cf81cfe4ec2fe791631eda281a145ca4855aaf88eef073c898a0df049",
       "name": "usl_documents",
       "origin": "custom",
-      "source_sha256": "6a5a2dd4cb5929411a131a187d473ad5a891ba3e57f867619546a8aec364a37e",
-      "version": "saas~19.3.1.10.0"
+      "source_sha256": "c63c622b1893c8e4d3dbcbff1a4b9f186e8ca21b1e6af0e91477a7d44045c557",
+      "version": "saas~19.3.1.10.1"
     },
     {
       "manifest_sha256": "0495b37d3341543b11dcc1b05c4e4918fc9c11e0e1ad8dd0eb6b5cff3e7c1926",

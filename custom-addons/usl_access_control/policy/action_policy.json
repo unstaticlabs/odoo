@@ -29484,7 +29484,6 @@
         "route:jsonrpc:POST:/html_editor/attachment/add_data",
         "route:jsonrpc:POST:/html_editor/attachment/add_url",
         "route:jsonrpc:POST:/mail/action",
-        "route:jsonrpc:POST:/mail/attachment/delete",
         "route:jsonrpc:POST:/mail/data",
         "route:jsonrpc:POST:/mail/guest/update_name",
         "route:jsonrpc:POST:/mail/link_preview",
@@ -33332,7 +33331,6 @@
         "route:jsonrpc:POST:/html_editor/attachment/add_data": "c4ea743c84fad14ec0d7911dc061578c22bd75b61328bc2a837d575b7e1b3113",
         "route:jsonrpc:POST:/html_editor/attachment/add_url": "8d09d0f10a49935a60cd08892abe80e8e9d1860f5a5fa8f58e975cc2636d815f",
         "route:jsonrpc:POST:/mail/action": "7ce57a9f17915322fd503906f1df4570bdc349cbb1168300b5ddeeeb09d88ee7",
-        "route:jsonrpc:POST:/mail/attachment/delete": "05b2fb8e165e50dba1b29afaecf8c11acab872cb3e9a81bec4b7472b651dc611",
         "route:jsonrpc:POST:/mail/data": "8922325747836c4023aca9f459876803d708dbfbd39acf2e5a64d2dd4911dccb",
         "route:jsonrpc:POST:/mail/guest/update_name": "dc7e56256060f832be2b37a6966d510d9b0db38cabf9f3a795c1c4091432f1f0",
         "route:jsonrpc:POST:/mail/link_preview": "5b4edc361991ee154343322d024ea154171a57f6797b013c69baf1f1526757d7",
@@ -169486,7 +169484,11 @@
         "sink:stock_sms:addons/stock_sms/models/stock_picking.py:stock.picking._send_confirmation_email:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:2",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:3",
         "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:2",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:3",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:4",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController._document:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController.materialize:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:1",
@@ -173335,8 +173337,20 @@
         "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:2": {
           "reachability_proof": "This controller sink is reached only through Odoo attachment deletion after ownership and Documents lifecycle checks; the route is governed separately."
         },
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:3": {
+          "reachability_proof": "This exact controller sink is reached only through /mail/attachment/delete after native scoped ownership. Exact attachment routing facts are read internally; local persistent evidence invokes the existing central guard before native message effects and final unlink, and tracked operations retain the existing archive action. The callable controller parent is classified separately."
+        },
         "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:1": {
           "reachability_proof": "This controller sink is reached only through Odoo attachment deletion after ownership and Documents lifecycle checks; the route is governed separately."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:2": {
+          "reachability_proof": "This exact controller sink is reached only through /mail/attachment/delete after native scoped ownership. Exact attachment routing facts are read internally; local persistent evidence invokes the existing central guard before native message effects and final unlink, and tracked operations retain the existing archive action. The callable controller parent is classified separately."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:3": {
+          "reachability_proof": "This exact controller sink is reached only through /mail/attachment/delete after native scoped ownership. Exact attachment routing facts are read internally; local persistent evidence invokes the existing central guard before native message effects and final unlink, and tracked operations retain the existing archive action. The callable controller parent is classified separately."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:4": {
+          "reachability_proof": "This exact controller sink is reached only through /mail/attachment/delete after native scoped ownership. Exact attachment routing facts are read internally; local persistent evidence invokes the existing central guard before native message effects and final unlink, and tracked operations retain the existing archive action. The callable controller parent is classified separately."
         },
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController._document:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
@@ -176446,9 +176460,13 @@
         "sink:stock_delivery:addons/stock_delivery/models/stock_picking.py:stock.picking._send_confirmation_email:sudo:2": "6635f06b6bda38d05d73867f6cda5c52d1770394167d86d8cc44eb3f0881c7bc",
         "sink:stock_sms:addons/stock_sms/models/stock_picking.py:stock.picking._send_confirmation_email:orm_write:1": "387c547bd4bdbaefcc8b6c899b4d8574301649dc2e803b1cab0165fbe3804919",
         "sink:stock_sms:addons/stock_sms/models/stock_picking.py:stock.picking._send_confirmation_email:sudo:1": "29f4fbe02910934a2faae60b215dff530e99b5cfa52f8f146ece82db1564be44",
-        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:1": "1f0dca72e96acb276e7d14a5b3a75f1d06aaf73848211737756f94e1c0dcec80",
-        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:2": "209a607ba29e5e96cfbf27c834a5373f0e2ef0957fee897826864b52583024ae",
-        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:1": "0c741ab67a00a533cf8d2cbe7bccd8880b4d0240b30a29e6068ec8c61c3837ee",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:1": "87ddeca77fcdb45317870d8c3415f397f9692e93c9d8522310fbadd72e7869fd",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:2": "cfb2726bbc8927181179791efb7935338076e318a75aa39b6856b831745b9b42",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:3": "91b90cf8b8801c2b3c3a315086b34c43ab972cfd0b1825dded217cb1b68aaec6",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:1": "2c80ba865459e7c19b78369b35cbd79eb49aa188752eb35f9eee24dd341b1210",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:2": "bd8d448ebc33897f4abdbb776b62b64ec83b0e69e052765eec3825f9aae43da1",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:3": "b98cbbfff5f60540788735efb741ec4280a3dba7c5ca1be8283508c020bf5bb9",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:4": "bb41b9d569a34fa2c8c4a2d8cf41d6d152783611b7834e1cc9fffb4ea3614a4c",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController._document:sudo:1": "c3f9bcb8846423081a3296d1a5a1b0370e8cb5f4f45df5d9c9e6be50dea8d583",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController.materialize:sudo:1": "44e2f28fc7e81fc86c7097bbf4f7fc2dd247ce25e8276b36f52d22e4e17b4283",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:1": "1866d26c71b23676c921e6e318a19589949e2c6d96a10fd0aa91b21555c1c7ad",
@@ -202777,6 +202795,26 @@
         "rpc:usl.document.apply_batch_archive_metadata": "03e282864ef1e5e830e1a6712ef5fe053bbbd75313aa43decb569860c7fc560c",
         "rpc:usl.document.update_archive_metadata": "5494f22d9019ed195bd73b9d6c28970207baf19bf608233d81e337683f7a8e84"
       }
+    },
+    {
+      "action_keys": [
+        "route:jsonrpc:POST:/mail/attachment/delete"
+      ],
+      "classification": "protected",
+      "consequence": "Can permanently delete a local file attached to a persistent business record; ordinary unattached/transient cleanup and durable archive-copy removal retain their existing state-sensitive native paths.",
+      "domain": "documents_and_communications",
+      "evidence_id": "documents-local-attachment-removal-20261014",
+      "id": "protected.documents_and_communications.local_attachment_removal",
+      "overrides": {
+        "route:jsonrpc:POST:/mail/attachment/delete": {
+          "action_name": "permanently delete attachment evidence from a business record",
+          "guard_key": "guard:evidence.attachment.delete"
+        }
+      },
+      "rationale": "Repair the inherited read_only classification of this existing mutating route. Exact native ownership precedes current archive facts. Local governed evidence uses the unchanged central guard before carrying-message writes and again at unlink, preserving caller UID, Agent denial and immutable authorized-human audit. No global role requirement is added to ordinary transient cleanup and no existing tracked archive workflow is bypassed.",
+      "reviewed_digests": {
+        "route:jsonrpc:POST:/mail/attachment/delete": "0ffb674c28e75a5f603c1db2d25a27306da921b4b6fac0a93bdb4dba0f1dcb7c"
+      }
     }
   ],
   "evidence_families": {
@@ -202795,6 +202833,21 @@
         "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_managed_agent_write_and_readonly_scope_use_the_same_native_boundaries",
         "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_satisfied_change_does_not_rebind_binary_or_lifecycle_cache",
         "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_workspace_reports_native_metadata_write_access_for_review_and_edit"
+      ]
+    },
+    "documents-local-attachment-removal-20261014": {
+      "contract": "Only an exact on-request, native-only attachment without any archive operation enters native local deletion. Native ownership or its scoped token is checked first. The existing governed-file predicate and evidence.attachment.delete capability run before carrying-message writes; final unlink rechecks the same capability. Two authorization audit events describe one deletion. Ordinary humans and Agents are denied before writes, sudo preserves actor identity, authorized humans retain immutable audit, token authority is not narrowed by a new record-read requirement, and unattached cleanup plus the existing tracked archive path remain unchanged.",
+      "tests": [
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_existing_protection_runs_before_touching_carrying_message",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_persistent_local_file_keeps_existing_irreversible_guard",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_agent_and_sudo_agent_cannot_delete_persistent_local_file",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_authorized_deletion_has_central_actor_audit",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_native_http_deletes_only_local_file_without_provider",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_valid_native_token_does_not_require_extra_record_read_access",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_current_company_change_denies_after_local_details_were_read",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_canonical_tracked_operation_rejects_stale_local_state",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_unattached_native_upload_cleanup_remains_available",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_native_task_upload_can_be_removed_without_archiving"
       ]
     },
     "feedback-provider-phases-20260906": {
