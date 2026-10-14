@@ -1,3 +1,4 @@
+import { HomeContentSearch } from "./content_search";
 import { _t } from "@web/core/l10n/translation";
 import { formatDate } from "@web/core/l10n/dates";
 import { registry } from "@web/core/registry";
@@ -54,6 +55,7 @@ const ACCOUNTING_ICONS = {
 
 export class UslHome extends Component {
     static template = "usl_home.Home";
+    static components = { HomeContentSearch };
     static props = { "*": true };
 
     setup() {
@@ -62,6 +64,7 @@ export class UslHome extends Component {
         this.notification = useService("notification");
         this.gridRef = useRef("grid");
         this.state = useState({
+            searchRevision: 0,
             loadingConfiguration: true,
             configurationError: false,
             customize: false,
@@ -190,6 +193,7 @@ export class UslHome extends Component {
     }
 
     async refreshAll() {
+        this.state.searchRevision++;
         for (const key of this.visibleWidgets) {
             if (key !== "favorites") {
                 this.loadWidget(key);
@@ -216,6 +220,7 @@ export class UslHome extends Component {
     }
 
     async reloadForCompany() {
+        this.state.searchRevision++;
         await this.loadConfiguration();
         await this.refreshAll();
     }

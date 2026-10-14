@@ -1,4 +1,14 @@
 <odoo>
+    <record id="project_task_search_content" model="ir.ui.view">
+        <field name="name">project.task.search.content</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_search_form_base"/>
+        <field name="arch" type="xml">
+            <field name="name" position="attributes">
+                <attribute name="filter_domain">[('usl_search_text', 'ilike', self)]</attribute>
+            </field>
+        </field>
+    </record>
     <record id="project_task_type_form_reactivation_role" model="ir.ui.view">
         <field name="name">project.task.type.form.reactivation.role</field>
         <field name="model">project.task.type</field>

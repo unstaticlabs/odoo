@@ -3022,6 +3022,78 @@
     },
     {
       "delegates": [
+        "rpc:usl.home.service.search_records"
+      ],
+      "digest": "10f940116c19e0987ac26a9ab2228c388bb1d9ecea688e323ca71dea1835486c",
+      "handler": "if",
+      "key": "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:1",
+      "kind": "client",
+      "modules": [
+        "usl_home"
+      ],
+      "sources": [
+        {
+          "line": 93,
+          "path": "custom-addons/usl_home/static/src/home/content_search.js"
+        }
+      ]
+    },
+    {
+      "delegates": [
+        "rpc:usl.home.service.search_records"
+      ],
+      "digest": "543465818859ba898de82a298a2004dd3cf64f6334d8e6e1558a04f0ce2b14c7",
+      "handler": "if",
+      "key": "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:2",
+      "kind": "client",
+      "modules": [
+        "usl_home"
+      ],
+      "sources": [
+        {
+          "line": 142,
+          "path": "custom-addons/usl_home/static/src/home/content_search.js"
+        }
+      ]
+    },
+    {
+      "delegates": [
+        "rpc:usl.home.service.search_documents"
+      ],
+      "digest": "36f56fab197f8ae5eb634278bb47507fc0998b4d4038b5ab00f7bc9f221e580c",
+      "handler": "loadDocuments",
+      "key": "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:loadDocuments:rpc:1",
+      "kind": "client",
+      "modules": [
+        "usl_home"
+      ],
+      "sources": [
+        {
+          "line": 114,
+          "path": "custom-addons/usl_home/static/src/home/content_search.js"
+        }
+      ]
+    },
+    {
+      "delegates": [
+        "rpc:usl.home.service.get_search_result_action"
+      ],
+      "digest": "3f0592da92b3e4b1340a371af2a2a814ea4ad31584594c1aaf32703ab122d484",
+      "handler": "open",
+      "key": "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:open:rpc:1",
+      "kind": "client",
+      "modules": [
+        "usl_home"
+      ],
+      "sources": [
+        {
+          "line": 157,
+          "path": "custom-addons/usl_home/static/src/home/content_search.js"
+        }
+      ]
+    },
+    {
+      "delegates": [
         "rpc:usl.home.favorite.reorder",
         "rpc:usl.home.service.resolve_favorite"
       ],
@@ -3034,11 +3106,11 @@
       ],
       "sources": [
         {
-          "line": 349,
+          "line": 354,
           "path": "custom-addons/usl_home/static/src/home/home.js"
         },
         {
-          "line": 382,
+          "line": 387,
           "path": "custom-addons/usl_home/static/src/home/home.js"
         }
       ]
@@ -3056,7 +3128,7 @@
       ],
       "sources": [
         {
-          "line": 332,
+          "line": 337,
           "path": "custom-addons/usl_home/static/src/home/home.js"
         }
       ]
@@ -3074,8 +3146,31 @@
       ],
       "sources": [
         {
-          "line": 225,
+          "line": 230,
           "path": "custom-addons/usl_home/static/src/home/home.js"
+        }
+      ]
+    },
+    {
+      "delegates": [
+        "rpc:usl.home.service.get_search_result_action",
+        "rpc:usl.home.service.search_records"
+      ],
+      "digest": "558c88b9cbf9bf37c219046e7a3b624925203424cacf607716f2789c68db3a27",
+      "handler": "if",
+      "key": "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:if:rpc:1",
+      "kind": "client",
+      "modules": [
+        "usl_home"
+      ],
+      "sources": [
+        {
+          "line": 33,
+          "path": "custom-addons/usl_home/static/src/project_search/project_search.js"
+        },
+        {
+          "line": 66,
+          "path": "custom-addons/usl_home/static/src/project_search/project_search.js"
         }
       ]
     },
@@ -1366615,6 +1366710,33 @@
     {
       "abstract": true,
       "archiveable": false,
+      "digest": "07f5dddae4801067f010ac1144589769c2894835b16d336acbd02cca17d3ea46",
+      "guards": [],
+      "key": "rpc:usl.home.service.get_search_result_action",
+      "kind": "rpc",
+      "method": "get_search_result_action",
+      "model": "usl.home.service",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "4ef7ff03766019953934c4eb66800d90a592e571365911ba77c6bf6148d74ea0",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 158,
+          "path": "custom-addons/usl_home/models/content_search.py"
+        },
+        {
+          "path": "custom-addons/usl_home/models/content_search.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
       "delegates": [
         "rpc:ir.ui.view.sudo",
         "rpc:usl.home.service.browse"
@@ -1367176,6 +1367298,36 @@
       "abstract": true,
       "archiveable": false,
       "delegates": [
+        "rpc:usl.document.mcp_search"
+      ],
+      "digest": "a49109300ed02ed6c7f4fc6fb03b88a6af4f2960b76a2ba8e3b72b86e8401797",
+      "guards": [],
+      "key": "rpc:usl.home.service.search_documents",
+      "kind": "rpc",
+      "method": "search_documents",
+      "model": "usl.home.service",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1ef5623d20764e361dfd23f3b4bf0c243f828c8de92c3f814f853ed8ce34f4b4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 137,
+          "path": "custom-addons/usl_home/models/content_search.py"
+        },
+        {
+          "path": "custom-addons/usl_home/models/content_search.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
         "rpc:usl.home.service.fields_get",
         "rpc:usl.home.service.search_count",
         "rpc:usl.home.service.with_context"
@@ -1367264,6 +1367416,33 @@
         },
         {
           "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "f20ff609b54755e2044f2c2a932ca978b424396aabcad5bf2cbd1c2e016b6ece",
+      "guards": [],
+      "key": "rpc:usl.home.service.search_records",
+      "kind": "rpc",
+      "method": "search_records",
+      "model": "usl.home.service",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "094493f8d10036988def05b6a940f65d0dbbc23fd276ff5d05a0397ff3cd4a65",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 109,
+          "path": "custom-addons/usl_home/models/content_search.py"
+        },
+        {
+          "path": "custom-addons/usl_home/models/content_search.py"
         }
       ],
       "transient": false
@@ -1689190,11 +1689369,11 @@
       "version": "saas~19.3.2.0.18"
     },
     {
-      "manifest_sha256": "bddababb11153d3ede6cb9e423fb9df7b42bcf4a173c24ab1d01129d7b06673a",
+      "manifest_sha256": "9881b4bd7689a650f6efd6b4106125a7e26daa28cf95ad80876902f121a33efb",
       "name": "usl_home",
       "origin": "custom",
-      "source_sha256": "d3bb328c74b02048640b88509413f3d266e842f053fd7669dfb96df09b058d7c",
-      "version": "saas~19.3.1.0.8"
+      "source_sha256": "02457004a3a3488d0b168521069aa857cb251ba179b6da6f80b49095fa8109d4",
+      "version": "saas~19.3.1.0.10"
     },
     {
       "manifest_sha256": "bb43850f670e0acf9f0173cad4c0c93680767addca24c5251f053d2d1eaf7e0b",
@@ -1689225,11 +1689404,11 @@
       "version": "saas~19.3.1.4.4"
     },
     {
-      "manifest_sha256": "69732383a0664fa54d31befbe856a8944e513bbb7ff9eebcd9aa8e56941a676b",
+      "manifest_sha256": "8419ba71a0d41bded73d0e4efe4205bd92b02d747130da9cd998ca4e38fd0f0d",
       "name": "usl_project",
       "origin": "custom",
-      "source_sha256": "2c79cb187756ea5b60f5dc3ae37d7b86eb6368cba503119d6930dc3d802da320",
-      "version": "saas~19.3.1.0.11"
+      "source_sha256": "b83c63caab6d1aa56c5a73e63f19a7f7dbf0fee47814c46e678c5dffbf8bf980",
+      "version": "saas~19.3.1.0.14"
     },
     {
       "manifest_sha256": "fdc17bc172de42c3680d2f856c88ec910045db940de6d0fd31988944400cb74a",

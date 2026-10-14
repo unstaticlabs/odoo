@@ -128,3 +128,19 @@ msgstr ""
 "    !!! Définir la tâche comme priorité urgente  \n"
 "\n"
 "    Veillez à utiliser le bon format et l’ordre correct, par exemple : Améliorer l’écran de configuration 5h #feature #v16 @Mitchell !"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: model:ir.model.fields,field_description:usl_project.field_project_task__usl_search_text
+#: code:addons/usl_project/models/task_content_search.py:0
+msgid "Task content"
+msgstr "Contenu de la tâche"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: model:ir.model.fields,field_description:usl_project.field_project_task__usl_search_text
+#: code:addons/usl_project/models/task_content_search.py:0
+msgid "Use a text search for task content."
+msgstr "Utilisez une recherche textuelle pour le contenu des tâches."
