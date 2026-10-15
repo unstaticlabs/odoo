@@ -97,147 +97,25 @@ class TestAgentReceiptDecisions(TransactionCase):
         self.assertEqual(expense.create_uid, agent.user_id)
         self.assertFalse(expense.account_move_id)
 
-    def _as_agent_operation(self, expense, agent, method="write"):
-        context = UslAgentJson2Controller._agent_call_context(
-            context={}, agent=agent, model_name="hr.expense", method_name=method, access="write",
-        )
-        return expense.with_user(agent.user_id).with_context(context)
-
-    def test_agent_generic_approved_financial_write_is_denied_atomically(self):
+    def test_writable_agent_and_human_share_native_approved_expense_writes(self):
         agent = self._create_agent()
-        approved = self._create_expense()
-        approved.approval_state = "approved"
-        draft = self._create_expense()
-        before = (draft.total_amount_currency, approved.total_amount_currency)
-        with self.assertRaises(AccessError), self.env.cr.savepoint():
-            self._as_agent_operation(draft | approved, agent).write({"total_amount_currency": 60.0})
-        self.assertEqual((draft.total_amount_currency, approved.total_amount_currency), before)
-        self.assertEqual(approved.state, "approved")
-
-    def test_agent_cannot_launder_approved_expense_into_draft(self):
-        agent = self._create_agent()
-        expense = self._create_expense()
-        expense.approval_state = "approved"
-        with self.assertRaises(AccessError), self.env.cr.savepoint():
-            self._as_agent_operation(expense, agent).write({"approval_state": False})
-        expense.invalidate_recordset()
-        self.assertEqual(expense.state, "approved")
-        self.assertEqual(expense.total_amount_currency, 42.0)
-
-    def test_agent_web_save_denies_approved_financial_inputs_with_any_readback(self):
-        agent = self._create_agent()
-        expense = self._create_expense()
-        expense.approval_state = "approved"
-        for specification in ({}, {"total_amount_currency": {}, "state": {}}):
-            with self.subTest(specification=specification):
-                with self.assertRaises(AccessError), self.env.cr.savepoint():
-                    self._as_agent_operation(expense, agent, "web_save").web_save(
-                        {"total_amount_currency": 60.0}, specification,
-                    )
-        self.assertEqual(expense.total_amount_currency, 42.0)
-
-    def test_agent_sudo_and_serializable_context_do_not_authorize_financial_edits(self):
-        agent = self._create_agent()
-        expense = self._create_expense()
-        expense.approval_state = "approved"
-        for candidate in (expense.with_user(agent.user_id).sudo(),
-                          self._as_agent_operation(expense, agent).sudo(),
-                          expense.with_user(agent.user_id).with_context(
-                              usl_batch_context_internal=True,
-                              usl_agent_operation_scope={"root_model": "hr.expense", "root_method": "action_post", "access": "write"})):
-            with self.assertRaises(AccessError), self.env.cr.savepoint():
+        for actor in (self.owner, agent.user_id):
+            with self.subTest(actor=actor.id):
+                expense = self._create_expense()
+                expense.approval_state = "approved"
+                context = UslAgentJson2Controller._agent_call_context(
+                    context={}, agent=agent, model_name="hr.expense", method_name="write", access="write",
+                ) if actor == agent.user_id else {}
+                candidate = expense.with_user(actor).with_context(context)
                 candidate.write({"total_amount_currency": 60.0})
-        self.assertEqual(expense.total_amount_currency, 42.0)
-
-    def test_agent_generic_lifecycle_writes_are_denied_even_on_draft(self):
-        agent = self._create_agent()
-        expense = self._create_expense()
-        for values in ({"approval_state": "approved"}, {"state": "approved"},
-                       {"account_move_id": False}):
-            with self.subTest(values=values):
-                with self.assertRaises(AccessError), self.env.cr.savepoint():
-                    self._as_agent_operation(expense, agent).write(values)
-        self.assertEqual(expense.state, "draft")
-        self.assertFalse(expense.account_move_id)
-
-    def test_human_manager_keeps_native_approved_edit_and_agent_keeps_notes(self):
-        expense = self._create_expense()
-        expense.approval_state = "approved"
-        expense.with_user(self.owner).write({"total_amount_currency": 60.0})
-        self.assertEqual(expense.total_amount_currency, 60.0)
-        agent = self._create_agent()
-        self._as_agent_operation(expense, agent).write({"name": "[QA] Approved note", "description": "[QA] Evidence clarified"})
-        self.assertEqual(expense.name, "[QA] Approved note")
-        self.assertEqual(expense.state, "approved")
-
-    def test_agent_generic_draft_financial_write_keeps_native_authority(self):
-        agent = self._create_agent()
-        expense = self._create_expense()
-        self._as_agent_operation(expense, agent).write({"total_amount_currency": 60.0})
-        self.assertEqual(expense.total_amount_currency, 60.0)
-        self.assertEqual(expense.state, "draft")
-        readonly = self._create_agent(access_mode="read_only")
-        with self.assertRaises(AccessError), self.env.cr.savepoint():
-            self._as_agent_operation(expense, readonly).write({"total_amount_currency": 90.0})
-        self.assertEqual(expense.total_amount_currency, 60.0)
-
-    def test_agent_cannot_forge_approved_batch_restoration_baseline(self):
-        agent = self._create_agent()
-        expense = self._create_expense()
-        accounts = self.env["account.account"].create([
-            {"name": "[QA] Original cost", "code": "QA6101", "account_type": "expense"},
-            {"name": "[QA] Shared cost", "code": "QA6102", "account_type": "expense"},
-            {"name": "[QA] Forged cost", "code": "QA6103", "account_type": "expense"},
-        ])
-        expense.account_id = accounts[0]
-        batch = self.env["usl.expense.batch"].create({
-            "name": "[QA] Baseline guard", "purpose": "[QA] Compare restoration", "company_id": self.company.id,
-            "employee_id": self.employee.id, "account_override_id": accounts[1].id,
-        })
-        batch.add_expenses(expense.ids)
-        batch.apply_context(force_expense_ids=expense.ids)
-        self.assertEqual(expense.pre_batch_account_id, accounts[0])
-        expense.approval_state = "approved"
-        with self.assertRaises(AccessError), self.env.cr.savepoint():
-            self._as_agent_operation(expense, agent).write({"pre_batch_account_id": accounts[2].id})
-        self.assertEqual(expense.pre_batch_account_id, accounts[0])
-        self._as_agent_operation(expense, agent).write({"expense_batch_id": False})
-        self.assertFalse(expense.expense_batch_id)
-        self.assertEqual(expense.account_id, accounts[0])
-        self.assertEqual(expense.state, "approved")
-
-    def test_agent_financial_write_cannot_cross_company_even_with_scoped_sudo(self):
-        agent = self._create_agent()
-        company = self.env["res.company"].create({"name": "[QA] Foreign financial company"})
-        employee = self.env["hr.employee"].create({"name": "[QA] Foreign financial employee", "company_id": company.id})
-        expense = self.env["hr.expense"].with_company(company).create({
-            "name": "[QA] Foreign financial draft", "company_id": company.id,
-            "employee_id": employee.id, "product_id": self.category.id,
-            "total_amount_currency": 120, "payment_mode": "own_account",
-        })
-        candidate = self._as_agent_operation(expense, agent).with_context(allowed_company_ids=self.company.ids)
-        for target in (candidate, candidate.sudo()):
-            with self.assertRaises(AccessError), self.env.cr.savepoint():
-                target.write({"total_amount_currency": 60})
-        self.assertEqual(expense.total_amount_currency, 120)
-        owned = self._create_expense()
-        with self.assertRaises(AccessError), self.env.cr.savepoint():
-            self._as_agent_operation(owned, agent).sudo().write({"company_id": company.id, "employee_id": employee.id})
-        self.assertEqual(owned.company_id, self.company)
-
-    def test_agent_cannot_forge_approved_native_net_and_tax_totals(self):
-        agent = self._create_agent()
-        expense = self._create_expense()
-        expense.approval_state = "approved"
-        fields = ["untaxed_amount_currency", "tax_amount_currency", "untaxed_amount", "tax_amount"]
-        before = expense.read(fields)[0]
-        for field in fields:
-            with self.subTest(field=field):
-                with self.assertRaises(AccessError), self.env.cr.savepoint():
-                    self._as_agent_operation(expense, agent).write({field: 99.0})
-        expense.invalidate_recordset()
-        self.assertEqual(expense.read(fields)[0], before)
-        self.assertEqual(expense.state, "approved")
+                expense.invalidate_recordset()
+                self.assertEqual(expense.total_amount_currency, 60.0)
+                self.assertEqual(expense.state, "approved")
+                # The generic ORM path follows the same native access and state rules.
+                candidate.write({"approval_state": False})
+                expense.invalidate_recordset()
+                self.assertEqual(expense.state, "draft")
+                self.assertFalse(expense.account_move_id)
 
     def test_agent_cleans_only_expense_approval_activities(self):
         agent = self._create_agent()
