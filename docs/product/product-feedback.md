@@ -8,7 +8,39 @@ native-style floating conversation opens immediately in Odoo's ChatHub. Odoo
 prepares a local preview of the visible Odoo tab while asking what the reporter
 wants to improve. The preview and sanitized **Page details** are selected by
 default. The reporter may clear either choice and add up to ten supporting
-files.
+files. **Cmd+K** (Mac) or **Ctrl+K** opens Odoo's existing command palette;
+the first suggestion is **Send product feedback**, including while a modal is open.
+Press Enter to start, or search for another native command. The palette
+keeps its normal search commands and shortcut.
+
+The page-preview thumbnail is compact and expandable, with sharing choices
+above it so the optional image never pushes those controls out of sight.
+
+The message box is ready before Odoo finishes preparing the draft or local
+preview. Send becomes available when the draft is saved; typing is preserved.
+Paste an image into the message box to attach it without saving a file first.
+Text paste behaves normally. Clipboard images share the same ten-file and
+10 MB per-file limits as picked files. On mobile, sending a report or reply
+leaves the keyboard dismissed; tapping the composer starts another reply.
+
+When **Page details** is selected, the saved report includes up to five distinct
+recent navigation steps from this tab's current session, oldest first. The
+native browser sends only action and model identifiers; it does not collect
+URLs, search terms, record titles or browser history. The transient draft can
+receive untrusted candidates with extra keys. On submission, the server checks
+the reporter's access and strips other data before saving navigation on the
+report or sharing it with the provider. Clearing **Page details** excludes
+navigation from the saved report and provider context; it does not prevent
+transient receipt of candidates.
+A preview that finishes after Send is discarded; it cannot appear on another
+conversation.
+
+Provider completion is checked every two seconds during the first thirty
+seconds of an assistant run and every ten seconds afterwards. Every new
+provider phase receives an initial two-second check. This removes up to eight
+seconds of product-owned delay for a quick response; it does not make the
+provider's own processing faster. Retry backoff and the five-minute timeout
+remain unchanged. Qualification uses offline provider responses.
 
 **Send feedback** creates a partial `project.task` in **Inbox before any
 provider call**. The floating window then becomes a native task conversation.
@@ -312,3 +344,18 @@ upgrade, stop the new workers and restore the matched database and filestore
 backup with the prior image. Removing code alone is not a rollback once stored
 fields, tasks or attachments exist. No migration source dump or production
 provider activation participates in recovery.
+
+## Feedback capture development QA
+
+Use an explicitly named Compose project and disposable database. Run
+`make oca-addons-sync` before initializing: the standard server loads
+`queue_job`, and a fresh worktree needs its pinned OCA sources. Commands called
+through `make` resolve `.env` project settings; direct `scripts/odoo-dev`
+commands must receive `COMPOSE_PROJECT_NAME` explicitly. Pass `ODOO_DEV_DB`
+explicitly as well, because Makefile defaults take precedence over `.env`.
+Run upgrade and test commands sequentially against one database.
+
+The new optional navigation fields are populated only by new feedback. Upgrade
+`usl_feedback` through the normal module update; existing feedback, chatter,
+attachments and companies are preserved. Two consecutive updates exercise the
+same empty-default compatibility path. No data backfill is needed.

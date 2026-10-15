@@ -60,11 +60,7 @@
                 </li>
             </ol>
 
-            <div t-if="state.phase === 'loading'" class="flex-grow-1 d-flex align-items-center justify-content-center text-muted" aria-live="polite">
-                <span><i class="fa fa-circle-o-notch fa-spin me-2"/>Opening feedback…</span>
-            </div>
-
-            <div t-elif="state.phase === 'start_error'" class="flex-grow-1 d-flex flex-column align-items-center justify-content-center p-4 text-center" role="alert" aria-live="assertive">
+            <div t-if="state.phase === 'start_error'" class="flex-grow-1 d-flex flex-column align-items-center justify-content-center p-4 text-center" role="alert" aria-live="assertive">
                 <i class="fa fa-exclamation-circle text-warning fs-3 mb-3"/>
                 <strong>Feedback is unavailable</strong>
                 <p class="text-muted mt-2 mb-3" t-out="state.error"/>
@@ -104,7 +100,7 @@
                 </div>
             </div>
 
-            <div t-elif="state.phase === 'draft'" class="o-usl-FeedbackPanel-draft flex-grow-1 d-flex flex-column overflow-hidden">
+            <div t-elif="['draft', 'loading'].includes(state.phase)" class="o-usl-FeedbackPanel-draft flex-grow-1 d-flex flex-column overflow-hidden">
                 <div class="o-usl-FeedbackPanel-draftBody flex-grow-1 overflow-auto o-scrollbar-thin p-3">
                 <div class="o-usl-FeedbackPanel-agentRow d-flex align-items-start gap-2 mb-3">
                     <span class="o-usl-FeedbackPanel-agentAvatar d-flex align-items-center justify-content-center rounded-circle bg-primary text-white flex-shrink-0" aria-hidden="true"><i class="fa fa-commenting-o"/></span>
@@ -115,27 +111,13 @@
                 </div>
                 <div class="mb-3">
                     <label class="visually-hidden" for="usl_feedback_message">Describe your feedback</label>
-                    <textarea id="usl_feedback_message" class="form-control" rows="4" maxlength="8000" autofocus="autofocus" placeholder="Describe what happened and what you expected." t-att-value="state.message" t-on-input="(ev) => state.message = ev.target.value" t-on-keydown="onInitialKeydown"/>
+                    <textarea id="usl_feedback_message" class="form-control" rows="4" maxlength="8000" t-ref="message" placeholder="Describe what happened and what you expected." t-att-value="state.message" t-on-input="(ev) => state.message = ev.target.value" t-on-keydown="onInitialKeydown" t-on-paste="onInitialPaste"/>
                 </div>
 
-                <div t-if="props.captureState === 'preparing'" class="o-usl-FeedbackPanel-previewStatus alert alert-light border mb-3" role="status" aria-live="polite">
-                    <i class="fa fa-circle-o-notch fa-spin me-2"/>Preparing page preview…
-                </div>
-                <div t-elif="props.screenshot" class="o-usl-FeedbackPanel-screenshot mb-3 border rounded-3 overflow-hidden bg-100">
-                    <img t-att-src="props.screenshot.previewUrl" alt="Preview of the Odoo page you were viewing" class="w-100"/>
-                    <label class="d-flex align-items-center gap-2 px-2 py-2 mb-0">
-                        <input type="checkbox" class="form-check-input mt-0" t-att-checked="state.screenshotSelected" t-on-change="toggleScreenshot"/>
-                        <span>Include page preview</span>
-                        <span class="small text-muted ms-auto">Odoo only</span>
-                    </label>
-                </div>
-                <div t-elif="props.captureState === 'error'" class="alert alert-light border mb-3" role="status">
-                    Page preview unavailable. Add an image if needed.
-                </div>
-
+                <div t-if="props.pageContext.navigation?.length and state.contextAvailable" class="small text-muted mb-2">Page details include up to five recent navigation steps.</div>
                 <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
                     <label class="btn btn-sm btn-link px-0 mb-0" for="usl_feedback_files"><i class="fa fa-paperclip me-1"/>Add files</label>
-                    <input id="usl_feedback_files" class="visually-hidden" type="file" multiple="multiple" t-on-change="onFilesSelected" t-att-disabled="state.busy or state.attachments.length + (props.screenshot and state.screenshotSelected ? 1 : 0) &gt;= 10"/>
+                    <input id="usl_feedback_files" class="visually-hidden" type="file" multiple="multiple" t-on-change="onFilesSelected" t-att-disabled="!state.draftId or state.busy or state.attachments.length + (props.captureState === 'preparing' or (props.screenshot and state.screenshotSelected) ? 1 : 0) &gt;= 10"/>
                     <div class="form-check form-switch ms-auto mb-0" t-if="state.contextAvailable">
                         <input id="usl_feedback_context" type="checkbox" class="form-check-input" t-att-checked="state.includeContext" t-on-change="() => state.includeContext = !state.includeContext"/>
                         <label class="form-check-label small" for="usl_feedback_context">Page details</label>
@@ -155,10 +137,29 @@
                     <t t-else="">The assistant is off. Odoo will still save your feedback.</t>
                     Files stay in Odoo. Your workspace can view the feedback.
                 </p>
+                <div t-if="props.captureState === 'preparing'" class="o-usl-FeedbackPanel-previewStatus alert alert-light border mb-3" role="status" aria-live="polite">
+                    <i class="fa fa-circle-o-notch fa-spin me-2"/>Preparing page preview…
+                </div>
+                <div t-elif="props.screenshot" class="o-usl-FeedbackPanel-screenshot mb-3 border rounded-3 overflow-hidden bg-100">
+                    <div class="d-flex align-items-center gap-2 px-2 py-2">
+                    <label class="d-flex align-items-center gap-2 mb-0 flex-grow-1">
+                        <input type="checkbox" class="form-check-input mt-0" t-att-checked="state.screenshotSelected" t-on-change="toggleScreenshot"/>
+                        <span>Include page preview</span>
+                    </label>
+                    <button class="o-usl-FeedbackPanel-previewToggle btn btn-link btn-sm px-0 flex-shrink-0" type="button" t-on-click="() => state.previewExpanded = !state.previewExpanded" t-att-aria-expanded="state.previewExpanded ? 'true' : 'false'">
+                        <t t-if="state.previewExpanded">Collapse preview</t><t t-else="">Expand preview</t>
+                    </button>
+                    </div>
+                    <img t-att-src="props.screenshot.previewUrl" alt="Preview of the Odoo page you were viewing" class="w-100" t-att-class="{ 'o-expanded': state.previewExpanded }"/>
+                </div>
+                <div t-elif="props.captureState === 'error'" class="alert alert-light border mb-3" role="status">
+                    Page preview unavailable. Add an image if needed.
+                </div>
+
                 </div>
                 <footer class="o-usl-FeedbackPanel-submit flex-shrink-0 border-top p-3 bg-view">
                     <div t-if="state.error" class="alert alert-danger py-2 px-3 mb-2" role="alert" aria-live="assertive" t-out="state.error"/>
-                    <button class="btn btn-primary w-100" type="button" t-att-disabled="!state.message.trim() or state.busy" t-on-click="submitInitial">
+                    <button class="btn btn-primary w-100" type="button" t-att-disabled="!state.message.trim() or state.busy or !state.draftId" t-on-click="submitInitial">
                         <i t-if="state.busy" class="fa fa-circle-o-notch fa-spin me-1"/>
                         Send feedback
                     </button>
@@ -233,7 +234,7 @@
                 <i class="fa fa-ban text-muted"/><span class="small fw-semibold flex-grow-1">Feedback withdrawn</span>
                 <button class="btn btn-sm btn-link" type="button" t-on-click="() => this.props.onOpenTask()">Open feedback</button>
             </div>
-            <Composer composer="this.state.thread.composer" autofocus="this.props.composer ? 1 : 0" mode="'compact'" onPostCallback.bind="this.onPostCallback" dropzoneRef="this.rootRef" type="'message'" placeholder="this.props.placeholder" disabled="!this.props.composer"/>
+            <Composer composer="this.state.thread.composer" autofocus="this.props.composer and !this.env.services.ui.isSmall ? 1 : 0" mode="'compact'" onPostCallback.bind="this.onPostCallback" dropzoneRef="this.rootRef" type="'message'" placeholder="this.props.placeholder" disabled="!this.props.composer"/>
         </div>
     </t>
 
@@ -255,6 +256,7 @@
                     fold="() => this.feedbackChatWindow.fold()"
                     isSmall="this.ui.isSmall"
                     pageContext="this.feedbackChatWindow.pageContext"
+                    refreshContext="() => this.feedbackChatWindow.captureCurrentPage()"
                     screenshot="this.feedbackChatWindow.screenshot"
                 />
             </div>
