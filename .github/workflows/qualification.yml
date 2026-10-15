@@ -197,7 +197,7 @@ jobs:
             --output qualification-evidence.json
           echo "sha256=$(sha256sum qualification-evidence.json | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
       - name: Retain qualification evidence
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref == '19-usl' && format('production-qualification-{0}-{1}', github.event.pull_request.number, github.event.pull_request.head.sha) || format('qualification-{0}', github.run_id) }}
           path: qualification-evidence.json
