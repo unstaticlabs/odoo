@@ -1,13 +1,18 @@
 # Notification productivity QA
 
-Captured 14 October 2026 (Europe/Paris) after final-source tests, both affected
-add-on upgrades and a QA server restart. The reviewer is a synthetic non-admin
-internal user; all contacts, tasks and messages are disposable fixtures.
+Captured 15 October 2026, 13:40–13:41 Europe/Paris, in the Codex in-app browser
+against tested combined product source `3ea1d10ef590bc4a5ca790e6b726edeb6e57720e`,
+after two preservation-checked upgrades. These replace the 14 October captures.
+The reviewer is a synthetic non-admin internal user; all contacts, tasks and
+messages are disposable fixtures. Viewport: 1280 × 720.
 
-- `preferences-desktop.png`: native preferences after saving Email then In Odoo.
-- `inbox-desktop.png`: two concise fixture messages with native task source links.
+- `preferences-desktop.png`: native Preferences reopened after saving Email then In Odoo.
+- `inbox-desktop.png`: two synthetic Agent messages with native task source links.
 
-The native layout is retained. These images show final UI state; persisted saves,
-Agent delivery, assignment filtering and exact source navigation are established
-by the backend/browser assertions described in the PR, not by still images.
-Both PNGs contain only IHDR, IDAT and IEND chunks; metadata sidecars stay private.
+The same preference round trip and exact task destination were exercised in the
+browser. Backend tests establish Agent routing and assignment filtering; a still
+image does not prove those behaviors. The historical wrong-destination report was
+not reproduced, so no navigation repair is claimed.
+
+The implementation owner and delivery lead personally inspected both images and
+metadata before publication. PNGs contain only IHDR, IDAT and IEND chunks.

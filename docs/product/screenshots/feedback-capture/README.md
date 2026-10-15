@@ -1,6 +1,6 @@
 # Quick feedback capture QA
 
-Captured on 13 October 2026, 23:56–23:59 Europe/Paris, against tested product revision `f1bf8d7a106ad13aaf9fb4ea0dd429e4a0d370aa`.
+Captured on 15 October 2026, 13:38–13:42 Europe/Paris, in the Codex in-app browser against tested combined product revision `3ea1d10ef590bc4a5ca790e6b726edeb6e57720e`. These captures replace the earlier 13 October illustrations.
 
 The disposable local fixture uses a non-administrator reporter, synthetic companies and reports, and fixed local agent replies. No provider or MCP credentials were configured. Desktop viewport: 1280 × 720. Mobile viewport: 390 × 844.
 
@@ -11,9 +11,9 @@ The disposable local fixture uses a non-administrator reporter, synthetic compan
 | modal-desktop.png | Feedback remains usable above an existing Preferences dialog. |
 | ready-desktop.png | Review before submitting the desktop report. |
 | sent-desktop.png | Desktop report reaches Triage. |
-| draft-mobile.png | Narrow-screen report with sharing controls before the preview. |
+| draft-mobile.png | Narrow-screen report with Page details declined and sharing controls before the preview. |
 | ready-mobile.png | Initial reply is ready; textarea focus was released. |
 | reply-mobile.png | Follow-up reply is ready; composer focus was released. |
 | sent-mobile.png | Narrow-screen report reaches Triage. |
 
-Both the implementation owner and delivery lead inspected all nine images for sensitive pixels. Each PNG contains only IHDR, IDAT and IEND chunks. These images illustrate the final tested interface; functional behavior is demonstrated separately by browser interactions and native tests. A narrow viewport and focus assertions do not establish physical-device keyboard behavior.
+The implementation owner and delivery lead personally inspected all nine images for sensitive pixels and metadata before publication. Each PNG contains only IHDR, IDAT and IEND chunks. These images illustrate the final tested interface; functional behavior is demonstrated separately by browser interactions and native tests. A narrow viewport and focus assertions do not establish physical-device keyboard behavior.
