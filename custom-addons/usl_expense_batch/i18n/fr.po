@@ -1454,3 +1454,10 @@ msgstr "Sélectionnez au moins une dépense à ajouter."
 #. module: usl_expense_batch
 msgid "Add Expenses to Batch"
 msgstr "Ajouter des dépenses au lot"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
+#, python-format
+msgid "Open %(batch)s and choose Submit batch for these expenses."
+msgstr "Ouvrez %(batch)s et choisissez « Soumettre le lot » pour ces dépenses."

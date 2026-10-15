@@ -17212,6 +17212,7 @@
     "rpc:hr.expense.action_review_linked_receipt",
     "rpc:hr.expense.action_scan_existing_receipt_emails",
     "rpc:hr.expense.action_split_wizard",
+    "rpc:hr.expense.action_submit",
     "rpc:hr.expense.activity_reschedule",
     "rpc:hr.expense.activity_send_mail",
     "rpc:hr.expense.approve.duplicate.copy",

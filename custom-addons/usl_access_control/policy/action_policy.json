@@ -1097,7 +1097,8 @@
           "rationale": "Reviewed owner/Accounting Manager recovery or queue operator workflow; queue authority fields have a narrow semantic guard and configured callable mutation is protected separately."
         },
         "rpc:usl.mail.pdf.retrieval.action_retry": {
-          "rationale": "Reviewed owner/Accounting Manager recovery or queue operator workflow; queue authority fields have a narrow semantic guard and configured callable mutation is protected separately."
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "The owner or permitted manager locks and rechecks the retrieval before explicit retry. A queued request becomes retryable after 30 minutes without automatic cancellation; the new generation fences old jobs. Native ACL/company and blocked-host checks remain."
         },
         "rpc:usl.mail.pdf.retrieval.action_select_candidate": {
           "rationale": "Reviewed owner/Accounting Manager recovery or queue operator workflow; queue authority fields have a narrow semantic guard and configured callable mutation is protected separately."
@@ -1190,19 +1191,24 @@
           "rationale": "Exact public workflow sink is subject to the enclosing reviewed method and native CRUD; configuration/authority changes are separately guarded at semantic/central Base boundaries."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:orm_write:1": {
-          "rationale": "Exact public workflow sink is subject to the enclosing reviewed method and native CRUD; configuration/authority changes are separately guarded at semantic/central Base boundaries."
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "The owner or permitted manager locks and rechecks the retrieval before explicit retry. A queued request becomes retryable after 30 minutes without automatic cancellation; the new generation fences old jobs. Native ACL/company and blocked-host checks remain."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:orm_write:2": {
-          "rationale": "Exact public workflow sink is subject to the enclosing reviewed method and native CRUD; configuration/authority changes are separately guarded at semantic/central Base boundaries."
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "The owner or permitted manager locks and rechecks the retrieval before explicit retry. A queued request becomes retryable after 30 minutes without automatic cancellation; the new generation fences old jobs. Native ACL/company and blocked-host checks remain."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:sudo:1": {
-          "rationale": "Exact public workflow sink is subject to the enclosing reviewed method and native CRUD; configuration/authority changes are separately guarded at semantic/central Base boundaries."
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "The owner or permitted manager locks and rechecks the retrieval before explicit retry. A queued request becomes retryable after 30 minutes without automatic cancellation; the new generation fences old jobs. Native ACL/company and blocked-host checks remain."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:sudo:2": {
-          "rationale": "Exact public workflow sink is subject to the enclosing reviewed method and native CRUD; configuration/authority changes are separately guarded at semantic/central Base boundaries."
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "The owner or permitted manager locks and rechecks the retrieval before explicit retry. A queued request becomes retryable after 30 minutes without automatic cancellation; the new generation fences old jobs. Native ACL/company and blocked-host checks remain."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:sudo:3": {
-          "rationale": "Exact public workflow sink is subject to the enclosing reviewed method and native CRUD; configuration/authority changes are separately guarded at semantic/central Base boundaries."
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "The owner or permitted manager locks and rechecks the retrieval before explicit retry. A queued request becomes retryable after 30 minutes without automatic cancellation; the new generation fences old jobs. Native ACL/company and blocked-host checks remain."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense.action_review_linked_receipt:orm_create:1": {
           "rationale": "Exact public workflow sink is subject to the enclosing reviewed method and native CRUD; configuration/authority changes are separately guarded at semantic/central Base boundaries."
@@ -1320,7 +1326,7 @@
         "rpc:usl.mail.pdf.pattern.write": "1243dafd384366c70727d4077e777c8834b8c68a3b381282a1114599ecba9c49",
         "rpc:usl.mail.pdf.retrieval.action_accept_suggestion": "edadd3df1558658f29a3369512e1ed920d226858e6e76243fa4338fd851bdc86",
         "rpc:usl.mail.pdf.retrieval.action_dismiss": "985489a3240b7590fc1601db4f7dfd9ffdcc76560657cfe866036c39a43ba619",
-        "rpc:usl.mail.pdf.retrieval.action_retry": "56cb258476fb97465a9e9adc9ef8f1c14344d9109e43bfa8beac57544bf33ea1",
+        "rpc:usl.mail.pdf.retrieval.action_retry": "4317980a53bd01c5b0a471eb20ce82b738e78ed9c830368626c5c90b4c5b5f7c",
         "rpc:usl.mail.pdf.retrieval.action_select_candidate": "519475d5746bc04ceeed6789a27e593d5c19bc0d9dd1c86dd661cf61ae0b99fa",
         "rpc:usl.mail.pdf.retrieval.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:usl.mail.pdf.retrieval.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
@@ -1351,11 +1357,11 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.pattern.write:orm_write:1": "6c1e7e6594aec1d0c9591c617397167be52747e9b2408178eda9424b587f36b0",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_dismiss:orm_write:1": "bcf92968bf07c81a7379c99f8f4d452d136ef39755aa4083d68ecd0c421e02b9",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_dismiss:sudo:1": "daaf2905f440628220e7bf88b82213f9c35d765af562eee2a46ff5efc8af55e0",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:orm_write:1": "3806b954049f1134900de6a6f2bf23f978c1c41c89f8e5c1c27e025d27cd4f26",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:orm_write:2": "c56adf70da1c85d884774d0d2379ee22719aa5c10d5f8149172559bb96b9f746",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:sudo:1": "4868749ee0dbcfdcc3ebebf3e7e7c4bf03f862cc26edb613241b623573979f7e",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:sudo:2": "1327db4e6bf1fa51c60f0bf11077dcd34e25392c92dd7bdf21aaea17fc7b7c0b",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:sudo:3": "b4ef38aaaf2d9d40f8f0179293fbb7e9d9b7d533aeaa1425e267db3fc3d06b86",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:orm_write:1": "d9922511cf166316b879b32d5b76dc51279a623e0a1b3a02747bd97966af3837",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:orm_write:2": "1873e501d89a9bc699246c279cc628aecb6748e4cb1b1a7ed57f000745689c08",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:sudo:1": "bc92af79eb616a2e180420a05af631f7210a6e0d0c63e09b2edf15246759e74f",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:sudo:2": "4daae490acbaab48033afccf5b784703d3aadd70e2bad284c67104b79722f357",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:sudo:3": "2b7ae8633032530751081b60edea2ad84ed897e02e9ad069606ed1a01ff8949f",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense.action_review_linked_receipt:orm_create:1": "b36fbc255e2b8ea00b41ecc4cf7831831e0c8a0a9d783a8af3f838a2739947e5",
         "sink:usl_accounting:custom-addons/usl_accounting/models/queue_job.py:queue.job.write:orm_write:1": "88ab2425c7a4d0569bb64a6f61f7e61c93a96274da48b3d7d662a287ca7a2223"
       }
@@ -1373,6 +1379,21 @@
       "rationale": "The fixed reviewed implementation remains subject to native ACLs, record rules, company isolation, and attributable business history.",
       "reviewed_digests": {
         "rpc:usl.tese.document.link.wizard.action_link_document": "a5a443e5125bbfa3c4deec799230e3243b0a465d8af664a6473f3516b061121d"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:hr.expense.action_submit"
+      ],
+      "classification": "operational",
+      "consequence": "Submits permitted draft expenses through native approval-state and activity/mail updates; expenses belonging to a batch require its native submit action.",
+      "domain": "people_and_payroll",
+      "evidence_id": "receipt-batch-handoff-20261014",
+      "id": "operational.people_and_payroll.receipt_batch_submission_20261014",
+      "overrides": {},
+      "rationale": "Native expense submission changes approval state and therefore is not read-only. The exact batch-only private delegate adds restrictions without granting access or replacing native accounting and audit behavior. Standalone expenses retain native submission.",
+      "reviewed_digests": {
+        "rpc:hr.expense.action_submit": "9f267cf08fba1aba893097a8983cc5f600944864a931fa3506b3525e5ed7438e"
       }
     },
     {
@@ -9501,7 +9522,6 @@
         "rpc:hr.employee.get_accounts_with_fixed_allocations",
         "rpc:hr.employee.get_bank_account_salary_allocation",
         "rpc:hr.expense.action_open_account_move",
-        "rpc:hr.expense.action_submit",
         "rpc:iap.account.action_archive",
         "rpc:iap.account.action_manage_payment_method",
         "rpc:iap.account.action_open_iap_account",
@@ -15920,7 +15940,6 @@
         "rpc:hr.employee.get_accounts_with_fixed_allocations": "e71ce81f50e70ad85b81e82046323a8982e4a67cf6cd524515aced9e5d4af030",
         "rpc:hr.employee.get_bank_account_salary_allocation": "99e08053225b33f870ba3345eb4afbfb771b77ac391070f6227dfbf249ea0b2b",
         "rpc:hr.expense.action_open_account_move": "8e357ce64e53082ccd4a21266698756fbf3c33495c2c18a2b1ec399022ad93de",
-        "rpc:hr.expense.action_submit": "aac6e29a836b5ade61d6026a5d3a28ddaa052b247a69c09a2e0edacfc671cb3a",
         "rpc:iap.account.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
         "rpc:iap.account.action_manage_payment_method": "2725ff5c72f975bd1fbc1e1c875a287853fd046ef1870d5b116ec980311bd971",
         "rpc:iap.account.action_open_iap_account": "b416d427db80bf08e712872e293f957e17c7c38b5d720bb6688d8228e5261c12",
@@ -38747,7 +38766,12 @@
       "domain": "people_and_payroll",
       "evidence_id": "read-only-no-sink-v1",
       "id": "read_only.people_and_payroll.actions",
-      "overrides": {},
+      "overrides": {
+        "ui:hr_expense.hr_expense_actions_my_all": {
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "The batch-oriented UI offers Add to batch and native Submit batch. Its in-process object delegate submits only the exact selected batch; standalone native submission remains available, and forged context or foreign-company writes fail without partial changes."
+        }
+      },
       "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
       "reviewed_digests": {
         "route:http:ANY:/print/cv": "bad7b5a2f068848eb18420dea35832ba771ea466f5ff6f8184d6a38664a8c995",
@@ -40140,7 +40164,7 @@
         "ui:hr_expense.action_hr_expense_department_to_approve": "08d7142ef2d316598e537091690fa038f0eb1432814e8e7f5522ce50b22147f8",
         "ui:hr_expense.action_report_expense_img": "4ec8f8f27b07758889ef7cf93df10e311631ef4f7f4531fa3571d6b22f2663bb",
         "ui:hr_expense.action_report_hr_expense": "82104e8e448985151aaf2c0ad01fa385d3e430fc96bc4d95e5518489599709d0",
-        "ui:hr_expense.hr_expense_actions_my_all": "ea10789e8e739f0803643ac741b24ad26e7c90f558421b5555203ca2787dde86",
+        "ui:hr_expense.hr_expense_actions_my_all": "9bd6422de46e86bfa1638755200418d31ae143d1738609619af1df5dc74b5f81",
         "ui:hr_expense.hr_expense_actions_to_process": "1958426ed2313026dbd8509889eea47ae833952d6ecb04d920e899c5018ac70e",
         "ui:hr_expense.hr_expense_approve_duplicate_action": "b4d1c539d900ea2d40605c9a4afa305b6628c575e17ee001303ebc89cec00e01",
         "ui:hr_expense.hr_expense_refuse_wizard_action": "95a0d1dbff99d9aeb481a661eda86214a6dda853a28e66641ec80b9bcbb32d90",
@@ -40380,7 +40404,8 @@
           "rationale": "Owner-checked, no-store interstitial GET; only the separate CSRF POST consumes/records handoff."
         },
         "rpc:hr.expense.action_open_linked_receipt_website": {
-          "rationale": "Reviewed source constructs configuration values or view/navigation metadata; no persistent or external side effect."
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "Receipt navigation returns only internal identifiers; the native CSRF POST owns the handoff audit. Queue-age status is observational and does not admit, cancel or fetch work. Existing owner/company/generation checks and read-only boundaries remain."
         },
         "rpc:sparse_fields.test.action_archive": {
           "rationale": "Identical inherited archive helper on an explicitly non-archiveable model; no active field exists to mutate. Exact implementation equivalent: rpc:_unknown.action_archive; runtime digest 235abd6cb4038dd6a2c42caf9de8eae77f16c7778621633c9823beb3bd840539."
@@ -41007,7 +41032,7 @@
       "rationale": "Reviewed receipt and queue workflow; see docs/operations/receipt-action-risk-review.md and exact per-action rationale.",
       "reviewed_digests": {
         "route:http:GET:/usl/expenses/linked-receipt/<int:retrieval_id>/open": "0baefeccdb81f917d095773de15ec69f3df3ac6386a5ad07d102b43f81f22f78",
-        "rpc:hr.expense.action_open_linked_receipt_website": "f16abdb579bced3ad50b7df3e3e614772508cc19c315880dc8040e80d26d0d15",
+        "rpc:hr.expense.action_open_linked_receipt_website": "65817ff06339968ad11559ed37bf68b6ba27f48ace7fdf9080763af82ccca04f",
         "rpc:sparse_fields.test.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
         "rpc:sparse_fields.test.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:sparse_fields.test.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
@@ -109086,6 +109111,8 @@
           "reversal_action": "rpc:hr.expense.write"
         },
         "rpc:hr.expense.action_open_expense_batch_wizard": {
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "The batch-oriented UI offers Add to batch and native Submit batch. Its in-process object delegate submits only the exact selected batch; standalone native submission remains available, and forged context or foreign-company writes fail without partial changes.",
           "reversal_action": "rpc:hr.expense.write"
         },
         "rpc:hr.expense.action_reset": {
@@ -110581,7 +110608,7 @@
         "rpc:hr.employee.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:hr.employee.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:hr.expense.action_approve_duplicates": "f547897152ed7b48f1b52d8df10c16dfae95de05d34ab04e5a5b44937d088b5f",
-        "rpc:hr.expense.action_open_expense_batch_wizard": "5026958cc074bc7df616290a0b572ddc1ca79907bfe3f1080239a2e02d97b9d5",
+        "rpc:hr.expense.action_open_expense_batch_wizard": "5b3b1eb89b9bf00b5a090f9cdc4a5dbc4e0d3c2285c47b77b0ad756f3f24381d",
         "rpc:hr.expense.action_reset": "bba6df64ba63c618d8879e863966ddced1a682a0c3c14c8886f327bb0c90d380",
         "rpc:hr.expense.action_return_from_batch": "2da20c3633f3d2445212efbe7e963008fc0234479fb9e5007f4bb2bdf3294934",
         "rpc:hr.expense.action_split_wizard": "bf65c394745ba998fe598e5a536cdcdbf798bb51cb31b6b2c164321671f6fc12",
@@ -140740,6 +140767,8 @@
           "reversal_action": "rpc:usl.expense.batch.write"
         },
         "rpc:usl.expense.batch.action_open_add_expenses_wizard": {
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "The batch-oriented UI offers Add to batch and native Submit batch. Its in-process object delegate submits only the exact selected batch; standalone native submission remains available, and forged context or foreign-company writes fail without partial changes.",
           "reversal_action": "rpc:usl.expense.batch.add.wizard.unlink"
         },
         "rpc:usl.expense.batch.action_open_context_wizard": {
@@ -140749,6 +140778,8 @@
           "reversal_action": "rpc:usl.expense.batch.write"
         },
         "rpc:usl.expense.batch.action_submit": {
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "The batch-oriented UI offers Add to batch and native Submit batch. Its in-process object delegate submits only the exact selected batch; standalone native submission remains available, and forged context or foreign-company writes fail without partial changes.",
           "reversal_action": "rpc:usl.expense.batch.write"
         },
         "rpc:usl.expense.batch.add.wizard.action_add": {
@@ -146633,10 +146664,10 @@
         "rpc:usl.expense.bank.match.wizard.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:usl.expense.bank.match.wizard.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:usl.expense.batch.action_approve": "fb49ccd13740afd6b5222173a120f23c462000101aaf06d6a27789205b54c2e8",
-        "rpc:usl.expense.batch.action_open_add_expenses_wizard": "2ed27e7dd06258c519a56cd3b55396d9b8e37a3eab10cbddffb9e2c57d034da2",
+        "rpc:usl.expense.batch.action_open_add_expenses_wizard": "a82976bd7131f6cce64d43aa6ce1a2dc1aa586567cdb773683d78a0c6d772b13",
         "rpc:usl.expense.batch.action_open_context_wizard": "a1f8bd3b3e1432d6157f9ba3e161e703c3dadc9bb1663f6a5186bb5c0551e9f9",
         "rpc:usl.expense.batch.action_post": "87eea95161c283bfb1a03cac483f67c3f1ee2a6cf9e2733d4fcb4f5158f11e24",
-        "rpc:usl.expense.batch.action_submit": "d7968fbff4e408d053a9317908afffefa350b980457b7fefd7aa0c0a996456ad",
+        "rpc:usl.expense.batch.action_submit": "dbb5a3763f4f96290f75b834ac26a3a46f44d28e1e0bdf997b47bb391816b8c3",
         "rpc:usl.expense.batch.add.wizard.action_add": "84e295f15a8995c58b2108c9f8b372e87dd0c3a03bfb1d3e139d80202c946587",
         "rpc:usl.expense.batch.add.wizard.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:usl.expense.batch.add.wizard.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
@@ -177474,7 +177505,8 @@
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._compute_linked_receipt_status:sudo:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "Receipt navigation returns only internal identifiers; the native CSRF POST owns the handoff audit. Queue-age status is observational and does not admit, cancel or fetch work. Existing owner/company/generation checks and read-only boundaries remain.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._latest_linked_receipt:sudo:1": {
@@ -177510,99 +177542,123 @@
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:message_send:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_create:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:10": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:11": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:12": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:13": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:14": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:15": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:16": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:2": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:3": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:4": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:5": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:6": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:7": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:8": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:9": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:1": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:2": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:3": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:4": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:5": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:6": {
-          "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "An old worker returns before mutating a newer generation; same-generation native fetch, attempt bookkeeping, attachment identity and caller/company checks remain unchanged. Offline late-start and late-completion tests preserve the new queued request.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt_failed:orm_write:1": {
@@ -177713,7 +177769,7 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._select_candidate:sudo:3": "6d510672be550e7247fd47dacd75e7960da13077a5de131f41b0a2711eb818eb",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._supersede_for_expense:orm_write:1": "23e505b1d23735f9dbac8db3a2f404f05a0afda42920c2e1c7aa9ac7307e31ef",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._supersede_for_expense:sudo:1": "b8f2f822460b5bba0507a993d76a7f5a4bc97278c4f8a1d60be08c701474140e",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._compute_linked_receipt_status:sudo:1": "e1615d94626a7a8ad5ab785b05c26d0f0a691ac80955174fe6c1804cf0ca5d11",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._compute_linked_receipt_status:sudo:1": "dda002ba0989e65e0299750ac4866ba934d1af032f72c5011514b44ba3c1b98e",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._latest_linked_receipt:sudo:1": "e1ff9a3f613eaa67167957d417c1ea3e68de596236c82d97f707c12432bb9d30",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._message_post_after_hook:orm_write:1": "1dc1c01c36d70b9f9e5f70531d5299e8ae91a472dcb4b249b1b284441993d787",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._message_post_after_hook:sudo:1": "299589f7326a27ec19251c2c6905249bed5c63cc9950a6f471b21c125f9bc06c",
@@ -177722,30 +177778,30 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._fetcher_request:external_call:3": "46d53bcaaab5a3237306578d31c66723ba8a531789bee363b40f6f9a2a6de188",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._fetcher_request:sudo:1": "240c716becfefc74642d14c605482b6c681bd3f6cfc712e8f29c79ba57bee8ef",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_attempt_number:sudo:1": "622b20a1c12b2dfcb6059a0af161bdace0b64b7d1308cd04a54e6586647de6bb",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:message_send:1": "7760bc21af4b1e1bf59749bf5465f45c227b8ce501418a3232ded7229c9a1b52",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_create:1": "d4a7ab5dd82894d9942a7a2012ae1f4b771f501e5feb5c59af3ffb499b8f218c",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:1": "687fdcd9074e519b8587c084acc1cc82984edf5027902844a4d9c8038606f6de",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:10": "7902380d7cd808bb0001bf159b66aaee5d6b0cabe0a1801fad4abf79afa4d8d8",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:11": "ffcb8ee1ca78742fce9d34a7caaaae049d5140185a50b083a5e089610d5dac9a",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:12": "609299c3ddd596d1257ff0b8a7e7208b4d915a0e95e682a04d067de05a5d3500",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:13": "168cbc8ccb25921b2887db8f23cf17b47ae870a04ae464824f96e5dd5c5126e0",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:14": "eced91f664eeff32b739aaba7d4b9b7d180d0f568721470dab3e42acd9e91cf9",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:15": "50a4a41644644588829c6c80d0f3e7c034e74396da171d750393647bfefa4717",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:16": "a117cd3a57aff015850942887460a80d1d02af1a997f4c113ca63c2220532277",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:2": "96357121a6d8f45d10998db2359af5a417254505b5bb310021a42aa74a919cfc",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:3": "2cac7fa9084e71c379d02261639dc0944293b2dc585cab0c33be68eee5b7aa78",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:4": "8c540f1bd63477da7d1ed6ba3748ac0548938b07a6e912b2c05df7a9b11f5b53",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:5": "039971636c9662b95051140f962f3d1d16d663a8fe421bde06053e7ece0990c1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:6": "61bb87b152052b0e47bd278d96f5342cfabc3df3d31ec466c0af07fb75ba1d36",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:7": "e93822a5ebdbd23b09d074ef52650c5c677ed8b65f45f36e9d9d05e514442e37",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:8": "2ef0f2b2bce3d4b30fdd0cfc6792be58200d02de078d90d2f49070a80392bcc0",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:9": "bfed4cb1948af1d47e8d63b5ec83850d5ab6434e8a69fea510312890d535fe15",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:1": "9cdd6b315ea60f1d97bfb3e35c5c790fe824edea8ebdcd215054b8ec805b08fb",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:2": "8bc07d33f8725ad08e4273631defc1790068e4b87659d1ed7ecba4a840d0ebee",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:3": "05664bd612074a787a680ca0654e8d6e02e51f5ccd8cffce4da3ca59d50a87ec",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:4": "eae020c93795b834883340205f832df4f76c15589fc07c80503cd24425fa8219",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:5": "b1e94f23d237d44406c7f8113ad77d8301954e0a0eb7d4a2ed30a0716ff4d9bb",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:6": "87e70181cc172cec0c8a1314e883261fe26afcd51496c0dcd0f4aec8a1414d31",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:message_send:1": "492d56c6cf613562b509eca517faa0b437d1257338b7be81991621e2155feefd",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_create:1": "268f4f98e35a6d7eee018cf7d974033c95964d9edc21ae126c5b5fafd9b4146f",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:1": "b69d343a6e3d149a6f928c420ec916c7d0faaa2cc57d7d8219a646bb802a6437",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:10": "def40fa4a025b77b09b0bece3ad16aed6d864bb1d984725f836683b95e0312bb",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:11": "84ac997d9e11c628946207b00081345548dd96231e2580196823d05d346a81c8",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:12": "26787ef3de80f30efa4f1088e0039b7e4b51919bdd15f51f774af0e342d82193",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:13": "4e9eb9d16706226a51a9babe9bcb8f7684e2cf1171187da06ba1d4c15593eee7",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:14": "a21bc213793693f45c11121a249fd1b6a3566a87ce6334b54e4e7d581c4d21e0",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:15": "e84993ab51dc2f0b8bac8136bae3d95a25eca1b798a04c2a25dd5ef0e72d3139",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:16": "aa0d326796f0511ad47fad241fef27bb37fa4202e37b80e192a20334abc60fee",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:2": "df851ccbd2310c340e9cb60aa33695d36085a5dc0d6ce08b928c00bcf757ed3d",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:3": "0a892a2d0bf18c176fedcf9dc5bfaface4fad2e5e28f927a337a1155c20620e4",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:4": "3a597df596f276af5182a8ded019bac229c17ca55672eaab6c51026990814da2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:5": "798ef616aa6c2cd407c2b748e57e70d19555e64244ebebc335b53a817cf6972a",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:6": "d552b7a115ceb3b7926ca3866344286a3394a8db8c0394f27ad17eefa95a3ba6",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:7": "eb304819ffb4888485d45cd995d40c591f78e51d0d811650fb7e3cc3e4f16867",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:8": "ec0d0be02259c5ac250b8096ed55728f493416592cbf9367a801b6492564070c",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:9": "bc82c1c9513deee255c869b9207b1a3add63e9a7df2c7ef82d3952e581905b19",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:1": "c13740705a38ec6ca6f6cd4c2b1c229fef4aa21e8960515674da6d248c83d3f2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:2": "26fdbfa88b340450c3c368ede5a98a69b0ef30b44bd44901f204e87f27e13d67",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:3": "e59610fce9392f88d6f5f9fb5dcfbf3c611fd1f97604eec79591884c113ee6d2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:4": "39072137c3a9fcd34fc886eb1fc98423712499e8402cc453b46ff7fa9c2eabe9",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:5": "b6928417f8ad153bfa8a5fe1d6dc759b3ce441dfdfbabfbc8119b11fa3ee6bb2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:6": "b649d3b1ec903384e11ac328a1a1154d620ce7e75dcab6af289b47d2fb1c8d2f",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt_failed:orm_write:1": "db59beb24ac87fcbfefa2ace06f400536ec8ef17eaee4acc3cc50e55976cbd34",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt_failed:sudo:1": "5fa8e2e9cb2fe155281846b5217b58520ba6ab535c7b6415fbfd21375e65f2ee",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_generation:sudo:1": "1bef749720d973c32dcd4171d9d95641badea1637f53a35690eaaa65e336dc1f",
@@ -178641,6 +178697,8 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/hr_expense.py:hr.expense.action_open_expense_batch_wizard:orm_create:1": {
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "The batch-oriented UI offers Add to batch and native Submit batch. Its in-process object delegate submits only the exact selected batch; standalone native submission remains available, and forged context or foreign-company writes fail without partial changes.",
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:hr.expense.action_open_expense_batch_wizard"
         },
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/hr_expense.py:hr.expense.action_return_from_batch:message_send:1": {
@@ -179048,7 +179106,7 @@
         "sink:portal_rating:addons/portal_rating/controllers/thread.py:PortalRatingThreadController._setup_portal_message_fetch_extra_domain:orm_write:1": "367397160f249680852594095999d6d5dfe3ef2492bb5f44b59f612af167596b",
         "sink:portal_rating:addons/portal_rating/models/rating_rating.py:rating.rating._synchronize_publisher_values:orm_write:1": "7af28f5f21d8027dcac1a89285a48b86c28b2837902708c99fbc32991f93d0b2",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/hr_expense.py:hr.expense._analytic_distribution_label:sudo:1": "1ff50ddd0cc519333e4fc5066f680829a1f33bfff117d913cd82ea7904aca324",
-        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/hr_expense.py:hr.expense.action_open_expense_batch_wizard:orm_create:1": "ef7cedf75adb5e2e4a8774a9c470b283ec00e6fc57f7010699401105b63eaf13",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/hr_expense.py:hr.expense.action_open_expense_batch_wizard:orm_create:1": "0f43d0e64e72bcbddd2d3f0c766a5f9f5f707673cc8172525485b794d08758f0",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/hr_expense.py:hr.expense.action_return_from_batch:message_send:1": "c35732723a569cd29f02c2a2cca5bd33d18102927fa90c13eb3988cc1bfa4d54",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/hr_expense.py:hr.expense.create:orm_create:1": "da76ca7cf9707bf59824dd166d406af6cc6527d59b6edf6d5ce5d25f15458343",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/hr_expense.py:hr.expense.create:orm_write:1": "fd0d351a1e7a9a96de21fa3d8cbad851a9005f4d1402b5351ca37625fd226e94",
@@ -187875,6 +187933,8 @@
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.expense.batch.action_approve"
         },
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_open_add_expenses_wizard:orm_create:1": {
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "The batch-oriented UI offers Add to batch and native Submit batch. Its in-process object delegate submits only the exact selected batch; standalone native submission remains available, and forged context or foreign-company writes fail without partial changes.",
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.expense.batch.action_open_add_expenses_wizard"
         },
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_open_context_wizard:orm_create:1": {
@@ -187884,9 +187944,13 @@
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.expense.batch.action_post"
         },
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_submit:message_send:1": {
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "The batch-oriented UI offers Add to batch and native Submit batch. Its in-process object delegate submits only the exact selected batch; standalone native submission remains available, and forged context or foreign-company writes fail without partial changes.",
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.expense.batch.action_submit"
         },
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_submit:orm_write:1": {
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "The batch-oriented UI offers Add to batch and native Submit batch. Its in-process object delegate submits only the exact selected batch; standalone native submission remains available, and forged context or foreign-company writes fail without partial changes.",
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.expense.batch.action_submit"
         },
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.add_expenses:orm_write:1": {
@@ -189225,11 +189289,11 @@
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch._link_existing_moves:sudo:1": "e23cdc22e73b0992815e3ce2ad702adc38bab66fe25080c379701850716cc6e7",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_approve:message_send:1": "648900cf7b517713c1f78bf34421a900d4e97c90046d5a5c87dc92cc998d1730",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_approve:orm_write:1": "3167e9560ec7cd7c61946de61b5a7bb263d0bf8ba14a97afc9e49492f53ceeb2",
-        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_open_add_expenses_wizard:orm_create:1": "df2327b3e7d25d7f43c3f2de3e99cbdcd61bf30517db31338e46c461125ff78d",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_open_add_expenses_wizard:orm_create:1": "2d7e91a5bb19466c8bd79098232cd37c7e7b474a072155e5da87969886d73582",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_open_context_wizard:orm_create:1": "f6566cd0bb1f08d7cd36253d68c61397b1db657bc2b8a816d3d6beb051a35869",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_post:message_send:1": "3b82374259213ffade2f89cd13105f27cd9c4102f62a0a4de158ffe66e76b6a4",
-        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_submit:message_send:1": "738659ca7151a07940bfa157d5a3cce03e1c7f88960ff0802333f54f2ffc041b",
-        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_submit:orm_write:1": "a8e04c2b3db7adad57e09a10a004374bc4d4140fa7dab5fb336c605f019f35f6",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_submit:message_send:1": "0dd7bed2ec7de7383c8247c55fc03d272211dcf6eaf625b8125834a1f4a8180b",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_submit:orm_write:1": "44b99d53a3015438688d3204be582295b056d0033095f4e865e8d4f84ed5b51f",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.add_expenses:orm_write:1": "f467f288018df410491fadcf85523266a5ea826aa98c70f83ae4503facc03a78",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.add_expenses:sudo:1": "395830e657f5ec4b92d253780316eab1904a24bdfa5d3ba779d7d4a470b32829",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.apply_context:message_send:1": "f869abc8362a483cf00f61420f0699173931633ba4b01c236732fa0fb736e871",
@@ -199695,7 +199759,8 @@
           ]
         },
         "ui:usl_accounting.view_hr_expense_form_linked_receipt:button:object:action_review_linked_receipt:2": {
-          "rationale": "Exact native object-button target(s); mutation and permission checks belong to those classified RPC methods.",
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "Receipt navigation returns only internal identifiers; the native CSRF POST owns the handoff audit. Queue-age status is observational and does not admit, cancel or fetch work. Existing owner/company/generation checks and read-only boundaries remain.",
           "targets": [
             "rpc:hr.expense.action_review_linked_receipt"
           ]
@@ -199753,7 +199818,7 @@
         "ui:usl_accounting.view_hr_expense_form_linked_receipt:button:object:action_open_linked_receipt_website:1": "2bdfac7b7df32fe3f774b806e460fbf69404b22f4c6b79817aae0cf41b98fb50",
         "ui:usl_accounting.view_hr_expense_form_linked_receipt:button:object:action_retry_linked_receipt:1": "10c5a9d3b4461aec8f7f2a0035168603b6377c07b8ea6dc90ef8bc2309b76f49",
         "ui:usl_accounting.view_hr_expense_form_linked_receipt:button:object:action_review_linked_receipt:1": "e67fc2d1cd829069d9092d63910c7cdccc22978cf642a510f76bd4eb53d06896",
-        "ui:usl_accounting.view_hr_expense_form_linked_receipt:button:object:action_review_linked_receipt:2": "001d393d03af7cf9ec8d6ac0cb3b0963e2c0d9cf475b0ca52cb577319b29e682",
+        "ui:usl_accounting.view_hr_expense_form_linked_receipt:button:object:action_review_linked_receipt:2": "3c523c8e3a2a4260dd1768a24b8b3c2c496650df2df678e3c6e5b6f60d106b98",
         "ui:usl_accounting.view_usl_mail_pdf_candidate_wizard_form:button:object:action_choose:1": "c51cd07fdd2f5985cd54a5261889d324445263faf3e1aa135120adfeaf1386cd",
         "ui:usl_accounting.view_usl_mail_pdf_host_list:button:object:action_activate:1": "553f04d5c28baaf22b8a33e4ac6e73f55097bdf950f5750dbde6f247ce45cb47",
         "ui:usl_accounting.view_usl_mail_pdf_host_list:button:object:action_block:1": "004b239aa2c0200940c2938e558a5a9884553b94e040e34800ccb76e5e4f6744",
@@ -201082,7 +201147,6 @@
         "ui:spreadsheet_dashboard.spreadsheet_dashboard_view_list:button:object:action_open_dashboard:1",
         "ui:usl_expense_batch.view_expense_batch_add_wizard_form:button:object:action_add:1",
         "ui:usl_expense_batch.view_expense_batch_context_apply_wizard_form:button:object:action_apply:1",
-        "ui:usl_expense_batch.view_expense_batch_create_wizard_form:button:object:action_create_and_submit:1",
         "ui:usl_expense_batch.view_expense_batch_create_wizard_form:button:object:action_create_batch:1",
         "ui:usl_expense_batch.view_expense_batch_form:button:object:action_approve:1",
         "ui:usl_expense_batch.view_expense_batch_form:button:object:action_open_add_expenses_wizard:1",
@@ -202352,12 +202416,9 @@
             "rpc:usl.expense.batch.context.apply.wizard.action_apply"
           ]
         },
-        "ui:usl_expense_batch.view_expense_batch_create_wizard_form:button:object:action_create_and_submit:1": {
-          "targets": [
-            "rpc:usl.expense.batch.create.wizard.action_create_and_submit"
-          ]
-        },
         "ui:usl_expense_batch.view_expense_batch_create_wizard_form:button:object:action_create_batch:1": {
+          "evidence_id": "receipt-batch-handoff-20261014",
+          "rationale": "The batch-oriented UI offers Add to batch and native Submit batch. Its in-process object delegate submits only the exact selected batch; standalone native submission remains available, and forged context or foreign-company writes fail without partial changes.",
           "targets": [
             "rpc:usl.expense.batch.create.wizard.action_create_batch"
           ]
@@ -202673,8 +202734,7 @@
         "ui:spreadsheet_dashboard.spreadsheet_dashboard_view_list:button:object:action_open_dashboard:1": "c3b7eb226c21de8816333e82513ec846cee78ea7a5b6860587637386c084c53d",
         "ui:usl_expense_batch.view_expense_batch_add_wizard_form:button:object:action_add:1": "5391aa6d43f27b2dfd231634755309318664164541911e743d8da55c771add6b",
         "ui:usl_expense_batch.view_expense_batch_context_apply_wizard_form:button:object:action_apply:1": "3bf36d45463f912cd2b40dee7345184d3a61aeced91350471f906d3aa8870f0a",
-        "ui:usl_expense_batch.view_expense_batch_create_wizard_form:button:object:action_create_and_submit:1": "9ef956d067c3d0375d942a567774bfa82fc36b4e017a2fc0acf7e533fdc6fe23",
-        "ui:usl_expense_batch.view_expense_batch_create_wizard_form:button:object:action_create_batch:1": "bc33e0de81630587d80eb628bb1f0cd80c66dc290b049da9397997e11465aea7",
+        "ui:usl_expense_batch.view_expense_batch_create_wizard_form:button:object:action_create_batch:1": "b79beab41dce051e0e46e0119ae16b8dc47500dfc578103ef859711a7e41381c",
         "ui:usl_expense_batch.view_expense_batch_form:button:object:action_approve:1": "12a0c1b65c5a4783f1e9167a4188bc4f4d6dc366eca5e053f3a1922bb56bf09a",
         "ui:usl_expense_batch.view_expense_batch_form:button:object:action_open_add_expenses_wizard:1": "821691489768955cc15ecdd7c9ebb1bb6dd11c6b1ce1880684f565d20ed83230",
         "ui:usl_expense_batch.view_expense_batch_form:button:object:action_open_context_wizard:1": "9dc8bd31576179b67f9d66ec73508a75206841baafef7cc945526f38bd44567b",
@@ -203008,6 +203068,18 @@
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_profile_exposes_every_owner_application",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_scope_uses_owner_private_project_and_assignment_rules",
         "scripts/tests/test_action_risk_inventory.py::TestPolicyValidation.test_reports_each_class_contract_and_mandatory_risk"
+      ]
+    },
+    "receipt-batch-handoff-20261014": {
+      "contract": "Owned one-click receipt navigation keeps signed provider URLs outside RPC; native CSRF POST retains caller/company/generation checks. Explicit stale-queue retry preserves valid backlog and fences both old queued starts and late completions. Native batch submission preserves audit, financial state and standalone expense submission; forged delegates and cross-company writes are refused.",
+      "tests": [
+        "custom-addons/usl_accounting/tests/test_linked_receipt.py::TestLinkedReceipt.test_owned_handoff_action_opens_authenticated_post_without_an_interstitial",
+        "custom-addons/usl_accounting/tests/test_linked_receipt.py::TestLinkedReceipt.test_stale_queued_receipt_can_retry_and_old_job_cannot_start",
+        "custom-addons/usl_accounting/tests/test_linked_receipt.py::TestLinkedReceipt.test_late_running_completion_after_retry_cannot_attach_old_generation",
+        "custom-addons/usl_expense_batch/tests/test_expense_batch.py::TestExpenseBatch.test_batched_expense_cannot_bypass_batch_submission",
+        "custom-addons/usl_accounting/tests/test_linked_receipt_http.py",
+        "custom-addons/usl_accounting/static/tests/linked_receipt_handoff.test.js",
+        "custom-addons/usl_expense_batch/static/tests/expense_batch_list.test.js"
       ]
     },
     "recoverable-perform-reverse-v1": {

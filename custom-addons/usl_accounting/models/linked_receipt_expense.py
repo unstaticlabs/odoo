@@ -3,6 +3,8 @@
 from odoo import _, fields, models
 from odoo.exceptions import AccessError, UserError
 
+from .linked_receipt import STALE_QUEUE_MINUTES
+
 
 class HrExpense(models.Model):
     _inherit = "hr.expense"
@@ -22,6 +24,7 @@ class HrExpense(models.Model):
         compute_sudo=True,
     )
     linked_receipt_message = fields.Char(compute="_compute_linked_receipt_status", compute_sudo=True)
+    linked_receipt_queue_stale = fields.Boolean(compute="_compute_linked_receipt_status", compute_sudo=True)
     linked_receipt_can_manage = fields.Boolean(compute="_compute_linked_receipt_can_manage")
     linked_receipt_can_open_website = fields.Boolean(
         compute="_compute_linked_receipt_can_manage",
@@ -48,9 +51,11 @@ class HrExpense(models.Model):
             )
         }
         Wizard = self.env["usl.mail.pdf.candidate.wizard"]
+        queue_status = Retrieval._queue_runtime_status()
         for expense in self:
             retrieval = latest_by_expense.get(expense.id, Retrieval)
             expense.linked_receipt_state = retrieval.state or False
+            expense.linked_receipt_queue_stale = bool(retrieval and retrieval._queue_is_stale())
             expense.linked_receipt_authentication_required = bool(
                 retrieval.state == "needs_attention"
                 and retrieval.failure_code == "authentication_required",
@@ -87,7 +92,23 @@ class HrExpense(models.Model):
                         label=expense.linked_receipt_suggested_label,
                         host=suggestion["hostname"],
                     )
-            elif retrieval.state in ("queued", "running"):
+            elif retrieval.state == "queued":
+                if queue_status in ("disabled", "quarantined", "paused"):
+                    expense.linked_receipt_message = _(
+                        "Receipt downloads are paused in this environment. Attach the PDF manually or ask an operator to restore processing.",
+                    )
+                elif queue_status == "runner_not_loaded":
+                    expense.linked_receipt_message = _(
+                        "The receipt download worker is unavailable. Attach the PDF manually or ask an operator to check processing.",
+                    )
+                elif expense.linked_receipt_queue_stale:
+                    expense.linked_receipt_message = _(
+                        "The receipt has been queued for at least %(minutes)s minutes. Retry this request or ask an operator to check the queue.",
+                        minutes=STALE_QUEUE_MINUTES,
+                    )
+                else:
+                    expense.linked_receipt_message = _("The receipt is waiting for the download worker.")
+            elif retrieval.state == "running":
                 expense.linked_receipt_message = _("Odoo is downloading the linked PDF receipt.")
             elif retrieval.state == "retrying":
                 expense.linked_receipt_message = _("The receipt download will retry automatically.")
@@ -207,9 +228,12 @@ class HrExpense(models.Model):
         retrieval = self._latest_linked_receipt().with_user(self.env.user)
         retrieval._check_can_open_handoff()
         return {
-            "type": "ir.actions.act_url",
-            "url": f"/usl/expenses/linked-receipt/{retrieval.id}/open",
-            "target": "new",
+            "type": "ir.actions.client",
+            "tag": "usl_linked_receipt_handoff",
+            "params": {
+                "retrieval_id": retrieval.id,
+                "generation": retrieval.generation,
+            },
         }
 
     def action_dismiss_linked_receipt(self):
