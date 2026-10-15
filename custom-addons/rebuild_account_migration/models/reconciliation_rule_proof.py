@@ -4,6 +4,8 @@ import json
 from collections import defaultdict
 from datetime import timedelta
 
+from markupsafe import escape
+
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import SQL
@@ -127,7 +129,7 @@ class AccountReconcileModel(models.Model):
                        SQL.identifier(self._table, "id"), tuple(scope[1]))
         return SQL("%s IS NOT TRUE", SQL.identifier(self._table, "rebuild_is_proposal"))
 
-    def _rebuild_source_lines(self, statement):
+    def _rebuild_evidence_lines(self, statement):
         liquidity, suspense, counterparts = statement._seek_for_lines()
         if (statement.company_id != self.env.company or statement.move_id.state != "posted"
                 or not statement.is_reconciled or suspense or not liquidity
@@ -151,10 +153,10 @@ class AccountReconcileModel(models.Model):
         statements.move_id.sorted("id").lock_for_update()
         statements.move_id.line_ids.sorted("id").lock_for_update()
 
-    def _rebuild_source_snapshot(self, statements):
+    def _rebuild_evidence_snapshot(self, statements):
         rows = []
         for statement in statements.sorted("id"):
-            _liquidity, counterparts = self._rebuild_source_lines(statement)
+            _liquidity, counterparts = self._rebuild_evidence_lines(statement)
             rows.append({
                 "statement": statement.read(["date", "amount", "amount_currency", "foreign_currency_id",
                     "payment_ref", "transaction_details", "partner_id", "journal_id", "company_id"], load=None)[0],
@@ -171,7 +173,7 @@ class AccountReconcileModel(models.Model):
     def _rebuild_native_effect_matches(self, statement):
         """Compare native prospective move values with every original counterpart."""
         self.ensure_one()
-        liquidity, counterparts = self._rebuild_source_lines(statement)
+        liquidity, counterparts = self._rebuild_evidence_lines(statement)
         data, next_id = [], 1
         for line in liquidity:
             next_id, values = statement._get_reconcile_line(
@@ -262,7 +264,7 @@ class AccountReconcileModel(models.Model):
         if len(statements) < 3:
             raise UserError(_("At least three distinct surviving supporting transactions are required. Recheck evidence."))
         self._rebuild_lock_evidence(statements)
-        snapshot = self._rebuild_source_snapshot(statements)
+        snapshot = self._rebuild_evidence_snapshot(statements)
         for statement in statements:
             if not self._rebuild_native_effect_matches(statement):
                 raise UserError(_("The rule no longer reproduces a supporting transaction's accounting result. Recheck evidence or configure the rule manually."))
@@ -443,7 +445,7 @@ class AccountReconcileModel(models.Model):
             if len((statement.payment_ref or "").strip()) < 4:
                 continue
             try:
-                _liquidity, counterparts = scoped._rebuild_source_lines(statement)
+                _liquidity, counterparts = scoped._rebuild_evidence_lines(statement)
             except UserError:
                 continue
             bases = counterparts.filtered(lambda line: not line.tax_repartition_line_id)
@@ -511,7 +513,7 @@ class AccountReconcileModel(models.Model):
             action = self.env["ir.actions.actions"]._for_xml_id("account.action_account_reconcile_model")
             action.update({"name": _("Rule Suggestions"), "domain": [("id", "in", created.ids)]})
             if refusals:
-                action["help"] = _("Some patterns were not offered: %s", "\n".join(refusals))
+                action["help"] = escape(_("Some patterns were not offered: %s", "\n".join(refusals)))
             return action
         return {"type": "ir.actions.client", "tag": "display_notification", "params": {
             "title": _("No new suggestions"), "message": "\n".join(refusals) or _("No new supported recurring pattern was found. Existing suggestions and dismissed history are retained."), "type": "info", "sticky": bool(refusals)}}

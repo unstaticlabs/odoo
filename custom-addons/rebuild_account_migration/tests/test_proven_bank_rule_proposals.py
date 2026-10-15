@@ -87,6 +87,18 @@ class TestProvenBankRuleProposals(AccountTestInvoicingCommon):
             self._evidence()
         self.assertFalse(self._find(), 'A proven overlapping generated rule must not be offered')
 
+    def test_find_help_displays_source_labels_as_literal_text(self):
+        label = '[QA] <b>Beta</b> service'
+        self.rules.create(self._manual_values(label))
+        for _index in range(4):
+            self._evidence('[QA] Alpha supported service')
+        for _index in range(3):
+            self._evidence(label)
+        action = self.rules.action_rebuild_analyze_rule_opportunities()
+        self.assertEqual(action['type'], 'ir.actions.act_window')
+        self.assertIn('&lt;b&gt;Beta&lt;/b&gt;', str(action['help']))
+        self.assertNotIn('<b>Beta</b>', str(action['help']))
+
     def test_changed_surviving_effect_prevents_approval(self):
         statements = self.env['account.bank.statement.line']
         for _index in range(3):
