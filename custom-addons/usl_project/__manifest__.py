@@ -1,7 +1,7 @@
 {
     "name": "USL Project",
     "summary": "Focused project workflow compatibility for Community Odoo",
-    "version": "saas~19.3.1.0.11",
+    "version": "saas~19.3.1.0.12",
     "category": "Services/Project",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -15,6 +15,9 @@
         "web.assets_backend": [
             "usl_project/static/src/favorite_project_navigation.js",
             "usl_project/static/src/project_task_title.js",
+        ],
+        "web.assets_tests": [
+            "usl_project/static/tests/tours/task_navigation.js",
         ],
         "web.assets_unit_tests": [
             "usl_project/static/tests/favorite_project_navigation.test.js",

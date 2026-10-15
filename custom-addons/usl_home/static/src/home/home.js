@@ -284,6 +284,11 @@ export class UslHome extends Component {
         return this.formatDate(item.deadline);
     }
 
+    async openActivity(activityId) {
+        const action = await this.orm.call("mail.activity", "action_open_document", [[activityId]]);
+        return this.action.doAction(action, { clearBreadcrumbs: true });
+    }
+
     async openRecord(resModel, resId) {
         await this.action.doAction(
             {
@@ -324,6 +329,8 @@ export class UslHome extends Component {
         delete action.usl_home_filter;
         return this.action.doAction(action, {
             clearBreadcrumbs: true,
+            // An explicit metric takes precedence over the user's default saved search.
+            additionalContext: { search_disable_custom_filters: true },
             props: { dynamicFilters },
         });
     }

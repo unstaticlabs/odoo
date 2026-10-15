@@ -233,6 +233,8 @@ test("every task metric opens its exact filtered action", async () => {
     expect(actions[1].domain).toEqual([["user_ids", "in", 5]]);
     expect(actions[0].usl_home_filter).toBe(undefined);
     expect(actions[1].usl_home_filter).toBe(undefined);
+    expect(actionOptions[0].additionalContext).toEqual({ search_disable_custom_filters: true });
+    expect(actionOptions[1].additionalContext).toEqual({ search_disable_custom_filters: true });
     expect(actionOptions[0].props.dynamicFilters).toEqual([
         {
             description: "overdue",
@@ -317,6 +319,10 @@ test("every Home shortcut clears breadcrumbs like a native menu click", async ()
             domain: [],
         },
     }));
+    onRpc("mail.activity", "action_open_document", ({ args }) => {
+        expect(args).toEqual([[1]]);
+        return { type: "ir.actions.act_window", res_model: "mail.activity", res_id: 1, views: [[false, "form"]] };
+    });
     mockService("action", {
         doAction(action, options) {
             calls.push({ action, options });
@@ -326,7 +332,7 @@ test("every Home shortcut clears breadcrumbs like a native menu click", async ()
     await mountWithCleanup(UslHome);
     await animationFrame();
 
-    // Activities: open a specific record, and "Show all activities".
+    // Activities: let native Odoo choose the permitted destination, then show all.
     await contains(".o_usl_home_widget[data-widget='activities'] .o_usl_home_attention_list button").click();
     await contains(".o_usl_home_widget[data-widget='activities'] footer button").click();
 
@@ -344,6 +350,8 @@ test("every Home shortcut clears breadcrumbs like a native menu click", async ()
     await contains(".o_usl_home_widget[data-widget='accounting'] .o_usl_home_accounting_alerts button").click();
 
     expect(calls.length).toBe(7);
+    expect(calls[0].action.res_model).toBe("mail.activity");
+    expect(calls[0].action.res_id).toBe(1);
     for (const { options } of calls) {
         expect(options?.clearBreadcrumbs).toBe(true);
     }

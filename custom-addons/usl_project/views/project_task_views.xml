@@ -1,4 +1,17 @@
 <odoo>
+    <record id="project_task_kanban_reference" model="ir.ui.view">
+        <field name="name">project.task.kanban.reference</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//t[@t-name='card']/main/field[@name='name']" position="after">
+                <span class="o_usl_task_reference text-muted small" title="Task ID">
+                    #<field name="id" options="{'enable_formatting': False}"/>
+                </span>
+            </xpath>
+        </field>
+    </record>
+
     <record id="project_task_type_form_reactivation_role" model="ir.ui.view">
         <field name="name">project.task.type.form.reactivation.role</field>
         <field name="model">project.task.type</field>

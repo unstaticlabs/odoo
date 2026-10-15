@@ -114,5 +114,9 @@ features.
    database, then run `make product-migration-boundary` against the finalized
    target. The full target checks registry models/fields/XML IDs, module
    dependencies, installed product versions and physical schema residue.
+   A focused add-on QA database cannot satisfy this full-product gate. In an
+   isolated worktree, first build `make action-risk-db`, then run the boundary
+   with `ODOO_DEV_DB` set to that full closure database. The check reads the
+   named database; it does not require rebinding the running QA server.
 7. Test the finalized database using the normal Odoo service and production
    add-ons path only.

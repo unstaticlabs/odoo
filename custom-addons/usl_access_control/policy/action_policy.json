@@ -42115,7 +42115,12 @@
       "domain": "projects",
       "evidence_id": "read-only-no-sink-v1",
       "id": "read_only.projects.actions",
-      "overrides": {},
+      "overrides": {
+        "rpc:project.milestone.action_view_tasks": {
+          "evidence_id": "task-navigation-20261014",
+          "rationale": "Reviewed 2026-10-14 in docs/operations/task-navigation-action-risk-review.md: the native milestone task action adds only a readable display name and active milestone identifiers to its returned action context. Native task domain, project/milestone defaults and single-task form behavior remain in place; no record write, elevation or external effect is added."
+        }
+      },
       "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
       "reviewed_digests": {
         "route:http:ANY:/my/projects": "ce72e785324e3b48a4ddb539bc8a75ff51da3bd1562f96ea6e2aebc5476535d4",
@@ -42166,7 +42171,7 @@
         "rpc:project.milestone.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
         "rpc:project.milestone.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:project.milestone.action_view_sale_order": "0c85d9739300b2f7d37fc6fd8696633930b8f454b234703b2884a6bc4712765c",
-        "rpc:project.milestone.action_view_tasks": "22a8e40ebc9388211577e5b86170bdcc14509ed9892082d3e99fee7248329479",
+        "rpc:project.milestone.action_view_tasks": "7dec8da18c2cd9786e31673044b3d881eaa06dab1f5dabf20e9ac4ee0a3adfe3",
         "rpc:project.milestone.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
         "rpc:project.milestone.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
         "rpc:project.milestone.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
@@ -67109,7 +67114,12 @@
       "domain": "system_framework",
       "evidence_id": "read-only-no-sink-v1",
       "id": "read_only.system_framework.actions.usl_home",
-      "overrides": {},
+      "overrides": {
+        "rpc:usl.home.service.get_activities": {
+          "evidence_id": "task-navigation-20261014",
+          "rationale": "Reviewed metadata-only sudo for generic model label, with native assignee activity access and no business record elevation. Fresh authenticated HTTP and native permitted-destination regressions pass; see docs/operations/task-navigation-action-risk-review.md."
+        }
+      },
       "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
       "reviewed_digests": {
         "rpc:usl.home.favorite.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
@@ -67154,7 +67164,7 @@
         "rpc:usl.home.service.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
         "rpc:usl.home.service.get_accounting_alert_action": "6ef8bbf43e3696ea31a53dc9755037fc16cf5ad9b742205aaf7b06a37b688c36",
         "rpc:usl.home.service.get_accounting_alerts": "a77395509834fc6f732a4d66711fd115517538a4fcd83dc20fb4d0f3a3de2c10",
-        "rpc:usl.home.service.get_activities": "b7d73ea473d98128279df006b46e23ef3237719d5b706804a47f58d10b668897",
+        "rpc:usl.home.service.get_activities": "a19c72b1c338cf066f2c6f4d6bd87cf8248986146cf917cbc54f52d3a744a1fa",
         "rpc:usl.home.service.get_ai_attention": "2e9960ae1df04fda062060816e5a591bf5afb7dcf83eeecddee5558cb35a5901",
         "rpc:usl.home.service.get_ai_workspace_action": "6f62617b114b4969d3581362208947dda226b515c57098e019d9c4de9d5c6d6a",
         "rpc:usl.home.service.get_base_url": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
@@ -189355,6 +189365,7 @@
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service._seed_default_favorites:orm_create:1",
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.add_provider_favorite:orm_create:1",
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_activities:sudo:1",
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_activities:sudo:2",
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_configuration:orm_write:1",
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.save_layout:orm_write:1",
         "sink:usl_home:custom-addons/usl_home/models/res_users.py:res.users.create:orm_create:1",
@@ -189412,6 +189423,9 @@
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_activities:sudo:1": {
           "reachability_proof": "This private implementation sink has no direct ordinary RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_activities:sudo:2": {
+          "reachability_proof": "Reached only inside reviewed get_activities. Elevation reads the generic translated ir.model name; activity and business fields retain native caller permissions. No business record elevation or mutation."
+        },
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_configuration:orm_write:1": {
           "reachability_proof": "This private implementation sink has no direct ordinary RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -189444,7 +189458,8 @@
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service._favorite_action_record:sudo:3": "fa5db915fa850631361ef329b9b3f6e6e75ec8419b46b685b897a2dfa0a972dc",
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service._seed_default_favorites:orm_create:1": "1cc57358db24d8ff2561d1b02cf5a7cb07bf098e75ce4453afedfcf4cc762622",
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.add_provider_favorite:orm_create:1": "f0b5ee3062d2c53894fefae0e752db839a7c6ecb57da0aebdb3e6f2fa373cbdd",
-        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_activities:sudo:1": "9339d16ac88afecdd2f8e7b642f407ed995999123b3c7aa3d54abb0d9b7b8f71",
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_activities:sudo:1": "294b82875620694cf0c604fb6f6abcc50ccdb64e7713c5f05bfc307adb29c657",
+        "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_activities:sudo:2": "03b1a697b23542a7171b4618e878434feda2946a1b0d601adb4c5dc4472e7e3a",
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.get_configuration:orm_write:1": "810acc8b1327854a06ee5cbafcec357c772a89941cb856672d229e393ac89ca9",
         "sink:usl_home:custom-addons/usl_home/models/home_service.py:usl.home.service.save_layout:orm_write:1": "bc884f77f27feeab3fbc0773b80cddf1fa712f2086d040c54e269e8864eb71e0",
         "sink:usl_home:custom-addons/usl_home/models/res_users.py:res.users.create:orm_create:1": "a4a9b5f49f9ca8ec7b2b107e4cff430e469c72ebaa4d430c208783eb498fe19d",
@@ -202699,6 +202714,7 @@
       "action_keys": [
         "client:usl_home:custom-addons/usl_home/static/src/add_to_home/add_to_home.js:if:rpc:1",
         "client:usl_home:custom-addons/usl_home/static/src/home/home.js:if:rpc:1",
+        "client:usl_home:custom-addons/usl_home/static/src/home/home.js:openActivity:rpc:1",
         "client:usl_home:custom-addons/usl_home/static/src/home/home.js:openAiPipelines:rpc:1",
         "client:usl_home:custom-addons/usl_home/static/src/home/home.js:saveLayout:rpc:1"
       ],
@@ -202719,6 +202735,13 @@
             "rpc:usl.home.service.resolve_favorite"
           ]
         },
+        "client:usl_home:custom-addons/usl_home/static/src/home/home.js:openActivity:rpc:1": {
+          "evidence_id": "task-navigation-20261014",
+          "rationale": "Delegates only to the native read-only activity destination, preserving readable targets and the native no-target-access activity form.",
+          "targets": [
+            "rpc:mail.activity.action_open_document"
+          ]
+        },
         "client:usl_home:custom-addons/usl_home/static/src/home/home.js:openAiPipelines:rpc:1": {
           "targets": [
             "rpc:usl.home.service.get_ai_workspace_action"
@@ -202734,6 +202757,7 @@
       "reviewed_digests": {
         "client:usl_home:custom-addons/usl_home/static/src/add_to_home/add_to_home.js:if:rpc:1": "409ca981dd84417ef822f921f6372c208926dceec36f7ca77d701dd41c5449e1",
         "client:usl_home:custom-addons/usl_home/static/src/home/home.js:if:rpc:1": "cb6ffab3cf307a33fd557bc334ff27992066861f0929ef5c4c15447680e3cca9",
+        "client:usl_home:custom-addons/usl_home/static/src/home/home.js:openActivity:rpc:1": "bd0ce0b0649160e69d93c4ff43e193873e0c9a53d21180340ee46da0c2af6d3c",
         "client:usl_home:custom-addons/usl_home/static/src/home/home.js:openAiPipelines:rpc:1": "c2ae301a4f259a291c2303291ee26fb1473f7b49623f327e8b8940d36837ee11",
         "client:usl_home:custom-addons/usl_home/static/src/home/home.js:saveLayout:rpc:1": "a602c94e22e4d67ecd18b71b991608f1891e908b3fd80bdc9b6da399da9d10bd"
       }
@@ -203000,6 +203024,18 @@
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_json2_policy_denies_unknown_mutations_and_secrets",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_profile_exposes_every_owner_application",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_scope_uses_owner_private_project_and_assignment_rules"
+      ]
+    },
+    "task-navigation-20261014": {
+      "contract": "Milestone task navigation returns its readable milestone identity and native task action, preserving task defaults and direct single-task behavior without changing records or elevating permissions. Explicit Home metrics override default saved searches while preserving native manual favorites and durable domain behavior. Ordinary users can read generic activity model labels without schema ACL grants; assigned work retains native activity access and native opening chooses a permitted destination, while direct inaccessible target reads remain denied.",
+      "tests": [
+        "custom-addons/usl_project/tests/test_task_navigation.py::TestTaskNavigation.test_milestone_task_action_has_a_durable_identity",
+        "custom-addons/usl_project/tests/test_task_navigation.py::TestTaskNavigation.test_single_task_keeps_native_direct_form_behavior",
+        "custom-addons/usl_project/tests/test_task_navigation.py::TestTaskNavigationTour.test_milestone_title_cards_and_view_switches",
+        "custom-addons/usl_home/tests/test_home_tour.py::TestUslHomeTour.test_home_metrics_override_default_saved_search",
+        "custom-addons/usl_home/tests/test_home.py::TestUslHome.test_my_task_metric_actions_match_the_displayed_counts",
+        "custom-addons/usl_home/tests/test_home.py::TestUslHome.test_activity_keeps_assigned_work_without_granting_target_access",
+        "custom-addons/usl_home/tests/test_home_tour.py::TestUslHomeTour.test_activity_widget_works_without_schema_access"
       ]
     },
     "transport-exact-targets-v1": {
