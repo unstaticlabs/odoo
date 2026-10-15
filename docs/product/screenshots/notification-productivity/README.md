@@ -1,8 +1,8 @@
 # Notification productivity QA
 
-Captured 15 October 2026, 13:40–13:41 Europe/Paris, in the Codex in-app browser
-against tested combined product source `3ea1d10ef590bc4a5ca790e6b726edeb6e57720e`,
-after two preservation-checked upgrades. These replace the 14 October captures.
+Captured 15 October 2026, 14:28–14:29 Europe/Paris, in the Codex in-app browser
+against tested combined product source `1ac4ae09b67c10167a2b16f7a63b762eade5031b`,
+after two preservation-checked upgrades. These replace the 14 October and intermediate 15 October captures.
 The reviewer is a synthetic non-admin internal user; all contacts, tasks and
 messages are disposable fixtures. Viewport: 1280 × 720.
 
