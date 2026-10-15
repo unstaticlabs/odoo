@@ -681,13 +681,17 @@ class Website(models.CachedModel):
         domain = Domain.AND([[('name', '!=', 'theme_default')], domain])
         client_themes = Module.search(domain).mapped('name')
         client_themes_img = {t: get_manifest(t).get('images_preview_theme', {}) for t in client_themes if get_manifest(t)}
-        themes_suggested = self._website_api_rpc(
-            '/api/website/2/configurator/recommended_themes/%s' % (industry_id if industry_id > 0 else ''),
-            {
-                'client_themes': client_themes_img,
-                'result_nbr_max': result_nbr_max,
-            }
-        )
+        try:
+            themes_suggested = self._website_api_rpc(
+                '/api/website/2/configurator/recommended_themes/%s' % (industry_id if industry_id > 0 else ''),
+                {
+                    'client_themes': client_themes_img,
+                    'result_nbr_max': result_nbr_max,
+                },
+            )
+        except AccessError as e:
+            logger.warning(e.args[0])
+            return []
         process_svg = self.env['website.configurator.feature']._process_svg
         for theme in themes_suggested:
             theme['svg'] = process_svg(theme['name'], palette, theme.pop('image_urls'))
@@ -702,13 +706,16 @@ class Website(models.CachedModel):
 
     @api.model
     def configurator_missing_industry(self, unknown_industry):
-        self._website_api_rpc(
-            '/api/website/unknown_industry',
-            {
-                'unknown_industry': unknown_industry,
-                'lang': self.env.context.get('lang'),
-            }
-        )
+        try:
+            self._website_api_rpc(
+                '/api/website/unknown_industry',
+                {
+                    'unknown_industry': unknown_industry,
+                    'lang': self.env.context.get('lang'),
+                },
+            )
+        except AccessError as e:
+            logger.warning(e.args[0])
 
     @api.model
     def configurator_apply(self, **kwargs):
@@ -871,10 +878,14 @@ class Website(models.CachedModel):
 
         # Load suggestion from iap for selected pages
         industry_id = kwargs['industry_id']
-        custom_resources = self._website_api_rpc(
-            '/api/website/2/configurator/custom_resources/%s' % (industry_id if industry_id > 0 else ''),
-            {'theme': theme_name}
-        )
+        try:
+            custom_resources = self._website_api_rpc(
+                '/api/website/2/configurator/custom_resources/%s' % (industry_id if industry_id > 0 else ''),
+                {'theme': theme_name},
+            )
+        except AccessError as e:
+            logger.warning(e.args[0])
+            custom_resources = {}
 
         # Generate text for the pages
         requested_pages = set(pages_views.keys()).union({'homepage'})
@@ -1424,10 +1435,11 @@ class Website(models.CachedModel):
         # We will now try to find a website matching the request host/domain (if
         # there is one on request) or return a random one.
 
-        # The format of `httprequest.host` is `domain:port`
+        # The format of `httprequest.host` is `domain:port`, while the url set
+        # on the thread is a full url: only keep its `domain:port` part.
         domain_name = (
             request and request.httprequest.host
-            or hasattr(threading.current_thread(), 'url') and threading.current_thread().url
+            or hasattr(threading.current_thread(), 'url') and get_base_domain(threading.current_thread().url)
             or '')
         website_id = self.sudo()._get_current_website_id(domain_name, fallback=fallback)
         return self.browse(website_id)
@@ -1598,6 +1610,10 @@ class Website(models.CachedModel):
 
         homepage_url = self.homepage_url
         pages = self._get_website_pages(domain)
+
+        # Only fetch the fields needed below: lazily reading a view field would
+        # prefetch arch_db arch_prev for every page and may end in a out-of-memory error.
+        pages.view_id.fetch(['name', 'priority', 'write_date'])
 
         for page in pages:
             if ignore_custom_homepage and homepage_url == page['url']:
@@ -2077,13 +2093,15 @@ class Website(models.CachedModel):
         fuzzy_term = False
         search_details = self._search_get_details(search_type, order, options)
         if search and options.get('allowFuzzy', True):
-            fuzzy_term = self._search_find_fuzzy_term(search_details, search)
-            if fuzzy_term:
-                if fuzzy_term.lower() != search.lower():
-                    search = fuzzy_term
+            count, results = self._search_exact(search_details, search, offset, limit, order)
+            if not count:
+                fuzzy_term = self._search_find_fuzzy_term(search_details, search)
+                if fuzzy_term and fuzzy_term.lower() != search.lower():
+                    count, results = self._search_exact(search_details, fuzzy_term, offset, limit, order)
                 else:
                     fuzzy_term = False
-        count, results = self._search_exact(search_details, search, offset, limit, order)
+        else:
+            count, results = self._search_exact(search_details, search, offset, limit, order)
         return count, results, fuzzy_term
 
     def _search_exact(self, search_details, search, offset, limit, order):

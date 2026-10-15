@@ -205,8 +205,9 @@ export class WebsiteForum extends Interaction {
             ev.preventDefault();
             this.waitForTimeout(() => {
                 currentTargetEl.querySelectorAll("button[type='submit'], a.a-submit").forEach((btnEl) => {
-                    btnEl.querySelector("i").remove();
+                    btnEl.querySelector("span").remove();
                     btnEl.disabled = false;
+                    btnEl.classList.remove("o_btn_loading", "disabled", "pe-none");
                 });
             }, 0);
         }
@@ -490,9 +491,8 @@ export class WebsiteForum extends Interaction {
         cookie.set("forum_welcome_message", false, 24 * 60 * 60 * 365, "optional");
         const forumIntroEl = this.el.querySelector(".forum_intro");
         forumIntroEl.style.height = getComputedStyle(forumIntroEl).height;
-        forumIntroEl.classList.add("overflow-hidden");
-        forumIntroEl.style.transition = "height 1s";
-        forumIntroEl.classList.add("h-0");
+        void forumIntroEl.offsetHeight;
+        forumIntroEl.classList.add("o_wforum_intro_closing");
         return true;
     }
 

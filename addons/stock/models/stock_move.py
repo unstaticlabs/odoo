@@ -303,8 +303,10 @@ class StockMove(models.Model):
                 move.picked = False
 
     def _inverse_picked(self):
-        for move in self:
-            move.move_line_ids.picked = move.picked
+        picked_moves = self.filtered('picked')
+        not_picked_moves = self - picked_moves
+        picked_moves.move_line_ids.picked = True
+        not_picked_moves.move_line_ids.picked = False
 
     @api.depends('picking_id.priority')
     def _compute_priority(self):
@@ -734,7 +736,9 @@ Please change the quantity done or the rounding precision in your settings.""",
                     new_ml_quantity = product.uom_id._compute_quantity(quantity_to_reserve, move_line.uom_id)
                     move_lines_commands.append(Command.create(move_line.copy_data({'quantity': new_ml_quantity, 'picked': move_line.picked})[0]))
                     extra_uom_qty -= quantity_to_reserve
+            existing_move_lines = move.move_line_ids
             move.write({'move_line_ids': move_lines_commands})
+            (move.move_line_ids - existing_move_lines)._apply_putaway_strategy()
             # When `quantity` is written in the same call as `lot_ids`, the
             # user-set value is kept and the recompute triggered by this
             # inverse rewriting `move_line_ids` does not override it. Force
@@ -776,7 +780,8 @@ Please change the quantity done or the rounding precision in your settings.""",
     def _compute_show_info(self):
         for move in self:
             move.show_quant = move.picking_code != 'incoming'\
-                           and move.product_id.is_storable
+                           and move.product_id.is_storable\
+                           and not (move.product_id.tracking in ['lot', 'serial'] and move.picking_type_id.use_create_lots and not move.picking_type_id.use_existing_lots)
             move.show_lots_text = move.product_id.tracking in ['lot', 'serial']\
                 and move.picking_type_id.use_create_lots\
                 and not move.picking_type_id.use_existing_lots\
@@ -1290,7 +1295,7 @@ Please change the quantity done or the rounding precision in your settings.""",
         for move in moves_auto:
             move.write({'location_dest_id': move.move_line_ids[0].location_dest_id})
 
-        new_moves = new_moves._action_confirm()
+        new_moves = new_moves.sudo()._action_confirm()
         return new_moves
 
     def _merge_moves_fields(self):
@@ -1570,7 +1575,7 @@ Please change the quantity done or the rounding precision in your settings.""",
             ('printed', '=', False),
             ('state', 'in', ['draft', 'confirmed', 'waiting', 'partially_available', 'assigned'])]
         if self.partner_id:
-            picking_partner_id = self.env.context.get('move_picking_partner_id', self.partner_id).id
+            picking_partner_id = self._get_picking_partner().id
             domain += [('partner_id', '=', picking_partner_id)]
         return domain
 
@@ -1685,6 +1690,10 @@ Please change the quantity done or the rounding precision in your settings.""",
 
     def _get_formating_options(self, strings):
         return {}
+
+    def _get_picking_partner(self):
+        self.ensure_one()
+        return self.picking_id.partner_id or self.env.context.get('move_picking_partner_id') or self.partner_id
 
     def _get_new_picking_values(self):
         """ return create values for new picking that will be linked with group
@@ -2074,6 +2083,13 @@ Please change the quantity done or the rounding precision in your settings.""",
         grouped_move_lines_in = self._get_available_move_lines_in()
         grouped_move_lines_out = self._get_available_move_lines_out(assigned_moves_ids, partially_available_moves_ids)
         available_move_lines = {key: grouped_move_lines_in[key] - grouped_move_lines_out.get(key, 0) for key in grouped_move_lines_in}
+        # remove what this move already reserved
+        for move_line in self.move_line_ids:
+            if self.product_id.uom_id.is_zero(move_line.quantity_product_uom):
+                continue
+            key = (move_line.location_id, move_line.lot_id, move_line.package_id, move_line.owner_id)
+            if key in available_move_lines:
+                available_move_lines[key] -= move_line.quantity_product_uom
         # pop key if the quantity available amount to 0
         return {k: v for k, v in available_move_lines.items() if self.product_id.uom_id.compare(v, 0) > 0}
 
@@ -2178,10 +2194,6 @@ Please change the quantity done or the rounding precision in your settings.""",
                     available_move_lines = move._get_available_move_lines(assigned_moves_ids, partially_available_moves_ids)
                     if not available_move_lines:
                         continue
-                    for move_line in move.move_line_ids.filtered(lambda m: m.quantity_product_uom):
-                        if available_move_lines.get((move_line.location_id, move_line.lot_id, move_line.package_id, move_line.owner_id)):
-                            available_move_lines[(move_line.location_id, move_line.lot_id, move_line.package_id, move_line.owner_id)] -= move_line.quantity_product_uom
-
                     taken_quantities = {}
                     all_move_line_vals = []
                     for (location_id, lot_id, package_id, owner_id), quantity in available_move_lines.items():
@@ -2570,7 +2582,7 @@ Please change the quantity done or the rounding precision in your settings.""",
                 res.append(Command.update(ml.id, {'quantity': avail_qty}))
 
         # First reserve on quants
-        if self.uom_id.compare(_move_qty(qty), 0.0) > 0:
+        if self.uom_id.compare(_move_qty(qty), 0.0) > 0 and not self._should_bypass_reservation():
             quants = self.env['stock.quant']._get_reserve_quantity(self.product_id, self.location_id, total_qty)
             for quant, avail_qty in quants:
                 if quant.id in consumed_quant:

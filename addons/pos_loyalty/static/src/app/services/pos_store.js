@@ -359,6 +359,7 @@ patch(PosStore.prototype, {
                     this.models["loyalty.card"].get(pe.coupon_id)
                 )
             );
+            order._restoreCodeActivatedCoupons();
         });
     },
     async applyDiscount(percent, type = "percent", order = this.getOrder()) {
@@ -688,9 +689,12 @@ patch(PosStore.prototype, {
     getLoyaltyCards(partner) {
         const loyaltyCards = [];
         if (this.partnerId2CouponIds[partner.id]) {
-            this.partnerId2CouponIds[partner.id].forEach((couponId) =>
-                loyaltyCards.push(this.models["loyalty.card"].get(couponId))
-            );
+            this.partnerId2CouponIds[partner.id].forEach((couponId) => {
+                const loyaltyCard = this.models["loyalty.card"].get(couponId);
+                if (loyaltyCard) {
+                    loyaltyCards.push(loyaltyCard);
+                }
+            });
         }
         return loyaltyCards;
     },

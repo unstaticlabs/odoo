@@ -233,6 +233,29 @@ class TestPointOfSaleFlow(CommonPosTest):
         self.assertEqual(parent_partner.pos_order_count, 2, "Parent partner should see 2 orders including child’s")
         self.assertEqual(child_partner.pos_order_count, 1, "Child partner should see only their own order")
 
+    def test_backend_order_refund_flow(self):
+        """ The purpose of this test is to test the basic flow of
+        refunding orders from the backend. More precisely making sure:
+        - We do not refund more than the initial order's quantity"""
+        self.pos_config_usd.open_ui()
+
+        order, _ = self.create_backend_pos_order({
+            'line_data': [
+                {'product_id': self.ten_dollars_with_10_incl.product_variant_id.id},
+            ],
+            'payment_data': [
+                {'payment_method_id': self.cash_payment_method.id, 'amount': 10},
+            ]
+        })
+
+        refund_action = order.refund()
+        refund = self.env['pos.order'].browse(refund_action['res_id'])
+
+        with Form(refund) as refund_form:
+            with refund_form.lines.edit(0) as line:
+                with self.assertRaises(ValidationError, msg="You cannot refund more than the original order."):
+                    line.qty = -3
+
     def test_order_to_payment_currency(self):
         """
             In order to test the Point of Sale in module, I will do a full flow
@@ -1719,6 +1742,16 @@ class TestPointOfSaleFlow(CommonPosTest):
         order = self.env['pos.order'].search([])
         self.assertEqual(order.name, f"/AA - {order.pos_reference.split('-')[-1]} - 1.B")
 
+    def test_create_journal_and_payment_methods_bank_journal_explicit_company_currency(self):
+        """A bank journal whose currency is explicitly set to the company currency
+        (instead of left empty) must still be found and used, not treated as a
+        foreign-currency journal."""
+        self.env['pos.payment.method'].search([]).write({'active': False})
+        self.company_data['default_journal_bank'].currency_id = self.company.currency_id
+        _, pm_ids = self.pos_config_usd._create_journal_and_payment_methods()
+        bank_pm = self.env['pos.payment.method'].browse(pm_ids).filtered(lambda pm: pm.name == 'Card')
+        self.assertEqual(bank_pm.journal_id, self.company_data['default_journal_bank'])
+
     def test_payment_method_sequence(self):
         self.env['pos.payment.method'].search([]).write({'active': False})
         _, pm_ids = self.pos_config_usd._create_journal_and_payment_methods()
@@ -2029,6 +2062,51 @@ class TestPointOfSaleFlow(CommonPosTest):
         self.assertNotIn(item_future_start.id, loaded_ids,
             "item with date_start still in the future must not be fetched")
 
+    def test_incremental_load_attribute_values_of_old_attribute(self):
+        """Attribute values created after the last sync must be loaded even if
+        their attribute was not modified since (it is not part of the delta)."""
+        self.pos_config_usd.open_ui()
+        session = self.pos_config_usd.current_session_id
+        now = fields.Datetime.now()
+
+        attribute = self.env['product.attribute'].create({
+            'name': 'Vintage',
+            'create_variant': 'always',
+            'value_ids': [Command.create({'name': '2023'}), Command.create({'name': '2024'})],
+        })
+        # The attribute predates the last sync: backdate its write_date.
+        attribute.flush_model()
+        self.env.cr.execute(
+            "UPDATE product_attribute SET write_date = %s WHERE id = %s",
+            (now - timedelta(days=30), attribute.id),
+        )
+        attribute.invalidate_recordset(['write_date'])
+        last_server_date = fields.Datetime.to_string(now - timedelta(days=10))
+
+        # A configurable product created after the last sync, on that old attribute.
+        template = self.env['product.template'].create({
+            'name': 'Sèvre-et-Maine',
+            'available_in_pos': True,
+            'attribute_line_ids': [Command.create({
+                'attribute_id': attribute.id,
+                'value_ids': [Command.set(attribute.value_ids.ids)],
+            })],
+        })
+        ptavs = template.attribute_line_ids.product_template_value_ids
+        self.assertEqual(len(ptavs), 2)
+
+        data = session.with_context(pos_last_server_date=last_server_date).load_data([])
+        self.assertNotIn(attribute.id, {a['id'] for a in data['product.attribute']},
+            "unchanged attribute is not part of the incremental load")
+        self.assertTrue(set(template.attribute_line_ids.ids) <= {p['id'] for p in data['product.template.attribute.line']})
+        self.assertTrue(set(template.product_variant_ids.ids) <= {p['id'] for p in data['product.product']})
+        self.assertTrue(set(ptavs.ids) <= {v['id'] for v in data['product.template.attribute.value']},
+            "attribute values of the new line must be loaded even if their attribute is unchanged")
+
+        # A full load still returns them.
+        data = session.load_data([])
+        self.assertTrue(set(ptavs.ids) <= {v['id'] for v in data['product.template.attribute.value']})
+
     def test_sequence_dynamic_prefix_suffix(self):
         """Test that sequence_number is correctly extracted when sequence has dynamic prefix/suffix."""
         self.pos_config_usd.open_ui()
@@ -2144,6 +2222,22 @@ class TestPointOfSaleFlow(CommonPosTest):
                 self.assertEqual(line.price_subtotal, 100)
                 self.assertEqual(line.price_subtotal_incl, 110)
 
+    def test_cash_in_out_has_no_partner(self):
+        """The cashier is not the counterpart of a cash move: it must not be set as
+        partner on the statement line nor on its journal items."""
+        self.pos_config_usd.open_ui()
+        session = self.pos_config_usd.current_session_id
+        session.set_opening_control(0, False)
+        session.try_cash_in_out('in', 10, 'Float', self.env.user.partner_id.id, {'translatedType': 'in'})
+
+        cash_move = session.statement_line_ids
+        self.assertFalse(cash_move.partner_id)
+        self.assertFalse(cash_move.move_id.line_ids.partner_id)
+        self.assertEqual(session.get_cash_in_out_list()[0]['cashier_name'], self.env.user.name)
+
+        session.delete_cash_in_out(cash_move.id, self.env.user.partner_id.id)
+        self.assertIn(f'{self.env.user.name}: 10.0', session.message_ids[0].body)
+
     def test_close_session_cash_out_without_accounting_rights(self):
         """A PoS manager without any accounting group cashes out, then closes
         the session with the counted cash matching the expected cash: the
@@ -2196,3 +2290,47 @@ class TestPointOfSaleFlow(CommonPosTest):
             {'amount': -4},
             {'amount': 10},
         ])
+
+    def test_refund_of_a_global_discount(self):
+        """ The global discount line pins in 'extra_tax_data' base and tax amounts that cannot be
+        recomputed from its price. The UI does not refund that line, it applies the discount again
+        on the refund order, where the refunded lines are negative and the discount is therefore
+        positive. Those pinned amounts have to be booked as they are on both orders, otherwise an
+        order and its refund do not cancel each other in the closing entry of the session.
+        """
+        AccountTax = self.env['account.tax']
+        company = self.env.company
+        product = self.twenty_dollars_with_10_incl.product_variant_id
+
+        def discount_line(quantity):
+            """ The values the UI stores for a 25% global discount on 'quantity' x that product. """
+            base_lines = [AccountTax._prepare_base_line_for_taxes_computation(
+                None, product_id=product, tax_ids=product.taxes_id, price_unit=product.lst_price,
+                quantity=quantity, currency_id=company.currency_id, rate=1.0,
+            )]
+            AccountTax._add_tax_details_in_base_lines(base_lines, company)
+            AccountTax._round_base_lines_tax_details(base_lines, company)
+            line = AccountTax._prepare_global_discount_lines(base_lines, company, 'percent', 25.0)[0]
+            return {
+                'product_id': product.id,
+                'qty': line['quantity'],
+                'price_unit': company.currency_id.round(line['price_unit']),
+                'extra_tax_data': AccountTax._export_base_line_extra_tax_data(line),
+            }
+
+        self.pos_config_usd.open_ui()
+        for quantity in (1, -1):
+            self.create_backend_pos_order({
+                'order_data': {'is_refund': quantity < 0},
+                'line_data': [{'product_id': product.id, 'qty': quantity}, discount_line(quantity)],
+                'payment_data': [{'payment_method_id': self.cash_payment_method.id}],
+            })
+
+        session = self.pos_config_usd.current_session_id
+        session.post_closing_cash_details(sum(session.order_ids.payment_ids.mapped('amount')))
+        session.close_session_from_ui()
+        tax_lines = session.move_id.line_ids.filtered(lambda line: line.display_type == 'tax')
+        self.assertAlmostEqual(
+            sum(tax_lines.mapped('balance')), 0.0,
+            msg="The taxes of an order and of its refund should cancel each other.",
+        )

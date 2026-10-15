@@ -19,6 +19,9 @@ class HrVersion(models.Model):
     _inherit = 'hr.version'
     _description = 'Employee Contract'
 
+    def _get_hr_responsible_domain(self):
+        return [('share', '=', False), ('company_ids', 'in', self.env.company.ids), ('all_group_ids', 'in', self.env.ref('hr_holidays.group_hr_holidays_user').id)]
+
     @api.constrains('contract_date_start', 'contract_date_end')
     def _check_contracts(self):
         self._get_leaves()._check_contracts()
@@ -177,7 +180,11 @@ class HrVersion(models.Model):
             return
         leave.resource_calendar_id = first_contract.resource_calendar_id
         if leave.work_entry_type_request_unit != 'hour':
-            leave.with_context(leave_skip_date_check=True, leave_skip_state_check=True)._compute_date_from_to()
+            leave.with_context(
+                leave_fast_create=True,
+                leave_skip_date_check=True,
+                leave_skip_state_check=True,
+            )._compute_date_from_to()
             if leave.state == 'validate':
                 leave._validate_leave_request()
 
