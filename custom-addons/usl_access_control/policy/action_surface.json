@@ -3106,11 +3106,11 @@
       ],
       "sources": [
         {
-          "line": 356,
+          "line": 362,
           "path": "custom-addons/usl_home/static/src/home/home.js"
         },
         {
-          "line": 389,
+          "line": 395,
           "path": "custom-addons/usl_home/static/src/home/home.js"
         }
       ]
@@ -3128,7 +3128,7 @@
       ],
       "sources": [
         {
-          "line": 288,
+          "line": 294,
           "path": "custom-addons/usl_home/static/src/home/home.js"
         }
       ]
@@ -3146,7 +3146,7 @@
       ],
       "sources": [
         {
-          "line": 339,
+          "line": 345,
           "path": "custom-addons/usl_home/static/src/home/home.js"
         }
       ]
@@ -1695128,7 +1695128,6 @@
     }
   ],
   "country_codes": [
-    "fr",
     "us"
   ],
   "diagnostics": [],
@@ -1696122,11 +1696121,11 @@
       "version": "saas~19.3.1.8.0"
     },
     {
-      "manifest_sha256": "c9eb8f5533eed8847e1e2d796394309a4a2adce6d0b6258db47428480db30069",
+      "manifest_sha256": "2d4f291c27ad7c2892ad8fd578313cb7bd45b5ad202e44f3087d7270dc084f31",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "becca969ef95c49b2a04f6ec373d97cc24ac229fff337683397717e6bc92b131",
-      "version": "saas~19.3.2.2.5"
+      "source_sha256": "c80272c8e603a5ae1471fb1c95124eb9153669ef67dd1b8c328345d9e69e7d7e",
+      "version": "saas~19.3.2.2.9"
     },
     {
       "manifest_sha256": "d3991a85f02eca8b6b43179b39270cc15cfaf68325f4ff2181e354ccb01c4cf0",
@@ -1696171,11 +1696170,11 @@
       "version": "saas~19.3.1.0.0"
     },
     {
-      "manifest_sha256": "3b0e80af3211ae5ae10b8559dad31cabf7f74f4ee18de5e1474fc810b53a3a86",
+      "manifest_sha256": "a7befb0d64e99a9597404af86565660bed9eed04992cf5dad3f880d4488f7472",
       "name": "usl_expense_batch",
       "origin": "custom",
-      "source_sha256": "71eb325d55dd765107a01ced443c4ea355f204c51df4793c481b36d2fce50197",
-      "version": "saas~19.3.1.3.13"
+      "source_sha256": "e37f4ad376ba1cf418d5334cb34e5ba64e9a5710d39c710e4ff5fb4c7ec487d5",
+      "version": "saas~19.3.1.3.16"
     },
     {
       "manifest_sha256": "eb00e52ebf56517d6b46cc0d840354fb3a5fd83eadcd7d31aaf39feb0b06d4f3",
@@ -1696185,11 +1696184,11 @@
       "version": "saas~19.3.2.0.18"
     },
     {
-      "manifest_sha256": "f4d7789a1a0797389b62624f5f13321e5b4e74a51db2e5663bf5dd00dc4d449c",
+      "manifest_sha256": "deab62bc2d72c41a6eb0152c536c03f39bb5cc79ea2d3c9b3401f578634ff268",
       "name": "usl_home",
       "origin": "custom",
-      "source_sha256": "ca514da9b5c49491fb0881145e2d3405ca442ccc9528ed0d85595ab025b755f6",
-      "version": "saas~19.3.1.0.9"
+      "source_sha256": "b2da8a91cc71e23337bb838c84691b892cc2e683bd93dcbd3025bc943dfae705",
+      "version": "saas~19.3.1.0.12"
     },
     {
       "manifest_sha256": "bb43850f670e0acf9f0173cad4c0c93680767addca24c5251f053d2d1eaf7e0b",
@@ -1696220,11 +1696219,11 @@
       "version": "saas~19.3.1.4.4"
     },
     {
-      "manifest_sha256": "6a224d21518c378e0cc16ce67e852d792884872f898aaede108926bdcff62dcb",
+      "manifest_sha256": "4a7f7147a0d62856eac539a1f90d278bb03b09ab93f2847277d2c90f9bb7dd86",
       "name": "usl_project",
       "origin": "custom",
-      "source_sha256": "afd7d89cca8ee8c8a1df710abf6dc4063deb78dc1568cd8dfe17b349c5d413f3",
-      "version": "saas~19.3.1.0.12"
+      "source_sha256": "2fab4ae2e8952d89abbfa14c4d5cbabb3047eb65009ebfd895832ba74f668cf0",
+      "version": "saas~19.3.1.0.16"
     },
     {
       "manifest_sha256": "fdc17bc172de42c3680d2f856c88ec910045db940de6d0fd31988944400cb74a",
