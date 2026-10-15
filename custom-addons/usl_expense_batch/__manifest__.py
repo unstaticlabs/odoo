@@ -1,7 +1,7 @@
 {
     "name": "USL Expense Batches",
     "summary": "Review related expenses with shared business and accounting context",
-    "version": "saas~19.3.1.3.13",
+    "version": "saas~19.3.1.3.15",
     "category": "Human Resources/Expenses",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -12,6 +12,7 @@
         "security/ir.model.access.csv",
         "wizard/expense_batch_create_wizard_views.xml",
         "wizard/expense_batch_add_wizard_views.xml",
+        "wizard/expense_split_views.xml",
         "views/expense_batch_views.xml",
         "views/hr_expense_views.xml",
         "views/account_move_views.xml",

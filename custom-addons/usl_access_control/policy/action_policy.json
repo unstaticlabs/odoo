@@ -704,6 +704,58 @@
     },
     {
       "action_keys": [
+        "rpc:hr.expense.configure_draft_expense",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:message_send:1",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:1",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:2",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:3",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:4"
+      ],
+      "classification": "operational",
+      "consequence": "Prepares one existing draft expense and its owned evidence; recalculates native target-company amounts and records the correction without submitting, posting, paying or deleting history.",
+      "domain": "accounting",
+      "evidence_id": "draft-expense-correction-20261014",
+      "id": "operational.draft-expense-correction",
+      "rationale": "The fixed bounded method locks and rechecks the draft, requires source and target authority, validates explicit company-compatible relations, delegates native batch removal and receipt supersession, and scopes the existing in-process collaboration marker only to evidence owned by that expense. It never accepts arbitrary records, fields, sudo flags or serializable authority tokens. Split-family ownership changes remain a separately coordinated workflow. Financial reference preflight applies to company moves or explicitly supplied relations, preserving ordinary label edits without demanding unrelated supplier-bill read access. The internal helper is reachable only through the unchanged single-expense entry or the explicit complete-family action; the public single-expense entry still cannot select siblings or mint that internal scope.",
+      "reviewed_digests": {
+        "rpc:hr.expense.configure_draft_expense": "f0f39686f552c7b71dbe39791b8bf2aac5a5e1a472589bfa4d21bd3a012117da",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:message_send:1": "72d3adedee2d2ad32b739835655a29c5c2e96c1a1382f0876627039076584ec3",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:1": "9175c2e33ee130f5b6da6f59252cafebbd38f03d5abfd2caac76e6937dfc877d",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:2": "b4ad691ace841147c34ad347ea57d82aac2e2065bf75eb04e133d5e5168bac7c",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:3": "27a078c6d7d67e8a731328b1610a30598b5b0635f783b28bde0421217b460f75",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:4": "dfdd349451eb891faa8bcd737a773b6df76deecd83253d843fa32ce35ab3d0fc"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:hr.expense.configure_draft_expense_family",
+        "rpc:hr.expense.split.wizard.action_split_expense",
+        "rpc:hr.expense.split_draft_expense",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_family.py:hr.expense.split_draft_expense:orm_create:1",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_family.py:hr.expense.split_draft_expense:orm_create:2",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_split.py:hr.expense.split.wizard._apply_native_split_with_context:orm_write:1",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_split.py:hr.expense.split.wizard.action_split_expense:message_send:1",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_split.py:hr.expense.split.wizard.action_split_expense:orm_write:1"
+      ],
+      "classification": "operational",
+      "consequence": "Creates explicitly planned native draft split parts and their owned evidence, or corrects a caller-named complete draft family, without submitting, posting, paying or deleting history.",
+      "domain": "accounting",
+      "evidence_id": "draft-expense-split-family-20261014",
+      "id": "operational.draft-expense-split-family",
+      "rationale": "Native wizard validation locks the source and enforces draft state, finite gross totals, native fixed-cost preview in the receipt company and each resulting part amount and defaults. Explicit family correction locks the origin and all linked rows, requires complete read/write authority and source/target company access, and validates each mapping before a transaction can commit. Only the existing source-authorized in-process collaboration scope delegates bounded transient helpers and native copies/evidence; generic Agent copy, follower creation and forged serialized context remain denied. The maintained native copy algorithm retains keyword-merged context, with no sudo or global authority grant. Batch membership, the chosen main evidence copy, source receipt-generation supersession and original gross audit are shared native-wizard effects for both the human and Agent routes; per-part defaults are rechecked after Batch synchronization. Native line preview intentionally writes only transient lines, with governed expense writes blocked in its regression and edit/Cancel verified across separate HTTP requests.",
+      "reviewed_digests": {
+        "rpc:hr.expense.configure_draft_expense_family": "5fd83fbf84893d16b2c8bd152687c35afda7e5f5e524b80670d651c09b0f7d73",
+        "rpc:hr.expense.split.wizard.action_split_expense": "70916a17895bb12f39eccb75623674ff8ad939d3ac5a641b54669446284f42e9",
+        "rpc:hr.expense.split_draft_expense": "c0c67976d1dcfe00287babc2502d9b05eee898241fda41979f3b4359543e1eda",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_family.py:hr.expense.split_draft_expense:orm_create:1": "ccd921d105fef9634f821e3e5e13d2ab8d52a49c5245609c8f718f5a7a6557fd",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_family.py:hr.expense.split_draft_expense:orm_create:2": "d7c334b3571f9805f7d075fc7d9a5de96c5f63aae7af153c17fdde7369b7a816",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_split.py:hr.expense.split.wizard._apply_native_split_with_context:orm_write:1": "c86d03fba121f34e2c64c6b4ffb97cd66dbc6008f70eb832f2f0ec4ba7aca2be",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_split.py:hr.expense.split.wizard.action_split_expense:message_send:1": "6cf16f5c2a8826f45f5c0f0bb8f90e5bd01f67969eb99544d2de78feb9efa74e",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_split.py:hr.expense.split.wizard.action_split_expense:orm_write:1": "7cc71b0755da6e4edbb73498ebecbfe876c58db81e9b2b907d05e1e334b1bad1"
+      }
+    },
+    {
+      "action_keys": [
         "rpc:hr.expense.update_activities_and_mails"
       ],
       "classification": "operational",
@@ -39585,7 +39637,7 @@
         "rpc:hr.expense.split.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:hr.expense.split.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
         "rpc:hr.expense.split.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
-        "rpc:hr.expense.split.default_get": "277c170b223922e2f99b23d6347c1d1c78ed671443e793aedaa4b4dd279b615d",
+        "rpc:hr.expense.split.default_get": "166b43b95c0d32e6697a69f3a54b06efdd0413c8e57ee742309ed4a28d8414c4",
         "rpc:hr.expense.split.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
         "rpc:hr.expense.split.fields_get": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
         "rpc:hr.expense.split.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
@@ -108466,7 +108518,6 @@
         "rpc:hr.expense.split.web_save",
         "rpc:hr.expense.split.web_save_multi",
         "rpc:hr.expense.split.web_search_read",
-        "rpc:hr.expense.split.wizard.action_split_expense",
         "rpc:hr.expense.split.wizard.copy",
         "rpc:hr.expense.split.wizard.copy_data",
         "rpc:hr.expense.split.wizard.formatted_read_grouping_sets",
@@ -109589,9 +109640,6 @@
         },
         "rpc:hr.expense.split.web_search_read": {
           "reversal_action": "rpc:hr.expense.split.write"
-        },
-        "rpc:hr.expense.split.wizard.action_split_expense": {
-          "reversal_action": "rpc:hr.expense.split.wizard.write"
         },
         "rpc:hr.expense.split.wizard.copy": {
           "reversal_action": "rpc:hr.expense.split.wizard.unlink"
@@ -110943,7 +110991,6 @@
         "rpc:hr.expense.split.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:hr.expense.split.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:hr.expense.split.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:hr.expense.split.wizard.action_split_expense": "16b2e889efe1f9257d29db056618cf51a0f7f0905d5f1a1abc236be95b832606",
         "rpc:hr.expense.split.wizard.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:hr.expense.split.wizard.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
         "rpc:hr.expense.split.wizard.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
@@ -185174,8 +185221,8 @@
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:usl.expense.batch.create.wizard.action_create_batch:orm_write:1",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:usl.expense.batch.create.wizard.create:orm_create:1",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:usl.expense.batch.create.wizard.create:orm_write:1",
-        "sink:usl_locale:custom-addons/usl_locale/models/ir_http.py:ir.http.webclient_rendering_context:sudo:1",
         "sink:usl_locale:custom-addons/usl_locale/models/ir_http.py:ir.http.session_info:sudo:1",
+        "sink:usl_locale:custom-addons/usl_locale/models/ir_http.py:ir.http.webclient_rendering_context:sudo:1",
         "sink:usl_locale:custom-addons/usl_locale/models/res_company.py:res.company.action_use_automatic_usl_ui_theme_color:orm_write:1",
         "sink:usl_pocketid:custom-addons/usl_pocketid/controllers/main.py:PocketIDDatabase.create:orm_create:1",
         "sink:usl_pocketid:custom-addons/usl_pocketid/controllers/main.py:PocketIDLogin.emergency_login:sudo:1",
@@ -203150,6 +203197,19 @@
       "tests": [
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_project_agent_edits_one_activity_without_completing_it",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_agent_activity_edit_refuses_other_tasks_and_companies"
+      ]
+    },
+    "draft-expense-correction-20261014": {
+      "contract": "One native transaction corrects an authorized draft company/employee pair using explicit compatible financial mappings or clears, preserving expense/evidence identity and document currency. Source and target access, batch detach rollback, queued receipt supersession, managed Agent authority, real non-draft financial states and repeat-patch preservation are exercised with synthetic fixtures.",
+      "tests": [
+        "custom-addons/usl_expense_batch/tests/test_draft_expense_configuration.py::TestDraftExpenseConfiguration"
+      ]
+    },
+    "draft-expense-split-family-20261014": {
+      "contract": "Explicit native split and complete named family ownership correction preserve document totals, per-line native taxes/mappings, evidence checksum, source defaults and financial history atomically. Signed and zero components, currency precision, fixed-cost preview/recovery, missing mappings, malformed fields, genuine posted/paid controls, hidden family, stale/repeated wizard, source/target access and read-only/read-write Agent with generic-copy/follower denial are covered. Literal context-only reversion demonstrates actual native Agent follower denial; exact restoration passes, with selected-company outcomes independently exercised.",
+      "tests": [
+        "custom-addons/usl_expense_batch/tests/test_draft_expense_family.py::TestDraftExpenseFamily",
+        "custom-addons/usl_expense_batch/tests/test_draft_expense_configuration.py::TestDraftExpenseConfiguration"
       ]
     },
     "draft-post-match-20261014": {
