@@ -18,6 +18,205 @@ msgstr ""
 
 #. module: usl_accounting
 #. odoo-python
+#: code:addons/usl_accounting/models/vendor_bill_merge.py:0
+msgid "Merge history can only be recorded by the Merge Bills action."
+msgstr "L'historique de fusion peut uniquement être enregistré par l'action Fusionner les factures fournisseurs."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/vendor_bill_merge.py:0
+msgid "Restored to draft. This bill is no longer an active merged duplicate."
+msgstr "Remise en brouillon. Cette facture n'est plus un doublon fusionné actif."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/vendor_bill_merge.py:0
+msgid "Original Bills"
+msgstr "Factures originales"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move__vendor_bill_merge_target_id
+msgid "Merged into"
+msgstr "Fusionnée dans"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/vendor_bill_merge.py:0
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_wizard_form
+msgid "Choose the bill to keep"
+msgstr "Choisissez la facture à conserver"
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_usl_vendor_bill_merge_wizard
+msgid "Choose the Vendor Bill to Keep"
+msgstr "Choisissez la facture fournisseur à conserver"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__winning_bill_id
+msgid "Bill to keep"
+msgstr "Facture à conserver"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/vendor_bill_merge.py:0
+msgid "Choose a bill from the open Merge dialog."
+msgstr "Choisissez une facture dans la fenêtre Fusionner ouverte."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__winning_details
+msgid "Bill selected"
+msgstr "Facture sélectionnée"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/vendor_bill_merge_wizard.py:0
+msgid "Record %(id)s · %(reference)s\n%(amount)s · %(state)s"
+msgstr "Fiche %(id)s · %(reference)s\n%(amount)s · %(state)s"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_wizard_form
+msgid "Record"
+msgstr "Fiche"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_wizard_form
+msgid "Choose this bill"
+msgstr "Choisir cette facture"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_wizard_form
+msgid "State of the bill kept"
+msgstr "État de la facture conservée"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_wizard_form
+msgid "These bills differ. Keep one bill's existing content and amount. The other bills will be cancelled and remain available with their original files and history. The kept bill will be marked To Review."
+msgstr "Ces factures diffèrent. Conservez le contenu et le montant actuels d'une facture. Les autres seront annulées et resteront accessibles avec leurs fichiers originaux et leur historique. La facture conservée sera marquée À vérifier."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_wizard_form
+msgid "Keep this bill and merge"
+msgstr "Conserver cette facture et fusionner"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_list
+msgid "Merge Bills"
+msgstr "Fusionner les factures fournisseurs"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_form
+msgid "This original bill is retained as a merged duplicate. Its files and history stay here."
+msgstr "Cette facture originale est conservée comme doublon fusionné. Ses fichiers et son historique restent ici."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_form
+msgid "Open the bill kept"
+msgstr "Ouvrir la facture conservée"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_form
+msgid "Use Reset to Draft to restore this bill independently."
+msgstr "Utilisez Remettre en brouillon pour restaurer cette facture indépendamment."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/vendor_bill_merge.py:0
+msgid "This bill is not an active merged duplicate."
+msgstr "Cette facture n'est pas un doublon fusionné actif."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/vendor_bill_merge.py:0
+msgid "Select between two and 100 vendor bills to merge."
+msgstr "Sélectionnez entre deux et 100 factures fournisseurs à fusionner."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/vendor_bill_merge.py:0
+msgid "A selected bill is no longer available. Refresh and select the bills again."
+msgstr "Une facture sélectionnée n'est plus disponible. Actualisez puis sélectionnez à nouveau les factures."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/vendor_bill_merge.py:0
+msgid "Only draft or eligible posted unpaid vendor bills can be merged."
+msgstr "Seules les factures fournisseurs en brouillon ou comptabilisées, impayées et admissibles peuvent être fusionnées."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/vendor_bill_merge.py:0
+msgid "Select bills from one company you can currently access."
+msgstr "Sélectionnez les factures d'une seule société à laquelle vous avez actuellement accès."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/vendor_bill_merge.py:0
+msgid "Choose a supplier on every bill before merging."
+msgstr "Choisissez un fournisseur sur chaque facture avant la fusion."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/vendor_bill_merge.py:0
+msgid "Bills with payments or reconciliations cannot be merged. Use the native payment recovery workflow first."
+msgstr "Les factures liées à des paiements ou à des rapprochements ne peuvent pas être fusionnées. Utilisez d'abord le parcours natif de récupération des paiements."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/vendor_bill_merge.py:0
+msgid "A selected bill requires native cancellation approval before it can be merged."
+msgstr "Une facture sélectionnée nécessite l'autorisation native d'annulation avant sa fusion."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/vendor_bill_merge.py:0
+msgid "Native cancellation would delete a future recurring draft. Resolve that recurrence before merging; no bills have changed."
+msgstr "L'annulation native supprimerait un futur brouillon récurrent. Traitez cette récurrence avant la fusion ; aucune facture n'a été modifiée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/vendor_bill_merge.py:0
+#: code:addons/usl_accounting/wizard/vendor_bill_merge_wizard.py:0
+msgid "Choose one of the selected bills to keep."
+msgstr "Choisissez la facture à conserver parmi celles sélectionnées."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/vendor_bill_merge.py:0
+msgid "Merged as a duplicate. Bill kept:"
+msgstr "Fusionnée comme doublon. Facture conservée :"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/vendor_bill_merge.py:0
+msgid "Original bill retained with its files and history:"
+msgstr "Facture originale conservée avec ses fichiers et son historique :"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/vendor_bill_merge_wizard.py:0
+msgid "Open this choice from the selected bills' Merge action."
+msgstr "Ouvrez ce choix depuis l'action Fusionner des factures sélectionnées."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/vendor_bill_merge_wizard.py:0
+msgid "The reviewed bill selection cannot be changed. Reopen Merge to refresh it."
+msgstr "La sélection examinée ne peut pas être modifiée. Rouvrez Fusionner pour l'actualiser."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/vendor_bill_merge_wizard.py:0
+msgid "Only the person or Agent who opened this Merge dialog may change its choice or confirm it. Open your own Merge selection."
+msgstr "Seule la personne ou l'Agent ayant ouvert cette fenêtre Fusionner peut modifier son choix ou le confirmer. Ouvrez votre propre sélection à fusionner."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/vendor_bill_merge_wizard.py:0
+msgid "These bills changed after you opened Merge. Close this dialog and review a fresh selection; no bills have changed."
+msgstr "Ces factures ont changé depuis l'ouverture de Fusionner. Fermez cette fenêtre puis examinez une nouvelle sélection ; aucune facture n'a été modifiée."
+
+#. module: usl_accounting
+#. odoo-python
 #: code:addons/usl_accounting/wizard/expense_bank_match_wizard.py:0
 msgid " The vendor will change from %(before)s to %(after)s."
 msgstr " Le fournisseur passera de %(before)s à %(after)s."
@@ -6371,3 +6570,311 @@ msgstr "Le justificatif attend le service de téléchargement."
 #, python-format
 msgid "Retry a receipt needing attention, or one queued for at least %(minutes)s minutes."
 msgstr "Relancez un justificatif nécessitant une intervention ou en attente depuis au moins %(minutes)s minutes."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "You need bill-posting rights to post and match a payment."
+msgstr "Vous devez être autorisé à comptabiliser les factures pour comptabiliser une facture et rapprocher son paiement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Select the bill's company before posting and matching."
+msgstr "Sélectionnez la société de la facture avant de la comptabiliser et de rapprocher son paiement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Post and match is available only on a draft vendor bill."
+msgstr "Comptabiliser et rapprocher est disponible uniquement pour une facture fournisseur en brouillon."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "The bill changed after the confirmation was opened. Refresh and review it again."
+msgstr "La facture a changé depuis l’ouverture de la confirmation. Actualisez-la et vérifiez-la à nouveau."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Choose an eligible payment from this bill's suggestions."
+msgstr "Choisissez un paiement disponible parmi les suggestions de cette facture."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "This payment is no longer an eligible suggestion. Refresh the bill before posting."
+msgstr "Ce paiement n’est plus une suggestion disponible. Actualisez la facture avant de la comptabiliser."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "This payment is no longer available for this bill."
+msgstr "Ce paiement n’est plus disponible pour cette facture."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "The suggested payment must already have a posted journal entry."
+msgstr "Le paiement suggéré doit déjà avoir une écriture comptabilisée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Odoo assigns the bill number when posting."
+msgstr "Odoo attribue le numéro de la facture lors de sa comptabilisation."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Confirm that this bill will be posted before matching its payment."
+msgstr "Confirmez que cette facture sera comptabilisée avant de rapprocher son paiement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "The bill or payment changed after confirmation. Refresh and review them again."
+msgstr "La facture ou le paiement a changé depuis la confirmation. Actualisez-les et vérifiez-les à nouveau."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "The bill was posted and its payment was matched."
+msgstr "La facture a été comptabilisée et son paiement rapproché."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "The bill was posted, but its payment could not be matched. Refresh the bill and review the available payments."
+msgstr "La facture a été comptabilisée, mais son paiement n’a pas pu être rapproché. Actualisez la facture et vérifiez les paiements disponibles."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Save your bill changes before reviewing Post and match."
+msgstr "Enregistrez vos modifications avant de vérifier l’action Comptabiliser et rapprocher."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "This will post the bill and then match the selected payment."
+msgstr "Cette action comptabilisera la facture, puis rapprochera le paiement sélectionné."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Bill: %s"
+msgstr "Facture : %s"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Supplier: %s"
+msgstr "Fournisseur : %s"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Company: %s"
+msgstr "Société : %s"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Total: %s (%s)"
+msgstr "Total : %s (%s)"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Bill date: %s"
+msgstr "Date de la facture : %s"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Not set"
+msgstr "Non renseignée"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Accounting date: %s"
+msgstr "Date comptable : %s"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Odoo will move the accounting date from %s because of the lock dates."
+msgstr "Odoo modifiera la date comptable initiale (%s) en raison des dates de verrouillage."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Payment: %s"
+msgstr "Paiement : %s"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Journal entry: %s"
+msgstr "Écriture comptable : %s"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "If matching fails, the bill will remain posted. Review its available payments before trying again."
+msgstr "Si le rapprochement échoue, la facture restera comptabilisée. Vérifiez les paiements disponibles avant de réessayer."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Post bill and match payment?"
+msgstr "Comptabiliser la facture et rapprocher le paiement ?"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Post and match"
+msgstr "Comptabiliser et rapprocher"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "The bill was posted, but this view could not be refreshed. Reload the bill to review its current payment status."
+msgstr "La facture a été comptabilisée, mais cette vue n’a pas pu être actualisée. Rechargez la facture pour vérifier l’état actuel de son paiement."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "The outcome could not be confirmed. Refresh the bill and check whether it was posted or matched before trying again."
+msgstr "Le résultat n’a pas pu être confirmé. Actualisez la facture et vérifiez si elle a été comptabilisée ou son paiement rapproché avant de réessayer."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "The confirmation could not be loaded. Refresh the bill and review its available payments."
+msgstr "La confirmation n’a pas pu être chargée. Actualisez la facture et vérifiez les paiements disponibles."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Review the bill and selected payment before continuing their match."
+msgstr "Vérifiez la facture et le paiement sélectionné avant de poursuivre leur rapprochement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "The bill was not posted; its payment has not been matched. Review the native posting confirmation."
+msgstr "La facture n’a pas été comptabilisée ; son paiement n’a pas été rapproché. Vérifiez la confirmation de comptabilisation d’Odoo."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "The reviewed bill or payment changed during posting confirmation. Review the available payments before matching."
+msgstr "La facture ou le paiement vérifié a changé pendant la confirmation de comptabilisation. Vérifiez les paiements disponibles avant de les rapprocher."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/payment_suggestion.py:0
+msgid "Odoo requires its native posting confirmation. The bill is not posted and its payment has not been matched."
+msgstr "Odoo demande sa confirmation de comptabilisation. La facture n’est pas comptabilisée et son paiement n’a pas été rapproché."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "The accounting result is unchanged, but Odoo's additional setup dialog could not be opened. Reload the bill to review it."
+msgstr "Le résultat comptable est inchangé, mais la fenêtre de configuration complémentaire d’Odoo n’a pas pu être ouverte. Rechargez la facture pour la vérifier."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "Odoo may ask for its native additional posting confirmation."
+msgstr "Odoo peut demander une confirmation de comptabilisation supplémentaire."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "The posting outcome changed. Review the bill and its available payments before matching."
+msgstr "Le résultat de la comptabilisation a changé. Vérifiez la facture et ses paiements disponibles avant de les rapprocher."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "The bill was posted and its payment was matched, but this view could not be refreshed. Reload the bill to review its current status."
+msgstr "La facture a été comptabilisée et son paiement rapproché, mais cette vue n’a pas pu être actualisée. Rechargez la facture pour vérifier son état actuel."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "The payment outcome could not be confirmed. Refresh the bill and check its current status before trying again."
+msgstr "Le résultat du paiement n’a pas pu être confirmé. Actualisez la facture et vérifiez son état actuel avant de réessayer."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/immediate_settlement.js:0
+msgid "This view could not be refreshed. Reload the bill to review its posting and payment status."
+msgstr "Cette vue n’a pas pu être actualisée. Rechargez la facture pour vérifier sa comptabilisation et son paiement."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__difference_summary
+msgid "Why these bills differ"
+msgstr "Pourquoi ces factures diffèrent"
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/wizard/vendor_bill_merge_wizard.py:0
+msgid "Recipient bank accounts differ."
+msgstr "Les comptes bancaires destinataires diffèrent."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/wizard/vendor_bill_merge_wizard.py:0
+msgid "Tax reporting tags differ."
+msgstr "Les étiquettes de déclaration fiscale diffèrent."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/wizard/vendor_bill_merge_wizard.py:0
+msgid "Amounts or other bill details differ."
+msgstr "Les montants ou d’autres détails des factures diffèrent."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_wizard_form
+msgid "Open a record number to inspect the bill, then return here to choose."
+msgstr "Ouvrez un numéro de fiche pour consulter la facture, puis revenez ici pour choisir."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/vendor_bill_merge_wizard.py:0
+msgid "\nRecipient bank: %(bank)s"
+msgstr "\nCompte bancaire destinataire : %(bank)s"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_inspection_form
+msgid "Inspect this bill"
+msgstr "Consulter cette facture"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_inspection_form
+msgid "Read-only inspection. Close these details to return to your choice; confirm the merge separately in the comparison."
+msgstr "Consultation en lecture seule. Fermez ces détails pour revenir à votre choix ; confirmez la fusion séparément dans la comparaison."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_inspection_form
+msgid "Invoice lines"
+msgstr "Lignes de facture"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_inspection_form
+msgid "Journal items"
+msgstr "Écritures comptables"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_inspection_form
+msgid "Original files"
+msgstr "Fichiers d’origine"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_inspection_form
+msgid "History"
+msgstr "Historique"

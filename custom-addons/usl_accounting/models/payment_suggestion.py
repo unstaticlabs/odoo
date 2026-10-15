@@ -1,8 +1,15 @@
+import hashlib
+import json
+import logging
 import re
 from datetime import date, timedelta
 
-from odoo import _, fields, models
-from odoo.exceptions import UserError
+from odoo import _, api, fields, models
+from odoo.exceptions import AccessError, UserError
+from odoo.addons.web.controllers.utils import clean_action
+
+
+_logger = logging.getLogger(__name__)
 
 
 class AccountMove(models.Model):
@@ -345,6 +352,7 @@ class AccountMove(models.Model):
             )
         return candidates
 
+    @api.depends_context("uid", "allowed_company_ids")
     def _compute_payments_widget_to_reconcile_info(self):
         super()._compute_payments_widget_to_reconcile_info()
 
@@ -403,6 +411,12 @@ class AccountMove(models.Model):
                 candidate.update(
                     {
                         "can_assign": move.state == "posted",
+                        "can_post_match": (
+                            move.state == "draft" and move.move_type == "in_invoice"
+                            and move.company_id in self.env.companies
+                            and self.env.user.has_group("account.group_account_invoice")
+                        ),
+                        "bank_label": (line.move_id.statement_line_id.payment_ref or "").strip(),
                         "match_confidence": confidence,
                         "match_reason": reason,
                         "match_summary": summary,
@@ -432,8 +446,228 @@ class AccountMove(models.Model):
             widget["draft_suggestions"] = move.state == "draft"
             move.invoice_outstanding_credits_debits_widget = widget
 
-    def js_assign_outstanding_line(self, line_id):
+    def _check_draft_match_candidate(self, line_id, *, expected_write_date=None):
         self.ensure_one()
+        self.check_access("write")
+        if not self.env.user.has_group("account.group_account_invoice"):
+            raise AccessError(_("You need bill-posting rights to post and match a payment."))
+        if self.company_id not in self.env.companies:
+            raise AccessError(_("Select the bill's company before posting and matching."))
+        if self.move_type != "in_invoice" or self.state != "draft":
+            raise UserError(_("Post and match is available only on a draft vendor bill."))
+        if expected_write_date and fields.Datetime.to_string(self.write_date) != expected_write_date:
+            raise UserError(_("The bill changed after the confirmation was opened. Refresh and review it again."))
+        if isinstance(line_id, bool) or not isinstance(line_id, int) or line_id <= 0:
+            raise UserError(_("Choose an eligible payment from this bill's suggestions."))
+        # Recompute through the native field getter. Calling the compute
+        # method directly assigns outside Odoo's protected compute context
+        # and invokes write(), even though this widget is not stored.
+        self.invalidate_recordset(["invoice_outstanding_credits_debits_widget"])
+        candidates = (self.invoice_outstanding_credits_debits_widget or {}).get("content", [])
+        candidate = next((item for item in candidates if item["id"] == line_id), None)
+        if not candidate:
+            raise UserError(_("This payment is no longer an eligible suggestion. Refresh the bill before posting."))
+        line = self.env["account.move.line"].browse(line_id).exists()
+        line.check_access("write")
+        if not line or line.company_id != self.company_id or line.reconciled:
+            raise UserError(_("This payment is no longer available for this bill."))
+        if line.move_id.statement_line_id:
+            line.move_id.statement_line_id.check_access("write")
+        if line.move_id.state != "posted":
+            raise UserError(_("The suggested payment must already have a posted journal entry."))
+        return line, candidate
+
+    def _reviewed_match_key(self, line):
+        """Bind semantic bill/payment facts across native posting metadata changes.
+
+        This is a concurrency fingerprint, never an authorization capability.
+        Posting changes the number, state and write timestamps; it must not
+        silently change the reviewed bill content or selected payment.
+        """
+        statement = line.move_id.statement_line_id
+        facts = {
+            "bill_id": self.id, "company_id": self.company_id.id,
+            "supplier_id": self.commercial_partner_id.id,
+            "currency_id": self.currency_id.id, "amount": self.amount_total,
+            "invoice_date": self.invoice_date, "reference": self.ref,
+            "origin": self.invoice_origin, "terms": self.narration,
+            "fiscal_position_id": self.fiscal_position_id.id,
+            "payment_term_id": self.invoice_payment_term_id.id,
+            "term_accounts": sorted(self.line_ids.filtered(
+                lambda item: item.display_type == "payment_term").mapped("account_id").ids),
+            "bill_lines": [{
+                "id": item.id, "name": item.name, "product_id": item.product_id.id,
+                "account_id": item.account_id.id, "quantity": item.quantity,
+                "price_unit": item.price_unit, "discount": item.discount,
+                "tax_ids": sorted(item.tax_ids.ids),
+                "analytic_distribution": item.analytic_distribution,
+            } for item in self.invoice_line_ids.sorted("id")],
+            "payment": {
+                "id": line.id, "move_id": line.move_id.id,
+                "company_id": line.company_id.id, "account_id": line.account_id.id,
+                "partner_id": line.partner_id.id, "currency_id": line.currency_id.id,
+                "date": line.date, "balance": line.balance,
+                "amount_currency": line.amount_currency,
+                "residual": line.amount_residual,
+                "residual_currency": line.amount_residual_currency,
+                "name": line.name, "reference": line.move_id.ref,
+                "statement_id": statement.id, "bank_amount": statement.amount,
+                "bank_date": statement.date, "bank_label": statement.payment_ref,
+                "bank_partner_id": statement.partner_id.id,
+            },
+        }
+        return hashlib.sha256(json.dumps(facts, sort_keys=True, default=str).encode()).hexdigest()
+
+    def _check_reviewed_match(self, line_id, expected_key):
+        self.ensure_one()
+        self.check_access("write")
+        if not self.env.user.has_group("account.group_account_invoice"):
+            raise AccessError(_("You need bill-posting rights to post and match a payment."))
+        if self.company_id not in self.env.companies:
+            raise AccessError(_("Select the bill's company before posting and matching."))
+        if not isinstance(expected_key, str) or len(expected_key) != 64:
+            raise UserError(_("Review the bill and selected payment before continuing their match."))
+        if isinstance(line_id, bool) or not isinstance(line_id, int) or line_id <= 0:
+            raise UserError(_("Choose an eligible payment from this bill's suggestions."))
+        line = self.env["account.move.line"].browse(line_id).exists()
+        line.check_access("write")
+        if not line or line.company_id != self.company_id:
+            raise UserError(_("This payment is no longer available for this bill."))
+        (self | line.move_id).lock_for_update()
+        (self | line.move_id).invalidate_recordset()
+        bill_lines = self.line_ids
+        bill_lines.lock_for_update(allow_referencing=True)
+        line.lock_for_update(allow_referencing=True)
+        statement = line.move_id.statement_line_id
+        if statement:
+            statement.check_access("write")
+            statement.lock_for_update(allow_referencing=True)
+            statement.invalidate_recordset()
+        bill_lines.invalidate_recordset()
+        line.invalidate_recordset()
+        if self.move_type != "in_invoice" or self.state != "posted" or line.move_id.state != "posted":
+            raise UserError(_("The bill was not posted; its payment has not been matched. Review the native posting confirmation."))
+        if line.reconciled or self._reviewed_match_key(line) != expected_key:
+            raise UserError(_("The reviewed bill or payment changed during posting confirmation. Review the available payments before matching."))
+        self.invalidate_recordset(["invoice_outstanding_credits_debits_widget"])
+
+    def get_draft_post_match_preview(self, line_id):
+        line, candidate = self._check_draft_match_candidate(line_id)
+        affects_tax_report = self._affect_tax_report()
+        lock_dates = self._get_violated_lock_dates(self.date, affects_tax_report)
+        posting_date = self._get_accounting_date(
+            self._get_accounting_date_source(), affects_tax_report, lock_dates=lock_dates,
+        ) if lock_dates else self.date
+        preview = {
+            "bill_id": self.id,
+            "bill_name": self.display_name,
+            "company_name": self.company_id.display_name,
+            "company_id": self.company_id.id,
+            "supplier_name": self.commercial_partner_id.display_name,
+            "supplier_id": self.commercial_partner_id.id,
+            "amount": self.amount_total,
+            "currency_id": self.currency_id.id,
+            "currency_name": self.currency_id.name,
+            "bill_date": fields.Date.to_string(self.invoice_date),
+            "accounting_date": fields.Date.to_string(posting_date),
+            "current_accounting_date": fields.Date.to_string(self.date),
+            "numbering_note": _("Odoo assigns the bill number when posting."),
+            "bill_write_date": fields.Datetime.to_string(self.write_date),
+            "payment_label": candidate.get("bank_label") or candidate["move_name"],
+            "payment_entry": candidate["move_name"],
+            "line_id": line.id,
+            "reviewed_match_key": self._reviewed_match_key(line),
+        }
+        # A concurrency fingerprint, not an authorization capability. Include
+        # line facts because an external line edit may not change move.write_date.
+        facts = {
+            "preview": preview,
+            "candidate": candidate,
+            "source_write_date": line.write_date,
+            "bill_lines": [{
+                "id": item.id, "write_date": item.write_date,
+                "name": item.name, "product_id": item.product_id.id,
+                "account_id": item.account_id.id,
+                "quantity": item.quantity, "price_unit": item.price_unit,
+                "discount": item.discount, "tax_ids": item.tax_ids.ids,
+                "balance": item.balance, "amount_currency": item.amount_currency,
+                "analytic_distribution": item.analytic_distribution,
+            } for item in self.invoice_line_ids.sorted("id")],
+        }
+        preview["confirmation_key"] = hashlib.sha256(
+            json.dumps(facts, sort_keys=True, default=str).encode(),
+        ).hexdigest()
+        return preview
+
+    def js_post_and_match_outstanding_line(self, line_id, *, confirmed=False, expected_write_date=None, expected_confirmation=None):
+        if confirmed is not True:
+            raise UserError(_("Confirm that this bill will be posted before matching its payment."))
+        line, _candidate = self._check_draft_match_candidate(line_id, expected_write_date=expected_write_date)
+        if expected_confirmation and self.get_draft_post_match_preview(line_id)["confirmation_key"] != expected_confirmation:
+            raise UserError(_("The bill or payment changed after confirmation. Refresh and review them again."))
+        # Native non-blocking locks prevent a second request from posting the
+        # same bill or changing the selected entry during the operation.
+        (self | line.move_id).lock_for_update()
+        (self | line.move_id).invalidate_recordset()
+        bill_lines = self.line_ids
+        bill_lines.lock_for_update(allow_referencing=True)
+        line.lock_for_update(allow_referencing=True)
+        statement_line = line.move_id.statement_line_id
+        if statement_line:
+            statement_line.lock_for_update(allow_referencing=True)
+            statement_line.invalidate_recordset()
+        bill_lines.invalidate_recordset()
+        line.invalidate_recordset()
+        self._check_draft_match_candidate(line_id, expected_write_date=expected_write_date)
+        if expected_confirmation and self.get_draft_post_match_preview(line_id)["confirmation_key"] != expected_confirmation:
+            raise UserError(_("The bill or payment changed after confirmation. Refresh and review them again."))
+        posting_bill = self.with_context(validate_analytic=True, disable_abnormal_invoice_detection=False)
+        posting_bill.invalidate_recordset(["abnormal_amount_warning", "abnormal_date_warning"])
+        native_action = posting_bill.action_post()
+        self.invalidate_recordset(["state"])
+        if self.state != "posted":
+            if isinstance(native_action, dict):
+                native_action = dict(native_action)
+                # Return ordinary serializable UI context, never the in-process
+                # Agent operation scope used by this JSON-2 request.
+                native_context = native_action.get("context")
+                native_action["context"] = dict(
+                    native_context if isinstance(native_context, dict) else {},
+                    allowed_company_ids=self.env.companies.ids,
+                    lang=self.env.lang, tz=self.env.context.get("tz"),
+                    active_model=self._name, active_id=self.id, active_ids=self.ids,
+                    usl_post_match_bill_id=self.id,
+                    validate_analytic=True, disable_abnormal_invoice_detection=False)
+                # Nested RPC results bypass call_button’s ordinary action cleanup.
+                native_action = clean_action(native_action, self.env)
+            return {
+                "status": "posting_confirmation_required" if isinstance(native_action, dict) else "not_posted",
+                "bill_id": self.id, "bill_name": self.name, "state": self.state,
+                "native_action": native_action or False,
+                "message": _("Odoo requires its native posting confirmation. The bill is not posted and its payment has not been matched."),
+            }
+        status = "matched"
+        message = _("The bill was posted and its payment was matched.")
+        try:
+            with self.env.cr.savepoint():
+                self.js_assign_outstanding_line(line_id)
+        except Exception:
+            # Keep posting in the outer transaction and remove every partial
+            # matching write. Raising here would roll posting back as well.
+            _logger.exception("Payment matching failed after posting a bill")
+            status = "posted_unmatched"
+            message = _("The bill was posted, but its payment could not be matched. Refresh the bill and review the available payments.")
+        return {
+            "status": status, "bill_id": self.id, "bill_name": self.name,
+            "state": self.state, "accounting_date": fields.Date.to_string(self.date),
+            "native_action": clean_action(native_action, self.env) if isinstance(native_action, dict) else False,
+            "message": message,
+        }
+
+    def js_assign_outstanding_line(self, line_id, *, expected_reviewed_match_key=None):
+        self.ensure_one()
+        if expected_reviewed_match_key is not None:
+            self._check_reviewed_match(line_id, expected_reviewed_match_key)
         candidate = False
         if self.is_invoice(include_receipts=True):
             if self.state != "posted":
