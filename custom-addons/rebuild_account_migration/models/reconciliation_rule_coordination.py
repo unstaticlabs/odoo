@@ -76,7 +76,9 @@ class AccountReconcileModel(models.Model):
         scoped = self._rebuild_coordinate_companies(companies)
         records = super(AccountReconcileModel, scoped).create(vals_list)
         records._rebuild_validate_rule_graph(companies)
-        return records
+        # The held-company token belongs to this call, not later operations on
+        # the returned recordset (which may legitimately involve another company).
+        return records.with_env(self.env)
 
     def write(self, vals):
         self._rebuild_authoring_access("write")
@@ -126,7 +128,7 @@ class AccountReconcileModelLine(models.Model):
         records = super(AccountReconcileModelLine, scoped).create(vals_list)
         parents._rebuild_invalidate_pending_line_proof()
         parents._rebuild_validate_rule_graph(parents.company_id)
-        return records
+        return records.with_env(self.env)
 
     def write(self, vals):
         scoped, parents = self._rebuild_line_authoring_scope("write", [vals])

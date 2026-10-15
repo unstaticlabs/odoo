@@ -338,6 +338,8 @@ class TestProvenBankRuleProposals(AccountTestInvoicingCommon):
         self.assertTrue(copied.rebuild_generated_proof)
         self.assertTrue(copied.rebuild_is_proposal)
         self.assertFalse(copied.rebuild_proof_digest)
+        with self.assertRaises(AccessError):
+            copied.write({"rebuild_generated_proof": False})
         with self.assertRaises(UserError):
             copied.action_rebuild_approve_proposal()
         with self.assertRaises(AccessError):
@@ -345,6 +347,19 @@ class TestProvenBankRuleProposals(AccountTestInvoicingCommon):
         copied.action_rebuild_dismiss_proposal()
         source.action_rebuild_approve_proposal()
         self.assertFalse(source.rebuild_is_proposal)
+
+    def test_legacy_suggestion_retains_native_manager_approval_without_claiming_replay(self):
+        rule = self.rules.create(self._manual_values('[QA] Older manually reviewed suggestion') | {
+            'rebuild_is_proposal': True,
+            'rebuild_proposal_source': 'deterministic',
+            'rebuild_proposal_evidence': '[QA] Existing review notes retained',
+        })
+        rule.action_rebuild_approve_proposal()
+        self.assertFalse(rule.rebuild_is_proposal)
+        self.assertFalse(rule.rebuild_generated_proof)
+        self.assertFalse(rule.rebuild_proof_digest)
+        self.assertEqual(rule.rebuild_proposal_evidence, '[QA] Existing review notes retained')
+        self.assertTrue(rule.message_ids)
 
     def test_managed_agent_uses_native_find_and_approval_under_owner_ceiling(self):
         if "usl.agent" not in self.env:

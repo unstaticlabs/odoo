@@ -448,6 +448,30 @@ class AccountReconcileModel(models.Model):
                 "Only an Accounting Manager can govern bank matching rules.",
             ))
 
+    def action_rebuild_approve_proposal(self):
+        self.ensure_one()
+        self._rebuild_check_rule_manager()
+        if not self.rebuild_is_proposal:
+            return True
+        if not self.match_label and not self.match_amount and not self.match_partner_ids:
+            raise UserError(_(
+                "Add at least one reliable matching condition before approval.",
+            ))
+        if not self.line_ids:
+            raise UserError(_(
+                "Add the expected counterpart entry before approval.",
+            ))
+        self.write({
+            "rebuild_is_proposal": False,
+            "trigger": self.rebuild_proposed_trigger or "manual",
+        })
+        self.message_post(body=_(
+            "Rule suggestion approved by %(user)s. Evidence retained: %(evidence)s",
+            user=self.env.user.display_name,
+            evidence=self.rebuild_proposal_evidence or _("No evidence supplied"),
+        ))
+        return True
+
     def action_rebuild_dismiss_proposal(self):
         self.ensure_one()
         self._rebuild_check_rule_manager()

@@ -113,7 +113,7 @@ class AccountReconcileModel(models.Model):
             "rebuild_proposal_evidence": self.rebuild_proposal_evidence,
             "rebuild_replay_summary": _("Copied suggestion. Recheck evidence before approval."),
         })
-        return super(AccountReconcileModel, self._rebuild_proof_scope()).copy(default=defaults)
+        return super(AccountReconcileModel, self._rebuild_proof_scope()).copy(default=defaults).with_env(self.env)
 
     def _rebuild_check_generated_actor(self):
         self._rebuild_check_rule_manager()
@@ -417,6 +417,10 @@ class AccountReconcileModel(models.Model):
 
     def action_rebuild_approve_proposal(self):
         self.ensure_one()
+        if not self.rebuild_generated_proof:
+            # Older/manual suggestions keep their existing native manager
+            # workflow; only newly generated proofs promise verified replay.
+            return super().action_rebuild_approve_proposal()
         self._rebuild_check_generated_actor()
         self.check_access("write")
         if not self.rebuild_is_proposal:

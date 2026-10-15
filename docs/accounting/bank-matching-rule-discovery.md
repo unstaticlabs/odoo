@@ -61,6 +61,12 @@ checks. Ordinary native manual rule authoring retains its operation-specific
 permissions, including Billing create-only access. Manual edits receive no
 historical-evidence ceremony. A proven conflict introduced against an active
 generated rule is refused visibly. Existing protected deletion policy remains.
+Older and manually prepared suggestions retain their existing Accounting
+Manager approval workflow and review notes. They do not acquire a verified replay
+claim merely by upgrading. Recheck evidence can establish the new proof when the
+retained supporting transactions permit it; it is not a new prerequisite for
+legacy approval.
+
 Rejected new suggestions are archived with their reason rather than deleted;
 repeated Find calls retain their history and evidence key.
 
@@ -78,6 +84,8 @@ this addon introduces no Agent-only policy. The barriers do not require
 journal-write permission or change a journal.
 Affected old/new companies and nested parent scopes are resolved before the
 sorted barrier; only an identity-checked internal scope can reuse held companies.
+Public create/copy results restore the caller environment so private proof and
+held-company tokens cannot escape into a later operation on the returned records.
 
 A stale REPEATABLE READ transaction receives native SQLSTATE 40001. The product
 helper does not catch it, commit, open another cursor or retry locally. Odoo's

@@ -62,5 +62,10 @@ rule remains a suggestion. Ordinary handwritten rules keep their native editor
 and permissions. Unsupported historical effects need native manual rule
 configuration; they are not silently replaced by a simple account assignment.
 
+Suggestions prepared before this update retain their existing manager review and
+approval, with their original notes. They are not presented as having passed the
+new replay check. Recheck evidence is available when their retained examples can
+support the new proof.
+
 Archiving or dismissing a rule preserves its chatter and usage evidence. It
 does not change or undo any existing journal entry.
