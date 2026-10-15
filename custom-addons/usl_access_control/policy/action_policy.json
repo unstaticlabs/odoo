@@ -181018,26 +181018,6 @@
     },
     {
       "action_keys": [
-        "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1"
-      ],
-      "classification": "system_internal",
-      "consequence": "Private native aggregate delegation; existing public callers retain their authorization and classification.",
-      "domain": "projects",
-      "evidence_id": "live-content-search-20261014",
-      "id": "system_internal.projects.live_content_search",
-      "overrides": {
-        "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1": {
-          "rationale": "Exact native signature and @api.model remain. The context manager restores healthy prior planner state, preserves original SQL errors for caller rollback and does not own a savepoint. Actual native Pivot GROUPING SETS and nested schema SQL are observed under jit=off with exact aggregate/project assertions.",
-          "reachability_proof": "This private helper adds no callable RPC/controller/UI/cron entry. Existing native formatted_read_grouping_sets remains the public parent and keeps its classification and access."
-        }
-      },
-      "rationale": "Reviewed 2026-10-15: discovery conservatively matches '_set' within _read_grouping_sets as orm_write, as with the existing native Project/ORM wrappers. This override only scopes the transaction-local JIT setting and delegates unchanged to native aggregation; no business row write, elevation, global configuration or external effect.",
-      "reviewed_digests": {
-        "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1": "dd3f23fbed92b3839174ec67e638ea9073a9effeeff7232f0d0e6799357de1c4"
-      }
-    },
-    {
-      "action_keys": [
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._cron_usl_reactivate_later_tasks:sudo:1",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._get_default_personal_stage_create_vals:orm_write:1",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._is_projectless_todo_recipient:sudo:1",
@@ -204157,6 +204137,124 @@
     },
     {
       "action_keys": [
+        "route:jsonrpc:ANY:/html_editor/generate_text"
+      ],
+      "classification": "operational",
+      "consequence": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
+      "domain": "system_framework",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.2",
+      "rationale": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
+      "reviewed_digests": {
+        "route:jsonrpc:ANY:/html_editor/generate_text": "b00102b90870fe0f87637ad180a5d8405c56a7522110558f1745005aa84929eb"
+      }
+    },
+    {
+      "action_keys": [
+        "route:jsonrpc:ANY:/html_editor/modify_image/<model(\"ir.attachment\"):attachment>"
+      ],
+      "classification": "operational",
+      "consequence": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
+      "domain": "documents_and_communications",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.3",
+      "rationale": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
+      "reviewed_digests": {
+        "route:jsonrpc:ANY:/html_editor/modify_image/<model(\"ir.attachment\"):attachment>": "035375acd2da4c4fdbcaa10f34d00337de874c315abfa025c096c37ed990c3f7"
+      }
+    },
+    {
+      "action_keys": [
+        "route:jsonrpc:ANY:/web/action/load_breadcrumbs"
+      ],
+      "classification": "transport",
+      "consequence": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
+      "domain": "system_framework",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.4",
+      "rationale": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
+      "reviewed_digests": {
+        "route:jsonrpc:ANY:/web/action/load_breadcrumbs": "799548b0037dd87a8788b3d3905a44febecf7364ef2f69288c9341f7880ef5eb"
+      },
+      "targets": [
+        "rpc:ir.actions.server.run"
+      ]
+    },
+    {
+      "action_keys": [
+        "route:jsonrpc:ANY:/web/action/run"
+      ],
+      "classification": "transport",
+      "consequence": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
+      "domain": "system_framework",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.5",
+      "rationale": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
+      "reviewed_digests": {
+        "route:jsonrpc:ANY:/web/action/run": "0f4475f0f23153f4d380c1b5dd5d056683a2dc6b9466a31f01663e208eead735"
+      },
+      "targets": [
+        "rpc:ir.actions.server.run"
+      ]
+    },
+    {
+      "action_keys": [
+        "route:jsonrpc:ANY:/web_editor/bus_broadcast"
+      ],
+      "classification": "operational",
+      "consequence": "Checks document read/write authority and sends editor collaboration bus events; the new batch/peer routing does not remove that authority boundary. This emits notifications and is not a read-only operation.",
+      "domain": "system_framework",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.6",
+      "rationale": "Checks document read/write authority and sends editor collaboration bus events; the new batch/peer routing does not remove that authority boundary. This emits notifications and is not a read-only operation.",
+      "reviewed_digests": {
+        "route:jsonrpc:ANY:/web_editor/bus_broadcast": "7df5c77037e653a30cb331e8dc9e537e9fa425f1a97f6a25eef4ca496ea3483f"
+      }
+    },
+    {
+      "action_keys": [
+        "route:jsonrpc:ANY:/web_editor/generate_text"
+      ],
+      "classification": "operational",
+      "consequence": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
+      "domain": "system_framework",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.7",
+      "rationale": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
+      "reviewed_digests": {
+        "route:jsonrpc:ANY:/web_editor/generate_text": "7b2d4b71f10413bf194b17d3af7f4d443ae48a4db7560e4c540b13f9c85b39f8"
+      }
+    },
+    {
+      "action_keys": [
+        "route:jsonrpc:ANY:/web_editor/modify_image/<model(\"ir.attachment\"):attachment>"
+      ],
+      "classification": "operational",
+      "consequence": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
+      "domain": "documents_and_communications",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.8",
+      "rationale": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
+      "reviewed_digests": {
+        "route:jsonrpc:ANY:/web_editor/modify_image/<model(\"ir.attachment\"):attachment>": "eb1f5b787e9dcf5e364d00a0ce1156bec285f9edbaf6c126706e67f15df2e2e6"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:account.analytic.plan.write"
+      ],
+      "classification": "operational",
+      "consequence": "Public plan name/parent maintenance invokes fixed inverse and private _sync_all_plan_column. Registry analytic.plan.fields.mixin descendants fix models. _strict_column_name fixes account_id or x_plan{persisted id}_id; _hierarchy_name adds numeric depth. Only business name enters field_description; ttype=many2one, relation, related path, store, readonly and on_delete are fixed. Batched sudo ir.model.fields search/create/write/unlink operates only these generated fields. Existing analytic account values migrate before root column removal; unused hierarchy fields removed after write. analytic.group_analytic_accounting ACL controls plan CRUD; this exposes no arbitrary field-definition API. Generic field-definition API keeps its own guard.",
+      "domain": "accounting",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.9",
+      "rationale": "Public plan name/parent maintenance invokes fixed inverse and private _sync_all_plan_column. Registry analytic.plan.fields.mixin descendants fix models. _strict_column_name fixes account_id or x_plan{persisted id}_id; _hierarchy_name adds numeric depth. Only business name enters field_description; ttype=many2one, relation, related path, store, readonly and on_delete are fixed. Batched sudo ir.model.fields search/create/write/unlink operates only these generated fields. Existing analytic account values migrate before root column removal; unused hierarchy fields removed after write. analytic.group_analytic_accounting ACL controls plan CRUD; this exposes no arbitrary field-definition API. Generic field-definition API keeps its own guard.",
+      "reviewed_digests": {
+        "rpc:account.analytic.plan.write": "302cce3701fa5f03e3de604927420a658998e7b7b973aeff5730bfaeda7518c0"
+      }
+    },
+    {
+      "action_keys": [
         "rpc:account.move.action_cancel_peppol_documents"
       ],
       "classification": "operational",
@@ -204297,20 +204395,6 @@
     },
     {
       "action_keys": [
-        "route:jsonrpc:ANY:/html_editor/generate_text"
-      ],
-      "classification": "operational",
-      "consequence": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
-      "domain": "system_framework",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.2",
-      "rationale": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
-      "reviewed_digests": {
-        "route:jsonrpc:ANY:/html_editor/generate_text": "b00102b90870fe0f87637ad180a5d8405c56a7522110558f1745005aa84929eb"
-      }
-    },
-    {
-      "action_keys": [
         "rpc:product.product.name_search"
       ],
       "classification": "read_only",
@@ -204447,20 +204531,6 @@
       "rationale": "Exact delivered closure includes delivery and stock_delivery only. Carrier dispatcher reaches fixed_cancel_shipment or base_on_rule_cancel_shipment; both raise NotImplementedError before picking chatter or tracking reset. Upstream corrects recordset dispatch from self to each picking. No remote provider or remote reversal exists here. Preserve fixed normal workflow and explicitly drop unsupported remote-recovery claim; adding a provider requires new registry review.",
       "reviewed_digests": {
         "rpc:stock.picking.cancel_shipment": "80a2ae4c65eb92fdc724ba83290b36fcdb640a262cacc6d5a4d7f8e53156e050"
-      }
-    },
-    {
-      "action_keys": [
-        "route:jsonrpc:ANY:/html_editor/modify_image/<model(\"ir.attachment\"):attachment>"
-      ],
-      "classification": "operational",
-      "consequence": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
-      "domain": "documents_and_communications",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.3",
-      "rationale": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
-      "reviewed_digests": {
-        "route:jsonrpc:ANY:/html_editor/modify_image/<model(\"ir.attachment\"):attachment>": "035375acd2da4c4fdbcaa10f34d00337de874c315abfa025c096c37ed990c3f7"
       }
     },
     {
@@ -204610,23 +204680,6 @@
       "reviewed_digests": {
         "sink:account:addons/account/models/product.py:product.template.write:orm_write:1": "6006ca69ad31e5f64021eac08f8d47193fd3367eb95769add5d34ae8352ac514"
       }
-    },
-    {
-      "action_keys": [
-        "route:jsonrpc:ANY:/web/action/load_breadcrumbs"
-      ],
-      "classification": "transport",
-      "consequence": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
-      "domain": "system_framework",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.4",
-      "rationale": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
-      "reviewed_digests": {
-        "route:jsonrpc:ANY:/web/action/load_breadcrumbs": "799548b0037dd87a8788b3d3905a44febecf7364ef2f69288c9341f7880ef5eb"
-      },
-      "targets": [
-        "rpc:ir.actions.server.run"
-      ]
     },
     {
       "action_keys": [
@@ -204780,23 +204833,6 @@
     },
     {
       "action_keys": [
-        "route:jsonrpc:ANY:/web/action/run"
-      ],
-      "classification": "transport",
-      "consequence": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
-      "domain": "system_framework",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.5",
-      "rationale": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
-      "reviewed_digests": {
-        "route:jsonrpc:ANY:/web/action/run": "0f4475f0f23153f4d380c1b5dd5d056683a2dc6b9466a31f01663e208eead735"
-      },
-      "targets": [
-        "rpc:ir.actions.server.run"
-      ]
-    },
-    {
-      "action_keys": [
         "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_edi_ubl_cen_en16931.py:account.edi.ubl_cen_en16931._ubl_get_partner_address_node:orm_write:1"
       ],
       "classification": "system_internal",
@@ -204943,20 +204979,6 @@
       "reachability_proof": "Exact implementation sink only; it has no independent public method/controller dispatch. Its reviewed native parent owns actor, record and company authority.",
       "reviewed_digests": {
         "sink:base_automation:addons/base_automation/models/base_automation.py:base.automation._process:sudo:3": "f3876a33d3dab335a239a2576432833e5da601c1f36ea1abb8c8c2b2feae1f5b"
-      }
-    },
-    {
-      "action_keys": [
-        "route:jsonrpc:ANY:/web_editor/bus_broadcast"
-      ],
-      "classification": "operational",
-      "consequence": "Checks document read/write authority and sends editor collaboration bus events; the new batch/peer routing does not remove that authority boundary. This emits notifications and is not a read-only operation.",
-      "domain": "system_framework",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.6",
-      "rationale": "Checks document read/write authority and sends editor collaboration bus events; the new batch/peer routing does not remove that authority boundary. This emits notifications and is not a read-only operation.",
-      "reviewed_digests": {
-        "route:jsonrpc:ANY:/web_editor/bus_broadcast": "7df5c77037e653a30cb331e8dc9e537e9fa425f1a97f6a25eef4ca496ea3483f"
       }
     },
     {
@@ -205111,20 +205133,6 @@
     },
     {
       "action_keys": [
-        "route:jsonrpc:ANY:/web_editor/generate_text"
-      ],
-      "classification": "operational",
-      "consequence": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
-      "domain": "system_framework",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.7",
-      "rationale": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
-      "reviewed_digests": {
-        "route:jsonrpc:ANY:/web_editor/generate_text": "7b2d4b71f10413bf194b17d3af7f4d443ae48a4db7560e4c540b13f9c85b39f8"
-      }
-    },
-    {
-      "action_keys": [
         "sink:l10n_fr_pdp:addons/l10n_fr_pdp/models/account_edi_xml_ubl_21_fr.py:account.edi.xml.ubl_21_fr._ubl_add_invoice_type_code_node:orm_write:1"
       ],
       "classification": "system_internal",
@@ -205271,20 +205279,6 @@
       "reachability_proof": "Exact implementation sink only; it has no independent public method/controller dispatch. Its reviewed native parent owns actor, record and company authority.",
       "reviewed_digests": {
         "sink:mrp_account:addons/mrp_account/models/mrp_production.py:mrp.production.write:sudo:3": "7425bf9a3c7c33f602278db591d6d493958f8bb29a35bfe43d54c4a031c3e9cf"
-      }
-    },
-    {
-      "action_keys": [
-        "route:jsonrpc:ANY:/web_editor/modify_image/<model(\"ir.attachment\"):attachment>"
-      ],
-      "classification": "operational",
-      "consequence": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
-      "domain": "documents_and_communications",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.8",
-      "rationale": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
-      "reviewed_digests": {
-        "route:jsonrpc:ANY:/web_editor/modify_image/<model(\"ir.attachment\"):attachment>": "eb1f5b787e9dcf5e364d00a0ce1156bec285f9edbaf6c126706e67f15df2e2e6"
       }
     },
     {
@@ -205439,20 +205433,6 @@
     },
     {
       "action_keys": [
-        "rpc:account.analytic.plan.write"
-      ],
-      "classification": "operational",
-      "consequence": "Public plan name/parent maintenance invokes fixed inverse and private _sync_all_plan_column. Registry analytic.plan.fields.mixin descendants fix models. _strict_column_name fixes account_id or x_plan{persisted id}_id; _hierarchy_name adds numeric depth. Only business name enters field_description; ttype=many2one, relation, related path, store, readonly and on_delete are fixed. Batched sudo ir.model.fields search/create/write/unlink operates only these generated fields. Existing analytic account values migrate before root column removal; unused hierarchy fields removed after write. analytic.group_analytic_accounting ACL controls plan CRUD; this exposes no arbitrary field-definition API. Generic field-definition API keeps its own guard.",
-      "domain": "accounting",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.9",
-      "rationale": "Public plan name/parent maintenance invokes fixed inverse and private _sync_all_plan_column. Registry analytic.plan.fields.mixin descendants fix models. _strict_column_name fixes account_id or x_plan{persisted id}_id; _hierarchy_name adds numeric depth. Only business name enters field_description; ttype=many2one, relation, related path, store, readonly and on_delete are fixed. Batched sudo ir.model.fields search/create/write/unlink operates only these generated fields. Existing analytic account values migrate before root column removal; unused hierarchy fields removed after write. analytic.group_analytic_accounting ACL controls plan CRUD; this exposes no arbitrary field-definition API. Generic field-definition API keeps its own guard.",
-      "reviewed_digests": {
-        "rpc:account.analytic.plan.write": "302cce3701fa5f03e3de604927420a658998e7b7b973aeff5730bfaeda7518c0"
-      }
-    },
-    {
-      "action_keys": [
         "ui:account.view_move_form:button:object:action_open_journal_items:1"
       ],
       "classification": "transport",
@@ -205484,6 +205464,26 @@
       "targets": [
         "rpc:account.move.action_cancel_peppol_documents"
       ]
+    },
+    {
+      "action_keys": [
+        "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Private native aggregate delegation; existing public callers retain their authorization and classification.",
+      "domain": "projects",
+      "evidence_id": "live-content-search-20261014",
+      "id": "system_internal.projects.live_content_search",
+      "overrides": {
+        "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1": {
+          "rationale": "Exact native signature and @api.model remain. The context manager restores healthy prior planner state, preserves original SQL errors for caller rollback and does not own a savepoint. Actual native Pivot GROUPING SETS and nested schema SQL are observed under jit=off with exact aggregate/project assertions.",
+          "reachability_proof": "This private helper adds no callable RPC/controller/UI/cron entry. Existing native formatted_read_grouping_sets remains the public parent and keeps its classification and access."
+        }
+      },
+      "rationale": "Reviewed 2026-10-15: discovery conservatively matches '_set' within _read_grouping_sets as orm_write, as with the existing native Project/ORM wrappers. This override only scopes the transaction-local JIT setting and delegates unchanged to native aggregation; no business row write, elevation, global configuration or external effect.",
+      "reviewed_digests": {
+        "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1": "dd3f23fbed92b3839174ec67e638ea9073a9effeeff7232f0d0e6799357de1c4"
+      }
     }
   ],
   "evidence_families": {
