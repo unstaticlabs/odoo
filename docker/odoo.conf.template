@@ -32,3 +32,4 @@ smtp_user = ${ODOO_SMTP_USER}
 smtp_password = ${ODOO_SMTP_PASSWORD}
 email_from = ${ODOO_EMAIL_FROM}
 from_filter = ${ODOO_FROM_FILTER}
+pre_upgrade_scripts = /opt/usl/pre_upgrade.py
