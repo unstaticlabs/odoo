@@ -42,6 +42,12 @@ class TestUslHome(TransactionCase):
             },
         )
 
+    def test_home_uses_unique_native_route_without_changing_its_identity(self):
+        action = self.env.ref("usl_home.action_usl_home")
+        self.assertEqual(action.path, "usl-home")
+        self.assertEqual(action.tag, "usl_home.Home")
+        self.assertEqual(self.env.ref("usl_home.menu_usl_home_root").action, action)
+
     def test_new_internal_user_receives_home_action(self):
         user = new_test_user(
             self.env,

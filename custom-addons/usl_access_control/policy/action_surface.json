@@ -3022,6 +3022,78 @@
     },
     {
       "delegates": [
+        "rpc:usl.home.service.search_records"
+      ],
+      "digest": "10f940116c19e0987ac26a9ab2228c388bb1d9ecea688e323ca71dea1835486c",
+      "handler": "if",
+      "key": "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:1",
+      "kind": "client",
+      "modules": [
+        "usl_home"
+      ],
+      "sources": [
+        {
+          "line": 96,
+          "path": "custom-addons/usl_home/static/src/home/content_search.js"
+        }
+      ]
+    },
+    {
+      "delegates": [
+        "rpc:usl.home.service.search_records"
+      ],
+      "digest": "543465818859ba898de82a298a2004dd3cf64f6334d8e6e1558a04f0ce2b14c7",
+      "handler": "if",
+      "key": "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:2",
+      "kind": "client",
+      "modules": [
+        "usl_home"
+      ],
+      "sources": [
+        {
+          "line": 145,
+          "path": "custom-addons/usl_home/static/src/home/content_search.js"
+        }
+      ]
+    },
+    {
+      "delegates": [
+        "rpc:usl.home.service.search_documents"
+      ],
+      "digest": "36f56fab197f8ae5eb634278bb47507fc0998b4d4038b5ab00f7bc9f221e580c",
+      "handler": "loadDocuments",
+      "key": "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:loadDocuments:rpc:1",
+      "kind": "client",
+      "modules": [
+        "usl_home"
+      ],
+      "sources": [
+        {
+          "line": 117,
+          "path": "custom-addons/usl_home/static/src/home/content_search.js"
+        }
+      ]
+    },
+    {
+      "delegates": [
+        "rpc:usl.home.service.get_search_result_action"
+      ],
+      "digest": "3f0592da92b3e4b1340a371af2a2a814ea4ad31584594c1aaf32703ab122d484",
+      "handler": "open",
+      "key": "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:open:rpc:1",
+      "kind": "client",
+      "modules": [
+        "usl_home"
+      ],
+      "sources": [
+        {
+          "line": 160,
+          "path": "custom-addons/usl_home/static/src/home/content_search.js"
+        }
+      ]
+    },
+    {
+      "delegates": [
         "rpc:usl.home.favorite.reorder",
         "rpc:usl.home.service.resolve_favorite"
       ],
@@ -3092,8 +3164,31 @@
       ],
       "sources": [
         {
-          "line": 225,
+          "line": 231,
           "path": "custom-addons/usl_home/static/src/home/home.js"
+        }
+      ]
+    },
+    {
+      "delegates": [
+        "rpc:usl.home.service.get_search_result_action",
+        "rpc:usl.home.service.search_records"
+      ],
+      "digest": "558c88b9cbf9bf37c219046e7a3b624925203424cacf607716f2789c68db3a27",
+      "handler": "if",
+      "key": "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:if:rpc:1",
+      "kind": "client",
+      "modules": [
+        "usl_home"
+      ],
+      "sources": [
+        {
+          "line": 33,
+          "path": "custom-addons/usl_home/static/src/project_search/project_search.js"
+        },
+        {
+          "line": 66,
+          "path": "custom-addons/usl_home/static/src/project_search/project_search.js"
         }
       ]
     },
@@ -3112,6 +3207,24 @@
         {
           "line": 99,
           "path": "custom-addons/usl_project/static/src/favorite_project_navigation.js"
+        }
+      ]
+    },
+    {
+      "delegates": [
+        "rpc:project.task.action_move_kanban_cell"
+      ],
+      "digest": "fc7a661393977e0e80b5ade10b3f041e426d3d8235689d4c154dd55278c08d0e",
+      "handler": "moveCell",
+      "key": "client:usl_project:custom-addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:moveCell:rpc:1",
+      "kind": "client",
+      "modules": [
+        "usl_project"
+      ],
+      "sources": [
+        {
+          "line": 161,
+          "path": "custom-addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js"
         }
       ]
     },
@@ -867683,6 +867796,49 @@
       "abstract": false,
       "archiveable": true,
       "delegates": [
+        "rpc:project.task.check_access",
+        "rpc:project.task.ensure_one",
+        "rpc:project.task.fields_get",
+        "rpc:project.task.invalidate_recordset",
+        "rpc:project.task.lock_for_update",
+        "rpc:project.task.write"
+      ],
+      "digest": "c2575ea4cace25865314d7df19b2494c43a683106c77995a7b7cb65d8e27554e",
+      "guards": [],
+      "key": "rpc:project.task.action_move_kanban_cell",
+      "kind": "rpc",
+      "method": "action_move_kanban_cell",
+      "model": "project.task",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1705b800dadc31beceb347b7cb998264f83bfc799bbd224d9e8fd7e9bafc8fb4",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 64,
+          "path": "custom-addons/usl_project/models/task_swimlane.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/task_swimlane.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.check_access",
+        "rpc:project.task.ensure_one",
+        "rpc:project.task.invalidate_recordset",
+        "rpc:project.task.lock_for_update"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": true,
+      "delegates": [
         "rpc:usl.document.link.mixin.ensure_one",
         "rpc:usl.document.link.mixin.sudo",
         "rpc:usl.document.link.mixin.with_context"
@@ -871213,6 +871369,42 @@
         }
       ],
       "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": true,
+      "delegates": [
+        "rpc:project.task.browse",
+        "rpc:project.task.check_access",
+        "rpc:project.task.has_field_access"
+      ],
+      "digest": "13c15c3bd85ec6736ed16d52c683c3f2f39e599e513b58f5515f6b9fa59c68a1",
+      "guards": [],
+      "key": "rpc:project.task.get_kanban_property_definition",
+      "kind": "rpc",
+      "method": "get_kanban_property_definition",
+      "model": "project.task",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "222b601c59303d451ff7f1899b6f4ae4acf4baa10859dae1265b747f1333625e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 14,
+          "path": "custom-addons/usl_project/models/task_swimlane.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/task_swimlane.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.browse",
+        "rpc:project.task.check_access"
+      ]
     },
     {
       "abstract": false,
@@ -1370587,6 +1370779,33 @@
     {
       "abstract": true,
       "archiveable": false,
+      "digest": "07f5dddae4801067f010ac1144589769c2894835b16d336acbd02cca17d3ea46",
+      "guards": [],
+      "key": "rpc:usl.home.service.get_search_result_action",
+      "kind": "rpc",
+      "method": "get_search_result_action",
+      "model": "usl.home.service",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "4ef7ff03766019953934c4eb66800d90a592e571365911ba77c6bf6148d74ea0",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 158,
+          "path": "custom-addons/usl_home/models/content_search.py"
+        },
+        {
+          "path": "custom-addons/usl_home/models/content_search.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
       "delegates": [
         "rpc:ir.ui.view.sudo",
         "rpc:usl.home.service.browse"
@@ -1371148,6 +1371367,36 @@
       "abstract": true,
       "archiveable": false,
       "delegates": [
+        "rpc:usl.document.mcp_search"
+      ],
+      "digest": "a49109300ed02ed6c7f4fc6fb03b88a6af4f2960b76a2ba8e3b72b86e8401797",
+      "guards": [],
+      "key": "rpc:usl.home.service.search_documents",
+      "kind": "rpc",
+      "method": "search_documents",
+      "model": "usl.home.service",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1ef5623d20764e361dfd23f3b4bf0c243f828c8de92c3f814f853ed8ce34f4b4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 137,
+          "path": "custom-addons/usl_home/models/content_search.py"
+        },
+        {
+          "path": "custom-addons/usl_home/models/content_search.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
         "rpc:usl.home.service.fields_get",
         "rpc:usl.home.service.search_count",
         "rpc:usl.home.service.with_context"
@@ -1371236,6 +1371485,33 @@
         },
         {
           "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "f20ff609b54755e2044f2c2a932ca978b424396aabcad5bf2cbd1c2e016b6ece",
+      "guards": [],
+      "key": "rpc:usl.home.service.search_records",
+      "kind": "rpc",
+      "method": "search_records",
+      "model": "usl.home.service",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "094493f8d10036988def05b6a940f65d0dbbc23fd276ff5d05a0397ff3cd4a65",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 109,
+          "path": "custom-addons/usl_home/models/content_search.py"
+        },
+        {
+          "path": "custom-addons/usl_home/models/content_search.py"
         }
       ],
       "transient": false
@@ -1628277,6 +1628553,24 @@
       ]
     },
     {
+      "digest": "34dd55e9158f2060bc13eab38473887fc494c9aa476d761e799b0503175d1154",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_swimlane.py:project.task.action_move_kanban_cell:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.action_move_kanban_cell"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 64,
+          "path": "custom-addons/usl_project/models/task_swimlane.py"
+        }
+      ]
+    },
+    {
       "digest": "0fdb170370dcaafc4ca8d976db1b02f1c5b352355ef28bdc6f0a31578d8308be",
       "key": "sink:usl_sign:custom-addons/usl_sign/controllers/portal.py:SignPortalController._secure_signer:sudo:1",
       "kind": "sink",
@@ -1690165,7 +1690459,7 @@
       "xmlid": "usl_feedback.res_config_settings_view_form_feedback"
     },
     {
-      "digest": "e633b7b8c0f68298548cd7238c7d392555f835d1b4e15a67250b485ee8f112ab",
+      "digest": "5291a73f9661860d4cd0689b8d4847fed56888912507d49ce984aa04e1b2b229",
       "guards": [],
       "key": "ui:usl_home.action_usl_home",
       "kind": "ui",
@@ -1690174,7 +1690468,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "f93e928d66ed79e814bb6267fb427db76789bccdefb6191f6fa87b85ac95f320",
+      "runtime_digest": "1f166f67f2befe821e8e56acdcf4ed7aed87b651bbd88bd48f44b1c85a0a5b09",
       "sinks": [],
       "sources": [
         {
