@@ -1586,7 +1586,7 @@ msgstr ""
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__account_reconcile_model__rebuild_proposed_trigger__auto_reconcile
 msgid "Apply automatically"
-msgstr "Postuler automatiquement"
+msgstr "Appliquer automatiquement"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_bank_matching_readonly_controls
@@ -3267,7 +3267,7 @@ msgstr "Estimation de l'impôt sur les sociétés activée"
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_reconcile_model_form
 msgid "Counterpart entries"
-msgstr "Entrées homologues"
+msgstr "Écritures de contrepartie"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_rule__country_id
@@ -4082,7 +4082,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_issue_form
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_reconcile_model_form
 msgid "Dismiss"
-msgstr "Annuler"
+msgstr "Écarter"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_hygiene_issue_form
@@ -6557,7 +6557,7 @@ msgstr "Rapprocher la sélection"
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_reconcile_model_form
 msgid "Match when"
-msgstr "rapprochement quand"
+msgstr "Conditions de rapprochement"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration_field__validation_status__matched
@@ -13410,8 +13410,8 @@ msgstr "Reproduire le calcul de la règle sur ses transactions à l’appui et v
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_reconcile_model_form
-msgid "Review possible overlap"
-msgstr "Vérifier le chevauchement possible"
+msgid "<strong>Review possible overlap</strong>"
+msgstr "<strong>Vérifier le chevauchement possible</strong>"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_reconcile_model_form
