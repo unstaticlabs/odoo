@@ -51,6 +51,7 @@ COMPONENTS = {
                 "docker/constraints.txt",
                 "docker/entrypoint.sh",
                 "docker/odoo.conf.template",
+                "docker/pre_upgrade.py",
                 "setup/**",
                 "odoo/**",
                 "addons/**",

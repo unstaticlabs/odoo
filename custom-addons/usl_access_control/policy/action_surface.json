@@ -236797,7 +236797,7 @@
       "delegates": [
         "rpc:b2c.channel.ensure_one"
       ],
-      "digest": "27b4fffd827470f67692f6c17073fc9b6d277ab438a257e3a506ef73c37a73c2",
+      "digest": "669dd6a00516aab0bf74b8fbc09a8b0567bed357b9f99e477f5689539e25cad2",
       "guards": [],
       "key": "rpc:b2c.channel.clearing_journal",
       "kind": "rpc",
@@ -236808,11 +236808,11 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "eb5ab4145b8aff2b300f3dd64b6c4b391a26715131cccff78eb92eabd763cb1d",
+      "runtime_digest": "af91ba4bafa30e385ea20ab96aba9946aad4245e3006d6823c6454de2c704283",
       "sinks": [],
       "sources": [
         {
-          "line": 33,
+          "line": 58,
           "path": "custom-addons/usl_b2c_ingest/models/invoicing.py"
         },
         {
@@ -241996,6 +241996,35 @@
     {
       "abstract": false,
       "archiveable": false,
+      "digest": "3bcb172cebb641c097a2e831de2d083c8ceaf78b5bf103233afbaaae7f2b8104",
+      "guards": [],
+      "key": "rpc:b2c.import.batch.action_convert_receipts",
+      "kind": "rpc",
+      "method": "action_convert_receipts",
+      "model": "b2c.import.batch",
+      "modules": [
+        "usl_b2c_ingest"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "6f692976708ab66d8cf544cbf2638512158485880e8318e1bcbcc575271cab76",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 115,
+          "path": "custom-addons/usl_b2c_ingest/models/processor_conversion.py"
+        },
+        {
+          "path": "custom-addons/usl_b2c_ingest/models/processor_conversion.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
       "delegates": [
         "rpc:b2c.import.batch.action_account_for_revenue",
         "rpc:b2c.import.batch.action_check_readiness",
@@ -242114,7 +242143,7 @@
       ],
       "sources": [
         {
-          "line": 59,
+          "line": 93,
           "path": "custom-addons/usl_b2c_ingest/models/invoicing.py"
         },
         {
@@ -242144,7 +242173,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 99,
+          "line": 133,
           "path": "custom-addons/usl_b2c_ingest/models/invoicing.py"
         },
         {
@@ -242210,7 +242239,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 89,
+          "line": 123,
           "path": "custom-addons/usl_b2c_ingest/models/invoicing.py"
         },
         {
@@ -242565,7 +242594,7 @@
       ],
       "sources": [
         {
-          "line": 199,
+          "line": 201,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         },
         {
@@ -242751,7 +242780,7 @@
     {
       "abstract": false,
       "archiveable": false,
-      "digest": "7980a2c72c7fe32e8962a6b010dc40012cd9f09ca64acab7f2ad0bc920d937bd",
+      "digest": "de6b70b80101817d4f0f2cfb5a533b16f0141308d28fc8aea8e94c465165e817",
       "guards": [],
       "key": "rpc:b2c.import.batch.action_settle",
       "kind": "rpc",
@@ -242762,7 +242791,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "22c152135e781446108a104807d7c1ad0adc9f2ad282d1553e4f1f2c1d6b8ea4",
+      "runtime_digest": "9c6f67ff663ef49a64e0913845140ec07bbb77f07090a362c4480e8ae475ab70",
       "sinks": [],
       "sources": [
         {
@@ -242818,7 +242847,7 @@
         "rpc:b2c.import.batch.ensure_one",
         "rpc:product.product.browse"
       ],
-      "digest": "b67d02c24b3c43f8a7cc00dfb44e6eaf44b92d777c03fe29b1df7fe44ebb88d5",
+      "digest": "5813d4ff42b2516558967eb3595cdd4c2d8d8242a11024f77b24baff05143357",
       "guards": [],
       "key": "rpc:b2c.import.batch.action_settle_product_taxes",
       "kind": "rpc",
@@ -242829,7 +242858,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "d492778ae289928b46946399f2fa855063e60a061d2ff93fe24e731fb357e249",
+      "runtime_digest": "8971eff0285b2dbb11b412fd9765b4a7bf771ec57074960d11fd557ef27321e1",
       "sinks": [],
       "sources": [
         {
@@ -247348,7 +247377,7 @@
       ],
       "sources": [
         {
-          "line": 117,
+          "line": 119,
           "path": "custom-addons/usl_b2c_ingest/models/import_issue.py"
         },
         {
@@ -247413,7 +247442,7 @@
       ],
       "sources": [
         {
-          "line": 75,
+          "line": 77,
           "path": "custom-addons/usl_b2c_ingest/models/import_issue.py"
         },
         {
@@ -266457,6 +266486,1658 @@
       "unresolved_delegates": [
         "rpc:usl.agent.sudo",
         "rpc:usl.document.link.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.action_archive",
+      "kind": "rpc",
+      "method": "action_archive",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "235abd6cb4038dd6a2c42caf9de8eae77f16c7778621633c9823beb3bd840539",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5196,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.action_unarchive",
+      "kind": "rpc",
+      "method": "action_unarchive",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e7c3c156fbd16e6d970313b9bb9b3394d43b56dfb1627dd220be3a47a71c75e8",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5207,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.check_field_access",
+      "kind": "rpc",
+      "method": "check_field_access",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "6ea1f9fac0c6643412d04dd4d3c9c9ad70723c75a4fbf7d4aae0a10636bfeff1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2672,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.copy",
+      "kind": "rpc",
+      "method": "copy",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e2701f4de378a2041241c55d30da98574d537a17c9ced308c1a1aaa37d3704ff",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 4945,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.copy_data",
+      "kind": "rpc",
+      "method": "copy_data",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1bcb637275cc868763d196999ce5a96ed738f7a52b0206f6fc826561249f3d13",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 4823,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.copy_translations",
+      "kind": "rpc",
+      "method": "copy_translations",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5675fce11d83c7502d5bcd12d8de06759f5cbccea4f69e7e4cac81fb5c2d6915",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 4880,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "37b76f9937e66a72c0555d93394a9e3336325c81c16eec20667bed140b30b44a",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.create",
+      "kind": "rpc",
+      "method": "create",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9c6eaedb7b168c256d1268de7b648367d97e6edddcfd800845bc624c82ea97ba",
+      "sinks": [
+        "orm_create",
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3980,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 532,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "decorators.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.default_get",
+      "kind": "rpc",
+      "method": "default_get",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5a254545bb7959b0d3f555c147fe3f5e60d3c5889fa39b3ab58165013561b62c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1298,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.export_data",
+      "kind": "rpc",
+      "method": "export_data",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "80bce7a82aa05b027a1d03304c15854a49afda0463cb1b81b1090b46ec7616ec",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 907,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:b2c.processor.conversion.env",
+        "rpc:b2c.processor.conversion.with_env",
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.fields_get",
+      "kind": "rpc",
+      "method": "fields_get",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "baa7a932d91057120b35e7a5c3e4b7e1e61836083fb2f0ffd1bdf6f6efd537db",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 2612,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 268,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:b2c.processor.conversion.env",
+        "rpc:b2c.processor.conversion.with_env",
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:b2c.processor.conversion.get_property_definition"
+      ],
+      "digest": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.formatted_read_group",
+      "kind": "rpc",
+      "method": "formatted_read_group",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ad861b317e2d9b39640847bf88826fd861f2ecea91d0bb0b48322bc4c7a3a344",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 752,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:b2c.processor.conversion.get_property_definition"
+      ],
+      "digest": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.formatted_read_grouping_sets",
+      "kind": "rpc",
+      "method": "formatted_read_grouping_sets",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1fcb23eb76c979d3163287b2076a032ff3eb5d50c4a4aa9b2cd9fb7b38370cf8",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 652,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.get_base_url",
+      "kind": "rpc",
+      "method": "get_base_url",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "67d503784e6d6f7548d55a2cfdf3bdd45f8195b37ec1b1c9d0251a8dd98aaf30",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3258,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.get_empty_list_help",
+      "kind": "rpc",
+      "method": "get_empty_list_help",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "71d9d7f85cddd3babee74d68b9bf1373cea9a671db1deb8a5b5a71f7cc68dae4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2755,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.get_external_id",
+      "kind": "rpc",
+      "method": "get_external_id",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d8ba5b2f03d09295cc21145c82fd52737b78a38b697ea7cdd704e2cedc9ae2ba",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5123,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.get_field_translations",
+      "kind": "rpc",
+      "method": "get_field_translations",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "24f016d8e2a430cf59d47b17206cb2e434bfbaac4046ef4d8a0ce4778d1af7f2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2927,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:b2c.processor.conversion.sudo"
+      ],
+      "digest": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.get_formview_action",
+      "kind": "rpc",
+      "method": "get_formview_action",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f4edcfe3654b97ad72a319b821d294d1424decaa7390bc239027a6b78f9e970d",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3232,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:b2c.processor.conversion.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.get_formview_id",
+      "kind": "rpc",
+      "method": "get_formview_id",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "95c1752af454541997c8ccf2725058469cf43a5fd4da850f3a10f7d5fd29fb27",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 3221,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.get_import_templates",
+      "kind": "rpc",
+      "method": "get_import_templates",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base_import"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d8392d1f12eba5b1791ef6af27e90a1fc627cacbc6da374ac0ea04942331091a",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 86,
+          "path": "addons/base_import/models/base_import.py"
+        },
+        {
+          "path": "odoo/addons/base_import/models/base_import.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.get_metadata",
+      "kind": "rpc",
+      "method": "get_metadata",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9478f042e1ad35efe156f1cebf773332d56b07c5d5a63ce07e245dea08083a64",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3217,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.get_property_definition",
+      "kind": "rpc",
+      "method": "get_property_definition",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1ac7b96c8c74abf184cdf2821627c7c899e14c965ece4dcc9af28468196b1217",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2303,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:b2c.processor.conversion.browse",
+        "rpc:ir.ui.view.sudo"
+      ],
+      "digest": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.get_view",
+      "kind": "rpc",
+      "method": "get_view",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0acf8bd48cd6c0a934eab7561db739e01d8bf0281b9acfeb6c0d80b806025011",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 288,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "line": 3139,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:b2c.processor.conversion.browse",
+        "rpc:ir.ui.view.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:b2c.processor.conversion.get_view",
+        "rpc:ir.actions.actions.get_bindings",
+        "rpc:ir.filters.get_filters"
+      ],
+      "digest": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.get_views",
+      "kind": "rpc",
+      "method": "get_views",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "28821b46e4ace196e2c4841baa399fd93e3de113f7b8a23e02a6ac1ebb808bb3",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2906,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.has_access",
+      "kind": "rpc",
+      "method": "has_access",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7dde4c8c80708d5316a9b4ba890ccf506ecf99b81b508323688f41a5583a122a",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3395,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.has_field_access",
+      "kind": "rpc",
+      "method": "has_field_access",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "799cce23243afb3ae60b8c02627890f175177862620a93c73cdf96aba995336e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2638,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:b2c.processor.conversion.search"
+      ],
+      "digest": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.hierarchy_read",
+      "kind": "rpc",
+      "method": "hierarchy_read",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "web_hierarchy"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e2aa251578d309d82ce2e4591076f9e17bd1687af9431cb2f477aea366bdc069",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 10,
+          "path": "addons/web_hierarchy/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web_hierarchy/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.load",
+      "kind": "rpc",
+      "method": "load",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "aa42854816e20eef9f3bef4c8a7f7093ace251608e2835ac74c5b648ccdbb5a1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 922,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.mail_allowed_qweb_expressions",
+      "kind": "rpc",
+      "method": "mail_allowed_qweb_expressions",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "mail"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "db8fea907626f92f1ff6db9395f1e14164568b94e599a3998467f1cfebeb397c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 219,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.mail_get_partner_fields",
+      "kind": "rpc",
+      "method": "mail_get_partner_fields",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "mail"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a336a2519b3cd4da27cb4136737e46b9917505349b03486123f14e0c971a669e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 181,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.name_create",
+      "kind": "rpc",
+      "method": "name_create",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e6630daa1f607675b91db65c230d53ad6df4b76fe10f88b2f49eca774d4948ee",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 1543,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.name_search",
+      "kind": "rpc",
+      "method": "name_search",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f70bce1e80cfd78fda12b36edcf68116ce8fbc3d07b0eee6a5888480a03ed0dd",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 1564,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:b2c.processor.conversion.check_access",
+        "rpc:b2c.processor.conversion.default_get",
+        "rpc:b2c.processor.conversion.fetch",
+        "rpc:b2c.processor.conversion.new"
+      ],
+      "digest": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.onchange",
+      "kind": "rpc",
+      "method": "onchange",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base",
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "bb63b0e5f4471bbe579f6bd9d01af667898fd0484a0b5bf5e725470a019f8433",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 1908,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "line": 6452,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:b2c.processor.conversion.check_access",
+        "rpc:b2c.processor.conversion.fetch",
+        "rpc:b2c.processor.conversion.new"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:b2c.processor.conversion.onchange"
+      ],
+      "digest": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.onchange_batch",
+      "kind": "rpc",
+      "method": "onchange_batch",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ea23ff314cc0eb80f6694e2cde1c27ec9b0ea33af0df59d0eacc21b25d53ad30",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1896,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.read",
+      "kind": "rpc",
+      "method": "read",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0d6c99c6016f86318429152c1963ab593f5a5c240600946465a0ace17820f327",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2733,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:b2c.processor.conversion.formatted_read_group"
+      ],
+      "digest": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.read_progress_bar",
+      "kind": "rpc",
+      "method": "read_progress_bar",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "de4401e52e0cc988131fc11f0c347e20a6b4711220c1152b1a161d892da174a4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1315,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.search",
+      "kind": "rpc",
+      "method": "search",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "471d7d3160921d01da2add1ddbec37ccea1d00f6e1d65854177a91687eb04403",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1403,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.search_count",
+      "kind": "rpc",
+      "method": "search_count",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "123617ed36078cbf6b54e9ac2229a2f8905d7189d3d85f5e9be5765bc082d666",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1387,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:b2c.processor.conversion.fields_get",
+        "rpc:b2c.processor.conversion.search_count",
+        "rpc:b2c.processor.conversion.with_context"
+      ],
+      "digest": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.search_panel_select_multi_range",
+      "kind": "rpc",
+      "method": "search_panel_select_multi_range",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "8d1084cfaa7d7812902ea17cd937614b41c19556ff0370dff296111612ed17d2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1728,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:b2c.processor.conversion.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:b2c.processor.conversion.fields_get",
+        "rpc:b2c.processor.conversion.with_context"
+      ],
+      "digest": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.search_panel_select_range",
+      "kind": "rpc",
+      "method": "search_panel_select_range",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f15fd0ab0ecc4f8a69aaba36f4bfc1948dc54f91dcd58f43abedfa92db7414ad",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1587,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:b2c.processor.conversion.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.search_read",
+      "kind": "rpc",
+      "method": "search_read",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e24e0149cc13b22ffe7216068d9cc91d4ad8abd145bb39a15322f2f205593b19",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5155,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:mail.activity.with_context",
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.unlink",
+      "kind": "rpc",
+      "method": "unlink",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base",
+        "mail",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a9f2e9e3ac9125c6b4b643a46516ecd15e6fd4da08c0110183e89f9b2dba3dd3",
+      "sinks": [
+        "orm_unlink",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3550,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 45,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "line": 588,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:mail.activity.with_context",
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.update_field_translations",
+      "kind": "rpc",
+      "method": "update_field_translations",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ebb8d3f11a6eb5272e7826ecf89c2299f4e381db6db738774fca6a44ece50361",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 2756,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.view_header_get",
+      "kind": "rpc",
+      "method": "view_header_get",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "b14c94c41cfa171935e3cd3c93d8c9d8a732e022b83229ff98e6f8563f7dd110",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2770,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:b2c.processor.conversion.browse",
+        "rpc:b2c.processor.conversion.name_search"
+      ],
+      "digest": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.web_name_search",
+      "kind": "rpc",
+      "method": "web_name_search",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "c432ba6a42dc18b2c8d36fc07d9fe66ab05e98d5bb4723f94b0e9a8cee8703a6",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 44,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:b2c.processor.conversion.browse"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:b2c.processor.conversion.ensure_one",
+        "rpc:b2c.processor.conversion.update_field_translations",
+        "rpc:res.lang.get_installed"
+      ],
+      "digest": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.web_override_translations",
+      "kind": "rpc",
+      "method": "web_override_translations",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "65b2b80d23fbf97f4beb6aa63793a2192c87df69a6b13e5205874744728e18e7",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2127,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:b2c.processor.conversion.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:b2c.processor.conversion.read"
+      ],
+      "digest": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.web_read",
+      "kind": "rpc",
+      "method": "web_read",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0397df491af3e68dbf5a2c82620a77599e65baba4ec9661805e0dee10c669b41",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 98,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:b2c.processor.conversion.browse",
+        "rpc:b2c.processor.conversion.formatted_read_group",
+        "rpc:b2c.processor.conversion.search",
+        "rpc:b2c.processor.conversion.with_context"
+      ],
+      "digest": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.web_read_group",
+      "kind": "rpc",
+      "method": "web_read_group",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7cdc0dc7cd7348ca758ab89f1d40dd19c9157f3cd41788ad93bab7d62848bb5a",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 299,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:b2c.processor.conversion.browse",
+        "rpc:b2c.processor.conversion.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:b2c.processor.conversion.web_read"
+      ],
+      "digest": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.web_resequence",
+      "kind": "rpc",
+      "method": "web_resequence",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9fb7342771181391f3c6bae96f4df108874f3ce018d05005ab2e137ae42dc48b",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 272,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:b2c.processor.conversion.browse",
+        "rpc:b2c.processor.conversion.create",
+        "rpc:b2c.processor.conversion.with_context",
+        "rpc:b2c.processor.conversion.write"
+      ],
+      "digest": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.web_save",
+      "kind": "rpc",
+      "method": "web_save",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "112c33674d0668e62e51bf2c39467d97d7134617b41020fc6ed35aabba1fd575",
+      "sinks": [
+        "orm_create",
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 79,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:b2c.processor.conversion.browse",
+        "rpc:b2c.processor.conversion.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:b2c.processor.conversion.with_context"
+      ],
+      "digest": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.web_save_multi",
+      "kind": "rpc",
+      "method": "web_save_multi",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "dd52456050d0b84dceed94a869936592107bb741e770b55c9a4086276fab48bb",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 88,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:b2c.processor.conversion.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:b2c.processor.conversion.search_count",
+        "rpc:b2c.processor.conversion.search_fetch"
+      ],
+      "digest": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.web_search_read",
+      "kind": "rpc",
+      "method": "web_search_read",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "883780099f8b4e2da155770cd316e20a5df8d7684c348d772c1d3e594b840018",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 55,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:b2c.processor.conversion.search_fetch"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "b0373b6633d99d657d81a9aca3ec6bb0ebad5e3e7b41420276488a6f1ce1c8f4",
+      "guards": [],
+      "key": "rpc:b2c.processor.conversion.write",
+      "kind": "rpc",
+      "method": "write",
+      "model": "b2c.processor.conversion",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7a5191605f427879f05c88a058a72d53a01df2395e223cd059b23b9cf71a4959",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3696,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 559,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo"
       ]
     },
     {
@@ -1613802,7 +1615483,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 727,
+          "line": 729,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1613817,7 +1615498,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 420,
+          "line": 422,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1613832,7 +1615513,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 662,
+          "line": 664,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1613847,7 +1615528,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 684,
+          "line": 686,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1613862,7 +1615543,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 293,
+          "line": 295,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1613877,7 +1615558,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 293,
+          "line": 295,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1613892,7 +1615573,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 293,
+          "line": 295,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1613907,7 +1615588,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 217,
+          "line": 219,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1613961,7 +1615642,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 199,
+          "line": 201,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1614027,7 +1615708,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 117,
+          "line": 119,
           "path": "custom-addons/usl_b2c_ingest/models/import_issue.py"
         }
       ]
@@ -1614045,7 +1615726,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 75,
+          "line": 77,
           "path": "custom-addons/usl_b2c_ingest/models/import_issue.py"
         }
       ]
@@ -1614063,7 +1615744,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 75,
+          "line": 77,
           "path": "custom-addons/usl_b2c_ingest/models/import_issue.py"
         }
       ]
@@ -1614081,7 +1615762,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 75,
+          "line": 77,
           "path": "custom-addons/usl_b2c_ingest/models/import_issue.py"
         }
       ]
@@ -1614096,7 +1615777,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 218,
+          "line": 252,
           "path": "custom-addons/usl_b2c_ingest/models/invoicing.py"
         }
       ]
@@ -1614111,7 +1615792,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 109,
+          "line": 143,
           "path": "custom-addons/usl_b2c_ingest/models/invoicing.py"
         }
       ]
@@ -1614126,7 +1615807,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 109,
+          "line": 143,
           "path": "custom-addons/usl_b2c_ingest/models/invoicing.py"
         }
       ]
@@ -1614141,7 +1615822,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 109,
+          "line": 143,
           "path": "custom-addons/usl_b2c_ingest/models/invoicing.py"
         }
       ]
@@ -1614156,7 +1615837,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 167,
+          "line": 201,
           "path": "custom-addons/usl_b2c_ingest/models/invoicing.py"
         }
       ]
@@ -1614174,7 +1615855,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 59,
+          "line": 93,
           "path": "custom-addons/usl_b2c_ingest/models/invoicing.py"
         }
       ]
@@ -1614192,7 +1615873,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 59,
+          "line": 93,
           "path": "custom-addons/usl_b2c_ingest/models/invoicing.py"
         }
       ]
@@ -1614210,7 +1615891,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 59,
+          "line": 93,
           "path": "custom-addons/usl_b2c_ingest/models/invoicing.py"
         }
       ]
@@ -1614827,6 +1616508,99 @@
         {
           "line": 166,
           "path": "custom-addons/usl_b2c_ingest/models/oss_return.py"
+        }
+      ]
+    },
+    {
+      "digest": "b45abdda28d6c2902a23b594f171d18207689be3a5a3dc27731852e2a43efb44",
+      "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/processor_conversion.py:b2c.import.batch._conversion_entry:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_b2c_ingest"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 320,
+          "path": "custom-addons/usl_b2c_ingest/models/processor_conversion.py"
+        }
+      ]
+    },
+    {
+      "digest": "9de6be72ba5943a12a563e9d490b2e5f0b22e8ae5072c428bde6eef1f2836392",
+      "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/processor_conversion.py:b2c.import.batch._conversion_entry:orm_create:2",
+      "kind": "sink",
+      "modules": [
+        "usl_b2c_ingest"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 320,
+          "path": "custom-addons/usl_b2c_ingest/models/processor_conversion.py"
+        }
+      ]
+    },
+    {
+      "digest": "e63e864a7c137a5f91a8b77f2c293f2d6939bb800ca7b16887944870be73e1f4",
+      "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/processor_conversion.py:b2c.import.batch._conversion_entry:orm_create:3",
+      "kind": "sink",
+      "modules": [
+        "usl_b2c_ingest"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 320,
+          "path": "custom-addons/usl_b2c_ingest/models/processor_conversion.py"
+        }
+      ]
+    },
+    {
+      "digest": "3fd927191b3f989271b0ff97011762be32204af4288800822b75475c38efa436",
+      "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/processor_conversion.py:b2c.import.batch._convert_receipt:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_b2c_ingest"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 275,
+          "path": "custom-addons/usl_b2c_ingest/models/processor_conversion.py"
+        }
+      ]
+    },
+    {
+      "digest": "19f000d7814e6feaba95d05599baeed5932a674f409dff519af0047c1e7ea466",
+      "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/processor_conversion.py:b2c.import.batch._withdraw_answered_findings:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_b2c_ingest"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 446,
+          "path": "custom-addons/usl_b2c_ingest/models/processor_conversion.py"
+        }
+      ]
+    },
+    {
+      "digest": "eca5a19068e1027ec15dc21d5ed2efacccc5e52870e9f738ea012a4a5c5f9115",
+      "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/processor_conversion.py:b2c.import.batch.action_convert_receipts:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_b2c_ingest"
+      ],
+      "parents": [
+        "rpc:b2c.import.batch.action_convert_receipts"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 115,
+          "path": "custom-addons/usl_b2c_ingest/models/processor_conversion.py"
         }
       ]
     },
@@ -1688325,7 +1690099,7 @@
       "delegates": [
         "rpc:b2c.import.batch.action_bill_fees"
       ],
-      "digest": "12507a8388382cc13f656cbea16d0129eb059be2444d35dceb715d678880a3a2",
+      "digest": "e443bd40c2b1959affa741536f78dda5fe96bb6ce15195ea955f2175f73c9328",
       "guards": [],
       "key": "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_bill_fees:1",
       "kind": "ui",
@@ -1688334,7 +1690108,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "916d9f66c22983d6f2eedcf65c09ea38b7f379ea143e01e51b7059106d0cf0af",
+      "runtime_digest": "ebedce33b13d73058eeae4a595248d38527b869e59e1ef5cadcb8cff5b185fe8",
       "sinks": [],
       "sources": [
         {
@@ -1688385,6 +1690159,31 @@
       "parents": [],
       "risk_flags": [],
       "runtime_digest": "614312ac32a04bc571d31661840589ddc05c7c72318342980b7f50994b1b0c5d",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_b2c_ingest/views/import_batch_views.xml"
+        },
+        {
+          "path": "database:ir.ui.view:usl_b2c_ingest.view_b2c_import_batch_form"
+        }
+      ],
+      "xmlid": "usl_b2c_ingest.view_b2c_import_batch_form"
+    },
+    {
+      "delegates": [
+        "rpc:b2c.import.batch.action_convert_receipts"
+      ],
+      "digest": "eb9f4ac168a87d4ebdf5f05ec5a96cb4c94fe5fec12782a296e1014f67b5323f",
+      "guards": [],
+      "key": "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_convert_receipts:1",
+      "kind": "ui",
+      "modules": [
+        "usl_b2c_ingest"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "262553750c583fa9f613532a9c8efe0abc1cddd62d41735ace11f13fcfb653bd",
       "sinks": [],
       "sources": [
         {
@@ -1688650,7 +1690449,7 @@
       "delegates": [
         "rpc:b2c.import.batch.action_post_transfers"
       ],
-      "digest": "dc8d0ffd423b0cb4bd4034b15f111c246845c99b4652872883e9b17615848011",
+      "digest": "485d8ee4641f23376e48818c87452cbb673f5dc726424926936be42d063047d3",
       "guards": [],
       "key": "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_post_transfers:1",
       "kind": "ui",
@@ -1688659,7 +1690458,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "33a11b4ca909377e28f5a3dfb3b3cf2553e8382ca5d5fde5bdacb24182a82df7",
+      "runtime_digest": "816d30589d80dff11f3eec0c0bb6527fc6d1f0d7a85d8b4ef6e1823d879d4aa4",
       "sinks": [],
       "sources": [
         {
@@ -1688775,7 +1690574,7 @@
       "delegates": [
         "rpc:b2c.import.batch.action_settle"
       ],
-      "digest": "0f32bd03e4d7f3a5dc765754e312a4a641e5cbf2bf5a6f5664aa3df65d73b5a6",
+      "digest": "46eb7c7db89d3aec644c83c3cf7784b2be528d1a01a7bc9cf850bc3092c043cd",
       "guards": [],
       "key": "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_settle:1",
       "kind": "ui",
@@ -1688784,7 +1690583,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "de4908de9ed7c279970266a38e7df03bb75f0ea400e6a5f9bb5b066596e33dca",
+      "runtime_digest": "9d06a344647f5b12f1845167a0bd8284018dc9c3b4705a147fe453cf6545a32c",
       "sinks": [],
       "sources": [
         {
@@ -1688800,7 +1690599,7 @@
       "delegates": [
         "rpc:b2c.import.batch.action_settle_wallet"
       ],
-      "digest": "245915f0b994ad31f6d1803952260d268f27242d544135a140a2b321c55501d3",
+      "digest": "19ce78371eeeb47f721f6bbae1a76522a79cf81336ff69860de0dbad672261e2",
       "guards": [],
       "key": "ui:usl_b2c_ingest.view_b2c_import_batch_form:button:object:action_settle_wallet:1",
       "kind": "ui",
@@ -1688809,7 +1690608,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "7a729b819a4be9de4748667b4dd15ef1046265050aabff28d1bbe6c9456f3793",
+      "runtime_digest": "a61b6bc80b1bc8fd18f0efb0fb4dd2b3b96fd1ddbafe186c2f44c040037feedf",
       "sinks": [],
       "sources": [
         {
@@ -1696895,11 +1698694,11 @@
       "version": "saas~19.3.1.5.1"
     },
     {
-      "manifest_sha256": "f5902503c1f25df2ac01cb39d0468f838d990fb9900caf4c23c2c05295127cc4",
+      "manifest_sha256": "75cdb177e7431cdd4348986943057029e27449636e4f6c92fe5c30ba7a933905",
       "name": "usl_b2c_ingest",
       "origin": "custom",
-      "source_sha256": "a3a44659685a26b00833675426df4aa70fd914e8b48b27ea4ea394447a051914",
-      "version": "saas~19.3.1.2.0"
+      "source_sha256": "909b10ccc72431111e6a78c62ed3fd59e2a01f48da639bf142c179ad7da1e7da",
+      "version": "saas~19.3.1.3.0"
     },
     {
       "manifest_sha256": "bf9bcefb3f3b92cb7ffaec57a229c482fe363380db2edfd9bc7c0130abc07ad4",
