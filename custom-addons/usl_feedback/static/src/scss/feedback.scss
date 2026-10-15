@@ -20,9 +20,13 @@
     }
 
     .o-usl-FeedbackPanel-screenshot img {
-        max-height: 180px;
-        object-fit: cover;
+        max-height: 4.5rem;
+        object-fit: contain;
         object-position: top;
+
+        &.o-expanded {
+            max-height: 20rem;
+        }
     }
 
     .o-usl-FeedbackPanel-header {
@@ -394,12 +398,4 @@
 .o-usl-FeedbackChatWindow-active {
     z-index: $zindex-modal + 1;
     --mail-ChatWindow-mobileZindex: #{$zindex-modal + 1};
-}
-
-.o-usl-FeedbackPanel-screenshot img {
-    max-height: 4.5rem;
-    object-fit: contain;
-    &.o-expanded {
-        max-height: 20rem;
-    }
 }

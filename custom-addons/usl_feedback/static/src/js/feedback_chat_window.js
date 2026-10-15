@@ -2,7 +2,7 @@ import { ChatHub } from "@mail/core/common/chat_hub";
 import { _t } from "@web/core/l10n/translation";
 import { router } from "@web/core/browser/router";
 import { browser } from "@web/core/browser/browser";
-import { useActiveElement } from "@web/core/ui/ui_service";
+import { getFirstAndLastTabableElements, useActiveElement } from "@web/core/ui/ui_service";
 import { localization } from "@web/core/l10n/localization";
 import { getActiveHotkey } from "@web/core/hotkeys/hotkey_service";
 import { registry } from "@web/core/registry";
@@ -191,6 +191,16 @@ export class FeedbackChatWindow extends Component {
         useBackButton(() => this.close());
         useBus(this.env.bus, FOCUS_EVENT, () => {
             const root = this.rootRef.el;
+            if (root && this.ui.activeElement !== root) {
+                // A folded window stays mounted beneath dialogs opened later.
+                // Move its existing native activation to the top without duplicates.
+                this.restoreReactivatedFocus = true;
+                this.focusToRestore = this.ui.activeElement?.contains(document.activeElement)
+                    && !document.activeElement.closest(".o_command_palette")
+                    ? document.activeElement : undefined;
+                this.ui.deactivateElement(root);
+                this.ui.activateElement(root);
+            }
             (root?.querySelector("#usl_feedback_message") || root)?.focus();
         });
     }
@@ -226,6 +236,16 @@ export class FeedbackChatWindow extends Component {
     }
 
     close() {
+        if (this.restoreReactivatedFocus) {
+            this.ui.deactivateElement(this.rootRef.el);
+            const container = this.ui.activeElement;
+            let focusTarget = this.focusToRestore;
+            if (!focusTarget?.isConnected || !container?.contains(focusTarget)) {
+                focusTarget = container?.isConnected
+                    ? getFirstAndLastTabableElements(container)[0] || container : undefined;
+            }
+            focusTarget?.focus();
+        }
         this.feedbackChatWindow.close();
     }
 }

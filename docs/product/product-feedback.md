@@ -11,7 +11,8 @@ default. The reporter may clear either choice and add up to ten supporting
 files. **Cmd+K** (Mac) or **Ctrl+K** opens Odoo's existing command palette;
 the first suggestion is **Send product feedback**, including while a modal is open.
 Press Enter to start, or search for another native command. The palette
-keeps its normal search commands and shortcut.
+keeps its normal search commands and shortcut. Reopening a folded conversation
+above a later dialog preserves its current draft and keeps Feedback interactive.
 
 The page-preview thumbnail is compact and expandable, with sharing choices
 above it so the optional image never pushes those controls out of sight.

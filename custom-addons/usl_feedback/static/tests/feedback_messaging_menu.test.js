@@ -987,3 +987,39 @@ test("New refreshes page evidence while refocusing a saved conversation does not
     expect(supplied).toEqual(refreshed);
     expect(refreshes).toBe(1);
 });
+
+
+test.tags("desktop");
+test("reopening folded feedback reclaims native dialog focus without losing its draft", async () => {
+    mockFeedbackStart();
+    patchWithCleanup(FeedbackPanel.components, { FeedbackChatter: TestChatter });
+    await mountWithCleanup(WebClient);
+    const feedback = getService("usl_feedback.chat_window");
+    const ui = getService("ui");
+    for (let cycle = 0; cycle < 2; cycle++) {
+        feedback.openFeedback();
+        await waitFor("#usl_feedback_files:enabled");
+        await contains("#usl_feedback_message").edit("[QA] Keep this existing draft");
+        await contains(".o-usl-FeedbackPanel-fold").click();
+        getService("dialog").add(ConfirmationDialog, { body: "[QA] Later modal", confirm() {} });
+        await waitFor(".o_dialog");
+        const modal = ui.activeElement;
+        await press(["Control", "k"]);
+        await waitFor(".o_command_palette");
+        await contains("#o_command_0").click();
+        await waitForNone(".o_command_palette");
+        await animationFrame();
+        const root = document.querySelector(".o-usl-FeedbackChatWindow");
+        expect(ui.activeElement).toBe(root);
+        expect(root).toHaveClass("o-usl-FeedbackChatWindow-active");
+        expect("#usl_feedback_message").toHaveValue("[QA] Keep this existing draft");
+        await contains(".o-usl-FeedbackPanel-close").click();
+        await waitForNone(".o-usl-FeedbackChatWindow");
+        expect(ui.activeElement).toBe(modal);
+        expect(".o_dialog").toHaveCount(1);
+        await press("Tab");
+        expect(document.activeElement.closest(".o_dialog")).not.toBe(null);
+        getService("dialog").closeAll();
+        await waitForNone(".o_dialog");
+    }
+});
