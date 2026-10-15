@@ -2,6 +2,58 @@
   "actions": [
     {
       "action_keys": [
+        "sink:usl_access_control:custom-addons/usl_access_control/models/notification_delivery.py:mail.thread._notify_get_recipients:sudo:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Reads message author and managed identity markers to choose native delivery channel.",
+      "domain": "security_and_administration",
+      "evidence_id": "notification-productivity-20261014",
+      "id": "notifications.1",
+      "overrides": {},
+      "rationale": "Private native recipient helper reads identity metadata; it grants no business access and changes no stored groups or existing mail queue.",
+      "reachability_proof": "Private mail.thread._notify_get_recipients is not RPC-callable. Native message delivery invokes it after source-record access and follower/explicit-recipient selection; sudo reads only identity metadata, does not expose new recipients or grant source access.",
+      "reviewed_digests": {
+        "sink:usl_access_control:custom-addons/usl_access_control/models/notification_delivery.py:mail.thread._notify_get_recipients:sudo:1": "181d530284413e5f4ed134da754be47456b7dd58b0bc0be666239f50374fd4e4"
+      }
+    },
+    {
+      "action_keys": [
+        "sink:usl_access_control:custom-addons/usl_access_control/models/notification_delivery.py:mail.thread._notify_get_recipients:sudo:2"
+      ],
+      "classification": "system_internal",
+      "consequence": "Reads message author and managed identity markers to choose native delivery channel.",
+      "domain": "security_and_administration",
+      "evidence_id": "notification-productivity-20261014",
+      "id": "notifications.2",
+      "overrides": {},
+      "rationale": "Private native recipient helper reads identity metadata; it grants no business access and changes no stored groups or existing mail queue.",
+      "reachability_proof": "Private mail.thread._notify_get_recipients is not RPC-callable. Native message delivery invokes it after source-record access and follower/explicit-recipient selection; sudo reads only identity metadata, does not expose new recipients or grant source access.",
+      "reviewed_digests": {
+        "sink:usl_access_control:custom-addons/usl_access_control/models/notification_delivery.py:mail.thread._notify_get_recipients:sudo:2": "b1b45db3b430b005da5ad8c20a79477c5b991e79c763fa5a1faf058f96557914"
+      }
+    },
+    {
+      "action_keys": [
+        "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.write:orm_write:2"
+      ],
+      "classification": "protected",
+      "consequence": "Native user write remains guarded; exact own Inbox marker can be changed through its native inverse only.",
+      "domain": "security_and_administration",
+      "evidence_id": "notification-productivity-20261014",
+      "id": "notifications.identity-write",
+      "overrides": {
+        "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.write:orm_write:2": {
+          "action_name": "change user identity or authorization",
+          "guard_key": "guard:authorization.user.change"
+        }
+      },
+      "rationale": "Private notification inverse uses an unforgeable object and exact self-only marker command; every other role/identity mutation keeps its existing guard.",
+      "reviewed_digests": {
+        "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.write:orm_write:2": "a20c3284c9476282a8bd968f2b5ddb8b5a6d399610a82f117299de94a359405c"
+      }
+    },
+    {
+      "action_keys": [
         "rpc:account.bank.ingestion.config.unlink",
         "rpc:account.bank.ingestion.period.action_apply",
         "rpc:account.bank.ingestion.period.unlink",
@@ -3789,7 +3841,9 @@
         },
         "rpc:res.users.write": {
           "action_name": "change user identity or authorization",
-          "guard_key": "guard:authorization.user.change"
+          "evidence_id": "notification-productivity-20261014",
+          "guard_key": "guard:authorization.user.change",
+          "rationale": "Reviewed in docs/operations/notification-productivity-action-risk-review.md: native fixed preference inverse has an exact self-only private marker exception; native assignment channels and verified personal todo alias change notification/implicit assignment behavior without broader business access or role authority."
         },
         "server_action:account_peppol_response.ir_cron_peppol_auto_register_services_ir_actions_server": {
           "action_name": "change registered Peppol services",
@@ -3846,7 +3900,7 @@
         "rpc:res.config.settings.button_peppol_reregister": "f3bfad36ebb81e00b28174212fa40786ec96fd36303732b2d1007473526b435b",
         "rpc:res.config.settings.button_reconnect_this_database": "8e85397db3f1633eaec17b735efaef554240f9fd00e08953dc729ce50281b024",
         "rpc:res.users.create": "8d910a7bb66b5da68f7d244257ba60588d71cb7051b57ad950f78316947675f1",
-        "rpc:res.users.write": "8a24ca606bf3235e0adb3c7978e9953c3140528c2429819f062fe0a8a2b65210",
+        "rpc:res.users.write": "50f4c10e1770f3e8889adf71ea66690c83225d086ae84d7c6763825ede824014",
         "server_action:account_peppol_response.ir_cron_peppol_auto_register_services_ir_actions_server": "fc327488428a5b7e8e82eb936c77e6b281e6e21cfd216f28556ea964f8f57ae5"
       }
     },
@@ -4329,7 +4383,9 @@
           "action_name": "create a company security boundary"
         },
         "guard:authorization.user.change": {
-          "action_name": "change user identity or authorization"
+          "action_name": "change user identity or authorization",
+          "evidence_id": "notification-productivity-20261014",
+          "rationale": "Reviewed in docs/operations/notification-productivity-action-risk-review.md: native fixed preference inverse has an exact self-only private marker exception; native assignment channels and verified personal todo alias change notification/implicit assignment behavior without broader business access or role authority."
         },
         "guard:authorization.user.create": {
           "action_name": "create a user identity"
@@ -5480,13 +5536,15 @@
         },
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.write:orm_write:1": {
           "action_name": "change user identity or authorization",
-          "guard_key": "guard:authorization.user.change"
+          "evidence_id": "notification-productivity-20261014",
+          "guard_key": "guard:authorization.user.change",
+          "rationale": "Reviewed in docs/operations/notification-productivity-action-risk-review.md: native fixed preference inverse has an exact self-only private marker exception; native assignment channels and verified personal todo alias change notification/implicit assignment behavior without broader business access or role authority."
         }
       },
       "rationale": "A stable semantic guard or exact model-operation enforcement denies ordinary humans and Agents before side effects while allowing the Irreversible Actions capability with immutable evidence.",
       "reviewed_digests": {
         "guard:authorization.company.create": "0afd269b21f5f03c647cdd2bb516686efd1235b6ce822f66a574f068fceafdfe",
-        "guard:authorization.user.change": "75b818ae3c810bc9d2c8bc8f565f8a9623c67e1e7541f7b102937a63f4ed966c",
+        "guard:authorization.user.change": "8c24b101bda90edfd48c398c543fccb564266027c477c1c7a480fd8aa4b19743",
         "guard:authorization.user.create": "0df0ee1a9641d4212897433183f71d743063e59a74e3cb9a4ae4a872535d6a9c",
         "guard:authorization.user.delete": "7761b0119a86e1271e23ace600b15b287309f1327a36c0caf1e8f66a700f6985",
         "guard:automation.server_action.execute": "c854e12e8cbd4a6416bfefcbdd6c902fb70f1a2af861050d8ddcd0284104277d",
@@ -5653,7 +5711,7 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:res.company.write:orm_write:1": "a4f965c128ae64477f4922f8bb1c1461fc873834881a57382b900efb3500c570",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.create:orm_create:1": "602074292e4aafc2077e78a4d67df8ed6043dceed3eebdd66b9d489092a774cf",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.unlink:orm_unlink:1": "6c47192f04b4d87e00476b149b36229108e4678ae24c770ba852026d5692ac40",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.write:orm_write:1": "04ca6e018a98c18f4dc21a46b6f14ed5a8afc935d572a79ee78780b1d0afd10f"
+        "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.write:orm_write:1": "1cb7080bec1f2d878eb084f245f071192976f764ca7631efdd95722cdadc93e8"
       }
     },
     {
@@ -33660,6 +33718,12 @@
       "domain": "documents_and_communications",
       "evidence_id": "read-only-no-sink-v1",
       "id": "read_only.documents_and_communications.actions",
+      "overrides": {
+        "rpc:mail.activity.action_notify": {
+          "evidence_id": "notification-productivity-20261014",
+          "rationale": "Reviewed in docs/operations/notification-productivity-action-risk-review.md: native fixed preference inverse has an exact self-only private marker exception; native assignment channels and verified personal todo alias change notification/implicit assignment behavior without broader business access or role authority."
+        }
+      },
       "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
       "reviewed_digests": {
         "client:sign_oca:oca-addons/sign_oca/static/src/components/sign_oca_pdf_portal/sign_oca_pdf_portal.esm.js:_onClickSign:route:1": "d388f32970e7f0ac22c29959611901e80ca50e81977fdc4edd582211bccf1588",
@@ -34406,7 +34470,7 @@
         "rpc:mail.activity.action_close_dialog": "2af1391c63b1c20eb8bcbbb4d2f37eba0c3dc7bd0a7b3c0e899db99420f91d1e",
         "rpc:mail.activity.action_done": "cb121b70aac5e55103f027519e61025974a18e5bf5291ec0924f0e8a740591c7",
         "rpc:mail.activity.action_done_redirect_to_other": "beedab0879941cba3c2f7013d42155e046e01b650ee1f5fba237b66b3c88d06c",
-        "rpc:mail.activity.action_notify": "5b98b7259488619bec7c9442e079dde7ad695feb069c41ddaadd10d885471681",
+        "rpc:mail.activity.action_notify": "ece50847d5f70c270d8a398835d4fc49cc0c721f8d003782947e081c556e6aee",
         "rpc:mail.activity.action_open_document": "e7027923ab176bd14e0388427334ddc1a44d396b4aa425bf4f6c069e52b041b5",
         "rpc:mail.activity.action_reschedule_nextweek": "9bd18500dea9c22283c9d81a77bc8555b06c21615916a0514ca6210717b46f4f",
         "rpc:mail.activity.action_reschedule_today": "6c344c2f12a947f4e3c64178bce1fee45ea56aeb2fb1d86c855e2cc33c573ea5",
@@ -103686,6 +103750,8 @@
           "reversal_action": "rpc:project.task.write"
         },
         "rpc:project.task.message_new": {
+          "evidence_id": "notification-productivity-20261014",
+          "rationale": "Reviewed in docs/operations/notification-productivity-action-risk-review.md: native fixed preference inverse has an exact self-only private marker exception; native assignment channels and verified personal todo alias change notification/implicit assignment behavior without broader business access or role authority.",
           "reversal_action": "rpc:project.task.write"
         },
         "rpc:project.task.message_notify": {
@@ -107189,7 +107255,7 @@
         "rpc:project.task.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
         "rpc:project.task.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:project.task.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
-        "rpc:project.task.message_new": "c3ec1aad017fc35667f6311b9e35471d6ba2a1b5f3c785ffcd21ce496ad623f3",
+        "rpc:project.task.message_new": "75688a068460fda486fbcb4e650c386900c4f942857ecb1f28320782657799df",
         "rpc:project.task.message_notify": "b568fe9d567d0b1007a82514c3532ab6c0e273860092814c1e754ab167ba0a86",
         "rpc:project.task.message_parse": "c8e71ccbae570a707b8e261de28b25ea70dc463a1b40807f4b465ac337ac8707",
         "rpc:project.task.message_post_with_source": "245fb964979dcb73e5a6189fb10c8ffceade74f7f6eada6d48977d1f86270d4e",
@@ -181084,6 +181150,8 @@
           "reachability_proof": "Private reactivation implementation reachable only through the reviewed scheduler or task write/unlink flows; it validates active internal assignees and explicit personal-stage roles before scoped elevation."
         },
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.message_new:orm_write:1": {
+          "evidence_id": "notification-productivity-20261014",
+          "rationale": "Reviewed in docs/operations/notification-productivity-action-risk-review.md: native fixed preference inverse has an exact self-only private marker exception; native assignment channels and verified personal todo alias change notification/implicit assignment behavior without broader business access or role authority.",
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.unlink:orm_unlink:1": {
@@ -181133,7 +181201,7 @@
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:1": "ed009dc95ab11a2addc39a44572b527aff26024a265a4cf4ebcd06d22365a3fd",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:2": "0954df52d6f3402a5da29ab9ddf015730efb2a72e1d5c714aaa8e4ce25ba0059",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:3": "c70e201431d8ab8876ace268804dca8a16aeb9d6455187d5b96419db46456211",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.message_new:orm_write:1": "45999d831ad93908e44e811ba99c73420b4c69b5324df265263c7a7d4646ee0b",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.message_new:orm_write:1": "6315ba5c2ea793bc0a4c377bab8ac83f853b653fae0a6a19df56953b01e150d6",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.unlink:orm_unlink:1": "901bf2005834da32c498b97096bdc4ac4ff1332ab3fb4d740129a9dd6dd5123b",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.unlink:sudo:1": "a4f416e9c24d6022c00de94dcd17d941c1d4ea9cf0c769ad4f3a462f309e117d",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:1": "c956bfc2f236893345f2b87490f455426f7ba5612603980a98a9a41adb67b5fd",
@@ -205677,6 +205745,16 @@
         "custom-addons/usl_home/tests/test_content_search.py::TestHomeContentSearch.test_open_rechecks_access_and_does_not_accept_arbitrary_models",
         "custom-addons/usl_home/static/tests/content_search.test.js",
         "custom-addons/usl_home/static/tests/project_content_search.test.js"
+      ]
+    },
+    "notification-productivity-20261014": {
+      "contract": "Real native self-preference changes preserve authority; Agent conversations use internal Inbox while external email and ordinary human preferences remain native. Assignment filtering keeps the actual work and ordinary conversations. Verified personal todo alias never implicitly assigns its recipient.",
+      "tests": [
+        "custom-addons/usl_access_control/tests/test_notification_preferences.py::TestNotificationPreferences.test_real_preference_change_round_trip_preserves_authority",
+        "custom-addons/usl_access_control/tests/test_notification_preferences.py::TestNotificationPreferences.test_native_token_does_not_authorize_extra_commands_or_fields",
+        "custom-addons/usl_access_control/tests/test_notification_delivery.py::TestNotificationDelivery.test_agent_conversation_keeps_external_email",
+        "custom-addons/usl_access_control/tests/test_notification_delivery.py::TestNotificationDelivery.test_assignment_filters_effective_inbox_after_routing",
+        "custom-addons/usl_project/tests/test_project_task.py::TestProjectTask.test_todo_alias_does_not_assign_a_matching_service_recipient"
       ]
     },
     "operational-authorized-workflow-v1": {
