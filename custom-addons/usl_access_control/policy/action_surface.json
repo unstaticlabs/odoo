@@ -409739,12 +409739,12 @@
       ],
       "sources": [
         {
-          "line": 204,
-          "path": "custom-addons/rebuild_account_migration/models/operational_extensions.py"
+          "line": 148,
+          "path": "custom-addons/usl_access_control/models/agent_expense_decisions.py"
         },
         {
-          "line": 75,
-          "path": "custom-addons/usl_access_control/models/agent_expense_decisions.py"
+          "line": 204,
+          "path": "custom-addons/rebuild_account_migration/models/operational_extensions.py"
         },
         {
           "path": "custom-addons/rebuild_account_migration/models/operational_extensions.py"
@@ -412316,6 +412316,7 @@
         "rpc:hr.expense.ensure_one",
         "rpc:hr.expense.flush_recordset",
         "rpc:hr.expense.invalidate_recordset",
+        "rpc:hr.expense.read",
         "rpc:hr.expense.with_company",
         "rpc:hr.expense.write",
         "rpc:res.company.browse"
@@ -412338,7 +412339,7 @@
       ],
       "sources": [
         {
-          "line": 102,
+          "line": 111,
           "path": "custom-addons/usl_expense_batch/models/expense_draft_configuration.py"
         },
         {
@@ -419669,7 +419670,7 @@
           "path": "addons/hr_expense/wizard/hr_expense_split_wizard.py"
         },
         {
-          "line": 59,
+          "line": 62,
           "path": "custom-addons/usl_expense_batch/wizard/expense_split.py"
         },
         {
@@ -421877,7 +421878,10 @@
       "delegates": [
         "rpc:decimal.precision.precision_get",
         "rpc:hr.employee.sudo",
+        "rpc:hr.expense.check_access",
         "rpc:hr.expense.filtered",
+        "rpc:hr.expense.flush_recordset",
+        "rpc:hr.expense.invalidate_recordset",
         "rpc:hr.expense.mapped",
         "rpc:mail.thread.with_context",
         "rpc:res.partner.browse",
@@ -421886,7 +421890,7 @@
         "rpc:usl.document.link.sudo",
         "rpc:usl.expense.batch.browse"
       ],
-      "digest": "42209cd656310317ff251ea060f367f12f9547b97e6802e5b7ba8330b83f284e",
+      "digest": "bef71b0c81bff33ed58e4364a1f52178b660a6a444663a2b931adefdc3bcad39",
       "guards": [],
       "key": "rpc:hr.expense.write",
       "kind": "rpc",
@@ -421904,7 +421908,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "45db1a3eb5ed5e1e707dd2c2f7ef1f0e68cc7d8e88700a4df61f43dff73fde04",
+      "runtime_digest": "94efb703a7c70e47ad1fd6348271c98dcece9c7e6a09068ae3cac9e880b47d6e",
       "sinks": [
         "orm_write",
         "sudo"
@@ -421935,6 +421939,10 @@
           "path": "custom-addons/usl_expense_batch/models/hr_expense.py"
         },
         {
+          "line": 52,
+          "path": "custom-addons/usl_access_control/models/agent_expense_decisions.py"
+        },
+        {
           "line": 559,
           "path": "custom-addons/usl_access_control/models/base.py"
         },
@@ -421944,6 +421952,9 @@
         },
         {
           "path": "custom-addons/rebuild_account_migration/models/operational_extensions.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/agent_expense_decisions.py"
         },
         {
           "path": "custom-addons/usl_access_control/models/base.py"
@@ -421970,7 +421981,10 @@
       "transient": false,
       "unresolved_delegates": [
         "rpc:hr.employee.sudo",
+        "rpc:hr.expense.check_access",
         "rpc:hr.expense.filtered",
+        "rpc:hr.expense.flush_recordset",
+        "rpc:hr.expense.invalidate_recordset",
         "rpc:hr.expense.mapped",
         "rpc:mail.thread.with_context",
         "rpc:res.partner.browse",
@@ -1605640,6 +1605654,24 @@
       ]
     },
     {
+      "digest": "dfe933df81f5ff97fdac80ee63a4e465bb219156d9b64d42fed5a376ed7f2706",
+      "key": "sink:usl_access_control:custom-addons/usl_access_control/models/agent_expense_decisions.py:hr.expense.write:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_access_control"
+      ],
+      "parents": [
+        "rpc:hr.expense.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 52,
+          "path": "custom-addons/usl_access_control/models/agent_expense_decisions.py"
+        }
+      ]
+    },
+    {
       "digest": "792ba40d8638f9217f67b237fc8b542c216a6ebeedfc79497bd844f399546318",
       "key": "sink:usl_access_control:custom-addons/usl_access_control/models/agent_feedback.py:usl.agent.submit_mcp_feedback:message_send:1",
       "kind": "sink",
@@ -1625239,7 +1625271,7 @@
       ]
     },
     {
-      "digest": "72d3adedee2d2ad32b739835655a29c5c2e96c1a1382f0876627039076584ec3",
+      "digest": "183aa18542b890265c3dad46d5c5af2ec9d22cb80cfefa3e2c47732d1fadd2f7",
       "key": "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:message_send:1",
       "kind": "sink",
       "modules": [
@@ -1625248,13 +1625280,13 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 107,
+          "line": 116,
           "path": "custom-addons/usl_expense_batch/models/expense_draft_configuration.py"
         }
       ]
     },
     {
-      "digest": "9175c2e33ee130f5b6da6f59252cafebbd38f03d5abfd2caac76e6937dfc877d",
+      "digest": "5e9760732d7fdfda907e8f07c4950132e91064f42618df003a4e107713d738b8",
       "key": "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1625263,13 +1625295,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 107,
+          "line": 116,
           "path": "custom-addons/usl_expense_batch/models/expense_draft_configuration.py"
         }
       ]
     },
     {
-      "digest": "b4ad691ace841147c34ad347ea57d82aac2e2065bf75eb04e133d5e5168bac7c",
+      "digest": "e1b45e081fe50cfd47af63ef6554c5e57d20f8c643251eba5d69001a35dcd797",
       "key": "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1625278,13 +1625310,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 107,
+          "line": 116,
           "path": "custom-addons/usl_expense_batch/models/expense_draft_configuration.py"
         }
       ]
     },
     {
-      "digest": "27a078c6d7d67e8a731328b1610a30598b5b0635f783b28bde0421217b460f75",
+      "digest": "772d11d0ea8dedc28be39c49680330ac0dceb8bd783aa92bd9583fdd9c0a70ae",
       "key": "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:3",
       "kind": "sink",
       "modules": [
@@ -1625293,13 +1625325,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 107,
+          "line": 116,
           "path": "custom-addons/usl_expense_batch/models/expense_draft_configuration.py"
         }
       ]
     },
     {
-      "digest": "dfdd349451eb891faa8bcd737a773b6df76deecd83253d843fa32ce35ab3d0fc",
+      "digest": "b724c070bc4e0a31894fc7b27c52146e3a29de6e064b116e374860b7ed772d71",
       "key": "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:4",
       "kind": "sink",
       "modules": [
@@ -1625308,7 +1625340,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 107,
+          "line": 116,
           "path": "custom-addons/usl_expense_batch/models/expense_draft_configuration.py"
         }
       ]
@@ -1625560,7 +1625592,7 @@
       ]
     },
     {
-      "digest": "c86d03fba121f34e2c64c6b4ffb97cd66dbc6008f70eb832f2f0ec4ba7aca2be",
+      "digest": "95c277b5bccf68c5e1b29b650b620d561516aef8b7b5b5ac316b2596536fab6f",
       "key": "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_split.py:hr.expense.split.wizard._apply_native_split_with_context:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1625569,7 +1625601,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 125,
+          "line": 128,
           "path": "custom-addons/usl_expense_batch/wizard/expense_split.py"
         }
       ]
@@ -1625587,7 +1625619,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 59,
+          "line": 62,
           "path": "custom-addons/usl_expense_batch/wizard/expense_split.py"
         }
       ]
@@ -1625605,7 +1625637,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 59,
+          "line": 62,
           "path": "custom-addons/usl_expense_batch/wizard/expense_split.py"
         }
       ]
@@ -1698673,11 +1698705,11 @@
       "version": ""
     },
     {
-      "manifest_sha256": "37275965675a2f2334525a33e1e4ab3d4fc7930f2e4d226948af851120ae86c3",
+      "manifest_sha256": "5697b43379473ef646c789828b1b656bf05122c2b43b56234e6654b251aaf00a",
       "name": "usl_access_control",
       "origin": "custom",
-      "source_sha256": "7c7a25eb683af2047f7a97ae1d5ab58681ee991ed09694298b28a0ce05b44a63",
-      "version": "saas~19.3.1.8.0"
+      "source_sha256": "8959516db2da459196fb788afd0061fe21e6215e655b6f64c3d62a00fc90e363",
+      "version": "saas~19.3.1.8.1"
     },
     {
       "manifest_sha256": "2d4f291c27ad7c2892ad8fd578313cb7bd45b5ad202e44f3087d7270dc084f31",
@@ -1698729,11 +1698761,11 @@
       "version": "saas~19.3.1.0.0"
     },
     {
-      "manifest_sha256": "a7befb0d64e99a9597404af86565660bed9eed04992cf5dad3f880d4488f7472",
+      "manifest_sha256": "4e65c84418979d3922c8cfd1dd6c4b7d5ff5e9128e027687eccd8d3c8c2d2ae8",
       "name": "usl_expense_batch",
       "origin": "custom",
-      "source_sha256": "e37f4ad376ba1cf418d5334cb34e5ba64e9a5710d39c710e4ff5fb4c7ec487d5",
-      "version": "saas~19.3.1.3.16"
+      "source_sha256": "1e40f7bc0468969383184d868d818ea16550f074c07fb28adbcd2d3d6c85ae69",
+      "version": "saas~19.3.1.3.17"
     },
     {
       "manifest_sha256": "eb00e52ebf56517d6b46cc0d840354fb3a5fd83eadcd7d31aaf39feb0b06d4f3",

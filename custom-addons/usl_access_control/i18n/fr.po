@@ -298,3 +298,21 @@ msgstr "Seuls la date limite, le résumé, la note et le responsable de l’acti
 #: code:addons/usl_access_control/models/agent_collaboration.py:0
 msgid "That activity does not belong to this task."
 msgstr "Cette activité n’appartient pas à cette tâche."
+
+#. module: usl_access_control
+#. odoo-python
+#: code:addons/usl_access_control/models/agent_expense_decisions.py:0
+msgid "Use the native expense actions to submit, approve, refuse, reset or post an expense."
+msgstr "Utilisez les actions natives des notes de frais pour soumettre, approuver, refuser, remettre en brouillon ou comptabiliser une dépense."
+
+#. module: usl_access_control
+#. odoo-python
+#: code:addons/usl_access_control/models/agent_expense_decisions.py:0
+msgid "Agents can correct financial fields only on draft expenses without a journal entry. Use the native reset action first."
+msgstr "Les Agents ne peuvent corriger les champs financiers que sur les dépenses en brouillon sans écriture comptable. Utilisez d’abord l’action native de remise en brouillon."
+
+#. module: usl_access_control
+#. odoo-python
+#: code:addons/usl_access_control/models/agent_expense_decisions.py:0
+msgid "Select an authorized expense company in your company context."
+msgstr "Sélectionnez une société autorisée pour la dépense dans votre contexte de société."

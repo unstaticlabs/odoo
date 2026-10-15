@@ -154,3 +154,27 @@ also applies. Read-only access does not permit either action.
 Expense draft creation and reset retain native approval-activity cleanup within
 the authorized expense workflow. This does not grant general activity deletion
 or bypass native expense, company or Accounting checks.
+
+
+Managed Agents can change an expense's financial inputs only while it is Draft
+and has no journal entry. This applies to generic writes and form saves as well
+as the supported draft-correction action, including writes made under the same
+Agent UID through `sudo()`. A mixed set is checked before any expense changes.
+Labels and notes retain ordinary native access. Human Expense Managers retain
+native approved-expense editing.
+
+Agents must use native actions for submission, approval, refusal, reset and
+posting; writing approval or journal-entry fields directly is refused even on a
+draft. A separate generic approval-field write cannot disguise an approved
+expense as a draft. Authorized native reset retains its normal checks.
+Stored native net/VAT totals printed on expense reports are guarded too. Saved
+batch account/analytic baselines cannot be forged through a generic field write.
+Normal grouping and native restoration remain available. Approved bank matching
+retains only its validated payment-mode, payment-method and vendor conversion,
+after the native manager and current-candidate checks. Serializable context
+values cannot grant these exceptions.
+
+Native splits derive approval metadata from their locked Draft source. They do
+not forward RPC-editable split-line approval fields into original or copied
+expenses. The original write omits unchanged approval metadata, preserving the
+existing managed-Agent split workflow without granting a lifecycle exception.

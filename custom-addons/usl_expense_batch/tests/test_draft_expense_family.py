@@ -87,6 +87,23 @@ class TestDraftExpenseFamily(TestExpenseCommon):
         self.assertEqual(family[2].account_context_source, 'explicit')
         self.assertEqual(family[2].analytic_distribution, {str(self.analytic_account_1.id): 100})
 
+    def test_native_split_ignores_forged_line_approval_metadata(self):
+        source = self.env["hr.expense"].create({
+            "name": "[QA] Native split metadata", "employee_id": self.expense_employee.id,
+            "product_id": self.product_c.id, "total_amount_currency": 160,
+            "tax_ids": [Command.clear()], "date": "2026-10-14",
+        })
+        action = source.action_split_wizard()
+        wizard = source.env["hr.expense.split.wizard"].browse(action["res_id"])
+        wizard.expense_split_line_ids.write({"approval_state": "approved", "approval_date": "2026-10-14 12:00:00"})
+        wizard.action_split_expense()
+        family = self._family(source)
+        self.assertEqual(len(family), 2)
+        self.assertEqual(family.mapped("state"), ["draft", "draft"])
+        self.assertFalse(any(family.mapped("approval_date")))
+        self.assertFalse(family.account_move_id)
+        self.assertEqual(sum(family.mapped("total_amount_currency")), 160)
+
     def test_native_wizard_rejects_mismatched_gross_sum_server_side(self):
         source = self._source().with_user(self.env.user)
         action = source.action_split_wizard()

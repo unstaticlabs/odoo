@@ -42,6 +42,9 @@ class HrExpenseSplit(models.TransientModel):
         # unrelated permission to inspect analytic-distribution configuration.
         values.update({
             'description': self.description,
+            # Approval belongs to the locked source, never to editable RPC line data.
+            'approval_state': source.approval_state,
+            'approval_date': source.approval_date,
             'account_id': self.account_id.id,
             'account_context_source': source.account_context_source if self.account_id == source.account_id else (
                 'product' if self.account_id == default_account else 'explicit'),
@@ -133,7 +136,12 @@ class HrExpenseSplitWizard(models.TransientModel):
         expense_split = self.expense_split_line_ids[0]
         copied_expenses = self.env['hr.expense']
         if expense_split:
-            self.expense_id.write(expense_split._get_values())
+            source_values = expense_split._get_values()
+            # The original already has this authoritative lifecycle metadata.
+            # Copies retain it; the Draft source needs only its financial split.
+            source_values.pop('approval_state')
+            source_values.pop('approval_date')
+            self.expense_id.write(source_values)
             self.expense_split_line_ids -= expense_split
             if self.expense_split_line_ids:
                 for split in self.expense_split_line_ids:
