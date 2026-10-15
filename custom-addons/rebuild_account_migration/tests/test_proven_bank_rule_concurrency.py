@@ -84,8 +84,16 @@ class TestProvenBankRuleConcurrency(TransactionCase):
             "line_ids": [Command.create({"account_id": fixture["other"], "amount_type": "percentage", "amount_string": "100"})],
         })
 
-    def _race(self, *, native_retry=False, first_seed=False, rollback_writer=False, overlaps=True):
+    def _race(self, *, native_retry=False, first_seed=False, rollback_writer=False, overlaps=True, writer_kind="create"):
         fixture = self._seed(remove_seed=first_seed)
+        if writer_kind != "create":
+            with self.registry._db.cursor() as cr:
+                env = self._env(cr, fixture)
+                writer = self._manual(env, fixture, overlaps=writer_kind == "archive")
+                fixture["writer"] = writer.id
+                if writer_kind == "line_reparent":
+                    fixture["destination"] = self._manual(env, fixture, overlaps=False).id
+                cr.commit()
         prepared, proceed = threading.Event(), threading.Event()
         result, calls = {}, []
 
@@ -123,7 +131,27 @@ class TestProvenBankRuleConcurrency(TransactionCase):
                 self.assertTrue(prepared.wait(20), "Contender did not establish its snapshot")
                 with self.registry._db.cursor() as cr:
                     env = self._env(cr, fixture)
-                    writer = self._manual(env, fixture, overlaps=overlaps)
+                    if writer_kind == "create":
+                        writer = self._manual(env, fixture, overlaps=overlaps)
+                    else:
+                        writer = env["account.reconcile.model"].browse(fixture["writer"])
+                        if writer_kind == "write":
+                            writer.write({"match_label_param": "[QA] Proven race"})
+                        elif writer_kind == "archive":
+                            writer.write({"active": False})
+                        elif writer_kind == "line_create":
+                            env["account.reconcile.model.line"].create({"model_id": writer.id,
+                                "account_id": fixture["other"], "amount_type": "percentage", "amount_string": "10"})
+                        elif writer_kind == "line_write":
+                            writer.line_ids.write({"amount_string": "75"})
+                        elif writer_kind == "line_unlink":
+                            writer.line_ids.unlink()
+                        elif writer_kind == "line_reparent":
+                            writer.line_ids.write({"model_id": fixture["destination"]})
+                        elif writer_kind == "nested_line_write":
+                            writer.write({"line_ids": [Command.update(writer.line_ids.id, {"amount_string": "75"})]})
+                        else:
+                            raise AssertionError("Unrecognized writer kind")
                     writer_id = writer.id
                     cr.rollback() if rollback_writer else cr.commit()
             finally:
@@ -148,8 +176,25 @@ class TestProvenBankRuleConcurrency(TransactionCase):
                 self.assertIsInstance(result.get("error"), psycopg2.errors.SerializationFailure)
                 self.assertEqual(result["error"].pgcode, "40001")
                 self.assertTrue(proposal.rebuild_is_proposal)
+            if writer_kind != "create":
+                writer = env["account.reconcile.model"].browse(fixture["writer"])
+                if writer_kind == "write":
+                    self.assertEqual(writer.match_label_param, "[QA] Proven race")
+                elif writer_kind == "archive":
+                    self.assertFalse(writer.active)
+                elif writer_kind == "line_create":
+                    self.assertEqual(len(writer.line_ids), 2)
+                    self.assertIn("10", writer.line_ids.mapped("amount_string"))
+                elif writer_kind in ("line_write", "nested_line_write"):
+                    self.assertEqual(writer.line_ids.amount_string, "75")
+                elif writer_kind == "line_unlink":
+                    self.assertFalse(writer.line_ids)
+                elif writer_kind == "line_reparent":
+                    self.assertFalse(writer.line_ids)
+                    self.assertEqual(len(env["account.reconcile.model"].browse(fixture["destination"]).line_ids), 2)
             # Successful/manual conflicts do not reclassify the three sources.
             lines = env["account.move.line"].browse(fixture["lines"])
+            self.assertEqual(len(lines), 6)
             self.assertEqual(len(lines.filtered(lambda line: line.account_id.id == fixture["expense"])), 3)
             self.assertEqual(sum(lines.mapped("balance")), 0)
 
@@ -167,6 +212,27 @@ class TestProvenBankRuleConcurrency(TransactionCase):
 
     def test_rolled_back_first_seed_does_not_lose_the_proposal(self):
         self._race(first_seed=True, rollback_writer=True)
+
+    def test_manual_rule_edit_is_rechecked_after_native_retry(self):
+        self._race(native_retry=True, writer_kind="write")
+
+    def test_archiving_conflict_allows_native_retry_to_activate(self):
+        self._race(native_retry=True, writer_kind="archive", overlaps=False)
+
+    def test_direct_line_create_retries_without_losing_legitimate_activation(self):
+        self._race(native_retry=True, writer_kind="line_create", overlaps=False)
+
+    def test_direct_line_write_retries_without_losing_legitimate_activation(self):
+        self._race(native_retry=True, writer_kind="line_write", overlaps=False)
+
+    def test_direct_line_unlink_retries_without_losing_legitimate_activation(self):
+        self._race(native_retry=True, writer_kind="line_unlink", overlaps=False)
+
+    def test_direct_line_reparent_retries_without_losing_legitimate_activation(self):
+        self._race(native_retry=True, writer_kind="line_reparent", overlaps=False)
+
+    def test_nested_line_write_retries_without_losing_legitimate_activation(self):
+        self._race(native_retry=True, writer_kind="nested_line_write", overlaps=False)
 
     def test_financial_writer_race_is_retried_without_joining_rule_coordination(self):
         fixture = self._seed()
