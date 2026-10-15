@@ -38,6 +38,10 @@ FX_GAIN_CODE = "756000"
 #: Findings the conversion run owns, cleared each time it runs.
 CONVERSION_KINDS = ("processor_charge_unmatched", "conversion_period_closed")
 
+#: The finding a payment with no receipt raises.  It is also withdrawn from
+#: whichever earlier drop raised it once a later one converts that payment.
+UNMATCHED = "processor_charge_unmatched"
+
 
 class B2cProcessorConversion(models.Model):
     """One payment the processor converted, and the receipt it answers."""
@@ -99,6 +103,10 @@ class B2cProcessorConversion(models.Model):
         "UNIQUE(company_id, provider, entry_key)",
         "A statement entry is converted once.",
     )
+    _line_unique = models.Constraint(
+        "UNIQUE(line_id)",
+        "A receipt answers one converted payment.",
+    )
 
 
 class B2cImportBatchConversion(models.Model):
@@ -128,6 +136,7 @@ class B2cImportBatchConversion(models.Model):
                 # month: pairing it again would answer two with one.
                 used.add(line.id)
                 batch._convert_receipt(charge, line)
+            batch._withdraw_answered_findings()
             batch.write({"report": batch._build_report()})
         return True
 
@@ -149,6 +158,18 @@ class B2cImportBatchConversion(models.Model):
                 [("company_id", "=", self.company_id.id)],
             )
         }
+        # The entry is the conversion as far as the ledger is concerned. A
+        # record lost without its entry must not let the payment be converted
+        # a second time.
+        for move in self.env["account.move"].search(
+            [
+                ("company_id", "=", self.company_id.id),
+                ("ref", "=like", "%:conversion:%"),
+                ("state", "!=", "cancel"),
+            ],
+        ):
+            provider, _kind, key = move.ref.split(":", 2)
+            done.add((provider, key))
         Currency = self.env["res.currency"].with_context(active_test=False)
         found = []
         for row in self.env["b2c.import.row"].search(
@@ -190,6 +211,7 @@ class B2cImportBatchConversion(models.Model):
                     "gross": self._decimal(values, "gross_amount"),
                     "facing_currency": facing,
                     "facing_amount": facing_amount * sign,
+                    "refund": sign < 0,
                     "row": row,
                 },
             )
@@ -209,8 +231,15 @@ class B2cImportBatchConversion(models.Model):
 
         A receipt is the clearing line of a payment registered in the journal
         the channel settles in, stated in the currency the customer paid and
-        at exactly what they paid, within days of the charge.  Two payments of
-        the same amount are paired in the order they happened.
+        at exactly what they paid.  Two payments of the same amount are paired
+        in the order they happened.
+
+        A charge is recorded the day of the sale, so its receipt sits within
+        days of it.  A refund is recorded the day somebody reads that it
+        happened — the drop that states it, or a person registering a part
+        refund — which is any day after Stripe gave the money back.  So a
+        refund's receipt is looked for from shortly before it onwards, never
+        only around it.
         """
         self.ensure_one()
         channel = charge["channel"]
@@ -219,6 +248,9 @@ class B2cImportBatchConversion(models.Model):
             return self.env["account.move.line"]
         date = charge["date"]
         wanted = float(charge["facing_amount"])
+        when = [("date", ">=", date - MATCH_WINDOW)]
+        if not charge["refund"]:
+            when.append(("date", "<=", date + MATCH_WINDOW))
         for line in self.env["account.move.line"].search(
             [
                 ("company_id", "=", self.company_id.id),
@@ -226,8 +258,7 @@ class B2cImportBatchConversion(models.Model):
                 ("parent_state", "=", "posted"),
                 ("move_id.origin_payment_id", "!=", False),
                 ("currency_id", "=", charge["facing_currency"].id),
-                ("date", ">=", date - MATCH_WINDOW),
-                ("date", "<=", date + MATCH_WINDOW),
+                *when,
             ],
             order="date, id",
         ):
@@ -250,7 +281,9 @@ class B2cImportBatchConversion(models.Model):
         """
         self.ensure_one()
         company = self.company_id
-        date = charge["date"]
+        # The difference exists once both halves do: a refund registered after
+        # Stripe made it is converted on the day it reached the ledger.
+        date = max(charge["date"], line.date)
         stated = charge["gross"]
         recorded = Decimal(str(line.balance)).quantize(CENT)
         difference = stated - recorded
@@ -264,7 +297,7 @@ class B2cImportBatchConversion(models.Model):
                     noun=self.env._("conversion(s)"),
                 )
                 return False
-            entry = self._conversion_entry(charge, line, difference)
+            entry = self._conversion_entry(charge, line, difference, date)
         self.env["b2c.processor.conversion"].create(
             {
                 "company_id": company.id,
@@ -272,7 +305,7 @@ class B2cImportBatchConversion(models.Model):
                 "batch_id": self.id,
                 "provider": charge["provider"],
                 "entry_key": charge["entry_key"],
-                "occurred_on": date,
+                "occurred_on": charge["date"],
                 "move_id": entry.id or False,
                 "line_id": line.id,
                 "currency_id": charge["currency"].id,
@@ -284,7 +317,7 @@ class B2cImportBatchConversion(models.Model):
         )
         return True
 
-    def _conversion_entry(self, charge, line, difference):
+    def _conversion_entry(self, charge, line, difference, date):
         """Return the posted entry moving one conversion's difference to exchange."""
         self.ensure_one()
         company = self.company_id
@@ -315,7 +348,7 @@ class B2cImportBatchConversion(models.Model):
                 "move_type": "entry",
                 "company_id": company.id,
                 "journal_id": journal.id,
-                "date": charge["date"],
+                "date": date,
                 "ref": f"{charge['provider']}:conversion:{charge['entry_key']}",
                 "line_ids": [
                     Command.create(
@@ -364,27 +397,91 @@ class B2cImportBatchConversion(models.Model):
             )
         return account
 
+    def _unmatched_headline(self, count):
+        return self.env._("%(count)s converted payment(s) match no receipt", count=count)
+
     def _report_unmatched_charge(self, charge):
-        """Say a converted payment has no receipt to answer, having posted nothing."""
+        """Say a converted payment has no receipt to answer, having posted nothing.
+
+        Each line names the entry it is about, so a later drop that converts
+        the payment can withdraw the line from whichever drop raised it.
+        """
         self.ensure_one()
-        return self._gather_issue(
-            "processor_charge_unmatched",
-            lambda count: self.env._(
-                "%(count)s converted payment(s) match no receipt",
-                count=count,
-            ),
-            self.env._(
+        values = {
+            "date": charge["date"],
+            "key": charge["entry_key"],
+            "facing": abs(charge["facing_amount"]),
+            "facing_currency": charge["facing_currency"].name,
+            "stated": charge["gross"],
+            "currency": charge["currency"].name,
+        }
+        if charge["refund"]:
+            line = self.env._(
+                "%(date)s, %(key)s: a refund of %(facing)s %(facing_currency)s "
+                "cost %(stated)s %(currency)s. No payment in %(currency)s's "
+                "clearing journal gives back %(facing)s %(facing_currency)s on "
+                "or after %(earliest)s. Drop the order export that states the "
+                "refund, or post the credit note and register its refund in "
+                "that journal in %(facing_currency)s, dated the day it was "
+                "refunded; until then the difference stays in the clearing "
+                "account.",
+                earliest=charge["date"] - MATCH_WINDOW,
+                **values,
+            )
+        else:
+            line = self.env._(
                 "%(date)s, %(key)s: %(facing)s %(facing_currency)s became "
                 "%(stated)s %(currency)s. No payment in %(currency)s's clearing "
                 "journal states %(facing)s %(facing_currency)s within %(days)s "
                 "days of it; drop the order export that states the sale, or the "
                 "difference stays in the clearing account.",
-                date=charge["date"],
-                key=charge["entry_key"],
-                facing=charge["facing_amount"],
-                facing_currency=charge["facing_currency"].name,
-                stated=charge["gross"],
-                currency=charge["currency"].name,
                 days=MATCH_WINDOW.days,
-            ),
-        )
+                **values,
+            )
+        issue = self._gather_issue(UNMATCHED, self._unmatched_headline, line)
+        keys = [*((issue.proposal or {}).get("entries") or []), [charge["provider"], charge["entry_key"]]]
+        issue.proposal = {"entries": keys}
+        return issue
+
+    def _withdraw_answered_findings(self):
+        """Take converted payments out of the findings that said they had no receipt.
+
+        A statement dropped before its orders raises the finding in its own
+        drop; the drop that converts the payment is another one.  Left alone,
+        the first drop would go on saying a payment has no receipt long after
+        it was converted.
+        """
+        self.ensure_one()
+        converted = {
+            (conversion.provider, conversion.entry_key)
+            for conversion in self.env["b2c.processor.conversion"].search(
+                [("company_id", "=", self.company_id.id)],
+            )
+        }
+        for issue in self.env["b2c.import.issue"].search(
+            [
+                ("kind", "=", UNMATCHED),
+                ("batch_id.company_id", "=", self.company_id.id),
+            ],
+        ):
+            entries = (issue.proposal or {}).get("entries") or []
+            lines = (issue.note or "").splitlines()
+            if len(entries) != len(lines):
+                continue
+            kept = [
+                (entry, line)
+                for entry, line in zip(entries, lines, strict=True)
+                if tuple(entry) not in converted
+            ]
+            if len(kept) == len(entries):
+                continue
+            if not kept:
+                issue.unlink()
+                continue
+            issue.write(
+                {
+                    "name": issue.batch_id._unmatched_headline(len(kept)),
+                    "note": "\n".join(line for _entry, line in kept),
+                    "proposal": {"entries": [entry for entry, _line in kept]},
+                },
+            )

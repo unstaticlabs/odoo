@@ -156,12 +156,32 @@ entry moving the difference between clearing and `656000` (a loss) or `756000`
 (a gain). With fees and payouts, that brings the clearing account back to
 nothing.
 
+A refund is matched the same way, against the payment that gave the money
+back, with one difference: that payment is dated the day it was registered, not
+the day Stripe refunded. The drop that states a refund registers it the day the
+drop is settled, which can be weeks later, so a refund's payment is looked for
+from ten days before Stripe's date onwards, with no upper limit. The conversion
+is posted on the later of the two dates, the day both halves are in the ledger.
+
+**A part refund of a sale in another currency is registered by hand.** The
+drop drafts the credit note and says how much was given back. Trim the credit
+note to what was refunded, post it, and register its payment in the Stripe
+journal (`STRP`) **in the customer's currency**, for exactly what Stripe gave
+back to the customer, dated the day Stripe refunded it. The next drop that
+carries the statement converts it like any other refund.
+
 Every applied Stripe statement in the company is read, not only the drop in
 hand, so the order export and the statement can arrive in either order: a
 payment converted before its receipt exists is converted by whichever drop
-brings the second of the two. Until then it is reported as matching no receipt.
-A payment in a month the books are closed to is reported and not posted. Each
-payment is converted once; settling again changes nothing.
+brings the second of the two. Until then it is reported as matching no receipt,
+and once a later drop converts it the finding is withdrawn from the drop that
+raised it as well. The finding says what to do, and that differs: for a charge,
+drop the order export that states the sale; for a refund, drop the order export
+that states the refund, or register the refund by hand as above. A payment in a
+month the books are closed to is reported and not posted. Each payment is
+converted once, and a conversion record cannot be deleted from the interface;
+settling again changes nothing, and neither does losing the record, because the
+posted entry is recognised by its reference.
 
 A channel that leaves **Settles in** empty keeps today's behaviour: a currency
 it names no clearing journal for is refused, and one it does name is held

@@ -6,6 +6,7 @@ processor keeps everything.  These are the tests for reading the accounts those
 parties keep of themselves, and for making the ledger agree with them.
 """
 
+from datetime import timedelta
 from decimal import Decimal
 
 from odoo import fields
@@ -1007,6 +1008,11 @@ class TestSettlementCurrency(TestWallet):
         self.assertFalse(
             later.issue_ids.filtered(lambda issue: issue.kind == "processor_charge_unmatched"),
         )
+        # The drop that raised it no longer says so either: the payment it
+        # named has been converted.
+        self.assertFalse(
+            first.issue_ids.filtered(lambda issue: issue.kind == "processor_charge_unmatched"),
+        )
         self.assertAlmostEqual(self._balance(self.clearing), 0.00, places=2)
         self.assertAlmostEqual(self._balance(self.loss), 2.91, places=2)
 
@@ -1017,6 +1023,10 @@ class TestSettlementCurrency(TestWallet):
         batch.action_settle()
         again = self._settled(**self._dollar_statement())
         self.assertEqual(self._conversions(), conversions)
+        # Nor does losing the record of it: the entry is what the ledger knows.
+        conversions.sudo().unlink()
+        again.action_convert_receipts()
+        self.assertFalse(self._conversions())
         self.assertEqual(
             self.env["account.move"].search_count([("company_id", "=", self.company.id)]),
             moves,
@@ -1050,6 +1060,56 @@ class TestSettlementCurrency(TestWallet):
         self.assertAlmostEqual(self._balance(self.clearing), 0.00, places=2)
         self.assertAlmostEqual(self._balance(self.loss), 8.00, places=2)
         self.assertAlmostEqual(self._balance(self.gain), -9.50, places=2)
+
+    def test_a_refund_read_weeks_after_stripe_made_it_is_still_converted(self):
+        """The drop that says a sale was refunded runs when somebody drops it.
+
+        Its refund is dated that day, which can be long after Stripe gave the
+        money back. GBP 80.00 is EUR 100.00 to Odoo either way.
+        """
+        self._settled(
+            **self._orders("GBP", "80.00"),
+            **self._statement(
+                self._entry("txn_9000000301", "charge", 92, 1.5, "2026-03-12 10:00",
+                            facing=(80, "gbp"), transfer=""),
+            ),
+        )
+        today = fields.Date.context_today(self.env.user)
+        refunded_on = today - timedelta(days=30)
+        refunded = self._settled(
+            **self._orders("GBP", "80.00", status="Refunded"),
+            **self._statement(
+                self._entry("txn_9000000302", "refund", -90.5, 0, f"{refunded_on} 10:00",
+                            facing=(-80, "gbp"), transfer=""),
+            ),
+        )
+        self.assertFalse(
+            refunded.issue_ids.filtered(lambda issue: issue.kind == "processor_charge_unmatched"),
+        )
+        refund = self._conversions().filtered(lambda item: item.entry_key == "txn_9000000302")
+        self.assertEqual(refund.occurred_on, refunded_on)
+        # Posted the day the refund reached the ledger, not before it existed.
+        self.assertEqual(refund.move_id.date, today)
+        self.assertAlmostEqual(self._balance(self.clearing), 0.00, places=2)
+        self.assertAlmostEqual(self._balance(self.gain), -9.50, places=2)
+
+    def test_a_refund_with_no_receipt_says_how_to_register_one(self):
+        batch = self._batch(
+            **self._statement(
+                self._entry("txn_9000000401", "refund", -45.25, 0, "2026-03-20 10:00",
+                            facing=(-40, "gbp"), transfer=""),
+            ),
+        )
+        batch.action_parse()
+        batch.action_resolve()
+        batch.action_apply()
+        batch.action_convert_receipts()
+        finding = batch.issue_ids.filtered(
+            lambda issue: issue.kind == "processor_charge_unmatched",
+        )
+        self.assertIn("txn_9000000401", finding.note)
+        self.assertIn("register its refund", finding.note)
+        self.assertNotIn("within", finding.note)
 
     def test_an_advance_converted_before_the_goods_left_still_clears(self):
         self._settled(
