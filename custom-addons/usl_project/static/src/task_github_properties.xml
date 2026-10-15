@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_project.TaskPropertiesField" t-inherit="web.PropertiesField" t-inherit-mode="primary">
+        <xpath expr="//div[@t-as='propertyConfiguration']" position="attributes">
+            <attribute name="t-if">!propertyConfiguration.hidden and !this.isVerifiedLegacyDuplicate(propertyConfiguration)</attribute>
+        </xpath>
+        <xpath expr="//span[@t-out='propertyConfiguration.string']" position="attributes">
+            <attribute name="t-out">this.legacyLabel(propertyConfiguration)</attribute>
+        </xpath>
+        <xpath expr="//PropertyValue" position="attributes">
+            <attribute name="readonly">this.props.readonly || this.isLegacyGithubProperty(propertyConfiguration)</attribute>
+        </xpath>
+        <xpath expr="//label/i[@t-if='this.state.isInEditMode']" position="attributes">
+            <attribute name="t-if">this.state.isInEditMode and !this.isLegacyGithubProperty(propertyConfiguration)</attribute>
+        </xpath>
+    </t>
+    <t t-name="usl_project.TaskCardPropertiesField" t-inherit="web.CardPropertiesField" t-inherit-mode="primary">
+        <xpath expr="//div[@t-as='propertyConfiguration']" position="attributes">
+            <attribute name="t-if">propertyConfiguration.value and propertyConfiguration.view_in_cards and !this.isVerifiedLegacyDuplicate(propertyConfiguration)</attribute>
+        </xpath>
+        <xpath expr="//PropertyValue" position="before">
+            <span t-if="this.isLegacyGithubProperty(propertyConfiguration)" class="small">Legacy GitHub:</span>
+        </xpath>
+    </t>
+</templates>

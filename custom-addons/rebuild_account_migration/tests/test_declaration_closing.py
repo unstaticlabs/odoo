@@ -1648,6 +1648,78 @@ class TestDeclarationAndClosing(TransactionCase):
         self.assertFalse(second_issue.dismissal_ids)
 
 
+
+    def test_recorded_declaration_review_survives_preparation_refresh(self):
+        for conclusion in ("accepted", "accepted_with_difference"):
+            with self.subTest(conclusion=conclusion):
+                company = self._company("Synthetic reviewed declaration " + conclusion)
+                declaration = self._declaration(company)
+                decision = self.env["rebuild.account.assurance.decision"].create({
+                    "gate": "declaration_review",
+                    "conclusion": conclusion,
+                    "company_id": company.id,
+                    "declaration_id": declaration.id,
+                    "decision_summary": "Synthetic reviewer accepted this declaration.",
+                    "evidence_summary": "Synthetic reviewed declaration evidence.",
+                })
+                decision.action_record()
+                recorded = decision.read(["state", "conclusion", "decision_summary", "evidence_summary"])[0]
+                declaration.action_refresh_preparation()
+                self.assertEqual(declaration.status, "ready_to_file")
+                self.assertEqual(declaration.preparation_status, "reviewed")
+                self.assertEqual(declaration.filing_status, "ready")
+                self.assertEqual(declaration.review_status, conclusion)
+                self.assertTrue(declaration.last_refreshed_at)
+                self.assertEqual(decision.read(["state", "conclusion", "decision_summary", "evidence_summary"])[0], recorded)
+
+    def test_schedule_retirement_preserves_review_until_decision_is_superseded(self):
+        company = self._company("Synthetic retirement review company")
+        declaration = self._declaration(company)
+        decision = self.env["rebuild.account.assurance.decision"].create({
+            "gate": "declaration_review",
+            "conclusion": "accepted_with_difference",
+            "company_id": company.id,
+            "declaration_id": declaration.id,
+            "decision_summary": "Synthetic reviewer retained this reviewed obligation.",
+            "evidence_summary": "Synthetic reviewed schedule evidence.",
+        })
+        decision.action_record()
+        Declaration = self.env["rebuild.account.declaration"]
+        Declaration._retire_superseded_instances(company, Declaration.browse(), date(2025, 10, 1), date(2026, 9, 30))
+        self.assertEqual(declaration.status, "ready_to_file")
+        self.assertEqual(declaration.preparation_status, "reviewed")
+        self.assertNotEqual(declaration.applicability, "not_applicable")
+        self.assertEqual(declaration.validation_status, "warning")
+        self.assertIn("schedule no longer includes", declaration.validation_summary)
+        decision.action_supersede()
+        Declaration._retire_superseded_instances(company, Declaration.browse(), date(2025, 10, 1), date(2026, 9, 30))
+        self.assertEqual(declaration.status, "not_applicable")
+        self.assertEqual(declaration.preparation_status, "not_required")
+        self.assertEqual(decision.state, "superseded")
+
+
+
+    def test_latest_rejected_review_does_not_freeze_preparation(self):
+        company = self._company("Synthetic changing reviewer judgment")
+        declaration = self._declaration(company)
+        Decision = self.env["rebuild.account.assurance.decision"]
+        for conclusion in ("accepted", "requires_change"):
+            decision = Decision.create({
+                "gate": "declaration_review",
+                "conclusion": conclusion,
+                "company_id": company.id,
+                "declaration_id": declaration.id,
+                "decision_summary": "Synthetic later reviewer judgment.",
+                "evidence_summary": "Synthetic reviewed evidence.",
+            })
+            decision.action_record()
+        declaration.action_refresh_preparation()
+        self.assertEqual(declaration.review_status, "rejected")
+        self.assertNotEqual(declaration.preparation_status, "reviewed")
+        self.assertEqual(declaration.status, "data_missing")
+        self.assertEqual(declaration.filing_status, "not_open")
+
+
 @tagged("post_install", "-at_install", "rebuild_account_migration_unit")
 class TestMultiCompanyAccountingReports(TransactionCase):
     @classmethod

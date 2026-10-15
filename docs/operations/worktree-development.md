@@ -185,3 +185,15 @@ against `odoo_mytest_20260101` hits exactly that. The image entrypoint pins
 `dbfilter` to the `--database` value for any `--test-enable` run, matching what
 `scripts/ci-product-database` passes explicitly; a normal server run keeps the
 configured filter untouched.
+
+### Comparing a predecessor's translation catalogue
+
+When qualifying an upgrade, verify the actually loaded predecessor add-on path,
+stored module version and expected old methods before capturing evidence. A
+priority predecessor path can load old Python correctly while leaving the current
+add-on path configured too. Odoo's native translation resource reader scans all
+configured paths, so its export can include both revisions and falsely report
+zero newly added strings. Export with an exclusive pinned custom-addons tree,
+including its dependencies, and compare that source catalogue with the candidate.
+Keep the ordinary QA server, source and ownership settings separate from the
+predecessor's one-shot runner.

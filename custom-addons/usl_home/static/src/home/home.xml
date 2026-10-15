@@ -19,6 +19,7 @@
                     </button>
                 </div>
             </header>
+            <HomeContentSearch query="props.state?.contentSearchQuery ?? props.globalState?.contentSearchQuery ?? ''" revision="state.searchRevision"/>
 
             <section t-if="state.customize" class="o_usl_home_customize" aria-labelledby="usl-home-customize-title">
                 <div>
@@ -88,7 +89,7 @@
                     <t t-if="widgetKey === 'activities' and !widgetState(widgetKey).loading and !widgetState(widgetKey).error">
                         <ol t-if="widgetState(widgetKey).data.items.length" class="o_usl_home_attention_list">
                             <li t-foreach="widgetState(widgetKey).data.items" t-as="item" t-key="item.id">
-                                <button type="button" t-on-click="() => this.openRecord(item.res_model, item.res_id)">
+                                <button type="button" t-on-click="() => this.openActivity(item.id)">
                                     <span class="o_usl_home_attention_icon" t-att-data-status="item.bucket">
                                         <i class="fa" t-att-class="item.bucket === 'overdue' ? 'fa-exclamation' : item.bucket === 'today' ? 'fa-clock-o' : 'fa-calendar-o'" aria-hidden="true"/>
                                     </span>

@@ -1,5 +1,5 @@
 import { CLIPBOARD_WHITELISTS } from "@html_editor/core/clipboard_plugin";
-import { beforeEach, describe, expect, test } from "@odoo/hoot";
+import { beforeEach, describe, expect, manuallyDispatchProgrammaticEvent, test } from "@odoo/hoot";
 import { manuallyDispatchProgrammaticEvent as dispatch, press, waitFor } from "@odoo/hoot-dom";
 import { animationFrame, tick } from "@odoo/hoot-mock";
 import { dataURItoBlob, onRpc, patchWithCleanup } from "@web/../tests/web_test_helpers";
@@ -3121,7 +3121,7 @@ describe("link", () => {
                 stepFunction: async (editor) => {
                     pasteText(editor, "abc www.odoo.com xyz");
                 },
-                contentAfter: '<p>abc <a href="http://www.odoo.com">www.odoo.com</a> xyz[]</p>',
+                contentAfter: '<p>abc <a href="https://www.odoo.com">www.odoo.com</a> xyz[]</p>',
             });
         });
 
@@ -3132,8 +3132,8 @@ describe("link", () => {
                     pasteText(editor, "odoo.com\ngoogle.com");
                 },
                 contentAfter:
-                    '<div><a href="http://odoo.com">odoo.com</a></div>' +
-                    '<p><a href="http://google.com">google.com</a>[]</p>',
+                    '<div><a href="https://odoo.com">odoo.com</a></div>' +
+                    '<p><a href="https://google.com">google.com</a>[]</p>',
             });
         });
 
@@ -3265,6 +3265,106 @@ describe("link", () => {
                     pasteText(editor, "`http://www.xyz.com`");
                 },
                 contentAfter: '<p>ab`<a href="http://www.xyz.com">http://www.xyz.com</a>`[]cd</p>',
+            });
+        });
+
+        test("should transform a mail URL when pasting a mail as text content", async () => {
+            await testEditor({
+                contentBefore: "<p>ab[]</p>",
+                stepFunction: async (editor) => {
+                    pasteText(editor, "user@domain.com");
+                },
+                contentAfter: '<p>ab<a href="mailto:user@domain.com">user@domain.com</a>[]</p>',
+            });
+        });
+
+        test("should transform a mail URL when pasting a mail as text content (2)", async () => {
+            await testEditor({
+                contentBefore: "<p>ab[]</p>",
+                stepFunction: async (editor) => {
+                    pasteText(editor, "mailto:user@domain.com");
+                },
+                contentAfter:
+                    '<p>ab<a href="mailto:user@domain.com">mailto:user@domain.com</a>[]</p>',
+            });
+        });
+
+        test("should transform a mail URL when pasting a mail as text content (3)", async () => {
+            await testEditor({
+                contentBefore: "<p>ab[]</p>",
+                stepFunction: async (editor) => {
+                    pasteText(editor, "MAILTO:user@domain.com");
+                },
+                contentAfter:
+                    '<p>ab<a href="MAILTO:user@domain.com">MAILTO:user@domain.com</a>[]</p>',
+            });
+        });
+
+        test("should transform a mail URL when pasting a mail as html content", async () => {
+            const { el } = await setupEditor("<p>ab[]</p>");
+
+            const clipboardData = new DataTransfer();
+            clipboardData.setData(
+                "text/html",
+                '<span style="color: rgb(0, 0, 0);font-weight: normal;">user@domain.com</span>'
+            );
+            clipboardData.setData("text/plain", "user@domain.com");
+            await manuallyDispatchProgrammaticEvent(el, "paste", { clipboardData });
+            expect(cleanLinkArtifacts(getContent(el))).toBe(
+                '<p>ab<a href="mailto:user@domain.com">user@domain.com</a>[]</p>'
+            );
+        });
+
+        test("should transform a mail URL when pasting a mail as html content (2)", async () => {
+            const { el } = await setupEditor("<p>ab[]</p>");
+
+            const clipboardData = new DataTransfer();
+            clipboardData.setData(
+                "text/html",
+                '<span style="color: rgb(0, 0, 0);font-weight: normal;">mailto:user@domain.com</span>'
+            );
+            clipboardData.setData("text/plain", "mailto:user@domain.com");
+            await manuallyDispatchProgrammaticEvent(el, "paste", { clipboardData });
+            expect(cleanLinkArtifacts(getContent(el))).toBe(
+                '<p>ab<a href="mailto:user@domain.com">mailto:user@domain.com</a>[]</p>'
+            );
+        });
+
+        test("should transform a mail URL when pasting a mail as odoo html", async () => {
+            const { el } = await setupEditor("<p>ab[]</p>");
+
+            const clipboardData = new DataTransfer();
+            clipboardData.setData("application/vnd.odoo.odoo-editor", "<p>user@domain.com</p>");
+            clipboardData.setData("text/plain", "user@domain.com");
+            await manuallyDispatchProgrammaticEvent(el, "paste", { clipboardData });
+            expect(cleanLinkArtifacts(getContent(el))).toBe(
+                '<p>ab<a href="mailto:user@domain.com">user@domain.com</a>[]</p>'
+            );
+        });
+
+        test("should transform a mail URL when pasting a mail as odoo html (2)", async () => {
+            const { el } = await setupEditor("<p>ab[]</p>");
+
+            const clipboardData = new DataTransfer();
+            clipboardData.setData(
+                "application/vnd.odoo.odoo-editor",
+                "<p>mailto:user@domain.com</p>"
+            );
+            clipboardData.setData("text/plain", "mailto:user@domain.com");
+            await manuallyDispatchProgrammaticEvent(el, "paste", { clipboardData });
+            expect(cleanLinkArtifacts(getContent(el))).toBe(
+                '<p>ab<a href="mailto:user@domain.com">mailto:user@domain.com</a>[]</p>'
+            );
+        });
+
+        test("should transform a mail URL when pasting multiple URLs among text", async () => {
+            await testEditor({
+                contentBefore: "<p>ab []</p>",
+                stepFunction: async (editor) => {
+                    pasteText(editor, "visit https://google.com user@domain.com");
+                },
+                contentAfter:
+                    '<p>ab visit <a href="https://google.com">https://google.com</a> <a href="mailto:user@domain.com">user@domain.com</a>[]</p>',
             });
         });
     });
@@ -3447,7 +3547,7 @@ describe("link", () => {
                 stepFunction: async (editor) => {
                     pasteText(editor, "www.odoo.com");
                 },
-                contentAfter: '<p><a href="http://www.odoo.com">xyz</a>[]</p>',
+                contentAfter: '<p><a href="https://www.odoo.com">xyz</a>[]</p>',
             });
         });
 
@@ -3457,7 +3557,7 @@ describe("link", () => {
                 stepFunction: async (editor) => {
                     pasteText(editor, "abc www.odoo.com xyz");
                 },
-                contentAfter: '<p>abc <a href="http://www.odoo.com">www.odoo.com</a> xyz[]</p>',
+                contentAfter: '<p>abc <a href="https://www.odoo.com">www.odoo.com</a> xyz[]</p>',
             });
         });
 
@@ -4489,8 +4589,8 @@ describe("Paste HTML tables", () => {
                 );
             },
             contentAfter: `<table class="table table-bordered o_table">
-        <colgroup></colgroup>
-        <colgroup></colgroup>
+        <colgroup><col><col></colgroup>
+        
         <tbody><tr>
             <td><i>Italic then also BOLD</i></td>
             <td><i><s>Italic strike</s></i></td>
@@ -4920,6 +5020,42 @@ describe("onDrop", () => {
 
         expect(getContent(el)).toBe(
             '<p><br></p><p>ca</p><p>\ufeff<span class="fa fa-heart" contenteditable="false">\u200b</span>\ufeffb[]</p>'
+        );
+    });
+
+    test("should use a live range for the drop position from caretPositionFromPoint", async () => {
+        const base64Image =
+            "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII=";
+
+        const { el } = await setupEditor(
+            `<p>a[<img class="img-fluid" data-file-name="image.png" src="${base64Image}">]</p>`
+        );
+        const pElement = el.firstChild;
+        const imgElement = pElement.lastChild;
+
+        patchWithCleanup(document, {
+            caretPositionFromPoint: () => ({ offsetNode: pElement, offset: 2 }),
+        });
+
+        const dragdata = new DataTransfer();
+        await dispatch(imgElement, "dragstart", { dataTransfer: dragdata });
+        await animationFrame();
+        const imageHTML = dragdata.getData("application/vnd.odoo.odoo-editor");
+        expect(imageHTML).toBe(
+            `<p><img class="img-fluid" data-file-name="image.png" src="${base64Image}"></p>`
+        );
+
+        const dropData = new DataTransfer();
+        dropData.setData(
+            "text/html",
+            `<meta http-equiv="Content-Type" content="text/html;charset=UTF-8"><img src="${base64Image}">`
+        );
+        dropData.setData("application/vnd.odoo.odoo-editor", imageHTML);
+        await dispatch(pElement, "drop", { dataTransfer: dropData });
+        await animationFrame();
+
+        expect(getContent(el)).toBe(
+            `<p>a<img class="img-fluid" data-file-name="image.png" src="${base64Image}">[]</p>`
         );
     });
 });

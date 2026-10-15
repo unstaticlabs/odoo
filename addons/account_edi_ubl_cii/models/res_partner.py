@@ -14,7 +14,7 @@ PEPPOL_ENDPOINT_INVALIDCHARS_RE = re.compile(r'[^a-zA-Z\d\-._~]')
 PEPPOL_ENDPOINT_INVALID_CHARS_RE_BY_EAS = {
     '0208': re.compile(r'[^0-9]'),
     '9925': re.compile(r'[^beBE0-9]'),
-    'EM': re.compile(r'[^a-zA-Z\d\-._@]'),
+    'EM': re.compile(r'[^a-zA-Z\d\-._@+]'),
 }
 
 
@@ -260,7 +260,7 @@ class ResPartner(models.Model):
 
         if (
             country_code == 'BE'
-            and field == 'company_registry'
+            and eas == '0208'
             and not value
             and self.vat
         ):

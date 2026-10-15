@@ -46,6 +46,7 @@ export const websiteService = {
         const modelNames = {};
         let invalidateSnippetCache = false;
         let lastWebsiteId = null;
+        let isNavigatingToAnotherPage = null;
 
         const context = reactive({
             showResourceEditor: false,
@@ -264,6 +265,12 @@ export const websiteService = {
             set invalidateSnippetCache(value) {
                 invalidateSnippetCache = value;
             },
+            set isNavigatingToAnotherPage(promise) {
+                isNavigatingToAnotherPage = promise;
+            },
+            get isNavigatingToAnotherPage() {
+                return isNavigatingToAnotherPage;
+            },
 
             async goToWebsite({ websiteId, path, edition, translation, lang } = {}) {
                 this.websiteRootInstance = undefined;
@@ -329,6 +336,25 @@ export const websiteService = {
             },
             prepareOutLoader() {
                 bus.trigger("PREPARE-OUT-WEBSITE-LOADER");
+            },
+            get hasEditableRecordInBackend() {
+                return (
+                    this.currentWebsite &&
+                    this.currentWebsite.metadata.editableInBackend &&
+                    // TODO the functional desire is to have read access on all
+                    // "website" models for all internal users, but there are many
+                    // fields preventing that... to review in master (should views just
+                    // be smarter? should they be more basic in the website app?). This
+                    // disables the form view access feature for some models that are
+                    // known to lead to access rights lock. At least, list views are
+                    // accessible at the moment.
+                    // See WEBSITE_RECORDS_VIEWS_ACCESS_RIGHTS.
+                    (!this.currentWebsite.metadata.mainObject ||
+                        !["event.event", "hr.job"].includes(
+                            this.currentWebsite.metadata.mainObject.model
+                        ) ||
+                        this.currentWebsite.metadata.canPublish)
+                );
             },
             /**
              * Returns the (translated) "functional" name of a model

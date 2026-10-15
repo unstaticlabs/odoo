@@ -4,12 +4,14 @@ import {
     advanceTime,
     animationFrame,
     click,
+    drag,
     press,
     queryAllRects,
     queryAllTexts,
     queryFirst,
     queryOne,
     queryRect,
+    resize,
     runAllTimers,
 } from "@odoo/hoot-dom";
 import { mockDate, mockTimeZone, mockTouch } from "@odoo/hoot-mock";
@@ -72,6 +74,7 @@ import { CalendarYearRenderer } from "@web/views/calendar/calendar_year/calendar
 import { WebClient } from "@web/webclient/webclient";
 import { serializeDateTime } from "@web/core/l10n/dates";
 import { range } from "@web/core/utils/numbers";
+import { TOUCH_SELECTION_THRESHOLD } from "@web/views/utils";
 
 class Event extends models.Model {
     name = fields.Char();
@@ -5272,6 +5275,38 @@ test(`calendar sidepanel can be collapsed by default if it was set in local stor
     expect(`.o_calendar_sidepanel`).toHaveCount(0);
 });
 
+test.tags("desktop");
+test("calendar sidebar reacts to isSmall changes", async () => {
+    await mountView({
+        resModel: "event",
+        type: "calendar",
+        arch: `<calendar date_start="start" mode="week"/>`,
+    });
+    expect(".o_calendar_renderer").toHaveCount(1);
+    expect(".o_calendar_sidepanel").toHaveCount(1);
+    expect(".o_calendar_sidebar").toHaveCount(0);
+    expect(".o_other_calendar_panel").toHaveCount(0);
+
+    // Reduce the viewport to a mobile size (isSmall = true)
+    // The sidepanel (which is expanded by default) should be hidden without interaction,
+    // and swapped for the mobile filter panel's toggle bar instead of the desktop sidepanel.
+    await resize({ width: 500 });
+    await animationFrame();
+    expect(".o_calendar_renderer").toHaveCount(1);
+    expect(".o_calendar_sidepanel").toHaveCount(0);
+    expect(".o_calendar_sidebar").toHaveCount(0);
+    expect(".o_other_calendar_panel").toHaveCount(1);
+
+    // Expand the viewport to desktop size, the sidepanel should show again,
+    // and the mobile filter panel should be removed.
+    await resize({ width: 1200 });
+    await animationFrame();
+    expect(".o_calendar_renderer").toHaveCount(1);
+    expect(".o_calendar_sidepanel").toHaveCount(1);
+    expect(".o_calendar_sidebar").toHaveCount(0);
+    expect(".o_other_calendar_panel").toHaveCount(0);
+});
+
 test(`calendar should show date information on header`, async () => {
     mockDate("2015-12-26 09:00:00");
 
@@ -6080,6 +6115,34 @@ test(`three calendars are rendered in the ActionSwiper on touch devices`, async 
         message: "events are displayed on the following month",
     });
     expect(".o_actionswiper_left_swipe_area .fc-daygrid-body .fc-event").toHaveText("event 5");
+});
+
+test.tags("desktop");
+test("swiping from an event being dragged on touch devices", async () => {
+    mockTouch(true);
+    await mountView({
+        resModel: "event",
+        type: "calendar",
+        arch: `<calendar date_start="start" date_stop="stop" mode="month"/>`,
+    });
+    expect(".o_calendar_header h5").toHaveText("December 2016");
+
+    const eventEl = findEvent(2);
+    const swipeWidth = queryRect(".o_actionswiper").width;
+    const { moveTo, drop } = await drag(eventEl, { position: { x: 10 }, relative: true });
+    // move a bit before the swiper gets disabled
+    await moveTo(eventEl, { position: { x: 5 }, relative: true });
+    // long press: fullcalendar starts dragging the event
+    await advanceTime(TOUCH_SELECTION_THRESHOLD);
+    expect(".o_calendar_widget.o_interacting").toHaveCount(1);
+
+    // swipe to the next month: the calendar is re-rendered while the event is being dragged
+    await moveTo(eventEl, { position: { x: -swipeWidth }, relative: true });
+    await drop();
+    await advanceTime(1000);
+    await animationFrame();
+    expect(".o_calendar_header h5").toHaveText("January 2017");
+    expect(".o_interacting").toHaveCount(0);
 });
 
 test("Revert to the previous state if updateRecord fails (onEventResize)", async () => {

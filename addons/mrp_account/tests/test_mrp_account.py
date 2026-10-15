@@ -8,9 +8,68 @@ from odoo.tests import Form, tagged
 from odoo.tests.common import new_test_user
 from odoo.tools import float_compare, float_round
 from odoo import Command, fields
+from odoo.exceptions import UserError
 
 
 class TestMrpAccount(TestBomPriceCommon, TestMrpCommon):
+
+    def test_completed_production_date_preserves_posted_entries(self):
+        code = '991701'
+        while self.env['account.account'].search_count([('code', '=', code)]):
+            code = str(int(code) + 1)
+        account = self.env['account.account'].create({
+            'name': 'Production date test valuation',
+            'code': code,
+            'account_type': 'asset_current',
+        })
+        self.env['stock.location'].search([
+            ('usage', '=', 'production'), ('company_id', '=', self.company.id),
+        ]).valuation_account_id = account
+        production = self._create_mo(self.bom_1, 1)
+        self._produce(production)
+        production.button_mark_done()
+        stock_moves = production.move_raw_ids | production.move_finished_ids
+        journal_moves = stock_moves.account_move_id
+        self.assertEqual(production.state, 'done')
+        self.assertTrue(journal_moves)
+        self.assertTrue(all(move.state == 'posted' for move in journal_moves))
+        actor = new_test_user(
+            self.env, 'production_date_test_user',
+            'mrp.group_mrp_user,stock.group_stock_user',
+            company_id=production.company_id.id,
+            company_ids=[Command.set(production.company_id.ids)],
+        )
+        finish = production.date_finished
+        stock_dates = {move.id: move.date for move in stock_moves}
+        posted_dates = {move.id: move.date for move in journal_moves}
+        for state_values in ({}, {'state': 'done'}):
+            with self.subTest(state_values=state_values):
+                with self.assertRaises(UserError), self.env.cr.savepoint():
+                    production.with_user(actor).with_context(
+                        mrp_account_completing_production_ids=production.ids,
+                    ).write({
+                        'date_finished': finish - timedelta(days=2), **state_values,
+                    })
+                production.invalidate_recordset()
+                stock_moves.invalidate_recordset()
+                journal_moves.invalidate_recordset()
+                self.assertEqual(production.date_finished, finish)
+                self.assertEqual({move.id: move.date for move in stock_moves}, stock_dates)
+                self.assertEqual({move.id: move.date for move in journal_moves}, posted_dates)
+        # Repeating the same state and date remains an ordinary harmless write.
+        production.with_user(actor).write({'date_finished': finish, 'state': 'done'})
+        self.assertIs(production.with_user(actor).button_mark_done(), True)
+        self.assertEqual(production.date_finished, finish)
+        next_production = self._create_mo(self.bom_1, 1)
+        self._produce(next_production)
+        (production | next_production).with_user(actor).button_mark_done()
+        self.assertEqual(next_production.state, 'done')
+        production.invalidate_recordset()
+        stock_moves.invalidate_recordset()
+        journal_moves.invalidate_recordset()
+        self.assertEqual(production.date_finished, finish)
+        self.assertEqual({move.id: move.date for move in stock_moves}, stock_dates)
+        self.assertEqual({move.id: move.date for move in journal_moves}, posted_dates)
 
     def test_00_production_order_with_accounting(self):
         # Inventory Product Table
@@ -313,6 +372,26 @@ class TestMrpAccount(TestBomPriceCommon, TestMrpCommon):
         self.assertEqual(sum(finished_moves.mapped('quantity')), 15.0)
         # Both finished_moves moves must carry the same, correct unit cost.
         self.assertEqual(finished_moves.mapped('price_unit'), [17.50, 17.50])
+
+    def test_finished_product_cannot_be_own_byproduct(self):
+        """ A duplicate stock move for the MO's own finished product on `move_finished_ids`
+        must not crash the MO Overview report: it must still compute a unit cost.
+        """
+        mo = self._create_mo(self.bom_1, 1)
+        mo.button_mark_done()
+        mo.action_toggle_is_locked()
+        self.assertEqual(mo.state, 'done')
+        self.env['stock.move'].create({
+            'product_id': mo.product_id.id,
+            'uom_id': mo.product_id.uom_id.id,
+            'quantity': 1.0,
+            'location_id': mo.production_location_id.id,
+            'location_dest_id': mo.location_dest_id.id,
+            'production_id': mo.id,
+        })
+        self.assertEqual(len(mo.move_finished_ids.filtered(lambda m: m.product_id == mo.product_id)), 2)
+        overview = self.env['report.mrp.report_mo_overview'].get_report_values(mo.id)
+        self.assertEqual(overview['data']['summary']['unit_cost'], 718.75)
 
 
 class TestMrpAccountWorkorder(TestBomPriceOperationCommon):

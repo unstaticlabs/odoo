@@ -10,12 +10,13 @@ from psycopg2 import IntegrityError
 
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tools import html2plaintext
+from odoo.tools import config, html2plaintext
 
 MAX_CANDIDATES = 10
 MAX_DISCOVERED_LINKS = 100
 MAX_URL_LENGTH = 8192
 MAX_PDF_BYTES = 20 * 1024 * 1024
+STALE_QUEUE_MINUTES = 30
 AUTO_SCORE = 12
 AUTO_MARGIN = 3
 MIN_PATTERN_CONFIDENCE = 0.60
@@ -1176,11 +1177,67 @@ class UslMailPdfRetrieval(models.Model):
             identity_key=f"receipt-fetch:{self.id}:{self.generation}",
         )._job_fetch_receipt()
 
+    def _queue_is_stale(self, now=None):
+        """Age is an observation, never proof that eligible work has failed."""
+        self.ensure_one()
+        queued_at = self.write_date or self.create_date
+        return bool(
+            self.state == "queued" and queued_at
+            and queued_at <= fields.Datetime.subtract(
+                now or fields.Datetime.now(), minutes=STALE_QUEUE_MINUTES,
+            )
+        )
+
+    @api.model
+    def _queue_runtime_status(self):
+        if os.getenv("USL_PRODUCTION_CANDIDATE_QUARANTINED") == "1":
+            return "quarantined"
+        if not self._feature_enabled():
+            return "disabled"
+        channels = os.getenv("ODOO_QUEUE_JOB_CHANNELS", "").replace(" ", "").split(",")
+        if "root:0" in channels or "root.receipt_fetch:0" in channels:
+            return "paused"
+        modules = config["server_wide_modules"]
+        if isinstance(modules, str):
+            modules = modules.split(",")
+        if "queue_job" not in modules:
+            return "runner_not_loaded"
+        return "waiting"
+
+    @api.model
+    def _queue_health(self):
+        """Bounded, rule-scoped metadata for operators; never return URLs."""
+        self.check_access("read")
+        rows = self._read_group([("state", "=", "queued")], [], ["id:count", "write_date:min"])
+        count, oldest = rows[0] if rows else (0, False)
+        now = fields.Datetime.now()
+        return {
+            "queued_count": count,
+            "oldest_wait_minutes": max(0, int((now - oldest).total_seconds() // 60)) if oldest else 0,
+            "stale_count": self.search_count([
+                ("state", "=", "queued"),
+                ("write_date", "<=", fields.Datetime.subtract(now, minutes=STALE_QUEUE_MINUTES)),
+            ]),
+            "runtime_status": self._queue_runtime_status(),
+        }
+
     def action_retry(self):
         self.ensure_one()
         self._check_can_manage()
-        if self.state != "needs_attention":
-            raise UserError(_("Only a linked receipt needing attention can be retried."))
+        self.env.cr.execute(
+            "SELECT id FROM usl_mail_pdf_retrieval WHERE id = %s FOR UPDATE",
+            (self.id,),
+        )
+        if not self.env.cr.fetchone():
+            raise UserError(_("This receipt recovery request is no longer active."))
+        self.invalidate_recordset()
+        self.expense_id.invalidate_recordset()
+        self._check_can_manage()
+        if self.state != "needs_attention" and not self._queue_is_stale():
+            raise UserError(_(
+                "Retry a receipt needing attention, or one queued for at least %(minutes)s minutes.",
+                minutes=STALE_QUEUE_MINUTES,
+            ))
         if not self.selected_fingerprint:
             raise UserError(_("Choose a receipt link before retrying."))
         pattern = self.pattern_id.sudo()

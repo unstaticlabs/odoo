@@ -141,3 +141,51 @@ class TestHygieneStructuredEvidence(AccountTestInvoicingCommon):
             with self.assertRaises(AccessError):
                 issue._structured_evidence_move_ids(foreign_bill.with_user(accountant))
             search.assert_not_called()
+
+
+    def test_supplier_and_expense_evidence_populations_do_not_overlap(self):
+        supplier_bill = self._bill()
+        supplier_refund = self._bill()
+        supplier_refund.move_type = "in_refund"
+        supplier_receipt = self._bill()
+        supplier_receipt.move_type = "in_receipt"
+        other = self.setup_other_company()["company"]
+        foreign_bill = self.env["account.move"].with_company(other).create({
+            "move_type": "in_invoice", "invoice_date": "2026-08-31",
+        })
+        expense_move = self._bill()
+        employee = self.env["hr.employee"].sudo().create({
+            "name": "Synthetic receipt employee",
+            "company_id": self.env.company.id,
+            "user_id": self.env.user.id,
+        })
+        self.product_a.sudo().can_be_expensed = True
+        expense = self.env["hr.expense"].create({
+            "name": "Synthetic missing expense receipt",
+            "product_id": self.product_a.id,
+            "employee_id": employee.id,
+            "company_id": self.env.company.id,
+            "date": "2026-08-31",
+            "account_id": self.company_data["default_account_expense"].id,
+            "payment_mode": "own_account",
+            "account_move_id": expense_move.id,
+            "total_amount_currency": 20,
+        })
+        waived_move = self._bill()
+        waived_expense = expense.copy({
+            "name": "Synthetic waived receipt",
+            "account_move_id": waived_move.id,
+            "rebuild_receipt_waiver_reason": "Synthetic receipt cannot be obtained.",
+        })
+        waived_expense.action_rebuild_waive_receipt()
+        results = self.Issue._evaluate_builtin_hygiene(self.env.company)
+        population = {result["issue_key"]: set(json.loads(result["target_res_ids_json"])) for result in results}
+        self.assertEqual(
+            population["vendor-evidence:missing"],
+            {supplier_bill.id, supplier_refund.id, supplier_receipt.id},
+        )
+        self.assertNotIn(foreign_bill.id, population["vendor-evidence:missing"])
+        self.assertNotIn(waived_move.id, population["vendor-evidence:missing"])
+        self.assertNotIn(waived_expense.id, population["expense-evidence:missing"])
+        self.assertNotIn(expense_move.id, population["vendor-evidence:missing"])
+        self.assertIn(expense.id, population["expense-evidence:missing"])

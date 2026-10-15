@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- saas~19.3 transient models use regular record rules. Agent access is
+         additionally bounded by its accountable owner's record-rule ceiling;
+         creator-only mutation is enforced by the wizard itself. -->
+    <record id="rule_vendor_bill_merge_owned_company" model="ir.rule">
+        <field name="name">Bill merge choices: own company and accountable creator</field>
+        <field name="model_id" ref="model_usl_vendor_bill_merge_wizard"/>
+        <field name="domain_force">[('company_id', 'in', company_ids), '|', ('create_uid', '=', user.id), ('accountable_user_id', '=', user.id)]</field>
+    </record>
+</odoo>

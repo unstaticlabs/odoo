@@ -1,3 +1,4 @@
+import { HomeContentSearch } from "./content_search";
 import { _t } from "@web/core/l10n/translation";
 import { formatDate } from "@web/core/l10n/dates";
 import { registry } from "@web/core/registry";
@@ -54,6 +55,8 @@ const ACCOUNTING_ICONS = {
 
 export class UslHome extends Component {
     static template = "usl_home.Home";
+    static path = "usl-home";
+    static components = { HomeContentSearch };
     static props = { "*": true };
 
     setup() {
@@ -62,6 +65,7 @@ export class UslHome extends Component {
         this.notification = useService("notification");
         this.gridRef = useRef("grid");
         this.state = useState({
+            searchRevision: 0,
             loadingConfiguration: true,
             configurationError: false,
             customize: false,
@@ -190,6 +194,7 @@ export class UslHome extends Component {
     }
 
     async refreshAll() {
+        this.state.searchRevision++;
         for (const key of this.visibleWidgets) {
             if (key !== "favorites") {
                 this.loadWidget(key);
@@ -216,6 +221,7 @@ export class UslHome extends Component {
     }
 
     async reloadForCompany() {
+        this.state.searchRevision++;
         await this.loadConfiguration();
         await this.refreshAll();
     }
@@ -284,6 +290,11 @@ export class UslHome extends Component {
         return this.formatDate(item.deadline);
     }
 
+    async openActivity(activityId) {
+        const action = await this.orm.call("mail.activity", "action_open_document", [[activityId]]);
+        return this.action.doAction(action, { clearBreadcrumbs: true });
+    }
+
     async openRecord(resModel, resId) {
         await this.action.doAction(
             {
@@ -324,6 +335,8 @@ export class UslHome extends Component {
         delete action.usl_home_filter;
         return this.action.doAction(action, {
             clearBreadcrumbs: true,
+            // An explicit metric takes precedence over the user's default saved search.
+            additionalContext: { search_disable_custom_filters: true },
             props: { dynamicFilters },
         });
     }

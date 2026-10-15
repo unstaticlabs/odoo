@@ -1,0 +1,12 @@
+.o_usl_content_search {
+    margin-bottom: 1.5rem;
+    .input-group { max-width: 60rem; }
+    .o_usl_content_results { margin-top: 1rem; }
+    .o_usl_search_group { margin: 1rem 0; }
+    .o_usl_search_result {
+        border-radius: .35rem;
+        margin-bottom: .25rem;
+        strong, span { overflow-wrap: anywhere; }
+        &:hover, &:focus-visible, &.active { background: var(--o-view-background-color, #f4f4f4); outline: 2px solid var(--o-brand-primary, #714b67); outline-offset: -2px; }
+    }
+}

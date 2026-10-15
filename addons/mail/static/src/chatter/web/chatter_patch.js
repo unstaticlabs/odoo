@@ -26,6 +26,7 @@ import { useMessageSearch } from "@mail/core/common/message_search_hook";
 import { usePopoutAttachment } from "@mail/core/common/attachment_view";
 import { rpc } from "@web/core/network/rpc";
 import { useRecordObserver } from "@web/model/relational_model/utils";
+import { isMobileOS } from "@web/core/browser/feature_detection";
 
 export const DELAY_FOR_SPINNER = 1000;
 
@@ -103,6 +104,7 @@ const chatterPatch = {
         this.subjectInputRef = useRef("subjectInput");
         /** @type {Map<string, Function>} */
         this.uploadHandlers = new Map();
+        this.isMobileOS = isMobileOS();
         useCustomDropzone(
             this.rootRef,
             MailAttachmentDropzone,
@@ -433,7 +435,9 @@ const chatterPatch = {
         if (status(this) === "destroyed") {
             return;
         }
-        await this.props.saveRecord?.();
+        if (this.props.saveRecord && !(await this.props.saveRecord())) {
+            return;
+        }
         if (this.props.record) {
             await this.props.record.load();
         }
@@ -489,6 +493,14 @@ const chatterPatch = {
         if (this.props.hasParentReloadOnAttachmentsChanged) {
             this.reloadParentView();
         }
+    },
+
+    get showsAttachmentPopout() {
+        return (
+            !this.isMobileOS &&
+            this.props.hasAttachmentPreview &&
+            Boolean(this.state.thread.attachmentsInWebClientView.length)
+        );
     },
 
     popoutAttachment() {

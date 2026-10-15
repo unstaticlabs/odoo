@@ -137,3 +137,20 @@ methods Odoo permits for each model. Read-only applications therefore omit
 ordinary mutations while retaining approved collaboration methods. This is a
 catalogue aid for clients; Odoo still authenticates and authorizes every call,
 including record- and argument-specific checks.
+
+## Correcting and archiving work
+
+A Project Agent with write access can correct one task activity through
+`project.task.mcp_update_activity(activity_id, values)`. The supported fields
+are `date_deadline`, `summary`, `note` and `user_id`. The activity keeps its id
+and remains unfinished; the method cannot move it to another business record.
+Use `activity_reschedule` when changing matching activity types together.
+
+Writable Agents can use native project/task `action_archive` and
+`action_unarchive`. Archiving hides records from active lists while retaining
+their chatter, attachments and identity. Native child-task archive behavior
+also applies. Read-only access does not permit either action.
+
+Expense draft creation and reset retain native approval-activity cleanup within
+the authorized expense workflow. This does not grant general activity deletion
+or bypass native expense, company or Accounting checks.

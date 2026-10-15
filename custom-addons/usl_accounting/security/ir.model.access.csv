@@ -34,3 +34,4 @@ access_linked_receipt_pattern_manager,linked receipt pattern manager,model_usl_m
 access_linked_receipt_wizard,linked receipt wizard,model_usl_mail_pdf_candidate_wizard,base.group_user,1,1,1,1
 access_linked_receipt_wizard_line,linked receipt wizard line,model_usl_mail_pdf_candidate_wizard_line,base.group_user,1,1,1,1
 access_bank_ingestion_period,correct bank export period,model_account_bank_ingestion_period,account.group_account_user,1,1,1,1
+access_vendor_bill_merge_wizard,choose vendor bill to keep,model_usl_vendor_bill_merge_wizard,account.group_account_invoice,1,1,1,1

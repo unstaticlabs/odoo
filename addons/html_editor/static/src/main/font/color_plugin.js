@@ -6,8 +6,9 @@ import {
     hasColor,
     TEXT_CLASSES_REGEX,
 } from "@html_editor/utils/color";
-import { fillEmpty, unwrapContents } from "@html_editor/utils/dom";
+import { fillEmpty, removeClass, removeStyle, unwrapContents } from "@html_editor/utils/dom";
 import {
+    isElement,
     isEmptyBlock,
     isRedundantElement,
     isTextNode,
@@ -16,15 +17,18 @@ import {
     isZWS,
 } from "@html_editor/utils/dom_info";
 import {
+    ancestors,
+    childNodes,
     closestElement,
     descendants,
+    findFurthest,
     findUpTo,
     selectElements,
 } from "@html_editor/utils/dom_traversal";
 import { isColorGradient, normalizeCSSColor } from "@web/core/utils/colors";
 import { backgroundImageCssToParts, backgroundImagePartsToCss } from "@html_editor/utils/image";
 import { isHtmlContentSupported } from "@html_editor/core/selection_plugin";
-import { isBlock } from "@html_editor/utils/blocks";
+import { closestBlock, isBlock } from "@html_editor/utils/blocks";
 import { callbacksForCursorUpdate } from "@html_editor/utils/selection";
 
 const COLOR_COMBINATION_CLASSES = [1, 2, 3, 4, 5].map((i) => `o_cc${i}`);
@@ -213,14 +217,78 @@ export class ColorPlugin extends Plugin {
         const cursors = this.dependencies.selection.preserveSelection();
 
         const findTopMostDecoration = (current) => {
-            const decoration = closestElement(current.parentNode, "s, u");
-            return decoration?.textContent === current.textContent
-                ? findTopMostDecoration(decoration)
-                : current;
+            let topMostDecoration = findFurthest(
+                current,
+                closestBlock(current),
+                (node) => isElement(node) && node.matches("u, s")
+            );
+            if (!topMostDecoration) {
+                return current;
+            }
+            const isUnsplittable = (el) => this.dependencies.split.isUnsplittable(el);
+            const hasUnsplittable = (el) => descendants(el, [el]).some((e) => isUnsplittable(e));
+            if (
+                hasUnsplittable(topMostDecoration) &&
+                !this.dependencies.selection.areNodeContentsFullySelected(topMostDecoration)
+            ) {
+                // Walk down from `topMostDecoration` to `current`, splitting around each
+                // splittable ancestor and, once an unsplittable is hit, moving the
+                // decoration tags inside it instead of splitting it. Returns the node to
+                // use as the new limit for `splitAroundUntil(current, ...)`.
+                const extractUnsplittable = (node, limit) => {
+                    for (const child of childNodes(node)) {
+                        if (this.dependencies.selection.areNodeContentsFullySelected(child)) {
+                            // Fully selected: nothing to split inside it, `limit` stands.
+                            return limit;
+                        }
+                        if (child.contains(current)) {
+                            if (isElement(child) && hasUnsplittable(child)) {
+                                if (isUnsplittable(child)) {
+                                    // `child` itself is unsplittable: split everything above
+                                    // it up to `limit`, then pull the decoration tags that
+                                    // used to wrap it inside it instead.
+                                    const unsplittableStyleParent =
+                                        this.dependencies.split.splitAroundUntil(child, limit);
+                                    const decorations = ancestors(
+                                        child,
+                                        unsplittableStyleParent.parentElement
+                                    ).filter((node) => node.matches("u, s"));
+                                    for (const decoration of decorations) {
+                                        cursors.update(callbacksForCursorUpdate.unwrap(decoration));
+                                        decoration.replaceWith(...childNodes(decoration));
+                                        for (const node of childNodes(child)) {
+                                            cursors.update(
+                                                callbacksForCursorUpdate.append(decoration, node)
+                                            );
+                                            decoration.append(node);
+                                        }
+                                        cursors.update(
+                                            callbacksForCursorUpdate.append(child, decoration)
+                                        );
+                                        child.append(decoration);
+                                    }
+                                    cursors.restore();
+                                    // Recurse into `child`, now limited to the outermost
+                                    // decoration we just moved inside it.
+                                    return extractUnsplittable(child, decorations.at(-1));
+                                } else {
+                                    // Not unsplittable itself, but contains one: descend.
+                                    return extractUnsplittable(child, limit);
+                                }
+                            } else {
+                                // No unsplittable below: safe to split up to `limit` here.
+                                return this.dependencies.split.splitAroundUntil(child, limit);
+                            }
+                        }
+                    }
+                };
+                topMostDecoration = extractUnsplittable(topMostDecoration, topMostDecoration);
+            }
+            return this.dependencies.split.splitAroundUntil(current, topMostDecoration);
         };
 
         const systemNodesSelector = this.getResource("system_node_selectors").join(", ");
-        const selectedNodes = targetedNodes
+        let selectedNodes = targetedNodes
             .filter(
                 (node) =>
                     !coloredNodes.has(node) &&
@@ -228,6 +296,7 @@ export class ColorPlugin extends Plugin {
                     (this.checkPredicates("is_formattable_node_predicates", node) ?? true)
             )
             .map((node) => findTopMostDecoration(node));
+        selectedNodes = [...new Set(selectedNodes)];
 
         const alreadyWithinFont = new Set();
         const getFonts = (selectedNodes) =>
@@ -355,12 +424,10 @@ export class ColorPlugin extends Plugin {
         const fontsSet = new Set(fonts);
         for (const font of fontsSet) {
             this.colorElement(font, color, mode);
-            if (
-                !hasColor(font, "color") &&
-                !hasColor(font, "backgroundColor") &&
-                ["FONT", "SPAN"].includes(font.nodeName) &&
-                (!font.hasAttribute("style") || !color)
-            ) {
+            const attributeNames = font
+                .getAttributeNames()
+                .filter((name) => name !== "data-oe-zws-empty-inline");
+            if (!attributeNames.length) {
                 cursors.update(callbacksForCursorUpdate.unwrap(font));
                 unwrapContents(font);
                 fontsSet.delete(font);
@@ -379,8 +446,8 @@ export class ColorPlugin extends Plugin {
      * @param {Object} params additional parameters
      */
     colorElement(element, color, mode, params = {}) {
+        const styleMode = mode === "color" ? "color" : "background-color";
         let parts = backgroundImageCssToParts(element.style["background-image"]);
-        const oldClassName = element.getAttribute("class") || "";
 
         if (element.matches(COLOR_COMBINATION_SELECTOR)) {
             removePresetGradient(element);
@@ -388,7 +455,7 @@ export class ColorPlugin extends Plugin {
 
         if (mode === "backgroundColor") {
             if (!color) {
-                element.classList.remove("o_cc", ...COLOR_COMBINATION_CLASSES);
+                removeClass(element, "o_cc", ...COLOR_COMBINATION_CLASSES);
             }
             const hasGradient = getComputedStyle(element).backgroundImage.includes("-gradient");
             delete parts.gradient;
@@ -397,31 +464,48 @@ export class ColorPlugin extends Plugin {
             if (hasGradient && !newBackgroundImage) {
                 newBackgroundImage = "";
             }
-            element.style.backgroundImage = newBackgroundImage;
-            element.style["background-color"] = "";
+            if (newBackgroundImage) {
+                element.style.backgroundImage = newBackgroundImage;
+            } else {
+                removeStyle(element, "background-image");
+            }
+            removeStyle(element, styleMode);
+            if (!color && !element.style.backgroundImage) {
+                // A `background` shorthand sets every background longhand, so
+                // once the color and the image are cleared the rest lingers as
+                // `initial` values.
+                const leftovers = [...element.style].filter(
+                    (prop) =>
+                        prop.startsWith("background-") &&
+                        element.style.getPropertyValue(prop) === "initial"
+                );
+                removeStyle(element, ...leftovers);
+            }
         }
 
-        const newClassName = oldClassName
-            .replace(mode === "color" ? TEXT_CLASSES_REGEX : BG_CLASSES_REGEX, "")
-            .replace(/\btext-gradient\b/g, "") // cannot be combined with setting a background
-            .replace(/\s+/, " ");
-        if (oldClassName !== newClassName) {
-            element.setAttribute("class", newClassName);
-        }
         const isTextGradient = closestElement(element, ".text-gradient");
+        const classNamesToRemove = [...element.classList].filter((className) =>
+            (mode === "color" ? TEXT_CLASSES_REGEX : BG_CLASSES_REGEX).test(className)
+        );
+        classNamesToRemove.push("text-gradient");
+        removeClass(element, ...classNamesToRemove);
         // If the nearest <font> has a text gradient, its
         // visible color comes from -webkit-text-fill-color,
         // we need to set it too when applying a color.
-        if (isTextGradient && mode === "color" && !isColorGradient(color)) {
+        if (
+            closestElement(element, ".text-gradient") &&
+            mode === "color" &&
+            !isColorGradient(color)
+        ) {
             element.style.webkitTextFillColor = color;
         } else if (isColorGradient(color) || color === "") {
-            element.style.webkitTextFillColor = "";
+            removeStyle(element, "-webkit-text-fill-color");
         }
         if (isColorGradient(color)) {
-            element.style[mode] = "";
+            removeStyle(element, styleMode);
             parts.gradient = color;
             if (mode === "color") {
-                element.style["background-color"] = "";
+                removeStyle(element, "background-color");
                 element.classList.add("text-gradient");
             }
             this.applyColorStyle(
@@ -432,16 +516,16 @@ export class ColorPlugin extends Plugin {
             );
         } else {
             delete parts.gradient;
-            if (oldClassName.includes("text-gradient") && !backgroundImagePartsToCss(parts)) {
-                element.style["background-image"] = "";
+            if (isTextGradient && !backgroundImagePartsToCss(parts)) {
+                removeStyle(element, "background-image");
             }
             if (color.startsWith("text") || color.startsWith("bg-")) {
-                element.style[mode] = "";
+                removeStyle(element, styleMode);
                 element.classList.add(color);
+            } else if (color) {
+                this.applyColorStyle(element, styleMode, color, params);
             } else {
-                // Change camelCase to kebab-case.
-                mode = mode.replace("backgroundColor", "background-color");
-                this.applyColorStyle(element, mode, color, params);
+                removeStyle(element, styleMode);
             }
         }
 
@@ -451,7 +535,7 @@ export class ColorPlugin extends Plugin {
         // other background layers though (image, video, shape, ...).
         if (color.startsWith("o_cc")) {
             parts = backgroundImageCssToParts(element.style["background-image"]);
-            element.classList.remove(...COLOR_COMBINATION_CLASSES);
+            removeClass(element, ...COLOR_COMBINATION_CLASSES);
             element.classList.add("o_cc", color);
 
             const hasBackgroundColor = !!getComputedStyle(element).backgroundColor;
@@ -483,7 +567,7 @@ export class ColorPlugin extends Plugin {
             parts.gradient;
 
         if (!hasBackgroundColor && (isColorGradient(color) || color.startsWith("o_cc"))) {
-            element.style["background-image"] = "";
+            removeStyle(element, "background-image");
             parts.gradient = backgroundImageCssToParts(
                 // Compute the style from o_cc class.
                 getComputedStyle(element).backgroundImage
@@ -526,15 +610,23 @@ function removePresetGradient(element) {
     const oldBackgroundImage = element.style["background-image"];
     const parts = backgroundImageCssToParts(oldBackgroundImage);
     const currentGradient = parts.gradient;
-    element.style.removeProperty("background-image");
+    removeStyle(element, "background-image");
     const styleWithoutGradient = getComputedStyle(element);
     const presetGradient = backgroundImageCssToParts(styleWithoutGradient.backgroundImage).gradient;
     if (presetGradient !== currentGradient) {
         const withGradient = backgroundImagePartsToCss(parts);
-        element.style["background-image"] = withGradient === "none" ? "" : withGradient;
+        if (withGradient && withGradient !== "none") {
+            element.style["background-image"] = withGradient;
+        } else {
+            removeStyle(element, "background-image");
+        }
     } else {
         delete parts.gradient;
         const withoutGradient = backgroundImagePartsToCss(parts);
-        element.style["background-image"] = withoutGradient === "none" ? "" : withoutGradient;
+        if (withoutGradient && withoutGradient !== "none") {
+            element.style["background-image"] = withoutGradient;
+        } else {
+            removeStyle(element, "background-image");
+        }
     }
 }

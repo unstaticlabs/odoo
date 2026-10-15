@@ -69,7 +69,7 @@ class AccountMove(models.Model):
     pdp_uses_pdp = fields.Boolean(compute='_compute_pdp_uses_pdp')
     l10n_fr_pdp_sent_in_flow_ids = fields.Many2many(
         comodel_name='l10n.fr.pdp.reports.flow',
-        string="Sent in PDP Flows",
+        string="Sent in French E-Reporting Flows",
         relation='sent_account_move__pdp_flow',
         column1='move_id',
         column2='flow_id',
@@ -77,7 +77,7 @@ class AccountMove(models.Model):
     )
     l10n_fr_pdp_last_flow_id = fields.Many2one(
         comodel_name='l10n.fr.pdp.reports.flow',
-        string="Last PDP Flow",
+        string="Last French E-Reporting Flow",
         compute='_compute_l10n_fr_pdp_last_flow_id',
         store=True,
         copy=False,
@@ -236,10 +236,10 @@ class AccountMove(models.Model):
 
     def _pdp_get_tax_extract_state(self):
         self.ensure_one()
-        if not self.peppol_message_uuid or not self.peppol_is_sent:
+        if not self.peppol_message_uuid or not self.pdp_is_sent:
             return False
         tax_extract_responses = self.peppol_response_ids.filtered(lambda l: l.pdp_flow_number == '1' and l.peppol_state == 'done')
-        if not tax_extract_responses:
+        if not tax_extract_responses and self.partner_id._get_pdp_receiver_identification_info()[0] == 'pdp':
             return 'in_progress'
         states = set(tax_extract_responses.mapped('response_code'))
         if {'refused', 'RE'} & states:
@@ -485,12 +485,21 @@ class AccountMove(models.Model):
         'commercial_partner_id',
         'l10n_fr_pdp_flow_10_operation_type',
         'line_ids.matched_credit_ids.credit_move_id',
+        'line_ids.matched_credit_ids.credit_move_id.move_id.pdp_is_sent',
         'line_ids.matched_debit_ids.debit_move_id',
+        'line_ids.matched_debit_ids.debit_move_id.move_id.pdp_is_sent',
         'move_type',
+        'pdp_is_sent',
         'state',
     )
     def _compute_l10n_fr_pdp_flow_10_report_type(self):
         for move in self:
+            if move.state != 'draft' and move.pdp_is_sent:
+                if move.l10n_fr_pdp_sent_in_flow_ids and move.l10n_fr_pdp_flow_10_report_type:
+                    # The previous e-report must be rectified before clearing its scope.
+                    self.env['l10n.fr.pdp.reports.flow']._get_open_flow_and_create_if_needed(move)
+                move.l10n_fr_pdp_flow_10_report_type = None
+                continue
             if (
                 move.state == 'draft'
                 or not move.company_id.l10n_fr_f10_enable_reporting
@@ -508,7 +517,7 @@ class AccountMove(models.Model):
                 if move._l10n_fr_pdp_get_matched_transactions():
                     move.l10n_fr_pdp_flow_10_report_type = 'payment'
                 else:
-                    if move.l10n_fr_pdp_sent_in_flow_ids:
+                    if move.l10n_fr_pdp_sent_in_flow_ids and move.l10n_fr_pdp_flow_10_report_type:
                         # payment was sent but is not linked to an invoice anymore, must create rectificative flow
                         self.env['l10n.fr.pdp.reports.flow']._get_open_flow_and_create_if_needed(move)
                     move.l10n_fr_pdp_flow_10_report_type = None
@@ -535,7 +544,7 @@ class AccountMove(models.Model):
             return
 
         return self._get_reconciled_amls().move_id.filtered(
-            lambda move: move.l10n_fr_pdp_flow_10_report_type == 'transaction' and (
+            lambda move: not move.pdp_is_sent and move.l10n_fr_pdp_flow_10_report_type == 'transaction' and (
                 move._is_downpayment()
                 or any(tax.tax_exigibility == 'on_payment' for tax in move.invoice_line_ids.tax_ids)
             )
@@ -579,7 +588,15 @@ class AccountMove(models.Model):
                 if not move.name or not G1_05_RE.match(move.name):
                     yield self.env._("Move name is not valid%s.", ref_move)
                 for tax in move.invoice_line_ids.tax_ids.flatten_taxes_hierarchy():
-                    if tax.amount not in VALID_PDP_TAX_RATES:
+                    if tax.amount_type == 'fixed' and tax.amount >= 0 and not tax.price_include:
+                        continue  # An additional fixed charge is an amount, not a VAT percentage.
+                    is_valid_oss_rate = (
+                        tax._l10n_fr_pdp_is_oss()
+                        and tax.amount_type == 'percent'
+                        and 0 <= tax.amount <= 100
+                    )
+                    # Reject other fixed taxes even if their amount matches an allowed VAT rate.
+                    if tax.amount_type == 'fixed' or (tax.amount not in VALID_PDP_TAX_RATES and not is_valid_oss_rate):
                         yield self.env._(
                             "Tax %(tax)s is not supported by French e-reporting%(ref_move)s.",
                             tax=tax.display_name,
@@ -693,3 +710,11 @@ class AccountMove(models.Model):
                 # ensure RE flow exist for current move period (if move is never posted again)
                 self.env['l10n.fr.pdp.reports.flow']._get_open_flow_and_create_if_needed(move)
         return super().button_draft()
+
+    def _get_import_file_type(self, file_data):
+        """ Identify UBL files. """
+        # EXTENDS 'account'
+        if (tree := file_data['xml_tree']) is not None:
+            if tree.findtext('{*}CustomizationID') == 'urn:cen.eu:en16931:2017#conformant#urn.cpro.gouv.fr:1p0:extended-ctc-fr':
+                return 'account.edi.xml.ubl_21_fr'
+        return super()._get_import_file_type(file_data)

@@ -91,18 +91,12 @@
                     </list>
                 </field>
                 <footer>
-                    <button name="action_create_and_submit"
-                            string="Create and submit"
-                            type="object"
-                            class="btn-primary"
-                            data-hotkey="q"
-                            title="Create the batch and send only its draft expenses for manager approval. This does not post or pay them."
-                            invisible="draft_incomplete_count != 0 or draft_count == 0"/>
                     <button name="action_create_batch"
                             string="Add to Batch"
                             type="object"
                             title="Group the selected expenses without submitting, posting, or paying them."
-                            class="btn-secondary"/>
+                            class="btn-primary"
+                            data-hotkey="q"/>
                     <button string="Cancel" special="cancel" class="btn-secondary" data-hotkey="x"/>
                 </footer>
             </form>

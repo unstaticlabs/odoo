@@ -120,6 +120,30 @@ class TestFrenchTaxReport(TransactionCase):
                 lambda _key: Decimal("0"),
             )
 
+    def test_negative_balance_subformula_preserves_sign_and_rounding(self):
+        for amount, expected in (
+            ("-3.40", "-3.40"), ("-0.01", "-0.01"),
+            ("0", "0"), ("0.01", "0"), ("2.75", "0"),
+        ):
+            with self.subTest(amount=amount):
+                self.assertEqual(
+                    self.wizard._french_tax_apply_subformula(
+                        Decimal(amount), "if_below(EUR(0))", lambda _key: Decimal("0"),
+                    ),
+                    Decimal(expected),
+                )
+        self.assertEqual(
+            self.wizard._french_tax_apply_subformula(
+                Decimal("-0.5"), "if_below(EUR(0));round(0)",
+                lambda _key: Decimal("0"),
+            ),
+            Decimal("-1"),
+        )
+        with self.assertRaises(UserError):
+            self.wizard._french_tax_apply_subformula(
+                Decimal("1"), "if_below(__import__('os'))", lambda _key: Decimal("0"),
+            )
+
     def test_editable_adjustment_is_stored_as_native_external_value(self):
         payload = self.env[
             "rebuild.account.report.export.wizard"

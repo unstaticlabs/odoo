@@ -6256,3 +6256,309 @@ msgstr "En-tête From du message à l’origine de cet enregistrement."
 #: code:addons/usl_documents/static/src/documents_app.js:0
 msgid "Suggestion"
 msgstr "Suggestion"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_batch.py:0
+msgid "Choose a supported metadata change."
+msgstr "Choisissez une modification de métadonnées prise en charge."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_batch.py:0
+msgid "Choose available metadata items."
+msgstr "Choisissez des métadonnées disponibles."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_batch.py:0
+msgid "One or more selected metadata items are unavailable."
+msgstr "Une ou plusieurs métadonnées sélectionnées sont indisponibles."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_batch.py:0
+msgid "Restore or repair this document before editing it."
+msgstr "Restaurez ou réparez ce document avant de le modifier."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_batch.py:0
+msgid "The archive could not be checked. No change was sent. Retry later."
+msgstr "Impossible de vérifier les archives. Aucune modification n’a été envoyée. Réessayez plus tard."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_batch.py:0
+msgid "The archive response could not be checked. No change was sent."
+msgstr "Impossible de vérifier la réponse des archives. Aucune modification n’a été envoyée."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_batch.py:0
+msgid "The result could not be confirmed. Retry to check the archive before applying again."
+msgstr "Impossible de confirmer le résultat. Réessayez pour vérifier les archives avant de modifier à nouveau."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_batch.py:0
+msgid "Confirmed in the archive."
+msgstr "Confirmé dans les archives."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_batch.py:0
+msgid "The archive returned a different document."
+msgstr "Les archives ont renvoyé un autre document."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_batch.py:0
+msgid "Choose an available Paperless metadata item."
+msgstr "Choisissez une métadonnée Paperless disponible."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Select %s"
+msgstr "Sélectionner %s"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Add tags"
+msgstr "Ajouter des étiquettes"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Set correspondent"
+msgstr "Définir le correspondant"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Set document type"
+msgstr "Définir le type de document"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Checking archive…"
+msgstr "Vérification des archives…"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Your current access does not allow this change. No change was sent."
+msgstr "Vos droits actuels ne permettent pas cette modification. Aucune modification n’a été envoyée."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "The result could not be confirmed. Retry to check current access and the archive."
+msgstr "Impossible de confirmer le résultat. Réessayez pour vérifier vos droits actuels et les archives."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Completed"
+msgstr "Terminé"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Not applied"
+msgstr "Non appliqué"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Needs confirmation"
+msgstr "À confirmer"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Waiting"
+msgstr "En attente"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Edit selected documents"
+msgstr "Modifier les documents sélectionnés"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Change"
+msgstr "Modification"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Existing tags are kept."
+msgstr "Les étiquettes existantes sont conservées."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "This replaces the chosen field on every selected document."
+msgstr "Le champ choisi est remplacé sur chaque document sélectionné."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Choose metadata"
+msgstr "Choisir les métadonnées"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "No available items. Close and refresh Documents."
+msgstr "Aucun élément disponible. Fermez et actualisez Documents."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Find metadata"
+msgstr "Rechercher des métadonnées"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "No matching items. Try another search."
+msgstr "Aucun élément correspondant. Essayez une autre recherche."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Showing the first 100 matches. Refine your search."
+msgstr "Les 100 premiers résultats sont affichés. Affinez votre recherche."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Review this fixed selection before applying. Each document is checked with your current access."
+msgstr "Vérifiez cette sélection fixe avant de modifier. Chaque document est vérifié selon vos droits actuels."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Retry checks unresolved documents only. Completed changes are kept. Closing does not undo changes."
+msgstr "La nouvelle tentative vérifie uniquement les documents non résolus. Les modifications terminées sont conservées. Fermer n’annule pas les modifications."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Review changes"
+msgstr "Vérifier les modifications"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Apply to selected documents"
+msgstr "Appliquer aux documents sélectionnés"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Retry unresolved documents"
+msgstr "Réessayer les documents non résolus"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Select this page"
+msgstr "Sélectionner cette page"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "selected"
+msgstr "sélectionnés"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Edit metadata"
+msgstr "Modifier les métadonnées"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Clear selection"
+msgstr "Effacer la sélection"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Selection covers only documents shown on this page."
+msgstr "La sélection couvre uniquement les documents affichés sur cette page."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Select"
+msgstr "Sélectionner"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_lifecycle.py:0
+msgid "Invalid additive tag option."
+msgstr "Option d’ajout d’étiquettes invalide."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Back"
+msgstr "Retour"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/document_batch.js:0
+msgid "This document or chosen metadata is unavailable. No change was sent. Close and refresh Documents."
+msgstr "Ce document ou les métadonnées choisies sont indisponibles. Aucune modification n’a été envoyée. Fermez et actualisez Documents."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/document_batch.py:0
+msgid "Your current access does not allow this document change."
+msgstr "Vos droits actuels ne permettent pas cette modification du document."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/document_batch.js:0
+msgid "Not sent. You can retry this document."
+msgstr "Aucune modification envoyée. Vous pouvez réessayer ce document."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/document_batch.js:0
+msgid "Not attempted"
+msgstr "Non tenté"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/document_batch.js:0
+msgid "Stopping after the current document is checked. Completed changes are kept."
+msgstr "Arrêt après la vérification du document en cours. Les modifications terminées sont conservées."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/document_batch.js:0
+msgid "Stop after this document"
+msgstr "Arrêter après ce document"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/document_batch.js:0
+msgid "1 selected document. Only the chosen metadata changes."
+msgstr "1 document sélectionné. Seules les métadonnées choisies sont modifiées."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/document_batch.js:0
+msgid "%s selected documents. Only the chosen metadata changes."
+msgstr "%s documents sélectionnés. Seules les métadonnées choisies sont modifiées."

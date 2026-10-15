@@ -137,6 +137,43 @@ class TestLinkPreview(MailCommon):
                 preview = link_preview.get_link_preview_from_url(url, session)
                 self.assertEqual(preview, expected)
 
+    def test_unknown_charset_uses_utf8_fallback(self):
+        response = self._patch_with_og_properties()
+        response.encoding = "ISO-8852"
+        preview = link_preview.get_link_preview_from_html(self.source_url, response)
+        self.assertEqual(preview["og_title"], self.og_title)
+        self.assertEqual(preview["source_url"], self.source_url)
+
+    def test_known_non_utf8_charset_is_preserved(self):
+        response = self._patched_get_html(
+            "text/html; charset=iso-8859-1",
+            "<html><head><title>Invented café</title></head></html>".encode("iso-8859-1"),
+        )
+        response.encoding = "iso-8859-1"
+        preview = link_preview.get_link_preview_from_html(self.source_url, response)
+        self.assertEqual(preview["og_title"], "Invented café")
+
+    def test_message_attachment_preview_unknown_charset(self):
+        def unknown_charset(*args, **kwargs):
+            response = self._patch_with_og_properties()
+            response.encoding = "ISO-8852"
+            return response
+
+        with patch.object(requests.Session, "get", unknown_charset):
+            message = self.test_partner.message_post(
+                body=Markup(f'<a href="{self.source_url}">Invented supplier link</a>'),
+                attachments=[("invented-evidence.txt", b"Disposable invented evidence")],
+            )
+            attachment = message.attachment_ids
+            self.assertEqual(len(attachment), 1)
+            self.env["mail.link.preview"]._create_from_message_and_notify(message)
+            self.assertTrue(message.exists())
+            self.assertEqual(message.message_link_preview_ids.link_preview_id.og_title, self.og_title)
+            self.assertEqual(message.attachment_ids, attachment)
+            self.assertEqual(attachment.res_model, self.test_partner._name)
+            self.assertEqual(attachment.res_id, self.test_partner.id)
+            self.assertEqual(attachment.raw.content, b"Disposable invented evidence")
+
     def test_link_preview(self):
         with patch.object(requests.Session, 'get', self._patch_with_og_properties), patch.object(requests.Session, 'head', self._patch_head_html):
             message = self.test_partner.message_post(

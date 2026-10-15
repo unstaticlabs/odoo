@@ -13166,3 +13166,15 @@ msgstr "Action planifiée inactive : %s"
 #: code:addons/rebuild_account_migration/models/einvoice_readiness.py:0
 msgid "Production reception scheduling is not ready. Ask a system administrator to apply the production cron policy:\n%s"
 msgstr "La planification de la réception en production n’est pas prête. Demandez à un administrateur système d’appliquer la politique de tâches planifiées de production :\n%s"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/declaration.py:0
+msgid "Recorded reviewer decision preserved; the automated checks below describe current data."
+msgstr "La décision de revue enregistrée est conservée ; les contrôles automatiques ci-dessous portent sur les données actuelles."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/declaration_sync.py:0
+msgid "Recorded reviewer decision preserved. The current declaration schedule no longer includes this obligation; review the schedule change before superseding the decision."
+msgstr "La décision de revue enregistrée est conservée. Le calendrier actuel des déclarations ne prévoit plus cette obligation ; examinez ce changement avant de remplacer la décision."

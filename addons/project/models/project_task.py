@@ -501,7 +501,8 @@ class ProjectTask(models.Model):
             for project_follower in project_followers:
                 project_subtypes = project_follower.subtype_ids
                 task_subtypes = (project_subtypes.mapped('parent_id') | project_subtypes.filtered(lambda sub: sub.internal or sub.default)).ids if project_subtypes else None
-                partner_ids.remove(project_follower.partner_id.id)
+                if project_follower.partner_id.id in partner_ids:
+                    partner_ids.remove(project_follower.partner_id.id)
                 super().message_subscribe(project_follower.partner_id.ids, task_subtypes)
         return super().message_subscribe(partner_ids, subtype_ids)
 
@@ -1130,13 +1131,15 @@ class ProjectTask(models.Model):
             # remove user_ids if we have no access to it
             new_context.pop('default_user_ids', False)
         self_ctx = self_with_restrict_context = self.with_context(new_context)
-        is_portal_user = self.env.user._is_portal()
+        is_portal_user = self.env.user._is_portal() and not self.env.su
         if default_project_id:
             # when subtask is created in form view of task in project sharing
             self_ctx = self_ctx.with_context(default_project_id=default_project_id, project_sharing_create=is_portal_user)
 
         self_ctx.browse().check_access('create')
         default_stage = dict()
+        if is_portal_user:
+            child_ids_list = []
         for vals, additional_vals in zip(vals_list, additional_vals_list):
             project_id = vals.get('project_id') or default_project_id
 
@@ -1151,7 +1154,8 @@ class ProjectTask(models.Model):
             if not vals.get('name') and vals.get('display_name'):
                 vals['name'] = vals['display_name']
 
-            if is_portal_user and not self.env.su:
+            if is_portal_user:
+                child_ids_list.append(vals.pop('child_ids', None))
                 self_with_restrict_context._ensure_fields_write(vals, defaults=True)
 
             if project_id and not "company_id" in vals:
@@ -1207,6 +1211,10 @@ class ProjectTask(models.Model):
                 task.message_subscribe(follower.partner_id.ids, follower.subtype_ids.ids)
             if current_partner not in task.message_partner_ids:
                 task.message_subscribe(current_partner.ids)
+        if is_portal_user and child_ids_list:
+            for task, child_ids in zip(tasks, child_ids_list):
+                if child_ids:
+                    task.write({'child_ids': child_ids})
         return tasks
 
     def write(self, vals):
@@ -1240,6 +1248,8 @@ class ProjectTask(models.Model):
                 if valid_milestone_tasks:
                     valid_milestone_tasks.sudo().write({'milestone_id': vals['milestone_id']})
                 del vals['milestone_id']
+                # the sub-tasks have already been handled by the writes above
+                valid_milestone_tasks = self.env['project.task']
 
             # 2. Parent's milestone is set to subtask with no milestone recursively
             subtasks_to_update = valid_milestone_tasks.child_ids.filtered(
@@ -1831,6 +1841,7 @@ class ProjectTask(models.Model):
             return {}
         action = self.with_context({
             'search_view_ref': 'project.project_sharing_project_task_view_search',
+            'default_project_id': self.project_id.id,
         }).action_open_parent_task()
         action['views'] = [(self.env.ref('project.project_sharing_project_task_view_form').id, 'form')]
         action['search_view_id'] = self.env.ref("project.project_sharing_project_task_view_search").id
@@ -2175,6 +2186,25 @@ class ProjectTask(models.Model):
     # Project Sharing
     # ---------------------------------------------------
 
+    def _search_message_partner_ids(self, operator, operand):
+        """`project_task_rule_portal` OR's two sub-queries, which makes postgresql
+        seq-scan project_task instead of using its indexes. Materialize the ids of
+        each branch when there are few enough, so that it can BitmapOr them.
+        """
+        domain = super()._search_message_partner_ids(operator, operand)
+        if domain is NotImplemented or self.env.user._is_internal():
+            return domain
+        task_ids = self._search(
+            domain,
+            limit=self.env.cr.IN_MAX,
+            active_test=False,
+            bypass_access=True,
+            order=self._order,  # reason: postgresql chooses a bad plan without explicit order
+        ).get_result_ids()
+        if len(task_ids) < self.env.cr.IN_MAX:
+            domain = Domain('id', 'in', task_ids)
+        return domain
+
     def project_sharing_toggle_is_follower(self):
         self.ensure_one()
         self.check_access('write')
@@ -2197,10 +2227,9 @@ class ProjectTask(models.Model):
     @api.model
     def _get_thread_with_access(self, thread_id, *, project_sharing_id=None, token=None, **kwargs):
         if project_sharing_id:
-            if token := ProjectSharingChatter._check_project_access_and_get_token(
+            token = ProjectSharingChatter._check_project_access_and_get_token(
                 self, project_sharing_id, self._name, thread_id, token
-            ):
-                token = token
+            )
         return super()._get_thread_with_access(thread_id, project_sharing_id=project_sharing_id, token=token, **kwargs)
 
     def get_mention_suggestions(self, search, limit=8):

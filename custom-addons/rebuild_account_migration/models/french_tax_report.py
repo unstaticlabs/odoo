@@ -360,6 +360,9 @@ class RebuildFrenchTaxReport(models.TransientModel):
             if part == "if_above(EUR(0))":
                 value = max(value, _ZERO)
                 continue
+            if part == "if_below(EUR(0))":
+                value = min(value, _ZERO)
+                continue
             match = _OTHER_EXPR_RE.fullmatch(part)
             if match:
                 reference = match.group(1).strip()

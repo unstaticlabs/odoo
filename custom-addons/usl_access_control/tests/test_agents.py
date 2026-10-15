@@ -1387,6 +1387,112 @@ class TestAutonomousAgents(TransactionCase):
             ),
         )
 
+    def test_project_agent_edits_one_activity_without_completing_it(self):
+        agent = self._create_agent()
+        group = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write({
+            "delegated_group_ids": [Command.set(group.ids)],
+            "read_only_group_ids": [Command.clear()],
+        })
+        project = self.env["project.project"].create({"name": "[QA] Activity editing"})
+        task = self.env["project.task"].create({"name": "[QA] Follow up", "project_id": project.id})
+        activity = task.activity_schedule("mail.mail_activity_data_todo", user_id=agent.user_id.id)
+        unrelated = task.activity_schedule("mail.mail_activity_data_todo", user_id=agent.user_id.id)
+        deadline = fields.Date.today() + datetime.timedelta(days=7)
+        original_messages = task.message_ids.ids
+        values = {"date_deadline": str(deadline), "summary": "Updated follow up", "note": "<p>New context</p>", "user_id": self.owner.id}
+        access = UslAgentJson2Controller._check_agent_call(
+            agent=agent, model_name="project.task", method_name="mcp_update_activity", kwargs={},
+        )
+        self.assertEqual(access, "write")
+        task.with_user(agent.user_id).mcp_update_activity(activity.id, values)
+        self.assertEqual(activity.date_deadline, deadline)
+        self.assertEqual(activity.summary, values["summary"])
+        self.assertEqual(activity.user_id, self.owner)
+        self.assertTrue(activity.active)
+        self.assertFalse(activity.date_done)
+        self.assertEqual(task.message_ids.ids, original_messages)
+        self.assertNotEqual(unrelated.summary, values["summary"])
+        with self.assertRaises(AccessError):
+            task.with_user(agent.user_id).mcp_update_activity(activity.id, {"res_id": unrelated.res_id})
+        with self.assertRaises(AgentPolicyAccessError):
+            activity.with_user(agent.user_id).unlink()
+        agent.with_user(self.owner).write({"read_only_group_ids": [Command.set(group.ids)]})
+        with self.assertRaises(AgentPolicyAccessError):
+            task.with_user(agent.user_id).mcp_update_activity(activity.id, {"summary": "Denied"})
+
+    def test_project_agent_archive_is_reversible_and_preserves_history(self):
+        agent = self._create_agent()
+        group = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write({
+            "delegated_group_ids": [Command.set(group.ids)],
+            "read_only_group_ids": [Command.clear()],
+        })
+        project = self.env["project.project"].create({"name": "[QA] Archive project"})
+        task = self.env["project.task"].create({"name": "[QA] Archive task", "project_id": project.id})
+        task.message_post(body="Synthetic history retained")
+        messages = task.message_ids.ids
+        child = self.env["project.task"].create({
+            "name": "[QA] Hidden subtask", "parent_id": task.id,
+            "project_id": project.id, "display_in_project": False,
+        })
+        attachment = self.env["ir.attachment"].create({
+            "name": "[QA] Synthetic history.txt", "res_model": "project.task", "res_id": task.id,
+            "datas": "U1lOVEhFVElDCg==", "mimetype": "text/plain",
+        })
+        checksum = attachment.checksum
+        for record in (task, project):
+            access = UslAgentJson2Controller._check_agent_call(
+                agent=agent, model_name=record._name, method_name="action_archive", kwargs={},
+            )
+            self.assertEqual(access, "write")
+            record.with_user(agent.user_id).action_archive()
+            self.assertFalse(record.active)
+            self.assertFalse(child.active)
+            record.with_user(agent.user_id).action_unarchive()
+            self.assertTrue(record.active)
+        child.with_user(agent.user_id).action_unarchive()
+        self.assertTrue(child.active)
+        self.assertTrue(attachment.exists())
+        self.assertEqual(attachment.checksum, checksum)
+        self.assertEqual(attachment.res_id, task.id)
+        self.assertEqual(task.message_ids.ids, messages)
+
+    def test_agent_activity_edit_refuses_other_tasks_and_companies(self):
+        agent = self._create_agent()
+        group = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write({
+            "delegated_group_ids": [Command.set(group.ids)],
+            "read_only_group_ids": [Command.clear()],
+        })
+        project = self.env["project.project"].create({"name": "[QA] Activity boundary", "company_id": self.company.id})
+        task = self.env["project.task"].create({"name": "[QA] Accessible", "project_id": project.id})
+        other_task = task.copy({"name": "[QA] Other task"})
+        activity = other_task.activity_schedule("mail.mail_activity_data_todo", user_id=self.owner.id)
+        with self.assertRaises(AccessError):
+            task.with_user(agent.user_id).mcp_update_activity(activity.id, {"summary": "Wrong task"})
+        foreign_project = self.env["project.project"].with_company(self.other_company).create({
+            "name": "[QA] Other company", "company_id": self.other_company.id,
+        })
+        foreign_task = self.env["project.task"].with_company(self.other_company).create({
+            "name": "[QA] Company boundary", "project_id": foreign_project.id,
+        })
+        foreign_activity = foreign_task.activity_schedule("mail.mail_activity_data_todo", user_id=self.owner.id)
+        with self.assertRaises(AccessError):
+            foreign_task.with_user(agent.user_id).with_context(allowed_company_ids=self.company.ids).mcp_update_activity(
+                foreign_activity.id, {"summary": "Wrong company"},
+            )
+        with self.assertRaises(AccessError):
+            foreign_project.with_user(agent.user_id).with_context(allowed_company_ids=self.company.ids).action_archive()
+        self.assertTrue(foreign_project.active)
+        self.assertNotEqual(activity.summary, "Wrong task")
+        self.assertNotEqual(foreign_activity.summary, "Wrong company")
+        agent.with_user(self.owner).write({"read_only_group_ids": [Command.set(group.ids)]})
+        with self.assertRaises(AgentPolicyAccessError):
+            UslAgentJson2Controller._check_agent_call(
+                agent=agent, model_name="project.task", method_name="action_archive", kwargs={},
+            )
+
     def test_project_agent_reschedules_activity_through_business_record_authority(self):
         agent = self._create_agent()
         project_manager = self.env.ref("project.group_project_manager")

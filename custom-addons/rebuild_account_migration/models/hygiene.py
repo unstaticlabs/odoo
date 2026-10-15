@@ -255,7 +255,8 @@ class RebuildAccountHygieneIssue(models.Model):
             ("state", "!=", "cancel"),
         ])
         vendor_documents = documents.filtered(
-            lambda item: item.move_type in {"in_invoice", "in_refund", "in_receipt"},
+            lambda item: item.move_type in {"in_invoice", "in_refund", "in_receipt"}
+            and not item.expense_ids,
         )
         structured_evidence_ids = self._structured_evidence_move_ids(vendor_documents)
         missing_vendor_evidence = vendor_documents.filtered(
