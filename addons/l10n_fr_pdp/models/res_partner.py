@@ -38,10 +38,10 @@ class ResPartner(models.Model):
         # Extend to rename the `peppol` option in the `invoice_sending_method` selection
         fields = super().fields_get(allfields, attributes)
         company = self.env.company
-        if not self.env.context.get("studio") and (company.country_code == 'FR' or company.sudo().pdp_identifier) and 'invoice_sending_method' in fields:
+        if not self.env.context.get("studio") and company._l10n_fr_pdp_uses_french_terminology() and 'invoice_sending_method' in fields:
             field = fields['invoice_sending_method']
             if 'selection' in field:
-                field['selection'] = [('peppol', self.env._('by Approved Platform')) if option[0] == 'peppol' else option for option in field['selection']]
+                field['selection'] = [('peppol', self.env._('by the Approved Platform')) if option[0] == 'peppol' else option for option in field['selection']]
         return fields
 
     # -------------------------------------------------------------------------
@@ -107,7 +107,7 @@ class ResPartner(models.Model):
         self.ensure_one()
         # We suggest the SIREN (even if the SIRET is filled in).
         # "Everyone" will probably have registered the SIREN on annuaire. (Even if they have a SIRET.)
-        return self._l10n_fr_pdp_get_siren()
+        return (self.additional_identifiers and self.additional_identifiers.get('FR_CTC')) or self._l10n_fr_pdp_get_siren()
 
     def _get_peppol_endpoint_value(self, country_code, field, eas):
         self.ensure_one()
@@ -120,7 +120,7 @@ class ResPartner(models.Model):
         if eas != '0225':
             return super()._build_error_peppol_endpoint(eas, endpoint)
         if not self.env["res.company"]._check_pdp_identifier(endpoint):
-            return self.env._("The Peppol endpoint is not valid. The expected format is: SIREN, SIREN_SIRET, SIREN_SIRET_CodeRoutage or SIREN_SuffixeAdressage")
+            return self.env._("The French e-invoicing identifier is not valid. The expected format is: SIREN, SIREN_SIRET, SIREN_SIRET_CodeRoutage or SIREN_SuffixeAdressage")
 
     def _get_edi_builder(self, invoice_edi_format):
         # EXTENDS 'account_edi_ubl_cii'
@@ -131,7 +131,7 @@ class ResPartner(models.Model):
     def _get_ubl_cii_formats_info(self):
         # EXTENDS 'account_edi_ubl_cii'
         formats_info = super()._get_ubl_cii_formats_info()
-        formats_info['ubl_21_fr'] = {'countries': ['FR'], 'on_peppol': self.env.company._get_peppol_proxy_type() == 'pdp', 'sequence': 300}
+        formats_info['ubl_21_fr'] = {'countries': ['FR'], 'on_peppol': self.env.company._get_peppol_proxy_type() == 'pdp', 'sequence': 300, 'embed_attachments': True}
         return formats_info
 
     def _get_suggested_invoice_edi_format(self):
@@ -254,3 +254,15 @@ class ResPartner(models.Model):
             # The CPRO_INVOICE_IDENTIFIER acts as a general placeholder and does not indicate the actually
             # supported documents (i.e. credit notes and CDAR lifecycles are possible too ofc.).
             partner.peppol_supported_documents = [CPRO_INVOICE_IDENTIFIER]
+
+    def _compute_peppol_eas(self):
+        partners_to_compute = self
+
+        if self.env.company._get_peppol_proxy_type() == 'pdp':
+            fr_partners = self.filtered(lambda p: p.country_code == 'FR')
+            partners_to_compute -= fr_partners
+            for partner in fr_partners:
+                if partner._get_suggested_pdp_identifier():
+                    partner.peppol_eas = '0225'
+
+        super(ResPartner, partners_to_compute)._compute_peppol_eas()

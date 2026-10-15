@@ -546,6 +546,7 @@ class AccountEdiCii(models.AbstractModel):
     def _cii_get_buyer_trade_party_node(self, vals):
         customer = vals['customer']
         commercial_partner = customer.commercial_partner_id
+        name = customer.display_name if customer.name else commercial_partner.display_name
         scheme_id = None
         legal_organization_val = commercial_partner.company_registry
         if siret := commercial_partner._get_additional_identifier('FR_SIRET'):
@@ -553,11 +554,11 @@ class AccountEdiCii(models.AbstractModel):
             legal_organization_val = siret[:9]
         return self._cii_get_partner_trade_party_node(vals, {
             'gln': False,
-            'name': customer.name,
+            'name': name,
             'partner_specified_legal_organization': legal_organization_val,
             'partner_specified_legal_organization_scheme': scheme_id,
             'contact_values': {
-                'name': customer.name,
+                'name': name,
                 'phone': customer.phone,
                 'email': customer.email,
             },
@@ -939,6 +940,11 @@ class AccountEdiCii(models.AbstractModel):
         if narration := ''.join(f'<p>{note}</p>' for note in notes):
             collected_values['to_write']['narration'] = narration
 
+    def _import_cii_invoice_add_payment_reference(self, collected_values):
+        tree = collected_values['tree']
+        if payment_reference := tree.findtext('.//{*}ApplicableHeaderTradeSettlement/{*}PaymentReference'):
+            collected_values['to_write']['payment_reference'] = payment_reference
+
     def _import_cii_invoice_add_customer_values(self, collected_values):
         customer_values = collected_values['customer_values'] = {}
         odoo_document_type = collected_values['odoo_document_type']
@@ -957,7 +963,7 @@ class AccountEdiCii(models.AbstractModel):
             ('street2', ".//{*}LineTwo"),
             ('city', ".//{*}CityName"),
             ('country_code', ".//{*}CountryID"),
-            ('vat', "./{*}SpecifiedTaxRegistration/{*}ID")
+            ('vat', './{*}SpecifiedTaxRegistration/{*}ID[@schemeID="VA"]'),
         ):
             customer_values[key] = None
             if (node := party_node.find(xpath)) is not None:
@@ -968,6 +974,15 @@ class AccountEdiCii(models.AbstractModel):
             customer_values['peppol_endpoint'] = node.text
             if peppol_eas := node.attrib.get('schemeID'):
                 customer_values['peppol_eas'] = peppol_eas
+
+        # fallback to an unqualified tax registration only when no VA entry was found
+        if not customer_values['vat']:
+            nodes = [
+                node for node in party_node.findall('./{*}SpecifiedTaxRegistration/{*}ID')
+                if not node.attrib
+            ]
+            if len(nodes) > 0:
+                customer_values['vat'] = nodes[0].text
 
     def _import_cii_retrieve_customer(self, collected_values):
         self._import_retrieve_customer(collected_values)
@@ -1487,13 +1502,14 @@ class AccountEdiCii(models.AbstractModel):
 
         self._import_cii_invoice_add_partner_bank_values(collected_values)
 
-        # invoice ref / invoice_origin / date / date_due / delivery_date / narration
+        # invoice ref / invoice_origin / date / date_due / delivery_date / narration / payment_reference
         self._import_cii_invoice_add_ref(collected_values)
         self._import_cii_invoice_add_invoice_origin(collected_values)
         self._import_cii_invoice_add_issue_date(collected_values)
         self._import_cii_invoice_add_date_due(collected_values)
         self._import_cii_invoice_add_invoice_delivery_date(collected_values)
         self._import_cii_invoice_add_narration(collected_values)
+        self._import_cii_invoice_add_payment_reference(collected_values)
 
         # customer
         self._import_cii_invoice_add_customer_values(collected_values)

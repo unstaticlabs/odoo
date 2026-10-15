@@ -10,7 +10,8 @@ import {
     getTimeUtil,
     generateQRCodeDataUrl,
 } from "@point_of_sale/utils";
-import { ConnectionLostError } from "@web/core/network/rpc";
+import { ConnectionLostError, RPCError } from "@web/core/network/rpc";
+import { browser } from "@web/core/browser/browser";
 import { _t } from "@web/core/l10n/translation";
 import { OpeningControlPopup } from "@point_of_sale/app/components/popups/opening_control_popup/opening_control_popup";
 import { OrderDetailsDialog } from "@point_of_sale/app/screens/ticket_screen/order_details_dialog/order_details_dialog";
@@ -43,6 +44,7 @@ import { accountTaxHelpers } from "@account/helpers/account_tax";
 import { SnoozedProductTracker } from "@point_of_sale/app/models/utils/snooze_tracker";
 import { Domain } from "@web/core/domain";
 import { SIZES } from "@web/core/ui/ui_service";
+import { clearLocalStorage } from "../utils/devices_identifier_sequence";
 
 const { DateTime } = luxon;
 export const CONSOLE_COLOR = "#F5B427";
@@ -327,11 +329,26 @@ export class PosStore extends WithLazyGetterTrap {
     }
 
     async reloadData(fullReload = false) {
+        try {
+            await this.syncAllOrders();
+        } catch (error) {
+            logPosMessage("Store", "reloadData", "Failed to sync orders", CONSOLE_COLOR, [error]);
+        }
+        // Reloading wipes the local orders, a paid order must never be lost that way
+        if (this.models["pos.order"].some((o) => o.isUnsyncedPaid && o.state !== "cancel")) {
+            this.dialog.add(AlertDialog, {
+                title: _t("Reload Data"),
+                body: _t(
+                    "Some paid orders have not been synced to the server yet. Closing or reloading now may cause data loss."
+                ),
+            });
+            return;
+        }
         const orders = this.models["pos.order"].getAll();
         this.device.saveUnusedNumber(orders);
         await this.data.resetIndexedDB();
         sessionStorage.clear();
-        localStorage.clear();
+        clearLocalStorage();
         const url = new URL(window.location.href);
 
         if (fullReload) {
@@ -655,7 +672,11 @@ export class PosStore extends WithLazyGetterTrap {
     }
     async afterOrderDeletion() {
         if (!this.config.module_pos_restaurant) {
-            this.setOrder(this.getOpenOrders().at(-1) || this.addNewOrder());
+            const newOrder = this.getOpenOrders().at(-1) || this.addNewOrder();
+            this.setOrder(newOrder);
+            if (this.router.state.current === "ProductScreen") {
+                this.navigate("ProductScreen", { orderUuid: newOrder.uuid });
+            }
         }
     }
 
@@ -958,7 +979,7 @@ export class PosStore extends WithLazyGetterTrap {
             ...opts,
         };
 
-        if ("price_unit" in vals) {
+        if ("price_unit" in vals || opts.merge === false) {
             merge = false;
         }
 
@@ -1395,6 +1416,7 @@ export class PosStore extends WithLazyGetterTrap {
     }
     setNextOrderRefs(order) {
         const deviceIdentifier = this.device.identifier;
+        this.device.removeUsedNumbers(this.models["pos.order"].getAll());
         const number = `${this.device.useNext()}`.padStart(6, "0");
         const configId = this.config.id;
         const year2Digits = DateTime.now().year.toString().slice(-2);
@@ -1596,6 +1618,7 @@ export class PosStore extends WithLazyGetterTrap {
                     }
                 }
 
+                this.device.removeUsedNumbers(newData["pos.order"]);
                 await this.postSyncAllOrders(newData["pos.order"]);
                 this.removePendingOrder(order);
                 syncedOrders.push(...newData["pos.order"]);
@@ -1917,12 +1940,24 @@ export class PosStore extends WithLazyGetterTrap {
     // Now the printer should work in PoS without restaurant
     async sendOrderInPreparation(order, opts = {}) {
         let isPrinted = false;
-
         try {
             this.syncingOrders.add(order.uuid);
             if (this.config.printerCategories.size && !opts.byPassPrint) {
                 try {
-                    isPrinted = await this.ticketPrinter.printOrderChanges({ order, opts });
+                    isPrinted = await this.ticketPrinter.printOrderChanges({
+                        order,
+                        opts,
+                        onRetryPrinted: () => {
+                            // The changes printed with the "Retry" button are sent as well
+                            if (this.models["pos.order"].getBy("uuid", order.uuid)) {
+                                order.updateLastOrderChange();
+                                this.syncAllOrders({ orders: [order] });
+                            }
+                        },
+                    });
+                    if (isPrinted) {
+                        order.updateLastOrderChange();
+                    }
                 } catch (e) {
                     logPosMessage(
                         "Store",
@@ -1933,15 +1968,24 @@ export class PosStore extends WithLazyGetterTrap {
                     );
                 }
             }
-            order.updateLastOrderChange();
+            this.updateLastOrderChangeIfNoDevice(order, opts);
         } finally {
             this.syncingOrders.delete(order.uuid);
         }
         // Ensure that other devices are aware of the changes
         // Otherwise several devices can print the same changes
         // We need to check if a preparation display is configured to avoid unnecessary sync
-        if (isPrinted && !this.models["pos.prep.display"]?.length) {
+        if ((isPrinted || !opts.orderDone) && !this.models["pos.prep.display"]?.length) {
             await this.syncAllOrders({ orders: [order] });
+        }
+        return isPrinted;
+    }
+    hasDevice(opts = {}) {
+        return this.config.printerCategories.size || opts.byPassPrint;
+    }
+    updateLastOrderChangeIfNoDevice(order, opts = {}) {
+        if (!this.hasDevice(opts)) {
+            order.updateLastOrderChange();
         }
     }
     async sendOrderInPreparationUpdateLastChange(o, opts) {
@@ -2607,6 +2651,17 @@ export class PosStore extends WithLazyGetterTrap {
         );
     }
 
+    async reloadIfSessionDeleted(error) {
+        if (
+            error instanceof RPCError &&
+            error.data.name === "odoo.exceptions.MissingError" &&
+            (await this.isSessionDeleted())
+        ) {
+            return browser.location.reload();
+        }
+        throw error;
+    }
+
     // -------- Order Validation -------- //
     getValidationOrderOptions(args = {}) {
         const { order = this.getOrder() } = args;
@@ -2625,7 +2680,7 @@ export class PosStore extends WithLazyGetterTrap {
                 paymentLines[0].payment_method_id.type === "pay_later" &&
                 this.currency.isNegative(paymentLines[0].amount))
         ) {
-            opts.fastPaymentMethod = this.config.payment_method_ids[0];
+            opts.fastPaymentMethod = this.config.paymentMethods[0];
         }
         return opts;
     }
@@ -2661,7 +2716,9 @@ export class PosStore extends WithLazyGetterTrap {
     clickSaveOrder() {
         this.syncAllOrders({ orders: [this.getOrder()] });
         this.notification.add(_t("Order saved for later"), { type: "success" });
-        this.setOrder(this.getEmptyOrder());
+        const newOrder = this.getEmptyOrder();
+        this.setOrder(newOrder);
+        this.navigate("ProductScreen", { orderUuid: newOrder.uuid });
         this.mobile_pane = "right";
     }
 
@@ -2718,6 +2775,30 @@ export class PosStore extends WithLazyGetterTrap {
         const available = this.getAvailableCategories();
         const availableIds = new Set(available.map((c) => c.id));
         return available.filter((c) => !c.parent_id || !availableIds.has(c.parent_id.id));
+    }
+
+    async ensureRefundedOrderLoaded(order) {
+        if (!order?.isRefund || order.refunded_order_id || this.data.network.offline) {
+            return order;
+        }
+
+        const refundedOrderId = order.raw.refunded_order_id;
+        if (!refundedOrderId) {
+            return order;
+        }
+
+        try {
+            await this.data.loadServerOrders([["id", "=", refundedOrderId]]);
+        } catch (error) {
+            logPosMessage(
+                "Store",
+                "ensureRefundedOrderLoaded",
+                `Could not load refunded order ${refundedOrderId}`,
+                CONSOLE_COLOR,
+                [error]
+            );
+        }
+        return order;
     }
 
     get isSelectedLineCombo() {

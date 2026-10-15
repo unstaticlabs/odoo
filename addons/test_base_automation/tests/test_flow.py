@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 from odoo import Command
 from odoo.addons.base.tests.common import TransactionCaseWithUserDemo
-from odoo.exceptions import AccessError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import Form, common, tagged, WhitespaceInsensitive
 from odoo.tools import mute_logger
 
@@ -402,6 +402,41 @@ else:
         lead.write({'priority': True})
         self.assertEqual(lead.priority, True)
         self.assertNotEqual(lead.deadline, False)
+        self.assertEqual(send_mail_count, 1)
+
+    def test_014_recompute_on_create(self):
+        """An automation runs once when its trigger field is computed during create."""
+        stage_field = self.env.ref("test_base_automation.field_base_automation_lead_test__stage_id")
+        create_automation(
+            self,
+            model_id=self.env['ir.model']._get_id('base.automation.lead.thread.test'),
+            trigger='on_create_or_write',
+            trigger_field_ids=[Command.link(stage_field.id)],
+            filter_domain="[('stage_id', '!=', False)]",
+            _actions={
+                'state': 'mail_post',
+                'mail_post_method': 'email',
+                'template_id': self.test_mail_template_automation.id,
+            },
+        )
+
+        send_mail_count = 0
+
+        def _patched_send_mail(*args, **kwargs):
+            nonlocal send_mail_count
+            send_mail_count += 1
+
+        patcher = patch('odoo.addons.mail.models.mail_template.MailTemplate.send_mail', _patched_send_mail)
+        self.startPatcher(patcher)
+
+        lead = self.env['base.automation.lead.thread.test'].with_context(
+            test_base_automation_read_stage_on_create=True,
+        ).create({
+            'name': "Lead Test",
+            'user_id': self.user_root.id,
+        })
+        self.addCleanup(lead.unlink)
+        self.assertTrue(lead.stage_id)
         self.assertEqual(send_mail_count, 1)
 
     def test_020_recursive(self):
@@ -1015,6 +1050,39 @@ action = {
                 self.automation_cron.method_direct_trigger()
                 self.assertEqual(mock.call_count, 38)
 
+    def test_004_check_method_process_failing_record(self):
+        """ The record failing a time-based automation must be logged: the whole
+        run is rolled back and fails again until that record is fixed. """
+        model = self.env["ir.model"]._get("base.automation.lead.test")
+        self.env["base.automation"].search([('trigger', 'in', ['on_time', 'on_time_created', 'on_time_updated'])]).active = False
+        automation = create_automation(
+            self,
+            model_id=model.id,
+            trigger='on_time',
+            trg_date_id=model.field_id.filtered(lambda f: f.name == 'date_automation_last').id,
+            trg_date_range=2,
+            trg_date_range_type='minutes',
+            trg_date_range_mode='after',
+            _actions={
+                'state': 'code',
+                'code': "if record.name == 'bad':\n    raise UserError('boom')",
+            },
+        )
+        past_date = self.env.cr.now() - datetime.timedelta(days=1)
+        _good_1, bad, _good_2 = self.env["base.automation.lead.test"].create([
+            {'name': name, 'date_automation_last': past_date} for name in ('good 1', 'bad', 'good 2')
+        ])
+
+        with (
+            self.enter_registry_test_mode(),
+            mute_logger('odoo.addons.base.models.ir_cron'),
+            self.assertLogs('odoo.addons.base_automation', 'ERROR') as capture,
+        ):
+            self.automation_cron.method_direct_trigger()
+
+        self.assertIn(f"`{automation.name}` on record base.automation.lead.test({bad.id},)", "\n".join(capture.output))
+        self.assertFalse(automation.last_run)
+
     def test_005_check_model_with_different_rec_name_char(self):
         model = self.env["ir.model"]._get("base.automation.model.with.recname.char")
 
@@ -1114,6 +1182,30 @@ action = {
                 },
             )
         self.assertEqual(e.exception.args[0], "Following child actions have warnings: Send Webhook Notification")
+
+    def test_150_on_write_recompute_without_write_access(self):
+        """ A user may trigger an automation on records they can only read,
+        through the recomputation of a stored field without compute_sudo. """
+        tag = self.env['test_base_automation.tag'].create({'name': 'Tag'})
+        record = self.env['base.automation.readonly.test'].create({'tag_id': tag.id})
+        create_automation(
+            self,
+            model_id=self.env['ir.model']._get_id('base.automation.readonly.test'),
+            trigger='on_create_or_write',
+            _actions={'state': 'code', 'code': "records.write({'name': 'Processed'})"},
+        )
+        self.assertFalse(record.date_automation_last)
+
+        # sanity check: user demo can read the record, but not write on it
+        self.assertTrue(record.with_user(self.user_demo).has_access('read'))
+        self.assertFalse(record.with_user(self.user_demo).has_access('write'))
+
+        tag.with_user(self.user_demo).name = 'New Tag'
+        # recompute 'tag_name' as user demo, like when flushing their request
+        record.with_user(self.user_demo).flush_model()
+        self.assertEqual(record.tag_name, 'New Tag')
+        self.assertEqual(record.name, 'Processed')
+        self.assertTrue(record.date_automation_last)
 
 
 @common.tagged('post_install', '-at_install')
@@ -1784,6 +1876,22 @@ class TestHttp(common.HttpCase):
         response = self.url_open("/web/hook/0123456789", data=json.dumps({"name": "some name"}))
         self.assertEqual(response.json(), {"status": "error"})
         self.assertEqual(response.status_code, 404)
+
+    def test_webhook_trigger_failing_record(self):
+        """ The record on which a webhook fails must be logged, as the payload is
+        only logged at debug level. """
+        model = self.env["ir.model"]._get("base.automation.linked.test")
+        record_getter = "model.search([('name', '=', payload['name'])])"
+        automation = create_automation(self, trigger="on_webhook", model_id=model.id, record_getter=record_getter, _actions={
+            "state": "code",
+            "code": "raise UserError('boom')",
+        })
+        obj = self.env[model.model].create({"name": "some name"})
+
+        with self.assertLogs("odoo.addons.base_automation", "WARNING") as capture, self.assertRaises(UserError):
+            automation._execute_webhook({"name": "some name"})
+
+        self.assertIn(f"Webhook #{automation.id} failed on record base.automation.linked.test({obj.id},)", "\n".join(capture.output))
 
     def test_payload_in_action_server(self):
         model = self.env["ir.model"]._get("base.automation.linked.test")

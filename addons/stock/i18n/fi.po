@@ -44,7 +44,7 @@ msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-31 17:36+0000\n"
-"PO-Revision-Date: 2026-08-10 10:44+0000\n"
+"PO-Revision-Date: 2026-10-09 12:02+0000\n"
 "Last-Translator: Saara Hakanen <sahak@odoo.com>\n"
 "Language-Team: Finnish <https://translate.odoo.com/projects/odoo-s19-3/stock/"
 "fi/>\n"
@@ -53,7 +53,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.6.1\n"
+"X-Generator: Weblate 2026.8.1\n"
 
 #. module: stock
 #. odoo-python
@@ -2137,7 +2137,7 @@ msgstr "Valitse päivämäärä"
 #: model_terms:ir.ui.view,arch_db:stock.view_picking_form
 #: model_terms:ir.ui.view,arch_db:stock.view_stock_quant_tree_inventory_editable
 msgid "Clear"
-msgstr "Pyyhi"
+msgstr "Tyhjennä"
 
 #. module: stock
 #. odoo-javascript
@@ -3183,7 +3183,7 @@ msgstr "Toimitusosoite"
 #. odoo-javascript
 #: code:addons/stock/static/src/stock_forecasted/forecasted_details.xml:0
 msgid "Delivery Date"
-msgstr "Toimituspäivämäärä"
+msgstr "Toimituspäivä"
 
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_res_config_settings__module_delivery
@@ -3982,7 +3982,7 @@ msgstr "Ennustetut toimitukset"
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_stock_move__forecast_expected_date
 msgid "Forecasted Expected date"
-msgstr "Ennustettu oletettu päivämäärä"
+msgstr "Odotetun päivän ennuste"
 
 #. module: stock
 #. odoo-javascript
@@ -4910,7 +4910,7 @@ msgstr "Inventoinnin tiheys"
 #. module: stock
 #: model:ir.model,name:stock.model_stock_location
 msgid "Inventory Location"
-msgstr "Inventaariopaikka"
+msgstr "Varastoinnin sijainti"
 
 #. module: stock
 #: model:ir.model.fields.selection,name:stock.selection__stock_location__usage__inventory
@@ -6410,7 +6410,7 @@ msgstr "Toimistotuoli"
 #: model_terms:ir.ui.view,arch_db:stock.view_stock_quant_tree_inventory_editable
 #: model_terms:ir.ui.view,arch_db:stock.view_stock_quant_tree_simple
 msgid "On Hand"
-msgstr "Varastossa"
+msgstr "Käytettävissä"
 
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_stock_lot__product_qty
@@ -7421,7 +7421,7 @@ msgstr "Tuoteluettelo Mixin"
 #: model:ir.model.fields,field_description:stock.field_stock_route__categ_ids
 #: model_terms:ir.ui.view,arch_db:stock.stock_location_route_form_view
 msgid "Product Categories"
-msgstr "Tuoteryhmät"
+msgstr "Tuotekategoriat"
 
 #. module: stock
 #: model:ir.model,name:stock.model_product_category
@@ -7731,7 +7731,7 @@ msgstr "Laadun laskentataulukko"
 #: model:ir.model.fields,field_description:stock.field_stock_warn_insufficient_qty__quant_ids
 #: model:ir.model.fields,field_description:stock.field_stock_warn_insufficient_qty_scrap__quant_ids
 msgid "Quant"
-msgstr "Quant"
+msgstr "Määrä"
 
 #. module: stock
 #. odoo-python
@@ -7796,7 +7796,7 @@ msgstr "Määrä"
 #: model:ir.model.fields,field_description:stock.field_product_template__qty_available
 #: model_terms:ir.ui.view,arch_db:stock.view_stock_quant_form_editable
 msgid "Quantity On Hand"
-msgstr "Varastosaldo"
+msgstr "Käytettävissä oleva määrä"
 
 #. module: stock
 #. odoo-javascript
@@ -9769,14 +9769,14 @@ msgid ""
 "available, the system will try to find a  rule to bring the products in the "
 "source location."
 msgstr ""
-"Ota varastosta: Tuotteet otetaan lähdepaikan varastosta.\n"
-"Käynnistä toinen sääntö: Järjestelmä yrittää löytää varastosäännön, jonka "
-"avulla tuotteet voidaan tuoda lähdepaikkaan. Käytettävissä olevaa varastoa "
-"ei oteta huomioon.\n"
-"Take From Stock, if Unavailable, Trigger Another Rule (Ota varastosta, jos "
-"ei ole saatavilla, laukaise toinen sääntö): Tuotteet otetaan lähdeviraston "
-"saatavilla olevasta varastosta.Jos varastoa ei ole saatavilla, järjestelmä "
-"yrittää löytää säännön, jolla tuotteet voidaan tuoda lähdevirastoon."
+"Ota varastosta: Tuotteet otetaan lähdesijainnin varastosta.\n"
+"Käynnistä toinen sääntö: Järjestelmä yrittää löytää varastosäännön "
+"tuotteiden tuomiseksi lähdesijaintiin. Käytettävissä olevaa varastoa ei "
+"oteta huomioon.\n"
+"Ota varastosta, jos ei ole saatavilla, laukaise toinen sääntö: Tuotteet "
+"otetaan lähdesijainnin saatavilla olevasta varastosta. Jos varastoa ei ole "
+"saatavilla, järjestelmä yrittää löytää säännön tuotteiden tuomiseksi "
+"lähdesijaintiin."
 
 #. module: stock
 #: model:ir.model.fields,help:stock.field_stock_picking__show_allocation
@@ -10484,7 +10484,7 @@ msgstr "Laskettavat"
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.stock_picking_type_kanban
 msgid "To Deliver"
-msgstr "Toimitettavaksi"
+msgstr "Toimitettavaa"
 
 #. module: stock
 #: model:ir.actions.act_window,name:stock.action_picking_tree_graph
@@ -10645,7 +10645,7 @@ msgstr "Pakkauksen kokonaispaino."
 #: model_terms:ir.ui.view,arch_db:stock.product_template_form_view_stock
 #: model_terms:ir.ui.view,arch_db:stock.res_config_settings_view_form
 msgid "Traceability"
-msgstr "Seuranta"
+msgstr "Jäljitettävyys"
 
 #. module: stock
 #. odoo-javascript
@@ -10655,12 +10655,12 @@ msgstr "Seuranta"
 #: model:ir.model,name:stock.model_stock_traceability_report
 #: model_terms:ir.ui.view,arch_db:stock.report_stock_body_print
 msgid "Traceability Report"
-msgstr "Seurantaraportti"
+msgstr "Jäljitettävyysraportti"
 
 #. module: stock
 #: model:ir.model.fields,field_description:stock.field_stock_move__is_storable
 msgid "Track Inventory"
-msgstr "Seuraa inventaariota"
+msgstr "Seuraa varastoa"
 
 #. module: stock
 #: model:ir.model.fields,help:stock.field_res_config_settings__module_product_expiry
@@ -10670,10 +10670,10 @@ msgid ""
 " Such dates are set automatically at lot/serial number creation based on "
 "values set on the product (in days)."
 msgstr ""
-"Seuraa seuraavia päivämääriä erissä ja sarjanumeroissa: parasta ennen, "
-"poisto, käyttöiän loppu, hälytys. Tällaiset päivämäärät asetetaan "
-"automaattisesti erän / sarjanumeron luomiselle tuotteelle asetettujen "
-"arvojen perusteella (päivinä)."
+"Seuraa päivämääriä erissä ja sarjanumeroissa: parasta ennen, poisto, "
+"käyttöiän loppu, hälytys. \n"
+"Tällaiset päivämäärät määritetään automaattisesti erän/sarjanumeron luomisen "
+"yhteydessä, tuotteelle määritettyjen arvojen perusteella (päivinä)."
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.res_config_settings_view_form
@@ -10682,10 +10682,10 @@ msgid ""
 "life, alert. Such dates are set automatically at lot/serial number creation "
 "based on values set on the product (in days)."
 msgstr ""
-"Seuraa seuraavia päivämääriä erissä ja sarjanumeroissa: parasta ennen, "
-"poisto, käyttöiän loppu, hälytys. Tällaiset päivämäärät asetetaan "
-"automaattisesti erän / sarjanumeron luomiselle tuotteelle asetettujen "
-"arvojen perusteella (päivinä)."
+"Seuraa päivämääriä erissä ja sarjanumeroissa: parasta ennen, poisto, "
+"käyttöiän loppu, hälytys. \n"
+"Tällaiset päivämäärät määritetään automaattisesti erän/sarjanumeron luomisen "
+"yhteydessä, tuotteelle määritettyjen arvojen perusteella (päivinä)."
 
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.res_config_settings_view_form
@@ -10948,7 +10948,7 @@ msgstr "Ei-toivottu täydennys"
 #. module: stock
 #: model_terms:ir.ui.view,arch_db:stock.stock_inventory_adjustment_name_form_view
 msgid "Update Quantities"
-msgstr "Päivitä määrä"
+msgstr "Päivitä määrät"
 
 #. module: stock
 #. odoo-javascript

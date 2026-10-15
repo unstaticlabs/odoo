@@ -9,6 +9,7 @@ import {
     getHtmlStyle,
     getFontSizeDisplayValue,
     FONT_SIZE_CLASSES,
+    DEFAULT_FONT_SIZE_CLASSES,
 } from "@html_editor/utils/formatting";
 import { _t } from "@web/core/l10n/translation";
 import { READ, withSequence } from "@html_editor/utils/resource";
@@ -58,7 +59,7 @@ export class FontSizePlugin extends Plugin {
                             });
                         } else {
                             this.dependencies.format.formatSelection("fontSize", {
-                                formatProps: { size: resolvedSize },
+                                formatProps: resolvedSize,
                                 applyStyle: true,
                             });
                         }
@@ -90,10 +91,15 @@ export class FontSizePlugin extends Plugin {
         ),
         on_undone_handlers: this.updateFontSizeSelectorParams.bind(this),
         on_redone_handlers: this.updateFontSizeSelectorParams.bind(this),
+        on_all_formats_removed_handlers: this.updateFontSizeSelectorParams.bind(this),
         normalize_processors: this.normalize.bind(this),
 
-        is_format_class_predicates: (className) => {
-            if ([...FONT_SIZE_CLASSES, "o_default_font_size", "o_rfs"].includes(className)) {
+        is_format_class_predicates: (className, targetClassName) => {
+            if (
+                [...FONT_SIZE_CLASSES, "o_default_font_size", "o_rfs"].includes(className) ||
+                (DEFAULT_FONT_SIZE_CLASSES.includes(className) &&
+                    DEFAULT_FONT_SIZE_CLASSES.includes(targetClassName))
+            ) {
                 return true;
             }
         },
@@ -171,7 +177,7 @@ export class FontSizePlugin extends Plugin {
             const maxPx = items[items.length - 1].name;
             if (desiredPx >= minPx && desiredPx <= maxPx) {
                 // Within the system-defined range: plain px is fine.
-                return `${desiredPx}px`;
+                return { size: `${desiredPx}px` };
             }
         }
         // Outside the system range => produce responsive value.
@@ -185,7 +191,10 @@ export class FontSizePlugin extends Plugin {
             // existing inline override.
             return null;
         }
-        return `clamp(8px, 1em + ${uiValue.toFixed(4)}vw, ${MAX_FONT_SIZE}px)`;
+        return {
+            size: `clamp(8px, 1em + ${uiValue.toFixed(4)}vw, ${MAX_FONT_SIZE}px)`,
+            pixelSize: `${desiredPx}px`,
+        };
     }
 
     updateFontSizeSelectorParams() {

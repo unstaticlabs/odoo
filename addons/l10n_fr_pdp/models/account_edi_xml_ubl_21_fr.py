@@ -1,8 +1,12 @@
-from odoo import api, models
+import json
+
+from odoo import _, api, models
+from odoo.exceptions import UserError
+from odoo.tools.misc import formatLang
 
 from odoo.addons.account_edi_ubl_cii.models.account_edi_common import FloatFmt
 
-PDP_CUSTOMIZATION_ID = 'urn:cen.eu:en16931:2017'  # Not accepted by SuperPDP due to missing validator
+PDP_CUSTOMIZATION_ID = 'urn:cen.eu:en16931:2017#conformant#urn.cpro.gouv.fr:1p0:extended-ctc-fr'  # Not accepted by SuperPDP due to missing validator
 
 CPRO_CUSTOMIZATION_ID = 'urn:cen.eu:en16931:2017#conformant#urn.cpro.gouv.fr:1p0:extended-ctc-fr'
 CPRO_INVOICE_IDENTIFIER = f'busdox-docid-qns::urn:oasis:names:specification:ubl:schema:xsd:Invoice-2::Invoice##{CPRO_CUSTOMIZATION_ID}::2.1'
@@ -45,7 +49,7 @@ class AccountEdiXmlUbl21Fr(models.AbstractModel):
             partner = vals[partner_type]
             commercial_partner = partner.commercial_partner_id
             if commercial_partner.peppol_eas != '0225' or not commercial_partner.peppol_endpoint:
-                constraints[f"ubl_21_fr_{partner_type}_pdp_identifier_required"] = self.env._("The following partner's PDP identifier is missing: %s", commercial_partner.display_name)
+                constraints[f"ubl_21_fr_{partner_type}_pdp_identifier_required"] = self.env._("The following partner's French e-invoicing identifier is missing: %s", commercial_partner.display_name)
             id_type, id_value = commercial_partner._l10n_fr_pdp_get_base_identifier()
             if not id_type or not id_value:
                 constraints[f"ubl_21_fr_{partner_type}_identifier_required"] = self.env._("The following partner's SIREN or SIRET is missing: %s", commercial_partner.display_name)
@@ -85,6 +89,11 @@ class AccountEdiXmlUbl21Fr(models.AbstractModel):
                 '_text': f"#{code}#{default_content}",
             })
 
+        # [BR-FR-MAP-18] EN16931 caps the Note (BT-22) to 1024 characters.
+        for note in document_node['cbc:Note']:
+            if isinstance(note['_text'], str):
+                note['_text'] = note['_text'][:1024]
+
         # Règles de gestion G1.52
         if vals['document_type'] == 'credit_note':
             document_node['cac:BillingReference'] = {
@@ -99,6 +108,18 @@ class AccountEdiXmlUbl21Fr(models.AbstractModel):
         # not populated yet at this point.
         if profile_id in ('B2', 'S2', 'M2') and vals['document_type'] != 'credit_note':
             document_node['cbc:DueDate'] = {'_text': invoice._pdp_get_payment_date() or invoice.invoice_date}
+
+        # Profile ID X4 - Final invoice with downpayments
+        if profile_id in ('B4', 'S4', 'M4'):
+            downpayment_moves = invoice.invoice_line_ids._get_downpayment_lines().move_id.filtered(lambda m: m != invoice)
+            document_node['cac:BillingReference'] = []
+            for downpayment_move in downpayment_moves:
+                document_node['cac:BillingReference'].append({
+                    'cac:InvoiceDocumentReference': {
+                        'cbc:ID': {'_text': downpayment_move.name},
+                        'cbc:IssueDate': {'_text': downpayment_move.invoice_date},
+                    },
+                })
 
         # B2G
         if not b2g:
@@ -126,6 +147,24 @@ class AccountEdiXmlUbl21Fr(models.AbstractModel):
             payment_due_date = invoice._pdp_get_payment_date() or invoice.invoice_date
             for node in document_node['cac:PaymentMeans']:
                 node['cbc:PaymentDueDate'] = {'_text': payment_due_date}
+
+    def _ubl_add_invoice_type_code_node(self, vals):
+        # Override account_edi_ubl: [BR-FR-04] Downpayment code for invoice is 386
+        invoice = vals['invoice']
+        vals['document_node']['cbc:InvoiceTypeCode'] = {'_text': None}
+        if self._is_document(vals, 'invoice') and invoice._is_downpayment():
+            vals['document_node']['cbc:InvoiceTypeCode']['_text'] = 386
+        else:
+            super()._ubl_add_invoice_type_code_node(vals)
+
+    def _ubl_add_credit_note_type_code_node(self, vals):
+        # Override account_edi_ubl: [BR-FR-04] Downpayment code for credit note is 503
+        invoice = vals['invoice']
+        vals['document_node']['cbc:CreditNoteTypeCode'] = {'_text': None}
+        if self._is_document(vals, 'credit_note') and invoice._is_downpayment():
+            vals['document_node']['cbc:CreditNoteTypeCode']['_text'] = 503
+        else:
+            super()._ubl_add_credit_note_type_code_node(vals)
 
     def _ubl_add_party_identification_nodes(self, vals):
         super()._ubl_add_party_identification_nodes(vals)
@@ -200,3 +239,96 @@ class AccountEdiXmlUbl21Fr(models.AbstractModel):
                 },
             }
         }
+
+    def _import_ubl_invoice_add_prepaid_amount(self, collected_values):
+        # imported invoice is a final invoice following downpayments.
+        # We assume all billing references are references to downpayments.
+        invoice = collected_values['invoice']
+        currency = collected_values['currency_values']['currency']
+        tree = collected_values['tree']
+        if tree.findtext('./{*}ProfileID') in ('B4', 'S4', 'M4'):
+            prepaid_amount = float(tree.findtext('./{*}LegalMonetaryTotal/{*}PrepaidAmount') or 0)
+            collected_values['prepaid_amount'] = prepaid_amount
+            move_type = collected_values.get('to_write', {}).get('move_type', invoice.move_type)
+            if move_type in ('in_invoice', 'in_refund') and not currency.is_zero(prepaid_amount):
+                downpayments_names = tree.findall('./{*}BillingReference/{*}InvoiceDocumentReference/{*}ID')
+                company = collected_values.get('company') or invoice.company_id
+                to_write = collected_values.get('to_write', {})
+                supplier = collected_values.get('customer_values', {}).get('customer')
+                if not supplier and to_write.get('partner_id'):
+                    supplier = self.env['res.partner'].browse(to_write['partner_id'])
+                supplier = supplier or invoice.partner_id
+                downpayments = self.env['account.move']
+                if supplier:
+                    downpayments = downpayments.search([
+                        ('ref', 'in', [reference.text for reference in downpayments_names]),
+                        ('company_id', '=', company.id),
+                        ('commercial_partner_id', '=', supplier.commercial_partner_id.id),
+                        ('currency_id', '=', currency.id),
+                        ('move_type', 'in', ('in_invoice', 'in_refund')),
+                        ('state', 'in', ('draft', 'posted')),
+                        ('id', '!=', invoice.id),
+                    ], order='id')
+                grouped_downpayments = downpayments.grouped('ref')
+
+                def financial_signature(move):
+                    return (move.move_type, tuple(sorted(
+                        (
+                            line.product_id.id, line.account_id.id, tuple(sorted(line.tax_ids.ids)),
+                            line.quantity, line.price_unit, line.discount, line.display_type or '',
+                            line.currency_id.id,
+                            json.dumps(line.extra_tax_data or {}, sort_keys=True),
+                            json.dumps(line.analytic_distribution or {}, sort_keys=True),
+                        )
+                        for line in move.invoice_line_ids
+                    )))
+
+                # Validate every reference before copying any lines. Repeated imports with
+                # identical financial content count once; conflicting bills need review.
+                for reference, candidates in grouped_downpayments.items():
+                    if len({financial_signature(candidate) for candidate in candidates}) > 1:
+                        raise UserError(_(
+                            "Several different downpayments use reference %(reference)s. "
+                            "Please review the referenced downpayment before importing this invoice.",
+                            reference=reference,
+                        ))
+
+                collected_values['downpayment_moves'] = self.env['account.move'].browse([
+                    candidates[0].id for candidates in grouped_downpayments.values()
+                ])
+
+                # logging
+                formatted_amount = formatLang(self.env, prepaid_amount, currency_obj=currency)
+                collected_values['logs'].append(_("A downpayment of %s was detected.", formatted_amount))
+                for downpayment_name in downpayments_names:
+                    if downpayment_name.text not in grouped_downpayments:
+                        collected_values['logs'].append(_("Downpayment %s not found. Imported amounts will probably be incorrect.", downpayment_name.text))
+        super()._import_ubl_invoice_add_prepaid_amount(collected_values)
+
+    def _import_ubl_invoice_fix_untaxed_amount(self, collected_values):
+        # Downpayments may be reported as a prepaid amount.
+        # In this case, the final invoice untaxed amount, tax amount and total amount
+        # correspond to the amounts without any downpayments made.
+        # We need to add the downpayment lines as negative lines in the final invoice
+        # because we already imported and accounted for the downpayments.
+        super()._import_ubl_invoice_fix_untaxed_amount(collected_values)
+        invoice = collected_values['invoice']
+        if downpayments := collected_values.get('downpayment_moves'):
+            container = {'records': invoice}
+            with (
+                invoice._check_balanced(container),
+                invoice._disable_discount_precision(),
+                invoice._sync_dynamic_lines(container),
+            ):
+                for downpayment in downpayments:
+                    for line in downpayment.invoice_line_ids:
+                        line_values = line.copy_data({
+                            'move_id': invoice.id,
+                            'quantity': -line.quantity if downpayment.move_type == 'in_invoice' else line.quantity,
+                        })[0]
+                        if downpayment.move_type == 'in_invoice':
+                            line_values['extra_tax_data'] = self.env['account.tax']._reverse_quantity_base_line_extra_tax_data(line.extra_tax_data)
+                        # The source currency amount has the source document's sign.
+                        # Let native invoice creation recompute it from the deduction.
+                        line_values.pop('amount_currency', None)
+                        self.env['account.move.line'].create(line_values)

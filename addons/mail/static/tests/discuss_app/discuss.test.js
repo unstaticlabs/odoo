@@ -1550,6 +1550,47 @@ test("out-of-focus notif takes new inbox messages into account", async () => {
     await expect.waitForSteps(["(1) Inbox"]);
 });
 
+test("out-of-focus notif respects push subscription eligibility", async () => {
+    const pyEnv = await startServer();
+    pyEnv["res.users"].write(serverState.userId, { notification_type: "inbox" });
+    const partnerId = pyEnv["res.partner"].create({ name: "Hagrid" });
+    const userId = pyEnv["res.users"].create({ partner_id: partnerId });
+    patchWithCleanup(OutOfFocusService.prototype, {
+        async notify() {
+            expect.step("notification handled");
+            await super.notify(...arguments);
+        },
+        async hasServiceWorkInstalledAndPushSubscriptionActive() {
+            return true;
+        },
+        sendNotification() {
+            expect.step("send_notification");
+        },
+    });
+    listenStoreFetch("init_messaging");
+    await start();
+    await waitStoreFetch("init_messaging");
+    await openDiscuss();
+    const adminId = serverState.partnerId;
+    const post = (author, message_type) =>
+        withUser(author, () =>
+            rpc("/mail/message/post", {
+                post_data: { body: "hello", partner_ids: [adminId], message_type },
+                thread_id: partnerId,
+                thread_model: "res.partner",
+            })
+        );
+    // pushed type, not self-authored → JS bails, push handles it
+    await post(userId, "comment");
+    await expect.waitForSteps(["notification handled"]);
+    // non-pushed type → whitelist rejects → JS fires
+    await post(userId, "auto_comment");
+    await expect.waitForSteps(["notification handled", "send_notification"]);
+    // self-authored → author excluded from push → JS fires
+    await post(serverState.userId, "comment");
+    await expect.waitForSteps(["notification handled", "send_notification"]);
+});
+
 test("out-of-focus notif on needaction message in group chat contributes only once", async () => {
     const pyEnv = await startServer();
     patchWithCleanup(document, {
@@ -2717,7 +2758,7 @@ test("Read-only channel member has bottom banner instead of composer", async () 
         is_readonly: true,
         channel_member_ids: [
             Command.create({ partner_id: serverState.partnerId, channel_role: "owner" }),
-            Command.create({ partner_id: memberPartnerId, channel_role: "member" }),
+            Command.create({ partner_id: memberPartnerId }),
         ],
     });
     pyEnv["mail.message"].create({
@@ -2746,6 +2787,41 @@ test("Read-only channel member has bottom banner instead of composer", async () 
     await contains(".o-mail-Composer", { count: 0 });
 });
 
+test("Read-only channel info is only editable by channel admins", async () => {
+    const pyEnv = await startServer();
+    const memberPartnerId = pyEnv["res.partner"].create({ name: "Member User" });
+    pyEnv["res.users"].create({
+        partner_id: memberPartnerId,
+        login: "test_member",
+        password: "test_member",
+    });
+    const channelId = pyEnv["discuss.channel"].create({
+        name: "General",
+        description: "Read-only channel description",
+        group_public_id: false,
+        is_readonly: true,
+        channel_member_ids: [
+            Command.create({ partner_id: serverState.partnerId, channel_role: "owner" }),
+            Command.create({ partner_id: memberPartnerId, channel_role: "admin" }),
+        ],
+    });
+    await start({
+        authenticateAs: { login: "test_member", password: "test_member" },
+    });
+    await openDiscuss(channelId);
+    await contains(".o-mail-DiscussContent-threadName:enabled");
+    await contains(".o-mail-DiscussContent-threadDescription:enabled");
+    await contains(".o-mail-DiscussContent-header a[title='Upload Avatar']");
+    const memberId = pyEnv["discuss.channel.member"].search([
+        ["channel_id", "=", channelId],
+        ["partner_id", "=", memberPartnerId],
+    ])[0];
+    pyEnv["discuss.channel.member"].write([memberId], { channel_role: false });
+    await contains(".o-mail-DiscussContent-threadName:disabled");
+    await contains(".o-mail-DiscussContent-threadDescription:disabled");
+    await contains(".o-mail-DiscussContent-header a[title='Upload Avatar']", { count: 0 });
+});
+
 test("Read-only channel admin has composer", async () => {
     const pyEnv = await startServer();
     const adminPartnerId = pyEnv["res.partner"].create({ name: "Admin User" });
@@ -2772,7 +2848,7 @@ test("Read-only channel admin has composer", async () => {
         ["channel_id", "=", channelId],
         ["partner_id", "=", adminPartnerId],
     ])[0];
-    pyEnv["discuss.channel.member"].write([memberId], { channel_role: "member" });
+    pyEnv["discuss.channel.member"].write([memberId], { channel_role: false });
     await contains(".o-mail-DiscussContent-core span:text('This channel is read-only.')");
     await contains(".o-mail-Composer", { count: 0 });
     pyEnv["discuss.channel.member"].write([memberId], { channel_role: "admin" });
@@ -2795,7 +2871,7 @@ test("Read-only channel member cannot respond or create subthread", async () => 
         is_readonly: true,
         channel_member_ids: [
             Command.create({ partner_id: serverState.partnerId, channel_role: "owner" }),
-            Command.create({ partner_id: memberPartnerId, channel_role: "member" }),
+            Command.create({ partner_id: memberPartnerId }),
         ],
     });
     const memberId = pyEnv["discuss.channel.member"].search([
@@ -2862,7 +2938,7 @@ test("Cannot call read-only channels", async () => {
         name: "General",
         is_readonly: true,
         channel_member_ids: [
-            Command.create({ partner_id: serverState.partnerId, channel_role: "member" }),
+            Command.create({ partner_id: serverState.partnerId }),
             Command.create({ partner_id: adminPartnerId, channel_role: "owner" }),
         ],
     });

@@ -313,6 +313,7 @@ class SaleProductConfiguratorController(Controller):
 
         values = dict(
             product_tmpl_id=product_template.id,
+            product_type=product_template.type,
             **self._get_basic_product_information(
                 product_or_template,
                 pricelist,
@@ -392,7 +393,7 @@ class SaleProductConfiguratorController(Controller):
             pricelist=pricelist,
             **kwargs,
         )
-        if kwargs.get('show_packaging', True) and product_or_template._has_multiple_uoms():
+        if kwargs.get("show_packaging", True) and self.env["res.groups"]._is_feature_enabled("uom.group_uom"):
             basic_information["available_uoms"] = product_or_template._get_available_uoms().read([
                 "id",
                 "display_name",

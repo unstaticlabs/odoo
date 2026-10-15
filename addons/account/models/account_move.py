@@ -812,7 +812,7 @@ class AccountMove(models.Model):
     # used in <account.journal>._query_has_sequence_holes
     _made_gaps = models.Index('(journal_id, state, payment_state, move_type, date) WHERE (made_sequence_gap IS TRUE)')
     _duplicate_bills_idx = models.Index("(ref) WHERE (move_type IN ('in_invoice', 'in_refund'))")
-    _account_move_sanitize_payment_ref_idx = models.Index("(regexp_replace(COALESCE(payment_reference, ''), '[^a-zA-Z0-9]', '', 'g'))")
+    _account_move_sanitize_payment_ref_idx = models.Index("(regexp_replace(COALESCE(payment_reference, ref, ''), '[^a-zA-Z0-9]', '', 'g'))")
 
     def _auto_init(self):
         super()._auto_init()
@@ -862,13 +862,17 @@ class AccountMove(models.Model):
             move.payment_reference = move._get_invoice_computed_reference()
         self._inverse_payment_reference()
 
-    @api.depends('payment_reference')
+    @api.depends('payment_reference', 'ref')
     def _compute_sanitize_payment_reference(self):
         for move in self:
-            move.sanitize_payment_reference = re.sub(r'[^a-zA-Z0-9]', '', move.payment_reference or '')
+            move.sanitize_payment_reference = re.sub(r'[^a-zA-Z0-9]', '', move.payment_reference or move.ref or '')
 
     def _compute_sql_sanitize_payment_reference(self, table):
-        return SQL("regexp_replace(COALESCE(%s, ''), '[^a-zA-Z0-9]', '', 'g')", table.payment_reference)
+        return SQL(
+            "regexp_replace(COALESCE(%(payment_ref)s, %(ref)s, ''), '[^a-zA-Z0-9]', '', 'g')",
+            payment_ref=table.payment_reference,
+            ref=table.ref,
+        )
 
     def _get_accounting_date_source(self):
         self.ensure_one()
@@ -1183,6 +1187,7 @@ class AccountMove(models.Model):
         'line_ids.amount_residual_currency',
         'line_ids.payment_id.state',
         'line_ids.full_reconcile_id',
+        'tax_totals',
         'state')
     def _compute_amount(self):
         self.line_ids.fetch([
@@ -1197,7 +1202,7 @@ class AccountMove(models.Model):
         for move in self:
             total_untaxed, total_untaxed_currency = 0.0, 0.0
             total_tax, total_tax_currency = 0.0, 0.0
-            total_residual, total_residual_currency = 0.0, 0.0
+            total_reconciled, total_reconciled_currency = 0.0, 0.0
             total, total_currency = 0.0, 0.0
 
             for line in move.line_ids:
@@ -1216,9 +1221,9 @@ class AccountMove(models.Model):
                         total += line.balance
                         total_currency += line.amount_currency
                     elif line.display_type == 'payment_term':
-                        # Residual amount.
-                        total_residual += line.amount_residual
-                        total_residual_currency += line.amount_residual_currency
+                        # Reconciled amount.
+                        total_reconciled += line.balance - line.amount_residual
+                        total_reconciled_currency += line.amount_currency - line.amount_residual_currency
                 else:
                     # === Miscellaneous journal entry ===
                     if line.debit:
@@ -1226,15 +1231,16 @@ class AccountMove(models.Model):
                         total_currency += line.amount_currency
 
             sign = move.direction_sign
+            tax_totals = move.tax_totals or {}
             move.amount_untaxed = sign * total_untaxed_currency
             move.amount_tax = sign * total_tax_currency
             move.amount_total = sign * total_currency
-            move.amount_residual = -sign * total_residual_currency
+            move.amount_residual = tax_totals.get('total_amount_currency', 0.0) + sign * total_reconciled_currency
             move.amount_untaxed_signed = -total_untaxed
             move.amount_untaxed_in_currency_signed = -total_untaxed_currency
             move.amount_tax_signed = -total_tax
             move.amount_total_signed = abs(total) if move.move_type == 'entry' else -total
-            move.amount_residual_signed = total_residual
+            move.amount_residual_signed = -sign * tax_totals.get('total_amount', 0.0) - total_reconciled
             move.amount_total_in_currency_signed = abs(move.amount_total) if move.move_type == 'entry' else -(sign * move.amount_total)
 
     @api.depends('amount_residual', 'move_type', 'state', 'company_id', 'reconciled_payment_ids.state')
@@ -1956,7 +1962,7 @@ class AccountMove(models.Model):
     @api.depends('partner_id', 'invoice_source_email', 'partner_id.display_name')
     def _compute_invoice_partner_display_info(self):
         for move in self:
-            vendor_display_name = move.partner_id.display_name
+            vendor_display_name = move.partner_id.with_context({'lang': self.env.lang}).display_name
             if not vendor_display_name:
                 if move.invoice_source_email:
                     vendor_display_name = _('@From: %(email)s', email=move.invoice_source_email)
@@ -2141,7 +2147,7 @@ class AccountMove(models.Model):
         return ["ref", "move_type", "partner_id", "invoice_date", "tax_totals", "currency_id"]
 
     def _fetch_duplicate_reference(self, matching_states=('draft', 'posted')):
-        moves = self.filtered(lambda m: m.is_sale_document(include_receipts=True) or m.is_purchase_document(include_receipts=True))
+        moves = self.filtered(lambda m: m.is_sale_document() or m.is_purchase_document())
 
         if not moves:
             return {}
@@ -2184,11 +2190,7 @@ class AccountMove(models.Model):
                     ON move.company_id = duplicate_move.company_id
                    AND move.id != duplicate_move.id
                    AND duplicate_move.state IN %(matching_states)s
-                   AND (
-                            move.move_type = duplicate_move.move_type
-                            OR (move.move_type IN ('in_invoice', 'in_receipt') AND duplicate_move.move_type IN ('in_invoice', 'in_receipt'))
-                            OR (move.move_type IN ('out_invoice', 'out_receipt') AND duplicate_move.move_type IN ('out_invoice', 'out_receipt'))
-                       )
+                   AND move.move_type = duplicate_move.move_type
                    AND move.currency_id = duplicate_move.currency_id
                    AND (%(move_type_sql_condition)s)
                  WHERE move.id IN %(moves)s
@@ -2206,10 +2208,10 @@ class AccountMove(models.Model):
 
     def _get_duplicate_ref_sql_conditions(self, moves, move_table_and_alias):
         to_query = []
-        out_moves = moves.filtered(lambda m: m.move_type in ('out_invoice', 'out_refund', 'out_receipt'))
+        out_moves = moves.filtered(lambda m: m.move_type in ('out_invoice', 'out_refund'))
         if out_moves:
             out_moves_sql_condition = SQL("""
-                move.move_type in ('out_invoice', 'out_refund', 'out_receipt')
+                move.move_type in ('out_invoice', 'out_refund')
                 AND (
                    move.amount_total = duplicate_move.amount_total
                    AND move.invoice_date = duplicate_move.invoice_date
@@ -2221,11 +2223,11 @@ class AccountMove(models.Model):
             """)
             to_query.append((out_moves, out_moves_sql_condition))
 
-        in_moves = moves.filtered(lambda m: m.move_type in ('in_invoice', 'in_refund', 'in_receipt'))
+        in_moves = moves.filtered(lambda m: m.move_type in ('in_invoice', 'in_refund'))
         if in_moves:
             in_moves_sql_condition = SQL("""
-                move.move_type in ('in_invoice', 'in_refund', 'in_receipt')
-                AND duplicate_move.move_type in ('in_invoice', 'in_refund', 'in_receipt')
+                move.move_type in ('in_invoice', 'in_refund')
+                AND duplicate_move.move_type in ('in_invoice', 'in_refund')
                 AND (
                    -- case 1: same ref and (no date or same year)
                      (
@@ -2260,11 +2262,7 @@ class AccountMove(models.Model):
             move.has_draft_move_duplicate = any(duplicate_move.state == 'draft' for duplicate_move in move.duplicated_ref_ids)
             move.is_exact_move_duplicate = any(
                 move.ref and move.ref == dup.ref
-                and (
-                    move.move_type == dup.move_type
-                    or (move.move_type in ['in_invoice', 'in_receipt'] and dup.move_type in ['in_invoice', 'in_receipt'])
-                    or (move.move_type in ['out_invoice', 'out_receipt'] and dup.move_type in ['out_invoice', 'out_receipt'])
-                )
+                and move.move_type == dup.move_type
                 and move.partner_id == dup.partner_id
                 and move.invoice_date == dup.invoice_date
                 and move.amount_total == dup.amount_total
@@ -2728,7 +2726,8 @@ class AccountMove(models.Model):
                 copied_vals = line.copy_data()[0]
                 self.invoice_line_ids += self.env['account.move.line'].new(copied_vals)
 
-            self.currency_id = self.invoice_vendor_bill_id.currency_id
+            if self.currency_id != self.invoice_vendor_bill_id.currency_id:
+                self.currency_id = self.invoice_vendor_bill_id.currency_id
             self.fiscal_position_id = self.invoice_vendor_bill_id.fiscal_position_id
 
             # Reset
@@ -3334,7 +3333,7 @@ class AccountMove(models.Model):
         def get_base_line_tracked_fields(line):
             grouping_key = AccountTax._prepare_base_line_grouping_key(fake_base_line)
             if line.move_id.is_invoice(include_receipts=True):
-                extra_fields = ['price_unit', 'quantity', 'discount', 'deductible_percentage']
+                extra_fields = ['price_unit', 'quantity', 'discount', 'deductible_percentage', 'extra_tax_data']
             else:
                 extra_fields = ['amount_currency']
             return list(grouping_key.keys()) + extra_fields
@@ -5193,6 +5192,9 @@ class AccountMove(models.Model):
             {
                 **self._prepare_product_base_line_for_taxes_computation(line),
                 'is_refund': True,
+                'manual_total_excluded_currency': None,
+                'manual_total_excluded': None,
+                'manual_tax_amounts': {},
             }
             for line in invoice_lines
         ]
@@ -5767,6 +5769,9 @@ class AccountMove(models.Model):
 
     def _can_be_unlinked(self):
         self.ensure_one()
+        if not self.posted_before:
+            # an entry that was never posted is deleted, reversing it would post amounts that never were posted
+            return True
         lock_date = self.company_id._get_user_fiscal_lock_date(self.journal_id)
         posted_caba_entry = self.state == 'posted' and (self.tax_cash_basis_rec_id or self.tax_cash_basis_origin_move_id)
         posted_exchange_diff_entry = self.state == 'posted' and self.exchange_diff_partial_ids
@@ -6294,6 +6299,11 @@ class AccountMove(models.Model):
         label = self.adjusting_entry_origin_label if len(self.adjusting_entries_move_ids) == 1 else 'Invoices'
         return self.adjusting_entry_origin_move_ids._get_records_action(name=label)
 
+    def action_open_journal_items(self):
+        self.ensure_one()
+        lines = self.line_ids.filtered(lambda line: line.display_type not in {'line_section', 'line_subsection', 'line_note'})
+        return lines._get_records_action(name=self.env._("Journal Items"), views=[(False, 'list')])
+
     def action_switch_move_type(self):
         if any((move.posted_before and move.name) for move in self):
             raise ValidationError(_("You cannot switch the type of a document with an existing sequence number."))
@@ -6496,15 +6506,30 @@ class AccountMove(models.Model):
         '''
         self.ensure_one()
         partial = self.env['account.partial.reconcile'].browse(partial_id)
-        (partial.credit_move_id + partial.debit_move_id).remove_move_reconcile()
+        (partial.credit_move_id + partial.debit_move_id).move_id._remove_reconciliation_between_moves()
+
+    def _remove_reconciliation_between_moves(self):
+        """ Undo the reconciliation between the journal entries in self, on every account, while keeping the
+        reconciliation of these entries with any other journal entry.
+        """
+        self.env['account.partial.reconcile'].search([
+            ('debit_move_id.move_id', 'in', self.ids),
+            ('credit_move_id.move_id', 'in', self.ids),
+        ]).unlink()
 
     def set_moves_checked(self, is_checked=True):
         for move in self.filtered(lambda m: m.state == 'posted'):
             move.review_state = 'reviewed' if is_checked else 'todo'
 
+    def _is_draft_disabled(self):
+        self.ensure_one()
+        return self.need_cancel_request
+
     def button_draft(self):
         if any(move.state not in ('cancel', 'posted') for move in self):
             raise UserError(_("Only posted/cancelled journal entries can be reset to draft."))
+        if any(move._is_draft_disabled() for move in self):
+            raise UserError(_("You can't reset to draft those journal entries. You need to request a cancellation instead."))
 
         self._check_draftable()
         # We delete next auto_post move if draft
@@ -6780,7 +6805,7 @@ class AccountMove(models.Model):
             domain,
             order='date asc, invoice_date asc, sequence_number asc, id asc',
             limit=job_count)
-        to_process.try_lock_for_update()
+        to_process = to_process.try_lock_for_update()
         if not to_process:
             return
 
@@ -7424,7 +7449,7 @@ class AccountMove(models.Model):
             )
 
         def filter_found(partner):
-            return not company or partner.company_id.id in [False, company.id] or partner.partner_share
+            return not company or partner.company_id.id in [False, company.id] or partner.user_ids
 
         # Search for partner that sent the mail.
         from_mail_addresses = email_split(msg_dict.get('from', ''))
@@ -7686,7 +7711,7 @@ class AccountMove(models.Model):
             return
 
         original_invoice = self.filtered(lambda inv: inv.move_type == 'out_invoice'
-                                         and credit_note.invoice_line_ids.sale_line_ids in inv.invoice_line_ids.sale_line_ids)
+                                         and credit_note.invoice_line_ids.sale_line_ids <= inv.invoice_line_ids.sale_line_ids)
         if len(original_invoice) == 1 and original_invoice._refunds_origin_required():
             credit_note.reversed_entry_id = original_invoice.id
 

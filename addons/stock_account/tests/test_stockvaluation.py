@@ -3281,6 +3281,17 @@ class TestStockValuation(TestStockValuationCommon):
         self.assertEqual(recs[-1].total_quantity, 3)
         self.assertEqual(recs[-1].total_value, 30)
 
+    def test_avco_report_quantity_uses_product_uom(self):
+        """Ensure the AVCO report quantity is expressed in the product UoM."""
+        product = self.product_avco
+        product.company_id = self.company.id
+        product.uom_id = self.uom_pack_of_6
+        self._make_in_move(product, 18, uom_id=self.uom.id)
+
+        report_lines = self.env['stock.avco.report'].search([('product_id', '=', product.id)]).sorted('date, id')
+        self.assertEqual(report_lines[-1].quantity, 3)
+        self.assertEqual(report_lines[-1].added_value, 30)
+
     def test_avco_report_after_cost_method_change(self):
         """Ensure that the AVCO justification report for a product is accurate at all steps, even if
         the cost method changed after some moves.
@@ -3771,3 +3782,54 @@ class TestStockValuation(TestStockValuationCommon):
 
         # Ensure that we didn't do 109 / 9 to compute the price
         self.assertEqual(product.standard_price, 1.0)
+
+    def test_multi_company_fifo_costing_isolation(self):
+        """
+        Test that an outgoing move in Company B does not use the incoming
+        move cost (get_last_in) from Company A for a FIFO product.
+        """
+        self.product_fifo.company_id = False
+        self.product_fifo.categ_id.with_company(self.other_company).property_cost_method = 'fifo'
+
+        self.product_fifo.with_company(self.other_company).standard_price = 0.0
+
+        move_in_a = self._make_in_move(
+            product=self.product_fifo,
+            quantity=10.0,
+            unit_cost=50.0,
+            company=self.company
+        )
+        self.assertEqual(move_in_a.price_unit, 50.0)
+
+        # Make sure only one company is in the allowed_company_ids
+        product = self.product_fifo.with_company(self.other_company).with_context(allowed_company_ids=[self.other_company.id])
+
+        product._update_standard_price()
+
+        # Company B should not have the cost from Company A, so the standard_price should remain 0.0
+        self.assertEqual(product.standard_price, 0.0)
+
+    def test_standard_price_in_qty_history_report_after_recount(self):
+        """Ensure the quantity history report reflects the product's standard price
+        when inventory is recounted at a date preceding the product's creation."""
+        product_standard = self.env['product.template'].create({
+            **self.product_common_vals,
+            'name': 'Standard Product',
+            'categ_id': self.category_standard.id,
+        }).product_variant_id  # Creating via product template for creation of product.value None -> 0.0
+        self.env['stock.quant'].with_context(inventory_mode=True).create({
+            'product_id': product_standard.id,
+            'inventory_quantity': 10,
+            'location_id': self.stock_location.id,
+        })._apply_inventory(Datetime.to_datetime('2026-07-01'))
+        action = self.env['stock.quantity.history'].create({'inventory_datetime': Datetime.to_datetime('2026-07-02')}).open_at_date()
+        products = self.env[action['res_model']].with_context(action['context']).search(action['domain'])
+        self.assertRecordValues(
+            products & product_standard,
+            [{
+                'standard_price': 10,
+                'qty_available': 10,
+                'total_value': 100,
+                'avg_cost': 10
+            }],
+        )
