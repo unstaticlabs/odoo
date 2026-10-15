@@ -1,4 +1,7 @@
+import json
+
 from odoo import _, api, models
+from odoo.exceptions import UserError
 from odoo.tools.misc import formatLang
 
 from odoo.addons.account_edi_ubl_cii.models.account_edi_common import FloatFmt
@@ -246,17 +249,53 @@ class AccountEdiXmlUbl21Fr(models.AbstractModel):
         if tree.findtext('./{*}ProfileID') in ('B4', 'S4', 'M4'):
             prepaid_amount = float(tree.findtext('./{*}LegalMonetaryTotal/{*}PrepaidAmount') or 0)
             collected_values['prepaid_amount'] = prepaid_amount
-            if not invoice.currency_id.is_zero(prepaid_amount):
+            move_type = collected_values.get('to_write', {}).get('move_type', invoice.move_type)
+            if move_type in ('in_invoice', 'in_refund') and not currency.is_zero(prepaid_amount):
                 downpayments_names = tree.findall('./{*}BillingReference/{*}InvoiceDocumentReference/{*}ID')
-                # groups downpayments by ref to avoid a downpayment being duplicated in the db being substracted multiple times
-                grouped_downpayments = self.env['account.move'].search([('ref', 'in', [downpayment.text for downpayment in downpayments_names])]).grouped('ref')
+                company = collected_values.get('company') or invoice.company_id
+                to_write = collected_values.get('to_write', {})
+                supplier = collected_values.get('customer_values', {}).get('customer')
+                if not supplier and to_write.get('partner_id'):
+                    supplier = self.env['res.partner'].browse(to_write['partner_id'])
+                supplier = supplier or invoice.partner_id
+                downpayments = self.env['account.move']
+                if supplier:
+                    downpayments = downpayments.search([
+                        ('ref', 'in', [reference.text for reference in downpayments_names]),
+                        ('company_id', '=', company.id),
+                        ('commercial_partner_id', '=', supplier.commercial_partner_id.id),
+                        ('currency_id', '=', currency.id),
+                        ('move_type', 'in', ('in_invoice', 'in_refund')),
+                        ('state', 'in', ('draft', 'posted')),
+                        ('id', '!=', invoice.id),
+                    ], order='id')
+                grouped_downpayments = downpayments.grouped('ref')
 
-                downpayment_lines = self.env['account.move.line']
-                for downpayments in grouped_downpayments.values():
-                    downpayment = downpayments[0]
-                    for line in downpayment.invoice_line_ids:
-                        downpayment_lines |= line.copy({'quantity': -line.quantity if downpayment.move_type == 'in_invoice' else line.quantity})
-                collected_values['downpayment_lines'] = downpayment_lines
+                def financial_signature(move):
+                    return (move.move_type, tuple(sorted(
+                        (
+                            line.product_id.id, line.account_id.id, tuple(sorted(line.tax_ids.ids)),
+                            line.quantity, line.price_unit, line.discount, line.display_type or '',
+                            line.currency_id.id,
+                            json.dumps(line.extra_tax_data or {}, sort_keys=True),
+                            json.dumps(line.analytic_distribution or {}, sort_keys=True),
+                        )
+                        for line in move.invoice_line_ids
+                    )))
+
+                # Validate every reference before copying any lines. Repeated imports with
+                # identical financial content count once; conflicting bills need review.
+                for reference, candidates in grouped_downpayments.items():
+                    if len({financial_signature(candidate) for candidate in candidates}) > 1:
+                        raise UserError(_(
+                            "Several different downpayments use reference %(reference)s. "
+                            "Please review the referenced downpayment before importing this invoice.",
+                            reference=reference,
+                        ))
+
+                collected_values['downpayment_moves'] = self.env['account.move'].browse([
+                    candidates[0].id for candidates in grouped_downpayments.values()
+                ])
 
                 # logging
                 formatted_amount = formatLang(self.env, prepaid_amount, currency_obj=currency)
@@ -274,11 +313,22 @@ class AccountEdiXmlUbl21Fr(models.AbstractModel):
         # because we already imported and accounted for the downpayments.
         super()._import_ubl_invoice_fix_untaxed_amount(collected_values)
         invoice = collected_values['invoice']
-        if downpayment_lines := collected_values.get('downpayment_lines'):
+        if downpayments := collected_values.get('downpayment_moves'):
             container = {'records': invoice}
             with (
                 invoice._check_balanced(container),
                 invoice._disable_discount_precision(),
                 invoice._sync_dynamic_lines(container),
             ):
-                downpayment_lines.move_id = invoice.id
+                for downpayment in downpayments:
+                    for line in downpayment.invoice_line_ids:
+                        line_values = line.copy_data({
+                            'move_id': invoice.id,
+                            'quantity': -line.quantity if downpayment.move_type == 'in_invoice' else line.quantity,
+                        })[0]
+                        if downpayment.move_type == 'in_invoice':
+                            line_values['extra_tax_data'] = self.env['account.tax']._reverse_quantity_base_line_extra_tax_data(line.extra_tax_data)
+                        # The source currency amount has the source document's sign.
+                        # Let native invoice creation recompute it from the deduction.
+                        line_values.pop('amount_currency', None)
+                        self.env['account.move.line'].create(line_values)
