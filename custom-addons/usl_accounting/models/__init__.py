@@ -17,6 +17,7 @@ from . import (
     multi_company_expenses,
     multi_company_setup,
     payment_suggestion,
+    post_match_confirmation,
     immediate_settlement,
     immediate_settlement_move,
     immediate_settlement_foreign,
@@ -27,4 +28,5 @@ from . import (
     queue_job,
     readonly_evidence,
     vendor_bill_configuration,
+    vendor_bill_merge,
 )

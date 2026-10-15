@@ -79,6 +79,7 @@ The Distribution currently carries focused patches in:
 
 - `addons/account/models/account_move.py`;
 - `addons/account/wizard/account_resequence.py`;
+- `addons/mail/tools/link_preview.py`;
 - `addons/web/static/src/search/`;
 - `addons/web/static/src/views/list/`;
 - `addons/web/static/src/webclient/actions/action_service.js`.
@@ -90,6 +91,11 @@ sort and pagination choices in the URL. Each patch has focused regression
 coverage and should be removed when upstream provides an equivalent extension
 point or behavior. The exact navigation contract is documented in
 [`docs/product/navigation.md`](navigation.md).
+
+The mail preview patch sends unknown remote charset names through the existing
+UTF-8 fallback, so optional previews do not fail after a message is sent. Its
+upgrade cost and removal condition are recorded in
+[`DECISIONS/0002-link-preview-unknown-charsets.md`](../../DECISIONS/0002-link-preview-unknown-charsets.md).
 
 No other product-specific core divergence is allowed without an explicit
 architecture decision, upgrade analysis and regression evidence.

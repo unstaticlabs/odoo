@@ -140,6 +140,11 @@
       "classification": "protected"
     },
     {
+      "action_key": "route:jsonrpc:POST:/mail/attachment/delete",
+      "action_name": "permanently delete attachment evidence from a business record",
+      "classification": "protected"
+    },
+    {
       "action_key": "rpc:account.account.reconcile.unlink",
       "action_name": "permanently delete account.account.reconcile",
       "classification": "protected",

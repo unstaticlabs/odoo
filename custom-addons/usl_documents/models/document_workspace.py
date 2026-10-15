@@ -466,6 +466,7 @@ class UslDocument(models.Model):
             "background_mode": background_mode,
             "truncated": truncated,
             "metadata_included": include_workspace_metadata,
+            "can_edit_metadata": bool(self._api_doc_access().get("write")),
             "can_upload": self.env.user.has_group(
                 "usl_documents.group_documents_user",
             ),

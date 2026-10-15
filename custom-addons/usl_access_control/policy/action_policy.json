@@ -137,6 +137,20 @@
     },
     {
       "action_keys": [
+        "rpc:account.move.js_post_and_match_outstanding_line"
+      ],
+      "classification": "operational",
+      "consequence": "Requests native posting confirmation when Odoo requires it; otherwise posts one reviewed draft vendor bill and attempts its selected native payment reconciliation, preserving a posted bill if matching subsequently fails.",
+      "domain": "accounting",
+      "evidence_id": "draft-post-match-20261014",
+      "id": "operational.accounting.draft_post_match_20261014",
+      "rationale": "Delegates to native posting with the ordinary warning and analytic validation context under current ACL, company, accounting and irreversible-action rules. A native warning leaves the bill Draft and returns its native dialog without matching. Native record locks and reviewed facts reject stale or duplicate requests. No sudo, arbitrary code, provider effects or explicit commit is added. Matching failures roll back only matching and report the actual posted state.",
+      "reviewed_digests": {
+        "rpc:account.move.js_post_and_match_outstanding_line": "898f5b6cf412e76a017f944e3d39b41f97bfa336ce096fdb6d26f170efd57113"
+      }
+    },
+    {
+      "action_keys": [
         "rpc:hr.expense.action_scan_existing_receipt_emails",
         "server_action:usl_accounting.action_scan_existing_receipt_emails",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense.action_scan_existing_receipt_emails:sudo:1",
@@ -293,6 +307,110 @@
         "rpc:pdp.response.wizard.button_send": "7d337a7b40e614dd4314927b54ea405510189899e1988821a0097aaf7a02c3d7",
         "rpc:pdp.response.wizard.fields_get": "84ab441f672d3088bf474e19374d75b67616cdfe639c3de36efa41ecd316d3a2",
         "server_action:l10n_fr_pdp.l10n_fr_pdp_action_open_response_wizard": "0341a0aaf5fc8a3a2f7a97f1ccaed20ea6613df6188015989e5fa38e746eace7"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:account.move.action_choose_vendor_bill_merge_winner",
+        "rpc:account.move.action_merge_vendor_bills",
+        "rpc:usl.vendor.bill.merge.wizard.action_merge",
+        "rpc:usl.vendor.bill.merge.wizard.copy",
+        "rpc:usl.vendor.bill.merge.wizard.copy_data",
+        "rpc:usl.vendor.bill.merge.wizard.create",
+        "rpc:usl.vendor.bill.merge.wizard.formatted_read_grouping_sets",
+        "rpc:usl.vendor.bill.merge.wizard.get_view",
+        "rpc:usl.vendor.bill.merge.wizard.get_views",
+        "rpc:usl.vendor.bill.merge.wizard.load",
+        "rpc:usl.vendor.bill.merge.wizard.name_create",
+        "rpc:usl.vendor.bill.merge.wizard.onchange",
+        "rpc:usl.vendor.bill.merge.wizard.onchange_batch",
+        "rpc:usl.vendor.bill.merge.wizard.unlink",
+        "rpc:usl.vendor.bill.merge.wizard.update_field_translations",
+        "rpc:usl.vendor.bill.merge.wizard.web_override_translations",
+        "rpc:usl.vendor.bill.merge.wizard.web_read_group",
+        "rpc:usl.vendor.bill.merge.wizard.web_resequence",
+        "rpc:usl.vendor.bill.merge.wizard.web_save",
+        "rpc:usl.vendor.bill.merge.wizard.web_save_multi",
+        "rpc:usl.vendor.bill.merge.wizard.web_search_read",
+        "rpc:usl.vendor.bill.merge.wizard.write",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_merge.py:account.move._apply_vendor_bill_merge:message_send:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_merge.py:account.move._apply_vendor_bill_merge:message_send:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_merge.py:account.move._apply_vendor_bill_merge:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_merge.py:account.move._apply_vendor_bill_merge:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_merge.py:account.move._set_vendor_bill_merge_target:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_merge.py:account.move.action_choose_vendor_bill_merge_winner:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_merge.py:account.move.action_merge_vendor_bills:orm_create:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_merge.py:account.move.button_draft:message_send:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_merge.py:account.move.button_draft:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_merge.py:account.move.create:orm_create:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_merge.py:account.move.write:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/vendor_bill_merge_wizard.py:usl.vendor.bill.merge.wizard.create:orm_create:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/vendor_bill_merge_wizard.py:usl.vendor.bill.merge.wizard.write:orm_write:1",
+        "ui:usl_accounting.vendor_bill_merge_list:button:object:action_merge_vendor_bills:1",
+        "ui:usl_accounting.vendor_bill_merge_wizard_form:button:object:action_choose_vendor_bill_merge_winner:1",
+        "ui:usl_accounting.vendor_bill_merge_wizard_form:button:object:action_merge:1"
+      ],
+      "classification": "operational",
+      "consequence": "Selects a native transient winner or performs a fixed keep-one merge under current Accounting guards.",
+      "domain": "accounting",
+      "evidence_id": "vendor-bill-merge-20261014",
+      "id": "operational.accounting.vendor_bill_merge_workflow",
+      "rationale": "Reviewed fixed native workflow preserves winner financial facts and all original records/files/history; explicit conflict choice, native To Review and cancellation, guarded independent Reset recovery. Transient writes are creator/company bounded and initialization private; wrapper sinks retain native finance ACL/protected delegates and do not grant generic create/write/unlink.",
+      "reviewed_digests": {
+        "rpc:account.move.action_choose_vendor_bill_merge_winner": "b15d0235e744d6c62de3ab755ded59637fb8e83bcf5736a48435f7e281cd1f7e",
+        "rpc:account.move.action_merge_vendor_bills": "36ad121da2e7f0a7e63a494aaac930a5c0bbc355b3ea1ce99596877231fbc698",
+        "rpc:usl.vendor.bill.merge.wizard.action_merge": "e1b6838a4965767cb37b85313e3a35db9488c937a0935c243d885df35c571810",
+        "rpc:usl.vendor.bill.merge.wizard.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+        "rpc:usl.vendor.bill.merge.wizard.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+        "rpc:usl.vendor.bill.merge.wizard.create": "289930cbe6919d52001417c9aa9723d7af84251e6e1aab9747f01618bc5a77db",
+        "rpc:usl.vendor.bill.merge.wizard.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
+        "rpc:usl.vendor.bill.merge.wizard.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+        "rpc:usl.vendor.bill.merge.wizard.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+        "rpc:usl.vendor.bill.merge.wizard.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+        "rpc:usl.vendor.bill.merge.wizard.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+        "rpc:usl.vendor.bill.merge.wizard.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+        "rpc:usl.vendor.bill.merge.wizard.onchange_batch": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
+        "rpc:usl.vendor.bill.merge.wizard.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
+        "rpc:usl.vendor.bill.merge.wizard.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+        "rpc:usl.vendor.bill.merge.wizard.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+        "rpc:usl.vendor.bill.merge.wizard.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+        "rpc:usl.vendor.bill.merge.wizard.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+        "rpc:usl.vendor.bill.merge.wizard.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+        "rpc:usl.vendor.bill.merge.wizard.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+        "rpc:usl.vendor.bill.merge.wizard.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+        "rpc:usl.vendor.bill.merge.wizard.write": "dd4589682809ee2304f0ad8d53049d26b5720017bde9e00e81a495179f186950",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_merge.py:account.move._apply_vendor_bill_merge:message_send:1": "39581dd60b8a7564058f0310ff8e0e73d7bafb701d20d66b74481081d829a7e9",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_merge.py:account.move._apply_vendor_bill_merge:message_send:2": "4a7d41acc7540abf7d2f10a4d7006bcdc3c363d09b1b8106b032c35d756bfd3c",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_merge.py:account.move._apply_vendor_bill_merge:orm_write:1": "14e12fefe9e29f0c04892cec1b191c7a47dd25e5453967fb3bfae964a98b30e3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_merge.py:account.move._apply_vendor_bill_merge:orm_write:2": "03c1fa17421c5cd6058b6b576bc86fde541678833994ad6ac287b9be70dc7e0e",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_merge.py:account.move._set_vendor_bill_merge_target:orm_write:1": "55f8ec27c29459e287086f3a5f1396cfc002beffe19df0dc81f42bf4498d8fd9",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_merge.py:account.move.action_choose_vendor_bill_merge_winner:orm_write:1": "c5012113b2cd7b073b42c46c1d93601a6fe0558eeb61e696ec5661ac615d115c",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_merge.py:account.move.action_merge_vendor_bills:orm_create:1": "212d57f9751b293ae64a297308108874d9a0c3612d26228f35a56034eeab7842",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_merge.py:account.move.button_draft:message_send:1": "c468c750d6adddb90e058652a6e41ec593b7f8b077abb74a0cd42340abac7ce9",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_merge.py:account.move.button_draft:orm_write:1": "29bc4afd73c38b0af91669d7926df4a68abe1b83134d5cf943b3087dbefdee32",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_merge.py:account.move.create:orm_create:1": "88080f231b96a72c57ef2c244d224e7f7560a4af0c5c9d0c717fe49145bc4868",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/vendor_bill_merge.py:account.move.write:orm_write:1": "e642eff17b05deb93653b88244180957b21fd5b769128405ff0795325df9b3a3",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/vendor_bill_merge_wizard.py:usl.vendor.bill.merge.wizard.create:orm_create:1": "ed5b47406ca6dd0a3f5b04108cd19ad2dc6055a09d5c3b0852e115fdab97556e",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/vendor_bill_merge_wizard.py:usl.vendor.bill.merge.wizard.write:orm_write:1": "076db44260f37846305e06eea85b242c71977c27eeca8c26b2fc0b52207b9ed1",
+        "ui:usl_accounting.vendor_bill_merge_list:button:object:action_merge_vendor_bills:1": "d126a708178b4a5d764f2131e1d3074b35b471700a57a027fff1daf631f59ed5",
+        "ui:usl_accounting.vendor_bill_merge_wizard_form:button:object:action_choose_vendor_bill_merge_winner:1": "b6f879ad1046f660cef7ab81226e586aeeeb60b897503ee0b222ac3f46974f5e",
+        "ui:usl_accounting.vendor_bill_merge_wizard_form:button:object:action_merge:1": "006ee450eac43a9e7433fad90c333c2fd7e44a0af62cf9c574f7e8cd2b059d72"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:mail.activity.unlink",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.activity.unlink:orm_unlink:1"
+      ],
+      "classification": "operational",
+      "consequence": "Perform native activity cleanup only within existing approved Agent collaboration scope; preserve ordinary human activity access.",
+      "domain": "communications",
+      "evidence_id": "agent-expense-approval-cleanup",
+      "id": "operational.collaboration.approved_activity_cleanup",
+      "rationale": "The Agent mutation guard executes before native unlink can queue bus work. Approved expense lifecycle scope remains usable; direct and forged-context Agent deletion is refused without side effects.",
+      "reviewed_digests": {
+        "rpc:mail.activity.unlink": "3ca5d9891385909abb86023106537fd8066df5eb4e15934e8a731a81860e51a4",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.activity.unlink:orm_unlink:1": "1c895b2ae090b026ae7b72826df385e96bb7b94a195e96ecd53c6cceb8b1f905"
       }
     },
     {
@@ -571,6 +689,23 @@
     },
     {
       "action_keys": [
+        "rpc:usl.document.apply_batch_archive_metadata",
+        "rpc:usl.document.update_archive_metadata"
+      ],
+      "classification": "operational",
+      "consequence": "Sets only explicitly chosen archive tags, correspondent or document type under current native document authority; remote writes are independent and cannot roll back with the Odoo transaction.",
+      "domain": "documents_and_communications",
+      "evidence_id": "documents-batch-metadata-20261014",
+      "id": "operational.documents_and_communications.batch_metadata_20261014",
+      "overrides": {},
+      "rationale": "These fixed metadata workflows neither alter company/privacy authority nor remove governed evidence. Existing metadata editing falsely named a cache-only write as remote reversal; operational classification accurately describes sanctioned manual correction and explicit confirmation/retry without promising undo.",
+      "reviewed_digests": {
+        "rpc:usl.document.apply_batch_archive_metadata": "03e282864ef1e5e830e1a6712ef5fe053bbbd75313aa43decb569860c7fc560c",
+        "rpc:usl.document.update_archive_metadata": "5494f22d9019ed195bd73b9d6c28970207baf19bf608233d81e337683f7a8e84"
+      }
+    },
+    {
+      "action_keys": [
         "rpc:usl.document.operation.cron_poll_operations"
       ],
       "classification": "operational",
@@ -582,6 +717,72 @@
       "rationale": "The fixed reviewed implementation remains subject to native ACLs, record rules, company isolation, and attributable business history.",
       "reviewed_digests": {
         "rpc:usl.document.operation.cron_poll_operations": "6cc9286e880b8203dea621121da239a285aab7506efb907a09b48553d686e646"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:hr.expense.configure_draft_expense",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:message_send:1",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:1",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:2",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:3",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:4"
+      ],
+      "classification": "operational",
+      "consequence": "Prepares one existing draft expense and its owned evidence; recalculates native target-company amounts and records the correction without submitting, posting, paying or deleting history.",
+      "domain": "accounting",
+      "evidence_id": "draft-expense-correction-20261014",
+      "id": "operational.draft-expense-correction",
+      "rationale": "The fixed bounded method locks and rechecks the draft, requires source and target authority, validates explicit company-compatible relations, delegates native batch removal and receipt supersession, and scopes the existing in-process collaboration marker only to evidence owned by that expense. It never accepts arbitrary records, fields, sudo flags or serializable authority tokens. Split-family ownership changes remain a separately coordinated workflow. Financial reference preflight applies to company moves or explicitly supplied relations, preserving ordinary label edits without demanding unrelated supplier-bill read access. The internal helper is reachable only through the unchanged single-expense entry or the explicit complete-family action; the public single-expense entry still cannot select siblings or mint that internal scope.",
+      "reviewed_digests": {
+        "rpc:hr.expense.configure_draft_expense": "f0f39686f552c7b71dbe39791b8bf2aac5a5e1a472589bfa4d21bd3a012117da",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:message_send:1": "72d3adedee2d2ad32b739835655a29c5c2e96c1a1382f0876627039076584ec3",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:1": "9175c2e33ee130f5b6da6f59252cafebbd38f03d5abfd2caac76e6937dfc877d",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:2": "b4ad691ace841147c34ad347ea57d82aac2e2065bf75eb04e133d5e5168bac7c",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:3": "27a078c6d7d67e8a731328b1610a30598b5b0635f783b28bde0421217b460f75",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:4": "dfdd349451eb891faa8bcd737a773b6df76deecd83253d843fa32ce35ab3d0fc"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:hr.expense.configure_draft_expense_family",
+        "rpc:hr.expense.split.wizard.action_split_expense",
+        "rpc:hr.expense.split_draft_expense",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_family.py:hr.expense.split_draft_expense:orm_create:1",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_family.py:hr.expense.split_draft_expense:orm_create:2",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_split.py:hr.expense.split.wizard._apply_native_split_with_context:orm_write:1",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_split.py:hr.expense.split.wizard.action_split_expense:message_send:1",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_split.py:hr.expense.split.wizard.action_split_expense:orm_write:1"
+      ],
+      "classification": "operational",
+      "consequence": "Creates explicitly planned native draft split parts and their owned evidence, or corrects a caller-named complete draft family, without submitting, posting, paying or deleting history.",
+      "domain": "accounting",
+      "evidence_id": "draft-expense-split-family-20261014",
+      "id": "operational.draft-expense-split-family",
+      "rationale": "Native wizard validation locks the source and enforces draft state, finite gross totals, native fixed-cost preview in the receipt company and each resulting part amount and defaults. Explicit family correction locks the origin and all linked rows, requires complete read/write authority and source/target company access, and validates each mapping before a transaction can commit. Only the existing source-authorized in-process collaboration scope delegates bounded transient helpers and native copies/evidence; generic Agent copy, follower creation and forged serialized context remain denied. The maintained native copy algorithm retains keyword-merged context, with no sudo or global authority grant. Batch membership, the chosen main evidence copy, source receipt-generation supersession and original gross audit are shared native-wizard effects for both the human and Agent routes; per-part defaults are rechecked after Batch synchronization. Native line preview intentionally writes only transient lines, with governed expense writes blocked in its regression and edit/Cancel verified across separate HTTP requests.",
+      "reviewed_digests": {
+        "rpc:hr.expense.configure_draft_expense_family": "5fd83fbf84893d16b2c8bd152687c35afda7e5f5e524b80670d651c09b0f7d73",
+        "rpc:hr.expense.split.wizard.action_split_expense": "70916a17895bb12f39eccb75623674ff8ad939d3ac5a641b54669446284f42e9",
+        "rpc:hr.expense.split_draft_expense": "c0c67976d1dcfe00287babc2502d9b05eee898241fda41979f3b4359543e1eda",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_family.py:hr.expense.split_draft_expense:orm_create:1": "ccd921d105fef9634f821e3e5e13d2ab8d52a49c5245609c8f718f5a7a6557fd",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_family.py:hr.expense.split_draft_expense:orm_create:2": "d7c334b3571f9805f7d075fc7d9a5de96c5f63aae7af153c17fdde7369b7a816",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_split.py:hr.expense.split.wizard._apply_native_split_with_context:orm_write:1": "c86d03fba121f34e2c64c6b4ffb97cd66dbc6008f70eb832f2f0ec4ba7aca2be",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_split.py:hr.expense.split.wizard.action_split_expense:message_send:1": "6cf16f5c2a8826f45f5c0f0bb8f90e5bd01f67969eb99544d2de78feb9efa74e",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_split.py:hr.expense.split.wizard.action_split_expense:orm_write:1": "7cc71b0755da6e4edbb73498ebecbfe876c58db81e9b2b907d05e1e334b1bad1"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:hr.expense.update_activities_and_mails"
+      ],
+      "classification": "operational",
+      "consequence": "Maintain native expense approval activities and notifications as part of an authorized expense lifecycle operation.",
+      "domain": "expenses",
+      "evidence_id": "agent-expense-approval-cleanup",
+      "id": "operational.expenses.agent_approval_cleanup",
+      "rationale": "The Agent must have native business write access to the selected expenses before collaboration scope is granted to the fixed native implementation. General activity unlink remains denied.",
+      "reviewed_digests": {
+        "rpc:hr.expense.update_activities_and_mails": "547a8ca86fb66e57a7cef2824b9d42af90ba49d8182c0cc4145a8c8bbe903af3"
       }
     },
     {
@@ -1398,6 +1599,23 @@
     },
     {
       "action_keys": [
+        "rpc:project.task.action_move_kanban_cell",
+        "sink:usl_project:custom-addons/usl_project/models/task_swimlane.py:project.task.action_move_kanban_cell:orm_write:1"
+      ],
+      "classification": "operational",
+      "consequence": "Moves the displayed task memberships through one native task write, with native mail tracking, assignment and attribution effects.",
+      "domain": "projects",
+      "evidence_id": "task-swimlanes-20261014",
+      "id": "operational.project.task_swimlanes",
+      "overrides": {},
+      "rationale": "The fixed workflow checks caller read/write access, locks and verifies current source memberships, validates both destinations and preserves unrelated memberships. Native task write governs companies, constraints and audit. It cannot grant authority, erase evidence or execute unreviewed code; reversal is a later attributable task edit, not a claim of bitwise rollback.",
+      "reviewed_digests": {
+        "rpc:project.task.action_move_kanban_cell": "c2575ea4cace25865314d7df19b2494c43a683106c77995a7b7cb65d8e27554e",
+        "sink:usl_project:custom-addons/usl_project/models/task_swimlane.py:project.task.action_move_kanban_cell:orm_write:1": "34dd55e9158f2060bc13eab38473887fc494c9aa476d761e799b0503175d1154"
+      }
+    },
+    {
+      "action_keys": [
         "server_action:project.action_server_convert_project_to_template",
         "server_action:project.action_server_convert_to_subtask",
         "server_action:project.action_server_convert_to_template",
@@ -1423,6 +1641,22 @@
         "server_action:project.ir_cron_rating_project_ir_actions_server": "1bf6a34ea6e8fcd7443c1644cd485001644bae0bab00ad72d216a0c7518aac8d",
         "server_action:sale_project.model_sale_order_action_create_project": "d57eda033c77c069c4b41d09b61b738a2830cdd4440f1d16dd4181fb19bc7eaf",
         "server_action:usl_project.ir_cron_usl_reactivate_later_tasks_ir_actions_server": "875cd1258b28349ef70c4279f83ec97cb7206f9e69fc34e1af32bea3b81c694c"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:project.task.mcp_update_activity",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:project.task.mcp_update_activity:orm_write:1"
+      ],
+      "classification": "operational",
+      "consequence": "Correct one accessible task activity without changing its identity or completion state.",
+      "domain": "projects",
+      "evidence_id": "agent-task-activity-edit",
+      "id": "operational.projects.agent_activity_update",
+      "rationale": "Task write access and activity ownership are checked before updating only the deadline, summary, note and assignee.",
+      "reviewed_digests": {
+        "rpc:project.task.mcp_update_activity": "618d451891f6496de1e68e6191de2634c28986b9851780483722b839c8c07e9f",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:project.task.mcp_update_activity:orm_write:1": "907e56efc327e0d9b65d1cc0a1bb81ee1e6751d42cb5d6e9ee92ef21d9aac625"
       }
     },
     {
@@ -3734,6 +3968,26 @@
         "rpc:usl.document.letter.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
         "rpc:usl.document.renderer.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:usl.document.template.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d"
+      }
+    },
+    {
+      "action_keys": [
+        "route:jsonrpc:POST:/mail/attachment/delete"
+      ],
+      "classification": "protected",
+      "consequence": "Can permanently delete a local file attached to a persistent business record; ordinary unattached/transient cleanup and durable archive-copy removal retain their existing state-sensitive native paths.",
+      "domain": "documents_and_communications",
+      "evidence_id": "documents-local-attachment-removal-20261014",
+      "id": "protected.documents_and_communications.local_attachment_removal",
+      "overrides": {
+        "route:jsonrpc:POST:/mail/attachment/delete": {
+          "action_name": "permanently delete attachment evidence from a business record",
+          "guard_key": "guard:evidence.attachment.delete"
+        }
+      },
+      "rationale": "Repair the inherited read_only classification of this existing mutating route. Exact native ownership precedes current archive facts. Local governed evidence uses the unchanged central guard before carrying-message writes and again at unlink, preserving caller UID, Agent denial and immutable authorized-human audit. No global role requirement is added to ordinary transient cleanup and no existing tracked archive workflow is bypassed.",
+      "reviewed_digests": {
+        "route:jsonrpc:POST:/mail/attachment/delete": "0ffb674c28e75a5f603c1db2d25a27306da921b4b6fac0a93bdb4dba0f1dcb7c"
       }
     },
     {
@@ -18377,6 +18631,20 @@
     },
     {
       "action_keys": [
+        "rpc:account.move.get_draft_post_match_preview"
+      ],
+      "classification": "read_only",
+      "consequence": "Reads authorized draft-bill eligibility, posting date and current confirmation facts without changing persistent state.",
+      "domain": "accounting",
+      "evidence_id": "draft-post-match-20261014",
+      "id": "read_only.accounting.draft_post_match_20261014",
+      "rationale": "Native write and posting rights are checked for the proposed workflow; the native protected field getter computes suggestions without invoking persistent bill write. No number, reconciliation, bank mutation or external effect occurs.",
+      "reviewed_digests": {
+        "rpc:account.move.get_draft_post_match_preview": "0e4e693df9714cb0af2cdc8964c10f289533bca0a7f01e37d1435a25c63a643e"
+      }
+    },
+    {
+      "action_keys": [
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/hygiene.py:rebuild.account.hygiene.issue._structured_evidence_move_ids:sudo:1"
       ],
       "classification": "read_only",
@@ -18577,6 +18845,106 @@
         "rpc:account.edi.cii.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
         "rpc:account.edi.cii.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:account.edi.cii.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:account.move.action_open_vendor_bill_merge_originals",
+        "rpc:account.move.action_open_vendor_bill_merge_target",
+        "rpc:usl.vendor.bill.merge.wizard.action_archive",
+        "rpc:usl.vendor.bill.merge.wizard.action_unarchive",
+        "rpc:usl.vendor.bill.merge.wizard.check_field_access",
+        "rpc:usl.vendor.bill.merge.wizard.copy_translations",
+        "rpc:usl.vendor.bill.merge.wizard.default_get",
+        "rpc:usl.vendor.bill.merge.wizard.export_data",
+        "rpc:usl.vendor.bill.merge.wizard.fields_get",
+        "rpc:usl.vendor.bill.merge.wizard.formatted_read_group",
+        "rpc:usl.vendor.bill.merge.wizard.get_base_url",
+        "rpc:usl.vendor.bill.merge.wizard.get_empty_list_help",
+        "rpc:usl.vendor.bill.merge.wizard.get_external_id",
+        "rpc:usl.vendor.bill.merge.wizard.get_field_translations",
+        "rpc:usl.vendor.bill.merge.wizard.get_formview_action",
+        "rpc:usl.vendor.bill.merge.wizard.get_formview_id",
+        "rpc:usl.vendor.bill.merge.wizard.get_import_templates",
+        "rpc:usl.vendor.bill.merge.wizard.get_metadata",
+        "rpc:usl.vendor.bill.merge.wizard.get_property_definition",
+        "rpc:usl.vendor.bill.merge.wizard.has_access",
+        "rpc:usl.vendor.bill.merge.wizard.has_field_access",
+        "rpc:usl.vendor.bill.merge.wizard.hierarchy_read",
+        "rpc:usl.vendor.bill.merge.wizard.mail_allowed_qweb_expressions",
+        "rpc:usl.vendor.bill.merge.wizard.mail_get_partner_fields",
+        "rpc:usl.vendor.bill.merge.wizard.name_search",
+        "rpc:usl.vendor.bill.merge.wizard.read",
+        "rpc:usl.vendor.bill.merge.wizard.read_progress_bar",
+        "rpc:usl.vendor.bill.merge.wizard.search",
+        "rpc:usl.vendor.bill.merge.wizard.search_count",
+        "rpc:usl.vendor.bill.merge.wizard.search_panel_select_multi_range",
+        "rpc:usl.vendor.bill.merge.wizard.search_panel_select_range",
+        "rpc:usl.vendor.bill.merge.wizard.search_read",
+        "rpc:usl.vendor.bill.merge.wizard.view_header_get",
+        "rpc:usl.vendor.bill.merge.wizard.web_name_search",
+        "rpc:usl.vendor.bill.merge.wizard.web_read",
+        "ui:usl_accounting.vendor_bill_merge_form:button:object:action_open_vendor_bill_merge_originals:1",
+        "ui:usl_accounting.vendor_bill_merge_form:button:object:action_open_vendor_bill_merge_target:1"
+      ],
+      "classification": "read_only",
+      "consequence": "Reads authorized originals, bill navigation or native transient metadata without a persistent financial change.",
+      "domain": "accounting",
+      "evidence_id": "vendor-bill-merge-20261014",
+      "id": "read_only.accounting.vendor_bill_merge_navigation",
+      "rationale": "Exact native wizard read/navigation methods and existing accessible bill links; company/creator-owner rule filters transient reads. Archive helpers have no active field on this transient. Readonly Agent RPC exposure remains separately explicit, never inferred from classification.",
+      "reviewed_digests": {
+        "rpc:account.move.action_open_vendor_bill_merge_originals": "69a0aef45f4085c2dbd292690326e4bc9b6a3b8a4e0b876b90d63b52f3030c90",
+        "rpc:account.move.action_open_vendor_bill_merge_target": "042229a7ebffc703500f0cec2f43121474f830cca260d93466a68af7403ddd58",
+        "rpc:usl.vendor.bill.merge.wizard.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+        "rpc:usl.vendor.bill.merge.wizard.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+        "rpc:usl.vendor.bill.merge.wizard.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+        "rpc:usl.vendor.bill.merge.wizard.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+        "rpc:usl.vendor.bill.merge.wizard.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+        "rpc:usl.vendor.bill.merge.wizard.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+        "rpc:usl.vendor.bill.merge.wizard.fields_get": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
+        "rpc:usl.vendor.bill.merge.wizard.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+        "rpc:usl.vendor.bill.merge.wizard.get_base_url": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+        "rpc:usl.vendor.bill.merge.wizard.get_empty_list_help": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+        "rpc:usl.vendor.bill.merge.wizard.get_external_id": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+        "rpc:usl.vendor.bill.merge.wizard.get_field_translations": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+        "rpc:usl.vendor.bill.merge.wizard.get_formview_action": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+        "rpc:usl.vendor.bill.merge.wizard.get_formview_id": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+        "rpc:usl.vendor.bill.merge.wizard.get_import_templates": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+        "rpc:usl.vendor.bill.merge.wizard.get_metadata": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+        "rpc:usl.vendor.bill.merge.wizard.get_property_definition": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+        "rpc:usl.vendor.bill.merge.wizard.has_access": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+        "rpc:usl.vendor.bill.merge.wizard.has_field_access": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+        "rpc:usl.vendor.bill.merge.wizard.hierarchy_read": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+        "rpc:usl.vendor.bill.merge.wizard.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+        "rpc:usl.vendor.bill.merge.wizard.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+        "rpc:usl.vendor.bill.merge.wizard.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+        "rpc:usl.vendor.bill.merge.wizard.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+        "rpc:usl.vendor.bill.merge.wizard.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+        "rpc:usl.vendor.bill.merge.wizard.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+        "rpc:usl.vendor.bill.merge.wizard.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+        "rpc:usl.vendor.bill.merge.wizard.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+        "rpc:usl.vendor.bill.merge.wizard.search_panel_select_range": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+        "rpc:usl.vendor.bill.merge.wizard.search_read": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+        "rpc:usl.vendor.bill.merge.wizard.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+        "rpc:usl.vendor.bill.merge.wizard.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+        "rpc:usl.vendor.bill.merge.wizard.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+        "ui:usl_accounting.vendor_bill_merge_form:button:object:action_open_vendor_bill_merge_originals:1": "70fe7de8366d2452a32727ec388114fd0ce8208c3415a2fea6ae602c1d19f688",
+        "ui:usl_accounting.vendor_bill_merge_form:button:object:action_open_vendor_bill_merge_target:1": "d038ac07b68588a9bf2887a73881d8075c62038d0dfbe0694ccd2ceb12da606c"
+      }
+    },
+    {
+      "action_keys": [
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._immediate_settlement_protected_moves:sudo:1"
+      ],
+      "classification": "read_only",
+      "consequence": "Inspects only whether currently readable selected moves have a protected settlement.",
+      "domain": "accounting",
+      "evidence_id": "vendor-bill-merge-20261014",
+      "id": "read_only.accounting.vendor_bill_merge_settlement-inspection",
+      "rationale": "Read-only privileged settlement query is bounded to already authorized source move IDs and their companies; returns only the original move subset, no settlement contents or identity, and grants no audit/model authority. Literal removal reproduces ordinary Billing ACL failure while native protected settlement denial remains intact.",
+      "reviewed_digests": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.move._immediate_settlement_protected_moves:sudo:1": "775cf8142b01798c12acb2d2c63afd57f490d3d57fb916bd3ab8615e82e430b8"
       }
     },
     {
@@ -29498,7 +29866,6 @@
         "route:jsonrpc:POST:/html_editor/attachment/add_data",
         "route:jsonrpc:POST:/html_editor/attachment/add_url",
         "route:jsonrpc:POST:/mail/action",
-        "route:jsonrpc:POST:/mail/attachment/delete",
         "route:jsonrpc:POST:/mail/data",
         "route:jsonrpc:POST:/mail/guest/update_name",
         "route:jsonrpc:POST:/mail/link_preview",
@@ -33346,7 +33713,6 @@
         "route:jsonrpc:POST:/html_editor/attachment/add_data": "c4ea743c84fad14ec0d7911dc061578c22bd75b61328bc2a837d575b7e1b3113",
         "route:jsonrpc:POST:/html_editor/attachment/add_url": "8d09d0f10a49935a60cd08892abe80e8e9d1860f5a5fa8f58e975cc2636d815f",
         "route:jsonrpc:POST:/mail/action": "7ce57a9f17915322fd503906f1df4570bdc349cbb1168300b5ddeeeb09d88ee7",
-        "route:jsonrpc:POST:/mail/attachment/delete": "05b2fb8e165e50dba1b29afaecf8c11acab872cb3e9a81bec4b7472b651dc611",
         "route:jsonrpc:POST:/mail/data": "8922325747836c4023aca9f459876803d708dbfbd39acf2e5a64d2dd4911dccb",
         "route:jsonrpc:POST:/mail/guest/update_name": "dc7e56256060f832be2b37a6966d510d9b0db38cabf9f3a795c1c4091432f1f0",
         "route:jsonrpc:POST:/mail/link_preview": "5b4edc361991ee154343322d024ea154171a57f6797b013c69baf1f1526757d7",
@@ -36642,7 +37008,7 @@
         "rpc:usl.document.version.action_restore_as_current": "0c629bdb6b052f0a2dd90e726c0a777b06bf0f75f3b71cce5cd46f918c1dd986",
         "rpc:usl.document.version.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
         "rpc:usl.document.version.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
-        "rpc:usl.document.workspace_data": "9d672158f912c8e845b04c6df13f226d469b7d7fe8ce85ad17dc437877598b4c",
+        "rpc:usl.document.workspace_data": "963cb38ba18fe21d7c506b44c9b77bfe58254cb72317d2b7a05ea8014f6a2968",
         "rpc:usl.expense.bank.match.candidate.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
         "rpc:usl.expense.bank.match.candidate.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
         "rpc:usl.expense.bank.match.wizard.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
@@ -39323,7 +39689,7 @@
         "rpc:hr.expense.split.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:hr.expense.split.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
         "rpc:hr.expense.split.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
-        "rpc:hr.expense.split.default_get": "277c170b223922e2f99b23d6347c1d1c78ed671443e793aedaa4b4dd279b615d",
+        "rpc:hr.expense.split.default_get": "166b43b95c0d32e6697a69f3a54b06efdd0413c8e57ee742309ed4a28d8414c4",
         "rpc:hr.expense.split.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
         "rpc:hr.expense.split.fields_get": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
         "rpc:hr.expense.split.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
@@ -41379,6 +41745,21 @@
         "ui:usl_platform_billing.action_platform_billing_payouts": "d6e8c9cd0bb65e2623992c1ff8859a1b66e7c2cb62138ff0cba3c66b97fcd884",
         "ui:usl_platform_billing.action_platform_billing_platforms": "d449494dbfd0bdd06fc91afe008ff4743cf9096ae9e1d97653d38148fe596154",
         "ui:usl_platform_billing.action_platform_billing_sessions": "402658aed8a8d209a1e903366ff51d088c798f7b6c2aa914b5d7934bc5fcb4e8"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:project.task.get_kanban_property_definition"
+      ],
+      "classification": "read_only",
+      "consequence": "Returns only the requested task property schema; it performs no business mutation or external call.",
+      "domain": "projects",
+      "evidence_id": "task-swimlanes-property-schema-20261014",
+      "id": "read_only.project.task_swimlane_schema",
+      "overrides": {},
+      "rationale": "Current native task read and field authority, record rules and selected companies derive readable task representatives. The native Properties accessor reads only their definition metadata. No private parent name, task value, elevated owner enumeration, security change or external sink is returned or reachable.",
+      "reviewed_digests": {
+        "rpc:project.task.get_kanban_property_definition": "13c15c3bd85ec6736ed16d52c683c3f2f39e599e513b58f5515f6b9fa59c68a1"
       }
     },
     {
@@ -67223,7 +67604,7 @@
         "rpc:usl.home.service.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:usl.home.service.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
         "rpc:usl.home.service.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "ui:usl_home.action_usl_home": "e633b7b8c0f68298548cd7238c7d392555f835d1b4e15a67250b485ee8f112ab"
+        "ui:usl_home.action_usl_home": "5291a73f9661860d4cd0689b8d4847fed56888912507d49ce984aa04e1b2b229"
       }
     },
     {
@@ -67253,6 +67634,25 @@
         "route:http:ANY:/website/translations": "27677b9889ebfc4c363bfbd477babb80a3c8e9d3db4923da92da5cffe36c943e",
         "rpc:res.partner.check_vat_gr": "48ab9dae24694ebd08fd756b2af5198bec5d7de59f93eee1ea209bc2e708cf29",
         "rpc:web_tour.tour.get_tour_json_by_name": "b7b110cac242c213d5c3f010ca9a5c0f982fc04f80756819c182f939acda84a5"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:usl.home.service.get_search_result_action",
+        "rpc:usl.home.service.search_documents",
+        "rpc:usl.home.service.search_records"
+      ],
+      "classification": "read_only",
+      "consequence": "Returns authorized current business text, excerpts and native record destinations without mutation.",
+      "domain": "work_management",
+      "evidence_id": "live-content-search-20261014",
+      "id": "read_only.work_management.live_content_search",
+      "overrides": {},
+      "rationale": "Internal and selected-company validation precedes native caller-scoped reads; native Properties metadata and public identities retain their existing authority. Document reads reuse the governed facade and native form access is rechecked.",
+      "reviewed_digests": {
+        "rpc:usl.home.service.get_search_result_action": "07f5dddae4801067f010ac1144589769c2894835b16d336acbd02cca17d3ea46",
+        "rpc:usl.home.service.search_documents": "a49109300ed02ed6c7f4fc6fb03b88a6af4f2960b76a2ba8e3b72b86e8401797",
+        "rpc:usl.home.service.search_records": "f20ff609b54755e2044f2c2a932ca978b424396aabcad5bf2cbd1c2e016b6ece"
       }
     },
     {
@@ -74988,6 +75388,8 @@
           "reversal_action": "rpc:account.move.write"
         },
         "rpc:account.move.js_assign_outstanding_line": {
+          "evidence_id": "draft-post-match-20261014",
+          "rationale": "The optional reviewed-match fingerprint adds native authority and under-lock semantic checks only for a Post and match continuation; ordinary native Add and its reviewed reversal remain unchanged.",
           "reversal_action": "rpc:account.move.write"
         },
         "rpc:account.move.js_settle_outstanding_line": {
@@ -81593,6 +81995,8 @@
           "reversal_action": "rpc:validate.account.move.write"
         },
         "rpc:validate.account.move.validate_move": {
+          "evidence_id": "draft-post-match-20261014",
+          "rationale": "Native validation runs first with its existing authority, scheduling and hashing behavior. Only this workflow’s exact singleton bill context receives a UI-only validation marker and any optional native setup action; ordinary wizard results and native reversal remain unchanged. Cancel/X invokes no validation or continuation.",
           "reversal_action": "rpc:validate.account.move.write"
         },
         "rpc:validate.account.move.web_override_translations": {
@@ -83043,18 +83447,18 @@
         "rpc:account.move.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:account.move.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:account.move.button_cancel": "2d7827e0925caf7aba7b47b196b563823c9dccd4be6bd55199950274a707f9d4",
-        "rpc:account.move.button_draft": "6ae5bd178aae3f7164ce9556c25fafd2e821f927dce611fa43bcb9371d33ac43",
+        "rpc:account.move.button_draft": "47067b946af21656876d89cbd66a74c9e436246dea0f1dd3f923b73fea3f27fa",
         "rpc:account.move.button_hash": "107cfff450641178675c3b338e39d666a946e76d91d95f4a79277da7eeb2fc08",
         "rpc:account.move.copy": "dbc746d23629ed204a9d5642329570e13f68c19dcb50029e0b26d398d1b8d62c",
         "rpc:account.move.copy_data": "2e2d79d2c1b74dad6afeba9307727c2a30b4465ec5ca21a6f6254f27b0586458",
-        "rpc:account.move.create": "d9fe48a1dd8100d430d6fac7154aa3e02706a20e9e819b45a0f5aa5109a9c61c",
+        "rpc:account.move.create": "2a96197e7ff7e3d0ede7b3d1552536b3766b3bee600bbc2ec13ed63d63fbb5cd",
         "rpc:account.move.default_get": "3eec617604ba4ae0f9e179d565b840c4f293e7e6372ddf37cf1f360f3cd1a347",
         "rpc:account.move.find_or_create_record": "5ee269501fba1472aad53bc7e6fd26dec8588ea5bbadc8fac14e1c9b5a7efe60",
         "rpc:account.move.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:account.move.get_portal_url": "cf615202047785444a096d896d386448012f5516ba93b1a72ef702adfcdb8506",
         "rpc:account.move.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:account.move.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
-        "rpc:account.move.js_assign_outstanding_line": "9df2389d87516fbff3683a84ea2512e8384a3a68d7495008dc27640ce79e581a",
+        "rpc:account.move.js_assign_outstanding_line": "da62728f1f59493ae7dc077cdd0ba715bdcb70dd29faf56fd076dadaf577a516",
         "rpc:account.move.js_settle_outstanding_line": "7483f11b03c088bc5e23d689190845c73692129bc91fb79b4b8345785ac3a75f",
         "rpc:account.move.js_use_payment_rate_outstanding_line": "a82125efa1c78d4946be715d3d79f8cd1a51bd5c9816b1e463b799d46536701a",
         "rpc:account.move.line.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
@@ -83184,7 +83588,7 @@
         "rpc:account.move.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:account.move.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:account.move.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:account.move.write": "2a163f3353679a514d854bf78fee7db76eb5b6b53b57fe21a748e9e952e65a59",
+        "rpc:account.move.write": "c97ef1b7621ef7583a226d6b13063f8b6b7186f143f6fc3c91cc1547b8a65381",
         "rpc:account.partial.reconcile.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:account.partial.reconcile.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
         "rpc:account.partial.reconcile.create": "148a480acad756b8a73ad46915a9d1c1db59d7b83003e9e13a4b69ee011944da",
@@ -84334,7 +84738,7 @@
         "rpc:rebuild.account.declaration.action_mark_paid_or_refunded": "9a805235f5a8403302caeeae2d63aa9a334e13c39ac72f2137da3486141fce17",
         "rpc:rebuild.account.declaration.action_mark_ready_to_file": "0f448c846e0314cf1d537c83a2334395a086b4f93874cf55471aa7354b42dc5a",
         "rpc:rebuild.account.declaration.action_open_documents_workspace": "a77c4b201439ce301a99985661cf9f8dbe058829d55d16ea62e0b5fcaaecbaad",
-        "rpc:rebuild.account.declaration.action_refresh_preparation": "338634fbc91f70f38683e9165d8b484c960586b61f64a6aee6be666f85407b42",
+        "rpc:rebuild.account.declaration.action_refresh_preparation": "3d7d1cda4913293b8d9c0bc72aa8ce16e568a1b13705cad614fffb2df014bc25",
         "rpc:rebuild.account.declaration.action_request_accountant_review": "850cea95c8e2072ebdb0f5ff14e908d736ecb0681f66878caf944c05491f8a9d",
         "rpc:rebuild.account.declaration.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:rebuild.account.declaration.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
@@ -85203,7 +85607,7 @@
         "rpc:validate.account.move.onchange_batch": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
         "rpc:validate.account.move.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:validate.account.move.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
-        "rpc:validate.account.move.validate_move": "9f25b572a68f815afcacaee1e117dad88d3817e67bcdce331f2a6ee4b4810756",
+        "rpc:validate.account.move.validate_move": "849851ff1397358fa9203c234d415e8c3d9df0f2c921505ebf7b926c6a7b5e73",
         "rpc:validate.account.move.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
         "rpc:validate.account.move.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
         "rpc:validate.account.move.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
@@ -98656,7 +99060,6 @@
         "rpc:usl.document.smart.view.synchronize_archive_views",
         "rpc:usl.document.sync_from_paperless",
         "rpc:usl.document.unlink_from_record",
-        "rpc:usl.document.update_archive_metadata",
         "rpc:usl.document.upload_from_odoo",
         "rpc:usl.document.upload_new_version",
         "rpc:usl.document.user.state.copy",
@@ -104334,9 +104737,6 @@
         "rpc:usl.document.unlink_from_record": {
           "reversal_action": "rpc:usl.document.write"
         },
-        "rpc:usl.document.update_archive_metadata": {
-          "reversal_action": "rpc:usl.document.write"
-        },
         "rpc:usl.document.upload_from_odoo": {
           "reversal_action": "rpc:usl.document.write"
         },
@@ -107036,7 +107436,6 @@
         "rpc:usl.document.smart.view.synchronize_archive_views": "0fd6b0b3f5b9c1a3242fc5c47d34f03ad6a93512649c1fe0792db72b0ae2c253",
         "rpc:usl.document.sync_from_paperless": "9384a9ad1efcfbcf9d829842f940ec6b3de90245f546a46d5c67120081f96560",
         "rpc:usl.document.unlink_from_record": "a2d5b1a5b93bd2f6d1adff8e73bb0667fcefe65162a2daf754f927bb4ed7d4fc",
-        "rpc:usl.document.update_archive_metadata": "954a8dc7725f908b0d8e948ddc0c361000b46bc90e2d13a5fd975c7879ddfadf",
         "rpc:usl.document.upload_from_odoo": "86212354adaccf41c389c8a52ce6bc9d25a3fcf2b929cae659012e61b0b8d6de",
         "rpc:usl.document.upload_new_version": "ca2a7068b69a2b9eaced44bc71620f9d9c7408982c7598defb5c3124fa96c91d",
         "rpc:usl.document.user.state.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
@@ -108200,7 +108599,6 @@
         "rpc:hr.expense.split.web_save",
         "rpc:hr.expense.split.web_save_multi",
         "rpc:hr.expense.split.web_search_read",
-        "rpc:hr.expense.split.wizard.action_split_expense",
         "rpc:hr.expense.split.wizard.copy",
         "rpc:hr.expense.split.wizard.copy_data",
         "rpc:hr.expense.split.wizard.formatted_read_grouping_sets",
@@ -109323,9 +109721,6 @@
         },
         "rpc:hr.expense.split.web_search_read": {
           "reversal_action": "rpc:hr.expense.split.write"
-        },
-        "rpc:hr.expense.split.wizard.action_split_expense": {
-          "reversal_action": "rpc:hr.expense.split.wizard.write"
         },
         "rpc:hr.expense.split.wizard.copy": {
           "reversal_action": "rpc:hr.expense.split.wizard.unlink"
@@ -110677,7 +111072,6 @@
         "rpc:hr.expense.split.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:hr.expense.split.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:hr.expense.split.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:hr.expense.split.wizard.action_split_expense": "16b2e889efe1f9257d29db056618cf51a0f7f0905d5f1a1abc236be95b832606",
         "rpc:hr.expense.split.wizard.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:hr.expense.split.wizard.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
         "rpc:hr.expense.split.wizard.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
@@ -112812,6 +113206,40 @@
         "rpc:task.share.wizard.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:task.share.wizard.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:task.share.wizard.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:project.task.action_archive",
+        "rpc:project.task.action_unarchive",
+        "rpc:project.project.action_archive",
+        "rpc:project.project.action_unarchive"
+      ],
+      "classification": "recoverable",
+      "consequence": "Hide or restore accessible projects and tasks while retaining their records and history.",
+      "domain": "projects",
+      "evidence_id": "agent-project-archive",
+      "id": "recoverable.projects.agent_archive",
+      "overrides": {
+        "rpc:project.project.action_archive": {
+          "reversal_action": "rpc:project.project.action_unarchive"
+        },
+        "rpc:project.project.action_unarchive": {
+          "reversal_action": "rpc:project.project.action_archive"
+        },
+        "rpc:project.task.action_archive": {
+          "reversal_action": "rpc:project.task.action_unarchive"
+        },
+        "rpc:project.task.action_unarchive": {
+          "reversal_action": "rpc:project.task.action_archive"
+        }
+      },
+      "rationale": "Native archive and restore require business write access and preserve chatter, attachments and record identity.",
+      "reviewed_digests": {
+        "rpc:project.project.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+        "rpc:project.project.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+        "rpc:project.task.action_archive": "5d92b01ba74813261254dad7543ab8955e5327f7cca0dbd26e707d2a4dc12b3e",
+        "rpc:project.task.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b"
       }
     },
     {
@@ -149374,6 +149802,7 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_rules.py:rebuild.account.declaration.rule.create:orm_create:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_rules.py:rebuild.account.declaration.rule.write:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._retire_superseded_instances:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._retire_superseded_instances:orm_write:2",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._upsert_instance:orm_create:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._upsert_instance:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration.sync_for_company:orm_write:1",
@@ -154618,6 +155047,9 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._retire_superseded_instances:orm_write:1": {
           "reachability_proof": "This implementation sink is reachable only through separately reviewed parent action(s): a private migration-safe helper."
         },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._retire_superseded_instances:orm_write:2": {
+          "reachability_proof": "The private schedule reconciliation helper is called through existing reviewed company synchronization or lifecycle paths, never as an ordinary RPC entry. It retires only unreviewed stale declarations; recorded reviewer decisions are retained with a current schedule warning."
+        },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._upsert_instance:orm_create:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -158026,8 +158458,8 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.action_mark_internal_ready:orm_write:1": "9352166c1896d253b6d11d1ac74563f89d8d3f64a84cf8b7f41cc28725ffa819",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.action_mark_paid_or_refunded:orm_write:1": "6620237964e5dd70d27ac948010277f1f67687d1f1ca6d554666722f45fd31e7",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.action_mark_ready_to_file:orm_write:1": "b2945bdbaa826bc3d512b677b86fe44c45e548cf44b0494d088959d0fd0c5f1a",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.action_refresh_preparation:orm_write:1": "a83df9fc29bac411fbcfddd82d4a4afe82021856611a52c95da18f82dd06a343",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.action_refresh_preparation:orm_write:2": "50f15894714758a6f6c483fa1268990e462855145f1c29e36a059858ff6c2f05",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.action_refresh_preparation:orm_write:1": "4e9e5ddf4660dbe610e880f7c5efe3739abfa55a0e395b64e14df8ddaaffc683",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.action_refresh_preparation:orm_write:2": "76ff9ca62df7ca7bfc19fc254597c5ed8b4920d3492dbb6055d4ba0070e6db1f",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.action_request_accountant_review:orm_write:1": "621ebb76e2fa08dcb94a9abc979646a8c2f2f11409f807c90fa4f64d02bd5a82",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.field._upsert:orm_create:1": "04a716dcdd332763225787b576f2296e422490dcc0c3e75b50ceab81eb2e3b90",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.field._upsert:orm_write:1": "b4d6e8116242d1c58bac33deb83fc5d24af1686b75c36e841ea6b2f843ed6b15",
@@ -158035,7 +158467,8 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_rules.py:rebuild.account.declaration.rule._ensure_governance_metadata:orm_write:2": "0192b51b7600fe8c955e009c6793fc6dbb0ebf66bb78486530922656f59efb2e",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_rules.py:rebuild.account.declaration.rule.create:orm_create:1": "224b3e177cbdc6ace5d8efd8be5040e3e33135095fb60231ab84d837e3533073",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_rules.py:rebuild.account.declaration.rule.write:orm_write:1": "daadf87e63209932dad7873350233492a41729131634f3e1a480270e044c3bd6",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._retire_superseded_instances:orm_write:1": "6ba3420205263e23ea7d8c1b836beb9f66b9b8299c73a686f293d375c35df312",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._retire_superseded_instances:orm_write:1": "7cadd3a3403e4ee66e4802633f67a22942ad5b38747504448f354c5927d90368",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._retire_superseded_instances:orm_write:2": "724cc3fd6cfb27be0a4e9513122de90a607146bb7bf335c5195bae0d64b98ee9",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._upsert_instance:orm_create:1": "bec2e31e7782faf6fe1dfee793c00f2de4cfba30ea828f2a6e618657f1c49318",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._upsert_instance:orm_write:1": "7d462dfef9560f5f92c6a9f2eb22d98997426c61fb712126c1c8ff8442776aa8",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration.sync_for_company:orm_write:1": "ef5aa996e4285846f62103ff89463aafafc47bd5765f49ba3fc6c93199b3d8fa",
@@ -158538,11 +158971,11 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/multi_company_setup.py:res.company._usl_ensure_operational_accounting_journals:sudo:3": "b563ead711712b649d7e287fc8a4bb5829a998bfb75c5dd10786459a890816ce",
         "sink:usl_accounting:custom-addons/usl_accounting/models/multi_company_setup.py:res.company._usl_ensure_operational_accounting_journals:sudo:4": "f1152fb5922d8b107fe0d07cfee713c245564f7b6e34549c383575845a7fa070",
         "sink:usl_accounting:custom-addons/usl_accounting/models/multi_company_setup.py:res.company._usl_ensure_operational_accounting_journals:sudo:5": "febcfae8512b6300c158523a60106a76be5ae5126e88e9865dcd6fb523c9cc70",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/payment_suggestion.py:account.move.js_assign_outstanding_line:message_send:1": "a1be0b5938dd0507aa7f1afa7d37262fe5cf13419c6b0ec1b16d8295db40e2e2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/payment_suggestion.py:account.move.js_assign_outstanding_line:message_send:2": "b6cc97d107a7477b3dfefe05ddfd5a395df0186220e174e62af51a12b0dd6cd1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/payment_suggestion.py:account.move.js_assign_outstanding_line:orm_write:1": "9b3802e07321308cc3d7ff3cf743317bb8c2a3455dd9ba899a181e17aa466a71",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/payment_suggestion.py:account.move.js_assign_outstanding_line:orm_write:2": "a0df06c45a89ea45eb9bccd5314bc475947dee8c13158a087128f9638dc83aa8",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/payment_suggestion.py:account.move.js_assign_outstanding_line:orm_write:3": "3bcef537769d5b068fac1ebc13791da511e78a0c67a02eaebd4a8301bc15136b",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/payment_suggestion.py:account.move.js_assign_outstanding_line:message_send:1": "b01cb627ddf9c173f5d16db12c0c646d11eb9c706e85f6ec59cbce44865d9e99",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/payment_suggestion.py:account.move.js_assign_outstanding_line:message_send:2": "cdfabfcbfeec2835af1dfb9660e6fb87b1fded9babf400eda23a04fea13932dc",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/payment_suggestion.py:account.move.js_assign_outstanding_line:orm_write:1": "d51a6e14bc25ff33a6a419b9c16dcbcd792753c80c8e51f247f212f6e2da1e03",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/payment_suggestion.py:account.move.js_assign_outstanding_line:orm_write:2": "9a5c786125dcb7ffcee1e899ed3448b84e5ce904bda9eb0e99755300198718de",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/payment_suggestion.py:account.move.js_assign_outstanding_line:orm_write:3": "f8cc000379b63df26b8d17ea1a3e4ee0adef4f011be2f5fed1da39f0875ce026",
         "sink:usl_accounting:custom-addons/usl_accounting/models/readonly_evidence.py:ir.attachment.create:orm_create:1": "00ebf51e358ead39e994bdd4c147eefa022a1fe53c59894e3928e78cde7fe842",
         "sink:usl_accounting:custom-addons/usl_accounting/models/readonly_evidence.py:ir.attachment.unlink:orm_unlink:1": "a599e9828cd71aa239ea5429ea0b50e99fe8800b024e57a21fa38580dd4224d4",
         "sink:usl_accounting:custom-addons/usl_accounting/models/readonly_evidence.py:ir.attachment.write:orm_write:1": "653a331d2087bb25577194f0fa6ef43c553307a6b6058fd0b185291687b4bbfd",
@@ -169514,7 +169947,11 @@
         "sink:stock_sms:addons/stock_sms/models/stock_picking.py:stock.picking._send_confirmation_email:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:2",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:3",
         "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:2",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:3",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:4",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController._document:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController.materialize:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:1",
@@ -169666,6 +170103,8 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:3",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.create:orm_create:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.write:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_batch.py:usl.document._batch_refresh_archive_metadata:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_batch.py:usl.document._batch_refresh_archive_metadata:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake._intake_sender:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake._intake_sender:sudo:2",
         "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake.message_new:orm_write:1",
@@ -173361,8 +173800,20 @@
         "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:2": {
           "reachability_proof": "This controller sink is reached only through Odoo attachment deletion after ownership and Documents lifecycle checks; the route is governed separately."
         },
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:3": {
+          "reachability_proof": "This exact controller sink is reached only through /mail/attachment/delete after native scoped ownership. Exact attachment routing facts are read internally; local persistent evidence invokes the existing central guard before native message effects and final unlink, and tracked operations retain the existing archive action. The callable controller parent is classified separately."
+        },
         "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:1": {
           "reachability_proof": "This controller sink is reached only through Odoo attachment deletion after ownership and Documents lifecycle checks; the route is governed separately."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:2": {
+          "reachability_proof": "This exact controller sink is reached only through /mail/attachment/delete after native scoped ownership. Exact attachment routing facts are read internally; local persistent evidence invokes the existing central guard before native message effects and final unlink, and tracked operations retain the existing archive action. The callable controller parent is classified separately."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:3": {
+          "reachability_proof": "This exact controller sink is reached only through /mail/attachment/delete after native scoped ownership. Exact attachment routing facts are read internally; local persistent evidence invokes the existing central guard before native message effects and final unlink, and tracked operations retain the existing archive action. The callable controller parent is classified separately."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:4": {
+          "reachability_proof": "This exact controller sink is reached only through /mail/attachment/delete after native scoped ownership. Exact attachment routing facts are read internally; local persistent evidence invokes the existing central guard before native message effects and final unlink, and tracked operations retain the existing archive action. The callable controller parent is classified separately."
         },
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController._document:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
@@ -173816,6 +174267,12 @@
         },
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.write:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.write"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_batch.py:usl.document._batch_refresh_archive_metadata:orm_write:1": {
+          "reachability_proof": "The underscore helper is not an RPC entry. Its only caller is the classified fixed batch workflow; that caller checks current document write/company access before the cache-only sudo/write region, whose values exclude company and privacy ownership."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_batch.py:usl.document._batch_refresh_archive_metadata:sudo:1": {
+          "reachability_proof": "The underscore helper is not an RPC entry. Its only caller is the classified fixed batch workflow; that caller checks current document write/company access before the cache-only sudo/write region, whose values exclude company and privacy ownership."
         },
         "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake._intake_sender:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
@@ -176466,9 +176923,13 @@
         "sink:stock_delivery:addons/stock_delivery/models/stock_picking.py:stock.picking._send_confirmation_email:sudo:2": "6635f06b6bda38d05d73867f6cda5c52d1770394167d86d8cc44eb3f0881c7bc",
         "sink:stock_sms:addons/stock_sms/models/stock_picking.py:stock.picking._send_confirmation_email:orm_write:1": "387c547bd4bdbaefcc8b6c899b4d8574301649dc2e803b1cab0165fbe3804919",
         "sink:stock_sms:addons/stock_sms/models/stock_picking.py:stock.picking._send_confirmation_email:sudo:1": "29f4fbe02910934a2faae60b215dff530e99b5cfa52f8f146ece82db1564be44",
-        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:1": "1f0dca72e96acb276e7d14a5b3a75f1d06aaf73848211737756f94e1c0dcec80",
-        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:2": "209a607ba29e5e96cfbf27c834a5373f0e2ef0957fee897826864b52583024ae",
-        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:1": "0c741ab67a00a533cf8d2cbe7bccd8880b4d0240b30a29e6068ec8c61c3837ee",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:1": "87ddeca77fcdb45317870d8c3415f397f9692e93c9d8522310fbadd72e7869fd",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:2": "cfb2726bbc8927181179791efb7935338076e318a75aa39b6856b831745b9b42",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:3": "91b90cf8b8801c2b3c3a315086b34c43ab972cfd0b1825dded217cb1b68aaec6",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:1": "2c80ba865459e7c19b78369b35cbd79eb49aa188752eb35f9eee24dd341b1210",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:2": "bd8d448ebc33897f4abdbb776b62b64ec83b0e69e052765eec3825f9aae43da1",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:3": "b98cbbfff5f60540788735efb741ec4280a3dba7c5ca1be8283508c020bf5bb9",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:4": "bb41b9d569a34fa2c8c4a2d8cf41d6d152783611b7834e1cc9fffb4ea3614a4c",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController._document:sudo:1": "c3f9bcb8846423081a3296d1a5a1b0370e8cb5f4f45df5d9c9e6be50dea8d583",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController.materialize:sudo:1": "44e2f28fc7e81fc86c7097bbf4f7fc2dd247ce25e8276b36f52d22e4e17b4283",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:1": "1866d26c71b23676c921e6e318a19589949e2c6d96a10fd0aa91b21555c1c7ad",
@@ -176620,6 +177081,8 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:3": "5e0e80b713e5dbbdd5f109ab6c0820923ad2f211d58d8c0671f8b53eae3fde37",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.create:orm_create:1": "f83148114242df6b94bd08c8975f0f83e29e26180aceb64c6a42509e6ebcb13f",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.write:orm_write:1": "1e4eff140a45e54c8a3340b1869729192b018d1f887b1727778d7fef2985f709",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_batch.py:usl.document._batch_refresh_archive_metadata:orm_write:1": "7d6898ac70c080d40f8f7a829180eeab94cb9d932a29ac1500d296f5c11677bc",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_batch.py:usl.document._batch_refresh_archive_metadata:sudo:1": "de75f49f148fca1c29e37c53a2b5c5f1d7ae4f73b73862f3072b2cede10c770c",
         "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake._intake_sender:sudo:1": "0b6ebc74766497136062cb056916109e3db70c3bb6a35e0669a6a61f8ba9b36d",
         "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake._intake_sender:sudo:2": "01efb40dd28b81e5f559faf12fb6f4633f556bd0d77c645c57a2193bfd083fee",
         "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake.message_new:orm_write:1": "35a0ff0f630d12583d8bcd85a17a6ffa2d70fb215405c75bf6b2a4f82a768791",
@@ -176653,9 +177116,9 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.set_company:orm_write:1": "53d2f90bf64c8124168e30b2f92d0d43244ea9ad8f619d6d60241d7ecabc85aa",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.set_company:sudo:1": "94a4009e2c6ed18d71cec35bb5ccd74e561c406e994d258a481f450fc29a59a7",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.unlink_from_record:sudo:1": "daf436b3469e81dcd3036a9d0aff86168fb1665f18a2c334f2a5b9a28c064cbc",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:orm_write:1": "384e98004da0037aff29194ebf14f49a72687505fb67df33e92f99987efc5514",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:orm_write:2": "0f15298722e6f914f7be9a81e322118441190705a1089e7f125aa4bccc457442",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:sudo:1": "7afc77d0bcf8448fad884578157da4947abc0c7c49b39ef92e2f9045dc187211",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:orm_write:1": "bcd4fe0fc34b2a134f5cbf936bb7546d106246ad6fc04151da8e5fd381e7d789",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:orm_write:2": "22d19d7c5e54d9285fac1725cb8ec8813b61c93cbb1550bd66b7c8d2a4b2840a",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:sudo:1": "860d3ab34bfaa91d68a3e735d363f660133169290c4fe07c50f2b8855e2a2c87",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:1": "41a1f0c6e51c7777d2165d53a7081adb9235089fe11afacfaa27ca98639b5a8a",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:2": "5b97495bf8fcbc55f6fc0eab75156b67048db4aa2984b23e1ffd62bf11576612",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:1": "b6fb22c9c46002f37c2cf2f96a35823ec4e2499cf930e5c49f810a4d6e28f004",
@@ -176758,7 +177221,7 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document._workspace_selected_view:sudo:1": "2c3efd5ccac4c26a37211d2e1735b920bbd3182bbb054d0fd0628e9003c2ddc5",
         "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.document_detail:sudo:1": "36b2b698b972405a74d437c129fe3a55a4d293048660243ca63c846accd47663",
         "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.document_detail:sudo:2": "9e5b4d0365731ad9ed5d52122cba120b046846b80abc8ec07f2e69f7360f1748",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.workspace_data:sudo:1": "74059f7e24a66a179f1a6eec4c5305aa32cec89c8b509b1be875d65ba93a4daa",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.workspace_data:sudo:1": "02ae76f7f112b26404d2d3ef6224f8156584dd04ef2bf7322b71a97ab4bea9c2",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document._canonical_download_base_url:sudo:1": "261582d4ba0b97b6771a23d36217c6b466cbd1084d41e364d4ffb29839236148",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._audit:orm_create:1": "5fb1d525c21789ef10860bb8cfd76bc645da0d3809763d3ac441c8e85fff998d",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._audit:sudo:1": "10c27722974a02ef9af93a4e46bd7abc48c6fda998c04d350949f63148a866af",
@@ -181357,6 +181820,25 @@
     },
     {
       "action_keys": [
+        "sink:usl_project:custom-addons/usl_project/models/task_github_reference.py:project.task._usl_migrate_github_references:orm_write:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Copies eligible legacy references during module installation or upgrade without deleting history or replacing existing canonical values.",
+      "domain": "projects",
+      "evidence_id": "task-github-reference-20261014",
+      "id": "system_internal.projects.task_github_reference_20261014",
+      "overrides": {
+        "sink:usl_project:custom-addons/usl_project/models/task_github_reference.py:project.task._usl_migrate_github_references:orm_write:1": {
+          "reachability_proof": "The underscore-prefixed helper has no independent ordinary RPC or controller entry. Its only callers are the addon post-init hook and version 13 post-migration, running under the module lifecycle identity. It writes only github_url on tasks with an empty canonical value and exactly one valid populated legacy GitHub property."
+        }
+      },
+      "rationale": "Private module lifecycle helper; normal form and card URL interactions use native Odoo fields and task access.",
+      "reviewed_digests": {
+        "sink:usl_project:custom-addons/usl_project/models/task_github_reference.py:project.task._usl_migrate_github_references:orm_write:1": "a121831bb61bc7d4b48b286c1a25e1c6b7d42e27a70ed93c2522f2127d14ab49"
+      }
+    },
+    {
+      "action_keys": [
         "sink:project:addons/project/models/project_task.py:project.task._read_grouping_sets:orm_write:1"
       ],
       "classification": "system_internal",
@@ -184869,8 +185351,8 @@
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:usl.expense.batch.create.wizard.action_create_batch:orm_write:1",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:usl.expense.batch.create.wizard.create:orm_create:1",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:usl.expense.batch.create.wizard.create:orm_write:1",
-        "sink:usl_locale:custom-addons/usl_locale/models/ir_http.py:ir.http.webclient_rendering_context:sudo:1",
         "sink:usl_locale:custom-addons/usl_locale/models/ir_http.py:ir.http.session_info:sudo:1",
+        "sink:usl_locale:custom-addons/usl_locale/models/ir_http.py:ir.http.webclient_rendering_context:sudo:1",
         "sink:usl_locale:custom-addons/usl_locale/models/res_company.py:res.company.action_use_automatic_usl_ui_theme_color:orm_write:1",
         "sink:usl_pocketid:custom-addons/usl_pocketid/controllers/main.py:PocketIDDatabase.create:orm_create:1",
         "sink:usl_pocketid:custom-addons/usl_pocketid/controllers/main.py:PocketIDLogin.emergency_login:sudo:1",
@@ -193290,7 +193772,7 @@
         "ui:usl_accounting.view_bank_statement_reopen_form:button:object:action_reopen:1": "f69e40686b209f814b0ae1a486af944a28a38d7325a1ae991d3a0444d6fb02ee",
         "ui:usl_accounting.view_hr_expense_form_bank_matching:button:object:action_open_confirmation:1": "9d99b687efe8cddf4ab1f73f4a6738fc14a85139d323e06922966fe13823d28d",
         "ui:usl_accounting.view_hr_expense_form_bank_matching:button:object:action_refresh_bank_match_candidates:1": "e3e384a535f10ea8f1b9ccdd0acd05546a14ce48278a1ac87253eefa98f3d038",
-        "ui:usl_accounting.view_move_form_immediate_settlement:button:object:action_open_immediate_settlement:1": "85de08e69d7a9c47ccec6100f3a0d3d706a69c6c80659fd56af33bc48a929280",
+        "ui:usl_accounting.view_move_form_immediate_settlement:button:object:action_open_immediate_settlement:1": "8f2fc5ebb66b853eda188be530a098fe67865b15881522a1224ffb94de2672a6",
         "ui:usl_accounting.view_users_form_multi_company_expenses:button:object:action_usl_sync_expense_company_profiles:1": "637fa9782374ce1e55c96a1ff11fb8957e32b4044cc2135c4936ade889385fdd",
         "ui:usl_accounting.view_usl_expense_bank_match_wizard_form:button:object:action_confirm:1": "5134266cd80f83f71d57e890e7f75984bcb2e112a586af883e980b08574a4d63",
         "ui:usl_b2c.view_b2c_accounting_link_form:button:object:action_reject:1": "850ed4ab0ef799df51f89ef35af25209cce74759e1bb2e6b4a5226d22c3c7dd6",
@@ -199990,6 +200472,27 @@
     },
     {
       "action_keys": [
+        "client:usl_project:custom-addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:moveCell:rpc:1"
+      ],
+      "classification": "transport",
+      "consequence": "Forwards the selected task and two native grouping memberships to the fixed task move operation, then reloads native board data.",
+      "domain": "system_framework",
+      "evidence_id": "transport-exact-targets-v1",
+      "id": "transport.project.task_swimlanes",
+      "overrides": {
+        "client:usl_project:custom-addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:moveCell:rpc:1": {
+          "targets": [
+            "rpc:project.task.action_move_kanban_cell"
+          ]
+        }
+      },
+      "rationale": "The client has one exact RPC target. The server independently checks task authority, source memberships and destination types; browser labels or supplied domains do not grant access.",
+      "reviewed_digests": {
+        "client:usl_project:custom-addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:moveCell:rpc:1": "fc7a661393977e0e80b5ade10b3f041e426d3d8235689d4c154dd55278c08d0e"
+      }
+    },
+    {
+      "action_keys": [
         "client:project:addons/project/static/src/views/components/project_task_template_dropdown.js:if:rpc:1",
         "client:project_todo:addons/project_todo/static/src/core/web/activity_menu_patch.js:createActivityTodo:rpc:1",
         "ui:project.action_server_convert_project_to_template",
@@ -202824,82 +203327,52 @@
     },
     {
       "action_keys": [
-        "rpc:project.task.action_archive",
-        "rpc:project.task.action_unarchive",
-        "rpc:project.project.action_archive",
-        "rpc:project.project.action_unarchive"
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:1",
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:2",
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:loadDocuments:rpc:1",
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:open:rpc:1",
+        "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:if:rpc:1"
       ],
-      "classification": "recoverable",
-      "consequence": "Hide or restore accessible projects and tasks while retaining their records and history.",
-      "domain": "projects",
-      "evidence_id": "agent-project-archive",
-      "id": "recoverable.projects.agent_archive",
+      "classification": "transport",
+      "consequence": "Forwards search, paging and record opening to exact reviewed readonly RPCs.",
+      "domain": "work_management",
+      "evidence_id": "live-content-search-20261014",
+      "id": "transport.work_management.live_content_search",
       "overrides": {
-        "rpc:project.project.action_archive": {
-          "reversal_action": "rpc:project.project.action_unarchive"
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:1": {
+          "targets": [
+            "rpc:usl.home.service.search_records"
+          ]
         },
-        "rpc:project.project.action_unarchive": {
-          "reversal_action": "rpc:project.project.action_archive"
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:2": {
+          "targets": [
+            "rpc:usl.home.service.search_records"
+          ]
         },
-        "rpc:project.task.action_archive": {
-          "reversal_action": "rpc:project.task.action_unarchive"
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:loadDocuments:rpc:1": {
+          "targets": [
+            "rpc:usl.home.service.search_documents"
+          ]
         },
-        "rpc:project.task.action_unarchive": {
-          "reversal_action": "rpc:project.task.action_archive"
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:open:rpc:1": {
+          "targets": [
+            "rpc:usl.home.service.get_search_result_action"
+          ]
+        },
+        "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:if:rpc:1": {
+          "targets": [
+            "rpc:usl.home.service.get_search_result_action",
+            "rpc:usl.home.service.search_records"
+          ]
         }
       },
-      "rationale": "Native archive and restore require business write access and preserve chatter, attachments and record identity.",
+      "rationale": "Each frontend entry has only its named readonly RPC delegate; result rendering and native form navigation add no mutation sink.",
       "reviewed_digests": {
-        "rpc:project.project.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
-        "rpc:project.project.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
-        "rpc:project.task.action_archive": "5d92b01ba74813261254dad7543ab8955e5327f7cca0dbd26e707d2a4dc12b3e",
-        "rpc:project.task.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b"
-      }
-    },
-    {
-      "action_keys": [
-        "rpc:project.task.mcp_update_activity",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:project.task.mcp_update_activity:orm_write:1"
-      ],
-      "classification": "operational",
-      "consequence": "Correct one accessible task activity without changing its identity or completion state.",
-      "domain": "projects",
-      "evidence_id": "agent-task-activity-edit",
-      "id": "operational.projects.agent_activity_update",
-      "rationale": "Task write access and activity ownership are checked before updating only the deadline, summary, note and assignee.",
-      "reviewed_digests": {
-        "rpc:project.task.mcp_update_activity": "618d451891f6496de1e68e6191de2634c28986b9851780483722b839c8c07e9f",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:project.task.mcp_update_activity:orm_write:1": "907e56efc327e0d9b65d1cc0a1bb81ee1e6751d42cb5d6e9ee92ef21d9aac625"
-      }
-    },
-    {
-      "action_keys": [
-        "rpc:hr.expense.update_activities_and_mails"
-      ],
-      "classification": "operational",
-      "consequence": "Maintain native expense approval activities and notifications as part of an authorized expense lifecycle operation.",
-      "domain": "expenses",
-      "evidence_id": "agent-expense-approval-cleanup",
-      "id": "operational.expenses.agent_approval_cleanup",
-      "rationale": "The Agent must have native business write access to the selected expenses before collaboration scope is granted to the fixed native implementation. General activity unlink remains denied.",
-      "reviewed_digests": {
-        "rpc:hr.expense.update_activities_and_mails": "547a8ca86fb66e57a7cef2824b9d42af90ba49d8182c0cc4145a8c8bbe903af3"
-      }
-    },
-    {
-      "action_keys": [
-        "rpc:mail.activity.unlink",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.activity.unlink:orm_unlink:1"
-      ],
-      "classification": "operational",
-      "consequence": "Perform native activity cleanup only within existing approved Agent collaboration scope; preserve ordinary human activity access.",
-      "domain": "communications",
-      "evidence_id": "agent-expense-approval-cleanup",
-      "id": "operational.collaboration.approved_activity_cleanup",
-      "rationale": "The Agent mutation guard executes before native unlink can queue bus work. Approved expense lifecycle scope remains usable; direct and forged-context Agent deletion is refused without side effects.",
-      "reviewed_digests": {
-        "rpc:mail.activity.unlink": "3ca5d9891385909abb86023106537fd8066df5eb4e15934e8a731a81860e51a4",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.activity.unlink:orm_unlink:1": "1c895b2ae090b026ae7b72826df385e96bb7b94a195e96ecd53c6cceb8b1f905"
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:1": "10f940116c19e0987ac26a9ab2228c388bb1d9ecea688e323ca71dea1835486c",
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:2": "543465818859ba898de82a298a2004dd3cf64f6334d8e6e1558a04f0ce2b14c7",
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:loadDocuments:rpc:1": "36f56fab197f8ae5eb634278bb47507fc0998b4d4038b5ab00f7bc9f221e580c",
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:open:rpc:1": "3f0592da92b3e4b1340a371af2a2a814ea4ad31584594c1aaf32703ab122d484",
+        "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:if:rpc:1": "558c88b9cbf9bf37c219046e7a3b624925203424cacf607716f2789c68db3a27"
       }
     }
   ],
@@ -202925,6 +203398,74 @@
       "tests": [
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_project_agent_edits_one_activity_without_completing_it",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_agent_activity_edit_refuses_other_tasks_and_companies"
+      ]
+    },
+    "documents-batch-metadata-20261014": {
+      "contract": "Fixed current-actor per-document metadata edits use the sanctioned Paperless-authoritative path. Each selected document and active chosen item is authorized before a request. Remote effects are confirmed by identity-bound readback; a failed acknowledgement remains uncertain and a retry reads current remote state instead of repeating known success. Native cache/chatter attribution remains the caller; local savepoints never imply remote rollback.",
+      "tests": [
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_additive_remote_tags_and_repeated_apply",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_explicit_correspondent_and_type_replace_only_selected_field",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_before_request_failure_sends_no_change",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_after_write_failure_retry_confirms_without_repeating_write",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_viewer_and_current_company_denied_before_http",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_unavailable_metadata_and_crafted_operations_denied_before_http",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_acknowledged_but_unapplied_write_is_not_reported_completed",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_wrong_remote_identity_refused_before_write_or_cache_rebinding",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_stale_cached_correspondent_does_not_skip_authoritative_change",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_managed_agent_write_and_readonly_scope_use_the_same_native_boundaries",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_satisfied_change_does_not_rebind_binary_or_lifecycle_cache",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_workspace_reports_native_metadata_write_access_for_review_and_edit"
+      ]
+    },
+    "documents-local-attachment-removal-20261014": {
+      "contract": "Only an exact on-request, native-only attachment without any archive operation enters native local deletion. Native ownership or its scoped token is checked first. The existing governed-file predicate and evidence.attachment.delete capability run before carrying-message writes; final unlink rechecks the same capability. Two authorization audit events describe one deletion. Ordinary humans and Agents are denied before writes, sudo preserves actor identity, authorized humans retain immutable audit, token authority is not narrowed by a new record-read requirement, and unattached cleanup plus the existing tracked archive path remain unchanged.",
+      "tests": [
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_existing_protection_runs_before_touching_carrying_message",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_persistent_local_file_keeps_existing_irreversible_guard",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_agent_and_sudo_agent_cannot_delete_persistent_local_file",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_authorized_deletion_has_central_actor_audit",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_native_http_deletes_only_local_file_without_provider",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_valid_native_token_does_not_require_extra_record_read_access",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_current_company_change_denies_after_local_details_were_read",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_canonical_tracked_operation_rejects_stale_local_state",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_unattached_native_upload_cleanup_remains_available",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_native_task_upload_can_be_removed_without_archiving"
+      ]
+    },
+    "draft-expense-correction-20261014": {
+      "contract": "One native transaction corrects an authorized draft company/employee pair using explicit compatible financial mappings or clears, preserving expense/evidence identity and document currency. Source and target access, batch detach rollback, queued receipt supersession, managed Agent authority, real non-draft financial states and repeat-patch preservation are exercised with synthetic fixtures.",
+      "tests": [
+        "custom-addons/usl_expense_batch/tests/test_draft_expense_configuration.py::TestDraftExpenseConfiguration"
+      ]
+    },
+    "draft-expense-split-family-20261014": {
+      "contract": "Explicit native split and complete named family ownership correction preserve document totals, per-line native taxes/mappings, evidence checksum, source defaults and financial history atomically. Signed and zero components, currency precision, fixed-cost preview/recovery, missing mappings, malformed fields, genuine posted/paid controls, hidden family, stale/repeated wizard, source/target access and read-only/read-write Agent with generic-copy/follower denial are covered. Literal context-only reversion demonstrates actual native Agent follower denial; exact restoration passes, with selected-company outcomes independently exercised.",
+      "tests": [
+        "custom-addons/usl_expense_batch/tests/test_draft_expense_family.py::TestDraftExpenseFamily",
+        "custom-addons/usl_expense_batch/tests/test_draft_expense_configuration.py::TestDraftExpenseConfiguration"
+      ]
+    },
+    "draft-post-match-20261014": {
+      "contract": "Native bill and selected-company authority; read-only eligibility preview without persistent writes or numbering; explicit reviewed confirmation; current candidate and line-fingerprint rechecks; native posting and matching, atomic late matching rollback with honest posted-unmatched recovery, duplicate-request rejection and actor attribution. See docs/operations/draft-post-match-action-risk-review.md. Native warning dialogs preserve Draft until actual validation; Cancel/X never matches, even after external posting. Successful continuation rechecks current bill and bank semantics under locks before one native matching request. Future scheduling, mandatory analytics, optional native setup and Agent context serialization are exercised. Nested native actions use upstream clean_action, preserving the same views generated for ordinary call_button actions; actual browser handoff and native view-descriptor regressions cover this boundary.",
+      "tests": [
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_confirmed_post_and_match_posts_and_reconciles_draft_bill",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_retains_posted_bill_when_matching_fails_late",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_requires_explicit_confirmation",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_detects_line_edit_without_parent_timestamp_change",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_posting_failure_leaves_bill_draft_and_bank_unchanged",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_read_only_user_cannot_preview_or_post",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_reused_request_never_posts_twice",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_preview_is_read_only_and_user_specific",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_preview_never_calls_persistent_bill_write",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_preview_matches_native_posting_date_after_lock",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_respects_selected_company_and_other_company_payment",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_managed_read_write_agent_uses_native_authority",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_managed_read_only_agent_cannot_post_even_with_sudo",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_post_and_match_native_warning_never_claims_a_draft_was_posted",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_native_warning_confirmation_continues_with_one_reviewed_match",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_reviewed_match_rejects_same_amount_line_edit_after_native_confirmation",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_reviewed_match_rejects_changed_bank_reference_after_native_confirmation",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_native_after_post_autopost_action_is_retained_after_matching"
       ]
     },
     "feedback-provider-phases-20260906": {
@@ -203014,6 +203555,22 @@
         "scripts/tests/test_action_risk_inventory.py::TestDiscovery.test_runtime_facts_replace_approximate_rpc_and_routes"
       ]
     },
+    "live-content-search-20261014": {
+      "contract": "Internal caller/company-scoped live business text and native Properties metadata; independently authorized related records/public identities, readonly Accounting, scoped document OCR, bounded native destinations and stale-response isolation. No new mutation or index.",
+      "tests": [
+        "custom-addons/usl_project/tests/test_task_content_search.py::TestTaskContentSearch.test_description_content_is_searchable_without_name_match",
+        "custom-addons/usl_project/tests/test_task_content_search.py::TestTaskContentSearch.test_readable_task_properties_do_not_require_project_business_access",
+        "custom-addons/usl_project/tests/test_task_content_search.py::TestTaskContentSearch.test_native_portal_name_sql_does_not_bypass_related_user_record_rules",
+        "custom-addons/usl_project/tests/test_task_content_search.py::TestTaskContentSearch.test_public_assignee_identity_remains_searchable_across_default_companies",
+        "custom-addons/usl_home/tests/test_content_search.py::TestHomeContentSearch.test_selected_company_scope_applies_to_matches_and_opening",
+        "custom-addons/usl_home/tests/test_content_search.py::TestHomeContentSearch.test_accounting_line_text_is_searchable_with_native_readonly_access",
+        "custom-addons/usl_home/tests/test_content_search.py::TestHomeContentSearch.test_documents_actual_content_uses_native_scoped_engine",
+        "custom-addons/usl_home/tests/test_content_search.py::TestHomeContentSearch.test_portal_cannot_use_search",
+        "custom-addons/usl_home/tests/test_content_search.py::TestHomeContentSearch.test_open_rechecks_access_and_does_not_accept_arbitrary_models",
+        "custom-addons/usl_home/static/tests/content_search.test.js",
+        "custom-addons/usl_home/static/tests/project_content_search.test.js"
+      ]
+    },
     "operational-authorized-workflow-v1": {
       "contract": "Runs a fixed reviewed product workflow under its native Odoo access rules; the result remains attributable through business or technical history, and the action cannot alter security authority, protected control-plane state, governed immutable evidence, or unreviewed executable code.",
       "tests": [
@@ -203098,6 +203655,14 @@
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_scope_uses_owner_private_project_and_assignment_rules"
       ]
     },
+    "task-github-reference-20261014": {
+      "contract": "Install and version 13 upgrade copy one unambiguous valid legacy GitHub reference into an empty canonical field. Existing canonical values, raw legacy task properties and project definitions remain unchanged; native task permissions continue to govern ordinary edits.",
+      "tests": [
+        "custom-addons/usl_project/tests/test_task_github_reference.py",
+        "custom-addons/usl_project/tests/test_task_github_reference_tour.py",
+        "custom-addons/usl_project/static/tests/task_github_properties.test.js"
+      ]
+    },
     "task-navigation-20261014": {
       "contract": "Milestone task navigation returns its readable milestone identity and native task action, preserving task defaults and direct single-task behavior without changing records or elevating permissions. Explicit Home metrics override default saved searches while preserving native manual favorites and durable domain behavior. Ordinary users can read generic activity model labels without schema ACL grants; assigned work retains native activity access and native opening chooses a permitted destination, while direct inaccessible target reads remain denied.",
       "tests": [
@@ -203108,6 +203673,24 @@
         "custom-addons/usl_home/tests/test_home.py::TestUslHome.test_my_task_metric_actions_match_the_displayed_counts",
         "custom-addons/usl_home/tests/test_home.py::TestUslHome.test_activity_keeps_assigned_work_without_granting_target_access",
         "custom-addons/usl_home/tests/test_home_tour.py::TestUslHomeTour.test_activity_widget_works_without_schema_access"
+      ]
+    },
+    "task-swimlanes-20261014": {
+      "contract": "One attributable native task write transfers at most two exact displayed memberships, preserves unrelated memberships, rejects stale or inaccessible destinations and retains human, delegated Agent, readonly and company boundaries. No authority grant or guessed date/property value.",
+      "tests": [
+        "custom-addons/usl_project/tests/test_task_swimlane.py::TestTaskSwimlane.test_two_dimensions_reach_destination",
+        "custom-addons/usl_project/tests/test_task_swimlane.py::TestTaskSwimlane.test_governed_agents_keep_native_write_and_readonly_boundaries",
+        "custom-addons/usl_project/static/tests/task_swimlane.test.js"
+      ]
+    },
+    "task-swimlanes-property-schema-20261014": {
+      "contract": "Requested schema is available for a caller-readable task even with a private definition parent, unavailable after last-task access is revoked or outside selected companies, and invokes no mutation or external sink. Existing Agent application approvals remain required.",
+      "tests": [
+        "custom-addons/usl_project/tests/test_task_swimlane.py::TestTaskSwimlane.test_native_property_metadata_restores_readable_task_without_private_parent_name",
+        "custom-addons/usl_project/tests/test_task_swimlane.py::TestTaskSwimlane.test_property_metadata_disappears_when_last_relevant_task_access_is_revoked",
+        "custom-addons/usl_project/tests/test_task_swimlane.py::TestTaskSwimlane.test_property_metadata_respects_selected_company_and_field_read_authority",
+        "custom-addons/usl_project/tests/test_task_swimlane.py::TestTaskSwimlane.test_governed_agents_keep_native_write_and_readonly_boundaries",
+        "custom-addons/usl_project/static/tests/task_swimlane.test.js"
       ]
     },
     "transport-exact-targets-v1": {
@@ -203133,6 +203716,27 @@
         "addons/account_edi_ubl_cii/tests/test_cii_import_facturx_fr_retrieve_tax.py",
         "addons/l10n_fr_pdp/tests/test_messages.py",
         "addons/l10n_fr_pdp/tests/test_cii_export_facturx_fr.py"
+      ]
+    },
+    "vendor-bill-merge-20261014": {
+      "contract": "Native actor/company/creator and Agent-owner ceiling; immutable selection/child/evidence snapshot; keep existing winning identity and financial lines, native guarded cancellation/recovery, retained original files/history; explicit conflict choice/todo and atomic rollback. Runtime, installation/upgrade and live protocol qualification remain separate required delivery evidence. Nonempty equality and stale checks include recipient-bank identity and normalized tax reporting tags; Billing bill details omit the inaccessible settlement audit control while Accounting audit access and native protection remain. Comparison-only native inspection includes financial facts, evidence and history without lifecycle/payment/edit controls; ordinary native lifecycle and recovery authority remain unchanged.",
+      "tests": [
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_identical_bills_keep_one_amount_and_original_winning_lines",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_managed_agent_creator_owner_ceiling_and_sibling_boundaries",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_late_native_cancellation_failure_restores_all_selected_bills",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_public_lineage_write_and_serializable_default_are_rejected",
+        "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_billing_cancel_guard_retains_private_settlement_protection",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_recipient_bank_difference_requires_explicit_winner",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_recipient_bank_change_after_preview_rejects_merge",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_empty_shell_bank_difference_keeps_first_without_prompt",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_posted_reporting_tag_difference_requires_explicit_winner",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_reporting_tag_change_after_preview_rejects_merge",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_same_reporting_tag_set_keeps_one_posted_bill",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_different_untagged_line_counts_do_not_claim_reporting_tags_differ",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_billing_bill_form_excludes_inaccessible_settlement_audit",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_accountant_retains_native_settlement_audit_count",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_comparison_details_exclude_all_object_and_action_buttons",
+        "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_normal_bill_form_retains_native_lifecycle_and_recovery"
       ]
     }
   },

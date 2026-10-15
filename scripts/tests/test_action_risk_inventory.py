@@ -937,6 +937,18 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
         )
         self.assertEqual(runtime_policy["read_only_actions"], [])
 
+    def test_vendor_bill_merge_navigation_reads_do_not_allow_merge_mutations(self):
+        keys = [
+            "rpc:account.move.action_open_vendor_bill_merge_originals",
+            "rpc:account.move.action_open_vendor_bill_merge_target",
+            "rpc:account.move.action_merge_vendor_bills",
+            "rpc:account.move.action_choose_vendor_bill_merge_winner",
+        ]
+        actions = [self.action(key, "rpc") for key in keys]
+        policy = self.policy({action["key"]: self.entry(action, "read_only") for action in actions})
+        compiled = inventory.build_agent_readonly_runtime_policy(self.surface(actions), policy)
+        self.assertEqual(compiled["read_only_actions"], sorted(keys[:2]))
+
     def test_tracked_agent_readonly_runtime_policy_is_bounded(self):
         runtime_policy = inventory.load_json(
             inventory.DEFAULT_AGENT_READONLY_RUNTIME_POLICY,

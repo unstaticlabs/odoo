@@ -121,6 +121,16 @@ async function openChatterAttachment({
             </form>`,
     });
     await contains(".o-mail-AttachmentList");
+    if (initialDetail.state === "available") {
+        if (mobile) {
+            await click(".o-mail-AttachmentList button[aria-label='Actions']");
+            await contains(".dropdown-item", { text: "Keep in Documents" });
+            await click(".o-mail-AttachmentList button[aria-label='Actions']");
+        } else {
+            await contains(".o_usl_keep_document");
+        }
+    }
+    return { attachmentId, setDetail: (value) => { detail = value; } };
 }
 
 test.tags("desktop");
@@ -217,5 +227,58 @@ test("shared archived attachment cannot be moved to Trash from one record", asyn
     await click(".o-mail-Attachment-unlink");
     await contains(".modal-title", { text: "Remove document from this record?" });
     expect(".modal").toHaveText(/shared with another record/);
+    await contains(".o_usl_unlink_trash_document:disabled");
+});
+
+for (const mobile of [false, true]) {
+    test.tags(mobile ? "mobile" : "desktop");
+    test(`local-only attachment uses native confirmation and Cancel (${mobile ? "mobile" : "desktop"})`, async () => {
+        const { attachmentId } = await openChatterAttachment({ mobile });
+        onRpc("/mail/attachment/delete", () => {
+            throw new Error("Cancel must never delete the attachment");
+        });
+        if (mobile) {
+            await click(".o-mail-AttachmentList button[aria-label='Actions']");
+            await click(".dropdown-item", { text: "Remove" });
+        } else {
+            await click(".o-mail-Attachment-unlink");
+        }
+        await contains(".modal-title", { text: "Delete Attachment" });
+        expect(".modal-body").toHaveText(/This action cannot be undone/);
+        await click(".modal-footer button", { text: "Discard" });
+        await contains(".modal", { count: 0 });
+        await contains(".o-mail-AttachmentList");
+        expect(attachmentId).toBeGreaterThan(0);
+    });
+
+    test.tags(mobile ? "mobile" : "desktop");
+    test(`local-only attachment confirms through native delete (${mobile ? "mobile" : "desktop"})`, async () => {
+        const { attachmentId } = await openChatterAttachment({ mobile });
+        onRpc("/mail/attachment/delete", async (request) => {
+            const { params } = await request.json();
+            expect(params.attachment_id).toBe(attachmentId);
+            expect.step("native-delete");
+            return null;
+        });
+        if (mobile) {
+            await click(".o-mail-AttachmentList button[aria-label='Actions']");
+            await click(".dropdown-item", { text: "Remove" });
+        } else {
+            await click(".o-mail-Attachment-unlink");
+        }
+        await contains(".modal-title", { text: "Delete Attachment" });
+        await click(".modal-footer button", { text: "Delete Attachment" });
+        await contains(".o-mail-AttachmentList", { count: 0 });
+        await expect.waitForSteps(["native-delete"]);
+    });
+}
+
+test.tags("desktop");
+test("stale local attachment refreshes into its existing archived removal", async () => {
+    const { setDetail } = await openChatterAttachment();
+    setDetail({ state: "archived", can_remove_from_record: true, can_move_to_trash: false });
+    await click(".o-mail-Attachment-unlink");
+    await contains(".modal-title", { text: "Remove document from this record?" });
+    await contains(".o_usl_unlink_document");
     await contains(".o_usl_unlink_trash_document:disabled");
 });

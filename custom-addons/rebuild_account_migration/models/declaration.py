@@ -3,7 +3,7 @@ from datetime import date
 
 from dateutil.relativedelta import relativedelta
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import float_compare
 
@@ -210,7 +210,29 @@ class RebuildAccountDeclaration(models.Model):
         ]
         return domain if positive else ["!", *domain]
 
+    def _with_recorded_review(self):
+        """Latest recorded declaration judgment, scoped to these companies."""
+        if not self:
+            return self
+        decisions = self.env["rebuild.account.assurance.decision"].search([
+            ("declaration_id", "in", self.ids),
+            ("company_id", "in", self.company_id.ids),
+            ("gate", "=", "declaration_review"),
+            ("state", "=", "recorded"),
+        ], order="reviewed_at desc, id desc")
+        latest = {}
+        for decision in decisions:
+            latest.setdefault(decision.declaration_id.id, decision)
+        return self.filtered(lambda declaration: (
+            declaration.id in latest
+            and latest[declaration.id].company_id == declaration.company_id
+            and latest[declaration.id].conclusion in {
+                "accepted", "accepted_with_difference", "not_applicable",
+            }
+        ))
+
     def action_refresh_preparation(self):
+        reviewed = self._with_recorded_review()
         for declaration in self:
             declaration._sync_field_lines()
             unresolved = declaration.field_line_ids.filtered("is_unresolved")
@@ -237,6 +259,9 @@ class RebuildAccountDeclaration(models.Model):
                 next_status = "internal_review"
                 preparation_status = "ready_for_review"
                 messages.append("Ledger-derived fields and confirmed facts currently pass automated checks.")
+            if declaration in reviewed:
+                preparation_status = "reviewed"
+                messages.insert(0, _("Recorded reviewer decision preserved; the automated checks below describe current data."))
             vals = {
                 "validation_status": validation_status,
                 "preparation_status": preparation_status,
@@ -244,7 +269,7 @@ class RebuildAccountDeclaration(models.Model):
                 "unresolved_information": "\n".join(unresolved.mapped("unresolved_reason")),
                 "last_refreshed_at": fields.Datetime.now(),
             }
-            if declaration.status in {"to_prepare", "data_missing", "internal_review", "blocked"}:
+            if declaration not in reviewed and declaration.status in {"to_prepare", "data_missing", "internal_review", "blocked"}:
                 vals["status"] = next_status
             declaration.write(vals)
         return True

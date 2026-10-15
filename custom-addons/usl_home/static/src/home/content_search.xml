@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_home.ContentSearch">
+        <section class="o_usl_content_search" aria-label="Search your work">
+            <label for="usl-home-content-search" class="form-label fw-semibold">Search your work</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="fa fa-search" aria-hidden="true"/></span>
+                <input id="usl-home-content-search" class="form-control" type="text" maxlength="2048" placeholder="Tasks, projects, documents, contacts…" t-ref="input" t-att-value="state.query" t-on-input="inputChanged" t-on-keydown="keydown" role="combobox" aria-autocomplete="list" aria-controls="usl-home-search-results" t-att-aria-expanded="state.query.trim() ? 'true' : 'false'" t-att-aria-activedescendant="this.selectedRecord ? this.resultDomId(this.selectedRecord) : undefined"/>
+                <button t-if="state.query" class="btn btn-outline-secondary" type="button" aria-label="Clear search" t-on-click="clear"><i class="fa fa-times" aria-hidden="true"/></button>
+            </div>
+            <p t-if="!state.query.trim()" class="text-muted small mt-2 mb-0">Search text and field values in the records you can access. Documents also search their contents.</p>
+            <div t-if="state.query.trim()" id="usl-home-search-results" class="o_usl_content_results" role="listbox" aria-label="Search results">
+                <p t-if="state.loading" class="text-muted" role="status">Searching records…</p>
+                <div t-if="state.error" role="alert">Records could not be searched. <button type="button" class="btn btn-link" t-on-click="search">Try again</button></div>
+                <t t-foreach="groups" t-as="group" t-key="group.key">
+                    <section t-if="group.records.length" class="o_usl_search_group" t-att-data-category="group.key">
+                        <h2 class="h6 text-muted" t-esc="group.label"/>
+                        <button t-foreach="group.records" t-as="record" t-key="record.id" type="button" class="o_usl_search_result btn text-start w-100" t-att-class="{ 'active': state.selected === this.resultKey(record) }" t-att-id="this.resultDomId(record)" role="option" t-att-aria-selected="state.selected === this.resultKey(record) ? 'true' : 'false'" t-on-click="() => this.open(record)">
+                            <strong class="d-block" t-esc="record.title"/>
+                            <small t-if="record.context_label" class="d-block text-muted" t-esc="record.context_label"/>
+                            <span t-if="record.excerpt" class="d-block text-muted small" t-esc="record.excerpt"/>
+                        </button>
+                        <button t-if="group.has_more" t-att-disabled="group.loading || (group.key === 'documents' &amp;&amp; state.documentsLoading)" class="btn btn-link btn-sm" type="button" t-on-click="() => this.more(group)">More <t t-esc="group.label"/></button>
+                    </section>
+                </t>
+                <p t-if="state.documentsLoading" class="text-muted" role="status">Searching document contents…</p>
+                <div t-if="state.documentError" role="alert">Document contents are temporarily unavailable. <button type="button" class="btn btn-link" t-on-click="() => this.loadDocuments()">Try again</button></div>
+                <p t-if="state.documents?.warnings?.some(warning => warning.code === 'semantic_unavailable')" class="text-muted small">Meaning-based document matches are temporarily unavailable. Exact content matches are still shown.</p>
+                <button t-if="state.documents?.continue_in_documents" class="btn btn-link" type="button" t-on-click="continueDocuments">Continue in Documents</button>
+                <p t-if="empty" class="text-muted mb-0" role="status">No matching records in your selected companies. Try another word.</p>
+            </div>
+        </section>
+    </t>
+</templates>

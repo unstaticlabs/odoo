@@ -44,7 +44,7 @@ registry.category("web_tour.tours").add("usl_home_task_metrics_saved_search", {
                 }
             },
         },
-        { trigger: ".o_kanban_view", expectUnloadPage: true, run() { window.history.back(); } },
+        { trigger: ".o_kanban_view", run() { window.history.back(); } },
         { trigger: ".o_usl_home_task_signals button[data-signal='due']", run: "click" },
         { trigger: ".o_searchview_facet:contains('Due in 7 days')" },
         {
@@ -56,7 +56,7 @@ registry.category("web_tour.tours").add("usl_home_task_metrics_saved_search", {
                 }
             },
         },
-        { trigger: ".o_kanban_view", expectUnloadPage: true, run() { window.history.back(); } },
+        { trigger: ".o_kanban_view", run() { window.history.back(); } },
         { trigger: ".o_usl_home_task_signals button[data-signal='waiting']", run: "click" },
         { trigger: ".o_searchview_facet:contains('Waiting')" },
         { trigger: ".o_view_nocontent" },
