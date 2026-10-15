@@ -689,6 +689,23 @@
     },
     {
       "action_keys": [
+        "rpc:usl.document.apply_batch_archive_metadata",
+        "rpc:usl.document.update_archive_metadata"
+      ],
+      "classification": "operational",
+      "consequence": "Sets only explicitly chosen archive tags, correspondent or document type under current native document authority; remote writes are independent and cannot roll back with the Odoo transaction.",
+      "domain": "documents_and_communications",
+      "evidence_id": "documents-batch-metadata-20261014",
+      "id": "operational.documents_and_communications.batch_metadata_20261014",
+      "overrides": {},
+      "rationale": "These fixed metadata workflows neither alter company/privacy authority nor remove governed evidence. Existing metadata editing falsely named a cache-only write as remote reversal; operational classification accurately describes sanctioned manual correction and explicit confirmation/retry without promising undo.",
+      "reviewed_digests": {
+        "rpc:usl.document.apply_batch_archive_metadata": "03e282864ef1e5e830e1a6712ef5fe053bbbd75313aa43decb569860c7fc560c",
+        "rpc:usl.document.update_archive_metadata": "5494f22d9019ed195bd73b9d6c28970207baf19bf608233d81e337683f7a8e84"
+      }
+    },
+    {
+      "action_keys": [
         "rpc:usl.document.operation.cron_poll_operations"
       ],
       "classification": "operational",
@@ -3951,6 +3968,26 @@
         "rpc:usl.document.letter.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
         "rpc:usl.document.renderer.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:usl.document.template.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d"
+      }
+    },
+    {
+      "action_keys": [
+        "route:jsonrpc:POST:/mail/attachment/delete"
+      ],
+      "classification": "protected",
+      "consequence": "Can permanently delete a local file attached to a persistent business record; ordinary unattached/transient cleanup and durable archive-copy removal retain their existing state-sensitive native paths.",
+      "domain": "documents_and_communications",
+      "evidence_id": "documents-local-attachment-removal-20261014",
+      "id": "protected.documents_and_communications.local_attachment_removal",
+      "overrides": {
+        "route:jsonrpc:POST:/mail/attachment/delete": {
+          "action_name": "permanently delete attachment evidence from a business record",
+          "guard_key": "guard:evidence.attachment.delete"
+        }
+      },
+      "rationale": "Repair the inherited read_only classification of this existing mutating route. Exact native ownership precedes current archive facts. Local governed evidence uses the unchanged central guard before carrying-message writes and again at unlink, preserving caller UID, Agent denial and immutable authorized-human audit. No global role requirement is added to ordinary transient cleanup and no existing tracked archive workflow is bypassed.",
+      "reviewed_digests": {
+        "route:jsonrpc:POST:/mail/attachment/delete": "0ffb674c28e75a5f603c1db2d25a27306da921b4b6fac0a93bdb4dba0f1dcb7c"
       }
     },
     {
@@ -29829,7 +29866,6 @@
         "route:jsonrpc:POST:/html_editor/attachment/add_data",
         "route:jsonrpc:POST:/html_editor/attachment/add_url",
         "route:jsonrpc:POST:/mail/action",
-        "route:jsonrpc:POST:/mail/attachment/delete",
         "route:jsonrpc:POST:/mail/data",
         "route:jsonrpc:POST:/mail/guest/update_name",
         "route:jsonrpc:POST:/mail/link_preview",
@@ -33677,7 +33713,6 @@
         "route:jsonrpc:POST:/html_editor/attachment/add_data": "c4ea743c84fad14ec0d7911dc061578c22bd75b61328bc2a837d575b7e1b3113",
         "route:jsonrpc:POST:/html_editor/attachment/add_url": "8d09d0f10a49935a60cd08892abe80e8e9d1860f5a5fa8f58e975cc2636d815f",
         "route:jsonrpc:POST:/mail/action": "7ce57a9f17915322fd503906f1df4570bdc349cbb1168300b5ddeeeb09d88ee7",
-        "route:jsonrpc:POST:/mail/attachment/delete": "05b2fb8e165e50dba1b29afaecf8c11acab872cb3e9a81bec4b7472b651dc611",
         "route:jsonrpc:POST:/mail/data": "8922325747836c4023aca9f459876803d708dbfbd39acf2e5a64d2dd4911dccb",
         "route:jsonrpc:POST:/mail/guest/update_name": "dc7e56256060f832be2b37a6966d510d9b0db38cabf9f3a795c1c4091432f1f0",
         "route:jsonrpc:POST:/mail/link_preview": "5b4edc361991ee154343322d024ea154171a57f6797b013c69baf1f1526757d7",
@@ -36973,7 +37008,7 @@
         "rpc:usl.document.version.action_restore_as_current": "0c629bdb6b052f0a2dd90e726c0a777b06bf0f75f3b71cce5cd46f918c1dd986",
         "rpc:usl.document.version.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
         "rpc:usl.document.version.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
-        "rpc:usl.document.workspace_data": "9d672158f912c8e845b04c6df13f226d469b7d7fe8ce85ad17dc437877598b4c",
+        "rpc:usl.document.workspace_data": "963cb38ba18fe21d7c506b44c9b77bfe58254cb72317d2b7a05ea8014f6a2968",
         "rpc:usl.expense.bank.match.candidate.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
         "rpc:usl.expense.bank.match.candidate.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
         "rpc:usl.expense.bank.match.wizard.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
@@ -99025,7 +99060,6 @@
         "rpc:usl.document.smart.view.synchronize_archive_views",
         "rpc:usl.document.sync_from_paperless",
         "rpc:usl.document.unlink_from_record",
-        "rpc:usl.document.update_archive_metadata",
         "rpc:usl.document.upload_from_odoo",
         "rpc:usl.document.upload_new_version",
         "rpc:usl.document.user.state.copy",
@@ -104703,9 +104737,6 @@
         "rpc:usl.document.unlink_from_record": {
           "reversal_action": "rpc:usl.document.write"
         },
-        "rpc:usl.document.update_archive_metadata": {
-          "reversal_action": "rpc:usl.document.write"
-        },
         "rpc:usl.document.upload_from_odoo": {
           "reversal_action": "rpc:usl.document.write"
         },
@@ -107405,7 +107436,6 @@
         "rpc:usl.document.smart.view.synchronize_archive_views": "0fd6b0b3f5b9c1a3242fc5c47d34f03ad6a93512649c1fe0792db72b0ae2c253",
         "rpc:usl.document.sync_from_paperless": "9384a9ad1efcfbcf9d829842f940ec6b3de90245f546a46d5c67120081f96560",
         "rpc:usl.document.unlink_from_record": "a2d5b1a5b93bd2f6d1adff8e73bb0667fcefe65162a2daf754f927bb4ed7d4fc",
-        "rpc:usl.document.update_archive_metadata": "954a8dc7725f908b0d8e948ddc0c361000b46bc90e2d13a5fd975c7879ddfadf",
         "rpc:usl.document.upload_from_odoo": "86212354adaccf41c389c8a52ce6bc9d25a3fcf2b929cae659012e61b0b8d6de",
         "rpc:usl.document.upload_new_version": "ca2a7068b69a2b9eaced44bc71620f9d9c7408982c7598defb5c3124fa96c91d",
         "rpc:usl.document.user.state.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
@@ -169917,7 +169947,11 @@
         "sink:stock_sms:addons/stock_sms/models/stock_picking.py:stock.picking._send_confirmation_email:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:1",
         "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:2",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:3",
         "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:1",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:2",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:3",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:4",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController._document:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController.materialize:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:1",
@@ -170069,6 +170103,8 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:3",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.create:orm_create:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.write:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_batch.py:usl.document._batch_refresh_archive_metadata:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_batch.py:usl.document._batch_refresh_archive_metadata:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake._intake_sender:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake._intake_sender:sudo:2",
         "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake.message_new:orm_write:1",
@@ -173764,8 +173800,20 @@
         "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:2": {
           "reachability_proof": "This controller sink is reached only through Odoo attachment deletion after ownership and Documents lifecycle checks; the route is governed separately."
         },
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:3": {
+          "reachability_proof": "This exact controller sink is reached only through /mail/attachment/delete after native scoped ownership. Exact attachment routing facts are read internally; local persistent evidence invokes the existing central guard before native message effects and final unlink, and tracked operations retain the existing archive action. The callable controller parent is classified separately."
+        },
         "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:1": {
           "reachability_proof": "This controller sink is reached only through Odoo attachment deletion after ownership and Documents lifecycle checks; the route is governed separately."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:2": {
+          "reachability_proof": "This exact controller sink is reached only through /mail/attachment/delete after native scoped ownership. Exact attachment routing facts are read internally; local persistent evidence invokes the existing central guard before native message effects and final unlink, and tracked operations retain the existing archive action. The callable controller parent is classified separately."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:3": {
+          "reachability_proof": "This exact controller sink is reached only through /mail/attachment/delete after native scoped ownership. Exact attachment routing facts are read internally; local persistent evidence invokes the existing central guard before native message effects and final unlink, and tracked operations retain the existing archive action. The callable controller parent is classified separately."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:4": {
+          "reachability_proof": "This exact controller sink is reached only through /mail/attachment/delete after native scoped ownership. Exact attachment routing facts are read internally; local persistent evidence invokes the existing central guard before native message effects and final unlink, and tracked operations retain the existing archive action. The callable controller parent is classified separately."
         },
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController._document:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
@@ -174219,6 +174267,12 @@
         },
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.write:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.document.write"
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_batch.py:usl.document._batch_refresh_archive_metadata:orm_write:1": {
+          "reachability_proof": "The underscore helper is not an RPC entry. Its only caller is the classified fixed batch workflow; that caller checks current document write/company access before the cache-only sudo/write region, whose values exclude company and privacy ownership."
+        },
+        "sink:usl_documents:custom-addons/usl_documents/models/document_batch.py:usl.document._batch_refresh_archive_metadata:sudo:1": {
+          "reachability_proof": "The underscore helper is not an RPC entry. Its only caller is the classified fixed batch workflow; that caller checks current document write/company access before the cache-only sudo/write region, whose values exclude company and privacy ownership."
         },
         "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake._intake_sender:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
@@ -176869,9 +176923,13 @@
         "sink:stock_delivery:addons/stock_delivery/models/stock_picking.py:stock.picking._send_confirmation_email:sudo:2": "6635f06b6bda38d05d73867f6cda5c52d1770394167d86d8cc44eb3f0881c7bc",
         "sink:stock_sms:addons/stock_sms/models/stock_picking.py:stock.picking._send_confirmation_email:orm_write:1": "387c547bd4bdbaefcc8b6c899b4d8574301649dc2e803b1cab0165fbe3804919",
         "sink:stock_sms:addons/stock_sms/models/stock_picking.py:stock.picking._send_confirmation_email:sudo:1": "29f4fbe02910934a2faae60b215dff530e99b5cfa52f8f146ece82db1564be44",
-        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:1": "1f0dca72e96acb276e7d14a5b3a75f1d06aaf73848211737756f94e1c0dcec80",
-        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:2": "209a607ba29e5e96cfbf27c834a5373f0e2ef0957fee897826864b52583024ae",
-        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:1": "0c741ab67a00a533cf8d2cbe7bccd8880b4d0240b30a29e6068ec8c61c3837ee",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:1": "87ddeca77fcdb45317870d8c3415f397f9692e93c9d8522310fbadd72e7869fd",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:2": "cfb2726bbc8927181179791efb7935338076e318a75aa39b6856b831745b9b42",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:orm_write:3": "91b90cf8b8801c2b3c3a315086b34c43ab972cfd0b1825dded217cb1b68aaec6",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:1": "2c80ba865459e7c19b78369b35cbd79eb49aa188752eb35f9eee24dd341b1210",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:2": "bd8d448ebc33897f4abdbb776b62b64ec83b0e69e052765eec3825f9aae43da1",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:3": "b98cbbfff5f60540788735efb741ec4280a3dba7c5ca1be8283508c020bf5bb9",
+        "sink:usl_documents:custom-addons/usl_documents/controllers/attachment.py:DocumentsAttachmentController.mail_attachment_delete:sudo:4": "bb41b9d569a34fa2c8c4a2d8cf41d6d152783611b7834e1cc9fffb4ea3614a4c",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController._document:sudo:1": "c3f9bcb8846423081a3296d1a5a1b0370e8cb5f4f45df5d9c9e6be50dea8d583",
         "sink:usl_documents:custom-addons/usl_documents/controllers/documents.py:DocumentsController.materialize:sudo:1": "44e2f28fc7e81fc86c7097bbf4f7fc2dd247ce25e8276b36f52d22e4e17b4283",
         "sink:usl_documents:custom-addons/usl_documents/models/attachment_bridge.py:usl.document._apply_archive_context:orm_write:1": "1866d26c71b23676c921e6e318a19589949e2c6d96a10fd0aa91b21555c1c7ad",
@@ -177023,6 +177081,8 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:3": "5e0e80b713e5dbbdd5f109ab6c0820923ad2f211d58d8c0671f8b53eae3fde37",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.create:orm_create:1": "f83148114242df6b94bd08c8975f0f83e29e26180aceb64c6a42509e6ebcb13f",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.write:orm_write:1": "1e4eff140a45e54c8a3340b1869729192b018d1f887b1727778d7fef2985f709",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_batch.py:usl.document._batch_refresh_archive_metadata:orm_write:1": "7d6898ac70c080d40f8f7a829180eeab94cb9d932a29ac1500d296f5c11677bc",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_batch.py:usl.document._batch_refresh_archive_metadata:sudo:1": "de75f49f148fca1c29e37c53a2b5c5f1d7ae4f73b73862f3072b2cede10c770c",
         "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake._intake_sender:sudo:1": "0b6ebc74766497136062cb056916109e3db70c3bb6a35e0669a6a61f8ba9b36d",
         "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake._intake_sender:sudo:2": "01efb40dd28b81e5f559faf12fb6f4633f556bd0d77c645c57a2193bfd083fee",
         "sink:usl_documents:custom-addons/usl_documents/models/document_intake.py:usl.document.intake.message_new:orm_write:1": "35a0ff0f630d12583d8bcd85a17a6ffa2d70fb215405c75bf6b2a4f82a768791",
@@ -177056,9 +177116,9 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.set_company:orm_write:1": "53d2f90bf64c8124168e30b2f92d0d43244ea9ad8f619d6d60241d7ecabc85aa",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.set_company:sudo:1": "94a4009e2c6ed18d71cec35bb5ccd74e561c406e994d258a481f450fc29a59a7",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.unlink_from_record:sudo:1": "daf436b3469e81dcd3036a9d0aff86168fb1665f18a2c334f2a5b9a28c064cbc",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:orm_write:1": "384e98004da0037aff29194ebf14f49a72687505fb67df33e92f99987efc5514",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:orm_write:2": "0f15298722e6f914f7be9a81e322118441190705a1089e7f125aa4bccc457442",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:sudo:1": "7afc77d0bcf8448fad884578157da4947abc0c7c49b39ef92e2f9045dc187211",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:orm_write:1": "bcd4fe0fc34b2a134f5cbf936bb7546d106246ad6fc04151da8e5fd381e7d789",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:orm_write:2": "22d19d7c5e54d9285fac1725cb8ec8813b61c93cbb1550bd66b7c8d2a4b2840a",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.update_archive_metadata:sudo:1": "860d3ab34bfaa91d68a3e735d363f660133169290c4fe07c50f2b8855e2a2c87",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:1": "41a1f0c6e51c7777d2165d53a7081adb9235089fe11afacfaa27ca98639b5a8a",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:orm_write:2": "5b97495bf8fcbc55f6fc0eab75156b67048db4aa2984b23e1ffd62bf11576612",
         "sink:usl_documents:custom-addons/usl_documents/models/document_lifecycle.py:usl.document.upload_from_odoo:sudo:1": "b6fb22c9c46002f37c2cf2f96a35823ec4e2499cf930e5c49f810a4d6e28f004",
@@ -177161,7 +177221,7 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document._workspace_selected_view:sudo:1": "2c3efd5ccac4c26a37211d2e1735b920bbd3182bbb054d0fd0628e9003c2ddc5",
         "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.document_detail:sudo:1": "36b2b698b972405a74d437c129fe3a55a4d293048660243ca63c846accd47663",
         "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.document_detail:sudo:2": "9e5b4d0365731ad9ed5d52122cba120b046846b80abc8ec07f2e69f7360f1748",
-        "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.workspace_data:sudo:1": "74059f7e24a66a179f1a6eec4c5305aa32cec89c8b509b1be875d65ba93a4daa",
+        "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.workspace_data:sudo:1": "02ae76f7f112b26404d2d3ef6224f8156584dd04ef2bf7322b71a97ab4bea9c2",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document._canonical_download_base_url:sudo:1": "261582d4ba0b97b6771a23d36217c6b466cbd1084d41e364d4ffb29839236148",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._audit:orm_create:1": "5fb1d525c21789ef10860bb8cfd76bc645da0d3809763d3ac441c8e85fff998d",
         "sink:usl_documents:custom-addons/usl_documents/models/download_grant.py:usl.document.download.grant._audit:sudo:1": "10c27722974a02ef9af93a4e46bd7abc48c6fda998c04d350949f63148a866af",
@@ -203338,6 +203398,38 @@
       "tests": [
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_project_agent_edits_one_activity_without_completing_it",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_agent_activity_edit_refuses_other_tasks_and_companies"
+      ]
+    },
+    "documents-batch-metadata-20261014": {
+      "contract": "Fixed current-actor per-document metadata edits use the sanctioned Paperless-authoritative path. Each selected document and active chosen item is authorized before a request. Remote effects are confirmed by identity-bound readback; a failed acknowledgement remains uncertain and a retry reads current remote state instead of repeating known success. Native cache/chatter attribution remains the caller; local savepoints never imply remote rollback.",
+      "tests": [
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_additive_remote_tags_and_repeated_apply",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_explicit_correspondent_and_type_replace_only_selected_field",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_before_request_failure_sends_no_change",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_after_write_failure_retry_confirms_without_repeating_write",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_viewer_and_current_company_denied_before_http",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_unavailable_metadata_and_crafted_operations_denied_before_http",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_acknowledged_but_unapplied_write_is_not_reported_completed",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_wrong_remote_identity_refused_before_write_or_cache_rebinding",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_stale_cached_correspondent_does_not_skip_authoritative_change",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_managed_agent_write_and_readonly_scope_use_the_same_native_boundaries",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_satisfied_change_does_not_rebind_binary_or_lifecycle_cache",
+        "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_workspace_reports_native_metadata_write_access_for_review_and_edit"
+      ]
+    },
+    "documents-local-attachment-removal-20261014": {
+      "contract": "Only an exact on-request, native-only attachment without any archive operation enters native local deletion. Native ownership or its scoped token is checked first. The existing governed-file predicate and evidence.attachment.delete capability run before carrying-message writes; final unlink rechecks the same capability. Two authorization audit events describe one deletion. Ordinary humans and Agents are denied before writes, sudo preserves actor identity, authorized humans retain immutable audit, token authority is not narrowed by a new record-read requirement, and unattached cleanup plus the existing tracked archive path remain unchanged.",
+      "tests": [
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_existing_protection_runs_before_touching_carrying_message",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_persistent_local_file_keeps_existing_irreversible_guard",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_agent_and_sudo_agent_cannot_delete_persistent_local_file",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_authorized_deletion_has_central_actor_audit",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_native_http_deletes_only_local_file_without_provider",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_valid_native_token_does_not_require_extra_record_read_access",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_current_company_change_denies_after_local_details_were_read",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_canonical_tracked_operation_rejects_stale_local_state",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_unattached_native_upload_cleanup_remains_available",
+        "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_native_task_upload_can_be_removed_without_archiving"
       ]
     },
     "draft-expense-correction-20261014": {

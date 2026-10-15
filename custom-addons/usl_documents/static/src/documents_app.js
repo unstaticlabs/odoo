@@ -35,6 +35,8 @@ import { getDefaultConfig } from "@web/views/view";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 import {DocumentPreview} from "@usl_documents/document_preview";
 
+import { DocumentBatchDialog } from "./document_batch";
+
 const FILTER_DEFAULTS = {
     companyId: "",
     tagIds: [],
@@ -398,6 +400,7 @@ export class DocumentsWorkspaceView extends Component {
                     ? restored.pageSize
                     : DEFAULT_PAGE_SIZE,
             documents: [],
+            batchIds: [],
             selected: null,
             selectedLoading: false,
             reviewing: false,
@@ -406,6 +409,7 @@ export class DocumentsWorkspaceView extends Component {
             operation: null,
             failedOperations: [],
             canUpload: false,
+            canEditMetadata: false,
             truncated: false,
             warnings: [],
             semanticRefining: false,
@@ -1068,6 +1072,10 @@ export class DocumentsWorkspaceView extends Component {
                     MAX_PAGE_SIZE,
                     Math.max(1, Number(limit) || this.state.pageSize)
                 );
+                const nextPage = Math.floor(offset / pageSize) + 1;
+                if (nextPage !== this.state.page || pageSize !== this.state.pageSize) {
+                    this.state.batchIds = [];
+                }
                 this.state.pageSize = pageSize;
                 this.state.page = Math.floor(offset / pageSize) + 1;
                 const windowStart = Number(offset) - this.resultWindowOffset;
@@ -1778,6 +1786,8 @@ export class DocumentsWorkspaceView extends Component {
             this.resultWindowComplete = false;
         }
         this.state.documents = result.documents;
+        const visibleIds = new Set(result.documents.map((document) => document.id));
+        this.state.batchIds = this.state.batchIds.filter((id) => visibleIds.has(id));
         this.state.count = result.count;
         this.state.page = Number(result.page) || this.state.page;
         this.state.pageSize = Math.min(
@@ -1797,6 +1807,7 @@ export class DocumentsWorkspaceView extends Component {
             this.workspaceMetadataLoaded = true;
         }
         this.state.canUpload = Boolean(result.can_upload);
+        this.state.canEditMetadata = Boolean(result.can_edit_metadata);
         this.state.failedOperations = result.failed_operations || [];
         if (!this.state.operation && result.active_operation) {
             this.state.operation = result.active_operation;
@@ -1820,10 +1831,53 @@ export class DocumentsWorkspaceView extends Component {
         }
     }
 
+    batchSelectionLabel(document) {
+        return _t("Select %s", document.name);
+    }
+
+    toggleBatchDocument(document) {
+        this.batchSelectionScope = JSON.stringify(this.workspaceKwargs({ includeWorkspaceMetadata: false }));
+        const ids = new Set(this.state.batchIds);
+        if (ids.has(document.id)) { ids.delete(document.id); } else { ids.add(document.id); }
+        this.state.batchIds = [...ids];
+    }
+
+    selectBatchPage() {
+        this.batchSelectionScope = JSON.stringify(this.workspaceKwargs({ includeWorkspaceMetadata: false }));
+        this.state.batchIds = this.state.documents.map((document) => document.id);
+    }
+
+    editBatchMetadata() {
+        const documents = this.state.documents.filter((document) => this.state.batchIds.includes(document.id))
+            .map((document) => ({ id: document.id, name: document.name }));
+        if (!documents.length) { return; }
+        this.dialog.add(DocumentBatchDialog, {
+            documents, tags: this.state.tags, correspondents: this.state.correspondents,
+            documentTypes: this.state.documentTypes,
+            apply: (id, operation, ids) => this.rpc("usl.document", "apply_batch_archive_metadata", [[id], operation, ids]),
+            refresh: () => this.refreshBatchMetadata(),
+        });
+    }
+
+    async refreshBatchMetadata() {
+        await this.load();
+        if (this.state.error) { return; }
+        const lastPage = Math.max(1, Math.ceil(this.state.count / this.state.pageSize));
+        if (this.state.page > lastPage) {
+            // A chosen field can move edited documents out of the active filter.
+            // Keep that filter and reach an existing page instead of a dead end.
+            this.state.page = lastPage;
+            await this.load();
+        }
+    }
+
     async load() {
         if (this.state.sort === "semantic" && !this.hasSemanticSearch()) {
             this.state.sort = "recent";
         }
+        const selectionScope = JSON.stringify(this.workspaceKwargs({ includeWorkspaceMetadata: false }));
+        if (selectionScope !== this.batchSelectionScope) { this.state.batchIds = []; }
+        this.batchSelectionScope = selectionScope;
         const loadToken = ++this.workspaceLoadToken;
         const progressive = this.hasProgressiveSemanticSearch();
         const includeWorkspaceMetadata = !this.workspaceMetadataLoaded;
