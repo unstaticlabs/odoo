@@ -1628553,6 +1628553,21 @@
       ]
     },
     {
+      "digest": "a121831bb61bc7d4b48b286c1a25e1c6b7d42e27a70ed93c2522f2127d14ab49",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_github_reference.py:project.task._usl_migrate_github_references:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 36,
+          "path": "custom-addons/usl_project/models/task_github_reference.py"
+        }
+      ]
+    },
+    {
       "digest": "34dd55e9158f2060bc13eab38473887fc494c9aa476d761e799b0503175d1154",
       "key": "sink:usl_project:custom-addons/usl_project/models/task_swimlane.py:project.task.action_move_kanban_cell:orm_write:1",
       "kind": "sink",

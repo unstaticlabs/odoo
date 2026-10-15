@@ -75,4 +75,30 @@
             </field>
         </field>
     </record>
+    <record id="project_task_form_github_reference" model="ir.ui.view">
+        <field name="name">project.task.form.github.reference</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_form2"/>
+        <field name="arch" type="xml">
+            <field name="tag_ids" position="after">
+                <field name="github_url" widget="url" placeholder="GitHub issue or pull request URL"/>
+            </field>
+            <field name="task_properties" position="attributes">
+                <attribute name="widget">usl_task_properties</attribute>
+            </field>
+        </field>
+    </record>
+    <record id="project_task_kanban_github_reference" model="ir.ui.view">
+        <field name="name">project.task.kanban.github.reference</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//t[@t-name='card']//field[@name='task_properties']" position="before">
+                <field name="github_url" widget="url" text="GitHub" t-if="record.github_url.raw_value" class="small"/>
+            </xpath>
+            <xpath expr="//t[@t-name='card']//field[@name='task_properties']" position="attributes">
+                <attribute name="widget">usl_task_properties</attribute>
+            </xpath>
+        </field>
+    </record>
 </odoo>
