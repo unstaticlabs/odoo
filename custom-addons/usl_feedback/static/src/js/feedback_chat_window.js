@@ -235,16 +235,25 @@ export class FeedbackChatWindow extends Component {
         }
     }
 
+    restoreNativeFocus() {
+        this.ui.deactivateElement(this.rootRef.el);
+        const container = this.ui.activeElement;
+        let focusTarget = this.focusToRestore;
+        if (!focusTarget?.isConnected || !container?.contains(focusTarget)) {
+            focusTarget = container?.isConnected
+                ? getFirstAndLastTabableElements(container)[0] || container : undefined;
+        }
+        focusTarget?.focus();
+    }
+
+    fold() {
+        this.restoreNativeFocus();
+        this.feedbackChatWindow.fold();
+    }
+
     close() {
         if (this.restoreReactivatedFocus) {
-            this.ui.deactivateElement(this.rootRef.el);
-            const container = this.ui.activeElement;
-            let focusTarget = this.focusToRestore;
-            if (!focusTarget?.isConnected || !container?.contains(focusTarget)) {
-                focusTarget = container?.isConnected
-                    ? getFirstAndLastTabableElements(container)[0] || container : undefined;
-            }
-            focusTarget?.focus();
+            this.restoreNativeFocus();
         }
         this.feedbackChatWindow.close();
     }

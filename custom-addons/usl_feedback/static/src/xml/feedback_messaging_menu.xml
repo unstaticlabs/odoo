@@ -253,7 +253,7 @@
                     captureState="this.feedbackChatWindow.captureState"
                     clearScreenshot="() => this.feedbackChatWindow.clearScreenshot()"
                     close.bind="this.close"
-                    fold="() => this.feedbackChatWindow.fold()"
+                    fold="() => this.fold()"
                     isSmall="this.ui.isSmall"
                     pageContext="this.feedbackChatWindow.pageContext"
                     refreshContext="() => this.feedbackChatWindow.captureCurrentPage()"

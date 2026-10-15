@@ -13,6 +13,7 @@ the first suggestion is **Send product feedback**, including while a modal is op
 Press Enter to start, or search for another native command. The palette
 keeps its normal search commands and shortcut. Reopening a folded conversation
 above a later dialog preserves its current draft and keeps Feedback interactive.
+Folding or closing that window returns keyboard navigation to the retained dialog.
 
 The page-preview thumbnail is compact and expandable, with sharing choices
 above it so the optional image never pushes those controls out of sight.

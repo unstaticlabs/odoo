@@ -1013,6 +1013,15 @@ test("reopening folded feedback reclaims native dialog focus without losing its 
         expect(ui.activeElement).toBe(root);
         expect(root).toHaveClass("o-usl-FeedbackChatWindow-active");
         expect("#usl_feedback_message").toHaveValue("[QA] Keep this existing draft");
+        await contains(".o-usl-FeedbackPanel-fold").click();
+        await waitFor(".o-usl-FeedbackChatWindow.d-none");
+        expect(ui.activeElement).toBe(modal);
+        await press("Tab");
+        expect(document.activeElement.closest(".o_dialog")).not.toBe(null);
+        await contains(".o-usl-FeedbackChatBubble-button").click();
+        await animationFrame();
+        expect(ui.activeElement).toBe(root);
+        expect("#usl_feedback_message").toHaveValue("[QA] Keep this existing draft");
         await contains(".o-usl-FeedbackPanel-close").click();
         await waitForNone(".o-usl-FeedbackChatWindow");
         expect(ui.activeElement).toBe(modal);
