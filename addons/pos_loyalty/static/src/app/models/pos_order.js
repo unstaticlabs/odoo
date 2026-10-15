@@ -99,6 +99,9 @@ patch(PosOrder.prototype, {
     },
     restoreState(vals) {
         super.restoreState(...arguments);
+        // The state may have been stored before pos_loyalty was installed
+        this.uiState.codeActivatedProgramRules ||= [];
+        this.uiState.couponPointChanges ||= {};
         this.uiState.disabledRewards = new Set(vals?.disabledRewards || []);
         for (const [key, pe] of Object.entries(this.uiState.couponPointChanges)) {
             if (!this.models["loyalty.program"].get(pe.program_id)) {
@@ -221,6 +224,28 @@ patch(PosOrder.prototype, {
             rewardLine.delete();
         }
         this._code_activated_coupon_ids = [["clear"]];
+    },
+    /**
+     * `_code_activated_coupon_ids` is a local field: it is lost when the order is
+     * rebuilt from the server or from IndexedDB, while the reward lines it justified
+     * are persisted with their `coupon_id`. Re-link those coupons so that
+     * `_updateRewardLines` does not consider their rewards unclaimed and delete them.
+     */
+    _restoreCodeActivatedCoupons() {
+        for (const line of this._get_reward_lines()) {
+            const coupon = line.coupon_id;
+            if (
+                !coupon ||
+                coupon.id <= 0 ||
+                !coupon.program_id ||
+                coupon.program_id.is_nominative ||
+                this.uiState.couponPointChanges[coupon.id] ||
+                this._code_activated_coupon_ids.some((c) => c.id === coupon.id)
+            ) {
+                continue;
+            }
+            this._code_activated_coupon_ids = [["link", coupon]];
+        }
     },
     /**
      * Refreshes the currently applied rewards, if they are not applicable anymore they are removed.
@@ -985,11 +1010,15 @@ patch(PosOrder.prototype, {
     _getDiscountableOnOrder(reward) {
         let discountable = 0;
         const discountablePerTax = {};
+        const isPaymentReward = ["ewallet", "gift_card"].includes(reward.program_id.program_type);
         for (const line of this.getOrderlines()) {
             if (!line.getQuantity()) {
                 continue;
             }
-            const taxKey = ["ewallet", "gift_card"].includes(reward.program_id.program_type)
+            if (!isPaymentReward && !line.isDiscountable()) {
+                continue;
+            }
+            const taxKey = isPaymentReward
                 ? line.tax_ids.map((t) => t.id)
                 : line.tax_ids.filter((t) => t.amount_type !== "fixed").map((t) => t.id);
             discountable += line.prices.total_included;
@@ -1008,6 +1037,7 @@ patch(PosOrder.prototype, {
         const applicableProductIds = new Set(reward.all_discount_product_ids.map((p) => p.id));
         const filtered_lines = this.getOrderlines().filter(
             (line) =>
+                line.isDiscountable() &&
                 !line.combo_parent_id &&
                 !line.reward_id &&
                 line.getQuantity() &&
@@ -1041,7 +1071,7 @@ patch(PosOrder.prototype, {
         const discountableLines = [];
         const applicableProductIds = new Set(reward.all_discount_product_ids.map((p) => p.id));
         for (const line of this.getOrderlines()) {
-            if (!line.getQuantity()) {
+            if (!line.getQuantity() || !line.isDiscountable()) {
                 continue;
             }
             if (
@@ -1067,7 +1097,7 @@ patch(PosOrder.prototype, {
         const orderProducts = orderLines.map((line) => line.product_id.id);
         const remainingAmountPerLine = {};
         for (const line of orderLines) {
-            if (!line.getQuantity() || !line.price_unit) {
+            if (!line.getQuantity() || !line.price_unit || !line.isDiscountable()) {
                 continue;
             }
             remainingAmountPerLine[line.uuid] = line.prices.total_included;
@@ -1191,6 +1221,8 @@ patch(PosOrder.prototype, {
             return _t("Unknown discount type");
         }
         let { discountable, discountablePerTax } = getDiscountable(reward);
+        // Other discounts may already cover part of the discountable lines
+        const totalFactor = discountable > 0 ? Math.min(1, this.priceIncl / discountable) : 1;
         discountable = Math.min(this.priceIncl, discountable);
         if (floatIsZero(discountable)) {
             return [];
@@ -1261,7 +1293,7 @@ patch(PosOrder.prototype, {
 
             lst.push({
                 product_id: discountProduct,
-                price_unit: -(Math.min(this.priceIncl, entry[1]) * discountFactor),
+                price_unit: -(entry[1] * totalFactor * discountFactor),
                 qty: 1,
                 reward_id: reward,
                 is_reward_line: true,

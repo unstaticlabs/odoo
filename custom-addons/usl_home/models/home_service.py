@@ -319,9 +319,10 @@ class UslHomeService(models.AbstractModel):
         self._ensure_internal()
         # ``res_access_read`` is an intentionally hidden pseudo-field whose
         # search implementation asserts a superuser environment, then drops
-        # back to the original user to evaluate the related record rules.
-        # Keep sudo limited to that native access-domain computation and read
-        # every returned field again as the current user.
+        # back to the original user to evaluate native activity permissions.
+        # Read business fields as the current user after native record filtering.
+        # Only the generic model label uses sudo: ordinary users cannot read
+        # ir.model metadata, and its translated name contains no record data.
         activities = self.env["mail.activity"].sudo().search(
             [
                 ("user_id", "=", self.env.uid),
@@ -346,7 +347,7 @@ class UslHomeService(models.AbstractModel):
                     "summary": activity.summary or activity.activity_type_id.display_name,
                     "activity_type": activity.activity_type_id.display_name,
                     "record_name": activity.res_name,
-                    "model_name": activity.res_model_id.name,
+                    "model_name": activity.res_model_id.sudo().name,
                     "res_model": activity.res_model,
                     "res_id": activity.res_id,
                     "deadline": fields.Date.to_string(activity.date_deadline),

@@ -219,7 +219,7 @@ class HrLeaveAllocation(models.Model):
     @api.depends('employee_id', 'work_entry_type_id')
     def _compute_leaves(self):
         date_from = fields.Date.today()
-        employee_days_per_allocation = self.employee_id._get_consumed_leaves(self.work_entry_type_id, date_from, ignore_future=True)[0]
+        employee_days_per_allocation = self.employee_id._get_consumed_leaves(self.work_entry_type_id, date_from)[0]
         for allocation in self:
             origin = allocation._origin
             virtual_leave = employee_days_per_allocation[origin.employee_id][origin.work_entry_type_id][origin]
@@ -1037,6 +1037,7 @@ class HrLeaveAllocation(models.Model):
             'number_of_days_display': 0.0,
             'number_of_hours_display': 0.0,
             'already_accrued': False,
+            'yearly_accrued_amount': 0,
             'carried_over_days_expiration_date': False,
             'expiring_carryover_days': 0
         }

@@ -6,8 +6,11 @@ processor keeps everything.  These are the tests for reading the accounts those
 parties keep of themselves, and for making the ledger agree with them.
 """
 
+from datetime import timedelta
 from decimal import Decimal
 
+from odoo import fields
+from odoo.exceptions import UserError, ValidationError
 from odoo.tests import tagged
 from odoo.tools.binary import BinaryBytes
 
@@ -746,3 +749,455 @@ class TestAdoptingTheReconstruction(TestWallet):
             ),
             first,
         )
+
+
+@tagged("post_install", "-at_install", "usl_b2c_ingest")
+class TestSettlementCurrency(TestWallet):
+    """A sale in one currency, settled by the processor in the company's.
+
+    The channel is immaterial to what is tested: Etsy's export states the day
+    the goods left without a supplier read, so it stands in for a shop whose
+    processor converts every sale. Every amount and rate is invented.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.suspense = cls._account("Invented suspense", "asset_current")
+        cls.bank_journal = cls.env["account.journal"].create(
+            {
+                "name": "Invented bank",
+                "code": "INVB",
+                "type": "bank",
+                "company_id": cls.company.id,
+                "default_account_id": cls._account("Invented bank account", "asset_cash").id,
+                "suspense_account_id": cls.suspense.id,
+            },
+        )
+        cls.transfer_journal = cls.env["account.journal"].create(
+            {
+                "name": "Invented transfers",
+                "code": "INVT",
+                "type": "general",
+                "company_id": cls.company.id,
+            },
+        )
+        cls.company.write(
+            {
+                "usl_b2c_bank_journal_id": cls.bank_journal.id,
+                "usl_b2c_transfer_journal_id": cls.transfer_journal.id,
+            },
+        )
+        cls.loss = cls._numbered("Invented exchange loss", "656000", "expense")
+        cls.gain = cls._numbered("Invented exchange gain", "756000", "income_other")
+        cls.usd = cls.env.ref("base.USD")
+        cls.gbp = cls.env.ref("base.GBP")
+        (cls.usd | cls.gbp).active = True
+        # One euro buys 1.10 dollars or 0.80 pounds, as far as Odoo knows.
+        for currency, rate in ((cls.usd, 1.10), (cls.gbp, 0.80)):
+            cls.env["res.currency.rate"].create(
+                {
+                    "name": "2026-01-01",
+                    "rate": rate,
+                    "currency_id": currency.id,
+                    "company_id": cls.company.id,
+                },
+            )
+        cls.channel = cls.channels["etsy"]
+        cls.channel.write(
+            {
+                "processor_provider": "stripe",
+                "settlement_currency_id": cls.company.currency_id.id,
+            },
+        )
+        cls.lantern = cls.env["product.template"].create(
+            {
+                "name": "Invented Lantern",
+                "type": "consu",
+                "list_price": 0.0,
+                "taxes_id": [(6, 0, cls.home_tax.ids)],
+                "property_account_income_id": cls.income.id,
+            },
+        ).product_variant_ids
+        cls.env["b2c.product.alias"].create(
+            {
+                "company_id": cls.company.id,
+                "channel_id": cls.channel.id,
+                "source_provider": "etsy",
+                "product_id": cls.lantern.id,
+                "mapping_state": "verified",
+                "original_sku": "FICTION-LANTERN-AMBER",
+                "original_name": "Invented Lantern",
+                "original_variation": "Color:Amber",
+            },
+        )
+
+    @classmethod
+    def _numbered(cls, name, code, account_type):
+        found = cls.env["account.account"].with_company(cls.company).search(
+            [("company_ids", "in", cls.company.id), ("code", "=", code)], limit=1,
+        )
+        return found or cls.env["account.account"].create(
+            {
+                "name": name,
+                "code": code,
+                "account_type": account_type,
+                "company_ids": [(6, 0, cls.company.ids)],
+            },
+        )
+
+    # -- the drops ---------------------------------------------------------
+
+    @staticmethod
+    def _orders(currency, total, *, order_id="9000000101", shipped=True, status="Completed"):
+        order = {
+            "Sale Date": "03/12/26",
+            "Order ID": order_id,
+            "Buyer User ID": f"buyer-{order_id}",
+            "Full Name": "Invented Converted Buyer",
+            "Number of Items": "1",
+            "Date Shipped": "03/13/26" if shipped else "",
+            "Street 1": "9 Imaginary Avenue",
+            "Ship City": "Springfield",
+            "Ship State": "IL",
+            "Ship Zipcode": "62704",
+            "Ship Country": "United States",
+            "Currency": currency,
+            "Order Value": total,
+            "Discount Amount": "0.00",
+            "Shipping Discount": "0.00",
+            "Shipping": "0.00",
+            "Sales Tax": "0",
+            "Order Total": total,
+            "Card Processing Fees": "0.00",
+            "Order Net": total,
+            "Adjusted Order Total": "0.00",
+            "Adjusted Card Processing Fees": "0.00",
+            "Adjusted Net Order Amount": "0.00",
+            "Status": status,
+        }
+        item = {
+            "Sale Date": "03/12/26",
+            "Item Name": "Invented Lantern",
+            "Quantity": "1",
+            "Price": total,
+            "Discount Amount": "0.00",
+            "Shipping Discount": "0.00",
+            "Order Shipping": "0.00",
+            "Order Sales Tax": "0",
+            "Item Total": total,
+            "Currency": currency,
+            "Transaction ID": f"7{order_id[1:]}",
+            "Listing ID": "6000000101",
+            "Date Paid": "03/12/2026",
+            "Date Shipped": "03/13/2026" if shipped else "",
+            "Ship Name": "Invented Converted Buyer",
+            "Ship Address1": "9 Imaginary Avenue",
+            "Ship City": "Springfield",
+            "Ship Country": "United States",
+            "Order ID": order_id,
+            "Variations": "Color:Amber",
+            "VAT Paid by Buyer": "0",
+            "SKU": "FICTION-LANTERN-AMBER",
+        }
+        return {
+            "etsy-orders.csv": fixtures.etsy_orders((order,)),
+            "etsy-items.csv": fixtures.etsy_order_items((item,)),
+        }
+
+    @staticmethod
+    def _entry(key, kind, amount, fee, created, *, facing=None, transfer="po_9000000101"):
+        """Return one balance transaction, in Stripe's own decimal comma."""
+        def comma(value):
+            return f"{value:.2f}".replace(".", ",")
+
+        row = {
+            "id": key,
+            "Type": kind,
+            "Source": f"src_{key}",
+            "Amount": comma(amount),
+            "Fee": comma(fee),
+            "Net": comma(amount - fee),
+            "Currency": "eur",
+            "Created (UTC)": created,
+            "Available On (UTC)": created,
+            "Transfer": transfer,
+        }
+        if facing:
+            row["Customer Facing Amount"] = f"{facing[0]:.2f}"
+            row["Customer Facing Currency"] = facing[1]
+        return row
+
+    def _statement(self, *entries):
+        return {"stripe.csv": fixtures.stripe_balance_history(entries, facing=True)}
+
+    def _dollar_statement(self):
+        """Stripe took USD 100.00 as EUR 88.00, kept 2.00 and paid out the rest."""
+        return self._statement(
+            self._entry("txn_9000000101", "charge", 88, 2, "2026-03-12 10:00",
+                        facing=(100, "usd")),
+            self._entry("txn_9000000102", "payout", -86, 0, "2026-03-31 00:30"),
+        )
+
+    def _settled(self, **files):
+        batch = self._batch(**files)
+        batch.action_parse()
+        batch.action_resolve()
+        batch.action_apply()
+        batch.action_settle()
+        return batch
+
+    def _balance(self, account):
+        return round(
+            sum(
+                self.env["account.move.line"].search(
+                    [
+                        ("company_id", "=", self.company.id),
+                        ("account_id", "=", account.id),
+                        ("parent_state", "=", "posted"),
+                    ],
+                ).mapped("balance"),
+            ),
+            2,
+        )
+
+    def _conversions(self):
+        return self.env["b2c.processor.conversion"].search(
+            [("company_id", "=", self.company.id)],
+        )
+
+    def _sale_of(self, order_id="9000000101"):
+        return self.env["sale.order"].search(
+            [("company_id", "=", self.company.id), ("client_order_ref", "=", order_id)],
+        )
+
+    # -- where a foreign receipt is held -----------------------------------
+
+    def test_a_dollar_sale_is_held_in_the_currency_the_channel_settles_in(self):
+        batch = self._settled(**self._orders("USD", "100.00"))
+        invoice = self._sale_of().invoice_ids
+        self.assertEqual(invoice.currency_id, self.usd)
+        self.assertEqual(invoice.payment_state, "paid")
+        payment = invoice.matched_payment_ids
+        self.assertEqual(payment.journal_id, self.journal)
+        self.assertEqual(payment.currency_id, self.usd)
+        self.assertTrue(batch.invoiced_move_ids)
+        # USD 100.00 at Odoo's 1.10 is EUR 90.91, waiting for Stripe's figure.
+        self.assertAlmostEqual(self._balance(self.clearing), 90.91, places=2)
+
+    def test_the_conversion_brings_the_clearing_account_back_to_nothing(self):
+        self._settled(**self._orders("USD", "100.00"), **self._dollar_statement())
+        self.assertEqual(self._sale_of().invoice_ids.payment_state, "paid")
+        self.assertAlmostEqual(self._balance(self.clearing), 0.00, places=2)
+        # Odoo held 90.91 and Stripe made 88.00 of it: 2.91 lost on exchange.
+        self.assertAlmostEqual(self._balance(self.loss), 2.91, places=2)
+        self.assertAlmostEqual(self._balance(self.gain), 0.00, places=2)
+        conversion = self._conversions()
+        self.assertEqual(len(conversion), 1)
+        self.assertEqual(conversion.facing_currency_id, self.usd)
+        self.assertAlmostEqual(conversion.stated_amount, 88.00, places=2)
+        self.assertAlmostEqual(conversion.recorded_amount, 90.91, places=2)
+
+    def test_the_statement_may_arrive_before_the_orders(self):
+        first = self._settled(**self._dollar_statement())
+        self.assertTrue(
+            first.issue_ids.filtered(lambda issue: issue.kind == "processor_charge_unmatched"),
+        )
+        self.assertFalse(self._conversions())
+        later = self._settled(**self._orders("USD", "100.00"))
+        self.assertFalse(
+            later.issue_ids.filtered(lambda issue: issue.kind == "processor_charge_unmatched"),
+        )
+        # The drop that raised it no longer says so either: the payment it
+        # named has been converted.
+        self.assertFalse(
+            first.issue_ids.filtered(lambda issue: issue.kind == "processor_charge_unmatched"),
+        )
+        self.assertAlmostEqual(self._balance(self.clearing), 0.00, places=2)
+        self.assertAlmostEqual(self._balance(self.loss), 2.91, places=2)
+
+    def test_settling_again_converts_nothing_twice(self):
+        batch = self._settled(**self._orders("USD", "100.00"), **self._dollar_statement())
+        conversions = self._conversions()
+        moves = self.env["account.move"].search_count([("company_id", "=", self.company.id)])
+        batch.action_settle()
+        again = self._settled(**self._dollar_statement())
+        self.assertEqual(self._conversions(), conversions)
+        # Nor does losing the record of it: the entry is what the ledger knows.
+        conversions.sudo().unlink()
+        again.action_convert_receipts()
+        self.assertFalse(self._conversions())
+        self.assertEqual(
+            self.env["account.move"].search_count([("company_id", "=", self.company.id)]),
+            moves,
+        )
+        self.assertFalse(
+            again.issue_ids.filtered(lambda issue: issue.kind == "processor_charge_unmatched"),
+        )
+        self.assertAlmostEqual(self._balance(self.clearing), 0.00, places=2)
+
+    def test_a_refunded_sterling_sale_leaves_nothing_behind(self):
+        """GBP 80.00 is EUR 100.00 to Odoo; Stripe made 92.00 and gave back 90.50."""
+        self._settled(
+            **self._orders("GBP", "80.00"),
+            **self._statement(
+                self._entry("txn_9000000201", "charge", 92, 1.5, "2026-03-12 10:00",
+                            facing=(80, "gbp"), transfer=""),
+            ),
+        )
+        today = fields.Date.context_today(self.env.user)
+        refunded = self._settled(
+            **self._orders("GBP", "80.00", status="Refunded"),
+            **self._statement(
+                self._entry("txn_9000000202", "refund", -90.5, 0, f"{today} 10:00",
+                            facing=(-80, "gbp"), transfer=""),
+            ),
+        )
+        self.assertEqual(refunded.credit_note_ids.payment_state, "paid")
+        self.assertEqual(len(self._conversions()), 2)
+        # 100.00 in, 8.00 lost converting it, 1.50 kept, 100.00 back out, and
+        # 9.50 gained because Stripe gave back less than Odoo said it would.
+        self.assertAlmostEqual(self._balance(self.clearing), 0.00, places=2)
+        self.assertAlmostEqual(self._balance(self.loss), 8.00, places=2)
+        self.assertAlmostEqual(self._balance(self.gain), -9.50, places=2)
+
+    def test_a_refund_read_weeks_after_stripe_made_it_is_still_converted(self):
+        """The drop that says a sale was refunded runs when somebody drops it.
+
+        Its refund is dated that day, which can be long after Stripe gave the
+        money back. GBP 80.00 is EUR 100.00 to Odoo either way.
+        """
+        self._settled(
+            **self._orders("GBP", "80.00"),
+            **self._statement(
+                self._entry("txn_9000000301", "charge", 92, 1.5, "2026-03-12 10:00",
+                            facing=(80, "gbp"), transfer=""),
+            ),
+        )
+        today = fields.Date.context_today(self.env.user)
+        refunded_on = today - timedelta(days=30)
+        refunded = self._settled(
+            **self._orders("GBP", "80.00", status="Refunded"),
+            **self._statement(
+                self._entry("txn_9000000302", "refund", -90.5, 0, f"{refunded_on} 10:00",
+                            facing=(-80, "gbp"), transfer=""),
+            ),
+        )
+        self.assertFalse(
+            refunded.issue_ids.filtered(lambda issue: issue.kind == "processor_charge_unmatched"),
+        )
+        refund = self._conversions().filtered(lambda item: item.entry_key == "txn_9000000302")
+        self.assertEqual(refund.occurred_on, refunded_on)
+        # Posted the day the refund reached the ledger, not before it existed.
+        self.assertEqual(refund.move_id.date, today)
+        self.assertAlmostEqual(self._balance(self.clearing), 0.00, places=2)
+        self.assertAlmostEqual(self._balance(self.gain), -9.50, places=2)
+
+    def test_a_refund_with_no_receipt_says_how_to_register_one(self):
+        batch = self._batch(
+            **self._statement(
+                self._entry("txn_9000000401", "refund", -45.25, 0, "2026-03-20 10:00",
+                            facing=(-40, "gbp"), transfer=""),
+            ),
+        )
+        batch.action_parse()
+        batch.action_resolve()
+        batch.action_apply()
+        batch.action_convert_receipts()
+        finding = batch.issue_ids.filtered(
+            lambda issue: issue.kind == "processor_charge_unmatched",
+        )
+        self.assertIn("txn_9000000401", finding.note)
+        self.assertIn("register its refund", finding.note)
+        self.assertNotIn("within", finding.note)
+
+    def test_an_advance_converted_before_the_goods_left_still_clears(self):
+        self._settled(
+            **self._orders("USD", "100.00", shipped=False),
+            **self._dollar_statement(),
+        )
+        sale = self._sale_of()
+        self.assertFalse(sale.invoice_ids)
+        self.assertEqual(len(self._conversions()), 1)
+        self.assertAlmostEqual(self._balance(self.clearing), 0.00, places=2)
+
+        shipped = self._settled(**self._orders("USD", "100.00"))
+        invoice = sale.invoice_ids
+        self.assertEqual(invoice, shipped.invoiced_move_ids)
+        self.assertIn(invoice.payment_state, ("paid", "in_payment"))
+        advance = self.env["account.payment"].search(
+            [("company_id", "=", self.company.id), ("memo", "=", "etsy:advance:9000000101")],
+        )
+        self.assertTrue(advance.is_reconciled)
+        self.assertAlmostEqual(self._balance(self.clearing), 0.00, places=2)
+
+    # -- what stays as it was ----------------------------------------------
+
+    def test_a_channel_that_settles_in_no_one_currency_still_refuses_a_dollar_sale(self):
+        self.channel.settlement_currency_id = False
+        batch = self._batch(**self._orders("USD", "100.00"))
+        batch.action_parse()
+        batch.action_resolve()
+        batch.action_apply()
+        with self.assertRaises(UserError) as caught:
+            batch.action_invoice()
+        self.assertIn("names no clearing journal for USD", str(caught.exception))
+
+    def test_a_channel_that_settles_in_no_one_currency_uses_its_dollar_journal(self):
+        self.channel.settlement_currency_id = False
+        dollars = self.env["account.journal"].create(
+            {
+                "name": "Invented clearing USD",
+                "code": "INVD",
+                "type": "bank",
+                "company_id": self.company.id,
+                "currency_id": self.usd.id,
+                "default_account_id": self._account(
+                    "Invented clearing USD", "asset_current",
+                ).id,
+            },
+        )
+        self.channel.clearing_journal_ids = [(4, dollars.id)]
+        batch = self._batch(**self._orders("USD", "100.00"))
+        batch.action_parse()
+        batch.action_resolve()
+        batch.action_apply()
+        batch.action_invoice()
+        self.assertEqual(self._sale_of().invoice_ids.matched_payment_ids.journal_id, dollars)
+
+    def test_a_channel_settles_only_in_the_currency_the_books_are_kept_in(self):
+        with self.assertRaises(ValidationError):
+            self.channel.settlement_currency_id = self.usd
+
+    # -- what is reported instead of posted ---------------------------------
+
+    def test_a_converted_payment_with_no_receipt_is_reported_and_posts_nothing(self):
+        batch = self._batch(**self._dollar_statement())
+        batch.action_parse()
+        batch.action_resolve()
+        batch.action_apply()
+        moves = self.env["account.move"].search_count([("company_id", "=", self.company.id)])
+        batch.action_convert_receipts()
+        finding = batch.issue_ids.filtered(
+            lambda issue: issue.kind == "processor_charge_unmatched",
+        )
+        self.assertEqual(finding.severity, "advisory")
+        self.assertIn("txn_9000000101", finding.note)
+        self.assertFalse(self._conversions())
+        self.assertEqual(
+            self.env["account.move"].search_count([("company_id", "=", self.company.id)]),
+            moves,
+        )
+
+    def test_a_conversion_in_a_closed_month_is_reported_not_posted(self):
+        self._settled(**self._orders("USD", "100.00"))
+        self.company.fiscalyear_lock_date = "2026-03-31"
+        batch = self._settled(**self._dollar_statement())
+        finding = batch.issue_ids.filtered(
+            lambda issue: issue.kind == "conversion_period_closed",
+        )
+        self.assertTrue(finding)
+        self.assertIn("2.91", finding.note)
+        self.assertFalse(self._conversions())
+        self.assertAlmostEqual(self._balance(self.loss), 0.00, places=2)
+        self.company.fiscalyear_lock_date = False

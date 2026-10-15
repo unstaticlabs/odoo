@@ -1027,7 +1027,7 @@ describe("Toolbar", () => {
         );
         await removeFormatClick();
         expect(getContent(el)).toBe(
-            `<p data-selection-placeholder=""><br></p><table class="table table-bordered o_table o_selected_table"><tbody><tr><td style="" class="o_selected_td"><p>[<br></p></td><td style="" class="o_selected_td"><p>]<br></p></td></tr></tbody></table><p data-selection-placeholder="" style="margin: -9px 0px 8px;"><br></p>`
+            `<p data-selection-placeholder=""><br></p><table class="table table-bordered o_table o_selected_table"><tbody><tr><td class="o_selected_td"><p>[<br></p></td><td class="o_selected_td"><p>]<br></p></td></tr></tbody></table><p data-selection-placeholder="" style="margin: -9px 0px 8px;"><br></p>`
         );
     });
 
@@ -1233,6 +1233,28 @@ describe("typography classes", () => {
                 <div class="h3">vwx]</div>
             `),
         });
+    });
+
+    test("should do nothing when removing format on selection in block default class", async () => {
+        await testEditor({
+            contentBefore: '<h2 class="display-3-fs">a<span class="h2">[b]</span>c</h2>',
+            stepFunction: (editor) => execCommand(editor, "removeFormat"),
+            contentAfter: '<h2 class="display-3-fs">a<span class="h2">[b]</span>c</h2>',
+        });
+    });
+
+    test("should disable remove format button after applying block default class", async () => {
+        const { el } = await setupEditor('<h2 class="display-3-fs">Hello [Odoo]</h2>');
+        await expandToolbar();
+        expect(".btn[name='remove_format']").not.toHaveAttribute("disabled");
+
+        await click(".btn[name='remove_format']");
+        await waitFor(".btn[name='remove_format'][disabled]");
+
+        expect(".btn[name='remove_format']").toHaveAttribute("disabled");
+        expect(getContent(el)).toBe(
+            '<h2 class="display-3-fs">Hello <span class="h2">[Odoo]</span></h2>'
+        );
     });
 });
 

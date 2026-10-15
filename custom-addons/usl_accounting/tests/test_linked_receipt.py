@@ -8,6 +8,7 @@ from odoo.addons.queue_job.exception import RetryableJobError
 from odoo.addons.queue_job.job import Job
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
+from odoo.tools import config
 
 from odoo.addons.hr_expense.tests.common import TestExpenseCommon
 
@@ -494,7 +495,7 @@ class TestLinkedReceipt(TestExpenseCommon):
         with self.assertRaises(AccessError):
             retrieval.with_user(outsider).action_select_candidate(candidate["fingerprint"])
 
-    def test_authenticated_handoff_action_exposes_only_an_internal_url(self):
+    def test_authenticated_handoff_action_exposes_only_internal_identifiers(self):
         expense, retrieval, _candidate = self._authentication_retrieval()
 
         with patch.object(type(retrieval), "_feature_enabled", return_value=True):
@@ -502,14 +503,24 @@ class TestLinkedReceipt(TestExpenseCommon):
                 self.expense_user_employee
             ).action_open_linked_receipt_website()
 
-        self.assertEqual(action["type"], "ir.actions.act_url")
-        self.assertEqual(action["target"], "new")
-        self.assertEqual(
-            action["url"],
-            f"/usl/expenses/linked-receipt/{retrieval.id}/open",
-        )
+        self.assertEqual(action["type"], "ir.actions.client")
+        self.assertEqual(action["params"], {
+            "retrieval_id": retrieval.id, "generation": retrieval.generation,
+        })
         self.assertNotIn("https://", str(action))
         self.assertNotIn("authentication-handoff", str(action))
+
+    def test_owned_handoff_action_opens_authenticated_post_without_an_interstitial(self):
+        expense, retrieval, _candidate = self._authentication_retrieval()
+        with patch.object(type(retrieval), "_feature_enabled", return_value=True):
+            action = expense.with_user(self.expense_user_employee).action_open_linked_receipt_website()
+        self.assertEqual(action["type"], "ir.actions.client")
+        self.assertEqual(action["tag"], "usl_linked_receipt_handoff")
+        self.assertEqual(action["params"]["generation"], retrieval.generation)
+        self.assertEqual(action["params"]["retrieval_id"], retrieval.id)
+        self.assertNotIn("https://", str(action))
+        self.assertNotIn("authentication-handoff", str(action))
+        self.assertFalse(retrieval.handoff_open_count)
 
     def test_only_expense_owner_can_consume_authenticated_handoff(self):
         _expense, retrieval, candidate = self._authentication_retrieval(
@@ -650,6 +661,109 @@ class TestLinkedReceipt(TestExpenseCommon):
         self.assertNotIn("https://", serialized)
         self.assertNotIn("first-secret-token-value", serialized)
 
+    def test_stale_queued_receipt_can_retry_and_old_job_cannot_start(self):
+        _expense, retrieval, _candidate = self._authentication_retrieval(token="qa-stale-queue")
+        with patch.object(type(retrieval), "_feature_enabled", return_value=True):
+            retrieval._enqueue()
+            old_generation = retrieval.generation
+            old_job = self.env["queue.job"].sudo().search([
+                ("identity_key", "=", f"receipt-fetch:{retrieval.id}:{old_generation}"),
+            ], limit=1)
+            self.assertTrue(old_job)
+            retrieval.flush_recordset()
+            self.env.cr.execute(
+                "UPDATE usl_mail_pdf_retrieval SET write_date = %s WHERE id = %s",
+                (fields.Datetime.subtract(fields.Datetime.now(), minutes=31), retrieval.id),
+            )
+            retrieval.invalidate_recordset()
+            self.assertTrue(retrieval.with_user(self.expense_user_employee).action_retry())
+            self.assertEqual(retrieval.generation, old_generation + 1)
+            with patch.object(type(retrieval), "_fetcher_request") as fetch:
+                retrieval.with_context(job_uuid=old_job.uuid)._job_fetch_receipt()
+            fetch.assert_not_called()
+        self.assertEqual(retrieval.state, "queued")
+        self.assertEqual(retrieval.attempt_count, 0)
+        self.assertFalse(retrieval.attachment_id)
+
+    def test_fresh_queued_receipt_cannot_be_requeued(self):
+        _expense, retrieval, _candidate = self._authentication_retrieval(token="qa-fresh-queue")
+        with patch.object(type(retrieval), "_feature_enabled", return_value=True):
+            retrieval._enqueue()
+            generation = retrieval.generation
+            with self.assertRaises(UserError), self.env.cr.savepoint():
+                retrieval.with_user(self.expense_user_employee).action_retry()
+        self.assertEqual(retrieval.generation, generation)
+        self.assertEqual(retrieval.state, "queued")
+
+    def test_late_running_completion_after_retry_cannot_attach_old_generation(self):
+        expense, retrieval, _candidate = self._authentication_retrieval(token="qa-late-completion")
+        content = b"%PDF-1.4\n[QA] Late receipt\n%%EOF\n"
+        generation = retrieval.generation
+
+        def delayed_completion(_url, _candidate):
+            # A duplicate/dead-worker recovery can mark the same generation
+            # failed while the original worker is still returning its result.
+            retrieval._register_terminal_failure(ReceiptFetchError("fetch_failed", "[QA] Worker failed"))
+            retrieval.with_user(self.expense_user_employee).action_retry()
+            return content, "qa-receipt.pdf", hashlib.sha256(content).hexdigest(), {}
+
+        with patch.object(type(retrieval), "_feature_enabled", return_value=True), patch.object(
+            type(retrieval), "_fetcher_request", side_effect=delayed_completion,
+        ):
+            retrieval._job_fetch_receipt()
+        self.assertEqual(retrieval.generation, generation + 1)
+        self.assertEqual(retrieval.state, "queued")
+        self.assertFalse(retrieval.attachment_id)
+        self.assertFalse(expense.message_main_attachment_id)
+
+    def test_long_queue_wait_is_observable_and_still_completes_natively(self):
+        expense, retrieval, _candidate = self._authentication_retrieval(token="qa-valid-backlog")
+        content = b"%PDF-1.4\n[QA] Backlog receipt\n%%EOF\n"
+        with patch.object(type(retrieval), "_feature_enabled", return_value=True), patch.dict(
+            config.options, {"server_wide_modules": ["web", "queue_job"]},
+        ), patch.dict("os.environ", {"ODOO_QUEUE_JOB_CHANNELS": "root:4,root.receipt_fetch:2"}):
+            retrieval.with_user(self.expense_user_employee).action_retry()
+            generation = retrieval.generation
+            retrieval.flush_recordset()
+            self.env.cr.execute(
+                "UPDATE usl_mail_pdf_retrieval SET write_date = %s WHERE id = %s",
+                (fields.Datetime.subtract(fields.Datetime.now(), minutes=31), retrieval.id),
+            )
+            retrieval.invalidate_recordset()
+            health = retrieval.with_user(self.expense_user_employee)._queue_health()
+            self.assertEqual(health["queued_count"], 1)
+            self.assertEqual(health["stale_count"], 1)
+            self.assertGreaterEqual(health["oldest_wait_minutes"], 30)
+            self.assertEqual(health["runtime_status"], "waiting")
+            self.assertEqual(retrieval.generation, generation)
+            self.assertEqual(retrieval.state, "queued")
+            self.assertFalse(retrieval.failure_code)
+            with patch.object(type(retrieval), "_fetcher_request", return_value=(
+                content, "qa-backlog.pdf", hashlib.sha256(content).hexdigest(), {},
+            )):
+                retrieval._job_fetch_receipt()
+        self.assertEqual(retrieval.state, "succeeded")
+        self.assertEqual(retrieval.generation, generation)
+        self.assertEqual(retrieval.attempt_count, 1)
+        self.assertTrue(retrieval.last_attempt_at)
+        self.assertEqual(bytes(retrieval.attachment_id.raw), content)
+        self.assertEqual(expense.message_main_attachment_id, retrieval.attachment_id)
+
+    def test_paused_or_disabled_queue_diagnostics_never_enable_or_cancel_work(self):
+        _expense, retrieval, _candidate = self._authentication_retrieval(token="qa-paused-queue")
+        with patch.object(type(retrieval), "_feature_enabled", return_value=True):
+            retrieval._enqueue()
+            generation = retrieval.generation
+            with patch.dict("os.environ", {"ODOO_QUEUE_JOB_CHANNELS": "root:0"}):
+                self.assertEqual(retrieval._queue_health()["runtime_status"], "paused")
+            with patch.dict("os.environ", {"USL_PRODUCTION_CANDIDATE_QUARANTINED": "1"}):
+                self.assertEqual(retrieval._queue_health()["runtime_status"], "quarantined")
+        with patch.object(type(retrieval), "_feature_enabled", return_value=False):
+            self.assertEqual(retrieval._queue_health()["runtime_status"], "disabled")
+        self.assertEqual(retrieval.state, "queued")
+        self.assertEqual(retrieval.generation, generation)
+        self.assertEqual(retrieval.attempt_count, 0)
+
     def test_active_learning_matches_instance_wide_without_company_scope(self):
         expense = self._ingest()
         retrieval = self.env["usl.mail.pdf.retrieval"].sudo().search(
@@ -679,14 +793,14 @@ class TestLinkedReceipt(TestExpenseCommon):
 
     def test_active_host_auto_selects_only_an_unambiguous_generic_pdf_signature(self):
         self.env["usl.mail.pdf.host"].sudo().create(
-            {"hostname": "receipts.example.com", "state": "active"}
+            {"hostname": "generic-signature.example.invalid", "state": "active"}
         )
         Retrieval = self.env["usl.mail.pdf.retrieval"]
 
         with patch.object(type(Retrieval), "_feature_enabled", return_value=True):
             expense = self._ingest(
                 url=(
-                    "https://receipts.example.com/receipt/"
+                    "https://generic-signature.example.invalid/receipt/"
                     "9f4d9a829c45a18f.pdf?token=generic-secret"
                 )
             )

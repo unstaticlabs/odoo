@@ -2,6 +2,8 @@ from odoo import SUPERUSER_ID, Command
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
+from ..controllers.json2 import UslAgentJson2Controller
+
 
 @tagged("post_install", "-at_install", "usl_access_control")
 class TestAgentReceiptDecisions(TransactionCase):
@@ -76,6 +78,83 @@ class TestAgentReceiptDecisions(TransactionCase):
         expense.rebuild_receipt_waiver_reason = reason
         self.assertEqual(expense.rebuild_receipt_state, "missing")
         return expense
+
+    def test_agent_creates_draft_expense_despite_empty_activity_cleanup(self):
+        agent = self._create_agent()
+        context = UslAgentJson2Controller._agent_call_context(
+            context={}, agent=agent, model_name="hr.expense", method_name="create", access="write",
+        )
+        expense = self.env["hr.expense"].with_user(agent.user_id).with_context(context).create({
+            "name": "[QA] Draft preparation",
+            "employee_id": self.employee.id,
+            "product_id": self.category.id,
+            "company_id": self.company.id,
+            "payment_mode": "own_account",
+            "total_amount_currency": 42.0,
+        })
+        self.assertEqual(expense.state, "draft")
+        self.assertEqual(expense.create_uid, agent.user_id)
+        self.assertFalse(expense.account_move_id)
+
+    def test_agent_cleans_only_expense_approval_activities(self):
+        agent = self._create_agent()
+        expense = self._create_expense()
+        approval = expense.activity_schedule("hr_expense.mail_act_expense_approval", user_id=self.owner.id)
+        todo = expense.activity_schedule("mail.mail_activity_data_todo", user_id=self.owner.id)
+        other = self._create_expense()
+        unrelated = other.activity_schedule("hr_expense.mail_act_expense_approval", user_id=self.owner.id)
+        context = UslAgentJson2Controller._agent_call_context(
+            context={}, agent=agent, model_name="hr.expense", method_name="update_activities_and_mails", access="write",
+        )
+        expense.with_user(agent.user_id).with_context(context).update_activities_and_mails()
+        self.assertFalse(approval.exists())
+        self.assertTrue(todo.exists())
+        self.assertTrue(unrelated.exists())
+        with self.assertRaises(AccessError):
+            todo.with_user(agent.user_id).unlink()
+        with self.assertRaises(AccessError):
+            expense.with_user(agent.user_id).activity_unlink(["mail.mail_activity_data_todo"])
+
+    def test_agent_resets_unposted_expense_and_preserves_other_activities(self):
+        agent = self._create_agent()
+        expense = self._create_expense()
+        expense.with_user(SUPERUSER_ID).write({"approval_state": "approved"})
+        approval = expense.activity_schedule("hr_expense.mail_act_expense_approval", user_id=self.owner.id)
+        todo = expense.activity_schedule("mail.mail_activity_data_todo", user_id=self.owner.id)
+        context = UslAgentJson2Controller._agent_call_context(
+            context={}, agent=agent, model_name="hr.expense", method_name="action_reset", access="write",
+        )
+        expense.with_user(agent.user_id).with_context(context).action_reset()
+        self.assertEqual(expense.state, "draft")
+        self.assertFalse(expense.account_move_id)
+        self.assertFalse(approval.exists())
+        self.assertTrue(todo.exists())
+
+    def test_expense_cleanup_denials_preserve_expense_and_activity(self):
+        agent = self._create_agent(access_mode="read_only")
+        expense = self._create_expense()
+        activity = expense.activity_schedule("hr_expense.mail_act_expense_approval", user_id=self.owner.id)
+        before = (expense.state, expense.approval_state, activity.id)
+        forged = {"usl_agent_collaboration_token": True, "usl_agent_operation_scope": {"root_model": "hr.expense", "access": "write"}}
+        with self.assertRaises(AccessError):
+            expense.with_user(agent.user_id).with_context(forged).update_activities_and_mails()
+        with self.assertRaises(AccessError):
+            activity.with_user(agent.user_id).with_context(forged).unlink()
+        self.assertEqual((expense.state, expense.approval_state, activity.id), before)
+        self.assertTrue(activity.exists())
+        company = self.env["res.company"].create({"name": "[QA] Outside expense company"})
+        employee = self.env["hr.employee"].with_user(SUPERUSER_ID).create({"name": "[QA] Other company employee", "company_id": company.id})
+        foreign = self.env["hr.expense"].with_user(SUPERUSER_ID).with_company(company).create({
+            "name": "[QA] Other company expense", "employee_id": employee.id,
+            "product_id": self.category.id, "company_id": company.id,
+            "payment_mode": "own_account", "total_amount_currency": 42.0,
+        })
+        foreign_activity = foreign.activity_schedule("hr_expense.mail_act_expense_approval", user_id=self.owner.id)
+        writable = self._create_agent()
+        with self.assertRaises(AccessError):
+            foreign.with_user(writable.user_id).with_context(allowed_company_ids=self.company.ids).update_activities_and_mails()
+        self.assertEqual(foreign.state, "draft")
+        self.assertTrue(foreign_activity.exists())
 
     def test_an_agent_without_the_authority_is_refused_and_told_who_can_grant_it(self):
         agent = self._create_agent()

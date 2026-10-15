@@ -459,6 +459,15 @@ export class Message extends Component {
         return true;
     }
 
+    get hasActions() {
+        return (
+            this.props.hasActions &&
+            this.message.hasActions &&
+            !this.isEditing &&
+            !this.env.inChatter?.disabled
+        );
+    }
+
     async onClickAttachmentUnlink(attachment) {
         await toRaw(attachment).remove();
     }
@@ -496,9 +505,8 @@ export class Message extends Component {
             return;
         }
         if (
+            !this.hasActions ||
             ev.composedPath()[0].closest("a") ||
-            !this.props.hasActions ||
-            this.isEditing ||
             this.rightClickDropdownState.isOpen ||
             this.isRightClickDropdownOngoingClose
         ) {
@@ -542,6 +550,9 @@ export class Message extends Component {
 
      /** @param {HTMLElement} bodyEl */
     renderEmbeddedCodeBlocks(bodyEl) {
+        if (this.message.message_type && this.message.message_type.includes("email")) {
+            return [];
+        }
         const { name, Component, getProps } = readonlySyntaxHighlightingEmbedding;
         const selector = `[data-embedded='${name}']`;
         const embeddedElements = [...bodyEl.querySelectorAll(selector)];

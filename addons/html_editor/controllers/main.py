@@ -523,6 +523,12 @@ class HTML_Editor(Controller):
                 # empty record set.
                 request.env[fields['res_model']].browse(fields['res_id']).check_access('write')
 
+                mimetype_exempt = any(
+                    request.env.user.has_group(group) for group in attachment._get_mimetype_exempt_groups()
+                )
+                if not mimetype_exempt:
+                    request.env['ir.ui.view'].sudo(False).check_access('write')
+
                 # Sudo because restricted editor will not be able to copy the record
                 attachment = attachment.sudo().copy(fields).sudo(False)
                 # Override mimetype with SUPERUSER if it was forced to plain text
@@ -750,6 +756,8 @@ class HTML_Editor(Controller):
 
     @route(["/web_editor/generate_text", "/html_editor/generate_text"], type="jsonrpc", auth="user")
     def generate_text(self, prompt, conversation_history):
+        if not request.env.user._is_internal():
+            raise AccessError(_("Only internal users can use AI text generation."))
         try:
             IrConfigParameter = request.env['ir.config_parameter'].sudo()
             olg_api_endpoint = IrConfigParameter.get_str('html_editor.olg_api_endpoint') or DEFAULT_OLG_ENDPOINT
@@ -806,9 +814,13 @@ class HTML_Editor(Controller):
             document.check_field_access(field, 'read')
             document.check_field_access(field, 'write')
 
-        channel = (request.db, 'editor_collaboration', model_name, field_name, int(res_id))
-        bus_data.update({'model_name': model_name, 'field_name': field_name, 'res_id': res_id})
-        request.env['bus.bus']._sendone(channel, 'editor_collaboration', bus_data)
+        for data in bus_data if isinstance(bus_data, list) else [bus_data]:
+            if to_peer_id := data.get('toPeerId'):
+                channel = (request.db, 'editor_collaboration', model_name, field_name, int(res_id), str(to_peer_id))
+            else:
+                channel = (request.db, 'editor_collaboration', model_name, field_name, int(res_id))
+            data.update({'model_name': model_name, 'field_name': field_name, 'res_id': res_id})
+            request.env['bus.bus']._sendone(channel, 'editor_collaboration', data)
 
     @route('/html_editor/link_preview_external', type="jsonrpc", auth="public", methods=['POST'])
     def link_preview_metadata(self, preview_url):
@@ -860,14 +872,16 @@ class HTML_Editor(Controller):
 
             record = model.browse(record_id)
 
-            result = {}
-            if 'description' in record:
-                result['description'] = html.fromstring(record.description).text_content() if record.description else ""
+            description_field = 'description' if 'description' in record else None
+            name_field = 'link_preview_name' if 'link_preview_name' in record else 'display_name'
 
-            if 'link_preview_name' in record:
-                result['link_preview_name'] = record.link_preview_name
-            elif 'display_name' in record:
-                result['display_name'] = record.display_name
+            record.read([field for field in (description_field, name_field) if field])
+
+            result = {name_field: record[name_field]}
+
+            if description_field:
+                description = record[description_field]
+                result[description_field] = html.fromstring(description).text_content() if description else ""
 
             return result
         except (MissingError) as e:

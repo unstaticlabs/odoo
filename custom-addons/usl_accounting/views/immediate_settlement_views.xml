@@ -214,6 +214,7 @@
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button
                     name="action_open_immediate_settlement"
+                    groups="account.group_account_readonly"
                     type="object"
                     class="oe_stat_button"
                     icon="fa-exchange"

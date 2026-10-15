@@ -56,8 +56,8 @@ export class DeviceSelect extends Component {
                 return;
             }
             await this.updateDevicesList();
-            this.state.selectedDevice = this.state.userDevices.find((device) =>
-                this.isSelected(device.deviceId)
+            this.state.selectedDevice = this.state.userDevices.find(
+                (device) => device.kind === this.props.kind && this.isSelected(device.deviceId)
             );
             this.setupEventListeners();
         });
@@ -159,5 +159,15 @@ export class DeviceSelect extends Component {
             return this.store.rtc.cameraPermission === "granted";
         }
         return this.store.rtc.microphonePermission === "granted";
+    }
+
+    /**
+     * @param {KeyboardEvent} ev
+     */
+    handlePermissionKeydown(ev) {
+        if (ev.key === "Enter" || ev.key === " ") {
+            ev.preventDefault();
+            this.showPermissionDialog(this.props.kind);
+        }
     }
 }

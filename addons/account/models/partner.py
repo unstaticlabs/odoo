@@ -8,7 +8,7 @@ from collections import defaultdict
 from psycopg2 import errors as pgerrors
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.fields import Domain
 from odoo.tools import SQL, unique
 from odoo.tools.translate import LazyGettext
@@ -30,7 +30,7 @@ _logger = logging.getLogger(__name__)
 class AccountFiscalPosition(models.Model):
     _name = 'account.fiscal.position'
     _description = 'Fiscal Position'
-    _order = 'sequence'
+    _order = 'sequence, id'
     _check_company_auto = True
     _check_company_domain = models.check_company_domain_parent_of
 
@@ -305,6 +305,8 @@ class AccountFiscalPosition(models.Model):
         }
 
     def action_create_foreign_taxes(self):
+        if not (self.env.is_admin() or self.env.user.has_group('account.group_account_manager')):
+            raise AccessError(_("Only Accounting managers can create foreign taxes."))
         self.ensure_one()
         template_code = self.env['account.chart.template']._guess_chart_template(self.country_id)
         template = self.env['account.chart.template']._get_chart_template_mapping()[template_code]
@@ -989,10 +991,7 @@ class ResPartner(models.Model):
         return {**identifiers, **enriched_identifiers}
 
     def _deduce_additional_identifiers_from_vat(self):
-        """Populate companion identifiers freely derivable from the VAT (e.g. BE_VAT → BE_EN,
-        AT_VAT → AT_EN) so users only enter the VAT and don't have to retype the same digits.
-        Pre-existing entries are kept as-is and tracking is muted to avoid recomputing
-        VAT-tracked computed fields mid-inverse."""
+        """Populate identifiers derivable from the VAT (e.g. BE_VAT => BE_EN, AT_VAT => AT_EN)."""
         for partner in self:
             if not partner.vat or not partner.country_code:
                 continue
@@ -1000,14 +999,16 @@ class ResPartner(models.Model):
             if not vat_key:
                 continue
             deduced_identifiers = get_deduced_identifiers(vat_key, partner.vat)
+            if not deduced_identifiers:
+                continue
             identifiers = partner.additional_identifiers or {}
-            new_identifiers = {k: v for k, v in deduced_identifiers.items() if k not in identifiers}
-            if not new_identifiers:
+            to_update = {k: v for k, v in deduced_identifiers.items() if identifiers.get(k) != v}
+            if not to_update:
                 continue
             try:
                 # Use mail_notrack to avoid triggering mail tracking, which would
                 # recompute tracked computed fields (e.g. vies_valid) mid-inverse.
-                partner.with_context(mail_notrack=True).additional_identifiers = {**identifiers, **new_identifiers}
+                partner.with_context(mail_notrack=True).additional_identifiers = {**identifiers, **to_update}
             except ValidationError:
                 _logger.info("Skipped %s: deduced identifier from %s could not be validated.", deduced_identifiers, vat_key)
                 continue
@@ -1060,7 +1061,7 @@ class ResPartner(models.Model):
     @api.model
     def _import_retrieve_customer_from_vat(self, customer_values):
         vat = customer_values.get('vat')
-        if not vat:
+        if self._is_vat_void(vat):
             return
 
         # Sometimes, the vat is specified with some whitespaces or dots.

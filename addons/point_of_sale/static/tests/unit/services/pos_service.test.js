@@ -1,10 +1,11 @@
 import { test, expect, describe } from "@odoo/hoot";
-import { getFilledOrder, setupPosEnv, createPaymentLine } from "../utils";
+import { getFilledOrder, setupPosEnv, createPaymentLine, waitUntilOrdersSynced } from "../utils";
 import { definePosModels } from "../data/generate_model_definitions";
 import { ConnectionLostError } from "@web/core/network/rpc";
 import {
     getStrNotes,
     filterChangeByCategories,
+    changesToOrder,
 } from "@point_of_sale/app/models/utils/order_change";
 import { prepareRoundingVals } from "../accounting/utils";
 import { getService, patchWithCleanup } from "@web/../tests/web_test_helpers";
@@ -23,6 +24,20 @@ describe("pos_store.js", () => {
         expect(order.is_tipped).toBe(true);
         expect(order.tip_amount).toBe(50);
         expect(order.lines.length).toBe(3); // 2 original lines + 1 tip line
+    });
+
+    test("a popstate after clickSaveOrder does not reopen the saved order", async () => {
+        const store = await setupPosEnv();
+        const order = await getFilledOrder(store);
+        store.navigate("ProductScreen", { orderUuid: order.uuid });
+
+        store.clickSaveOrder();
+        const newOrder = store.getOrder();
+        expect(newOrder.uuid).not.toBe(order.uuid);
+        expect(store.router.state.params.orderUuid).toBe(newOrder.uuid);
+        await store.router.popStateCallback();
+
+        expect(store.getOrder().uuid).toBe(newOrder.uuid);
     });
 
     test("orderNoteFormat", async () => {
@@ -87,6 +102,122 @@ describe("pos_store.js", () => {
 
         expect(printCalled).toBe(false);
         expect(order.hasChange).toBe(false);
+    });
+
+    test("sendOrderInPreparation retries only the failed preparation printer", async () => {
+        const store = await setupPosEnv();
+        const kitchen = store.models["pos.printer"].get(1);
+        kitchen.name = "Kitchen";
+        kitchen.product_categories_ids = [store.models["pos.category"].get(1)];
+        const bar = store.models["pos.printer"].create({
+            name: "Bar",
+            product_categories_ids: [store.models["pos.category"].get(2)],
+            printer_type: "epson_epos",
+        });
+        store.config.preparation_printer_ids = [kitchen, bar];
+        await store.ticketPrinter.initPrinters();
+        // 3 "TEST" for the kitchen and 2 "TEST 2" for the bar
+        const order = await getFilledOrder(store);
+
+        const printed = [];
+        let barFailures = 1;
+        let retry;
+        patchWithCleanup(store.ticketPrinter, {
+            async generateIframe(template, ticket) {
+                return ticket;
+            },
+            setIframeSizeFromPrinter() {},
+            async generateImage(ticket) {
+                return ticket;
+            },
+            async print({ printer, image }) {
+                if (printer === bar && barFailures-- > 0) {
+                    return { successful: false, message: { body: "Bar is not reachable" } };
+                }
+                const lines = image.changes.data.map((line) => `${line.quantity} ${line.name}`);
+                printed.push(`${printer.name}: ${lines.join(", ")}`);
+                return { successful: true };
+            },
+            showPrinterErrorDialog(message, retryFunction) {
+                retry = retryFunction;
+            },
+        });
+
+        await store.sendOrderInPreparation(order);
+        expect(printed).toEqual(["Kitchen: 3 TEST"]);
+
+        // The kitchen must not print its lines again, and the bar must print its own lines
+        await retry();
+        expect(printed).toEqual(["Kitchen: 3 TEST", "Bar: 2 TEST 2"]);
+
+        expect(store.getOrderChanges(order).nbrOfChanges).toBe(0);
+        // The changes printed on retry must not be printed again with the next ones
+        await store.sendOrderInPreparation(order);
+        expect(printed).toEqual(["Kitchen: 3 TEST", "Bar: 2 TEST 2"]);
+    });
+
+    test("sendOrderInPreparation marks the changes printed on retry as sent", async () => {
+        const store = await setupPosEnv();
+        // 3 "TEST" and 2 "TEST 2", both printed by the same printer
+        const order = await getFilledOrder(store);
+
+        const printed = [];
+        let failures = 2;
+        let retry;
+        patchWithCleanup(store.ticketPrinter, {
+            async generateIframe(template, ticket) {
+                return ticket;
+            },
+            setIframeSizeFromPrinter() {},
+            async generateImage(ticket) {
+                return ticket;
+            },
+            async print({ image }) {
+                if (failures-- > 0) {
+                    return { successful: false, message: { body: "Printer is not reachable" } };
+                }
+                const lines = image.changes.data.map((line) => `${line.quantity} ${line.name}`);
+                printed.push(lines.join(", "));
+                return { successful: true };
+            },
+            showPrinterErrorDialog(message, retryFunction) {
+                retry = retryFunction;
+            },
+        });
+
+        await store.sendOrderInPreparation(order);
+        await retry(); // fails again
+        expect(printed).toEqual([]);
+        expect(store.getOrderChanges(order).nbrOfChanges).toBe(5);
+
+        await retry();
+        expect(printed).toEqual(["3 TEST, 2 TEST 2"]);
+        expect(store.getOrderChanges(order).nbrOfChanges).toBe(0);
+        await waitUntilOrdersSynced(store);
+        expect(order.isDirty()).toBe(false);
+
+        // The changes printed on retry must not be printed again with the next ones
+        await store.sendOrderInPreparation(order);
+    });
+
+    test("changesToOrder with note and quantity changed on a sent line", async () => {
+        const store = await setupPosEnv();
+        const order = await getFilledOrder(store); // 3 "TEST" and 2 "TEST 2"
+        order.updateLastOrderChange();
+        const [line] = order.lines;
+        line.setNote(JSON.stringify([{ text: "No ice", colorIndex: 0 }]));
+        const summary = (changes) => changes.map((c) => `${c.quantity} ${c.name}`);
+
+        // Only the added item is new, the 3 sent ones get the note update
+        line.setQuantity(4);
+        let changes = changesToOrder(order, store.config.preparationCategories);
+        expect(summary(changes.new)).toEqual(["1 TEST"]);
+        expect(summary(changes.noteUpdate)).toEqual(["3 TEST"]);
+
+        line.setQuantity(2);
+        changes = changesToOrder(order, store.config.preparationCategories);
+        expect(summary(changes.new)).toEqual([]);
+        expect(summary(changes.cancelled)).toEqual(["1 TEST"]);
     });
 
     describe("syncAllOrders", () => {
@@ -571,6 +702,18 @@ describe("pos_store.js", () => {
         expect(deletedOrder).toBe(true);
     });
 
+    test("onDeleteOrder keeps the router state in sync with the order it switches to", async () => {
+        const store = await setupPosEnv();
+        const order = store.addNewOrder();
+        store.navigate("ProductScreen", { orderUuid: order.uuid });
+
+        await store.onDeleteOrder(order);
+
+        const newOrder = store.getOrder();
+        expect(newOrder.uuid).not.toBe(order.uuid);
+        expect(store.router.state.params.orderUuid).toBe(newOrder.uuid);
+    });
+
     test("setNextOrderRefs", async () => {
         const store = await setupPosEnv();
         const order = store.addNewOrder();
@@ -666,8 +809,11 @@ describe("pos_store.js", () => {
         const store = await setupPosEnv();
         const order = await getFilledOrder(store);
 
-        const fastPM = store.config.payment_method_ids[0];
+        const fastPM = store.config.paymentMethods[0];
         const card = store.models["pos.payment.method"].get(2);
+        // Card comes first in payment_method_ids but Cash has the lowest sequence
+        expect(store.config.payment_method_ids[0]).toBe(card);
+        expect(fastPM.name).toBe("Cash");
         const payLaterMethod = store.models["pos.payment.method"].find(
             (pm) => pm.type === "pay_later"
         );
@@ -784,5 +930,45 @@ describe("pos_store.js", () => {
         store.setOrder(order);
         await store.setTip(numberBuffer.getFloat());
         expect(order.tip_amount).toBe(2.5);
+    });
+
+    describe("reloadData", () => {
+        test("keeps a paid order that could not be synced", async () => {
+            const store = await setupPosEnv();
+            const order = await getFilledOrder(store);
+            order.state = "paid";
+            store.data.network.offline = true;
+            patchWithCleanup(store.data, {
+                async resetIndexedDB() {
+                    expect.step("resetIndexedDB");
+                    throw new Error("stop before leaving the page");
+                },
+            });
+            patchWithCleanup(store.dialog, {
+                add(component, props) {
+                    expect.step(props.title);
+                },
+            });
+
+            await store.reloadData().catch(() => {});
+            expect.verifySteps(["Reload Data"]);
+            expect(store.models["pos.order"].get(order.id)).toBe(order);
+            expect(order.isSynced).toBe(false);
+        });
+
+        test("syncs a paid order before wiping local data", async () => {
+            const store = await setupPosEnv();
+            const order = await getFilledOrder(store);
+            order.state = "paid";
+            patchWithCleanup(store.data, {
+                async resetIndexedDB() {
+                    expect.step(`resetIndexedDB, synced: ${order.isSynced}`);
+                    throw new Error("stop before leaving the page");
+                },
+            });
+
+            await expect(store.reloadData()).rejects.toThrow("stop before leaving the page");
+            expect.verifySteps(["resetIndexedDB, synced: true"]);
+        });
     });
 });

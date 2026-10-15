@@ -1,0 +1,92 @@
+# Task swimlanes
+
+Use the existing **Group By** menu in a task Kanban board. The first grouping
+sets the columns; the second creates horizontal lanes. For example, Stage and
+Priority let you compare priorities across the same stages. Stage and Assignees
+show each person's work across those stages.
+
+Removing the second grouping returns to the ordinary Odoo board. My Tasks keeps
+its personal stages. Filters, saved searches, company selection and the native
+List view remain available. With more than two groupings, Kanban identifies that
+it displays the first two; List supports deeper nesting.
+
+## Reading the board
+
+The column headers are shared across all lanes. Each cell shows native task
+cards and its membership count. A task assigned to two people can appear in two
+assignee lanes; these counts describe memberships rather than a unique-task
+total. Unassigned groups retain their native identity. Unset selection values appear
+as **None**, including in the Move controls.
+
+“No tasks” means the loaded native groups prove the cell is empty. “Load lanes”
+means that part of the grouping is not loaded yet. Closed cells have an explicit
+Open action. The board does not turn an omitted page into a zero count.
+
+Group pages are bounded, with continuation controls for columns and each
+column's lanes. Task cards use native leaf pagination. Ordinary single-group
+boards retain native behavior. Empty matrices show their real groups rather
+than invented sample memberships.
+
+If a saved two-axis search refers to a deleted or inaccessible grouping, the
+board explains the problem and shows ordinary task results with the same
+filters. Remove the unavailable grouping using the existing search controls;
+no inaccessible field or property metadata is guessed.
+
+## Moving and creating tasks
+
+Drag a task between cells on desktop, or use **Move** for keyboard and mobile
+access. A move changes both grouping values together through native task write
+permissions. Moving one assignee or tag membership preserves the other
+memberships. To make a task unassigned while it has other memberships, use the
+task form; the board does not clear those memberships for you.
+
+Date buckets, properties and read-only grouping values remain useful to read.
+Changing an ambiguous value opens the native task form. Keeping such a lane
+unchanged still allows a move along the other writable dimension. A stale card
+or a denied destination reloads native state rather than overwriting new work.
+Cross-cell drops change grouping values; native ordering determines the saved
+position. Reordering inside a cell uses native resequencing.
+
+Cell creation uses both exact native defaults when available. Existing leaf
+cells can use native quick create; empty or ambiguous cells use the native task
+form. The top New button opens the ordinary form. Creating from a column sets
+that column's exact default and lets the user choose the lane.
+
+## Implementation and qualification
+
+The feature is scoped to USL Project's registered task view. It reuses native
+Project cards, search, nested group data and task writes. It adds no persistent
+lane model, preference storage, global core patch, permission grant or alternate
+grouping menu. Related group labels are resolved only for returned group IDs
+through caller-scoped reads; inaccessible labels recover as “Unavailable.”
+
+A task move checks native access, locks the task, verifies its source
+memberships, prepares both changes and performs one write. Empty expanded
+groups cannot validate a forged source membership. Native constraints and
+company rules remain authoritative. Unsupported changed dimensions recover in
+the native form instead of guessing a date or replacing a property dictionary.
+
+
+Shared stage headers retain native Fold, Edit, Delete, reorder and Add column
+behavior where the existing view and role permit them. Header reorder changes
+native stage sequence; it does not move tasks between stages. Desktop header
+settings appear on hover or when a header control has keyboard focus. Mobile
+visibility and role-dependent menu items stay native. My Tasks keeps
+its native implicit personal stages. Its conditional Personal Stage Group By
+option lets you select that same first axis explicitly before adding a lane.
+
+A restored property grouping loads its requested schema before native shared
+filter validation. Reopening Properties toggles the same grouping. Schema is
+available only through caller-readable tasks in the selected companies; a
+removed or inaccessible definition falls back to native search recovery.
+
+Saved searches remain available in Favorites when a shared URL restores the
+board's filters and groupings. The URL keeps precedence over a default saved
+search. Selecting an available profile uses the native favorite toggle to
+replace the query; reopening the board does not activate a default profile for
+you. Native favorite loading options and caller access remain unchanged.
+
+Folding a shared column hides its task cards and cell controls in every lane,
+while keeping the native header count. Desktop folds to a compact column; mobile
+keeps its native column width. Open column restores the same task population and
+groupings. Hidden folded cells do not accept drag moves.

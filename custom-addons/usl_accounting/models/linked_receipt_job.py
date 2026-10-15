@@ -419,9 +419,12 @@ class UslMailPdfRetrieval(models.Model):
             return
         retrieval.invalidate_recordset()
         retrieval.expense_id.invalidate_recordset()
+        # A late worker owns only its enqueue generation. A newer queued
+        # request must stay eligible; superseding it here loses the retry.
+        if retrieval.generation != generation:
+            return
         if (
-            retrieval.generation != generation
-            or retrieval.state in ("dismissed", "superseded", "succeeded")
+            retrieval.state in ("dismissed", "superseded", "succeeded")
             or not retrieval._expense_is_eligible(retrieval.expense_id)
         ):
             if retrieval.state not in ("dismissed", "superseded", "succeeded"):

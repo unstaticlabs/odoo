@@ -77,6 +77,20 @@ menu now compares the actual section identities and refreshes immediately. The
 previous count-only check could leave a removed favorite visible until another
 resize. No horizontal page scrolling is required.
 
+## Task references and milestones
+
+Saved task Kanban cards show their existing task identifier as a compact `#ID`
+below the task name. The task name remains the main label; users can refer to a
+card without opening it. This adds no numbering scheme or stored task data.
+
+Opening a milestone's tasks uses the milestone name for the breadcrumb and
+browser title. The native milestone action retains its active identifier so
+refresh can rebuild its task domain and creation defaults. Switching list and
+Kanban views keeps that identity. Project task boards still use their project
+name; generic task views retain their native title. If a milestone or project
+is no longer readable, the title lookup keeps the native fallback without
+raising a separate navigation error or reading with elevated permissions.
+
 ## Ownership and upgrade notes
 
 Favorite-project entries and refresh behavior belong to `usl_project`. The URL

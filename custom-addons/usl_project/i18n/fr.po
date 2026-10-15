@@ -128,3 +128,483 @@ msgstr ""
 "    !!! Définir la tâche comme priorité urgente  \n"
 "\n"
 "    Veillez à utiliser le bon format et l’ordre correct, par exemple : Améliorer l’écran de configuration 5h #feature #v16 @Mitchell !"
+
+#. module: usl_project
+#: model_terms:ir.ui.view,arch_db:usl_project.project_task_kanban_reference
+msgid "Task ID"
+msgstr "Identifiant de la tâche"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: model:ir.model.fields,field_description:usl_project.field_project_task__usl_search_text
+#: code:addons/usl_project/models/task_content_search.py:0
+msgid "Task content"
+msgstr "Contenu de la tâche"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: model:ir.model.fields,field_description:usl_project.field_project_task__usl_search_text
+#: code:addons/usl_project/models/task_content_search.py:0
+msgid "Use a text search for task content."
+msgstr "Utilisez une recherche textuelle pour le contenu des tâches."
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Columns:"
+msgstr "Colonnes :"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Lanes:"
+msgstr "Couloirs :"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Column"
+msgstr "Colonne"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Lane"
+msgstr "Couloir"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Move"
+msgstr "Déplacer"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Move task"
+msgstr "Déplacer la tâche"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "New Task"
+msgstr "Nouvelle tâche"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "New task"
+msgstr "Nouvelle tâche"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Open task form"
+msgstr "Ouvrir le formulaire de la tâche"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Open column"
+msgstr "Ouvrir la colonne"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Open cell"
+msgstr "Ouvrir la cellule"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Load lanes"
+msgstr "Charger les couloirs"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Load more lanes"
+msgstr "Charger plus de couloirs"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Load more columns"
+msgstr "Charger plus de colonnes"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Load more tasks"
+msgstr "Charger plus de tâches"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "No tasks"
+msgstr "Aucune tâche"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Task memberships"
+msgstr "Appartenances des tâches"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "New task in this cell"
+msgstr "Nouvelle tâche dans cette cellule"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Unavailable"
+msgstr "Indisponible"
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "This board shows the first two groupings. Remove a grouping using Group By, or switch to List for deeper grouping."
+msgstr "Ce tableau affiche les deux premiers regroupements. Retirez un regroupement avec Regrouper par, ou passez en Liste pour un regroupement plus détaillé."
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Edit this grouping value in the task form."
+msgstr "Modifiez cette valeur de regroupement dans le formulaire de la tâche."
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "This field is read-only. Edit the task in its form."
+msgstr "Ce champ est en lecture seule. Modifiez la tâche dans son formulaire."
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Open the task form to check this field before moving it."
+msgstr "Ouvrez le formulaire de la tâche pour vérifier ce champ avant de la déplacer."
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Choose at most two grouping dimensions."
+msgstr "Choisissez au maximum deux dimensions de regroupement."
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Choose distinct grouping dimensions."
+msgstr "Choisissez des dimensions de regroupement différentes."
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "This grouping is unavailable. Remove it using Group By."
+msgstr "Ce regroupement est indisponible. Retirez-le avec Regrouper par."
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "This task changed. Reload the board before moving it."
+msgstr "Cette tâche a changé. Rechargez le tableau avant de la déplacer."
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "The grouping destination is invalid."
+msgstr "La destination de regroupement est incorrecte."
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "This task moved. Reload the board before moving it."
+msgstr "Cette tâche a changé de groupe. Rechargez le tableau avant de la déplacer."
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Choose a valid related record."
+msgstr "Choisissez un enregistrement lié valide."
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "That destination is unavailable. Choose another destination."
+msgstr "Cette destination est indisponible. Choisissez une autre destination."
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Other memberships remain. Edit them in the task form to leave this task unassigned."
+msgstr "D’autres appartenances restent présentes. Modifiez-les dans le formulaire de la tâche pour la laisser sans affectation."
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Choose a valid boolean value."
+msgstr "Choisissez une valeur booléenne valide."
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Choose a valid number."
+msgstr "Choisissez un nombre valide."
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Choose a valid option."
+msgstr "Choisissez une option valide."
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Choose a valid text value."
+msgstr "Choisissez une valeur textuelle valide."
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Task moved. Open the destination or adjust filters to find it."
+msgstr "Tâche déplacée. Ouvrez la destination ou adaptez les filtres pour la retrouver."
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "Task moved. It is outside the current board results."
+msgstr "Tâche déplacée. Elle ne figure plus dans les résultats de ce tableau."
+
+#. module: usl_project
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.js:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+msgid "A grouping is unavailable. Remove it using the search controls. These task results keep your current filters without grouping."
+msgstr "Un regroupement est indisponible. Retirez-le avec les contrôles de recherche. Ces résultats conservent vos filtres actuels sans regroupement."
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+msgid "· Lanes:"
+msgstr "· Lignes :"
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+msgid "<i class=\"fa fa-plus\"/> <span class=\"visually-hidden\">New task</span>"
+msgstr "<i class=\"fa fa-plus\"/> <span class=\"visually-hidden\">Nouvelle tâche</span>"
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_renderer.xml:0
+#: code:addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js:0
+msgid "None"
+msgstr "Aucun"
+
+#. module: usl_project
+#. odoo-python
+#: code:addons/usl_project/models/task_swimlane.py:0
+msgid "This task property is unavailable."
+msgstr "Cette propriété de tâche est indisponible."
+
+#. module: usl_project
+#: model:ir.ui.view,arch_db:usl_project.project_task_search_content
+msgid "Personal Stage"
+msgstr "Étape personnelle"
+
+#. module: usl_project
+#: model:ir.model.fields,field_description:usl_project.field_project_task__github_url
+msgid "GitHub URL"
+msgstr "URL GitHub"
+
+#. module: usl_project
+#: model:ir.model.fields,help:usl_project.field_project_task__github_url
+msgid "The canonical GitHub issue, pull request or repository link for this task."
+msgstr "Le lien GitHub canonique de ticket, de pull request ou de dépôt pour cette tâche."
+
+#. module: usl_project
+#: model_terms:ir.ui.view,arch_db:usl_project.project_task_form_github_reference
+msgid "GitHub issue or pull request URL"
+msgstr "URL du ticket ou de la pull request GitHub"
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/task_github_properties.js:0
+msgid "Legacy GitHub"
+msgstr "Ancienne référence GitHub"
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/task_github_properties.xml:0
+msgid "Legacy GitHub:"
+msgstr "Ancienne référence GitHub :"

@@ -179,14 +179,16 @@ class ProductProduct(models.Model):
             record.can_image_variant_1024_be_zoomed = record.image_variant_1920 and is_image_size_above(record.image_variant_1920, record.image_variant_1024)
 
     def _set_template_field(self, template_field, variant_field):
-        for record in self:
+        # read all values first: writing on a template invalidates the variants' cache
+        values = [(record, record[template_field]) for record in self]
+        for record, value in values:
             if (
                 # We are trying to remove a field from the variant even though it is already
                 # not set on the variant, remove it from the template instead.
-                (not record[template_field] and not record[variant_field])
+                (not value and not record[variant_field])
                 # We are trying to add a field to the variant, but the template field is
                 # not set, write on the template instead.
-                or (record[template_field] and not record.product_tmpl_id[template_field])
+                or (value and not record.product_tmpl_id[template_field])
                 # There is only one variant, always write on the template.
                 or self.search_count([
                     ('product_tmpl_id', '=', record.product_tmpl_id.id),
@@ -194,9 +196,9 @@ class ProductProduct(models.Model):
                 ]) <= 1
             ):
                 record[variant_field] = False
-                record.product_tmpl_id[template_field] = record[template_field]
+                record.product_tmpl_id[template_field] = value
             else:
-                record[variant_field] = record[template_field]
+                record[variant_field] = value
 
     @api.depends('product_tmpl_id.pricelist_rule_ids')
     def _compute_pricelist_rule_ids(self):
@@ -1052,14 +1054,27 @@ class ProductProduct(models.Model):
     @api.model
     def name_search(self, name='', domain=None, operator='ilike', limit=100):
         if not name:
-            return super().name_search(name, domain, operator, limit)
+            domain = Domain(domain or Domain.TRUE)
+            favorite_products = self.search_fetch(
+                domain & Domain("is_favorite", "=", True), ["display_name"], limit=limit
+            )
+            limit_products = limit and limit - len(favorite_products)
+            products = favorite_products
+            if limit_products is None or limit_products > 0:
+                products |= self.search_fetch(
+                    domain & Domain("is_favorite", "=", False),
+                    ["display_name"],
+                    limit=limit_products,
+                )
+            return [(product.id, product.display_name) for product in products.sudo()]
         # search progressively by the most specific attributes
         positive_operators = ['=', 'ilike', '=ilike', 'like', '=like']
         is_positive = not operator in Domain.NEGATIVE_OPERATORS
         products = self.browse()
         domain = Domain(domain or Domain.TRUE)
         if operator in positive_operators:
-            products = self.search_fetch(domain & Domain('default_code', operator, name), ['display_name'], limit=limit) \
+            code_operator = '=ilike' if operator == 'ilike' else '='
+            products = self.search_fetch(domain & Domain('default_code', code_operator, name), ['display_name'], limit=limit) \
                 or self.search_fetch(domain & Domain('barcode', '=', name), ['display_name'], limit=limit)
         if not products:
             if is_positive:
@@ -1188,7 +1203,11 @@ class ProductProduct(models.Model):
             }
             return [vals.get(key, record[key]) for key in sort_key]
         sellers = self._get_filtered_sellers(partner_id=partner_id, quantity=quantity, date=date, uom_id=uom_id, params=params)
-        return sellers.sorted(sort_function)[:1]
+        res = self.env['product.supplierinfo']
+        for seller in sellers:
+            if not res or res.partner_id == seller.partner_id:
+                res |= seller
+        return res.sorted(sort_function)[:1]
 
     def _get_product_price_context(self, combination):
         self.ensure_one()

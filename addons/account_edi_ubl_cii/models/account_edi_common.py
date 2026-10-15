@@ -6,6 +6,7 @@ from collections import defaultdict
 from copy import deepcopy
 from markupsafe import Markup
 from lxml import etree
+from datetime import datetime
 
 from odoo import _, api, fields, models, Command
 from odoo.addons.account.tools import dict_to_xml
@@ -377,6 +378,18 @@ class AccountEdiCommon(models.AbstractModel):
             if base_line['price_unit'] < 0.0:
                 base_line['quantity'] *= -1
                 base_line['price_unit'] *= -1
+
+    def _get_document_type_code_vals(self, invoice, invoice_data):
+        return {'attrs': {}, 'value': None}
+
+    @api.model
+    def _vat_is_equal(self, partner_vat, other_vat, country=False):
+        partner_vat = partner_vat.replace(' ', '').upper()
+        vat_to_compare = other_vat.replace(' ', '').replace('.', '').upper()
+        if country and country.code == 'CH':
+            partner_vat = re.sub(r"(TVA|IVA|MWST)?$", "", partner_vat.replace('.', '').replace('-', ''))
+            vat_to_compare = re.sub(r"(TVA|IVA|MWST)?$", "", vat_to_compare.replace('-', ''))
+        return partner_vat == vat_to_compare
 
     # -------------------------------------------------------------------------
     # TAXES
@@ -802,10 +815,18 @@ class AccountEdiCommon(models.AbstractModel):
     def _import_partner(self, company_id, name, phone, email, vat, *, peppol_eas=False, peppol_endpoint=False, additional_identifiers=None, postal_address={}, **kwargs):
         """ Retrieve the partner, if no matching partner is found, create it (only if he has a vat and a name) """
         logs = []
+        domain = False
         if peppol_eas and peppol_endpoint:
             domain = [('peppol_eas', '=', peppol_eas), ('peppol_endpoint', '=', peppol_endpoint)]
-        else:
-            domain = False
+        if account_numbers := kwargs.get('bank_details'):
+            bank_domain = [
+                ('bank_ids', 'any', [
+                    '&',
+                    ('account_number', 'in', account_numbers),
+                    ('allow_out_payment', '=', True),
+                ]),
+            ]
+            domain = Domain.OR([domain, bank_domain])
         partner = self.env['res.partner'] \
             .with_company(company_id) \
             ._retrieve_partner(name=name, phone=phone, email=email, vat=vat, additional_identifiers=additional_identifiers, domain=domain)
@@ -816,6 +837,12 @@ class AccountEdiCommon(models.AbstractModel):
             [('country_id', '=', country.id), ('code', '=', state_code)],
             limit=1,
         ) if state_code and country else self.env['res.country.state']
+
+        vat_mismatch = False
+        if vat and partner.vat and not self._vat_is_equal(partner.vat, vat, country):
+            vat_mismatch = True
+            partner = self.env['res.partner']
+
         if not partner and name and vat:
             partner_vals = {'name': name, 'email': email, 'phone': phone, 'is_company': True}
             if peppol_eas and peppol_endpoint:
@@ -823,12 +850,15 @@ class AccountEdiCommon(models.AbstractModel):
             if additional_identifiers:
                 partner_vals['additional_identifiers'] = additional_identifiers
             partner = self.env['res.partner'].create(partner_vals)
-            if vat:
-                partner.vat, _country_code = self.env['res.partner']._run_vat_checks(country, vat, validation='setnull')
-            logs.append(_("Could not retrieve a partner corresponding to '%s'. A new partner was created.", name))
+            if vat_mismatch:
+                logs.append(_("Could not retrieve a partner corresponding to '%s' with the same VAT. A new partner was created.", name))
+            else:
+                logs.append(_("Could not retrieve a partner corresponding to '%s'. A new partner was created.", name))
         elif not partner and not logs:
             logs.append(_("Could not retrieve partner with details: Name: %(name)s, Vat: %(vat)s, Phone: %(phone)s, Email: %(email)s",
                   name=name, vat=vat, phone=phone, email=email))
+        if vat and not partner.vat:
+            partner.vat, _country_code = self.env['res.partner']._run_vat_checks(country, vat, validation='setnull')
         if not partner.country_id and not partner.street and not partner.street2 and not partner.city and not partner.zip and not partner.state_id:
             partner.write({
                 'country_id': country.id,
@@ -993,11 +1023,28 @@ class AccountEdiCommon(models.AbstractModel):
         return lines_values, logs
 
     def _retrieve_invoice_line_vals(self, record, tree, document_type=False, qty_factor=1):
+        # Start and End date (enterprise fields)
+        xpath_dict = self._get_invoice_line_xpaths(document_type, qty_factor)
+        deferred_values = {}
+        start_date = end_date = None
+        if self.env['account.move.line']._fields.get('deferred_start_date'):
+            start_date_node = tree.find(xpath_dict['deferred_start_date'])
+            end_date_node = tree.find(xpath_dict['deferred_end_date'])
+            if start_date_node is not None and end_date_node is not None:  # there is a constraint forcing none or the two to be set
+                start_date = datetime.strptime(start_date_node.text.strip(), xpath_dict['date_format'])
+                end_date = datetime.strptime(end_date_node.text.strip(), xpath_dict['date_format'])
+        deferred_values = {
+            'deferred_start_date': start_date,
+            'deferred_end_date': end_date,
+        }
         line_vals = self._retrieve_line_vals(record, tree, document_type, qty_factor)
         if not line_vals.get('price_subtotal'):
             return None
 
-        return line_vals
+        return {
+            **line_vals,
+            **deferred_values,
+        }
 
     @api.model
     def _retrieve_rebate_val(self, tree, xpath_dict, quantity):
@@ -1472,12 +1519,7 @@ class AccountEdiCommon(models.AbstractModel):
         Should stay consistent with `_get_country_specific_vat_variants`.
         """
         country = self._import_retrieve_country(collected_values) or customer.country_id
-        customer_vat = customer.vat.replace(' ', '').upper()
-        vat_to_compare = vat.replace(' ', '').replace('.', '').upper()
-        if country and country.code == 'CH':
-            customer_vat = re.sub(r"(TVA|IVA|MWST)?$", "", customer_vat.replace('.', '').replace('-', ''))
-            vat_to_compare = re.sub(r"(TVA|IVA|MWST)?$", "", vat_to_compare.replace('-', ''))
-        return customer_vat == vat_to_compare
+        return self._vat_is_equal(customer.vat, vat, country)
 
     def _import_create_missing_customer(self, collected_values):
         customer_values = collected_values['customer_values']
@@ -1583,7 +1625,7 @@ class AccountEdiCommon(models.AbstractModel):
 
         partner_bank_values['partner_banks'] = partner_banks
         if partner_banks:
-            collected_values['to_write']['partner_bank_id'] = partner_banks[:1].id
+            collected_values['to_write']['partner_bank_id'] = partner_banks.sorted(lambda bank: not bank.allow_out_payment)[:1].id
 
     def _import_retrieve_products_search_plan(self, collected_values):
         ProductProduct = self.env['product.product']
@@ -1673,6 +1715,7 @@ class AccountEdiCommon(models.AbstractModel):
             AccountTax._import_retrieve_tax_from_account_default_tax,
             AccountTax._import_retrieve_tax_from_invoice_predictive,
             AccountTax._import_retrieve_tax_from_price_include_exclude,
+            AccountTax._import_retrieve_tax_from_fixed_allowance_charge,
         ]
 
     def _import_invoice_retrieve_taxes(self, collected_values):
@@ -1685,9 +1728,6 @@ class AccountEdiCommon(models.AbstractModel):
                 for tax_values in line_collected_values['taxes_values']:
                     tax_values['account'] = account
             tax_values_list += line_collected_values['taxes_values']
-            for charge in line_collected_values['charges']:
-                if tax_values := charge.get('attempt_tax_values'):
-                    tax_values_list.append(tax_values)
         for allowance_charge_value in collected_values['allowances'] + collected_values['charges']:
             if tax_values := allowance_charge_value.get('taxes_values'):
                 tax_values_list.append(tax_values)
@@ -1828,6 +1868,10 @@ class AccountEdiCommon(models.AbstractModel):
             base_line_kwargs['_create_values']['name'] = name
         if vehicle_id := to_write.get('vehicle_id'):
             base_line_kwargs['_create_values']['vehicle_id'] = vehicle_id
+        if deferred_start_date := to_write.get('deferred_start_date'):
+            base_line_kwargs['_create_values']['deferred_start_date'] = deferred_start_date
+        if deferred_end_date := to_write.get('deferred_end_date'):
+            base_line_kwargs['_create_values']['deferred_end_date'] = deferred_end_date
 
         base_line_kwargs['_create_values'] = {
             **base_line_kwargs['_create_values'],

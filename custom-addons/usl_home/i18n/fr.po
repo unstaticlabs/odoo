@@ -677,3 +677,353 @@ msgstr "Destinations personnelles ; les liens propres à une société sont iden
 #: code:addons/usl_home/static/src/home/home.xml:0
 msgid "No accounting or compliance alerts for the selected company scope."
 msgstr "Aucune alerte comptable ou de conformité pour les sociétés sélectionnées."
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Search your work"
+msgstr "Rechercher dans votre travail"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Tasks, projects, documents, contacts…"
+msgstr "Tâches, projets, documents, contacts…"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Clear search"
+msgstr "Effacer la recherche"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Search text and field values in the records you can access. Documents also search their contents."
+msgstr "Recherchez du texte et des valeurs dans les enregistrements auxquels vous avez accès. La recherche dans les documents inclut leur contenu."
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Search results"
+msgstr "Résultats de recherche"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Searching records…"
+msgstr "Recherche des enregistrements…"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Records could not be searched."
+msgstr "La recherche des enregistrements a échoué."
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Searching document contents…"
+msgstr "Recherche dans le contenu des documents…"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Document contents are temporarily unavailable."
+msgstr "Le contenu des documents est temporairement indisponible."
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Meaning-based document matches are temporarily unavailable. Exact content matches are still shown."
+msgstr "La recherche de documents par sens est temporairement indisponible. Les correspondances exactes restent affichées."
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Continue in Documents"
+msgstr "Continuer dans Documents"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "No matching records in your selected companies. Try another word."
+msgstr "Aucun enregistrement correspondant dans les sociétés sélectionnées. Essayez un autre mot."
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "More"
+msgstr "Plus de résultats"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "More results could not be loaded. Try again."
+msgstr "Les résultats supplémentaires n’ont pas pu être chargés. Réessayez."
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "This record could not be opened. Refresh the search and try again."
+msgstr "Cet enregistrement n’a pas pu être ouvert. Actualisez la recherche et réessayez."
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "This record could not be opened. Try searching again."
+msgstr "Cet enregistrement n’a pas pu être ouvert. Relancez la recherche."
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Direct task matches could not be loaded. Project filters remain available."
+msgstr "Les tâches correspondantes n’ont pas pu être chargées. Les filtres de projets restent disponibles."
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Tasks"
+msgstr "Tâches"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Projects"
+msgstr "Projets"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Documents"
+msgstr "Documents"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Invoices and entries"
+msgstr "Factures et écritures"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Accounting lines"
+msgstr "Lignes comptables"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Expenses"
+msgstr "Notes de frais"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Contacts"
+msgstr "Contacts"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Sales orders"
+msgstr "Commandes clients"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Purchase orders"
+msgstr "Commandes fournisseurs"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Opportunities"
+msgstr "Opportunités"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Bank transactions"
+msgstr "Transactions bancaires"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Products"
+msgstr "Produits"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Inventory transfers"
+msgstr "Transferts de stock"
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Enter a search of up to 2,048 characters."
+msgstr "Saisissez une recherche de 2 048 caractères maximum."
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "The search page is not valid."
+msgstr "La page de recherche n’est pas valide."
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "Choose a supported search category."
+msgstr "Choisissez une catégorie de recherche disponible."
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "This search destination is not available."
+msgstr "Cette destination de recherche n’est pas disponible."
+
+#. module: usl_home
+#. odoo-javascript
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+#: code:addons/usl_home/static/src/home/content_search.js:0
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+#: code:addons/usl_home/static/src/project_search/project_search.js:0
+msgid "This record is no longer available in your selected companies."
+msgstr "Cet enregistrement n’est plus disponible dans les sociétés sélectionnées."

@@ -88,7 +88,7 @@ class AccountEdiXmlUblTr(models.AbstractModel):
             'cbc:InvoiceTypeCode': {'_text': 'ISTISNA' if invoice.l10n_tr_is_export_invoice else invoice.l10n_tr_gib_invoice_type},
             'cbc:PricingCurrencyCode': {'_text': invoice.currency_id.name.upper()}
                 if vals['currency_id'] != vals['company_currency_id'] else None,
-            'cbc:LineCountNumeric': {'_text': len(invoice.line_ids)},
+            'cbc:LineCountNumeric': {'_text': len(invoice.line_ids.filtered(lambda line: line.display_type == 'product'))},
             'cbc:BuyerReference': None,  # Nilvera will reject any <BuyerReference> tag, so remove it
             'cbc:Note': {
                 '_text': html2plaintext(invoice.narration, include_references=False) if invoice.narration else None,
@@ -144,7 +144,7 @@ class AccountEdiXmlUblTr(models.AbstractModel):
 
         text_i = num2words(amount_integer_part * sign, lang="tr") or 'Sifir'
         text_d = num2words(amount_decimal_part * sign, lang="tr") or 'Sifir'
-        return f'YALNIZ : {text_i} {currency.name} {text_d} {currency.currency_subunit_label}'.upper()
+        return f'YALNIZ : {text_i} {currency.name} {text_d} {currency.with_context(lang="tr_TR").currency_subunit_label}'.upper()
 
     def _add_invoice_accounting_customer_party_nodes(self, document_node, vals):
         """Extend invoice accounting customer party nodes for TR E-Invoicing.

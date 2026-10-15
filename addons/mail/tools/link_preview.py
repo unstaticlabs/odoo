@@ -73,7 +73,7 @@ def get_link_preview_from_html(url, response):
     encoding = response.encoding or chardet.detect(content).get("encoding", "utf-8")
     try:
         decoded_content = content.decode(encoding)
-    except (UnicodeDecodeError, TypeError) as e:
+    except (UnicodeDecodeError, TypeError, LookupError) as e:
         decoded_content = content.decode("utf-8", errors="ignore")
 
     try:

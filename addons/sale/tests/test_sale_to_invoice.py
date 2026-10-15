@@ -435,6 +435,17 @@ class TestSaleToInvoice(TestSaleCommon):
             "The downpayment line amount should be equal to the sum of the invoice and credit note amount",
         )
 
+        payment = self.env['sale.advance.payment.inv'].with_context(self.context).create({})
+        payment.create_invoices()
+        invoice = max(self.sale_order.invoice_ids)
+        invoice_downpayment_line = invoice.invoice_line_ids.filtered('is_downpayment')
+        self.assertEqual(len(invoice_downpayment_line), 1,
+                         "The downpayment line should exist in the final invoice.")
+        self.assertEqual(invoice_downpayment_line.quantity, -1,
+                         "The downpayment line qty should be -1 for the final invoice.")
+        self.assertEqual(invoice_downpayment_line.price_unit, downpayment_line.price_unit,
+                         "The downpayment line price unit should match the price unit on the sale order.")
+
     def test_downpayment_reference_after_reverse_and_create_invoice(self):
         """Test that the down payment line shows the re-issued invoice reference
         after a "Reverse and Create Invoice" on the down payment invoice."""
@@ -1470,7 +1481,8 @@ class TestSaleToInvoice(TestSaleCommon):
         line.qty_delivered = 15
         self.assertEqual(line.qty_invoiced, 10)
         self.assertEqual(line.untaxed_amount_invoiced, 300)
-        self.assertEqual(sale_order.amount_to_invoice, 150)
+        # 10 of the 20 ordered units are invoiced, whatever was delivered.
+        self.assertEqual(sale_order.amount_to_invoice, 300)
 
     def test_salesperson_in_invoice_followers(self):
         """Test if the salesperson is in the followers list of invoice created from SO."""

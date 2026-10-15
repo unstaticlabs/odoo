@@ -240,9 +240,12 @@ patch(AttachmentList.prototype, {
         return this.uslDocumentsAction.doAction(action);
     },
 
-    onClickUnlink(attachment) {
+    async onClickUnlink(attachment) {
         if (this.env.inComposer) {
             return super.onClickUnlink(...arguments);
+        }
+        if (this.keepInDocumentsDetail(attachment)?.state === "available") {
+            await this.loadKeepInDocumentsStates();
         }
         const detail = this.keepInDocumentsDetail(attachment);
         if (["archived", "duplicate"].includes(detail?.state)) {
@@ -271,13 +274,6 @@ patch(AttachmentList.prototype, {
         if (detail?.state === "failed") {
             this.uslDocumentsNotification.add(
                 _t("Resolve the Documents archiving issue before unlinking this file."),
-                { type: "warning" }
-            );
-            return;
-        }
-        if (detail?.state === "available") {
-            this.uslDocumentsNotification.add(
-                _t("Keep this file in Documents before unlinking it from the record."),
                 { type: "warning" }
             );
             return;
