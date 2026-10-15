@@ -19,6 +19,31 @@ class ResCompany(models.Model):
 
     # -- the rate a sale is charged at -------------------------------------
 
+    def _usl_b2c_channel_service_templates(self):
+        """Return the services a channel names for a purpose of its own.
+
+        Carriage is a service in Odoo and is charged at the rate of the goods
+        it carries, because shipping follows the goods.  What a channel or its
+        processor kept is a service bought, not sold.  Neither says anything
+        about the rate a service is sold at.
+        """
+        self.ensure_one()
+        channels = self.env["b2c.channel"].search([("company_id", "=", self.id)])
+        products = (
+            channels.shipping_product_id
+            | channels.fee_product_id
+            | channels.processor_fee_product_id
+        )
+        return products.product_tmpl_id.filtered(lambda template: template.type == "service")
+
+    def _usl_b2c_charged_as_service(self, template):
+        """Return whether a product is sold at the services rate."""
+        self.ensure_one()
+        return (
+            template.type == "service"
+            and template not in self._usl_b2c_channel_service_templates()
+        )
+
     def _usl_b2c_standard_sale_tax(self, is_service):
         """Return the one rate this company charges on goods, or on services.
 
@@ -26,6 +51,9 @@ class ResCompany(models.Model):
         stating two at the same rate tells them apart by what already carries
         each.  Where even that is silent the choice belongs to a person, and
         this returns nothing rather than guess at it.
+
+        The carriage a channel charges is a service carrying the goods rate,
+        so it is no evidence of the services rate and is not counted.
         """
         self.ensure_one()
         taxes = self.env["account.tax"].search(
@@ -41,9 +69,15 @@ class ResCompany(models.Model):
         standard = taxes.filtered(lambda tax: tax.amount == highest)
         if len(standard) < 2:
             return standard[:1]
+        channel_services = self._usl_b2c_channel_service_templates()
         for_services = standard.filtered(
             lambda tax: self.env["product.template"].search_count(
-                [("taxes_id", "in", tax.id), ("type", "=", "service")], limit=1,
+                [
+                    ("taxes_id", "in", tax.id),
+                    ("type", "=", "service"),
+                    ("id", "not in", channel_services.ids),
+                ],
+                limit=1,
             ),
         )
         wanted = for_services if is_service else standard - for_services
@@ -159,8 +193,10 @@ class ResCompany(models.Model):
             active_test=False,
         ).search([("b2c_catalog_classification", "=", "operational")])
         settled = self.env["product.template"]
+        channel_services = self._usl_b2c_channel_service_templates()
         for template in templates:
-            wanted = services if template.type == "service" else goods
+            sold_as_service = template.type == "service" and template not in channel_services
+            wanted = services if sold_as_service else goods
             stated = template.taxes_id.filtered(
                 lambda tax: tax.company_id == self and tax.type_tax_use == "sale",
             )

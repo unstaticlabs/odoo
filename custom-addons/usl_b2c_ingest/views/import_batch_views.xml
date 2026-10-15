@@ -55,7 +55,7 @@
                             groups="usl_b2c.group_b2c_operator"/>
                     <button name="action_settle" type="object" string="Settle the drop"
                             class="btn-primary"
-                            title="Do everything that follows applying, in the order it has to happen: reconcile what the exports now say, invoice what shipped, bill what the channel kept, settle what the supplier drew, and post what moved to the bank."
+                            title="Do everything that follows applying, in the order it has to happen: reconcile what the exports now say, invoice what shipped, restate what the processor converted, bill what the channel kept, settle what the supplier drew, and post what moved to the bank."
                             invisible="state != 'applied'"
                             confirm="This posts invoices, supplier documents and bank movements. Settle the drop?"
                             groups="usl_b2c.group_b2c_manager"/>
@@ -69,18 +69,22 @@
                             invisible="state != 'applied'"
                             confirm="This posts invoices. Invoice the drop?"
                             groups="usl_b2c.group_b2c_manager"/>
+                    <button name="action_convert_receipts" type="object" string="Convert receipts"
+                            title="Restate each payment the processor converted at what it became, and post the difference as an exchange gain or loss. Step 3 of Settle the drop."
+                            invisible="state != 'applied'"
+                            groups="usl_b2c.group_b2c_manager"/>
                     <button name="action_bill_fees" type="object" string="Bill what was kept"
-                            title="Bill what each channel and each processor kept, for each month and currency this drop states. Step 3 of Settle the drop."
+                            title="Bill what each channel and each processor kept, for each month and currency this drop states. Step 4 of Settle the drop."
                             invisible="state != 'applied'"
                             groups="usl_b2c.group_b2c_manager"/>
                     <button name="action_settle_wallet" type="object" string="Settle the supply"
-                            title="Bill the supplier for what this drop shows it drew on the wallet, and empty the wallet by exactly that. Step 4 of Settle the drop."
+                            title="Bill the supplier for what this drop shows it drew on the wallet, and empty the wallet by exactly that. Step 5 of Settle the drop."
                             invisible="state != 'applied'"
                             confirm="This posts supplier documents. Settle what the wallet paid for?"
                             groups="usl_b2c.group_b2c_manager"/>
                     <button name="action_post_transfers" type="object"
                             string="Post what moved to the bank"
-                            title="Post an entry for each payout and each wallet top-up the statements state, so one bank line meets one entry. Step 5 of Settle the drop."
+                            title="Post an entry for each payout and each wallet top-up the statements state, so one bank line meets one entry. Step 6 of Settle the drop."
                             invisible="state != 'applied'"
                             groups="usl_b2c.group_b2c_manager"/>
                     <button name="action_reset" type="object" string="Reset"

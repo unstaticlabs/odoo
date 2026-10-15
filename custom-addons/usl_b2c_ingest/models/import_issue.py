@@ -44,6 +44,8 @@ ISSUE_KINDS = [
     ("transfer_period_closed", "A month the books are closed to, for a movement"),
     ("fee_source_conflict", "Two parties state what one channel kept"),
     ("transfer_already_posted", "A movement the ledger already shows"),
+    ("processor_charge_unmatched", "A converted payment matches no receipt"),
+    ("conversion_period_closed", "A month the books are closed to, for a conversion"),
 ]
 
 

@@ -417,7 +417,8 @@ class B2cImportBatchReadiness(models.Model):
 
         A good is charged the goods rate and a service the services rate; the
         chart already holds both, and a product carrying both is a product that
-        would be charged twice.
+        would be charged twice.  Carriage follows the goods it carries, so a
+        channel's carriage product is given the goods rate.
         """
         self.ensure_one()
         findings = self.issue_ids.filtered(
@@ -429,7 +430,9 @@ class B2cImportBatchReadiness(models.Model):
             )
             if not product.exists():
                 continue
-            wanted = self._standard_tax(product.type == "service")
+            wanted = self._standard_tax(
+                self.company_id._usl_b2c_charged_as_service(product.product_tmpl_id),
+            )
             if not wanted:
                 raise UserError(
                     self.env._("The chart holds no single standard sales tax to use."),

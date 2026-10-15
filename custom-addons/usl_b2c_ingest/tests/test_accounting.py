@@ -207,6 +207,11 @@ class TestAccounting(TestMaterialise):
     def test_a_product_with_two_taxes_is_reported_and_can_be_settled(self):
         batch, jersey, _cap = self._etsy_drop()
         second = self._tax("Invented 20% FR other", 20, self.france)
+        # What tells the two rates apart is a service sold for itself carrying
+        # one of them. The carriage is no evidence: it follows the goods.
+        self.env["product.template"].create(
+            {"name": "Invented engraving", "type": "service", "taxes_id": [(6, 0, second.ids)]},
+        )
         jersey.product_tmpl_id.taxes_id = [(4, second.id)]
         batch.correct_chart = False
         batch.action_check_readiness()
@@ -214,7 +219,7 @@ class TestAccounting(TestMaterialise):
             batch.issue_ids.filtered(lambda issue: issue.kind == "product_tax_unclear"),
         )
         batch.action_settle_product_taxes()
-        self.assertEqual(len(jersey.taxes_id), 1)
+        self.assertEqual(jersey.taxes_id, self.home_tax)
         self.assertFalse(
             batch.issue_ids.filtered(lambda issue: issue.kind == "product_tax_unclear"),
         )
