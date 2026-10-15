@@ -42,7 +42,9 @@ The evidence-backed discovery update is currently a draft implementation awaitin
 full qualification. Its prepared flow is:
 
 1. Choose **Find** to prepare suggestions from at least three distinct surviving
-   transactions with a consistent native accounting result.
+   transactions with a consistent native accounting result. A partial result
+   opens the available suggestions immediately and shows a warning with counts
+   and links to preserved skipped rules; dismissing the warning is optional.
 2. Inspect the label pattern, supporting transactions and proposed counterpart
    entries. Changing reference digits can be represented without broadening the
    stable wording into an unrestricted pattern.

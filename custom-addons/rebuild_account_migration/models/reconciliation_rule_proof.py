@@ -457,6 +457,8 @@ class AccountReconcileModel(models.Model):
                    _digest({"analytics": base.analytic_distribution, "taxes": sorted(base.tax_ids.ids)}))
             groups[key].append((statement, base))
         created = self.browse()
+        skipped_rules = self.browse()
+        unsupported_count = 0
         refusals = []
         for key, rows in sorted(groups.items(), key=lambda item: (-len(item[1]), repr(item[0]))):
             if len(rows) < 3 or len(created) >= 12:
@@ -498,6 +500,7 @@ class AccountReconcileModel(models.Model):
             candidate = scoped.new(candidate_values)
             if not all(candidate._rebuild_native_effect_matches(statement) for statement in lines):
                 refusals.append(_("“%s”: the native rule cannot reproduce all observed accounting results.", lines[:1].payment_ref))
+                unsupported_count += 1
                 continue
             rule = scoped.create(candidate_values)
             digest = rule._rebuild_current_proof()
@@ -505,6 +508,7 @@ class AccountReconcileModel(models.Model):
             if conflict:
                 refusals.append(_("“%(label)s” overlaps “%(rule)s” on “%(example)s”.", label=lines[:1].payment_ref, rule=conflict.display_name, example=witness))
                 rule.write({"active": False, "rebuild_replay_summary": refusals[-1]})
+                skipped_rules |= rule
                 continue
             rule.write({"rebuild_proof_digest": digest, **rule._rebuild_overlap_warning_values(warnings),
                         "rebuild_replay_summary": _("Native replay reproduces all %s supporting transactions.", len(lines))})
@@ -514,6 +518,18 @@ class AccountReconcileModel(models.Model):
             action.update({"name": _("Rule Suggestions"), "domain": [("id", "in", created.ids)]})
             if refusals:
                 action["help"] = escape(_("Some patterns were not offered: %s", "\n".join(refusals)))
+                links = [{"label": rule.display_name, "url": "/odoo/reconciliation-models/%s" % rule.id}
+                         for rule in skipped_rules[:3]]
+                message = _("Suggestions prepared: %(count)s. Patterns not offered: %(skipped)s.",
+                            count=len(created), skipped=len(refusals))
+                if unsupported_count:
+                    message += " " + _("Manual configuration needed (native accounting result differs): %s.", unsupported_count)
+                if links:
+                    message += " " + " · ".join(["%s"] * len(links))
+                return {"type": "ir.actions.client", "tag": "display_notification", "params": {
+                    "title": _("Rule Suggestions"), "message": message, "links": links,
+                    "type": "warning", "sticky": True, "next": action,
+                }}
             return action
         return {"type": "ir.actions.client", "tag": "display_notification", "params": {
             "title": _("No new suggestions"), "message": "\n".join(refusals) or _("No new supported recurring pattern was found. Existing suggestions and dismissed history are retained."), "type": "info", "sticky": bool(refusals)}}

@@ -95,9 +95,34 @@ class TestProvenBankRuleProposals(AccountTestInvoicingCommon):
         for _index in range(3):
             self._evidence(label)
         action = self.rules.action_rebuild_analyze_rule_opportunities()
-        self.assertEqual(action['type'], 'ir.actions.act_window')
-        self.assertIn('&lt;b&gt;Beta&lt;/b&gt;', str(action['help']))
-        self.assertNotIn('<b>Beta</b>', str(action['help']))
+        listing = action.get('params', {}).get('next', action)
+        self.assertEqual(listing['type'], 'ir.actions.act_window')
+        self.assertIn('&lt;b&gt;Beta&lt;/b&gt;', str(listing['help']))
+        self.assertNotIn('<b>Beta</b>', str(listing['help']))
+
+    def test_find_mixed_results_warns_and_opens_nonempty_native_list(self):
+        refused_label = '[QA] Beta overlapping service'
+        self.rules.create(self._manual_values(refused_label))
+        for _index in range(4):
+            self._evidence('[QA] Alpha supported service')
+        for _index in range(3):
+            self._evidence(refused_label)
+        action = self.rules.action_rebuild_analyze_rule_opportunities()
+        self.assertEqual(action['type'], 'ir.actions.client')
+        self.assertEqual(action['tag'], 'display_notification')
+        self.assertEqual(action['params']['type'], 'warning')
+        self.assertTrue(action['params']['sticky'])
+        listing = action['params']['next']
+        self.assertEqual(listing['type'], 'ir.actions.act_window')
+        suggestions = self.rules.search(listing['domain'])
+        self.assertEqual(len(suggestions), 1)
+        self.assertTrue(suggestions.rebuild_is_proposal)
+        self.assertEqual(len(action['params']['links']), 1)
+        skipped = self.rules.with_context(active_test=False).search([
+            ('rebuild_generated_proof', '=', True), ('active', '=', False),
+        ])
+        self.assertEqual(len(skipped), 1)
+        self.assertTrue(action['params']['links'][0]['url'].endswith('/%s' % skipped.id))
 
     def test_changed_surviving_effect_prevents_approval(self):
         statements = self.env['account.bank.statement.line']

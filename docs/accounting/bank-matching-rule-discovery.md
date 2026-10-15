@@ -2,10 +2,10 @@
 
 ## Draft qualification status
 
-This implementation is paused for review. Focused native acceptance tests have
-passed, but the full runtime seal, final concurrency repeat, upgrade preservation,
-browser journeys and independent final review remain outstanding. It must not be
-released on the strength of the focused tests alone.
+This draft is undergoing qualification. Its runtime seal, complete concurrency
+coverage, upgrade preservation, browser journeys and independent final review
+remain outstanding. It must not be released on the strength of focused tests
+alone.
 
 ## Prepared workflow
 
@@ -19,6 +19,11 @@ Stable words and punctuation remain literal. Only demonstrated changing digit
 slots become bounded native regular expressions. The form shows the pattern,
 source transactions, native replay result and any uncertain competing rules.
 Support counts describe examples, not a probability of correctness.
+
+When some patterns are refused but other suggestions are available, a native
+warning reports the counts and opens the suggestion list immediately. Links open
+up to three preserved skipped-rule forms so their refusal can be inspected.
+Patterns whose native accounting result differs require manual configuration.
 
 Every included historical counterpart must match the maintained OCA prospective
 calculation: account, partner, signed amount, company and foreign currency,

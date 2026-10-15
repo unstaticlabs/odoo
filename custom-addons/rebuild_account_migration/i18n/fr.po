@@ -13442,3 +13442,17 @@ msgstr "Empreinte de la preuve"
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_account_reconcile_model__rebuild_pattern_shape
 msgid "Rebuild Pattern Shape"
 msgstr "Forme du libellé"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+#, python-format
+msgid "Suggestions prepared: %(count)s. Patterns not offered: %(skipped)s."
+msgstr "Suggestions préparées : %(count)s. Motifs non proposés : %(skipped)s."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+#, python-format
+msgid "Manual configuration needed (native accounting result differs): %s."
+msgstr "Configuration manuelle nécessaire (le résultat comptable natif diffère) : %s."
