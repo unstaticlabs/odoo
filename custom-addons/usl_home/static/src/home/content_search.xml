@@ -11,7 +11,7 @@
             <p t-if="!state.query.trim()" class="text-muted small mt-2 mb-0">Search text and field values in the records you can access. Documents also search their contents.</p>
             <div t-if="state.query.trim()" id="usl-home-search-results" class="o_usl_content_results" role="listbox" aria-label="Search results">
                 <p t-if="state.loading" class="text-muted" role="status">Searching records…</p>
-                <div t-if="state.error" role="alert">Records could not be searched. <button type="button" class="btn btn-link" t-on-click="search">Try again</button></div>
+                <div t-if="state.error" role="alert">Some records could not be searched. Results already found remain available. <button type="button" class="btn btn-link" t-on-click="search">Try again</button></div>
                 <t t-foreach="groups" t-as="group" t-key="group.key">
                     <section t-if="group.records.length" class="o_usl_search_group" t-att-data-category="group.key">
                         <h2 class="h6 text-muted" t-esc="group.label"/>

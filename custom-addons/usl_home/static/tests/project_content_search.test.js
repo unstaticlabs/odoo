@@ -22,7 +22,8 @@ const direct = { groups: [{ key: "tasks", label: "Tasks", records: [{ model: "pr
 test("native Projects input offers direct task matches beside ordinary project facets", async () => {
     onRpc("usl.home.service", "search_records", ({ args, kwargs }) => {
         expect(args).toEqual(["Indigo bridge"]);
-        expect(kwargs.categories).toEqual(["tasks", "projects"]);
+        expect(kwargs.categories).toHaveLength(1);
+        expect(["tasks", "projects"]).toInclude(kwargs.categories[0]);
         return direct;
     });
     await mountProjects();
@@ -59,4 +60,17 @@ test("clearing native Projects input cannot restore an older direct response", a
     pending.resolve(direct);
     await animationFrame();
     expect('[id="usl-content-project.task-5"]').toHaveCount(0);
+});
+
+test("direct task results appear while project content lookup is still pending", async () => {
+    const pending = new Deferred();
+    onRpc("usl.home.service", "search_records", ({ kwargs }) =>
+        kwargs.categories.includes("projects") ? pending : direct);
+    await mountProjects();
+    await contains(".o_searchview_input").edit("Amber partial result");
+    await advanceTime(250);
+    await animationFrame();
+    expect('[id="usl-content-project.task-5"]').toHaveCount(1);
+    pending.resolve({ groups: [] });
+    await animationFrame();
 });

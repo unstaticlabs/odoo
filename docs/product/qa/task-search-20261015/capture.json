@@ -1,0 +1,79 @@
+{
+  "capture_date": "2026-10-15",
+  "context": "Disposable synthetic QA, ordinary Project user, two allowed companies with company A selected; no production data or provider calls.",
+  "viewports": {
+    "desktop": [
+      1440,
+      1000
+    ],
+    "mobile": [
+      390,
+      844
+    ]
+  },
+  "source_sha256": {
+    "custom-addons/usl_project/models/content_search.py": "f14f39765b283b241aa2c5e4d4563d848877f89f80b4ddc842901590a4ce55e2",
+    "custom-addons/usl_project/models/task_content_search.py": "bcde281adc43c8071986d023a5c2bb9e082e0d6a7e1ccbf6d35ba7c8f268abd1",
+    "custom-addons/usl_home/models/content_search.py": "e7f44c4b74c7645a912fe4ebd7f7726b6c9fcab63f7886d53ef23fddf591e179",
+    "custom-addons/usl_home/static/src/home/content_search.js": "23890359963f427d90f5389aed95ffe95261305d4919edc05ee31947c9905e12",
+    "custom-addons/usl_home/static/src/home/content_search.xml": "7ed0e9f32cc21b037136540e3be1c4ad27d94e14dfc5ff153f8867aa46598293",
+    "custom-addons/usl_home/static/src/project_search/project_search.js": "d84d9b4c43f7120df720834f3c7f75de193565b54e56227152e333c3d2f0c766"
+  },
+  "images": {
+    "01-home-start-desktop.png": {
+      "sha256": "12da513dc9c37e285c63a704a8148270900daa3100d0b5223ce50adbb0a14b7a",
+      "chunks": [
+        "IDAT",
+        "IEND",
+        "IHDR"
+      ]
+    },
+    "02-available-task-while-searching-desktop.png": {
+      "sha256": "158bb95901e2e1f3de4938623e7f9f2a62314f76a07e09dd9703c73c24112f0f",
+      "chunks": [
+        "IDAT",
+        "IEND",
+        "IHDR"
+      ]
+    },
+    "03-open-native-task-desktop.png": {
+      "sha256": "06533d270b7d66be773966fcfad9aab418fb777239e7d5a72e82d005e2aa6087",
+      "chunks": [
+        "IDAT",
+        "IEND",
+        "IHDR"
+      ]
+    },
+    "04-back-to-completed-search-desktop.png": {
+      "sha256": "8aadd7a5730cdb76ae9bd4d43d264c49034ffe7ea74886b63b7748ba63722267",
+      "chunks": [
+        "IDAT",
+        "IEND",
+        "IHDR"
+      ]
+    },
+    "05-native-task-search-page-desktop.png": {
+      "sha256": "93d565b33f9ab978498ab1213cc85987e6bf3a26e42d422ab3d61d69341e3293",
+      "chunks": [
+        "IDAT",
+        "IEND",
+        "IHDR"
+      ]
+    },
+    "06-current-task-result-mobile.png": {
+      "sha256": "a8288fa2d41a585e561e272170edd63e7d3aff849904fddf6fe01cf9e04fe340",
+      "chunks": [
+        "IDAT",
+        "IEND",
+        "IHDR"
+      ]
+    }
+  },
+  "functional_receipt": {
+    "native_task_page_rows": 80,
+    "native_task_exact_total": 801,
+    "native_task_browser_ms": 267,
+    "page_errors": 0
+  },
+  "partial_result_capture": "Image02 delays the real disposable non-priority record-batch transport for5seconds. Images illustrate states; separate native/HOOT/browser assertions prove behavior."
+}

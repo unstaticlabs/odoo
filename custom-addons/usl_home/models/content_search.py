@@ -106,12 +106,16 @@ class HomeContentSearch(models.AbstractModel):
         return " · ".join(labels)
 
     @api.model
-    def search_records(self, query, categories=None, limit=5, offset=0):
+    def search_records(self, query, categories=None, limit=5, offset=0, exclude_categories=None):
         catalog = self._search_catalog()
         query = self._search_arguments(query, limit, offset)
         requested = list(catalog) if categories is None else categories
         if not isinstance(requested, list) or any(not isinstance(key, str) or key not in dict((k, m) for k, m, _l in SEARCH_MODELS) for key in requested):
             raise ValidationError(self.env._("Choose a supported search category."))
+        excluded = [] if exclude_categories is None else exclude_categories
+        if not isinstance(excluded, list) or any(not isinstance(key, str) or key not in {item[0] for item in SEARCH_MODELS} for key in excluded):
+            raise ValidationError(self.env._("Choose a supported search category."))
+        requested = [key for key in requested if key not in excluded]
         groups = []
         if not query:
             return {"groups": groups}
@@ -120,7 +124,7 @@ class HomeContentSearch(models.AbstractModel):
                 continue
             model_name, label = catalog[key]
             model = self.env[model_name].with_context(active_test=False)
-            domain = model._usl_content_search_domain(query) if model_name == "project.task" else readable_content_domain(model, query)
+            domain = Domain("usl_search_text", "ilike", query) if model_name == "project.task" else readable_content_domain(model, query)
             records = model.search(domain, limit=limit + 1, offset=offset, order="id desc")
             rows = []
             for record in records[:limit]:

@@ -3011,7 +3011,7 @@
       "delegates": [
         "rpc:usl.home.service.search_records"
       ],
-      "digest": "10f940116c19e0987ac26a9ab2228c388bb1d9ecea688e323ca71dea1835486c",
+      "digest": "e310b9e9185620f7f0ac965bc796cae62a3cdb31b307404f7dd126302f6fa092",
       "handler": "if",
       "key": "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:1",
       "kind": "client",
@@ -3020,7 +3020,7 @@
       ],
       "sources": [
         {
-          "line": 96,
+          "line": 119,
           "path": "custom-addons/usl_home/static/src/home/content_search.js"
         }
       ]
@@ -3029,7 +3029,7 @@
       "delegates": [
         "rpc:usl.home.service.search_records"
       ],
-      "digest": "543465818859ba898de82a298a2004dd3cf64f6334d8e6e1558a04f0ce2b14c7",
+      "digest": "1f22146774247720c0aa6dff88854a76d16438e4e3ea7515fb22915998830ea9",
       "handler": "if",
       "key": "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:2",
       "kind": "client",
@@ -3038,7 +3038,7 @@
       ],
       "sources": [
         {
-          "line": 145,
+          "line": 178,
           "path": "custom-addons/usl_home/static/src/home/content_search.js"
         }
       ]
@@ -3047,7 +3047,7 @@
       "delegates": [
         "rpc:usl.home.service.search_documents"
       ],
-      "digest": "36f56fab197f8ae5eb634278bb47507fc0998b4d4038b5ab00f7bc9f221e580c",
+      "digest": "e663c1c551ab15dfe08a5c1575d464e05c0b92a883f3e6c697504ae361e391ec",
       "handler": "loadDocuments",
       "key": "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:loadDocuments:rpc:1",
       "kind": "client",
@@ -3056,7 +3056,7 @@
       ],
       "sources": [
         {
-          "line": 117,
+          "line": 150,
           "path": "custom-addons/usl_home/static/src/home/content_search.js"
         }
       ]
@@ -3074,7 +3074,7 @@
       ],
       "sources": [
         {
-          "line": 160,
+          "line": 195,
           "path": "custom-addons/usl_home/static/src/home/content_search.js"
         }
       ]
@@ -3158,10 +3158,9 @@
     },
     {
       "delegates": [
-        "rpc:usl.home.service.get_search_result_action",
-        "rpc:usl.home.service.search_records"
+        "rpc:usl.home.service.get_search_result_action"
       ],
-      "digest": "558c88b9cbf9bf37c219046e7a3b624925203424cacf607716f2789c68db3a27",
+      "digest": "c6f89f06aa43c5df3ee4de9c90a668c3264167ece9309770e4d549c651991b3e",
       "handler": "if",
       "key": "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:if:rpc:1",
       "kind": "client",
@@ -3170,11 +3169,25 @@
       ],
       "sources": [
         {
-          "line": 33,
+          "line": 93,
           "path": "custom-addons/usl_home/static/src/project_search/project_search.js"
-        },
+        }
+      ]
+    },
+    {
+      "delegates": [
+        "rpc:usl.home.service.search_records"
+      ],
+      "digest": "cf91808b8322c4b0937b69f6820ae28e4f8990d301dc2ac500d3b570176ee841",
+      "handler": "loadContentCategory",
+      "key": "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:loadContentCategory:rpc:1",
+      "kind": "client",
+      "modules": [
+        "usl_home"
+      ],
+      "sources": [
         {
-          "line": 66,
+          "line": 50,
           "path": "custom-addons/usl_home/static/src/project_search/project_search.js"
         }
       ]
@@ -875000,23 +875013,31 @@
     {
       "abstract": false,
       "archiveable": true,
-      "digest": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+      "digest": "ea2e5db601da2ff641512ed92274061faee31fb202d3172a6ce267a0cde9289b",
       "guards": [],
       "key": "rpc:project.task.search_count",
       "kind": "rpc",
       "method": "search_count",
       "model": "project.task",
       "modules": [
-        "base"
+        "base",
+        "usl_project"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "123617ed36078cbf6b54e9ac2229a2f8905d7189d3d85f5e9be5765bc082d666",
+      "runtime_digest": "7e961b93f75600950c39f10a407f48df5b4913d4828665ed8ced9ede87098ab5",
       "sinks": [],
       "sources": [
         {
           "line": 1387,
           "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 25,
+          "path": "custom-addons/usl_project/models/task_content_search.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/task_content_search.py"
         },
         {
           "path": "odoo/orm/models.py"
@@ -1370890,7 +1370911,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 158,
+          "line": 162,
           "path": "custom-addons/usl_home/models/content_search.py"
         },
         {
@@ -1371480,7 +1371501,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 137,
+          "line": 141,
           "path": "custom-addons/usl_home/models/content_search.py"
         },
         {
@@ -1371588,7 +1371609,7 @@
     {
       "abstract": true,
       "archiveable": false,
-      "digest": "f20ff609b54755e2044f2c2a932ca978b424396aabcad5bf2cbd1c2e016b6ece",
+      "digest": "1276894379ac289a5c58f7be745d64ce72fde2cb747a413fe6799e3c1291b8bc",
       "guards": [],
       "key": "rpc:usl.home.service.search_records",
       "kind": "rpc",
@@ -1371599,7 +1371620,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "094493f8d10036988def05b6a940f65d0dbbc23fd276ff5d05a0397ff3cd4a65",
+      "runtime_digest": "22f6955dd8c89c8da2636ff3cc6c64963a085471f9fe8427afca887b74713c32",
       "sinks": [],
       "sources": [
         {
@@ -1629432,6 +1629453,21 @@
       ]
     },
     {
+      "digest": "dd3f23fbed92b3839174ec67e638ea9073a9effeeff7232f0d0e6799357de1c4",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 35,
+          "path": "custom-addons/usl_project/models/task_content_search.py"
+        }
+      ]
+    },
+    {
       "digest": "a121831bb61bc7d4b48b286c1a25e1c6b7d42e27a70ed93c2522f2127d14ab49",
       "key": "sink:usl_project:custom-addons/usl_project/models/task_github_reference.py:project.task._usl_migrate_github_references:orm_write:1",
       "kind": "sink",
@@ -1696944,11 +1696980,11 @@
       "version": "saas~19.3.2.0.18"
     },
     {
-      "manifest_sha256": "deab62bc2d72c41a6eb0152c536c03f39bb5cc79ea2d3c9b3401f578634ff268",
+      "manifest_sha256": "93b74ae9c3a56f15e5908d6642d2d04929ca18d9f162b73fce0afce893a07755",
       "name": "usl_home",
       "origin": "custom",
-      "source_sha256": "b2da8a91cc71e23337bb838c84691b892cc2e683bd93dcbd3025bc943dfae705",
-      "version": "saas~19.3.1.0.12"
+      "source_sha256": "b64442a2c2e8cd1c94fd11669c9427fafb44e2a2dd9a4f47eb45a99216a7e487",
+      "version": "saas~19.3.1.0.13"
     },
     {
       "manifest_sha256": "bb43850f670e0acf9f0173cad4c0c93680767addca24c5251f053d2d1eaf7e0b",
@@ -1696979,11 +1697015,11 @@
       "version": "saas~19.3.1.4.4"
     },
     {
-      "manifest_sha256": "4a7f7147a0d62856eac539a1f90d278bb03b09ab93f2847277d2c90f9bb7dd86",
+      "manifest_sha256": "6c86320e9e572c577c42e44493da376107fc7d19eb722aac85652a3eeec71bee",
       "name": "usl_project",
       "origin": "custom",
-      "source_sha256": "2fab4ae2e8952d89abbfa14c4d5cbabb3047eb65009ebfd895832ba74f668cf0",
-      "version": "saas~19.3.1.0.16"
+      "source_sha256": "0ae5f3ae79b5fa71d34b4c249ee5a368fa80c72b293d27ac63a38127eb3e7019",
+      "version": "saas~19.3.1.0.17"
     },
     {
       "manifest_sha256": "fdc17bc172de42c3680d2f856c88ec910045db940de6d0fd31988944400cb74a",
