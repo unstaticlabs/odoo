@@ -48,8 +48,10 @@ full qualification. Its prepared flow is:
 2. Inspect the label pattern, supporting transactions and proposed counterpart
    entries. Changing reference digits can be represented without broadening the
    stable wording into an unrestricted pattern.
-3. Review specifically named possible overlaps. Proven overlaps are refused;
-   uncertain relationships are warnings requiring judgment.
+3. Review specifically named possible overlaps. Conflicts demonstrated by
+   surviving transactions or supported witnesses in the same text field are
+   refused. Possible future combinations across label, details and narration
+   remain warnings requiring judgment, even when the label patterns are separate.
 4. After an edit or a stale-source warning, choose **Recheck evidence**. This
    checks the current rule without changing accounting or activating it.
 5. Choose **Approve Rule** or **Dismiss**. A pending suggestion cannot run.

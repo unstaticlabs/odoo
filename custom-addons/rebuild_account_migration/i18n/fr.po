@@ -13456,3 +13456,10 @@ msgstr "Suggestions préparées : %(count)s. Motifs non proposés : %(skipped)s.
 #, python-format
 msgid "Manual configuration needed (native accounting result differs): %s."
 msgstr "Configuration manuelle nécessaire (le résultat comptable natif diffère) : %s."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/reconciliation_rule_proof.py:0
+#, python-format
+msgid "“%s”: a future transaction could match both rules through different text fields (label, details or narration)."
+msgstr "« %s » : une transaction future pourrait satisfaire les deux règles dans des champs de texte différents (libellé, détails ou narration)."

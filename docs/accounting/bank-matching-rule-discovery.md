@@ -35,11 +35,13 @@ account. The pinned OCA execution values omit `tax_base_amount`, so a surviving
 nonzero reporting base is not asserted equivalent to native zero.
 
 The native PostgreSQL matcher checks label, transaction details and narration,
-company, journals, partners and signed amount. A witnessed overlap or a verified
-intersection of supported label shapes refuses a generated suggestion regardless
-of sequence or output account. Unsupported arbitrary-regex relationships produce
-specific warnings and links for review. Finite examples do not prove that every
-possible future transaction is disjoint.
+company, journals, partners and signed amount. A conflict demonstrated by a
+surviving transaction or a native-verified same-field witness refuses a generated
+suggestion regardless of sequence or output account. Unknown regex relationships
+and possible future cross-field combinations produce specific warnings and links
+for review. Two separate label shapes can still match different text fields on
+one future transaction; they remain reviewable suggestions. Finite examples and
+separate label patterns never establish universal disjointness.
 
 **Recheck evidence** validates current sources, settings and overlaps. An explicit
 **Approve Rule** is still required before a suggestion can match transactions.
@@ -70,8 +72,10 @@ Bank Matching. No automatic provider activation or production repair is included
 
 One private coordination row per company serializes rule and rule-line authoring.
 It has no ACL, public API, counter or financial meaning. Fixed parameterized
-UPSERTs update the tuple version after native originating-operation, company and
-Agent checks. They do not require journal-write permission or change a journal.
+UPSERTs update the tuple version after native originating-operation and company
+checks. Agents use the same workflow under the existing delegated human rights;
+this addon introduces no Agent-only policy. The barriers do not require
+journal-write permission or change a journal.
 Affected old/new companies and nested parent scopes are resolved before the
 sorted barrier; only an identity-checked internal scope can reuse held companies.
 

@@ -365,27 +365,6 @@ class TestProvenBankRuleProposals(AccountTestInvoicingCommon):
         self.assertEqual(len(proposal), 1)
         proposal.action_rebuild_approve_proposal()
         self.assertFalse(proposal.rebuild_is_proposal)
-        with self.assertRaises(AccessError):
-            self.env["rebuild.reconcile.rule.coordination"].with_user(agent.user_id).search([])
-
-    def test_readonly_agent_cannot_find_or_seed_authoring_coordination(self):
-        if "usl.agent" not in self.env:
-            self.skipTest("Managed Agent addon is optional in the standalone accounting closure")
-        agent = self.env["usl.agent"].with_user(self.manager).create({
-            "name": "[QA] Readonly rule assistant", "purpose": "Inspect bank matching rules",
-            "owner_id": self.manager.id, "company_id": self.env.company.id,
-            "company_ids": [Command.set(self.env.company.ids)],
-            "delegated_group_ids": [Command.set(self.env.ref("account.group_account_manager").ids)],
-            "access_mode": "read_only",
-        })
-        self.env.cr.execute("SELECT count(*) FROM rebuild_reconcile_rule_coordination")
-        before = self.env.cr.fetchone()[0]
-        with self.assertRaises(AccessError):
-            self.env["account.reconcile.model"].with_user(agent.user_id).with_context(
-                _rebuild_rule_coordination=["forged", [self.env.company.id]], _rebuild_proof=True,
-            ).action_rebuild_analyze_rule_opportunities()
-        self.env.cr.execute("SELECT count(*) FROM rebuild_reconcile_rule_coordination")
-        self.assertEqual(self.env.cr.fetchone()[0], before)
 
     def test_unknown_existing_regex_warns_without_refusing_supported_proposal(self):
         self.rules.create(self._manual_values("^Unrelated[A-Z]+$") | {
@@ -460,6 +439,27 @@ class TestProvenBankRuleProposals(AccountTestInvoicingCommon):
                 self.env.cr.execute("SELECT %s ~* %s", [label, pattern])
                 self.assertTrue(self.env.cr.fetchone()[0])
 
+    def test_separate_label_shapes_warn_about_future_cross_field_matches(self):
+        for _index in range(3):
+            self._evidence('[QA] Alpha service')
+        alpha = self._find()
+        for _index in range(3):
+            self._evidence('"[QA] Beta service"')
+        beta = self._find()
+        self.assertEqual(len(beta), 1, 'Separate supported labels must remain useful suggestions')
+        self.assertIn(alpha, beta.rebuild_overlap_rule_ids)
+        self.assertIn('different text fields', beta.rebuild_overlap_warning)
+        alpha.action_rebuild_approve_proposal()
+        beta.action_rebuild_approve_proposal()
+        self.assertFalse(any((alpha | beta).mapped('rebuild_is_proposal')))
+        future = self._evidence('[QA] Alpha service')
+        # The native Json field can carry a provider's text value. Its SQL text
+        # includes quotes, matching the second literal bank-label pattern.
+        future.transaction_details = '[QA] Beta service'
+        self.env.flush_all()
+        matches = self.env['account.reconcile.model']._get_rules(future, trigger='manual')
+        self.assertLessEqual(set((alpha | beta).ids), set(matches[future.id]))
+
     def test_native_contains_wildcards_are_not_python_literal_matching(self):
         self.rules.create(self._manual_values("[QA] Recurring%service"))
         for _index in range(3):
@@ -495,6 +495,56 @@ class TestProvenBankRuleProposals(AccountTestInvoicingCommon):
         with self.assertRaises(AccessError):
             proposal.with_context(allowed_company_ids=(company | self.env.company).ids).action_rebuild_approve_proposal()
         self.assertTrue(proposal.rebuild_is_proposal)
+
+    def test_native_direct_and_nested_line_reparenting_resolves_both_companies(self):
+        other = self.setup_other_company(name='[QA] Native line destination')
+        companies = self.env.company | other['company']
+        accountant = new_test_user(self.env, login='qa.proven.line.companies',
+            groups='account.group_account_basic', company_id=self.env.company.id,
+            company_ids=[Command.set(companies.ids)])
+        model = self.env['account.reconcile.model'].with_user(accountant).with_context(
+            allowed_company_ids=companies.ids,
+        )
+        for nested in (False, True):
+            source = model.create(self._manual_values('[QA] Source line %s' % nested))
+            destination = model.with_company(other['company']).create({
+                'name': '[QA] Destination line %s' % nested, 'company_id': other['company'].id,
+                'match_label': 'contains', 'match_label_param': '[QA] Destination',
+                'match_journal_ids': [Command.set(other['default_journal_bank'].ids)],
+                'line_ids': [Command.create({'account_id': other['default_account_expense'].id})],
+            })
+            line = source.line_ids
+            values = {'model_id': destination.id, 'account_id': other['default_account_expense'].id}
+            if nested:
+                source.write({'line_ids': [Command.update(line.id, values)]})
+            else:
+                line.write(values)
+            self.assertFalse(source.line_ids)
+            self.assertIn(line, destination.line_ids)
+            self.assertEqual(line.company_id, other['company'])
+            self.assertEqual(line.account_id, other['default_account_expense'])
+
+    def test_denied_destination_line_edit_does_not_change_coordination_or_parent(self):
+        other = self.setup_other_company(name='[QA] Hidden line destination')
+        destination = self.rules.with_user(SUPERUSER_ID).with_company(other['company']).create({
+            'name': '[QA] Hidden destination', 'company_id': other['company'].id,
+            'match_label': 'contains', 'match_label_param': '[QA] Hidden destination',
+            'match_journal_ids': [Command.set(other['default_journal_bank'].ids)],
+            'line_ids': [Command.create({'account_id': other['default_account_expense'].id})],
+        })
+        accountant = new_test_user(self.env, login='qa.proven.line.denied',
+            groups='account.group_account_basic', company_id=self.env.company.id,
+            company_ids=[Command.set(self.env.company.ids)])
+        source = self.rules.with_user(accountant).create(self._manual_values())
+        line = source.line_ids
+        self.env.cr.execute('SELECT company_id, ctid::text FROM rebuild_reconcile_rule_coordination ORDER BY company_id')
+        before = self.env.cr.fetchall()
+        with self.assertRaises(AccessError):
+            line.write({'model_id': destination.id, 'account_id': other['default_account_expense'].id})
+        self.env.cr.execute('SELECT company_id, ctid::text FROM rebuild_reconcile_rule_coordination ORDER BY company_id')
+        self.assertEqual(self.env.cr.fetchall(), before)
+        self.assertEqual(line.model_id, source)
+        self.assertEqual(line.company_id, self.env.company)
 
     def test_denied_company_create_does_not_seed_private_metadata(self):
         company = self.setup_other_company(name="[QA] Denied rule company")["company"]

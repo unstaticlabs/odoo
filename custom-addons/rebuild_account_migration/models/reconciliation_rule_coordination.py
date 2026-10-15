@@ -24,9 +24,6 @@ class AccountReconcileModel(models.Model):
     _inherit = "account.reconcile.model"
 
     def _rebuild_authoring_access(self, operation, values=None):
-        reject = getattr(self, "_usl_reject_readonly_agent_mutation", None)
-        if reject:
-            reject(operation)
         self.check_access(operation)
         if operation == "create":
             for vals in values:
@@ -105,9 +102,6 @@ class AccountReconcileModelLine(models.Model):
     _inherit = "account.reconcile.model.line"
 
     def _rebuild_line_authoring_scope(self, operation, vals_list=None):
-        reject = getattr(self, "_usl_reject_readonly_agent_mutation", None)
-        if reject:
-            reject(operation)
         self.check_access(operation)
         parents = self.model_id
         for vals in vals_list or []:

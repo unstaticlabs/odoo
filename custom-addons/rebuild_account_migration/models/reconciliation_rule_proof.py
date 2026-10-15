@@ -361,8 +361,11 @@ class AccountReconcileModel(models.Model):
                     ids |= self._rebuild_native_witness_matches(witness, scope, rule)
                 if {self.id, other.id} <= ids:
                     return other, witness, []
-            if not decided:
-                warnings.append((other.id, _("This suggestion could overlap with “%s”. Review its conditions and the supporting examples before approval.", other.display_name)))
+            if decided and witness is None:
+                warning = _("“%s”: a future transaction could match both rules through different text fields (label, details or narration).", other.display_name)
+            else:
+                warning = _("This suggestion could overlap with “%s”. Review its conditions and the supporting examples before approval.", other.display_name)
+            warnings.append((other.id, warning))
         return self.browse(), False, warnings
 
     def _rebuild_overlap_warning_values(self, warnings):
