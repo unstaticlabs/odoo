@@ -145,3 +145,26 @@ receipt and provider contracts; the affected upstream behavior was qualified in
 a separate native closure and through integrated probes. These initial failures
 remain in the private receipts. Infrastructure-aborted runs are retained and are
 not counted as passing tests.
+
+The final exact-source first upgrade and recovered repeat both pass the strict
+preservation gate: 671 attachment rows, 381 messages, one project and 72 group
+memberships remain unchanged. Hashes of all ten existing accounting moves,
+20 move lines, the partial reconciliation and the full reconciliation match the
+settled predecessor; nine posted moves remain balanced. One repeat attempt was
+interrupted by the owned QA stack stopping (exit 137); the successful repeat
+reuses the original baseline rather than capturing a new one after the upgrade.
+
+After sealing, the four selected access-control classes complete 133 cases with
+no failures or errors and one explicit already-project-manager skip. Exact runtime
+inventory, compiled assets and database product boundary pass again. The 719
+repository tooling tests pass with two environment-dependent skips; skills,
+source boundary, Action pins and GitHub governance checks pass. Hosted PR
+qualification also passes. A recent neutralized production-backup restore remains
+unperformed; no production backup was accessed or production promotion requested.
+
+All 994 original synthetic predecessor filestore files also retain their exact
+SHA-256 bytes. Final screenshots and the separate functional journey context are
+recorded in `docs/product/screenshots/upstream-sync-20261015/README.md`. The lead
+personally inspected all four images and independently checked embedded metadata
+before publication. The ordinary reviewer reaches the posted bill's two exact
+journal items; the desktop and mobile shell remain readable.
