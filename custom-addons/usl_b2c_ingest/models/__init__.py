@@ -15,6 +15,7 @@ from . import (
     materialise,
     oss,
     oss_return,
+    processor_conversion,
     readiness,
     settings,
     settlement,

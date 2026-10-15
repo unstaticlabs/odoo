@@ -179,6 +179,32 @@ class TestParsers(TransactionCase):
         self.assertTrue(stated)
         self.assertEqual(stated, {name.upper() for name in stated})
 
+    def test_stripe_states_what_the_customer_was_charged_before_converting_it(self):
+        converted = (
+            {
+                **fixtures.STRIPE_BALANCE_ROWS[0],
+                "Customer Facing Amount": "100.00",
+                "Customer Facing Currency": "usd",
+            },
+            *fixtures.STRIPE_BALANCE_ROWS[1:],
+        )
+        _fmt, parsed, _document = self._parse(
+            fixtures.stripe_balance_history(converted, facing=True),
+        )
+        charge, account_fee, _payout = parsed
+        self.assertEqual(charge.values["facing_amount"], Decimal("100.00"))
+        self.assertEqual(charge.values["facing_currency"], "USD")
+        # A row Stripe did not convert states nothing in those columns.
+        self.assertIsNone(account_fee.values["facing_amount"])
+        self.assertIsNone(account_fee.values["facing_currency"])
+
+    def test_a_stripe_export_without_the_facing_columns_reads_them_as_nothing(self):
+        _fmt, parsed, _document = self._parse(fixtures.stripe_balance_history())
+        self.assertTrue(parsed)
+        for row in parsed:
+            self.assertIsNone(row.values["facing_amount"])
+            self.assertIsNone(row.values["facing_currency"])
+
     def test_medusa_does_not_claim_a_subtotal_it_states_before_tax(self):
         """Its Subtotal is not what the customer paid for the goods."""
         _fmt, parsed, _document = self._parse(fixtures.medusa_full_orders())

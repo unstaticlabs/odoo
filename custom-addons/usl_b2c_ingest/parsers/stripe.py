@@ -53,6 +53,12 @@ ENTRY_KINDS = {
 #: The kinds whose money Stripe kept, and which therefore have to be bought.
 FEE_KINDS = ("charge", "refund", "account_fee")
 
+#: What the customer was charged, where Stripe converted it before keeping it.
+#: Stripe writes these only on an account that takes foreign currencies, so
+#: they are read when present and never required.
+FACING_AMOUNT = "Customer Facing Amount"
+FACING_CURRENCY = "Customer Facing Currency"
+
 
 def parse_balance_history(document):
     """Yield one row per balance transaction.
@@ -61,6 +67,11 @@ def parse_balance_history(document):
     while it states a payment's cost as a fee against a positive amount.  Both
     are money Stripe kept, so both are read into the same field and the
     difference between them stays visible in the kind.
+
+    A payment taken in one currency and settled in another is stated twice:
+    ``Amount`` is what reached the balance, and the customer-facing columns
+    are what the customer was charged.  The second is what the ledger holds
+    the receipt at, so it is what the conversion is matched on.
     """
     for row in document.rows:
         kind = ENTRY_KINDS.get(text(row["Type"]).lower(), "adjustment")
@@ -90,5 +101,7 @@ def parse_balance_history(document):
                 "payout_reference": text(row["Transfer"]),
                 "available_on": parsed_datetime(row["Available On (UTC)"]),
                 "description": text(row.get("Description", "")),
+                "facing_amount": money(row.get(FACING_AMOUNT)),
+                "facing_currency": text(row.get(FACING_CURRENCY, "")).upper() or None,
             },
         )

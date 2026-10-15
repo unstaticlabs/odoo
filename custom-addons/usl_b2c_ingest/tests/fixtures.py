@@ -79,14 +79,19 @@ def etsy_statement(rows=None):
     return _csv(etsy.STATEMENT_REQUIRED, rows if rows is not None else ETSY_STATEMENT_ROWS)
 
 
-def stripe_balance_history(rows=None, *, metadata=True):
+def stripe_balance_history(rows=None, *, metadata=True, facing=False):
     """Return a Stripe balance history, with the metadata column an account adds.
 
     Stripe writes one column per metadata key the account uses, so an export
     that carries none and one that carries several are the same export. The
     fixture states one by default, because that is what a real account sends.
+
+    An account that takes foreign currencies also states what the customer was
+    charged before Stripe converted it, which ``facing`` adds.
     """
     header = (*stripe.BALANCE_REQUIRED, "Description", "Transfer Date (UTC)")
+    if facing:
+        header = (*header, stripe.FACING_AMOUNT, stripe.FACING_CURRENCY)
     if metadata:
         header = (*header, "session_id (metadata)")
     return _csv(header, rows if rows is not None else STRIPE_BALANCE_ROWS)
