@@ -219,3 +219,58 @@ class TestLifecycle(TestAccounting):
         )
         self.assertEqual(finding.severity, "advisory")
         self.assertIn("6.11", finding.note)
+
+    # -- orders whose revenue the books already hold -----------------------
+
+    def _historical_kind(self, batch):
+        return batch.issue_ids.filtered(
+            lambda issue: issue.kind == "historical_refund_unbooked",
+        )
+
+    def test_a_historical_order_stated_cancelled_is_left_standing_and_reported(self):
+        self._etsy_drop()
+        batch = self._drop(_orders(**{"Date Shipped": ""}))
+        sale = self._sale(batch, "9000000001")
+        self._flag_historical(sale)
+
+        later = self._drop(_orders(**{"Date Shipped": "", "Status": "Canceled"}))
+        later.action_reconcile()
+        self.assertEqual(sale.state, "sale", "a booked order is not cancelled by an import")
+        self.assertFalse(later.cancelled_sale_ids)
+        finding = self._historical_kind(later)
+        self.assertEqual(len(finding), 1)
+        self.assertEqual(finding.severity, "blocking")
+        self.assertEqual(finding.external_order_id, "9000000001")
+        self.assertEqual(later.blocking_issue_count, 1)
+
+    def test_a_historical_order_stated_refunded_is_not_reversed_and_is_reported(self):
+        batch, _jersey, _cap = self._etsy_drop()
+        batch.action_apply()
+        sale = self._sale(batch, "9000000001")
+        self._flag_historical(sale)
+
+        later = self._drop(_orders(Status="Refunded"))
+        later.action_reconcile()
+        self.assertNotEqual(sale.state, "cancel")
+        self.assertFalse(later.credit_note_ids)
+        self.assertFalse(sale.invoice_ids)
+        self.assertEqual(len(self._historical_kind(later)), 1)
+
+    def test_reconciling_a_historical_refund_twice_reports_it_once(self):
+        batch, _jersey, _cap = self._etsy_drop()
+        batch.action_apply()
+        self._flag_historical(self._sale(batch, "9000000001"))
+
+        later = self._drop(_orders(Status="Refunded"))
+        later.action_reconcile()
+        later.action_reconcile()
+        self.assertEqual(len(self._historical_kind(later)), 1)
+
+    def test_a_historical_order_nothing_happened_to_raises_nothing(self):
+        batch, _jersey, _cap = self._etsy_drop()
+        batch.action_apply()
+        self._flag_historical(self._sale(batch, "9000000001"))
+
+        later = self._drop(_orders())
+        later.action_reconcile()
+        self.assertFalse(self._historical_kind(later))

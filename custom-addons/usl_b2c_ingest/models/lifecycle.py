@@ -50,7 +50,11 @@ STATED_OUTCOMES = {
 
 #: Findings this pass owns, cleared each time it runs so a resolved one does
 #: not outlive the drop that raised it.
-RECONCILIATION_KINDS = ("part_refund_unallocated", "cancelled_after_delivery")
+RECONCILIATION_KINDS = (
+    "part_refund_unallocated",
+    "cancelled_after_delivery",
+    "historical_refund_unbooked",
+)
 
 
 def _stated(values, name):
@@ -155,6 +159,17 @@ class B2cImportBatchLifecycle(models.Model):
     def _outcome_of(self, row):
         return stated_outcome(row.values)
 
+    def _historical_sales(self):
+        """Return the sales this drop names whose revenue is booked by summary entries."""
+        self.ensure_one()
+        return self.env["sale.order"].concat(
+            *(
+                order.sale_order_id
+                for order in self._stated_orders()
+                if order.sale_order_id.usl_historical_b2c
+            ),
+        )
+
     def _orders_stated_reversed(self):
         """Return the rows whose channel says the order did not stand."""
         self.ensure_one()
@@ -193,6 +208,8 @@ class B2cImportBatchLifecycle(models.Model):
         if outcome == SOLD:
             return self.env["account.move"]
         sale = order.sale_order_id
+        if self._leave_historical_refund(order, sale, row):
+            return self.env["account.move"]
         invoice = sale.invoice_ids.filtered(
             lambda move: move.move_type == "out_invoice" and move.state == "posted",
         )
@@ -204,6 +221,42 @@ class B2cImportBatchLifecycle(models.Model):
         if outcome == PART_REFUNDED:
             return self._propose_credit_note(invoice, row, given_back)
         return self._credit_in_full(invoice, order, row)
+
+    def _leave_historical_refund(self, order, sale, row):
+        """Leave an order that is history untouched, and say it was given back.
+
+        Its revenue is booked by summary entries, so there is no invoice to
+        credit and no advance to return, and cancelling the sale would not
+        take the revenue back out of the entries.  What the channel says
+        happened to it needs an entry by hand, so it is raised as a finding
+        for a person; raised once, however many steps of a run reach it.
+        """
+        self.ensure_one()
+        outcome, _given_back = self._outcome_of(row)
+        if outcome == SOLD or not (sale and sale.usl_historical_b2c):
+            return False
+        already = self.issue_ids.filtered(
+            lambda issue: issue.kind == "historical_refund_unbooked"
+            and issue.external_order_id == row.external_order_id,
+        )
+        if not already:
+            self._raise_issue(
+                "historical_refund_unbooked",
+                self.env._(
+                    "%(order)s is booked by summary entries and was given back",
+                    order=row.external_order_id,
+                ),
+                external_order_id=row.external_order_id,
+                row=row,
+                note=self.env._(
+                    "The channel states this order as %(outcome)s. Its revenue is "
+                    "already booked by summary entries, so nothing was credited, "
+                    "returned or cancelled here. Record the refund or cancellation "
+                    "by hand.",
+                    outcome=outcome,
+                ),
+            )
+        return True
 
     def _credit_in_full(self, invoice, order, row):
         """Reverse an invoice the channel has taken back in full."""
@@ -304,6 +357,8 @@ class B2cImportBatchLifecycle(models.Model):
         self.ensure_one()
         outcome, _given_back = self._outcome_of(row)
         sale = order.sale_order_id
+        if self._leave_historical_refund(order, sale, row):
+            return self.env["sale.order"]
         if not sale or sale.state == "cancel":
             return self.env["sale.order"]
         undone = outcome == CANCELLED or (

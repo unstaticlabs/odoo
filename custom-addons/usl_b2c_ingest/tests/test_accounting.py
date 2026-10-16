@@ -5,6 +5,9 @@ from unittest.mock import patch
 from odoo.exceptions import UserError
 from odoo.tests import tagged
 
+from odoo.addons.usl_b2c.models.constants import HISTORICAL_B2C_MATERIALIZATION_CONTEXT
+from odoo.addons.usl_b2c.models.native_history import MATERIALIZATION_TOKEN
+
 from . import fixtures
 from .test_materialise import TestMaterialise
 
@@ -67,6 +70,12 @@ class TestAccounting(TestMaterialise):
         batch, _jersey, _cap = self._etsy_drop()
         batch.action_apply()
         return batch
+
+    def _flag_historical(self, *sales):
+        """Mark sales the way the B2C history does: revenue booked by summary entries."""
+        self.env["sale.order"].concat(*sales).with_context(
+            **{HISTORICAL_B2C_MATERIALIZATION_CONTEXT: MATERIALIZATION_TOKEN},
+        ).sudo().write({"usl_historical_b2c": True})
 
     def _balances(self, moves):
         lines = moves.line_ids | moves.mapped("matched_payment_ids.move_id.line_ids")
@@ -389,3 +398,55 @@ class TestAccounting(TestMaterialise):
         batch = self._unshipped_drop()
         sale = self._sale(batch, "9000000001")
         self.assertFalse(sale.picking_ids.filtered(lambda item: item.state == "done"))
+
+    # -- orders whose revenue the books already hold -----------------------
+
+    def _advances(self):
+        return self.env["account.payment"].search(
+            [("company_id", "=", self.company.id), ("memo", "like", ":advance:")],
+        )
+
+    def test_a_historical_order_paid_and_not_shipped_is_not_held_as_an_advance(self):
+        batch = self._unshipped_drop()
+        sale = self._sale(batch, "9000000001")
+        self._flag_historical(sale)
+        batch.action_invoice()
+        self.assertFalse(batch.advance_payment_ids)
+        self.assertFalse(self._advances(), "no payment is created for a booked order")
+        self.assertFalse(batch.invoiced_move_ids)
+
+    def test_a_historical_order_that_shipped_is_never_invoiced(self):
+        batch = self._applied()
+        sale = self._sale(batch, "9000000001")
+        other = self._sale(batch, "9000000002")
+        self._flag_historical(sale)
+        sale_order = type(self.env["sale.order"])
+        with patch.object(
+            sale_order, "_create_invoices", autospec=True,
+            side_effect=sale_order._create_invoices,
+        ) as create:
+            batch.action_invoice()
+        self.assertEqual(
+            [call.args[0] for call in create.call_args_list], [other],
+            "only the order that is not history reaches invoicing",
+        )
+        self.assertFalse(sale.invoice_ids)
+
+    def test_a_drop_of_only_historical_orders_completes_without_invoicing(self):
+        batch = self._applied()
+        self._flag_historical(*batch.applied_sale_ids)
+        sale_order = type(self.env["sale.order"])
+        with patch.object(sale_order, "_create_invoices", autospec=True) as create:
+            batch.action_invoice()
+        create.assert_not_called()
+        self.assertFalse(batch.invoiced_move_ids)
+        self.assertFalse(batch.advance_payment_ids)
+        self.assertFalse(batch.applied_sale_ids.invoice_ids)
+        self.assertIn("2 order(s) are history", batch.report)
+
+    def test_an_order_that_is_not_history_is_still_invoiced_beside_one_that_is(self):
+        batch = self._applied()
+        self._flag_historical(self._sale(batch, "9000000001"))
+        batch.action_invoice()
+        self.assertEqual(batch.invoiced_move_ids, self._sale(batch, "9000000002").invoice_ids)
+        self.assertEqual(batch.invoiced_move_ids.payment_state, "paid")
