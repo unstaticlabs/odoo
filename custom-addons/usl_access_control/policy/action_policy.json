@@ -42623,6 +42623,10 @@
         "rpc:project.task.action_project_sharing_view_parent_task": {
           "evidence_id": "upstream-sync-20261015",
           "rationale": "Reviewed native task portal create/child-write validation, milestone propagation, project shared-analytic-account preservation and status-update derived pointer. Native ACLs, project/company domains and existing governed-root guards remain. Portal search materialization preserves its exact access domain."
+        },
+        "rpc:project.task.search_count": {
+          "evidence_id": "live-content-search-20261014",
+          "rationale": "Reviewed 2026-10-15 in docs/operations/content-search-action-risk-review.md: native Task count retains its complete domain, ACLs and exact count; content-only execution temporarily disables PostgreSQL JIT with a transaction-local planner setting and restores healthy prior state. No business mutation, elevation, global configuration or external effect. Native SQL, caller rollback, readonly and ORM-flush regressions qualify this boundary."
         }
       },
       "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
@@ -43069,7 +43073,7 @@
         "rpc:project.task.recurrence.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:project.task.recurrence.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
         "rpc:project.task.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
-        "rpc:project.task.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+        "rpc:project.task.search_count": "ea2e5db601da2ff641512ed92274061faee31fb202d3172a6ce267a0cde9289b",
         "rpc:project.task.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
         "rpc:project.task.search_panel_select_range": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
         "rpc:project.task.search_read": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
@@ -67740,11 +67744,11 @@
       "domain": "work_management",
       "evidence_id": "live-content-search-20261014",
       "id": "read_only.work_management.live_content_search",
-      "rationale": "Internal and selected-company validation precedes native caller-scoped reads; native Properties metadata and public identities retain their existing authority. Document reads reuse the governed facade and native form access is rechecked.",
+      "rationale": "Internal and selected-company validation precedes native caller-scoped reads; native Properties metadata and public identities retain their existing authority. Document reads reuse the governed facade and native form access is rechecked. Validated category exclusion partitions the same authorized catalog for progressive batches; activity matches stay in a native authorized subquery and identical property predicates retain exact owner scopes.",
       "reviewed_digests": {
         "rpc:usl.home.service.get_search_result_action": "07f5dddae4801067f010ac1144589769c2894835b16d336acbd02cca17d3ea46",
         "rpc:usl.home.service.search_documents": "a49109300ed02ed6c7f4fc6fb03b88a6af4f2960b76a2ba8e3b72b86e8401797",
-        "rpc:usl.home.service.search_records": "f20ff609b54755e2044f2c2a932ca978b424396aabcad5bf2cbd1c2e016b6ece"
+        "rpc:usl.home.service.search_records": "1276894379ac289a5c58f7be745d64ce72fde2cb747a413fe6799e3c1291b8bc"
       }
     },
     {
@@ -204268,7 +204272,8 @@
         "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:2",
         "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:loadDocuments:rpc:1",
         "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:open:rpc:1",
-        "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:if:rpc:1"
+        "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:if:rpc:1",
+        "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:loadContentCategory:rpc:1"
       ],
       "classification": "transport",
       "consequence": "Forwards search, paging and record opening to exact reviewed readonly RPCs.",
@@ -204298,18 +204303,23 @@
         },
         "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:if:rpc:1": {
           "targets": [
-            "rpc:usl.home.service.get_search_result_action",
+            "rpc:usl.home.service.get_search_result_action"
+          ]
+        },
+        "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:loadContentCategory:rpc:1": {
+          "targets": [
             "rpc:usl.home.service.search_records"
           ]
         }
       },
-      "rationale": "Each frontend entry has only its named readonly RPC delegate; result rendering and native form navigation add no mutation sink.",
+      "rationale": "Each frontend entry has only its named readonly RPC delegate; result rendering and native form navigation add no mutation sink. Fixed local batches and cancellation use native RPC promises; the named category loader forwards only to search_records, and partial result rendering adds no mutation sink.",
       "reviewed_digests": {
-        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:1": "10f940116c19e0987ac26a9ab2228c388bb1d9ecea688e323ca71dea1835486c",
-        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:2": "543465818859ba898de82a298a2004dd3cf64f6334d8e6e1558a04f0ce2b14c7",
-        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:loadDocuments:rpc:1": "36f56fab197f8ae5eb634278bb47507fc0998b4d4038b5ab00f7bc9f221e580c",
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:1": "e310b9e9185620f7f0ac965bc796cae62a3cdb31b307404f7dd126302f6fa092",
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:2": "1f22146774247720c0aa6dff88854a76d16438e4e3ea7515fb22915998830ea9",
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:loadDocuments:rpc:1": "e663c1c551ab15dfe08a5c1575d464e05c0b92a883f3e6c697504ae361e391ec",
         "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:open:rpc:1": "3f0592da92b3e4b1340a371af2a2a814ea4ad31584594c1aaf32703ab122d484",
-        "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:if:rpc:1": "558c88b9cbf9bf37c219046e7a3b624925203424cacf607716f2789c68db3a27"
+        "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:if:rpc:1": "c6f89f06aa43c5df3ee4de9c90a668c3264167ece9309770e4d549c651991b3e",
+        "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:loadContentCategory:rpc:1": "cf91808b8322c4b0937b69f6820ae28e4f8990d301dc2ac500d3b570176ee841"
       }
     },
     {
@@ -205655,6 +205665,26 @@
       "targets": [
         "rpc:account.move.action_cancel_peppol_documents"
       ]
+    },
+    {
+      "action_keys": [
+        "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Private native aggregate delegation; existing public callers retain their authorization and classification.",
+      "domain": "projects",
+      "evidence_id": "live-content-search-20261014",
+      "id": "system_internal.projects.live_content_search",
+      "overrides": {
+        "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1": {
+          "rationale": "Exact native signature and @api.model remain. The context manager restores healthy prior planner state, preserves original SQL errors for caller rollback and does not own a savepoint. Actual native Pivot GROUPING SETS and nested schema SQL are observed under jit=off with exact aggregate/project assertions.",
+          "reachability_proof": "This private helper adds no callable RPC/controller/UI/cron entry. Existing native formatted_read_grouping_sets remains the public parent and keeps its classification and access."
+        }
+      },
+      "rationale": "Reviewed 2026-10-15: discovery conservatively matches '_set' within _read_grouping_sets as orm_write, as with the existing native Project/ORM wrappers. This override only scopes the transaction-local JIT setting and delegates unchanged to native aggregation; no business row write, elevation, global configuration or external effect.",
+      "reviewed_digests": {
+        "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1": "dd3f23fbed92b3839174ec67e638ea9073a9effeeff7232f0d0e6799357de1c4"
+      }
     }
   ],
   "evidence_families": {
@@ -205841,7 +205871,7 @@
       ]
     },
     "live-content-search-20261014": {
-      "contract": "Internal caller/company-scoped live business text and native Properties metadata; independently authorized related records/public identities, readonly Accounting, scoped document OCR, bounded native destinations and stale-response isolation. No new mutation or index.",
+      "contract": "Internal caller/company-scoped live business text and native Properties metadata; independently authorized related records/public identities, readonly Accounting, scoped document OCR, bounded native destinations and stale-response isolation. No new mutation or index. Content-only native Task page/count/group/Pivot execution scopes the transaction-local JIT planner setting and preserves caller rollback and pending ORM writes.",
       "tests": [
         "custom-addons/usl_project/tests/test_task_content_search.py::TestTaskContentSearch.test_description_content_is_searchable_without_name_match",
         "custom-addons/usl_project/tests/test_task_content_search.py::TestTaskContentSearch.test_readable_task_properties_do_not_require_project_business_access",
@@ -205853,7 +205883,16 @@
         "custom-addons/usl_home/tests/test_content_search.py::TestHomeContentSearch.test_portal_cannot_use_search",
         "custom-addons/usl_home/tests/test_content_search.py::TestHomeContentSearch.test_open_rechecks_access_and_does_not_accept_arbitrary_models",
         "custom-addons/usl_home/static/tests/content_search.test.js",
-        "custom-addons/usl_home/static/tests/project_content_search.test.js"
+        "custom-addons/usl_home/static/tests/project_content_search.test.js",
+        "custom-addons/usl_project/tests/test_task_content_search.py::TestTaskContentSearch.test_bounded_task_page_does_not_fetch_every_matching_activity",
+        "custom-addons/usl_project/tests/test_task_content_search.py::TestTaskContentSearch.test_shared_property_schema_does_not_repeat_the_database_predicate",
+        "custom-addons/usl_project/tests/test_task_content_search.py::TestTaskContentSearch.test_shared_property_keys_keep_each_owners_selection_meaning",
+        "custom-addons/usl_home/tests/test_content_search.py::TestHomeContentSearch.test_progressive_batches_cover_the_same_authorized_catalog",
+        "custom-addons/usl_project/tests/test_task_content_search.py::TestTaskContentSearch.test_content_execution_disables_jit_and_restores_native_setting",
+        "custom-addons/usl_project/tests/test_task_content_search.py::TestTaskContentSearch.test_native_pivot_content_execution_and_nested_schema_scope",
+        "custom-addons/usl_project/tests/test_task_content_search.py::TestTaskContentSearch.test_content_execution_transaction_and_exception_boundaries",
+        "custom-addons/usl_project/tests/test_task_content_search.py::TestTaskContentSearch.test_content_execution_preserves_pending_orm_write",
+        "custom-addons/usl_project/tests/test_task_content_search.py::TestTaskContentSearch.test_content_execution_readonly_and_ended_transaction"
       ]
     },
     "operational-authorized-workflow-v1": {

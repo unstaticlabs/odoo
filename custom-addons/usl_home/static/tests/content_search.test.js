@@ -104,3 +104,49 @@ test("live page overlaps keep one current row per record and preserve selection"
     expect("#usl-home-search-result-project-task-6").toHaveText("Updated task 6\nAmber");
     expect("#usl-home-search-result-project-task-6").toHaveAttribute("aria-selected", "true");
 });
+
+test("task results remain available while other business categories are pending", async () => {
+    const pending = new Deferred();
+    onRpc("usl.home.service", "search_records", ({ kwargs }) =>
+        kwargs.categories?.includes("tasks") ? local("Partial task result") : pending);
+    onRpc("usl.home.service", "search_documents", () => documents);
+    await mountSearch("Amber");
+    await animationFrame();
+    expect(".o_usl_search_result").toHaveText("Partial task result\nAmber lantern specification");
+    expect('[role="status"]').toHaveText(/Searching records/);
+    pending.resolve({ groups: [] });
+    await animationFrame();
+    expect(".o_usl_search_result").toHaveCount(1);
+    expect('[role="status"]').toHaveCount(0);
+});
+
+test("changing and clearing a query aborts superseded native search requests", async () => {
+    let started = 0;
+    let aborted = 0;
+    mockService("orm", {
+        call(model, method, ...args) {
+            if (model !== "usl.home.service" || !["search_records", "search_documents"].includes(method)) {
+                return super.call(model, method, ...args);
+            }
+            started++;
+            let reject;
+            const request = new Promise((_resolve, rejectRequest) => { reject = rejectRequest; });
+            request.abort = () => {
+                aborted++;
+                reject(new Error("Synthetic superseded request"));
+            };
+            return request;
+        },
+    });
+    await mountSearch("Amber");
+    expect(started).toBeGreaterThan(0);
+    const firstBatch = started;
+    await contains("#usl-home-content-search").edit("Cobalt");
+    expect(aborted).toBe(firstBatch);
+    await advanceTime(250);
+    expect(started).toBe(firstBatch * 2);
+    await contains('button[aria-label="Clear search"]').click();
+    expect(aborted).toBe(firstBatch * 2);
+    expect(".o_usl_search_result").toHaveCount(0);
+    expect('[role="alert"]').toHaveCount(0);
+});

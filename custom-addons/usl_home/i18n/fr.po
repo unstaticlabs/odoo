@@ -745,8 +745,8 @@ msgstr "Recherche des enregistrements…"
 #: code:addons/usl_home/static/src/home/content_search.js:0
 #: code:addons/usl_home/static/src/home/content_search.xml:0
 #: code:addons/usl_home/static/src/project_search/project_search.js:0
-msgid "Records could not be searched."
-msgstr "La recherche des enregistrements a échoué."
+msgid "Some records could not be searched. Results already found remain available."
+msgstr "Certains éléments n’ont pas pu être recherchés. Les résultats déjà trouvés restent disponibles."
 
 #. module: usl_home
 #. odoo-javascript

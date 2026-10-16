@@ -14,6 +14,7 @@ export class HomeContentSearch extends Component {
         this.input = useRef("input");
         this.state = useState({ query: this.props.query || "", groups: [], documents: null, loading: false, documentsLoading: false, error: false, documentError: false, selected: null });
         this.generation = 0;
+        this.requests = new Set();
         useSetupAction({
             getLocalState: () => ({ contentSearchQuery: this.state.query }),
             getGlobalState: () => ({ contentSearchQuery: this.state.query }),
@@ -27,6 +28,7 @@ export class HomeContentSearch extends Component {
         onWillUnmount(() => {
             clearTimeout(this.timer);
             this.generation++;
+            this.cancelRequests();
         });
     }
 
@@ -65,6 +67,7 @@ export class HomeContentSearch extends Component {
     inputChanged(event) {
         this.state.query = event.target.value;
         this.generation++;
+        this.cancelRequests();
         this.state.groups = [];
         this.state.documents = null;
         this.state.selected = null;
@@ -83,29 +86,59 @@ export class HomeContentSearch extends Component {
         this.input.el.focus();
     }
 
+    cancelRequests() {
+        for (const request of this.requests) {
+            request.abort?.();
+        }
+        this.requests.clear();
+    }
+
+    async request(request) {
+        this.requests.add(request);
+        try {
+            return await request;
+        } finally {
+            this.requests.delete(request);
+        }
+    }
+
     async search() {
         clearTimeout(this.timer);
         const generation = ++this.generation;
+        this.cancelRequests();
         const query = this.state.query.trim();
         Object.assign(this.state, { groups: [], documents: null, selected: null, error: false, documentError: false, loading: Boolean(query), documentsLoading: Boolean(query) });
         if (!query) {
             return;
         }
-        // Local records appear independently of the document-content provider.
-        await Promise.allSettled([
-            this.orm.call("usl.home.service", "search_records", [query]).then((result) => {
+        // Tasks/Projects appear without waiting for unrelated business apps;
+        // only these two local batches and Documents can be pending at once.
+        let remaining = 2;
+        const loadRecords = async (kwargs) => {
+            try {
+                const result = await this.request(this.orm.call("usl.home.service", "search_records", [query], kwargs));
                 if (generation === this.generation) {
-                    this.state.groups = result.groups;
+                    const groups = new Map(this.state.groups.map((group) => [group.key, group]));
+                    for (const group of result.groups) {
+                        groups.set(group.key, group);
+                    }
+                    this.state.groups = [...groups.values()].sort((left, right) =>
+                        ({ tasks: 0, projects: 1 }[left.key] ?? 2) -
+                        ({ tasks: 0, projects: 1 }[right.key] ?? 2));
                 }
-            }).catch(() => {
+            } catch {
                 if (generation === this.generation) {
                     this.state.error = true;
                 }
-            }).finally(() => {
-                if (generation === this.generation) {
+            } finally {
+                if (generation === this.generation && !--remaining) {
                     this.state.loading = false;
                 }
-            }),
+            }
+        };
+        await Promise.allSettled([
+            loadRecords({ categories: ["tasks", "projects"] }),
+            loadRecords({ exclude_categories: ["tasks", "projects"] }),
             this.loadDocuments(query, generation),
         ]);
     }
@@ -114,7 +147,7 @@ export class HomeContentSearch extends Component {
         this.state.documentsLoading = true;
         this.state.documentError = false;
         try {
-            const { group } = await this.orm.call("usl.home.service", "search_documents", [query], { offset });
+            const { group } = await this.request(this.orm.call("usl.home.service", "search_documents", [query], { offset }));
             if (generation === this.generation) {
                 this.state.documentError = Boolean(group.unavailable);
                 if (offset && this.state.documents) {
@@ -142,14 +175,16 @@ export class HomeContentSearch extends Component {
         const generation = this.generation;
         const offset = group.offset + 5;
         try {
-            const { groups } = await this.orm.call("usl.home.service", "search_records", [this.state.query.trim()], { categories: [group.key], offset });
+            const { groups } = await this.request(this.orm.call("usl.home.service", "search_records", [this.state.query.trim()], { categories: [group.key], offset }));
             if (generation === this.generation && groups[0]) {
                 const next = groups[0];
                 next.records = this.mergeRecords(group.records, next.records);
                 this.state.groups = this.state.groups.map((old) => old.key === group.key ? next : old);
             }
         } catch {
-            this.notification.add(_t("More results could not be loaded. Try again."), { type: "warning" });
+            if (generation === this.generation) {
+                this.notification.add(_t("More results could not be loaded. Try again."), { type: "warning" });
+            }
         } finally {
             group.loading = false;
         }
