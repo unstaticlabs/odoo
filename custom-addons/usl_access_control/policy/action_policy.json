@@ -727,14 +727,14 @@
       "domain": "accounting",
       "evidence_id": "draft-expense-correction-20261014",
       "id": "operational.draft-expense-correction",
-      "rationale": "The fixed bounded method locks and rechecks the draft, requires source and target authority, validates explicit company-compatible relations, delegates native batch removal and receipt supersession, and scopes the existing in-process collaboration marker only to evidence owned by that expense. It never accepts arbitrary records, fields, sudo flags or serializable authority tokens. Split-family ownership changes remain a separately coordinated workflow. Financial reference preflight applies to company moves or explicitly supplied relations, preserving ordinary label edits without demanding unrelated supplier-bill read access. The internal helper is reachable only through the unchanged single-expense entry or the explicit complete-family action; the public single-expense entry still cannot select siblings or mint that internal scope.",
+      "rationale": "The fixed bounded method locks and rechecks the draft, requires source and target authority, validates explicit company-compatible relations, delegates native batch removal and receipt supersession, and scopes the existing in-process collaboration marker only to evidence owned by that expense. It never accepts arbitrary records, fields, sudo flags or serializable authority tokens. Split-family ownership changes remain a separately coordinated workflow. Financial reference preflight applies to company moves or explicitly supplied relations, preserving ordinary label edits without demanding unrelated supplier-bill read access. The internal helper is reachable only through the unchanged single-expense entry or the explicit complete-family action; the public single-expense entry still cannot select siblings or mint that internal scope. Its additive before/after financial comparison reads native values in the same transaction after the row lock and native Draft check, before batch detachment, and after the final native writes, with explicit document and company currencies and no additional Agent-specific policy.",
       "reviewed_digests": {
         "rpc:hr.expense.configure_draft_expense": "f0f39686f552c7b71dbe39791b8bf2aac5a5e1a472589bfa4d21bd3a012117da",
-        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:message_send:1": "72d3adedee2d2ad32b739835655a29c5c2e96c1a1382f0876627039076584ec3",
-        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:1": "9175c2e33ee130f5b6da6f59252cafebbd38f03d5abfd2caac76e6937dfc877d",
-        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:2": "b4ad691ace841147c34ad347ea57d82aac2e2065bf75eb04e133d5e5168bac7c",
-        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:3": "27a078c6d7d67e8a731328b1610a30598b5b0635f783b28bde0421217b460f75",
-        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:4": "dfdd349451eb891faa8bcd737a773b6df76deecd83253d843fa32ce35ab3d0fc"
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:message_send:1": "183aa18542b890265c3dad46d5c5af2ec9d22cb80cfefa3e2c47732d1fadd2f7",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:1": "5e9760732d7fdfda907e8f07c4950132e91064f42618df003a4e107713d738b8",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:2": "e1b45e081fe50cfd47af63ef6554c5e57d20f8c643251eba5d69001a35dcd797",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:3": "772d11d0ea8dedc28be39c49680330ac0dceb8bd783aa92bd9583fdd9c0a70ae",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:4": "b724c070bc4e0a31894fc7b27c52146e3a29de6e064b116e374860b7ed772d71"
       }
     },
     {
@@ -205716,7 +205716,11 @@
     "draft-expense-correction-20261014": {
       "contract": "One native transaction corrects an authorized draft company/employee pair using explicit compatible financial mappings or clears, preserving expense/evidence identity and document currency. Source and target access, batch detach rollback, queued receipt supersession, managed Agent authority, real non-draft financial states and repeat-patch preservation are exercised with synthetic fixtures.",
       "tests": [
-        "custom-addons/usl_expense_batch/tests/test_draft_expense_configuration.py::TestDraftExpenseConfiguration"
+        "custom-addons/usl_expense_batch/tests/test_draft_expense_configuration.py::TestDraftExpenseConfiguration",
+        "custom-addons/usl_expense_batch/tests/test_draft_expense_configuration.py::TestDraftExpenseConfiguration.test_financial_comparison_reports_native_included_tax_before_and_after",
+        "custom-addons/usl_expense_batch/tests/test_draft_expense_configuration.py::TestDraftExpenseConfiguration.test_financial_comparison_keeps_original_batch_before_explicit_clears",
+        "custom-addons/usl_access_control/tests/test_agent_expense_decisions.py::TestAgentReceiptDecisions.test_writable_agent_and_human_share_native_approved_expense_writes",
+        "custom-addons/usl_access_control/tests/test_agent_expense_decisions.py::TestAgentExpenseWorkflows"
       ]
     },
     "draft-expense-split-family-20261014": {

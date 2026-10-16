@@ -8,9 +8,10 @@ web
 
 The primary users are Valentin, Prosper, accountants and operations staff.
 They use the system during daily French SME accounting, B2C commerce,
-inventory, document review and operational follow-up. Specialist agents may
-perform bounded repeatable work, while humans retain judgment, approval and
-accountability.
+inventory, document review and operational follow-up. Agents are collaborators
+with delegated human access. They need precise context and evidence to make
+informed decisions and act through the same native workflows as people with
+the same effective permissions.
 
 ## Product Purpose
 
@@ -24,7 +25,7 @@ auditability.
 ## Positioning
 
 The product combines native Odoo business workflows with USL-specific,
-company-scoped operational controls and bounded agent participation. Odoo owns
+company-scoped operational controls and capable Agent collaboration. Odoo owns
 the structured business interpretation and consequences of external events;
 it does not attempt to duplicate every source system or manufacture missing
 evidence.
@@ -46,6 +47,10 @@ evidence.
 
 - Preserve native Odoo navigation, controls, terminology and data semantics
   unless a documented product requirement justifies an extension.
+- Give Agents useful context, available actions, consequences and recovery
+  guidance. Apply native human business rules and existing delegation and
+  irreversible-action controls; do not add Agent-only business restrictions or
+  extra approval gates.
 - Prefer isolated product add-ons and maintained OCA functionality over core
   Odoo divergence.
 - Keep migration extraction, source matching and reconstruction outside the

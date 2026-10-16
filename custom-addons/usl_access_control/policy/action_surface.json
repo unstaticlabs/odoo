@@ -412316,6 +412316,7 @@
         "rpc:hr.expense.ensure_one",
         "rpc:hr.expense.flush_recordset",
         "rpc:hr.expense.invalidate_recordset",
+        "rpc:hr.expense.read",
         "rpc:hr.expense.with_company",
         "rpc:hr.expense.write",
         "rpc:res.company.browse"
@@ -412338,7 +412339,7 @@
       ],
       "sources": [
         {
-          "line": 102,
+          "line": 111,
           "path": "custom-addons/usl_expense_batch/models/expense_draft_configuration.py"
         },
         {
@@ -1625239,7 +1625240,7 @@
       ]
     },
     {
-      "digest": "72d3adedee2d2ad32b739835655a29c5c2e96c1a1382f0876627039076584ec3",
+      "digest": "183aa18542b890265c3dad46d5c5af2ec9d22cb80cfefa3e2c47732d1fadd2f7",
       "key": "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:message_send:1",
       "kind": "sink",
       "modules": [
@@ -1625248,13 +1625249,13 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 107,
+          "line": 116,
           "path": "custom-addons/usl_expense_batch/models/expense_draft_configuration.py"
         }
       ]
     },
     {
-      "digest": "9175c2e33ee130f5b6da6f59252cafebbd38f03d5abfd2caac76e6937dfc877d",
+      "digest": "5e9760732d7fdfda907e8f07c4950132e91064f42618df003a4e107713d738b8",
       "key": "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1625263,13 +1625264,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 107,
+          "line": 116,
           "path": "custom-addons/usl_expense_batch/models/expense_draft_configuration.py"
         }
       ]
     },
     {
-      "digest": "b4ad691ace841147c34ad347ea57d82aac2e2065bf75eb04e133d5e5168bac7c",
+      "digest": "e1b45e081fe50cfd47af63ef6554c5e57d20f8c643251eba5d69001a35dcd797",
       "key": "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1625278,13 +1625279,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 107,
+          "line": 116,
           "path": "custom-addons/usl_expense_batch/models/expense_draft_configuration.py"
         }
       ]
     },
     {
-      "digest": "27a078c6d7d67e8a731328b1610a30598b5b0635f783b28bde0421217b460f75",
+      "digest": "772d11d0ea8dedc28be39c49680330ac0dceb8bd783aa92bd9583fdd9c0a70ae",
       "key": "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:3",
       "kind": "sink",
       "modules": [
@@ -1625293,13 +1625294,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 107,
+          "line": 116,
           "path": "custom-addons/usl_expense_batch/models/expense_draft_configuration.py"
         }
       ]
     },
     {
-      "digest": "dfdd349451eb891faa8bcd737a773b6df76deecd83253d843fa32ce35ab3d0fc",
+      "digest": "b724c070bc4e0a31894fc7b27c52146e3a29de6e064b116e374860b7ed772d71",
       "key": "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:4",
       "kind": "sink",
       "modules": [
@@ -1625308,7 +1625309,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 107,
+          "line": 116,
           "path": "custom-addons/usl_expense_batch/models/expense_draft_configuration.py"
         }
       ]
@@ -1698673,11 +1698674,11 @@
       "version": ""
     },
     {
-      "manifest_sha256": "37275965675a2f2334525a33e1e4ab3d4fc7930f2e4d226948af851120ae86c3",
+      "manifest_sha256": "5697b43379473ef646c789828b1b656bf05122c2b43b56234e6654b251aaf00a",
       "name": "usl_access_control",
       "origin": "custom",
-      "source_sha256": "7c7a25eb683af2047f7a97ae1d5ab58681ee991ed09694298b28a0ce05b44a63",
-      "version": "saas~19.3.1.8.0"
+      "source_sha256": "f17ba91d277dbc4d294553789e6f7bfd90320e77c555b46ef8ceaa8f3a3049f2",
+      "version": "saas~19.3.1.8.1"
     },
     {
       "manifest_sha256": "2d4f291c27ad7c2892ad8fd578313cb7bd45b5ad202e44f3087d7270dc084f31",
@@ -1698729,11 +1698730,11 @@
       "version": "saas~19.3.1.0.0"
     },
     {
-      "manifest_sha256": "a7befb0d64e99a9597404af86565660bed9eed04992cf5dad3f880d4488f7472",
+      "manifest_sha256": "4e65c84418979d3922c8cfd1dd6c4b7d5ff5e9128e027687eccd8d3c8c2d2ae8",
       "name": "usl_expense_batch",
       "origin": "custom",
-      "source_sha256": "e37f4ad376ba1cf418d5334cb34e5ba64e9a5710d39c710e4ff5fb4c7ec487d5",
-      "version": "saas~19.3.1.3.16"
+      "source_sha256": "22a4345b69443c4579457c602d7965c15b7806214266e998083c1649a7784789",
+      "version": "saas~19.3.1.3.17"
     },
     {
       "manifest_sha256": "eb00e52ebf56517d6b46cc0d840354fb3a5fd83eadcd7d31aaf39feb0b06d4f3",
