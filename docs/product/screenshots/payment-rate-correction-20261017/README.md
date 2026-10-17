@@ -9,3 +9,5 @@ The screenshots illustrate the interface. Native test and runtime receipts verif
 - `desktop-recovery-69.jpg`: native Undo settlement action and visible financial recovery context.
 - `desktop-restored-ledger-361.jpg`: original rate and native EUR80 base +16 tax restored after undo.
 - `mobile-choice-363.jpg`: French reverse-charge correction and signed tax impacts at 390px.
+- `mobile-recovery-70.jpg`: native reverse-charge Undo action at 390px.
+- `desktop-caba-entry-383.jpg`: actual native cash-basis entry after correction, with EUR90 base and EUR18 tax.
