@@ -13,4 +13,4 @@ The operator exercised Cancel, Review expenses, company posting and employee pos
 
 The implementation owner and lead personally inspected every selected image. JPEG metadata contains only standard JFIF APP0, with no EXIF, XMP, IPTC or comments. No credentials, real contacts, private business information, browser address bars or local filesystem paths appear.
 
-Delegated Agent confirmation remains a qualification dependency on the separate native receipt-copy fix: actual JSON-2 testing exposed the same pre-existing attachment-copy denial in ordinary no-match posting. The expense decision PR stays draft until the combined journey passes.
+Delegated Agent confirmation is qualified together with the native receipt-copy correction in PR #304. The combined canonical 164-module revision passes all 39 affected native tests, repeated update preservation, and actual JSON-2 no-match, explicit-confirmation, stale-evidence and replay controls. Its runtime-derived policy digest is `3a149380975accd5b5d87d17b4539dd55000b07b2452d4331d5cdc59b4ae2d78`. The two PRs remain separate review units; combine their source and runtime-derived policy when integrating.
