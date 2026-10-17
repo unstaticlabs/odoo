@@ -8,4 +8,5 @@ from . import (
     base,
     protected_models,
     res_users,
+    readonly_accounting_report,
 )

@@ -80,6 +80,13 @@ ACTION_PREFIXES = (
     "sink:",
     "guard:",
 )
+AGENT_EPHEMERAL_REPORT_ACTIONS = frozenset(
+    {
+        "rpc:rebuild.account.report.export.wizard.report_client_load",
+        "rpc:rebuild.account.report.export.wizard.report_client_export",
+        "rpc:rebuild.account.report.export.wizard.report_client_toggle_group",
+    },
+)
 AGENT_COLLABORATION_METHODS = frozenset(
     {
         "action_done_schedule_next",
@@ -339,7 +346,13 @@ def build_agent_readonly_runtime_policy(
         if not action_key.startswith("rpc:"):
             continue
         method_name = action_key.rsplit(".", 1)[-1]
-        if method_name in AGENT_COLLABORATION_METHODS:
+        if (
+            method_name in AGENT_COLLABORATION_METHODS
+            or (
+                action_key in AGENT_EPHEMERAL_REPORT_ACTIONS
+                and entry.get("classification") in {"read_only", "operational", "recoverable"}
+            )
+        ):
             collaboration_actions.append(action_key)
             continue
         if entry.get("classification") == "read_only":

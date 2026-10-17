@@ -165,3 +165,19 @@ Expense correction adds precise context for decisions: the same transaction
 returns the original and final financial values, with native tax totals and
 explicit document and company currencies. This context helps an Agent explain
 and check its work without adding Agent-specific restrictions.
+
+
+### Read-only Accounting reports
+
+Read-only Accounting Agents can use the ordinary report client to load reports,
+change supported filters, fold groups, open source entries and download PDF or
+XLSX files. The native engine keeps filter and preview state in temporary report
+records. Its generated download attachment belongs to that report session.
+Those technical effects do not grant permission to modify the ledger, settings,
+tax adjustments, unrelated assistants or business attachments.
+
+The same native company, report-definition and owner-access checks apply to
+humans and Agents. Report sessions follow the current native record rules;
+there is no extra Agent-only creator restriction. A closing export that also
+adds a package to a closing workspace still needs its existing business-write
+authority. Official FEC generation keeps its native workflow and lock controls.
