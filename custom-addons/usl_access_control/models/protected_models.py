@@ -1,5 +1,10 @@
 from odoo import api, models
 
+from .agent_policy_tokens import (
+    AGENT_COLLABORATION_CONTEXT_KEY,
+    AGENT_COLLABORATION_TOKEN,
+)
+
 
 class ResCompany(models.Model):
     _inherit = "res.company"
@@ -83,6 +88,19 @@ class IrActionsServer(models.Model):
 
 class IrAttachment(models.Model):
     _inherit = "ir.attachment"
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = self
+        scope = self._usl_agent_operation_scope()
+        if scope and scope.access == "write":
+            # Native actions copy receipts without sudo. Keep their ordinary
+            # attachment and linked-record checks, just as Chatter does for
+            # its own attachments, within the authenticated operation scope.
+            records = self.with_context(
+                **{AGENT_COLLABORATION_CONTEXT_KEY: AGENT_COLLABORATION_TOKEN},
+            )
+        return super(IrAttachment, records).create(vals_list)
 
     def _usl_governed_attachments(self):
         governed = self.browse()
