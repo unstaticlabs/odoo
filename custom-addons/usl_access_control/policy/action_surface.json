@@ -952398,7 +952398,7 @@
       ],
       "sources": [
         {
-          "line": 20,
+          "line": 17,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         },
         {
@@ -1583780,7 +1583780,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 461,
+          "line": 451,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1583795,7 +1583795,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 461,
+          "line": 451,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1583810,7 +1583810,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 490,
+          "line": 480,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1583825,7 +1583825,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 490,
+          "line": 480,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1583843,7 +1583843,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 20,
+          "line": 17,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1583861,7 +1583861,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 20,
+          "line": 17,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1670962,7 +1670962,7 @@
       "xmlid": "rebuild_account_migration.action_rebuild_account_report_export_depreciation_schedule"
     },
     {
-      "digest": "d1aaff6f3890a766b861d4b30857fbfb2584e04f8548b632acb41f29bdff0113",
+      "digest": "d1a133c4af8e09a16978451043c24d42625a023223e6376571083db84b483a0e",
       "guards": [],
       "key": "ui:rebuild_account_migration.action_rebuild_account_report_export_ec_sales_list",
       "kind": "ui",
@@ -1670971,7 +1670971,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "0a9a99412aeeba05d6e81804a928bc0125c24e654eb9008457548bc5cb428b73",
+      "runtime_digest": "b97b6105563b0e09322031a74d7c9b001b9fd7ebdf7d6e551ca87aac4fe886cb",
       "sinks": [],
       "sources": [
         {
@@ -1671238,7 +1671238,7 @@
       "xmlid": "rebuild_account_migration.action_rebuild_account_report_export_open_items"
     },
     {
-      "digest": "0a8158e25b1c987c4bacb033ff4893bf9083e6844b39f6957c47741d9a9f6ac4",
+      "digest": "8c37801c2c4d4ffd80208a691cb032e473e751217c7cbf0df139b085ad7dd2c4",
       "guards": [],
       "key": "ui:rebuild_account_migration.action_rebuild_account_report_export_oss_imports",
       "kind": "ui",
@@ -1671247,7 +1671247,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "fb85125af22a9882878bd13a51d5e9f9ab0d90cd4c17b1aad7d3cb3ddf6df75c",
+      "runtime_digest": "baea15824b21e876a6bd036adb96c7dd665c61a552e728307ff6453c43d3a3a2",
       "sinks": [],
       "sources": [
         {
@@ -1671261,7 +1671261,7 @@
       "xmlid": "rebuild_account_migration.action_rebuild_account_report_export_oss_imports"
     },
     {
-      "digest": "2d12c2c2da9467ea63c1e0bfcd6320b1674886be4ebcf039e0a5e4fa9ee9362d",
+      "digest": "32faf8c07f726147d231a6f72e6a17a68af5e280254ea1b4866599d2cb5b6e35",
       "guards": [],
       "key": "ui:rebuild_account_migration.action_rebuild_account_report_export_oss_sales",
       "kind": "ui",
@@ -1671270,7 +1671270,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "51144acdbba04f47308b5fcf2edec9b9e6e0b36ec9a4683ca77e1e0df0bb8a4c",
+      "runtime_digest": "e3953bab4221655aed863f8bf298b5c0f3c706c78e4d28f640adddb53f6bbff7",
       "sinks": [],
       "sources": [
         {
@@ -1698412,7 +1698412,7 @@
       "manifest_sha256": "8698da4e0c9d952175eb5a27c02162706a84cfc49ecebb9ffc60f38c4837ef16",
       "name": "rebuild_account_migration",
       "origin": "custom",
-      "source_sha256": "33a005369383657e5c2568ad30008e1d84e6faf952433fb2b15f142ca897db7e",
+      "source_sha256": "a3b4b4a925c176e270efcd05c99cc0cf82211b85fec592fb43f157b4ea4dd8b7",
       "version": "saas~19.3.1.13.39"
     },
     {
