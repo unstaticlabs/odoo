@@ -3,6 +3,7 @@
 from decimal import Decimal
 
 from odoo import fields, models
+from odoo.exceptions import UserError
 
 from .report_export_wizard import (
     ACCOUNT_CODE_SQL,
@@ -188,22 +189,33 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         return [dict(row) for row in self.env.cr.dictfetchall()]
 
     def _eu_tax_report_rows(self):
-        period_keys = []
-        if self.company_id.id == 8:
-            period_keys.append("All posted accounting")
-        else:
-            if fields.Date.to_date(self.date_from) <= fields.Date.to_date("2025-09-30"):
-                period_keys.append("Fiscal year 2024-01-10 to 2025-09-30")
-            if fields.Date.to_date(self.date_to) >= fields.Date.to_date("2025-10-01"):
-                period_keys.append("Fiscal year from 2025-10-01")
-        if not period_keys:
-            period_keys = ["Other posted accounting"]
+        date_from = fields.Date.to_date(self.date_from)
+        date_to = fields.Date.to_date(self.date_to)
+        if (
+            not date_from
+            or not date_to
+            or date_from.day != 1
+            or date_to != fields.Date.end_of(date_to, "month")
+        ):
+            message = (
+                "La liste des ventes UE et les rapports OSS se déclarent par "
+                "mois civil complet : choisissez une date de début au "
+                "premier jour d’un mois et une date de fin au dernier jour "
+                "d’un mois."
+            )
+            raise UserError(message)
         clauses = [
             "company_id = %s",
             "report_type = %s",
-            "period_key IN %s",
+            "period_month >= %s",
+            "period_month <= %s",
         ]
-        params = [self.company_id.id, self.report_type, tuple(period_keys)]
+        params = [
+            self.company_id.id,
+            self.report_type,
+            date_from,
+            date_to,
+        ]
         if self.account_ids:
             clauses.append("account_id IN %s")
             params.append(tuple(self.account_ids.ids))
@@ -235,7 +247,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                    review_status
               FROM rebuild_account_eu_tax_report_line
              WHERE {" AND ".join(clauses)}
-             ORDER BY period_key, country_code, partner_name, tax_name, tax_tag_name, journal_code, account_code
+             ORDER BY period_month, country_code, partner_name, tax_name, tax_tag_name, journal_code, account_code
             """,
             params,
         )

@@ -3577,7 +3577,17 @@ msgid "Current closing workspace"
 msgstr "Espace de clôture en cours"
 
 #. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_bank_reconciliation_line_search
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_eu_tax_report_line_search
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_french_statement_line_search
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_general_ledger_line_search
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_journal_report_line_search
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_management_summary_line_search
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_move_line_reconciliation_search
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_open_item_line_search
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_partner_ledger_line_search
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_tax_report_line_search
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_trial_balance_line_search
 msgid "Current fiscal year"
 msgstr "Exercice en cours"
 
@@ -8234,6 +8244,44 @@ msgid "Period Containing"
 msgstr "Période contenant"
 
 #. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_aged_partner_balance_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_analytic_distribution_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_bank_reconciliation_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_currency_report_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_eu_tax_report_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_financial_statement_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_french_statement_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_french_tax_package_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_general_ledger_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_journal_report_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_management_summary_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_open_item_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_partner_ledger_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_tax_report_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_trial_balance_line__period_date_from
+msgid "Period Date From"
+msgstr "Début de la période"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_aged_partner_balance_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_analytic_distribution_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_bank_reconciliation_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_currency_report_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_eu_tax_report_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_financial_statement_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_french_statement_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_french_tax_package_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_general_ledger_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_journal_report_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_management_summary_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_open_item_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_partner_ledger_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_tax_report_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_trial_balance_line__period_date_to
+msgid "Period Date To"
+msgstr "Fin de la période"
+
+#. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration__period_end
 msgid "Period End"
 msgstr "Fin de période"
@@ -8258,6 +8306,11 @@ msgstr "Fin de période"
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_trial_balance_line__period_key
 msgid "Period Key"
 msgstr "Clé d'époque"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_eu_tax_report_line__period_month
+msgid "Period Month"
+msgstr "Mois de la période"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_report_export_wizard__period_preset
@@ -11995,20 +12048,6 @@ msgstr "Ligne de flux de trésorerie et de synthèse de l'USL"
 #: model:ir.model,name:rebuild_account_migration.model_rebuild_account_currency_report_line
 msgid "USL Currency Gain, Loss and Exposure Line"
 msgstr "Ligne de gain, de perte et d'exposition en devise USL"
-
-#. module: rebuild_account_migration
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_bank_reconciliation_line_search
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_eu_tax_report_line_search
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_french_statement_line_search
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_general_ledger_line_search
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_journal_report_line_search
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_management_summary_line_search
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_open_item_line_search
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_partner_ledger_line_search
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_tax_report_line_search
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_trial_balance_line_search
-msgid "USL Current"
-msgstr "Courant USL"
 
 #. module: rebuild_account_migration
 #: model:ir.model,name:rebuild_account_migration.model_rebuild_account_report_preview_line

@@ -163,6 +163,45 @@ actions behind every canonical report.
   text. Hover retains the same contrast instead of applying the generic detail
   row hover color.
 
+## Fiscal-year buckets
+
+The list reports (trial balance, ledgers, financial and French statements, tax,
+EC/OSS, currency, bank, management and analytic lines) group posted accounting
+by fiscal year. Each date falls in exactly one closed bucket of its own
+company:
+
+- the bucket comes from the company's fiscal-year end
+  (`fiscalyear_last_month` and `fiscalyear_last_day`), with the same rule as
+  `compute_fiscalyear_dates`, including a February year end that means the last
+  day of February;
+- the optional exceptional first fiscal year of the company
+  (`rebuild_first_fiscalyear_start` and `rebuild_first_fiscalyear_end`) is one
+  bucket; dates before it fall in `Earlier posted accounting`, which ends the
+  day before the first year starts;
+- the label is `Fiscal year <start> to <end>`, and the same bucket is also
+  carried as the two date columns `period_date_from` and `period_date_to`.
+
+The label is for display. Drill-down domains, the **Current fiscal year**
+filter, the French tax package and the declarations read the two date columns
+and never parse the label, so a next-year entry can no longer appear in a
+closed year and a drill-down opens exactly the entries the line summed.
+**Current fiscal year** keeps the rows of each company whose bucket contains
+today. The EC/OSS lines also carry `period_month`; their export takes whole
+calendar months and refuses a range that cuts a month. The EC sales list and OSS
+menus open on the previous full calendar month. The French tax package
+takes one complete fiscal year and refuses any other range instead of
+returning nothing.
+
+Reviewed external values and assurance decisions store the label in
+`period_key`. The 19.3.1.13.39 upgrade moves the former open-ended
+`Fiscal year from <start>` label to the closed label of the fiscal year of the
+company that starts on that date, whenever the row was created. When the company
+has no fiscal year starting on that date, the row is left unchanged and the
+upgrade logs only how many rows that concerns. It writes nothing else and never
+merges rows: it stops without changing anything only when a relabel would
+duplicate an existing external value on the unique company, period, form, field,
+kind and source.
+
 ## Export rules
 
 PDF and XLSX carry the same company, resolved dates, posted/draft scope,
