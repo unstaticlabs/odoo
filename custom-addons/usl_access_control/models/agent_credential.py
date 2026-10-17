@@ -1,6 +1,7 @@
 """Governed Agent API credentials, key and transfer wizards and API-key enforcement."""
 
 import datetime
+import logging
 
 from psycopg2 import errors as pgerrors
 
@@ -18,14 +19,18 @@ from odoo.exceptions import (
     ValidationError,
 )
 from odoo.http import request
+from odoo.modules.registry import Registry
 
 from ..exceptions import AgentAuthenticationError, AgentPolicyAccessError
+
 from .agent import (
     _AGENT_CREDENTIAL_TOUCH_LOCK_NAMESPACE,
     _AGENT_KEY_MAX_DAYS,
     _agent_key_path_allowed,
 )
 from odoo.addons.base.models.res_users import KEY_CRYPT_CONTEXT, check_identity
+
+_logger = logging.getLogger(__name__)
 
 
 class UslAgentCredential(models.Model):
@@ -78,6 +83,26 @@ class UslAgentCredential(models.Model):
         self.ensure_one()
         cutoff = used_at - datetime.timedelta(minutes=1)
         if self.last_used_at and self.last_used_at >= cutoff:
+            return False
+        if self.env.cr.readonly:
+            # Native @api.readonly RPC authentication shares a read-only cursor.
+            # Usage metadata must not turn a valid read into AccessDenied. Keep
+            # its existing best-effort update after this transaction commits.
+            database_name, credential_id = self.env.cr.dbname, self.id
+
+            def touch_after_commit():
+                try:
+                    with Registry(database_name).cursor() as cursor:
+                        credential = api.Environment(cursor, SUPERUSER_ID, {})[
+                            "usl.agent.credential"
+                        ].browse(credential_id).exists()
+                        if credential:
+                            credential._touch_last_used_at(used_at)
+                        cursor.commit()
+                except Exception:
+                    _logger.exception("Agent credential usage telemetry was not recorded")
+
+            self.env.cr.postcommit.add(touch_after_commit)
             return False
         self.env.cr.execute(
             "SELECT pg_try_advisory_xact_lock(%s, %s)",
