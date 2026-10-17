@@ -1,12 +1,13 @@
 {
     "name": "USL Accounting Foundation",
     "summary": "Shared operational extensions for the USL Accounting product",
-    "version": "saas~19.3.2.2.9",
+    "version": "saas~19.3.2.2.15",
     "category": "Accounting/Accounting",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
     "depends": [
         "account",
+        "account_edi_ubl_cii",
         "account_payment",
         "account_reconcile_oca",
         "account_statement_import_ofx",
@@ -46,16 +47,19 @@
         "views/queue_job_menu_views.xml",
         "wizard/linked_receipt_candidate_wizard_views.xml",
         "views/vendor_bill_merge_views.xml",
+        "views/purchase_mail_grouping_views.xml",
     ],
     "assets": {
         "web.assets_backend": [
             "usl_accounting/static/src/js/immediate_settlement.js",
+            "usl_accounting/static/src/js/purchase_mail_grouping_form.js",
             "usl_accounting/static/src/js/linked_receipt_handoff.js",
             "usl_accounting/static/src/scss/payment_suggestions.scss",
             "usl_accounting/static/src/xml/account_payment_suggestions.xml",
         ],
         "web.assets_unit_tests": [
             "usl_accounting/static/tests/linked_receipt_handoff.test.js",
+            "usl_accounting/static/tests/purchase_mail_grouping_form.test.js",
             "usl_accounting/static/tests/payment_suggestions.test.js",
         ],
         "web.assets_tests": [
