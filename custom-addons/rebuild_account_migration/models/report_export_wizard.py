@@ -1486,12 +1486,51 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 result.append(item)
         return result
 
+    def _report_provisional_status(self):
+        """Describe preparation status without changing posting authority.
+
+        Use Odoo's inherited fiscal locks, independently of personal exceptions.
+        A partial-period report still belongs to its complete fiscal exercise.
+        """
+        self.ensure_one()
+        companies = self._selected_companies()
+        periods = [(self.date_from, self.date_to)]
+        if self.comparison_mode != "none":
+            periods.append((self.comparison_date_from, self.comparison_date_to))
+        reasons = []
+        if self.target_move == "all":
+            reasons.append("Les écritures brouillon sont incluses.")
+        if not companies or any(not start or not end for start, end in periods):
+            reasons.append(
+                "Le périmètre est incomplet : le verrouillage des exercices "
+                "ne peut pas être établi.",
+            )
+        else:
+            for company in companies:
+                fiscal_lock = max(
+                    company._get_user_lock_date(
+                        "fiscalyear_lock_date", ignore_exceptions=True,
+                    ),
+                    company.user_hard_lock_date,
+                )
+                if any(
+                    start > end
+                    or company.compute_fiscalyear_dates(end)["date_to"] > fiscal_lock
+                    for start, end in periods
+                ):
+                    reasons.append(
+                        "Un exercice du périmètre n’est pas entièrement verrouillé.",
+                    )
+                    break
+        return {"required": bool(reasons), "reasons": reasons}
+
     def _export_metadata(self, row_count=None):
         partner = self.company_id.partner_id
         companies = self._selected_companies()
         return {
             "report_type": self.report_type,
             "report_name": self._report_type_label(),
+            "provisional": self._report_provisional_status(),
             "company": ", ".join(companies.mapped("display_name")),
             "companies": [
                 {

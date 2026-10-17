@@ -10,3 +10,4 @@ from . import test_french_tax_report
 from . import test_multi_company_overview
 from . import test_pocketid_profiles
 from . import test_shared_currency_rates
+from . import test_report_provisional

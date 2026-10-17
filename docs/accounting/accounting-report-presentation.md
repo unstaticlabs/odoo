@@ -230,8 +230,26 @@ PCG classification rules used by the canonical statements include:
   `jours` or `x` shown beside every value and no denominator-zero result
   presented as a real zero.
 
-An export is provisional accounting evidence. It does not replace statutory
-review, filing or a recorded closing decision.
+PDF exports display **Document provisoire** in the scope preamble and on every
+page while any selected company's fiscal exercise remains open. The effective
+native global fiscal lock or hard lock must cover the complete exercise ending
+at the report date, using that company's fiscal calendar and exceptional first
+year. Comparison periods are checked too. Tax, sales and purchase locks do not
+close an exercise; personal lock exceptions do not change document status.
+Draft-inclusive exports and incomplete date scopes remain provisional, with the
+reason in the preamble and export metadata. A mid-year lock does not close the
+rest of that exercise.
+
+This presentation status neither restricts posting nor certifies a locked
+report. Existing preparation, review and attestation qualifications remain in
+place, as do the selected theme, footer label, legal identity and financial
+rows. Historical generated files are never rewritten. Company logos continue
+to use native precedence: a configured custom logo overrides the existing
+horizontal builtin wordmark. Selecting a different document brand requires an
+explicit branding decision; it must not silently replace custom logos.
+
+An export does not replace statutory review, filing or a recorded closing
+decision.
 
 ## References checked
 

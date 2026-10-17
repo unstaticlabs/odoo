@@ -363,6 +363,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 " – "
                 f"{self._display_export_date(metadata['comparison_date_to'])}",
             )
+        provisional = metadata["provisional"]
+        if provisional["required"]:
+            context.insert(
+                0, "Document provisoire — " + " ".join(provisional["reasons"]),
+            )
         basis_note = (
             "Document préparatoire produit à partir des écritures et contrôles "
             "du périmètre sélectionné. Il ne constitue ni une attestation "
@@ -388,6 +393,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "primary_color": metadata["document"]["primary_color"],
             "footer_label": metadata["document"]["footer_label"],
         })
+        if provisional["required"]:
+            company_payload["footer_label"] = " · ".join(filter(None, [
+                company_payload["footer_label"], "Document provisoire",
+            ]))
         front_matter = None
         if self.report_type == "french_annual":
             front_matter = {

@@ -19,6 +19,17 @@ unit near the title, high-contrast financial sections, and document/page
 context in the footer. If screen and export do not show the same scope, do not
 use the export as review evidence.
 
+A PDF displays **Document provisoire** in its preamble and on every page when
+any selected fiscal exercise is not fully covered by the global fiscal lock or
+hard lock. This includes comparison periods and each selected company's fiscal
+calendar. A tax, sales or purchase lock alone is insufficient. Draft-inclusive
+exports and incomplete periods also remain provisional; the preamble explains
+why. Personal lock exceptions do not change this document status.
+
+The absence of that label does not certify the report or replace professional
+review. The label changes presentation only; it does not change entries, totals
+or posting permissions. Previously generated documents remain unchanged.
+
 ## FEC
 
 1. Open **Reporting > Comptes et journaux > FEC**.
