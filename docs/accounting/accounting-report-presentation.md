@@ -239,6 +239,21 @@ PCG classification rules used by the canonical statements include:
   `jours` or `x` shown beside every value and no denominator-zero result
   presented as a real zero.
 
+The same status reaches every surface that presents a report. On screen, a
+`text-bg-warning` **PROVISOIRE** pill is the first active-scope pill and an
+`alert-warning` notice (`role="status"`) lists the reasons; nothing is shown
+when the report is final, and the French tax report keeps both. In XLSX, the
+`Report` sheet gains a merged bold **DOCUMENT PROVISOIRE** row above the
+subtitle (the table header moves down one row) and the printed header and
+footer read **Document provisoire**; the `Metadata` sheet shows a readable
+**Statut** (**Provisoire** or **Définitif**) with the reasons instead of the
+raw JSON. A final workbook is laid out exactly as before. CSV keeps the status
+in its metadata column without a visible label. The FEC `.txt` is never labelled,
+because its layout is legal, and the analytic pivot PDF has no closing date.
+The screen reads the status stored with the preview, so it matches the file
+generated from that preview; a preview that predates the field is recomputed
+rather than shown as final.
+
 PDF exports display **Document provisoire** in the scope preamble and on every
 page until the native global fiscal lock or hard lock covers the report's
 closing date. The comparison is made against that date, not against the end of
