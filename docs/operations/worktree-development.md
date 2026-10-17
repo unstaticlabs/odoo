@@ -116,6 +116,14 @@ produces thousands of spurious entries that hide the change under review:
 make action-risk-db
 ```
 
+To use a different disposable database with this Make target, pass
+`ACTION_RISK_DB=<task_database>` to `make`. Setting only `ODOO_ACTION_RISK_DB`
+does not select it: the Make recipe exports that variable from
+`ACTION_RISK_DB`, whose default is `odoo_action_risk`. Confirm the resolved name
+before starting; this target drops and recreates its selected database.
+The direct `scripts/odoo-dev action-risk-db` interface instead reads
+`ODOO_ACTION_RISK_DB=<task_database>`.
+
 It builds in its own `odoo_action_risk` database, dropped and recreated on
 every run. The closure is never installed over an existing registry, because a
 few Odoo action records store a raw database row id that is fixed on first
