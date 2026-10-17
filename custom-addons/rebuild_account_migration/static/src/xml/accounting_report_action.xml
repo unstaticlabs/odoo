@@ -45,6 +45,10 @@
                 </div>
             </div>
 
+            <p t-if="state.data.summary.cards.length" class="text-muted small mb-2">
+                Totaux du rapport complet, selon les filtres financiers. La recherche limite les lignes du tableau et de l’export.
+            </p>
+
             <div class="o_usl_report_filters">
                 <div t-if="showCompanyFilter" class="o_usl_report_company_filter">
                     <span>Sociétés</span>

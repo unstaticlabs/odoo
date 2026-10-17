@@ -18,13 +18,14 @@ from .report_export_wizard import (
 class RebuildAccountReportExportWizard(models.TransientModel):
     _inherit = "rebuild.account.report.export.wizard"
 
-    def _report_rows(self):
+    def _report_rows(self, *, apply_search=True):
         self.ensure_one()
         current_rows = self._raw_report_rows(
             self.date_from,
             self.date_to,
         )
-        current_rows = self._search_report_rows(current_rows)
+        if apply_search:
+            current_rows = self._search_report_rows(current_rows)
         current_rows = self._group_report_rows(current_rows)
         comparison_rows = []
         if self.comparison_mode != "none":
@@ -32,9 +33,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 self.comparison_date_from,
                 self.comparison_date_to,
             )
-            comparison_rows = self._search_report_rows(
-                comparison_rows,
-            )
+            if apply_search:
+                comparison_rows = self._search_report_rows(comparison_rows)
             comparison_rows = self._group_report_rows(
                 comparison_rows,
             )
@@ -52,7 +52,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             row
             for row in rows
             if row.get("is_group") not in (True, "true")
-            and self._report_presentation_role(row) == "detail"
+            and row.get("presentation_role", "detail") == "detail"
             and row.get("hierarchy_kind") not in {"pcg_group", "account"}
         ]
         additions = []

@@ -101,6 +101,12 @@ end, reference and comparison dates never inherit the browser's
 
 ## Reading results
 
+The figures above the table cover the complete authorized report for its
+companies, dates and financial filters. Folding groups or loading a shorter
+preview does not change those figures. A detail and its subtotal are counted
+once. Text search narrows the table and exported rows; it does not redefine
+the financial header. Clear the search to return to the complete table.
+
 Light, high-contrast section rows identify the statement's principal
 divisions and remain readable when hovered. Shaded group rows contain
 accounts, partners or journals; indented rows are details; a
