@@ -472,6 +472,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             )
             raise UserError(message)
         rows = self._report_rows()
+        financial_rows = (
+            self._report_rows(apply_search=False)
+            if (self.search_text or "").strip() else rows
+        )
+        financial_summary = self._report_summary_from_rows(financial_rows)
         collapsed_groups = self._collapsed_group_key_set()
         if HIERARCHY_STATE_SENTINEL not in collapsed_groups:
             default_collapsed = sorted({
@@ -497,6 +502,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         draft_count, warning = self._draft_entry_warning()
         metadata = self._export_metadata(len(rows))
         metadata.update({
+            "financial_summary": financial_summary,
             "preview_limit": limit,
             "previewed_row_count": len(preview_rows) if visible_rows else 0,
             "preview_visible_row_count": len(visible_rows),
