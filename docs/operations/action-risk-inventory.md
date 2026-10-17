@@ -313,3 +313,14 @@ advance. Fixed server actions and their scheduled jobs are dispatched according
 to their exact reviewed classifications. Manually triggering a qualified
 ordinary job therefore does not require the Irreversible Actions capability,
 while an unknown job or a qualified protected job still fails closed.
+
+
+## Agent read-only projection
+
+The compiler includes every reviewed `read_only` RPC in the Agent read-only
+projection, except methods already using the existing collaboration contract.
+A method does not need a second generic-name or individually named helper grant.
+Native access, current owner/company ceilings and protected operations remain
+runtime responsibilities. Changing an action's reviewed classification still
+requires the normal evidence and digest review; method names alone neither
+approve a mutation nor veto an already reviewed read.
