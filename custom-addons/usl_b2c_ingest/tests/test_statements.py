@@ -476,7 +476,7 @@ class TestTransfers(TestWallet):
                 "journal_id": self.transfer_journal.id,
                 # Dated when it reached the bank, not when Etsy sent it.
                 "date": "2026-04-03",
-                "ref": "etsy:payout:BNK1/25-26/0326",
+                "ref": "etsy:payout:INVENTED-BANK-0001",
                 "line_ids": [
                     (0, 0, {"account_id": bank.id, "balance": 104.00}),
                     (0, 0, {"account_id": self.clearing.id, "balance": -104.00}),
@@ -490,7 +490,7 @@ class TestTransfers(TestWallet):
             lambda issue: issue.kind == "transfer_already_posted",
         )
         self.assertTrue(finding)
-        self.assertIn("etsy:payout:BNK1/25-26/0326", finding[0].note)
+        self.assertIn("etsy:payout:INVENTED-BANK-0001", finding[0].note)
 
     def test_a_top_up_the_ledger_already_shows_is_not_posted_again(self):
         """Money leaves the account it was held in, whichever way it went.
@@ -504,7 +504,7 @@ class TestTransfers(TestWallet):
                 "company_id": self.company.id,
                 "journal_id": self.transfer_journal.id,
                 "date": "2026-03-02",
-                "ref": "printful:topup:BNK1/25-26/0159",
+                "ref": "printful:topup:INVENTED-BANK-0002",
                 "line_ids": [
                     (0, 0, {"account_id": self.wallet_account.id, "balance": 250.00}),
                     (0, 0, {"account_id": self.suspense.id, "balance": -250.00}),
@@ -622,7 +622,7 @@ class TestTransfers(TestWallet):
                 "company_id": self.company.id,
                 "journal_id": self.journal.id,
                 "date": "2026-04-03",
-                "ref": "etsy:payout:BNK1/25-26/0326",
+                "ref": "etsy:payout:INVENTED-BANK-0001",
                 "line_ids": [
                     (0, 0, {"account_id": bank.id, "balance": 104.00}),
                     (0, 0, {"account_id": self.clearing.id, "balance": -104.00}),
