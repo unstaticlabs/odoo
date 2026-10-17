@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from markupsafe import Markup, escape
 
-from odoo import fields, models
+from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
 from ..exceptions import AgentPolicyAccessError
@@ -31,6 +31,20 @@ def _plaintext_to_html(value):
     return Markup("<p>%s</p>") % Markup("<br>").join(
         escape(line) for line in value.split("\n")
     )
+
+
+class IrAttachment(models.Model):
+    _inherit = "ir.attachment"
+
+    @api.model
+    def _usl_agent_shared_model_access(self, operation, groups, access_rows):
+        """Resolve the native ACL; attachment checks still authorize each parent."""
+        if operation not in {"create", "write"}:
+            return False
+        internal = self.env.ref("base.group_user")
+        return internal in groups and any(
+            access.group_id == internal for access in access_rows
+        )
 
 
 class MailThread(models.AbstractModel):

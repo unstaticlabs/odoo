@@ -182977,7 +182977,7 @@
       "rationale": "Reachability is limited to the reviewed caller or scheduler; any separately reachable action is classified independently.",
       "reviewed_digests": {
         "cron:usl_access_control.ir_cron_usl_agent_authority_reconcile": "68b2784e283cd0bfd8bb2e336dca3df9cefadc486fb46d5ca73fb42574d3067d",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._allows_model_operation:sudo:1": "4a85fbdfdd0815a5565f6ce0dc7338febe026a3c9fcc6b6992f9e2d9757aa773",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._allows_model_operation:sudo:1": "44e9a0e1382361586dfbf7102baebf4a8ecb861d7b7832aa3f206a2366f5a3f7",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_all:sudo:1": "ab023e5e5e9fa738aea9fc1f8fd6ebde4640654955c4bfd9fb3c3163205a7e91",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:1": "63f0fd894e7cdbc255384ae69ce2a6b81644d237edae395fbe8c1dafdc1392e9",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:2": "85b959c52d7c886c7fbc12687186f813682d3f38d547178ad6e93b86c37ec197",
