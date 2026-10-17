@@ -121,6 +121,7 @@ AGENT_READONLY_GENERIC_METHODS = frozenset(
 AGENT_READONLY_EXPLICIT_ACTIONS = frozenset(
     {
         "rpc:account.move.get_draft_post_match_preview",
+        "rpc:account.reconciliation.review.get_review_status",
         "rpc:account.move.action_open_vendor_bill_merge_originals",
         "rpc:account.move.action_open_vendor_bill_merge_target",
         "rpc:project.task.get_kanban_property_definition",
