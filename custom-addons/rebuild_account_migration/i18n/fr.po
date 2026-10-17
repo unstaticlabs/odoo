@@ -6490,7 +6490,7 @@ msgstr "Tarifs manuels"
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
 msgid "Mark Filed Externally"
-msgstr "Marque déposée en externe"
+msgstr "Marquer comme déposée en externe"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_assurance_decision_form
