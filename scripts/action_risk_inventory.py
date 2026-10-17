@@ -80,6 +80,13 @@ ACTION_PREFIXES = (
     "sink:",
     "guard:",
 )
+AGENT_EPHEMERAL_REPORT_ACTIONS = frozenset(
+    {
+        "rpc:rebuild.account.report.export.wizard.report_client_load",
+        "rpc:rebuild.account.report.export.wizard.report_client_export",
+        "rpc:rebuild.account.report.export.wizard.report_client_toggle_group",
+    },
+)
 AGENT_COLLABORATION_METHODS = frozenset(
     {
         "action_done_schedule_next",
@@ -93,49 +100,6 @@ AGENT_COLLABORATION_METHODS = frozenset(
         "message_subscribe",
         "message_unsubscribe",
         "submit_mcp_feedback",
-    },
-)
-AGENT_READONLY_GENERIC_METHODS = frozenset(
-    {
-        "check_field_access",
-        "context_get",
-        "export_data",
-        "fields_get",
-        "formatted_read_group",
-        "formatted_read_grouping_sets",
-        "get_external_id",
-        "get_field_translations",
-        "get_metadata",
-        "has_access",
-        "has_field_access",
-        "hierarchy_read",
-        "name_search",
-        "read",
-        "read_group",
-        "read_progress_bar",
-        "search",
-        "search_count",
-        "search_read",
-    },
-)
-AGENT_READONLY_EXPLICIT_ACTIONS = frozenset(
-    {
-        "rpc:account.move.get_draft_post_match_preview",
-        "rpc:account.move.action_open_vendor_bill_merge_originals",
-        "rpc:account.move.action_open_vendor_bill_merge_target",
-        "rpc:project.task.get_kanban_property_definition",
-        "rpc:usl.agent.current_identity",
-        "rpc:usl.document.mcp_find_similar",
-        "rpc:usl.document.mcp_get",
-        "rpc:usl.document.mcp_get_content",
-        "rpc:usl.document.mcp_get_links",
-        "rpc:usl.document.mcp_get_versions",
-        "rpc:usl.document.mcp_list_correspondents",
-        "rpc:usl.document.mcp_list_saved_views",
-        "rpc:usl.document.mcp_list_tags",
-        "rpc:usl.document.mcp_list_types",
-        "rpc:usl.document.mcp_search",
-        "rpc:usl.home.service.get_ai_attention",
     },
 )
 PRODUCT_MODULES = frozenset(
@@ -382,14 +346,17 @@ def build_agent_readonly_runtime_policy(
         if not action_key.startswith("rpc:"):
             continue
         method_name = action_key.rsplit(".", 1)[-1]
-        if entry.get("classification") == "read_only" and (
-            method_name in AGENT_READONLY_GENERIC_METHODS
-            or action_key in AGENT_READONLY_EXPLICIT_ACTIONS
+        if (
+            method_name in AGENT_COLLABORATION_METHODS
+            or (
+                action_key in AGENT_EPHEMERAL_REPORT_ACTIONS
+                and entry.get("classification") in {"read_only", "operational", "recoverable"}
+            )
         ):
-            read_only_actions.append(action_key)
-            continue
-        if method_name in AGENT_COLLABORATION_METHODS:
             collaboration_actions.append(action_key)
+            continue
+        if entry.get("classification") == "read_only":
+            read_only_actions.append(action_key)
             continue
         if entry.get("classification") in {"operational", "recoverable"}:
             write_actions.append(action_key)

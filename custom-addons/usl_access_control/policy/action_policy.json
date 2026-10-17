@@ -17508,7 +17508,7 @@
         "rpc:rebuild.account.report.export.wizard.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
         "rpc:rebuild.account.report.export.wizard.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
         "rpc:rebuild.account.report.export.wizard.report_client_open_sources": "4317150088a037bb9ad0fcda5d398dec35d6da198778f4341f94318a19336252",
-        "rpc:rebuild.account.report.export.wizard.report_client_toggle_group": "74e3eeb6a30d03872033be9414997d0f922ccaf2ea0e7c706cb23f351acb3505",
+        "rpc:rebuild.account.report.export.wizard.report_client_toggle_group": "57b49b99252c6d49fc9c426b4b527cf63f8b0db1edb0cca368acd64d81ebf973",
         "rpc:rebuild.account.report.export.wizard.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
         "rpc:rebuild.account.report.export.wizard.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
         "rpc:rebuild.account.report.export.wizard.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
@@ -84517,8 +84517,8 @@
         "rpc:iap.account.write": "e4e55b742596fc95073aab2159b92656b1cfa33a5fb4a18ff8dcefb8a01d6304",
         "rpc:ir.actions.server.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:ir.actions.server.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
-        "rpc:ir.attachment.create": "a9c0b04606f754d6431cfb7ac9d979af39e46b657d48faf39ebe9d4a44b05f0d",
-        "rpc:ir.attachment.write": "0651e27f8f1faa09166011f22d4d0b25bd612775781e554d5c732e773b15dc81",
+        "rpc:ir.attachment.create": "cc9e84d82e8751d19efcd43474d4e8a6ef45949e4471f03ea0cad03a318b98a7",
+        "rpc:ir.attachment.write": "9a3df83da646f928c2b76010dc93d8f1f424008ea7bd084ff9774334d5f4dd89",
         "rpc:ir.cron.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:ir.cron.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:journal.ledger.report.wizard.button_export_html": "3a6774d41ac8f24c4b2757e46f7b6dd893519b4e56770844bb43444629531fe9",
@@ -85220,15 +85220,15 @@
         "rpc:rebuild.account.report.export.wizard.action_preview_report": "ac4fb3dbd1f39354a8bb82fc35531f4fae61f1a36655806f22d385f2c397e75d",
         "rpc:rebuild.account.report.export.wizard.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:rebuild.account.report.export.wizard.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
-        "rpc:rebuild.account.report.export.wizard.create": "19bd76d06dd9ec9b41f4f266df335c3876dca12b7c7b96341692832d4fdab717",
+        "rpc:rebuild.account.report.export.wizard.create": "9c439bbbd87bd668316dff3e78d2259b5ff8725cb35c038157f12d4483d7f7f1",
         "rpc:rebuild.account.report.export.wizard.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:rebuild.account.report.export.wizard.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:rebuild.account.report.export.wizard.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
         "rpc:rebuild.account.report.export.wizard.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
         "rpc:rebuild.account.report.export.wizard.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
         "rpc:rebuild.account.report.export.wizard.onchange_batch": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
-        "rpc:rebuild.account.report.export.wizard.report_client_export": "9eace240a750946e3bc1e079164a1852ab2a8e50834ce86c6b7ce50a0ee250cc",
-        "rpc:rebuild.account.report.export.wizard.report_client_load": "24acd376886535ef037a9963f1a2cf2592d02094a281908d7d1fc577fd1fc98f",
+        "rpc:rebuild.account.report.export.wizard.report_client_export": "ebe7092135506459d9838b03b07378e1bfdbc8144375c64f44df3019a4b5a75b",
+        "rpc:rebuild.account.report.export.wizard.report_client_load": "e2486604777875fa7bbf189144df8dd4c86db4ee48733dd0ec549cd22e12d1d2",
         "rpc:rebuild.account.report.export.wizard.report_client_set_tax_adjustment": "c9c70ffaffd6106ecc3b11ab5132fbddf74fec7088468a9a2c542ce066556b51",
         "rpc:rebuild.account.report.export.wizard.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:rebuild.account.report.export.wizard.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
@@ -85241,7 +85241,7 @@
         "rpc:rebuild.account.report.export.wizard.write": "1d8cdf506984ef2bd870d6049aec26841493aa812f68dfb384710ca522a7fe9b",
         "rpc:rebuild.account.report.preview.line.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:rebuild.account.report.preview.line.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
-        "rpc:rebuild.account.report.preview.line.create": "37b76f9937e66a72c0555d93394a9e3336325c81c16eec20667bed140b30b44a",
+        "rpc:rebuild.account.report.preview.line.create": "8d4ddc23f7e254d1abebec04cfe345aa88bb5cabe5e25851f9e38d582477d3b0",
         "rpc:rebuild.account.report.preview.line.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:rebuild.account.report.preview.line.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:rebuild.account.report.preview.line.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
@@ -205685,6 +205685,35 @@
       "reviewed_digests": {
         "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1": "dd3f23fbed92b3839174ec67e638ea9073a9effeeff7232f0d0e6799357de1c4"
       }
+    },
+    {
+      "action_keys": [
+        "sink:usl_access_control:custom-addons/usl_access_control/models/readonly_accounting_report.py:ir.attachment.create:orm_create:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/readonly_accounting_report.py:ir.attachment.create:orm_create:2",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/readonly_accounting_report.py:ir.attachment.create:orm_create:3",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/readonly_accounting_report.py:ir.attachment.write:orm_write:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/readonly_accounting_report.py:ir.attachment.write:orm_write:2",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/readonly_accounting_report.py:rebuild.account.report.export.wizard.create:orm_create:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/readonly_accounting_report.py:rebuild.account.report.preview.line.create:orm_create:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/readonly_accounting_report.py:rebuild.account.report.preview.line.create:orm_create:2"
+      ],
+      "classification": "system_internal",
+      "consequence": "Delegate native report session and export-file storage to the existing ORM under the current native authority.",
+      "domain": "accounting",
+      "evidence_id": "readonly-accounting-native-session-effects",
+      "id": "internal.accounting.readonly_report_session_effects",
+      "rationale": "These super-call sinks are reached through existing ir.attachment create/write and report wizard/preview create overrides. Ordinary writable calls retain native ACLs. Read-only report load/export/toggle carry only identity-bound technical session effects; the private hook admits report records and their generated export binary, never a business attachment, ledger mutation or unrelated transient. Native current-owner/company checks continue; forged context and both attachment redirections are denied.",
+      "reachability_proof": "Each key is an internal super-call sink, with no independent RPC/controller/server-action entry. Its public parent is separately reviewed: rpc:ir.attachment.create/write, rpc:rebuild.account.report.export.wizard.create, or rpc:rebuild.account.report.preview.line.create. Native report load/export/toggle reach these same parents through the existing engine; only a private identity-bound session can supply technical effects for a read-only delegation, while all other calls retain their native authority checks.",
+      "reviewed_digests": {
+        "sink:usl_access_control:custom-addons/usl_access_control/models/readonly_accounting_report.py:ir.attachment.create:orm_create:1": "a3b9d2ab9f0021f697c96c355c8f47e30b58aa3f1f0334277e08a64a49feb34f",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/readonly_accounting_report.py:ir.attachment.create:orm_create:2": "92c0dd2f3f787c3f1e0b57b4ada6f1aa31fd48f522a6b5d29b4d9e7f5f8c6f2f",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/readonly_accounting_report.py:ir.attachment.create:orm_create:3": "d0a9a359d3675ff4c66d8a10c64a7396e730f3efe67f43788570efe8e3f90a29",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/readonly_accounting_report.py:ir.attachment.write:orm_write:1": "006f5c2fb45c1f429972f64295f639f1b696efd99eb4ce41ea5b9011e6ceb8d0",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/readonly_accounting_report.py:ir.attachment.write:orm_write:2": "86ab438df9fbcadc229eb3446463db7d3619b7a3fb77c58865aa8d33c982024a",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/readonly_accounting_report.py:rebuild.account.report.export.wizard.create:orm_create:1": "e40e57c100714c0bed8128c29e207b802cffee9cb5be98813a30212967327435",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/readonly_accounting_report.py:rebuild.account.report.preview.line.create:orm_create:1": "4e31451332a611e1e8e9de2d8cad8284c6a20093cd3a5c70d1dbe40db2086e83",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/readonly_accounting_report.py:rebuild.account.report.preview.line.create:orm_create:2": "d9b443b3a33595d23edc54e3a1f9f3b10ce12ef33a7c0ab6b52ca8ec985272bb"
+      }
     }
   ],
   "evidence_families": {
@@ -205949,6 +205978,17 @@
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_profile_exposes_every_owner_application",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_scope_uses_owner_private_project_and_assignment_rules",
         "scripts/tests/test_action_risk_inventory.py::TestPolicyValidation.test_reports_each_class_contract_and_mandatory_risk"
+      ]
+    },
+    "readonly-accounting-native-session-effects": {
+      "contract": "Native Accounting previews and PDF/XLSX downloads can maintain temporary sessions without granting business writes; current owner/company authority, ordinary attachment protection and native closing/FEC controls remain unchanged.",
+      "tests": [
+        "custom-addons/usl_access_control/tests/test_readonly_accounting_report.py::TestReadonlyAccountingReport.test_preview_filters_and_sources_keep_native_ledger",
+        "custom-addons/usl_access_control/tests/test_readonly_accounting_report.py::TestReadonlyAccountingReport.test_xlsx_download_and_replacement_remain_session_artifacts",
+        "custom-addons/usl_access_control/tests/test_readonly_accounting_report.py::TestReadonlyAccountingReport.test_export_scope_cannot_create_or_relink_business_evidence",
+        "custom-addons/usl_access_control/tests/test_readonly_accounting_report.py::TestReadonlyAccountingReport.test_linked_closing_export_preserves_native_business_write_boundary",
+        "custom-addons/usl_access_control/tests/test_readonly_accounting_report.py::TestReadonlyAccountingReport.test_session_scope_does_not_authorize_business_or_sudo_writes",
+        "custom-addons/usl_access_control/tests/test_readonly_accounting_report.py::TestReadonlyAccountingReport.test_zero_id_cleanup_is_native_noop_only_inside_session"
       ]
     },
     "receipt-batch-handoff-20261014": {
