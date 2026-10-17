@@ -11,6 +11,7 @@ from . import (
     bank_statement_review,
     bank_statement_ingestion,
     bank_statement_ingestion_file,
+    company_expense_alias,
     expense_bank_matching,
     expense_batch_reporting,
     fiscal_year,

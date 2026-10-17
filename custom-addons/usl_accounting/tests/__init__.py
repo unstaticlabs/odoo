@@ -4,6 +4,7 @@ from . import (
     test_analytic_reporting,
     test_bank_statement_ingestion,
     test_bank_period_tour,
+    test_company_expense_alias,
     test_expense_bank_matching,
     test_expense_batch_reporting,
     test_immediate_settlement,

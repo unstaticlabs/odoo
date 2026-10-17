@@ -6878,3 +6878,85 @@ msgstr "Fichiers d’origine"
 #: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_inspection_form
 msgid "History"
 msgstr "Historique"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.company_expense_alias_settings
+msgid "<span invisible=\"not company_expense_alias_domain\">@</span>"
+msgstr "<span invisible=\"not company_expense_alias_domain\">@</span>"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.company_expense_alias_settings
+msgid "Company Expense Inbox"
+msgstr "Boîte de réception des notes de frais de la société"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_res_company__expense_alias_name
+#: model:ir.model.fields,field_description:usl_accounting.field_res_config_settings__company_expense_alias_name
+msgid "Company expense alias"
+msgstr "Alias des notes de frais de la société"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/company_expense_alias.py:0
+msgid "Created through the expense inbox for %(destination)s. The sender's default employee company is %(sender)s; the addressed company's existing employee profile was used."
+msgstr "Créée via la boîte de réception des notes de frais de %(destination)s. La société par défaut de l’employé de l’expéditeur est %(sender)s ; le profil d’employé existant dans la société destinataire a été utilisé."
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_res_config_settings__company_expense_alias_domain
+msgid "Email domain e.g. 'example.com' in 'odoo@example.com'"
+msgstr "Domaine de messagerie, par exemple « example.com » dans « odoo@example.com »"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_res_company__expense_alias_id
+msgid "Expense Alias"
+msgstr "Alias des notes de frais"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.company_expense_alias_settings
+msgid "Leave empty to use the global address"
+msgstr "Laisser vide pour utiliser l’adresse globale"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/company_expense_alias.py:0
+msgid "More than one employee in %(company)s is linked to this sender. Ask your HR administrator to check the existing employee records, or use the global expense address."
+msgstr "Plusieurs employés de %(company)s sont liés à cet expéditeur. Demandez à votre responsable RH de vérifier les fiches d’employé existantes, ou utilisez l’adresse globale des notes de frais."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/company_expense_alias.py:0
+msgid "No employee linked to this sender exists in %(company)s. Ask your HR administrator to check the existing employee record, or use the global expense address."
+msgstr "Aucun employé lié à cet expéditeur n’existe dans %(company)s. Demandez à votre responsable RH de vérifier la fiche d’employé existante, ou utilisez l’adresse globale des notes de frais."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/company_expense_alias.py:0
+msgid "No employee linked to this sender exists in %(company)s. Ask your HR administrator to check the existing employee's company and email address, or use the global expense address."
+msgstr "Aucun employé lié à cet expéditeur n’existe dans %(company)s. Demandez à votre responsable RH de vérifier la société et l’adresse e-mail de la fiche d’employé existante, ou utilisez l’adresse globale des notes de frais."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.company_expense_alias_settings
+msgid "Optional address for the active company. The global expense address remains available. Senders need an existing employee profile in this company."
+msgstr "Adresse facultative pour la société active. L’adresse globale des notes de frais reste disponible. Les expéditeurs doivent disposer d’un profil d’employé existant dans cette société."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.company_expense_alias_settings
+msgid "Set up your alias domain"
+msgstr "Configurer le domaine des alias"
+
+#. module: usl_accounting
+#: model:ir.model.constraint,message:usl_accounting.constraint_res_company_expense_alias_unique
+msgid "A company expense inbox can only belong to one company."
+msgstr "Une boîte de réception des notes de frais ne peut appartenir qu’à une seule société."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/company_expense_alias.py:0
+msgid "The company expense inbox must use an expense alias owned by this company. Configure its address in Expenses settings; keep the global alias unchanged."
+msgstr "La boîte de réception des notes de frais doit utiliser un alias de notes de frais appartenant à cette société. Configurez son adresse dans les paramètres des Notes de frais ; conservez l’alias global."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/company_expense_alias.py:0
+msgid "The sender has employee profiles in several companies. The expense inbox selected the existing employee profile in %(company)s."
+msgstr "L’expéditeur possède des profils d’employé dans plusieurs sociétés. La boîte de réception des notes de frais a sélectionné le profil d’employé existant dans %(company)s."
