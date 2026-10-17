@@ -90,6 +90,12 @@ fixture. Keep the intended SSO identity separate and never weaken Pocket ID
 policy to make a local QA login work. Identity/SSO changes require their own
 representative authentication journey.
 
+Use a unique `*.localhost` hostname for each concurrent browser QA stack when
+the local resolver supports it, for example `http://example-qa.localhost:18069`.
+Different ports on `localhost` still share host cookies: signing into another
+stack can replace the first stack's Odoo session. Hostname isolation avoids
+that collision without changing authentication policy.
+
 `make worktree-env` isolates the runtime, not the data, so a worktree starts
 with no database and `make doctor` reports one missing. What to do next depends
 on what you actually need, and the two needs are not interchangeable.
