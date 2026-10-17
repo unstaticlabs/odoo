@@ -1,8 +1,11 @@
 """Native declaration history stays distinct from recalculable data checks."""
 
+from pathlib import Path
+
 from odoo import Command
 from odoo.exceptions import AccessError
 from odoo.tests import HttpCase, tagged
+from odoo.modules.module import get_module_path, load_script
 
 
 @tagged("post_install", "-at_install", "declaration_presentation")
@@ -145,3 +148,31 @@ class TestDeclarationPresentation(HttpCase):
             ready="document.querySelectorAll('.o_data_row').length === 4",
             login=self.reader.login,
         )
+
+    def test_french_filed_lifecycle_and_filing_labels_match(self):
+        self.env["res.lang"]._activate_lang("fr_FR")
+        self.env["ir.module.module"]._load_module_terms(["rebuild_account_migration"], ["fr_FR"])
+        selections = self.env["rebuild.account.declaration"].with_context(lang="fr_FR").fields_get(
+            ["status", "filing_status"],
+        )
+        for field_name in ("status", "filing_status"):
+            self.assertEqual(dict(selections[field_name]["selection"])["filed"], "Déposée en externe", field_name)
+
+    def test_french_filing_label_upgrade_preserves_custom_labels(self):
+        path = (Path(get_module_path("rebuild_account_migration")) / "migrations"
+                / "saas~19.3.1.13.37" / "post-correct-french-filing-label.py")
+        migration = load_script(str(path), "declaration_french_label_upgrade_test")
+        self.env["res.lang"]._activate_lang("fr_FR")
+        lifecycle = self.env.ref("rebuild_account_migration.selection__rebuild_account_declaration__status__filed")
+        filing = self.env.ref("rebuild_account_migration.selection__rebuild_account_declaration__filing_status__filed")
+        overview = self.env.ref("rebuild_account_migration.selection__rebuild_account_overview__next_declaration_status__filed")
+        english = (lifecycle | filing | overview).with_context(lang="en_US").mapped("name")
+        lifecycle.with_context(lang="fr_FR").write({"name": "Classé en externe"})
+        overview.with_context(lang="fr_FR").write({"name": "Classé en externe"})
+        filing.with_context(lang="fr_FR").write({"name": "Dépôt personnalisé"})
+        for _ in range(2):
+            migration.migrate(self.env.cr, "saas~19.3.1.13.36")
+            self.assertEqual(lifecycle.with_context(lang="fr_FR").name, "Déposée en externe")
+            self.assertEqual(overview.with_context(lang="fr_FR").name, "Déposée en externe")
+            self.assertEqual(filing.with_context(lang="fr_FR").name, "Dépôt personnalisé")
+            self.assertEqual((lifecycle | filing | overview).with_context(lang="en_US").mapped("name"), english)

@@ -5019,8 +5019,8 @@ msgstr "Déposé à"
 msgid "Filed By"
 msgstr "Classé par"
 
-#: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration__filing_status__filed
 #. module: rebuild_account_migration
+#: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration__filing_status__filed
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration__status__filed
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_overview__next_declaration_status__filed
 msgid "Filed Externally"
@@ -8980,8 +8980,8 @@ msgstr "Prêt pour vérification comptable"
 msgid "Ready for Internal Review"
 msgstr "Prêt pour vérification interne"
 
-#: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration__preparation_status__ready_for_review
 #. module: rebuild_account_migration
+#: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration__preparation_status__ready_for_review
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__account_move__rebuild_einvoice_reception_status__bill_created
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_einvoice_reception__status__bill_created
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_einvoice_reception_search
