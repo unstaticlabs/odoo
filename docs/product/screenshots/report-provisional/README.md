@@ -1,21 +1,25 @@
 # Provisional accounting PDF captures
 
-Captured 17 October 2026 from the native accounting export and pinned renderer
-`a01385982eb406947bd1e312a1cefd7fe4636943`, using invented QA 2619 companies,
-legal identity, square logo and ledger. The implementation matches this PR;
-source-only comma formatting and policy resealing followed these captures.
-They illustrate the output; native export, text and preservation checks prove
-the behavior independently. The document-brand priority remains a separate
-pending decision. No existing company logo or historical file was replaced.
+Captured 17 October 2026 through ordinary native browser login, company
+selection, Generate Export and download, against product revision
+`b7e61982b77dbcf8e99960115377140f6310074a` and pinned renderer
+`a01385982eb406947bd1e312a1cefd7fe4636943`. The companies, legal identity,
+square logo and ledger are invented QA 2619 fixtures. Native company-logo
+precedence is retained; the document-brand choice remains pending.
 
-- `final-accountant-ledger-open-page1.png`: ordinary accountant, open fiscal
-  exercise; the preamble gives the provisional reason and the footer repeats it.
-- `final-accountant-ledger-open-page4.png`: continuation of the same eleven-page
-  ledger; the footer retains Document provisoire.
-- `final-reader-trial-locked-page1.png`: native read-only accountant, fiscal
-  exercise covered by its global lock; no generated provisional label.
-  This does not certify the report.
+These are ordinary browser exports, so the optional shell qualification banner
+is absent. They illustrate the final tested product revision; native tests,
+PDF text checks and upgrade preservation separately prove behavior.
 
-The exact image bytes and all PNG chunks were independently inspected before
-publication. Earlier registry-selector probes and candidate-renderer previews
-remain private and are not these captures.
+- `final-accountant-ledger-open-page1.png`: ordinary accountant, open exercise;
+  the preamble gives the provisional reason and the footer repeats it.
+- `final-accountant-ledger-open-page4.png`: continuation of that eleven-page
+  browser-generated ledger; the footer retains Document provisoire.
+- `final-reader-trial-locked-page1.png`: native read-only accountant after
+  switching to the locked company; no generated provisional label. This does
+  not certify the report.
+
+The lead personally inspected the pixels and all PNG chunks of these exact
+bytes before publication. These replace the earlier pre-format illustrative
+captures. Registry-selector probes and candidate-renderer previews stay private.
+No live company logo or historical file was replaced.
