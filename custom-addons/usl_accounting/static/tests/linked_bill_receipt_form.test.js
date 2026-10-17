@@ -1,4 +1,5 @@
 import { expect, test } from "@odoo/hoot";
+import { resize } from "@odoo/hoot-dom";
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
 import { AttachDocumentWidget } from "@web/views/widgets/attach_document/attach_document";
 import { contains, defineModels, fields, models, mountView, onRpc, patchWithCleanup } from "@web/../tests/web_test_helpers";
@@ -163,3 +164,63 @@ test("customer invoice keeps its native missing-date unload behavior", async () 
     expect(event.returnValue).toBe("Unsaved changes");
     expect.verifySteps([]);
 });
+
+
+class PickerRetrieval extends models.Model {
+    _name = "usl.mail.pdf.retrieval";
+    name = fields.Char();
+    _records = [{ id: 1, name: "[QA] Bill document request" }];
+}
+class PickerWizard extends models.Model {
+    _name = "usl.mail.pdf.candidate.wizard";
+    retrieval_id = fields.Many2one({ relation: "usl.mail.pdf.retrieval" });
+    candidate_ids = fields.One2many({ relation: "usl.mail.pdf.candidate.wizard.line", relation_field: "wizard_id" });
+    _records = [{ id: 1, retrieval_id: 1, candidate_ids: [41, 42] }];
+}
+class PickerLine extends models.Model {
+    _name = "usl.mail.pdf.candidate.wizard.line";
+    wizard_id = fields.Many2one({ relation: "usl.mail.pdf.candidate.wizard" });
+    fingerprint = fields.Char(); label = fields.Char(); hostname = fields.Char();
+    path_template = fields.Char(); score = fields.Integer();
+    _records = [
+        { id: 41, wizard_id: 1, fingerprint: "first", label: "Invoice PDF", hostname: "synthetic-provider.example.invalid", score: 5 },
+        { id: 42, wizard_id: 1, fingerprint: "second", label: "Detailed invoice PDF", hostname: "synthetic-provider.example.invalid", score: 4 },
+    ];
+}
+defineModels({ PickerRetrieval, PickerWizard, PickerLine });
+
+for (const width of [390, 1280]) {
+    test(`native shared picker makes exact link selection reachable at ${width}px`, async () => {
+        await resize({ width, height: 844 });
+        const arch = new URL(window.location.href).searchParams.get("qa_picker_arch");
+        expect(arch).not.toBe(null);
+        onRpc("usl.mail.pdf.candidate.wizard.line", "action_choose", ({ args }) => {
+            expect(args[0]).toEqual([42]);
+            expect.step("exact second source link");
+            return false;
+        });
+        await mountView({ type: "form", resModel: "usl.mail.pdf.candidate.wizard", resId: 1, arch });
+        const mode = width === 390 ? ".o_kanban_record:not(.o_kanban_ghost)" : ".o_data_row";
+        expect(mode).toHaveCount(2);
+        const second = [...document.querySelectorAll(mode)][1];
+        expect(second.textContent).toInclude("Detailed invoice PDF");
+        expect(second.textContent).toInclude("synthetic-provider.example.invalid");
+        const button = second.querySelector("button[name='action_choose']");
+        expect(button).not.toBe(null);
+        const root = second.closest(".o_form_view").getBoundingClientRect();
+        const box = button.getBoundingClientRect();
+        expect(root.width <= width + 1).toBe(true);
+        expect(box.left >= root.left && box.right <= root.left + width + 1).toBe(true);
+        if (width === 390) {
+            const textFields = [...second.querySelectorAll(".text-break")];
+            expect(textFields).toHaveLength(2);
+            for (const field of textFields) {
+                const bounds = field.getBoundingClientRect();
+                expect(bounds.left >= root.left && bounds.right <= root.left + width + 1).toBe(true);
+                expect(bounds.bottom <= box.top).toBe(true);
+            }
+        }
+        await contains(button).click();
+        expect.verifySteps(["exact second source link"]);
+    });
+}

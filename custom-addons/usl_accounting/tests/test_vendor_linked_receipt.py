@@ -475,7 +475,7 @@ class TestVendorLinkedReceipt(TestExpenseCommon):
         arch = Wizard.get_view(self.env.ref("usl_accounting.view_usl_mail_pdf_candidate_wizard_form").id, "form")["arch"]
         root = etree.fromstring(arch.encode())
         self.assertTrue("Choisissez le lien qui télécharge" in " ".join(root.itertext()))
-        self.assertEqual(root.xpath("//button[@name='action_choose']/@string"), ["Utiliser ce lien"])
+        self.assertEqual(set(root.xpath("//button[@name='action_choose']/@string")), {"Utiliser ce lien"})
         self.assertEqual(root.xpath("//button[@special='cancel']/@string"), ["Annuler"])
         info = self.env["usl.mail.pdf.candidate.wizard.line"].with_context(lang="fr_FR").fields_get(["label", "hostname"])
         self.assertEqual(info["label"]["string"], "Libellé")

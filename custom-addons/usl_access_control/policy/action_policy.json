@@ -205818,6 +205818,28 @@
       "targets": [
         "rpc:account.move.action_cancel_peppol_documents"
       ]
+    },
+    {
+      "action_keys": [
+        "ui:usl_accounting.view_usl_mail_pdf_candidate_wizard_form:button:object:action_choose:2"
+      ],
+      "classification": "transport",
+      "consequence": "Shows the existing document-choice RPC as a visible native mobile card action.",
+      "domain": "accounting",
+      "evidence_id": "vendor-bill-linked-receipt-20261017",
+      "id": "transport.accounting.linked_receipt_mobile_20261017",
+      "overrides": {
+        "ui:usl_accounting.view_usl_mail_pdf_candidate_wizard_form:button:object:action_choose:2": {
+          "rationale": "Exact existing native line-selection RPC; its ordinary target authority and selected fingerprint remain unchanged.",
+          "targets": [
+            "rpc:usl.mail.pdf.candidate.wizard.line.action_choose"
+          ]
+        }
+      },
+      "rationale": "The shared native picker uses the same persisted line and existing action_choose method on desktop and mobile; no additional mutation, authority or selection path is introduced.",
+      "reviewed_digests": {
+        "ui:usl_accounting.view_usl_mail_pdf_candidate_wizard_form:button:object:action_choose:2": "caa30f1f7368b3ea66a4deccec0d1aec624d7d8983f25137e59aa5bf3d9c3b05"
+      }
     }
   ],
   "evidence_families": {
@@ -206190,7 +206212,7 @@
       ]
     },
     "vendor-bill-linked-receipt-20261017": {
-      "contract": "Native supplier email, link choice, persisted actor-owned queue execution and exact original PDF/main attachment/audit on the same bill. Native bill readers/writers including invoicing-only delegated Agents retain their normal authority; source, company, manual-file and generation changes prevent stale publication. Existing expense ownership and recovery remain unchanged. Native Chromium form cases prove clean saved bills recover or upload before the date is known, while dirty/new bill validation, financial actions and expense upload remain native.",
+      "contract": "Native supplier email, link choice, persisted actor-owned queue execution and exact original PDF/main attachment/audit on the same bill. Native bill readers/writers including invoicing-only delegated Agents retain their normal authority; source, company, manual-file and generation changes prevent stale publication. Existing expense ownership and recovery remain unchanged. Native Chromium form cases prove clean saved bills recover or upload before the date is known, while dirty/new bill validation, financial actions and expense upload remain native. Native mobile cards keep the source label, site and exact line-selection action within a narrow viewport; bill source wording remains transient while existing expense semantics and desktop list selection remain intact.",
       "tests": [
         "custom-addons/usl_accounting/tests/test_vendor_linked_receipt.py::TestVendorLinkedReceipt.test_native_purchase_email_to_original_pdf_main_and_history",
         "custom-addons/usl_accounting/tests/test_vendor_linked_receipt.py::TestVendorLinkedReceipt.test_delegated_worker_retains_native_request_after_rpc_context_ends",
@@ -206200,7 +206222,11 @@
         "custom-addons/usl_accounting/tests/test_vendor_linked_receipt.py::TestVendorLinkedReceipt.test_source_changed_while_queued_is_not_fetched",
         "custom-addons/usl_accounting/tests/test_vendor_linked_receipt.py::TestVendorLinkedReceipt.test_manual_original_during_fetch_wins",
         "custom-addons/usl_accounting/tests/test_vendor_linked_receipt.py::TestVendorLinkedReceipt.test_french_status_translation_on_bill_and_existing_expense",
-        "custom-addons/usl_accounting/tests/test_vendor_linked_receipt_ui.py::TestVendorLinkedReceiptUi.test_source_first_bill_controls"
+        "custom-addons/usl_accounting/tests/test_vendor_linked_receipt_ui.py::TestVendorLinkedReceiptUi.test_source_first_bill_controls",
+        "custom-addons/usl_accounting/tests/test_vendor_linked_receipt.py::TestVendorLinkedReceipt.test_bill_picker_uses_distinct_source_copy_and_exact_original_choice",
+        "custom-addons/usl_accounting/tests/test_vendor_linked_receipt.py::TestVendorLinkedReceipt.test_bill_picker_ambiguous_or_url_labels_use_honest_source_order",
+        "custom-addons/usl_accounting/tests/test_vendor_linked_receipt.py::TestVendorLinkedReceipt.test_existing_expense_picker_keeps_its_semantic_labels",
+        "custom-addons/usl_accounting/tests/test_vendor_linked_receipt.py::TestVendorLinkedReceipt.test_french_picker_view_fields_and_fallback_are_translated"
       ]
     },
     "vendor-bill-merge-20261014": {

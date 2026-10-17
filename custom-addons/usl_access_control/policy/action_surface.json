@@ -1690003,6 +1690003,31 @@
     },
     {
       "delegates": [
+        "rpc:usl.mail.pdf.candidate.wizard.line.action_choose"
+      ],
+      "digest": "caa30f1f7368b3ea66a4deccec0d1aec624d7d8983f25137e59aa5bf3d9c3b05",
+      "guards": [],
+      "key": "ui:usl_accounting.view_usl_mail_pdf_candidate_wizard_form:button:object:action_choose:2",
+      "kind": "ui",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "45dd0c6e70092e55fdce5ae519b2730ba699369e13da6d7316474f7698ef8c1b",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_accounting/wizard/linked_receipt_candidate_wizard_views.xml"
+        },
+        {
+          "path": "database:ir.ui.view:usl_accounting.view_usl_mail_pdf_candidate_wizard_form"
+        }
+      ],
+      "xmlid": "usl_accounting.view_usl_mail_pdf_candidate_wizard_form"
+    },
+    {
+      "delegates": [
         "rpc:usl.mail.pdf.host.action_activate"
       ],
       "digest": "553f04d5c28baaf22b8a33e4ac6e73f55097bdf950f5750dbde6f247ce45cb47",
@@ -1699453,7 +1699478,7 @@
       "manifest_sha256": "f8f1e59037417e025f2be593368630ebbb61b8feb76b15d1d5cc37a05f74c5cd",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "a68f672034c835f9096759fe827b46aa6967137358c49f38c04f8e663511f980",
+      "source_sha256": "2a9d957018cd172c9c7312f8fc9cf76c75a1c52ec7eeeb5e65ea907a9493e9da",
       "version": "saas~19.3.2.2.11"
     },
     {
