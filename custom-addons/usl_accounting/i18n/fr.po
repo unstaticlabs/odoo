@@ -1664,6 +1664,7 @@ msgstr "Peut se lettrer"
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_bank_statement_exception_resolution_form
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_bank_statement_reopen_form
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_expense_bank_match_wizard_form
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_post_bank_match_review
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -2667,6 +2668,7 @@ msgstr "Points à vérifier"
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__journal_id
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__journal_id
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_post_bank_match_review
 msgid "Journal"
 msgstr "Journal"
 
@@ -6878,3 +6880,82 @@ msgstr "Fichiers d’origine"
 #: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_inspection_form
 msgid "History"
 msgstr "Historique"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/expense_post_confirmation.py:0
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_post_bank_match_review
+msgid "Review possible company payments"
+msgstr "Vérifier les paiements possibles de la société"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_post_bank_match_review
+msgid "The expense or bank transactions changed. Review the updated information before confirming again."
+msgstr "La dépense ou les opérations bancaires ont changé. Vérifiez les informations à jour avant de confirmer à nouveau."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_post_bank_match_review
+msgid "A company bank transaction may already cover this expense. Review the possible matches before posting to avoid recording the payment twice."
+msgstr "Une opération bancaire de la société peut déjà correspondre à cette dépense. Vérifiez les rapprochements possibles avant de comptabiliser pour éviter de comptabiliser deux fois le paiement."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_post_bank_match_review
+msgid "Posting without matching keeps the current Paid by setting and does not reconcile any bank transaction. To use a suggested payment, open the expenses, select Find bank transactions, then choose Use in Company payment match."
+msgstr "Comptabiliser sans rapprochement conserve le réglage actuel du payeur et ne rapproche aucune opération bancaire. Pour utiliser un paiement suggéré, ouvrez les dépenses, sélectionnez Rechercher les opérations bancaires, puis Utiliser dans Rapprochement du paiement société."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_post_bank_match_review
+msgid "Review expenses"
+msgstr "Vérifier les dépenses"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_post_bank_match_review
+msgid "Post without matching"
+msgstr "Comptabiliser sans rapprochement"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_hr_expense_post_wizard__usl_review_evidence
+msgid "Possible company payments"
+msgstr "Paiements possibles de la société"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/expense_post_confirmation.py:0
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_post_bank_match_review
+msgid "Review company payment matches"
+msgstr "Vérifier les rapprochements des paiements société"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_post_bank_match_review
+msgid "%(expense)s — %(amount)s — Paid by: %(paid_by)s"
+msgstr "%(expense)s — %(amount)s — Payé par : %(paid_by)s"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_bank_matching.py:0
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_post_bank_match_review
+msgid "%(count)s more possible matches."
+msgstr "%(count)s autres rapprochements possibles."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_post_bank_match_review
+msgid "No possible company payment matches remain. You can continue posting with the current Paid by setting."
+msgstr "Aucun rapprochement possible avec un paiement société ne subsiste. Vous pouvez poursuivre la comptabilisation avec le réglage actuel du payeur."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_post_bank_match_review
+msgid "Accounting date"
+msgstr "Date comptable"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/expense_post_confirmation.py:0
+msgid "Posted expenses"
+msgstr "Dépenses comptabilisées"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_post_bank_match_review
+msgid "Post these expenses with their current payer setting through Odoo, without reconciling a bank transaction."
+msgstr "Comptabiliser ces dépenses dans Odoo avec leur payeur actuel, sans rapprocher d’opération bancaire."
