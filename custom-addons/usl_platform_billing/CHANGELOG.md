@@ -8,7 +8,9 @@
   directly or through intermediate entries, and links them as bank evidence
   only: no entry, payment or reconciliation is created or changed, and a paid
   payout stays paid. A transaction reconciled against unrelated documents is
-  refused.
+  refused, and one refused row aborts the whole request. The search follows
+  reconciliations of receivable lines, within 4 steps: a transaction reconciled
+  through a payment's outstanding receipts account is not found.
 
 ## saas~19.3.1.2.1
 

@@ -1725,6 +1725,91 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
         self.assertEqual(other_payout.bank_statement_line_id, bank_line)
         self.assertFalse(payout.bank_allocation_ids)
 
+    def _pooled_payouts(self):
+        """Two payouts on two platforms, the second one pooled into the first
+        one's compensation move. Returns (session, first, second)."""
+        session = self._session(name="Adopt pool — July 2026")
+        other_platform = self.platform.copy({"name": "Pooled second platform"})
+        first = self._payout(session, reference="POOL-A")
+        second = self._payout(
+            session,
+            reference="POOL-B",
+            platform=other_platform,
+            payout_date="2026-07-16",
+        )
+        self._generate_and_post(session)
+        self.assertNotEqual(first.customer_invoice_id, second.customer_invoice_id)
+        first.compensation_move_id.platform_billing_payout_ids = [
+            Command.link(second.id),
+        ]
+        return session, first, second
+
+    def test_compensation_pool_sibling_invoice_is_offered_and_accepted(self):
+        session, first, second = self._pooled_payouts()
+        bank_line = self._bank_line(80.0, label="Receipt on the sibling invoice")
+        self._reconcile_in_accounting(bank_line, second.customer_invoice_id)
+        counts = self._adoption_counts()
+
+        wizard = self._bank_wizard(session, scope="reconciled")
+        wizard.payout_candidate_ids.filtered(
+            lambda line: line.payout_id == second,
+        ).selected = False
+        wizard._populate_candidates()
+        # Only the first payout is selected; the line was reconciled against
+        # the invoice of its compensation pool sibling.
+        self.assertEqual(wizard.candidate_ids.bank_statement_line_id, bank_line)
+        wizard.candidate_ids.selected = True
+        wizard.action_link_payouts()
+
+        self.assertEqual(first.bank_statement_line_id, bank_line)
+        self.assertEqual(first.bank_match_status, "reconciled")
+        self.assertFalse(second.bank_allocation_ids)
+        self.assertEqual(self._adoption_counts(), counts)
+
+        # Without the pool the same line is not connected to the first payout.
+        first.compensation_move_id.platform_billing_payout_ids = [
+            Command.unlink(second.id),
+        ]
+        fresh = self._bank_wizard(session, scope="reconciled")
+        fresh.payout_candidate_ids.filtered(
+            lambda line: line.payout_id == second,
+        ).selected = False
+        fresh._populate_candidates()
+        self.assertFalse(fresh.candidate_ids)
+
+    def test_one_refused_row_aborts_the_whole_request(self):
+        session, first, second = self._pooled_payouts()
+        # Connected to both payouts: reconciled against the second invoice,
+        # which is in the first payout's pool.
+        line_one = self._bank_line(40.0, label="Receipt one", bank_date="2026-07-20")
+        # Connected to the first payout only.
+        line_two = self._bank_line(40.0, label="Receipt two", bank_date="2026-07-21")
+        self._reconcile_in_accounting(line_one, second.customer_invoice_id)
+        self._reconcile_in_accounting(line_two, first.customer_invoice_id)
+        counts = self._adoption_counts()
+
+        wizard = self._bank_wizard(session, scope="reconciled")
+        wizard.payout_candidate_ids.selected = True
+        wizard._populate_candidates()
+        self.assertEqual(
+            wizard.candidate_ids.bank_statement_line_id,
+            line_one | line_two,
+        )
+        wizard.candidate_ids.selected = True
+        for line in wizard.payout_candidate_ids:
+            line.allocated_payout_amount = 40.0
+
+        with self.assertRaisesRegex(UserError, "not connected"):
+            wizard.action_link_payouts()
+
+        self.assertFalse(
+            self.env["usl.platform.billing.bank.allocation"].search(
+                [("bank_statement_line_id", "in", (line_one | line_two).ids)],
+            ),
+        )
+        self.assertFalse(first.bank_allocation_ids | second.bank_allocation_ids)
+        self.assertEqual(self._adoption_counts(), counts)
+
     def test_adopted_count_only_counts_lines_with_a_new_allocation(self):
         session = self._session(name="Adopt count — July 2026")
         first = self._payout(session, reference="COUNT-A", amount=80.0)

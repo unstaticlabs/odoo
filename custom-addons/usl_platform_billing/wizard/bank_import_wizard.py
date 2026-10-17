@@ -54,7 +54,10 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
             "the incoming transactions that Accounting has already reconciled "
             "against their invoices or compensation entries, directly or through "
             "intermediate entries, so they can be linked as bank evidence "
-            "without changing any entry. Select the payouts first."
+            "without changing any entry. Select the payouts first. The search "
+            "follows reconciliations of receivable lines, within 4 steps; a "
+            "transaction reconciled through a payment's outstanding receipts "
+            "account is not found."
         ),
     )
     payout_candidate_ids = fields.One2many(
@@ -997,42 +1000,55 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
             return self._session_action()
         payout_lines, candidates, reach = self._selected_link_inputs()
         plan = self._allocation_plan(payout_lines, candidates)
+        adopting = reach is not None
+        if adopting:
+            # An adopted allocation cannot be removed afterwards, so every
+            # planned row is checked before any allocation is created.
+            self._check_plan_connections(plan, candidates, reach)
         imported = self.env["usl.platform.billing.payout"]
         failures = []
         adopted_count = 0
-        for candidate in candidates:
-            bank_line = candidate.bank_statement_line_id
-            try:
-                with self.env.cr.savepoint():
-                    self._revalidate_candidate(candidate, reach=reach)
-                    created_any = False
-                    for values in plan[candidate.id]:
-                        payout = self.env["usl.platform.billing.payout"].browse(
-                            values["payout_id"],
-                        )
-                        if reach is not None and not self._line_connected_to_payout(
-                            bank_line,
-                            payout,
-                            reach,
-                        ):
-                            raise UserError(
-                                _(
-                                    "%(bank)s is not connected to the Accounting "
-                                    "documents of %(payout)s.",
-                                    bank=bank_line.display_name,
-                                    payout=payout.display_name,
-                                ),
+        # Adopting is all or nothing: the outer savepoint undoes the rows of
+        # earlier bank lines when a later one fails.
+        with self.env.cr.savepoint():
+            for candidate in candidates:
+                bank_line = candidate.bank_statement_line_id
+                try:
+                    with self.env.cr.savepoint():
+                        self._revalidate_candidate(candidate, reach=reach)
+                        created_any = False
+                        for values in plan[candidate.id]:
+                            allocation, created = self._get_or_create_allocation(
+                                values,
                             )
-                        allocation, created = self._get_or_create_allocation(values)
-                        created_any = created_any or created
-                        imported |= allocation.payout_id
-                    if reach is not None and created_any:
-                        adopted_count += 1
-            except (IntegrityError, UserError, ValidationError) as error:
-                failures.append(self._failure_text(bank_line, error))
+                            created_any = created_any or created
+                            imported |= allocation.payout_id
+                        if adopting and created_any:
+                            adopted_count += 1
+                except (IntegrityError, UserError, ValidationError) as error:
+                    if adopting:
+                        raise UserError(self._failure_text(bank_line, error)) from error
+                    failures.append(self._failure_text(bank_line, error))
         if not imported and failures:
             raise UserError("\n".join(failures))
         return self._result_action(imported, failures, adopted_count)
+
+    def _check_plan_connections(self, plan, candidates, reach):
+        """Refuse the whole request if any planned row is not connected."""
+        payouts = self.env["usl.platform.billing.payout"]
+        for candidate in candidates:
+            bank_line = candidate.bank_statement_line_id
+            for values in plan[candidate.id]:
+                payout = payouts.browse(values["payout_id"])
+                if not self._line_connected_to_payout(bank_line, payout, reach):
+                    raise UserError(
+                        _(
+                            "%(bank)s is not connected to the Accounting "
+                            "documents of %(payout)s.",
+                            bank=bank_line.display_name,
+                            payout=payout.display_name,
+                        ),
+                    )
 
 
 class UslPlatformBillingBankImportWizardPayoutLine(models.TransientModel):

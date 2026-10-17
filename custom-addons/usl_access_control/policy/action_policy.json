@@ -111877,7 +111877,7 @@
       "rationale": "The declared exact reversal restores the relevant state; native record identity/history and Distribution agent before/submitted-value evidence preserve how to perform and verify recovery.",
       "reviewed_digests": {
         "rpc:usl.platform.billing.bank.import.wizard.action_create_payouts": "fff4cecf923bb9ea7a6e83eeb1c3ff38041ad4e7e89550d68a93c6fb2e9592d7",
-        "rpc:usl.platform.billing.bank.import.wizard.action_link_payouts": "127ac89824d094d9fd378c66a3157bb2424a754740a59d589b7f06a250733347",
+        "rpc:usl.platform.billing.bank.import.wizard.action_link_payouts": "70b6cabbf6bb2bd2091aad877a12aa0e6286386c2b6d8d01e0518ff15344d275",
         "rpc:usl.platform.billing.payout.action_archive_attachment": "b709c664d814f18382ebd8438cd811570de88cb255a51bc05c7cad3e294c5b77",
         "rpc:usl.platform.billing.payout.action_open_documents_workspace": "a77c4b201439ce301a99985661cf9f8dbe058829d55d16ea62e0b5fcaaecbaad",
         "rpc:usl.platform.billing.platform.action_archive_attachment": "b709c664d814f18382ebd8438cd811570de88cb255a51bc05c7cad3e294c5b77",
@@ -180868,7 +180868,7 @@
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/wizard/bank_import_wizard.py:usl.platform.billing.bank.import.wizard.action_create_payouts:orm_create:1": "d34bab28a5ec43d6820e9e3f0572c5021db18a96cbfad98ad6f0fe736dac398b",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/wizard/bank_import_wizard.py:usl.platform.billing.bank.import.wizard.action_create_payouts:orm_write:1": "b9f8d01b84696deba77f8814f1262f498644a2f81b802637ec8a9d81d02fa81c",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/wizard/bank_import_wizard.py:usl.platform.billing.bank.import.wizard.action_create_payouts:orm_write:2": "f82393aa2f36792ffcdf6398b2990a928980f5d941b2481636dc97f1bb53873f",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/wizard/bank_import_wizard.py:usl.platform.billing.bank.import.wizard.action_link_payouts:orm_write:1": "0a15c33ab94afe24362073a236267232bcf7f5f3267a2bb39b68676fcbcc8563"
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/wizard/bank_import_wizard.py:usl.platform.billing.bank.import.wizard.action_link_payouts:orm_write:1": "7482e0cbdc48b9fd0d7063bc32961c2785112510756f5b67226f5be2f5bd9751"
       }
     },
     {

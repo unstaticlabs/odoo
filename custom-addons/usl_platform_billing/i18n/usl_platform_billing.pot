@@ -268,7 +268,9 @@ msgid ""
 "lists, for the selected payouts, the incoming transactions that Accounting "
 "has already reconciled against their invoices or compensation entries, "
 "directly or through intermediate entries, so they can be linked as bank "
-"evidence without changing any entry. Select the payouts first."
+"evidence without changing any entry. Select the payouts first. The search "
+"follows reconciliations of receivable lines, within 4 steps; a transaction "
+"reconciled through a payment's outstanding receipts account is not found."
 msgstr ""
 
 #. module: usl_platform_billing
