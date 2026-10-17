@@ -43,11 +43,10 @@
                     <span t-esc="summaryCardLabel(card)"/>
                     <strong t-att-class="amountClass(card.value)" t-esc="formatCell(card.value, card.type)"/>
                 </div>
+                <p class="text-muted small w-100 mb-0">
+                    Totaux du rapport complet, selon les filtres financiers. La recherche limite les lignes du tableau et de l’export.
+                </p>
             </div>
-
-            <p t-if="state.data.summary.cards.length" class="text-muted small mb-2">
-                Totaux du rapport complet, selon les filtres financiers. La recherche limite les lignes du tableau et de l’export.
-            </p>
 
             <div class="o_usl_report_filters">
                 <div t-if="showCompanyFilter" class="o_usl_report_company_filter">
