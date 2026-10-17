@@ -7,6 +7,7 @@ from dateutil.relativedelta import relativedelta
 from odoo import _, api, fields, models
 
 from .declaration import EU_COUNTRY_CODES, _month_end
+from .fiscal_period import stored_label_bounds
 
 
 class RebuildAccountDeclaration(models.Model):
@@ -310,9 +311,9 @@ class RebuildAccountDeclaration(models.Model):
             ("form_code", "=", form_code),
             ("review_status", "in", ["accepted", "accepted_with_difference"]),
         ])
-        prior_year = str(period_end.year - 1)
+        prior_year = period_end.year - 1
         return any(
-            prior_year in (value.period_key or "")
+            self._external_value_is_for_year(value, prior_year)
             and (
                 (value.amount or 0.0) >= threshold
                 if inclusive
@@ -320,6 +321,20 @@ class RebuildAccountDeclaration(models.Model):
             )
             for value in values
         )
+
+    @api.model
+    def _external_value_is_for_year(self, value, year):
+        """Whether the reviewed value covers a period that ends in ``year``.
+
+        A ``Fiscal year A to B`` or ``Calendar year YYYY`` label is read as real
+        dates, so a fiscal year that merely starts in ``year`` does not count.
+        Any other label keeps the earlier rule, a year number found in the
+        label, so an unreadable label never silently drops an obligation.
+        """
+        bounds = stored_label_bounds(value.period_key)
+        if bounds:
+            return bounds[1].year == year
+        return str(year) in (value.period_key or "")
 
     @api.model
     def _sync_rule_instances(self, company, rule, fiscal_start, fiscal_end):

@@ -3,13 +3,16 @@
 from odoo import fields, models, tools
 from odoo.exceptions import UserError
 
+from .fiscal_period import first_fiscal_year_sql
 from .report_views import (
-    FIRST_FISCAL_YEAR_PERIOD_KEY,
-    PERIOD_CASE_SQL,
+    PERIOD_SQL,
     _base_journal_item_domain,
     _journal_items_action,
     _prefix_domain,
 )
+
+
+FIRST_YEAR_SQL = first_fiscal_year_sql("company")
 
 
 class RebuildAccountFrenchStatementLine(models.Model):
@@ -22,6 +25,8 @@ class RebuildAccountFrenchStatementLine(models.Model):
     source_company_id = fields.Integer(readonly=True)
     company_currency_id = fields.Many2one("res.currency", readonly=True)
     period_key = fields.Char(readonly=True)
+    period_date_from = fields.Date(readonly=True)
+    period_date_to = fields.Date(readonly=True)
     statement_key = fields.Char(readonly=True)
     statement_name = fields.Char(readonly=True)
     line_sequence = fields.Integer(readonly=True)
@@ -134,7 +139,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                     SELECT line.company_id,
                            company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
-                           {PERIOD_CASE_SQL} AS period_key,
+                           {PERIOD_SQL.select},
                            COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text) AS account_code,
                            account.account_type,
                            count(line.id) AS move_line_count,
@@ -147,12 +152,12 @@ class RebuildAccountFrenchStatementLine(models.Model):
                      GROUP BY line.company_id,
                               company.id,
                               company.currency_id,
-                              {PERIOD_CASE_SQL},
+                              {PERIOD_SQL.group_by},
                               COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text),
                               account.account_type
                 ),
                 line_sources AS (
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'bilan_actif' AS statement_key,
                            'Bilan Actif' AS statement_name,
                            10 AS line_sequence,
@@ -168,7 +173,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '21%' OR account_code LIKE '28%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'bilan_actif', 'Bilan Actif', 20,
                            'ACTIF_AUTRES_CREANCES', 'Autres créances',
                            'Soldes débiteurs de classe 4 hors trésorerie', '4',
@@ -178,7 +183,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                        AND account_type IN ('asset_current', 'asset_receivable')
                        AND balance > 0
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'bilan_actif', 'Bilan Actif', 30,
                            'ACTIF_DISPONIBILITES', 'Disponibilités',
                            'Comptes de trésorerie 5 classés asset_cash', '5',
@@ -187,7 +192,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                      WHERE account_code LIKE '5%'
                        AND account_type = 'asset_cash'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'bilan_actif', 'Bilan Actif', 90,
                            'ACTIF_TOTAL', 'Total actif',
                            'Immobilisations nettes + autres créances + disponibilités', '21,28,4,5',
@@ -202,7 +207,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                         OR (account_code LIKE '4%' AND account_type IN ('asset_current', 'asset_receivable') AND balance > 0)
                         OR (account_code LIKE '5%' AND account_type = 'asset_cash')
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'bilan_passif', 'Bilan Passif', 10,
                            'PASSIF_CAPITAL', 'Capital social',
                            'Comptes 101', '101',
@@ -210,7 +215,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '101%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'bilan_passif', 'Bilan Passif', 20,
                            'PASSIF_RESULTAT', 'Résultat de l’exercice',
                            'Résultat net des comptes 6 et 7', '6,7',
@@ -218,7 +223,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '6%' OR account_code LIKE '7%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'bilan_passif', 'Bilan Passif', 30,
                            'PASSIF_CAPITAUX_PROPRES', 'Capitaux propres',
                            'Capital social + résultat de l’exercice', '101,6,7',
@@ -226,7 +231,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '101%' OR account_code LIKE '6%' OR account_code LIKE '7%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'bilan_passif', 'Bilan Passif', 40,
                            'PASSIF_DETTES_FINANCIERES', 'Emprunts et dettes financières diverses',
                            'Comptes 16/17 et comptes courants d’associés 455', '16,17,455',
@@ -239,7 +244,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                      )
                        AND balance < 0
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'bilan_passif', 'Bilan Passif', 50,
                            'PASSIF_DETTES_FISCALES_SOCIALES', 'Dettes fiscales et sociales',
                            'Soldes créditeurs des comptes 42, 43 et 44', '42,43,44',
@@ -248,7 +253,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                      WHERE (account_code LIKE '42%' OR account_code LIKE '43%' OR account_code LIKE '44%')
                        AND balance < 0
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'bilan_passif', 'Bilan Passif', 80,
                            'PASSIF_TOTAL_DETTES', 'Total des dettes',
                            'Dettes financières, fournisseurs, fiscales et sociales', '16,17,455,40,42,43,44',
@@ -263,7 +268,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                              OR account_code LIKE '44%')
                             AND balance < 0)
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'bilan_passif', 'Bilan Passif', 90,
                            'PASSIF_TOTAL', 'Total passif',
                            'Capitaux propres + dettes', '101,6,7,16,17,455,40,42,43,44',
@@ -281,7 +286,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                              OR account_code LIKE '44%')
                             AND balance < 0)
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'compte_resultat', 'Compte de résultat', 10,
                            'CR_VENTES_PRODUITS', 'Production vendue — biens',
                            'Comptes 701', '701',
@@ -289,7 +294,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '701%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'compte_resultat', 'Compte de résultat', 20,
                            'CR_SERVICES', 'Prestations de services',
                            'Comptes 706', '706',
@@ -297,7 +302,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '706%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'compte_resultat', 'Compte de résultat', 30,
                            'CR_CHIFFRE_AFFAIRES', 'Chiffre d’affaires net',
                            'Comptes 70', '70',
@@ -305,7 +310,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '70%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'compte_resultat', 'Compte de résultat', 40,
                            'CR_TOTAL_PRODUITS_EXPLOITATION', 'Total des produits d’exploitation',
                            'Comptes 70/71/72/74/75 hors 755', '70,71,72,74,75',
@@ -320,7 +325,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                             AND account_code NOT LIKE '755%'
                         )
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'compte_resultat', 'Compte de résultat', 35,
                            'CR_AUTRES_PRODUITS_EXPLOITATION', 'Autres produits d’exploitation',
                            'Comptes 75 hors opérations en commun 755', '75',
@@ -329,7 +334,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                      WHERE account_code LIKE '75%'
                        AND account_code NOT LIKE '755%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'compte_resultat', 'Compte de résultat', 50,
                            'CR_ACHATS_MARCHANDISES', 'Achats de marchandises',
                            'Comptes 607', '607',
@@ -337,7 +342,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '607%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'compte_resultat', 'Compte de résultat', 60,
                            'CR_CHARGES_EXTERNES', 'Autres achats et charges externes',
                            'Comptes 606, 61 et 62', '606,61,62',
@@ -345,7 +350,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '606%' OR account_code LIKE '61%' OR account_code LIKE '62%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'compte_resultat', 'Compte de résultat', 70,
                            'CR_IMPOTS_TAXES', 'Impôts, taxes et versements assimilés',
                            'Comptes 631 et 633', '631,633',
@@ -353,7 +358,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '631%' OR account_code LIKE '633%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'compte_resultat', 'Compte de résultat', 80,
                            'CR_SALAIRES', 'Salaires et traitements',
                            'Comptes 641', '641',
@@ -361,7 +366,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '641%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'compte_resultat', 'Compte de résultat', 90,
                            'CR_CHARGES_SOCIALES', 'Charges sociales',
                            'Comptes 645', '645',
@@ -369,7 +374,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '645%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'compte_resultat', 'Compte de résultat', 100,
                            'CR_DOTATIONS_AMORTISSEMENTS', 'Dotations aux amortissements',
                            'Comptes 681', '681',
@@ -377,7 +382,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '681%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'compte_resultat', 'Compte de résultat', 110,
                            'CR_AUTRES_CHARGES_EXPLOITATION', 'Autres charges d’exploitation',
                            'Comptes 658', '658',
@@ -385,7 +390,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '658%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'compte_resultat', 'Compte de résultat', 120,
                            'CR_TOTAL_CHARGES_EXPLOITATION', 'Total des charges d’exploitation',
                            'Comptes 60, 61, 62, 63, 64, 658 et 681', '60,61,62,63,64,658,681',
@@ -399,7 +404,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                         OR account_code LIKE '658%'
                         OR account_code LIKE '681%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'compte_resultat', 'Compte de résultat', 130,
                            'CR_RESULTAT_EXPLOITATION', 'Résultat d’exploitation',
                            'Produits d’exploitation moins charges d’exploitation', '70,758,60,61,62,63,64,658,681',
@@ -415,7 +420,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                         OR account_code LIKE '658%'
                         OR account_code LIKE '681%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'compte_resultat', 'Compte de résultat', 140,
                            'CR_PRODUITS_FINANCIERS', 'Produits financiers',
                            'Comptes 76', '76',
@@ -423,7 +428,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '76%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'compte_resultat', 'Compte de résultat', 150,
                            'CR_CHARGES_FINANCIERES', 'Charges financières',
                            'Comptes 66', '66',
@@ -431,7 +436,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '66%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'compte_resultat', 'Compte de résultat', 160,
                            'CR_RESULTAT_FINANCIER', 'Résultat financier',
                            'Produits financiers moins charges financières', '76,66',
@@ -439,7 +444,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '76%' OR account_code LIKE '66%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'compte_resultat', 'Compte de résultat', 170,
                            'CR_RESULTAT_COURANT_AVANT_IMPOT', 'Résultat courant avant impôts',
                            'Résultat d’exploitation + résultat financier', '70,758,60,61,62,63,64,658,681,76,66',
@@ -457,7 +462,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                         OR account_code LIKE '76%'
                         OR account_code LIKE '66%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'compte_resultat', 'Compte de résultat', 180,
                            'CR_IMPOTS_BENEFICES', 'Impôts sur les bénéfices',
                            'Comptes 695', '695',
@@ -465,7 +470,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '695%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'compte_resultat', 'Compte de résultat', 190,
                            'CR_TOTAL_PRODUITS', 'Total des produits',
                            'Total des comptes de classe 7', '7',
@@ -473,7 +478,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '7%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'compte_resultat', 'Compte de résultat', 195,
                            'CR_TOTAL_CHARGES', 'Total des charges',
                            'Total des comptes de classe 6', '6',
@@ -481,7 +486,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '6%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'compte_resultat', 'Compte de résultat', 200,
                            'CR_RESULTAT_NET', 'Résultat net de l’exercice',
                            'Total des produits - total des charges', '6,7',
@@ -489,7 +494,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '6%' OR account_code LIKE '7%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'sig_caf', 'SIG et CAF', 10,
                            'SIG_VALEUR_AJOUTEE', 'Valeur ajoutée',
                            'Chiffre d’affaires et autres produits, moins achats et charges externes', '70,758,607,606,61,62,658',
@@ -503,7 +508,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                         OR account_code LIKE '62%'
                         OR account_code LIKE '658%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'sig_caf', 'SIG et CAF', 20,
                            'SIG_EBE', 'Excédent brut d’exploitation',
                            'Valeur ajoutée moins impôts et charges de personnel', '70,758,607,606,61,62,658,631,633,641,645',
@@ -521,7 +526,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                         OR account_code LIKE '641%'
                         OR account_code LIKE '645%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'sig_caf', 'SIG et CAF', 30,
                            'SIG_RESULTAT_EXPLOITATION', 'Résultat d’exploitation',
                            'Excédent brut d’exploitation moins dotations aux amortissements', '70,758,60,61,62,63,64,658,681',
@@ -537,7 +542,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                         OR account_code LIKE '658%'
                         OR account_code LIKE '681%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'sig_caf', 'SIG et CAF', 40,
                            'SIG_RESULTAT_COURANT_AVANT_IMPOT', 'Résultat courant avant impôts',
                            'Résultat d’exploitation + résultat financier', '70,758,60,61,62,63,64,658,681,76,66',
@@ -555,7 +560,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                         OR account_code LIKE '76%'
                         OR account_code LIKE '66%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'sig_caf', 'SIG et CAF', 50,
                            'SIG_RESULTAT_NET', 'Résultat net comptable',
                            'Solde des comptes 6 et 7', '6,7',
@@ -563,7 +568,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '6%' OR account_code LIKE '7%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'sig_caf', 'SIG et CAF', 60,
                            'SIG_CAPACITE_AUTOFINANCEMENT', 'Capacité d’autofinancement',
                            'Résultat net comptable + dotations aux amortissements', '6,7,681',
@@ -571,7 +576,7 @@ class RebuildAccountFrenchStatementLine(models.Model):
                       FROM balances
                      WHERE account_code LIKE '6%' OR account_code LIKE '7%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'sig_caf', 'SIG et CAF', 60,
                            'SIG_CAPACITE_AUTOFINANCEMENT', 'Capacité d’autofinancement',
                            'Résultat net comptable + dotations aux amortissements', '6,7,681',
@@ -586,6 +591,8 @@ class RebuildAccountFrenchStatementLine(models.Model):
                        source_company_id,
                        company_currency_id,
                        period_key,
+                       period_date_from,
+                       period_date_to,
                        statement_key,
                        statement_name,
                        line_sequence,
@@ -603,6 +610,8 @@ class RebuildAccountFrenchStatementLine(models.Model):
                           source_company_id,
                           company_currency_id,
                           period_key,
+                          period_date_from,
+                          period_date_to,
                           statement_key,
                           statement_name,
                           line_sequence,
@@ -625,6 +634,8 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
     source_company_id = fields.Integer(readonly=True)
     company_currency_id = fields.Many2one("res.currency", readonly=True)
     period_key = fields.Char(readonly=True)
+    period_date_from = fields.Date(readonly=True)
+    period_date_to = fields.Date(readonly=True)
     form_code = fields.Char(readonly=True)
     form_name = fields.Char(readonly=True)
     line_sequence = fields.Integer(readonly=True)
@@ -697,6 +708,8 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                            source_company_id,
                            company_currency_id,
                            period_key,
+                           period_date_from,
+                           period_date_to,
                            line_code,
                            move_line_count,
                            gross_amount,
@@ -710,6 +723,8 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                            source_company_id,
                            company_currency_id,
                            period_key,
+                           period_date_from,
+                           period_date_to,
                            account_code,
                            move_line_count,
                            debit,
@@ -722,7 +737,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                     SELECT line.company_id,
                            company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
-                           {PERIOD_CASE_SQL} AS period_key,
+                           {PERIOD_SQL.select},
                            COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text) AS account_code,
                            count(line.id)::integer AS move_line_count,
                            round(sum(line.debit)::numeric, 2) AS debit,
@@ -740,13 +755,15 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                               company.id,
                               company.currency_id,
                               period_key,
+                              period_date_from,
+                              period_date_to,
                               account_code
                 ),
                 assets AS (
                     SELECT asset.company_id,
                            company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
-                           '{FIRST_FISCAL_YEAR_PERIOD_KEY}'::text AS period_key,
+                           {FIRST_YEAR_SQL.select},
                            count(DISTINCT asset.id)::integer AS asset_count,
                            round(sum(asset.purchase_value)::numeric, 2) AS original_value,
                            round(sum(COALESCE(depreciation.amount, 0))::numeric, 2) AS accumulated_depreciation,
@@ -759,22 +776,24 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                         LEFT JOIN account_move move ON move.id = line.move_id
                             WHERE line.asset_id = asset.id
                               AND line.type = 'depreciate'
-                              AND line.line_date <= DATE '2025-09-30'
+                              AND line.line_date <= {FIRST_YEAR_SQL.date_to}
                               AND (line.init_entry OR move.state = 'posted')
                            ) depreciation ON TRUE
+                     WHERE {FIRST_YEAR_SQL.is_set}
                      GROUP BY asset.company_id, company.id, company.currency_id
                 ),
                 schedule AS (
                     SELECT asset.company_id,
                            company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
-                           '{FIRST_FISCAL_YEAR_PERIOD_KEY}'::text AS period_key,
+                           {FIRST_YEAR_SQL.select},
                            count(schedule.id)::integer AS schedule_line_count,
                            round(sum(schedule.amount)::numeric, 2) AS depreciation_schedule_total
                       FROM account_asset_line schedule
                       JOIN account_asset asset ON asset.id = schedule.asset_id
                       JOIN res_company company ON company.id = asset.company_id
                      WHERE schedule.type = 'depreciate'
+                       AND {FIRST_YEAR_SQL.is_set}
                      GROUP BY asset.company_id, company.id, company.currency_id
                 ),
                 external_values AS (
@@ -799,7 +818,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                               value.field_code
                 ),
                 lines AS (
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2065-SD' AS form_code,
                            'Impôt sur les sociétés' AS form_name,
                            10 AS line_sequence,
@@ -818,7 +837,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM fs
                      WHERE line_code = 'CR_RESULTAT_COURANT_AVANT_IMPOT'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2065-SD', 'Impôt sur les sociétés', 20,
                            '2065_BASE_TAUX_REDUIT_15_REVIEW',
                            'Base potentielle au taux réduit de 15% - à valider',
@@ -835,7 +854,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM fs
                      WHERE line_code = 'CR_RESULTAT_COURANT_AVANT_IMPOT'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2065-SD', 'Impôt sur les sociétés', 30,
                            '2065_BASE_TAUX_NORMAL_REVIEW',
                            'Base potentielle au taux normal - à valider',
@@ -852,7 +871,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM fs
                      WHERE line_code = 'CR_RESULTAT_COURANT_AVANT_IMPOT'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2065-SD', 'Impôt sur les sociétés', 40,
                            '2065_CHARGE_IS_COMPTABILISEE',
                            'Impôt sur les bénéfices comptabilisé',
@@ -869,7 +888,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM fs
                      WHERE line_code = 'CR_IMPOTS_BENEFICES'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2033-A-SD', 'Bilan simplifié', 10,
                            '2033_A_IMMOBILISATIONS_CORP_BRUT',
                            'Immobilisations corporelles - brut',
@@ -886,7 +905,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM fs
                      WHERE line_code = 'ACTIF_IMMO_CORP'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2033-A-SD', 'Bilan simplifié', 20,
                            '2033_A_IMMOBILISATIONS_CORP_AMORT_PROV',
                            'Immobilisations corporelles - amortissements/provisions',
@@ -903,7 +922,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM fs
                      WHERE line_code = 'ACTIF_IMMO_CORP'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2033-A-SD', 'Bilan simplifié', 30,
                            '2033_A_IMMOBILISATIONS_CORP_NET',
                            'Immobilisations corporelles - net',
@@ -920,7 +939,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM fs
                      WHERE line_code = 'ACTIF_IMMO_CORP'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2033-A-SD', 'Bilan simplifié', 40,
                            '2033_A_TOTAL_ACTIF_BRUT',
                            'Total actif - brut',
@@ -937,7 +956,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM fs
                      WHERE line_code = 'ACTIF_TOTAL'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2033-A-SD', 'Bilan simplifié', 50,
                            '2033_A_TOTAL_ACTIF_AMORT_PROV',
                            'Total actif - amortissements/provisions',
@@ -954,7 +973,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM fs
                      WHERE line_code = 'ACTIF_TOTAL'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2033-A-SD', 'Bilan simplifié', 60,
                            '2033_A_TOTAL_ACTIF_NET',
                            'Total actif - net',
@@ -971,7 +990,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM fs
                      WHERE line_code = 'ACTIF_TOTAL'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2033-A-SD', 'Bilan simplifié', 70,
                            '2033_A_CAPITAL_SOCIAL',
                            'Capital social',
@@ -988,7 +1007,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM fs
                      WHERE line_code = 'PASSIF_CAPITAL'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2033-A-SD', 'Bilan simplifié', 80,
                            '2033_A_RESULTAT_EXERCICE',
                            'Résultat de l’exercice',
@@ -1005,7 +1024,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM fs
                      WHERE line_code = 'PASSIF_RESULTAT'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2033-A-SD', 'Bilan simplifié', 90,
                            '2033_A_TOTAL_PASSIF',
                            'Total passif',
@@ -1022,7 +1041,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM fs
                      WHERE line_code = 'PASSIF_TOTAL'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2033-B-SD', 'Compte de résultat simplifié', 10,
                            '2033_B_CHIFFRE_AFFAIRES_NET',
                            'Chiffre d’affaires net',
@@ -1039,7 +1058,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM fs
                      WHERE line_code = 'CR_CHIFFRE_AFFAIRES'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2033-B-SD', 'Compte de résultat simplifié', 20,
                            '2033_B_RESULTAT_COURANT_AVANT_IMPOT',
                            'Résultat courant avant impôt',
@@ -1056,7 +1075,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM fs
                      WHERE line_code = 'CR_RESULTAT_COURANT_AVANT_IMPOT'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2033-B-SD', 'Compte de résultat simplifié', 30,
                            '2033_B_IMPOTS_BENEFICES',
                            'Impôts sur les bénéfices',
@@ -1073,7 +1092,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM fs
                      WHERE line_code = 'CR_IMPOTS_BENEFICES'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2033-B-SD', 'Compte de résultat simplifié', 40,
                            '2033_B_RESULTAT_NET_COMPTABLE',
                            'Résultat net comptable',
@@ -1090,7 +1109,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM fs
                      WHERE line_code = 'CR_RESULTAT_NET'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2033-C-SD', 'Immobilisations et amortissements', 10,
                            '2033_C_NOMBRE_IMMOBILISATIONS_SOURCE',
                            'Nombre d’immobilisations source représentées',
@@ -1106,7 +1125,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                            'ledger_derived'
                       FROM assets
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2033-C-SD', 'Immobilisations et amortissements', 20,
                            '2033_C_IMMOBILISATIONS_CORP_BRUT',
                            'Immobilisations corporelles - valeur brute',
@@ -1122,7 +1141,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                            'ledger_derived'
                       FROM assets
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2033-C-SD', 'Immobilisations et amortissements', 30,
                            '2033_C_AMORTISSEMENTS_TOTAL',
                            'Amortissements cumulés',
@@ -1138,7 +1157,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                            'ledger_derived'
                       FROM assets
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2033-C-SD', 'Immobilisations et amortissements', 40,
                            '2033_C_NET_COMPTABLE',
                            'Valeur nette comptable importée à la clôture',
@@ -1154,7 +1173,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                            'ledger_derived'
                       FROM assets
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2033-C-SD', 'Immobilisations et amortissements', 50,
                            '2033_C_DOTATIONS_EXERCICE',
                            'Dotations aux amortissements de l’exercice',
@@ -1171,7 +1190,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM fs
                      WHERE line_code = 'CR_DOTATIONS_AMORTISSEMENTS'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2033-C-SD', 'Immobilisations et amortissements', 60,
                            '2033_C_LIGNES_PLAN_AMORTISSEMENT_SOURCE',
                            'Lignes du plan d’amortissement source conservées',
@@ -1187,7 +1206,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                            'ledger_derived'
                       FROM schedule
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2033-D-SD', 'TVA et taxes', 10,
                            '2033_D_TVA_COLLECTEE_445700',
                            'TVA collectée / due sur comptes 4457',
@@ -1204,7 +1223,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM vat
                      WHERE account_code LIKE '4457%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2033-D-SD', 'TVA et taxes', 20,
                            '2033_D_TVA_DEDUCTIBLE_IMMOBILISATIONS_445620',
                            'TVA déductible sur immobilisations',
@@ -1221,7 +1240,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM vat
                      WHERE account_code LIKE '44562%'
                     UNION ALL
-                    SELECT vat.company_id, vat.source_company_id, vat.company_currency_id, vat.period_key,
+                    SELECT vat.company_id, vat.source_company_id, vat.company_currency_id, vat.period_key, vat.period_date_from, vat.period_date_to,
                            '2033-D-SD', 'TVA et taxes', 30,
                            '2033_D_TVA_DEDUCTIBLE_BIENS_SERVICES_445660',
                            'TVA déductible sur autres biens et services',
@@ -1250,7 +1269,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                        AND ca12.account_code = vat.account_code
                      WHERE vat.account_code = '445660'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '2033-D-SD', 'TVA et taxes', 40,
                            '2033_D_CREDIT_TVA_A_REPORTER_445670',
                            'Crédit de TVA à reporter',
@@ -1267,7 +1286,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM vat
                      WHERE account_code = '445670'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '3517-S-SD', 'TVA CA12/CA12E', 10,
                            '3517S_TVA_COLLECTEE_445700',
                            'CA12 - TVA collectée issue du grand livre',
@@ -1284,7 +1303,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM vat
                      WHERE account_code LIKE '4457%'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '3517-S-SD', 'TVA CA12/CA12E', 20,
                            '3517S_TVA_DEDUCTIBLE_IMMOBILISATIONS_445620',
                            'CA12 - TVA déductible sur immobilisations',
@@ -1301,7 +1320,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                       FROM vat
                      WHERE account_code LIKE '44562%'
                     UNION ALL
-                    SELECT vat.company_id, vat.source_company_id, vat.company_currency_id, vat.period_key,
+                    SELECT vat.company_id, vat.source_company_id, vat.company_currency_id, vat.period_key, vat.period_date_from, vat.period_date_to,
                            '3517-S-SD', 'TVA CA12/CA12E', 30,
                            '3517S_TVA_DEDUCTIBLE_BIENS_SERVICES_445660',
                            'CA12 - TVA déductible sur biens et services issue du grand livre',
@@ -1330,7 +1349,7 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                        AND ca12.account_code = vat.account_code
                      WHERE vat.account_code = '445660'
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            '3517-S-SD', 'TVA CA12/CA12E', 40,
                            '3517S_CREDIT_TVA_A_REPORTER_445670',
                            'CA12 - Crédit de TVA à reporter',
@@ -1354,6 +1373,8 @@ class RebuildAccountFrenchTaxPackageLine(models.Model):
                        lines.source_company_id,
                        lines.company_currency_id,
                        lines.period_key,
+                       lines.period_date_from,
+                       lines.period_date_to,
                        lines.form_code,
                        lines.form_name,
                        lines.line_sequence,

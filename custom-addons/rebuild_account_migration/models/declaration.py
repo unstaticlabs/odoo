@@ -7,12 +7,6 @@ from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import float_compare
 
-BENCHMARK_START = date(2024, 1, 10)
-BENCHMARK_END = date(2025, 9, 30)
-CURRENT_START = date(2025, 10, 1)
-FIRST_FISCAL_YEAR_PERIOD_KEY = "Fiscal year 2024-01-10 to 2025-09-30"
-CURRENT_PERIOD_KEY = "Fiscal year from 2025-10-01"
-
 EU_COUNTRY_CODES = {
     "AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR",
     "GR", "HR", "HU", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL",
@@ -280,14 +274,11 @@ class RebuildAccountDeclaration(models.Model):
         seen_codes = set()
         tax_form_codes = [code.strip() for code in (self.rule_id.tax_form_codes or "").split(",") if code.strip()]
         if tax_form_codes:
-            period_key = self._tax_package_period_key(self.fiscalyear_end)
-            tax_lines = self.env["rebuild.account.french.tax.package.line"]
-            if period_key:
-                tax_lines = tax_lines.search([
-                    ("company_id", "=", self.company_id.id),
-                    ("period_key", "=", period_key),
-                    ("form_code", "in", tax_form_codes),
-                ])
+            tax_lines = self.env["rebuild.account.french.tax.package.line"].search([
+                ("company_id", "=", self.company_id.id),
+                *self._tax_package_period_domain(self.fiscalyear_end),
+                ("form_code", "in", tax_form_codes),
+            ])
             for tax_line in tax_lines:
                 code = tax_line.field_code
                 seen_codes.add(code)
@@ -313,13 +304,21 @@ class RebuildAccountDeclaration(models.Model):
         stale = self.field_line_ids.filtered(lambda line: line.field_code not in seen_codes)
         stale.unlink()
 
-    @api.model
-    def _tax_package_period_key(self, fiscal_end):
-        if fiscal_end == BENCHMARK_END:
-            return FIRST_FISCAL_YEAR_PERIOD_KEY
-        if fiscal_end == date(2026, 9, 30):
-            return CURRENT_PERIOD_KEY
-        return False
+    def _tax_package_period_domain(self, anchor):
+        """Domain of the tax-package bucket that holds ``anchor``.
+
+        The bucket is the company's own fiscal year, read through the same
+        ``compute_fiscalyear_dates`` rule as the report views, so the match is
+        exact on both bounds and follows every fiscal year of the company.
+        """
+        self.ensure_one()
+        date_from, date_to = self.company_id.rebuild_compute_fiscalyear_dates(
+            anchor,
+        )
+        return [
+            ("period_date_from", "=", date_from),
+            ("period_date_to", "=", date_to),
+        ]
 
     def _sync_rule_specific_fields(self, seen_codes):
         self.ensure_one()
@@ -358,17 +357,14 @@ class RebuildAccountDeclaration(models.Model):
 
     def _sync_corporate_tax_payment_fields(self, seen_codes):
         if self.rule_id.code == "FR_2571":
-            prior_end = self.fiscalyear_start - relativedelta(days=1)
-            period_key = self._tax_package_period_key(prior_end)
+            anchor = self.fiscalyear_start - relativedelta(days=1)
         else:
-            period_key = self._tax_package_period_key(self.fiscalyear_end)
-        charge = self.env["rebuild.account.french.tax.package.line"]
-        if period_key:
-            charge = charge.search([
-                ("company_id", "=", self.company_id.id),
-                ("period_key", "=", period_key),
-                ("field_code", "=", "2065_CHARGE_IS_COMPTABILISEE"),
-            ], limit=1)
+            anchor = self.fiscalyear_end
+        charge = self.env["rebuild.account.french.tax.package.line"].search([
+            ("company_id", "=", self.company_id.id),
+            *self._tax_package_period_domain(anchor),
+            ("field_code", "=", "2065_CHARGE_IS_COMPTABILISEE"),
+        ], limit=1)
         amount = charge.rounded_amount if charge else 0.0
         estimated = amount / 4 if self.rule_id.code == "FR_2571" else amount
         field_code = "2571_PROVISIONAL_INSTALMENT" if self.rule_id.code == "FR_2571" else "2572_LEDGER_IS_CHARGE_REVIEW"
