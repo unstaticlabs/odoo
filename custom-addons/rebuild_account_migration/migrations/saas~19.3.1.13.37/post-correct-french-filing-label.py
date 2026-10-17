@@ -5,6 +5,8 @@ def migrate(cr, version):
     """Correct the shipped French label without overwriting custom translations."""
     del version
     env = api.Environment(cr, SUPERUSER_ID, {})
+    if not env["res.lang"]._lang_get("fr_FR"):
+        return
     for xmlid in (
         "selection__rebuild_account_declaration__status__filed",
         "selection__rebuild_account_declaration__filing_status__filed",

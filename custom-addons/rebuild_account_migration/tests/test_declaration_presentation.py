@@ -176,3 +176,24 @@ class TestDeclarationPresentation(HttpCase):
             self.assertEqual(overview.with_context(lang="fr_FR").name, "Déposée en externe")
             self.assertEqual(filing.with_context(lang="fr_FR").name, "Dépôt personnalisé")
             self.assertEqual((lifecycle | filing | overview).with_context(lang="en_US").mapped("name"), english)
+
+    def test_french_filing_label_upgrade_skips_inactive_or_absent_language(self):
+        path = (Path(get_module_path("rebuild_account_migration")) / "migrations"
+                / "saas~19.3.1.13.37" / "post-correct-french-filing-label.py")
+        migration = load_script(str(path), "declaration_inactive_french_upgrade_test")
+        language = self.env["res.lang"].with_context(active_test=False).search([("code", "=", "fr_FR")])
+        # These changes are confined to the test transaction and rolled back.
+        self.env["res.users"].with_context(active_test=False).search([("lang", "=", "fr_FR")]).write({"lang": "en_US"})
+        self.env["res.partner"].with_context(active_test=False).search([("lang", "=", "fr_FR")]).write({"lang": "en_US"})
+        language.write({"active": False})
+        for state in ("inactive", "absent"):
+            with self.subTest(state=state):
+                if state == "absent":
+                    language.with_context(lang="en_US").unlink()
+                self.assertFalse(self.env["res.lang"]._lang_get("fr_FR"))
+                self.env.cr.execute("SELECT id, name FROM ir_model_fields_selection ORDER BY id")
+                names = self.env.cr.fetchall()
+                migration.migrate(self.env.cr, "saas~19.3.1.13.36")
+                self.env.cr.execute("SELECT id, name FROM ir_model_fields_selection ORDER BY id")
+                self.assertEqual(self.env.cr.fetchall(), names)
+                self.assertFalse(self.env["res.lang"]._lang_get("fr_FR"))
