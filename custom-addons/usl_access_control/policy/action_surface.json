@@ -1697724,6 +1697724,7 @@
     }
   ],
   "country_codes": [
+    "fr",
     "us"
   ],
   "diagnostics": [],
@@ -1698409,11 +1698410,11 @@
       "version": "1.1"
     },
     {
-      "manifest_sha256": "3955762432c04094858bd33cef7691586e7dbeed0764181d3ead04260d294260",
+      "manifest_sha256": "06b701dc18914af045fa2f070e4f8c78bd33cf7018a99ea8674a2dbf8f28aec8",
       "name": "rebuild_account_migration",
       "origin": "custom",
-      "source_sha256": "a9883c66a3d7b6ae7f87b87420b5a0f96d27e38e58978bfa00834a0990846a67",
-      "version": "saas~19.3.1.13.30"
+      "source_sha256": "a2527af56a7ad4cd3cf36c99738af588a1d2b5fbe106243856098eb8c47106cf",
+      "version": "saas~19.3.1.13.36"
     },
     {
       "manifest_sha256": "a3a8024b1226ef713cc665c6c804362fd897338a958493f6d860b650e62eae30",

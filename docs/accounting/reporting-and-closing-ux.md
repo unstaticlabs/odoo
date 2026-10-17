@@ -291,6 +291,14 @@ Official deadlines and portal behavior change. Deadline and declaration guidance
 
 ## Declaration schedule target
 
+The lifecycle status is the primary declaration state. Recorded external filing
+and payment outcomes remain visible after completion. Preparation and automated
+validation describe current data, not a snapshot of the data at filing. On a
+filed, paid or archived declaration, inspect those recalculable results in
+**Data Checks**. Missing inputs there do not reverse the recorded filing or
+payment. External rejection remains a visible exception. Review decisions,
+filing evidence, portal links and native actions keep their existing meaning.
+
 Accounting Home should show upcoming and open declaration work.
 
 For each declaration task:
