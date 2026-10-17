@@ -7967,6 +7967,12 @@ msgid "PDP Registration"
 msgstr "Inscription PDP"
 
 #. module: rebuild_account_migration
+#. odoo-javascript
+#: code:addons/rebuild_account_migration/static/src/xml/accounting_report_action.xml:0
+msgid "PROVISOIRE"
+msgstr "PROVISOIRE"
+
+#. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_closing_period__package_reference
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_closing_snapshot__package_reference
 msgid "Package Reference"
@@ -8921,6 +8927,12 @@ msgstr "Fin du trimestre uniquement"
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_report_account_presentation_search
 msgid "Rapport"
 msgstr "Rapport"
+
+#. module: rebuild_account_migration
+#. odoo-javascript
+#: code:addons/rebuild_account_migration/static/src/xml/accounting_report_action.xml:0
+msgid "Rapport provisoire."
+msgstr "Rapport provisoire."
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_currency_form_rate_trace
