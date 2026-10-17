@@ -324,3 +324,12 @@ Native access, current owner/company ceilings and protected operations remain
 runtime responsibilities. Changing an action's reviewed classification still
 requires the normal evidence and digest review; method names alone neither
 approve a mutation nor veto an already reviewed read.
+
+Native grouping-set aggregation is resolved as an inherited helper effect, not
+as a setter because `_read_grouping_sets` contains `_set`. Source discovery
+includes the helper implementations for the effective model, and the public
+`formatted_read_grouping_sets` runtime digest binds its installed helper MRO.
+Real writes in an override remain mutation evidence; a method name or
+`@api.readonly` decorator does not override that evidence. Native read-only
+formatting may retain `sudo` for relation labels and fold metadata. Review that
+read context without treating it as a product mutation.

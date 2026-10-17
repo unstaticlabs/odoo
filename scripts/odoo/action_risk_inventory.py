@@ -114,6 +114,26 @@ def public_method_chain(model_class, method_name):
                 "fragment": callable_fragment(value),
             },
         )
+    if chain and method_name == "formatted_read_grouping_sets":
+        # The public web wrapper dispatches through this private model helper.
+        # Bind its actual installed MRO: an override can change the consequence
+        # without changing the public wrapper's body or its @api.readonly flag.
+        chain.append({"grouping_helper_chain": grouping_helper_chain(model_class)})
+    return chain
+
+
+def grouping_helper_chain(model_class):
+    chain = []
+    for cls in model_class.mro():
+        value = cls.__dict__.get("_read_grouping_sets")
+        if value is None:
+            continue
+        chain.append({
+            "module": module_name(value),
+            "source": source_path(value),
+            "qualname": getattr(value, "__qualname__", ""),
+            "fragment": callable_fragment(value),
+        })
     return chain
 
 
@@ -145,9 +165,11 @@ def rpc_actions():
                         == "boolean",
                     ),
                     "transient": bool(getattr(model_class, "_transient", False)),
-                    "modules": sorted({item["module"] for item in chain}),
+                    "modules": sorted({
+                        item["module"] for item in chain if "module" in item
+                    }),
                     "sources": sorted(
-                        ({"path": item["source"]} for item in chain),
+                        ({"path": item["source"]} for item in chain if "source" in item),
                         key=lambda item: item["path"],
                     ),
                     "digest": digest(chain),

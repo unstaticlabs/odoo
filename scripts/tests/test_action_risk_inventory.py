@@ -446,6 +446,131 @@ export class Action {
         self.assertEqual(surface["discovery"], "runtime+source")
 
 
+class TestNativeGroupingReads(ActionRiskInventoryTestCase):
+    def grouping_surface(self, override="", *, helper=True):
+        self.manifest("base")
+        self.manifest("web", depends=("base",), origin="addons")
+        self.manifest("app", depends=("web",))
+        self.write("odoo/orm/models.py", """
+class BaseModel:
+    def _read_grouping_sets(self, domain, grouping_sets, aggregates=(), order=None):
+        if len(grouping_sets) > 1:
+            return self._read_grouping_sets(domain, grouping_sets[:1], aggregates, order)
+        return [[(3,)]]
+""" if helper else "class BaseModel: pass")
+        self.write("addons/web/models.py", """
+from odoo import models
+class Base(models.AbstractModel):
+    _inherit = 'base'
+    def formatted_read_grouping_sets(self, domain, grouping_sets, aggregates=()):
+        return self._read_grouping_sets(domain, grouping_sets, aggregates)
+    def grouping_and_write(self):
+        self.write({'name': 'changed'})
+        return self._read_grouping_sets([], [[]])
+    def foreign_grouping(self, other):
+        return other._read_grouping_sets([], [[]])
+    def set_state(self):
+        return self._set_state()
+    def _set_state(self):
+        return self.write({'name': 'changed'})
+""")
+        self.write("custom-addons/app/models.py", """
+from odoo import models
+class Thing(models.Model):
+    _name = 'x.thing'
+""" + override)
+        return inventory.discover_surface(root=self.root, root_modules={"app"})
+
+    def test_native_grouping_is_an_effect_edge_not_a_setter(self):
+        surface = self.grouping_surface()
+        actions = {action['key']: action for action in surface['actions']}
+        grouping = actions['rpc:x.thing.formatted_read_grouping_sets']
+        self.assertNotIn('orm_write', grouping.get('sinks', []))
+        self.assertNotIn('rpc:x.thing._read_grouping_sets', actions)
+        self.assertTrue(any(source['path'] == 'odoo/orm/models.py' for source in grouping['sources']))
+        self.assertFalse(any('._read_grouping_sets:orm_write:' in key for key in actions))
+        self.assertIn('orm_write', actions['rpc:x.thing.grouping_and_write'].get('sinks', []))
+        self.assertIn('orm_write', actions['rpc:x.thing.foreign_grouping'].get('sinks', []))
+        self.assertIn('orm_write', actions['rpc:x.thing.set_state'].get('sinks', []))
+
+    def test_inherited_grouping_override_preserves_actual_writes(self):
+        surface = self.grouping_surface("""
+    def _read_grouping_sets(self, domain, grouping_sets, aggregates=(), order=None):
+        self._persist_grouping_change()
+        return super()._read_grouping_sets(domain, grouping_sets, aggregates, order)
+    def _persist_grouping_change(self):
+        self.write({'name': 'changed'})
+""")
+        actions = {action['key']: action for action in surface['actions']}
+        grouping = actions['rpc:x.thing.formatted_read_grouping_sets']
+        self.assertIn('orm_write', grouping.get('sinks', []))
+        policy = self.policy({grouping['key']: self.entry(grouping, 'read_only')})
+        errors = inventory.validate_inventory(self.surface([grouping]), policy)
+        self.assertTrue(any('Read-only action' in error for error in errors), errors)
+
+    def test_unresolved_grouping_is_not_assumed_read_only(self):
+        surface = self.grouping_surface(helper=False)
+        action = next(action for action in surface['actions'] if action['key'] == 'rpc:x.thing.formatted_read_grouping_sets')
+        self.assertIn('orm_write', action.get('sinks', []))
+
+    def test_helper_body_changes_the_inherited_action_digest(self):
+        first = self.grouping_surface("""
+    def _read_grouping_sets(self, domain, grouping_sets, aggregates=(), order=None):
+        return super()._read_grouping_sets(domain, grouping_sets, aggregates, order)
+""")
+        second = self.grouping_surface("""
+    def _read_grouping_sets(self, domain, grouping_sets, aggregates=(), order=None):
+        self.write({'name': 'changed'})
+        return super()._read_grouping_sets(domain, grouping_sets, aggregates, order)
+""")
+        def action(surface):
+            return next(action for action in surface['actions'] if action['key'] == 'rpc:x.thing.formatted_read_grouping_sets')
+        self.assertNotEqual(action(first)['digest'], action(second)['digest'])
+
+
+class TestGroupingRuntimeFingerprint(unittest.TestCase):
+    def test_runtime_fingerprint_binds_effective_helper_overrides(self):
+        # Execute only the exporter's pure functions, without its Odoo shell I/O.
+        tree = ast.parse((inventory.ROOT / "scripts/odoo/action_risk_inventory.py").read_text())
+        pure_names = {
+            'canonical', 'digest', 'module_name', 'source_path',
+            'callable_fragment', 'public_method_chain', 'grouping_helper_chain',
+        }
+        functions = ast.Module(body=[node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name in pure_names], type_ignores=[])
+        import inspect
+        import re
+        namespace = {'ast': ast, 'json': json, 'hashlib': hashlib, 'inspect': inspect, 're': re}
+        exec(compile(functions, '<runtime grouping functions>', 'exec'), namespace)
+        fixtures = {"__name__": "grouping_runtime_fixture"}
+        exec("""
+class Native:
+    def formatted_read_grouping_sets(self):
+        return self._read_grouping_sets()
+    def status(self):
+        return True
+    def _read_grouping_sets(self):
+        return [[(3,)]]
+class Extension(Native):
+    def _read_grouping_sets(self):
+        return super()._read_grouping_sets()
+""", fixtures)
+        Native, Extension = fixtures['Native'], fixtures['Extension']
+        fingerprint = lambda cls, method: namespace['digest'](namespace['public_method_chain'](cls, method))
+        before = fingerprint(Extension, 'formatted_read_grouping_sets')
+        status = fingerprint(Extension, 'status')
+        exec("""
+def mutation(self):
+    self.write({'name': 'changed'})
+    return super(Extension, self)._read_grouping_sets()
+""", fixtures)
+        Extension._read_grouping_sets = fixtures['mutation']
+        self.assertNotEqual(before, fingerprint(Extension, 'formatted_read_grouping_sets'))
+        self.assertEqual(status, fingerprint(Extension, 'status'))
+        chain = namespace['grouping_helper_chain'](Extension)
+        self.assertEqual(len(chain), 2)
+        self.assertEqual(chain[-1]['qualname'], 'Native._read_grouping_sets')
+
+
 class TestPolicyValidation(ActionRiskInventoryTestCase):
     def _valid_inventory(self):
         guard = self.action("guard:test.protected", "guard")
