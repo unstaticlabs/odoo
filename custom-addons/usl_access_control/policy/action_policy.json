@@ -205805,7 +205805,7 @@
       "id": "operational.accounting.purchase_mail_grouping",
       "rationale": "Exact native lifecycle sinks, two review buttons and current bill action are operational. Native transient write/import/onchange/view methods retain ordinary ORM and central delegated controls; create/write have no custom override. The private typed plan is issued only by actual message_new, and existing generic bill writes are unchanged. SELECT FOR UPDATE serializes review without introducing a financial mutation.",
       "reviewed_digests": {
-        "rpc:account.move.action_review_mail_grouping": "f77621e1ade4559b5530250ee1f74279019ad3d76d9b272b6497cf75208806c3",
+        "rpc:account.move.action_review_mail_grouping": "906ee6e009077efb6c5f2fd5fe910b1be731d01ef50c8ed7bc8a30a0864debc1",
         "rpc:usl.purchase.mail.grouping.review.action_keep_together": "704f5aacc6392089663bcb99b4715070783476496e085de36e932549be3493f7",
         "rpc:usl.purchase.mail.grouping.review.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:usl.purchase.mail.grouping.review.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
@@ -205832,7 +205832,7 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/purchase_mail_grouping.py:account.move._message_post_after_hook:orm_write:1": "f62021d08409a91021858000d0cc9feef5667a7b1c4b483d33854d841808d212",
         "sink:usl_accounting:custom-addons/usl_accounting/models/purchase_mail_grouping.py:account.move._message_post_after_hook:orm_write:2": "6f3a8150f1cb24b81a30ed494adf487ec52510a9eaa7f1b24dd2aa626eaa5a7b",
         "sink:usl_accounting:custom-addons/usl_accounting/models/purchase_mail_grouping.py:account.move._message_set_main_attachment_id:orm_write:1": "0bfd4b2d5d7a51b128056ce5c2a851f4e366c312bcaccc125a944fc69b06ec53",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/purchase_mail_grouping.py:account.move.action_review_mail_grouping:orm_create:1": "64b6a64d438c8c779fa41a398de8cd00ea4d8cdbc263664400eca686351cae3e",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/purchase_mail_grouping.py:account.move.action_review_mail_grouping:orm_create:1": "4e42eaa52c1476117e7d4dbaad45ba132c608844a4a116580df658c022fb41d4",
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py:usl.purchase.mail.grouping.review.action_keep_together:orm_write:1": "f26da5e892d66470f1c55557cdd3f8da06fe71da2667fa32d371e72ba43b1ae8",
         "ui:usl_accounting.purchase_mail_grouping_form:button:object:action_review_mail_grouping:1": "7531bc26b75370e9cfe63d9c3fe609adb6a688523c9caff1928582248174532a",
         "ui:usl_accounting.purchase_mail_grouping_review_form:button:object:action_keep_together:1": "49d8f1b807673cfdd86304d085be71cde6d230d150d35dc5791dced74d8103b0"

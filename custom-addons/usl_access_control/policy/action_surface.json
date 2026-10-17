@@ -141043,7 +141043,7 @@
         "rpc:ir.attachment.search",
         "rpc:usl.purchase.mail.grouping.review.create"
       ],
-      "digest": "f77621e1ade4559b5530250ee1f74279019ad3d76d9b272b6497cf75208806c3",
+      "digest": "906ee6e009077efb6c5f2fd5fe910b1be731d01ef50c8ed7bc8a30a0864debc1",
       "guards": [],
       "key": "rpc:account.move.action_review_mail_grouping",
       "kind": "rpc",
@@ -141054,7 +141054,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "f08f4e2b3e88d4eafd22cce9d77b780612a17c732cda1e42f06c418d230a1c59",
+      "runtime_digest": "83bbf9067af8088cefb721eed049cf7b5a7920cd463f531f37436225f21e8501",
       "sinks": [
         "orm_create"
       ],
@@ -1614209,7 +1614209,7 @@
       ]
     },
     {
-      "digest": "64b6a64d438c8c779fa41a398de8cd00ea4d8cdbc263664400eca686351cae3e",
+      "digest": "4e42eaa52c1476117e7d4dbaad45ba132c608844a4a116580df658c022fb41d4",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/purchase_mail_grouping.py:account.move.action_review_mail_grouping:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1700630,7 +1700630,7 @@
       "manifest_sha256": "3af58d890540053194d5252c4fffda6cb037cd89785aeea72da601662d23ed78",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "93d58fee243768ebff47eb211ec0ff7723a692846463d8a4333d26a11b4856ff",
+      "source_sha256": "cdc687e745cb0c04f1762cef2c3e8b4a76e4ef777a05a04ac77a07766797b509",
       "version": "saas~19.3.2.2.15"
     },
     {

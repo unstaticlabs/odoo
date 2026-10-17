@@ -188,6 +188,21 @@ class TestPurchaseMailGrouping(AccountTestInvoicingCommon):
     def _uncertain_bill(self):
         return self._receive([("unknown.pdf", text_pdf(["Invented unknown document"]), "application/pdf")])
 
+    def test_review_dialog_has_title_and_balanced_native_group(self):
+        bill = self._uncertain_bill()
+        action = bill.with_context(lang="en_US").action_review_mail_grouping()
+        with self.subTest("action title"):
+            self.assertEqual(action.get("name"), "Review attachments")
+        view = self.env["usl.purchase.mail.grouping.review"].get_view(
+            self.env.ref("usl_accounting.purchase_mail_grouping_review_form").id, "form")
+        arch = etree.fromstring(view["arch"])
+        summary = arch.xpath("//group/field[@name='summary']")[0]
+        with self.subTest("summary full row"):
+            self.assertEqual(summary.get("colspan"), "2")
+        self.assertEqual(summary.get("nolabel"), "1")
+        self.assertEqual([field.get("name") for field in summary.itersiblings()],
+                         ["attachment_ids", "main_attachment_id"])
+
     def test_review_keeps_financial_state_and_uses_native_main_selection(self):
         bill = self._uncertain_bill()
         before = bill.read(["state", "line_ids", "amount_total", "review_state", "company_id"])

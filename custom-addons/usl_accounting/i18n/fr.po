@@ -7027,6 +7027,8 @@ msgid "Review Purchase Mail Attachments"
 msgstr "Vérifier les pièces jointes du courriel fournisseur"
 
 #. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
 #: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_form
 #: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_review_form
 msgid "Review attachments"

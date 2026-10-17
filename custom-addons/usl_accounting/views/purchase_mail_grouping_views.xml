@@ -53,7 +53,7 @@
                 <group>
                     <field name="move_id"/>
                     <field name="fingerprint" invisible="1"/>
-                    <field name="summary" nolabel="1"/>
+                    <field name="summary" nolabel="1" colspan="2"/>
                     <field name="attachment_ids" widget="many2many_binary" options="{'no_create': True, 'no_delete': True}"/>
                     <field name="main_attachment_id" domain="[('res_model', '=', 'account.move'), ('res_id', '=', move_id), ('res_field', '=', False)]" options="{'no_create': True, 'no_create_edit': True}"/>
                 </group>

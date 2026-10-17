@@ -6,7 +6,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import date
 
-from odoo import Command, api, fields, models
+from odoo import _, Command, api, fields, models
 
 from ..tools import purchase_mail_evidence as evidence
 
@@ -212,5 +212,5 @@ class AccountMove(models.Model):
             "attachment_ids": [Command.set(attachments.ids)],
             "main_attachment_id": self.message_main_attachment_id.id,
         })
-        return {"type": "ir.actions.act_window", "res_model": wizard._name,
+        return {"name": _("Review attachments"), "type": "ir.actions.act_window", "res_model": wizard._name,
                 "res_id": wizard.id, "view_mode": "form", "target": "new"}
