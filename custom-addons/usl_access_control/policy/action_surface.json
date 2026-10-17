@@ -142165,7 +142165,7 @@
       ],
       "sources": [
         {
-          "line": 290,
+          "line": 297,
           "path": "custom-addons/usl_accounting/models/vendor_bill_configuration.py"
         },
         {
@@ -1612490,7 +1612490,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 290,
+          "line": 297,
           "path": "custom-addons/usl_accounting/models/vendor_bill_configuration.py"
         }
       ]
@@ -1612508,7 +1612508,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 290,
+          "line": 297,
           "path": "custom-addons/usl_accounting/models/vendor_bill_configuration.py"
         }
       ]
@@ -1612526,7 +1612526,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 290,
+          "line": 297,
           "path": "custom-addons/usl_accounting/models/vendor_bill_configuration.py"
         }
       ]
@@ -1612544,7 +1612544,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 290,
+          "line": 297,
           "path": "custom-addons/usl_accounting/models/vendor_bill_configuration.py"
         }
       ]
@@ -1612562,7 +1612562,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 290,
+          "line": 297,
           "path": "custom-addons/usl_accounting/models/vendor_bill_configuration.py"
         }
       ]
@@ -1698717,11 +1698717,11 @@
       "version": "saas~19.3.1.8.1"
     },
     {
-      "manifest_sha256": "2d4f291c27ad7c2892ad8fd578313cb7bd45b5ad202e44f3087d7270dc084f31",
+      "manifest_sha256": "62624ec2d7a4237b0577ccb4aad2f12f1cb2ad265cac4a0be157b2fd040d4145",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "c80272c8e603a5ae1471fb1c95124eb9153669ef67dd1b8c328345d9e69e7d7e",
-      "version": "saas~19.3.2.2.9"
+      "source_sha256": "bcb0544415779c79707cacd75d77af0e5c4239bffbf4508f79228155340c64db",
+      "version": "saas~19.3.2.2.14"
     },
     {
       "manifest_sha256": "d3991a85f02eca8b6b43179b39270cc15cfaf68325f4ff2181e354ccb01c4cf0",
