@@ -3465,7 +3465,6 @@
         "rpc:rebuild.account.report.definition.unlink",
         "rpc:res.company.create",
         "rpc:res.company.install_l10n_modules",
-        "rpc:res.company.write",
         "rpc:res.config.settings.action_eu_oss_tax_mapping",
         "rpc:res.config.settings.button_disconnect_this_database",
         "rpc:res.config.settings.button_peppol_deregister",
@@ -3486,7 +3485,8 @@
           "action_name": "unlock a governed B2C accounting session"
         },
         "guard:accounting.lock.change": {
-          "action_name": "change accounting lock dates"
+          "action_name": "change accounting lock dates",
+          "rationale": "Retains the existing irreversible authority boundary for all five accounting lock-date keys before native writes. Only the existing checked closing workflow supplies the in-process identity marker; JSON-shaped context and ordinary Agent operation scopes cannot authorize locks."
         },
         "rpc:account.account.reconcile.unlink": {
           "action_name": "permanently delete account.account.reconcile",
@@ -3710,7 +3710,8 @@
         },
         "rpc:rebuild.account.closing.period.action_close_and_apply_lock_dates": {
           "action_name": "change accounting lock dates",
-          "guard_key": "guard:accounting.lock.change"
+          "guard_key": "guard:accounting.lock.change",
+          "rationale": "Retains its existing irreversible check, native Accounting/HR role checks, controls, recorded acceptance and immutable package snapshots. The already-authorized native company write now receives opaque server provenance instead of a client-forgeable boolean."
         },
         "rpc:rebuild.account.declaration.rule.unlink": {
           "action_name": "permanently delete rebuild.account.declaration.rule",
@@ -3752,10 +3753,6 @@
           "action_name": "install or import module code",
           "guard_key": "guard:module.install"
         },
-        "rpc:res.company.write": {
-          "action_name": "change accounting lock dates",
-          "guard_key": "guard:accounting.lock.change"
-        },
         "rpc:res.config.settings.action_eu_oss_tax_mapping": {
           "action_name": "install or import module code",
           "guard_key": "guard:module.install"
@@ -3796,7 +3793,7 @@
       "rationale": "A stable semantic guard or exact model-operation enforcement denies ordinary humans and Agents before side effects while allowing the Irreversible Actions capability with immutable evidence.",
       "reviewed_digests": {
         "guard:accounting.b2c_session.unlock": "b135622d38bf25ddfc2ca8d4ccd2326ae23bdc14be31594b5d6986b542c45e5a",
-        "guard:accounting.lock.change": "456a612c6e29ecef97e737330c82b934e4eda7c91a63c427bc33d73dd9d7c080",
+        "guard:accounting.lock.change": "845a853967a7afff65f5d90829b909b12eb5a8601f0aba5f8713519e65edfb6a",
         "rpc:account.account.reconcile.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:account.account.tag.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:account.account.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
@@ -3828,14 +3825,13 @@
         "rpc:pdp.registration.button_deregister_pdp_participant": "21e2f05d55e1db4901f8ac84f7bfa6e798684b8682d423bf767764204e43457f",
         "rpc:pdp.registration.button_register_pdp_participant": "0d62f836c6161521c4a5ae5d06049f4c6351006d22d1e5664149c97b8f899fe7",
         "rpc:peppol.registration.button_register_peppol_participant": "cdb80f1c0c8fbe198864b291124ca7eee9441d725ba4825b84f2c70f63293c9e",
-        "rpc:rebuild.account.closing.period.action_close_and_apply_lock_dates": "687eedc7a66c3ebd6f02ff3bae986e767a1957912930dab34e22511e0b6da700",
+        "rpc:rebuild.account.closing.period.action_close_and_apply_lock_dates": "c0306e468ab5790aaccf386787cf23fe9cb56a914a145ea6d000c6bcef34c8f8",
         "rpc:rebuild.account.declaration.rule.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
         "rpc:rebuild.account.external.report.value.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:rebuild.account.report.account.presentation.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:rebuild.account.report.definition.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:res.company.create": "6309e616b79d1d83a0564ada270d64efbcf99fcd6676ce8e34799dfb4f217f7a",
         "rpc:res.company.install_l10n_modules": "8f91a8a5dec057617d14f27ad7473b2a4f58f085566330122d1a45bf751e8c1b",
-        "rpc:res.company.write": "d3cd3106f063d7c542a9b81e9ea84a8f57d08d94933a1f1ce0f6cf4a21bf42e8",
         "rpc:res.config.settings.action_eu_oss_tax_mapping": "8dad78de64ee287fa5ce2df312cc2e709c1cfe57d17785046059846fe770353c",
         "rpc:res.config.settings.button_disconnect_this_database": "4687c0607be62050eebb2eef3be94c9c441b2d81a4c31d32ec7401cd1bbd3cfa",
         "rpc:res.config.settings.button_peppol_deregister": "f3c90d64c91abafb6c060368dd49ab9ea3a1ebc586337b5dec6f223d480f8923",
@@ -5647,7 +5643,7 @@
         "server_action:auth_totp.action_disable_totp": "71dafc4cb3332592c617222ffd7e4677dca1d4e0cf0c096dcaeab5e39a3ae9f3",
         "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:ir.attachment.unlink:orm_unlink:1": "86a468e879ed4137c08dbb11bbaf62b92282c44edaea27ae110e625bdab70e44",
         "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:res.company.create:orm_create:1": "488301f37b6bce843db50e2c17848a6a94bee97d1ec177637bc4b07449911e1c",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:res.company.write:orm_write:1": "a4f965c128ae64477f4922f8bb1c1461fc873834881a57382b900efb3500c570",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:res.company.write:orm_write:1": "a0ab25e00b67a542e54ed2e578dda6dcf5e7368e46500314f972a61edc22f54c",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.create:orm_create:1": "602074292e4aafc2077e78a4d67df8ed6043dceed3eebdd66b9d489092a774cf",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.unlink:orm_unlink:1": "6c47192f04b4d87e00476b149b36229108e4678ae24c770ba852026d5692ac40",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.write:orm_write:1": "04ca6e018a98c18f4dc21a46b6f14ed5a8afc935d572a79ee78780b1d0afd10f"
@@ -205686,9 +205682,29 @@
       "reviewed_digests": {
         "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1": "dd3f23fbed92b3839174ec67e638ea9073a9effeeff7232f0d0e6799357de1c4"
       }
+    },
+    {
+      "action_keys": [
+        "rpc:res.company.write"
+      ],
+      "classification": "operational",
+      "consequence": "Updates company settings under native company, field and delegated-owner access; accounting lock-date input reaches the existing conditional protected guard before any write.",
+      "domain": "settings",
+      "evidence_id": "agent-company-settings-native-parity-3249",
+      "id": "operational.company.settings.write",
+      "rationale": "The public write gateway also serves ordinary native Settings changes such as names and phone numbers. Classifying every call protected prevents legitimate delegated Settings work. Retain guard:accounting.lock.change at the exact five lock fields, with server-only checked-closing provenance; no field allowlist or Agent-only dispatcher exception.",
+      "reviewed_digests": {
+        "rpc:res.company.write": "bcc3c20852ddbeda6c94587530984440257f0bb00350ed40b1ab949d154f5acb"
+      }
     }
   ],
   "evidence_families": {
+    "agent-company-settings-native-parity-3249": {
+      "contract": "Native company Settings writes remain attributable under ordinary delegated access, while all accounting lock keys retain irreversible authority and reject crafted client provenance. Native failures and denied calls preserve financial history.",
+      "tests": [
+        "custom-addons/usl_access_control/tests/test_agent_company_settings.py::TestAgentCompanySettings"
+      ]
+    },
     "agent-expense-approval-cleanup": {
       "contract": "Native expense draft creation and unposted reset can clean approval activities; unrelated activities and generic unlink remain refused.",
       "tests": [

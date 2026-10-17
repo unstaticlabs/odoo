@@ -24395,6 +24395,7 @@
     "rpc:res.company.web_save",
     "rpc:res.company.web_save_multi",
     "rpc:res.company.web_search_read",
+    "rpc:res.company.write",
     "rpc:res.config.copy",
     "rpc:res.config.copy_data",
     "rpc:res.config.create",
