@@ -17,6 +17,26 @@ async function isCleanSavedBill(record) {
 }
 
 export class LinkedBillReceiptFormController extends AccountMoveFormController {
+    beforeUnload(ev) {
+        const record = this.model.root;
+        if (record.resModel === "account.move" && record.resId && !record.isNew
+            && ["in_invoice", "in_refund"].includes(record.data.move_type)) {
+            // Flush focused inputs synchronously, as native urgentSave does,
+            // before deciding whether this saved document has any edits.
+            const wasUrgent = this.model._urgentSave;
+            try {
+                this.model._urgentSave = true;
+                this.model.bus.trigger("WILL_SAVE_URGENTLY");
+            } finally {
+                this.model._urgentSave = wasUrgent;
+            }
+            if (!record.dirty) {
+                return;
+            }
+        }
+        return super.beforeUnload(ev);
+    }
+
     async beforeExecuteActionButton(clickParams) {
         // The original document can contain the date needed to complete an
         // imported draft. Retrieving it does not save or post that draft.
