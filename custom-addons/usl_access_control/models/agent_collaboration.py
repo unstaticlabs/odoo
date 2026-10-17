@@ -164,6 +164,20 @@ class MailThread(models.AbstractModel):
         records = self._usl_agent_collaboration(operation="write")
         return super(MailThread, records).message_notify(*args, **kwargs)
 
+    def _notify_by_email_render_layout(
+        self, message, recipients_group, msg_vals=False, render_values=None,
+    ):
+        if self._usl_managed_agent() and has_agent_collaboration_token(self.env.context):
+            # Native user notifications are readable by their technical author,
+            # not by everyone who can read the business record. Render only the
+            # exact message already passed by the authorized collaboration flow;
+            # keep the Agent UID, business record and recipients unchanged.
+            message = message.sudo()
+            render_values = {**(render_values or {}), "message": message}
+        return super()._notify_by_email_render_layout(
+            message, recipients_group, msg_vals=msg_vals, render_values=render_values,
+        )
+
     def _message_log_batch(self, *args, **kwargs):
         """Allow Odoo's private Chatter log created by an authorized business write."""
         agent = self._usl_managed_agent()

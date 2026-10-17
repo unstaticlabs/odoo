@@ -37,6 +37,19 @@ does not silently restore the Agent's delegation. Deactivating an owner
 suspends all of their Agents; an owner or administrator must reactivate them
 explicitly.
 
+Computed record-rule searches resolve as the current owner, including personal
+employee and manager hierarchy rules. Rule compilation retains native Odoo's
+sudo evaluation and caller search bounds; it does not elevate the returned
+Agent records. Record filtering and writes use the owner's native rules for
+the requested operation. Explicit caller search predicates keep their native
+caller context.
+
+An already-authorized Chatter notification renders its exact technical message
+with native sudo while retaining the Agent's author identity and recipients.
+This internal rendering returns HTML to the native notification workflow;
+ordinary subsequent message reads still use the current owner's rule ceiling.
+It does not extend the Agent's personal-message authority globally.
+
 When owner authority contracts, Odoo removes the lost groups and companies
 immediately and records an authority-reduction warning. The warning is
 informational: the Agent may continue within its reduced authority while the
@@ -49,12 +62,11 @@ Create, write, delete, archive, workflow, import, module, server-action and
 unknown public methods are denied outside explicitly write-enabled scopes.
 Agent keys work only with JSON-2 and the qualified API-document
 endpoints; legacy RPC transports are rejected. The exact read allowlist is
-generated from the audited Agent-eligible subset of `read_only` action-risk
-entries and fails closed if code or policy identity drifts. A general low-risk
-classification is not sufficient: only standard data-query methods and
-individually named product helpers enter the Agent runtime allowlist. Specialized
-helpers that bypass ordinary record rules remain unavailable; Agents use the
-equivalent owner-scoped generic reads instead.
+generated directly from reviewed `read_only` RPC classifications, without a
+second method-name or explicit-helper selection. Existing collaboration methods
+keep their shared collaboration contract. Making a reviewed method callable
+does not change its native model, record, field, owner or company permissions;
+unknown and protected operations retain their existing controls.
 
 The only write exceptions are guarded collaboration methods on records the
 Agent can already read: Chatter notes and comments, activities, self-following,

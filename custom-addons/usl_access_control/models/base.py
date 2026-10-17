@@ -173,7 +173,38 @@ class Base(models.AbstractModel):
             return Domain.FALSE
         owner_context["allowed_company_ids"] = list(allowed_companies)
         owner_env = self.env(user=agent.owner_id, context=owner_context)
-        owner_domain = self.with_env(owner_env)._access_domain(operation)
+        owner_model = self.with_env(owner_env)
+        owner_domain = owner_model._access_domain(operation)
+        if not owner_domain.is_true() and not owner_domain.is_false():
+            # Match native rule evaluation: sudo compiles rules without changing
+            # their actor UID. Field search methods must retain the owner's UID.
+            owner_rule_model = owner_model.sudo().with_context(active_test=False)
+            # Native empty-record has_access resolves these dynamic operators
+            # before deciding model access. Preserve FALSE before wrapping.
+            owner_rule_domain = owner_domain.map_conditions(
+                lambda condition: condition.optimize_dynamic(owner_rule_model)
+                if condition.operator == "access" else condition,
+            )
+            if owner_rule_domain.is_false():
+                return Domain.FALSE
+
+            def optimize_owner_rule(_domain, evaluation_model):
+                # Defer full expansion: native mail rules need the actual caller
+                # search domain to bound their work. Caller predicates keep
+                # their original identity; only this owner rule is rebound.
+                return owner_rule_domain.optimize_full(
+                    owner_rule_model,
+                    search_domain=evaluation_model.env.context.get("search_domain"),
+                )
+
+            def owner_has_access(record):
+                # Filtering/write checks use native operation-specific owner
+                # access, rather than Domain.custom's default read query.
+                return record.with_env(owner_env).has_access(operation)
+
+            owner_domain = Domain.custom(
+                optimize=optimize_owner_rule, predicate=owner_has_access,
+            )
         # The owner is the record-rule authority ceiling. Applying the backing
         # technical user's personal follower/assignment rules as well would
         # incorrectly hide records that the owner can read. Company scope is
