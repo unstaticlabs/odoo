@@ -320,6 +320,8 @@
                                 </button>
                                 <span class="o_usl_report_code" t-if="line.account_code" t-esc="line.account_code"/>
                                 <span t-esc="line.label"/>
+                                <small t-if="line.source_description" class="d-block text-muted"
+                                       t-esc="line.source_description"/>
                                 <small t-if="line.company_contributions.length &gt; 1"
                                        class="d-block text-muted"
                                        title="Contribution de chaque société au total combiné"

@@ -273,6 +273,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "date": fields.Date.to_string(line.date) if line.date else "",
                 "section": line.section or "",
                 "label": display_label,
+                "source_description": row.get("source_description") or "",
                 "account_code": line.account_code or "",
                 "account_name": line.account_name or "",
                 "partner_name": line.partner_name or "",
