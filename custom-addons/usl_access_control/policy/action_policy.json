@@ -205685,6 +205685,20 @@
       "reviewed_digests": {
         "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1": "dd3f23fbed92b3839174ec67e638ea9073a9effeeff7232f0d0e6799357de1c4"
       }
+    },
+    {
+      "action_keys": [
+        "rpc:account.move.get_company_change_context"
+      ],
+      "classification": "read_only",
+      "consequence": "Returns bounded native readable invoice, company, financial-link, origin and evidence facts without writing records or contacting providers.",
+      "domain": "accounting",
+      "evidence_id": "invoice-company-context-20261017",
+      "id": "read_only.accounting.invoice_company_context_20261017",
+      "rationale": "Native @api.readonly method uses one repeatable-read snapshot, bounded search/read and native company compatibility domains. Record and field authority apply before identifiers or values leave Odoo. Native currency computation remains unchanged; no new sudo, write, reconciliation, evidence mutation, provider or approval sink is introduced. Target choices remain unresolved operator choices.",
+      "reviewed_digests": {
+        "rpc:account.move.get_company_change_context": "5eadb0e5dabc898b4cc565304e3faa6ac037405eb88f2bde04233b15e738b462"
+      }
     }
   ],
   "evidence_families": {
@@ -205868,6 +205882,12 @@
       "contract": "Has no ordinary RPC/controller actor entry; manual scheduler execution uses a separately guarded action.",
       "tests": [
         "scripts/tests/test_action_risk_inventory.py::TestDiscovery.test_runtime_facts_replace_approximate_rpc_and_routes"
+      ]
+    },
+    "invoice-company-context-20261017": {
+      "contract": "Human and delegated read/write or read-only Agents read optional native context under company and field authority; paged detail and actual ledger links remain explicit and no business or provider data changes.",
+      "tests": [
+        "custom-addons/usl_accounting/tests/test_company_change_context.py::TestCompanyChangeContext"
       ]
     },
     "live-content-search-20261014": {
