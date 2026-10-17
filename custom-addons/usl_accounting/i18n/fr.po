@@ -6878,3 +6878,47 @@ msgstr "Fichiers d’origine"
 #: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_inspection_form
 msgid "History"
 msgstr "Historique"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Correct original rate"
+msgstr "Corriger le taux initial"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement_foreign.py:0
+#, python-format
+msgid "Native tax rounding does not produce the exact bank amount at this rate. Use Settle without changing the original valuation."
+msgstr "L’arrondi fiscal natif ne produit pas le montant bancaire exact à ce taux. Utilisez Solder sans modifier la valorisation initiale."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement_foreign.py:0
+#, python-format
+msgid "Correct an erroneous original valuation: rate %(original)s → %(corrected)s %(currency)s per %(company_currency)s; payable %(before)s → %(after)s. For ordinary payment-day FX, keep the original rate and reconcile the payment."
+msgstr "Corriger une valorisation initiale erronée : taux %(original)s → %(corrected)s %(currency)s par %(company_currency)s ; solde %(before)s → %(after)s. Pour un simple écart de change au paiement, conservez le taux initial et rapprochez le paiement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement_foreign.py:0
+#, python-format
+msgid "%(tax)s: base %(base_before)s → %(base_after)s; tax %(tax_before)s → %(tax_after)s"
+msgstr "%(tax)s : base %(base_before)s → %(base_after)s ; taxe %(tax_before)s → %(tax_after)s"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement_foreign.py:0
+#, python-format
+msgid "Original valuation corrected at the payment rate for %(foreign)s against %(company)s. Its company-currency value changed from %(original)s to %(repriced)s; no FX was recorded."
+msgstr "Valorisation initiale corrigée au taux du paiement pour %(foreign)s contre %(company)s. Sa valeur dans la devise de la société passe de %(original)s à %(repriced)s ; aucun écart de change n’a été comptabilisé."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_account_immediate_settlement_form
+msgid "Undo settlement"
+msgstr "Annuler le règlement"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_account_immediate_settlement_form
+msgid "Technical details"
+msgstr "Détails techniques"
