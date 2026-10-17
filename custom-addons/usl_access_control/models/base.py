@@ -38,7 +38,6 @@ _AGENT_GOVERNED_SIDE_EFFECT_MODELS = frozenset(
         "mail.activity",
         "mail.followers",
         "mail.mail",
-        "mail.message",
         "mail.notification",
     },
 )

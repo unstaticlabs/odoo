@@ -6,3 +6,4 @@ from . import (
     test_agents,
     test_orm_payload_contract,
 )
+from . import test_native_agent_chatter
