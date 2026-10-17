@@ -2,6 +2,58 @@
   "actions": [
     {
       "action_keys": [
+        "sink:usl_access_control:custom-addons/usl_access_control/models/notification_delivery.py:mail.thread._notify_get_recipients:sudo:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Reads message author and managed identity markers to choose native delivery channel.",
+      "domain": "security_and_administration",
+      "evidence_id": "notification-productivity-20261014",
+      "id": "notifications.1",
+      "overrides": {},
+      "rationale": "Private native recipient helper reads identity metadata; it grants no business access and changes no stored groups or existing mail queue.",
+      "reachability_proof": "Private mail.thread._notify_get_recipients is not RPC-callable. Native message delivery invokes it after source-record access and follower/explicit-recipient selection; sudo reads only identity metadata, does not expose new recipients or grant source access.",
+      "reviewed_digests": {
+        "sink:usl_access_control:custom-addons/usl_access_control/models/notification_delivery.py:mail.thread._notify_get_recipients:sudo:1": "181d530284413e5f4ed134da754be47456b7dd58b0bc0be666239f50374fd4e4"
+      }
+    },
+    {
+      "action_keys": [
+        "sink:usl_access_control:custom-addons/usl_access_control/models/notification_delivery.py:mail.thread._notify_get_recipients:sudo:2"
+      ],
+      "classification": "system_internal",
+      "consequence": "Reads message author and managed identity markers to choose native delivery channel.",
+      "domain": "security_and_administration",
+      "evidence_id": "notification-productivity-20261014",
+      "id": "notifications.2",
+      "overrides": {},
+      "rationale": "Private native recipient helper reads identity metadata; it grants no business access and changes no stored groups or existing mail queue.",
+      "reachability_proof": "Private mail.thread._notify_get_recipients is not RPC-callable. Native message delivery invokes it after source-record access and follower/explicit-recipient selection; sudo reads only identity metadata, does not expose new recipients or grant source access.",
+      "reviewed_digests": {
+        "sink:usl_access_control:custom-addons/usl_access_control/models/notification_delivery.py:mail.thread._notify_get_recipients:sudo:2": "b1b45db3b430b005da5ad8c20a79477c5b991e79c763fa5a1faf058f96557914"
+      }
+    },
+    {
+      "action_keys": [
+        "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.write:orm_write:2"
+      ],
+      "classification": "protected",
+      "consequence": "Native user write remains guarded; exact own Inbox marker can be changed through its native inverse only.",
+      "domain": "security_and_administration",
+      "evidence_id": "notification-productivity-20261014",
+      "id": "notifications.identity-write",
+      "overrides": {
+        "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.write:orm_write:2": {
+          "action_name": "change user identity or authorization",
+          "guard_key": "guard:authorization.user.change"
+        }
+      },
+      "rationale": "Private notification inverse uses an unforgeable object and exact self-only marker command; every other role/identity mutation keeps its existing guard.",
+      "reviewed_digests": {
+        "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.write:orm_write:2": "a20c3284c9476282a8bd968f2b5ddb8b5a6d399610a82f117299de94a359405c"
+      }
+    },
+    {
+      "action_keys": [
         "rpc:account.bank.ingestion.config.unlink",
         "rpc:account.bank.ingestion.period.action_apply",
         "rpc:account.bank.ingestion.period.unlink",
@@ -1899,7 +1951,8 @@
           "rationale": "Exact owner/maintainer conversation or configured settings workflow; poll invokes processing, not merely reading. Native config parameter/attachment/task semantic guards remain in force."
         },
         "rpc:usl.feedback.submission.feedback_start": {
-          "rationale": "Exact owner/maintainer conversation or configured settings workflow; poll invokes processing, not merely reading. Native config parameter/attachment/task semantic guards remain in force."
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the internal reporter draft adds at most five untrusted technical navigation candidates; submission rechecks readable action/model candidates without elevation and opt-out stores none. Existing source-record checks and metadata-only sudo operations retain their original scope."
         },
         "rpc:usl.feedback.submission.feedback_submit_initial": {
           "rationale": "Exact owner/maintainer conversation or configured settings workflow; poll invokes processing, not merely reading. Native config parameter/attachment/task semantic guards remain in force."
@@ -2151,10 +2204,12 @@
           "rationale": "Exact reviewed workflow sink validates caller/native records before elevated changes; protected native task deletion and config boundaries remain in delegated super/semantic operations."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_start:orm_create:1": {
-          "rationale": "Exact reviewed workflow sink validates caller/native records before elevated changes; protected native task deletion and config boundaries remain in delegated super/semantic operations."
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the internal reporter draft adds at most five untrusted technical navigation candidates; submission rechecks readable action/model candidates without elevation and opt-out stores none. Existing source-record checks and metadata-only sudo operations retain their original scope."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_start:sudo:1": {
-          "rationale": "Exact reviewed workflow sink validates caller/native records before elevated changes; protected native task deletion and config boundaries remain in delegated super/semantic operations."
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the internal reporter draft adds at most five untrusted technical navigation candidates; submission rechecks readable action/model candidates without elevation and opt-out stores none. Existing source-record checks and metadata-only sudo operations retain their original scope."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:message_send:1": {
           "rationale": "Exact reviewed workflow sink validates caller/native records before elevated changes; protected native task deletion and config boundaries remain in delegated super/semantic operations."
@@ -2224,7 +2279,7 @@
         "rpc:usl.feedback.submission.create": "37b76f9937e66a72c0555d93394a9e3336325c81c16eec20667bed140b30b44a",
         "rpc:usl.feedback.submission.feedback_add_attachment": "601a8cd7b58c7d9e070b6015d61a6f05eef8c914c475e2c2f5e05917d657156a",
         "rpc:usl.feedback.submission.feedback_remove_attachment": "b6b0012e347bd0291ea2c328b407f5230827017904bd381c02517d1a8487cfcb",
-        "rpc:usl.feedback.submission.feedback_start": "758cb2fc11db1d24af03cc0ad085557c226f4b2b54d55c224e3a05b4604da35d",
+        "rpc:usl.feedback.submission.feedback_start": "ec7b0f7a0014f5bc6696f6e81e5ada9110a807514a62c48d6b447fa91a4c5b8a",
         "rpc:usl.feedback.submission.feedback_submit_initial": "65011343197f17be0153a3ae5a2d3e617d7e7c579d8ab81a023520fa4d66d80d",
         "rpc:usl.feedback.submission.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:usl.feedback.submission.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
@@ -2306,8 +2361,8 @@
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_add_attachment:sudo:2": "fde3bf76b2a6a30fd886e013311489ccace302be45031f4caf6b7686a09d0e68",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_remove_attachment:orm_write:1": "3d0940cc7b27fcf4422c5e447cb9148b4dc8f5ffe92139b65dbd04035b9162a4",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_remove_attachment:sudo:1": "401b0b1d2831fc9d898c90d5851b11ad0c9f198f375f7dc2579a0d147389b99a",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_start:orm_create:1": "9ecac400fac7fdd22b8da668ccc189bf624c725b786d53498a5753607d454c9f",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_start:sudo:1": "3a6873c806094fc4faf33d9ed7a034b854bf065ebf59ed9b29215c5520304cfe",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_start:orm_create:1": "fbc9b34c42ab16a3e6efdb6177127bfe798ffac4f65bfa2df8f3e2228753e563",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_start:sudo:1": "2206cad6e82a1aeb776fc80497a8fc021c764b3c2a7ad83a4b39ae949fc5f6b5",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:message_send:1": "5eeea3fa90b9014c41dbbd2b88a4c25a887bfdd3dd96de2597798b8e45c50f12",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:orm_create:1": "336c6aadd2d5a5e5ad0a913e0037fb56565bbebd088c8e06334bee9b2c5f52c1",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission.feedback_submit_initial:orm_write:1": "3b2ca616049da9ec35d64f1e40d92c2e0243c6996dc3951cbb89d6ffb21328e3",
@@ -3786,7 +3841,9 @@
         },
         "rpc:res.users.write": {
           "action_name": "change user identity or authorization",
-          "guard_key": "guard:authorization.user.change"
+          "evidence_id": "notification-productivity-20261014",
+          "guard_key": "guard:authorization.user.change",
+          "rationale": "Reviewed in docs/operations/notification-productivity-action-risk-review.md: native fixed preference inverse has an exact self-only private marker exception; native assignment channels and verified personal todo alias change notification/implicit assignment behavior without broader business access or role authority."
         },
         "server_action:account_peppol_response.ir_cron_peppol_auto_register_services_ir_actions_server": {
           "action_name": "change registered Peppol services",
@@ -3843,7 +3900,7 @@
         "rpc:res.config.settings.button_peppol_reregister": "f3bfad36ebb81e00b28174212fa40786ec96fd36303732b2d1007473526b435b",
         "rpc:res.config.settings.button_reconnect_this_database": "8e85397db3f1633eaec17b735efaef554240f9fd00e08953dc729ce50281b024",
         "rpc:res.users.create": "8d910a7bb66b5da68f7d244257ba60588d71cb7051b57ad950f78316947675f1",
-        "rpc:res.users.write": "8a24ca606bf3235e0adb3c7978e9953c3140528c2429819f062fe0a8a2b65210",
+        "rpc:res.users.write": "50f4c10e1770f3e8889adf71ea66690c83225d086ae84d7c6763825ede824014",
         "server_action:account_peppol_response.ir_cron_peppol_auto_register_services_ir_actions_server": "fc327488428a5b7e8e82eb936c77e6b281e6e21cfd216f28556ea964f8f57ae5"
       }
     },
@@ -4326,7 +4383,9 @@
           "action_name": "create a company security boundary"
         },
         "guard:authorization.user.change": {
-          "action_name": "change user identity or authorization"
+          "action_name": "change user identity or authorization",
+          "evidence_id": "notification-productivity-20261014",
+          "rationale": "Reviewed in docs/operations/notification-productivity-action-risk-review.md: native fixed preference inverse has an exact self-only private marker exception; native assignment channels and verified personal todo alias change notification/implicit assignment behavior without broader business access or role authority."
         },
         "guard:authorization.user.create": {
           "action_name": "create a user identity"
@@ -5477,13 +5536,15 @@
         },
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.write:orm_write:1": {
           "action_name": "change user identity or authorization",
-          "guard_key": "guard:authorization.user.change"
+          "evidence_id": "notification-productivity-20261014",
+          "guard_key": "guard:authorization.user.change",
+          "rationale": "Reviewed in docs/operations/notification-productivity-action-risk-review.md: native fixed preference inverse has an exact self-only private marker exception; native assignment channels and verified personal todo alias change notification/implicit assignment behavior without broader business access or role authority."
         }
       },
       "rationale": "A stable semantic guard or exact model-operation enforcement denies ordinary humans and Agents before side effects while allowing the Irreversible Actions capability with immutable evidence.",
       "reviewed_digests": {
         "guard:authorization.company.create": "0afd269b21f5f03c647cdd2bb516686efd1235b6ce822f66a574f068fceafdfe",
-        "guard:authorization.user.change": "75b818ae3c810bc9d2c8bc8f565f8a9623c67e1e7541f7b102937a63f4ed966c",
+        "guard:authorization.user.change": "8c24b101bda90edfd48c398c543fccb564266027c477c1c7a480fd8aa4b19743",
         "guard:authorization.user.create": "0df0ee1a9641d4212897433183f71d743063e59a74e3cb9a4ae4a872535d6a9c",
         "guard:authorization.user.delete": "7761b0119a86e1271e23ace600b15b287309f1327a36c0caf1e8f66a700f6985",
         "guard:automation.server_action.execute": "c854e12e8cbd4a6416bfefcbdd6c902fb70f1a2af861050d8ddcd0284104277d",
@@ -5650,7 +5711,7 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:res.company.write:orm_write:1": "a4f965c128ae64477f4922f8bb1c1461fc873834881a57382b900efb3500c570",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.create:orm_create:1": "602074292e4aafc2077e78a4d67df8ed6043dceed3eebdd66b9d489092a774cf",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.unlink:orm_unlink:1": "6c47192f04b4d87e00476b149b36229108e4678ae24c770ba852026d5692ac40",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.write:orm_write:1": "04ca6e018a98c18f4dc21a46b6f14ed5a8afc935d572a79ee78780b1d0afd10f"
+        "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.write:orm_write:1": "1cb7080bec1f2d878eb084f245f071192976f764ca7631efdd95722cdadc93e8"
       }
     },
     {
@@ -33723,6 +33784,12 @@
       "domain": "documents_and_communications",
       "evidence_id": "read-only-no-sink-v1",
       "id": "read_only.documents_and_communications.actions",
+      "overrides": {
+        "rpc:mail.activity.action_notify": {
+          "evidence_id": "notification-productivity-20261014",
+          "rationale": "Reviewed in docs/operations/notification-productivity-action-risk-review.md: native fixed preference inverse has an exact self-only private marker exception; native assignment channels and verified personal todo alias change notification/implicit assignment behavior without broader business access or role authority."
+        }
+      },
       "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
       "reviewed_digests": {
         "client:sign_oca:oca-addons/sign_oca/static/src/components/sign_oca_pdf_portal/sign_oca_pdf_portal.esm.js:_onClickSign:route:1": "d388f32970e7f0ac22c29959611901e80ca50e81977fdc4edd582211bccf1588",
@@ -34471,7 +34538,7 @@
         "rpc:mail.activity.action_close_dialog": "2af1391c63b1c20eb8bcbbb4d2f37eba0c3dc7bd0a7b3c0e899db99420f91d1e",
         "rpc:mail.activity.action_done": "cb121b70aac5e55103f027519e61025974a18e5bf5291ec0924f0e8a740591c7",
         "rpc:mail.activity.action_done_redirect_to_other": "beedab0879941cba3c2f7013d42155e046e01b650ee1f5fba237b66b3c88d06c",
-        "rpc:mail.activity.action_notify": "5b98b7259488619bec7c9442e079dde7ad695feb069c41ddaadd10d885471681",
+        "rpc:mail.activity.action_notify": "ece50847d5f70c270d8a398835d4fc49cc0c721f8d003782947e081c556e6aee",
         "rpc:mail.activity.action_open_document": "e7027923ab176bd14e0388427334ddc1a44d396b4aa425bf4f6c069e52b041b5",
         "rpc:mail.activity.action_reschedule_nextweek": "9bd18500dea9c22283c9d81a77bc8555b06c21615916a0514ca6210717b46f4f",
         "rpc:mail.activity.action_reschedule_today": "6c344c2f12a947f4e3c64178bce1fee45ea56aeb2fb1d86c855e2cc33c573ea5",
@@ -103832,6 +103899,8 @@
           "reversal_action": "rpc:project.task.write"
         },
         "rpc:project.task.message_new": {
+          "evidence_id": "notification-productivity-20261014",
+          "rationale": "Reviewed in docs/operations/notification-productivity-action-risk-review.md: native fixed preference inverse has an exact self-only private marker exception; native assignment channels and verified personal todo alias change notification/implicit assignment behavior without broader business access or role authority.",
           "reversal_action": "rpc:project.task.write"
         },
         "rpc:project.task.message_notify": {
@@ -107335,7 +107404,7 @@
         "rpc:project.task.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
         "rpc:project.task.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:project.task.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
-        "rpc:project.task.message_new": "c3ec1aad017fc35667f6311b9e35471d6ba2a1b5f3c785ffcd21ce496ad623f3",
+        "rpc:project.task.message_new": "75688a068460fda486fbcb4e650c386900c4f942857ecb1f28320782657799df",
         "rpc:project.task.message_notify": "b568fe9d567d0b1007a82514c3532ab6c0e273860092814c1e754ab167ba0a86",
         "rpc:project.task.message_parse": "c8e71ccbae570a707b8e261de28b25ea70dc463a1b40807f4b465ac337ac8707",
         "rpc:project.task.message_post_with_source": "245fb964979dcb73e5a6189fb10c8ffceade74f7f6eada6d48977d1f86270d4e",
@@ -180907,12 +180976,22 @@
       "domain": "projects",
       "evidence_id": "feedback-provider-phases-20260906",
       "id": "system_internal.projects.feedback_provider_phases_20260906",
+      "overrides": {
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._accept_phase:orm_write:1": {
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the locked private provider workflow changes only bounded polling deadlines (two-second first/early checks, ten-second long-call checks). Provider endpoints, credentials, owner/company authority, neutralization, retries and stale-result validation are unchanged."
+        },
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit:orm_write:3": {
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the locked private provider workflow changes only bounded polling deadlines (two-second first/early checks, ten-second long-call checks). Provider endpoints, credentials, owner/company authority, neutralization, retries and stale-result validation are unchanged."
+        }
+      },
       "rationale": "Reviewed in docs/operations/feedback-action-risk-review.md: phase-separated configured provider work, bounded task-owned images and temporary evidence, terminal cleanup and rate-limit recovery preserve owner/company checks, retained-run ACLs and the server-owned deployment snapshot. No protected guard or service-identity permission is changed.",
       "reachability_proof": "Underscore methods are not RPC-callable. The fixed cron or owner/maintainer-authorized task processing holds the run lock before submit, poll and phase transition. Configuration rejects neutralized databases before provider use; elevated parameter reads supply only the validated MCP connection, never business-record access.",
       "reviewed_digests": {
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._accept_phase:orm_write:1": "277914c737b4f248500ac6f11091d85887b309a7c2a358ead7ab3dba738506fd",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._accept_phase:orm_write:1": "d2eb211257b7bad8403d1ce2970d0600bf97646024948ed25ba845266991597a",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._phase_payload:sudo:1": "e26ba7fbf1b5788aaf349b3931bce359a71b411de00e4c2bd322dc7ce1bc6118",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit:orm_write:3": "bc5609ffbaeb6fd88a9af0d71b70b113b7dbc86ddad98bce0b2ad8ccb37bf674"
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit:orm_write:3": "28b2f7035ead918f3c789830b4f11176db131ebb0833a54244780ce54c67d0fb"
       }
     },
     {
@@ -181023,8 +181102,8 @@
           "reachability_proof": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._poll:orm_write:1": {
-          "evidence_id": "feedback-provider-phases-20260906",
-          "rationale": "Reviewed in docs/operations/feedback-action-risk-review.md: phase-separated configured provider work, bounded task-owned images and temporary evidence, terminal cleanup and rate-limit recovery preserve owner/company checks, retained-run ACLs and the server-owned deployment snapshot. No protected guard or service-identity permission is changed.",
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the locked private provider workflow changes only bounded polling deadlines (two-second first/early checks, ten-second long-call checks). Provider endpoints, credentials, owner/company authority, neutralization, retries and stale-result validation are unchanged.",
           "reachability_proof": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:orm_create:1": {
@@ -181059,13 +181138,13 @@
           "reachability_proof": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit:orm_write:1": {
-          "evidence_id": "feedback-provider-phases-20260906",
-          "rationale": "Reviewed in docs/operations/feedback-action-risk-review.md: phase-separated configured provider work, bounded task-owned images and temporary evidence, terminal cleanup and rate-limit recovery preserve owner/company checks, retained-run ACLs and the server-owned deployment snapshot. No protected guard or service-identity permission is changed.",
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the locked private provider workflow changes only bounded polling deadlines (two-second first/early checks, ten-second long-call checks). Provider endpoints, credentials, owner/company authority, neutralization, retries and stale-result validation are unchanged.",
           "reachability_proof": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit:orm_write:2": {
-          "evidence_id": "feedback-provider-phases-20260906",
-          "rationale": "Reviewed in docs/operations/feedback-action-risk-review.md: phase-separated configured provider work, bounded task-owned images and temporary evidence, terminal cleanup and rate-limit recovery preserve owner/company checks, retained-run ACLs and the server-owned deployment snapshot. No protected guard or service-identity permission is changed.",
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the locked private provider workflow changes only bounded polling deadlines (two-second first/early checks, ten-second long-call checks). Provider endpoints, credentials, owner/company authority, neutralization, retries and stale-result validation are unchanged.",
           "reachability_proof": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit_local:orm_write:1": {
@@ -181147,19 +181226,23 @@
           "reachability_proof": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:orm_write:1": {
-          "rationale": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs.",
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the internal reporter draft adds at most five untrusted technical navigation candidates; submission rechecks readable action/model candidates without elevation and opt-out stores none. Existing source-record checks and metadata-only sudo operations retain their original scope.",
           "reachability_proof": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:1": {
-          "rationale": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs.",
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the internal reporter draft adds at most five untrusted technical navigation candidates; submission rechecks readable action/model candidates without elevation and opt-out stores none. Existing source-record checks and metadata-only sudo operations retain their original scope.",
           "reachability_proof": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:2": {
-          "rationale": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs.",
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the internal reporter draft adds at most five untrusted technical navigation candidates; submission rechecks readable action/model candidates without elevation and opt-out stores none. Existing source-record checks and metadata-only sudo operations retain their original scope.",
           "reachability_proof": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs."
         },
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:3": {
-          "rationale": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs.",
+          "evidence_id": "feedback-capture-20261013",
+          "rationale": "Reviewed 2026-10-13 in docs/operations/feedback-action-risk-review.md: the internal reporter draft adds at most five untrusted technical navigation candidates; submission rechecks readable action/model candidates without elevation and opt-out stores none. Existing source-record checks and metadata-only sudo operations retain their original scope.",
           "reachability_proof": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs."
         }
       },
@@ -181176,7 +181259,7 @@
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:3": "a9a9b4fd38ed51ae8e426c886935eceade06a04dc8fe46a577607264926d9243",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._handle_error:orm_write:4": "18964496abcc64ce83355313723ede4cdf8b6bcbf9f55326dca29d1517ae95fb",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._mark_withdrawn:orm_write:1": "5a6438ce3f68ea1e84a3daede5a481f180e9edfa4b69a2173742b15456994f3b",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._poll:orm_write:1": "e61f407ef13ff9c4c0dd0437565d28a8a2b821d0724ecbcb8c97898f373bf605",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._poll:orm_write:1": "4d2694e40bba8c7d7a6b499c7fa8dc32041154931aee47ff6e6bfd49bb44fd3b",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:orm_create:1": "79e28adc37cae681f49b2605cc70e4820dcf6dec2889c9ecb0de78f17821169d",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:orm_write:1": "404cc2dec8571324c25cc46050ebb766fb67c7640191e0648964e67d7ee131c2",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._queue_message:orm_write:2": "710fb8546b80ccf4a8ebf4f877d9cd6577f66862a75e8347ea99f1e291cc3929",
@@ -181184,8 +181267,8 @@
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._restart_without_stored_state:orm_create:1": "ef64584c56208b450e4804ec175f0cf2909d4c6f8f544dda798006df4059a8f0",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._restart_without_stored_state:orm_write:1": "6c32430bb9347f0169df4e79b873a819feec262ee2dd6cd7fc857538c55ba8a1",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._restart_without_stored_state:orm_write:2": "58257185e8d1343eaf080194f7a833b4288f62a5344138791110ee8b4ea2db53",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit:orm_write:1": "4f6f955a7cda3bb5c4b8de283e878abcc8d025028c67b64a991633e425568d46",
-        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit:orm_write:2": "662bd5a1f221d4b3f16cb62d37a79f14dda31ab0725aa574c5c7ecf291a228f2",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit:orm_write:1": "c2a378c2390be65b28cc4458b1bc1544d503709eaba09c3ad83026f3230ac694",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit:orm_write:2": "072c3de0f700ac67a154c6dabcb25d12a9563de76cb0d056f6edff45134b0d8e",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit_local:orm_write:1": "55c299ebdc66d4f8de23fe34da293d12aa080c0d4c1e9c348aeccbbcee0baddf",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_agent_run.py:usl.feedback.agent.run._submit_local:orm_write:2": "0cc3a9125ddeae362ac287a4f155b9f4046a2a1224a3aac301341b982ff3c12a",
         "sink:usl_feedback:custom-addons/usl_feedback/models/feedback_related_security.py:_feedback_task_relation_domain:sudo:1": "176175ad2bc76d86d3a215c31b560b8e2e942d22bc0166fe5e0fd0a1cf976726",
@@ -181205,10 +181288,10 @@
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_attachments:sudo:1": "b4e7caade2b67c026a1668ff5a1b6eab0abab45610d23d40947fd533e0652a5d",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_attachments:sudo:2": "4818fd11e475141a97a9cdf619f7039039e31256a0a4800896ed0fc17d8fb640",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_attachments:sudo:3": "2cb79c6104ad9fb227833ae54b975b31925a6ce1c9a8c467d1f4a2a4322d72bb",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:orm_write:1": "6db944b13030fe4876d316a480f2345a0d7cbcda1dea1871732fe51bf8645998",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:1": "0a4223845d3fde2aa758baec8332b22b8d7e0e34e5c0c6abbeccbb86f2561b07",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:2": "8f30c19e2c0680e89c58007a6b008dd353e9638a2563c7a5ac07b8b7ad32a43a",
-        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:3": "24d6394ce3d67f5450e1d12ae833ce076fc57e55b8a4bd24baa563848be3d530"
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:orm_write:1": "5bd0d7adf107e2f7e2920960ea617ee6ad747503227081b819d60618dafe4cf4",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:1": "cd214f2cd43dc04ceefe9349e3b1cf96f6d1fa163a1b064d7d56dbed8f453713",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:2": "44c6a48038a0f85355ca384d54697c362fcc236e50ec82d4bb3ac68a9a4b5027",
+        "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:3": "a6bc7ff288d2048429910d58a4bfb50f846b3552ca585e2ea59837ec0c7002f1"
       }
     },
     {
@@ -181266,6 +181349,8 @@
           "reachability_proof": "Private reactivation implementation reachable only through the reviewed scheduler or task write/unlink flows; it validates active internal assignees and explicit personal-stage roles before scoped elevation."
         },
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.message_new:orm_write:1": {
+          "evidence_id": "notification-productivity-20261014",
+          "rationale": "Reviewed in docs/operations/notification-productivity-action-risk-review.md: native fixed preference inverse has an exact self-only private marker exception; native assignment channels and verified personal todo alias change notification/implicit assignment behavior without broader business access or role authority.",
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.unlink:orm_unlink:1": {
@@ -181315,7 +181400,7 @@
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:1": "ed009dc95ab11a2addc39a44572b527aff26024a265a4cf4ebcd06d22365a3fd",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:2": "0954df52d6f3402a5da29ab9ddf015730efb2a72e1d5c714aaa8e4ce25ba0059",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_personal_stages:sudo:3": "c70e201431d8ab8876ace268804dca8a16aeb9d6455187d5b96419db46456211",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.message_new:orm_write:1": "45999d831ad93908e44e811ba99c73420b4c69b5324df265263c7a7d4646ee0b",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.message_new:orm_write:1": "6315ba5c2ea793bc0a4c377bab8ac83f853b653fae0a6a19df56953b01e150d6",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.unlink:orm_unlink:1": "901bf2005834da32c498b97096bdc4ac4ff1332ab3fb4d740129a9dd6dd5123b",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.unlink:sudo:1": "a4f416e9c24d6022c00de94dcd17d941c1d4ea9cf0c769ad4f3a462f309e117d",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:1": "c956bfc2f236893345f2b87490f455426f7ba5612603980a98a9a41adb67b5fd",
@@ -204339,124 +204424,6 @@
     },
     {
       "action_keys": [
-        "route:jsonrpc:ANY:/html_editor/generate_text"
-      ],
-      "classification": "operational",
-      "consequence": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
-      "domain": "system_framework",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.2",
-      "rationale": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
-      "reviewed_digests": {
-        "route:jsonrpc:ANY:/html_editor/generate_text": "b00102b90870fe0f87637ad180a5d8405c56a7522110558f1745005aa84929eb"
-      }
-    },
-    {
-      "action_keys": [
-        "route:jsonrpc:ANY:/html_editor/modify_image/<model(\"ir.attachment\"):attachment>"
-      ],
-      "classification": "operational",
-      "consequence": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
-      "domain": "documents_and_communications",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.3",
-      "rationale": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
-      "reviewed_digests": {
-        "route:jsonrpc:ANY:/html_editor/modify_image/<model(\"ir.attachment\"):attachment>": "035375acd2da4c4fdbcaa10f34d00337de874c315abfa025c096c37ed990c3f7"
-      }
-    },
-    {
-      "action_keys": [
-        "route:jsonrpc:ANY:/web/action/load_breadcrumbs"
-      ],
-      "classification": "transport",
-      "consequence": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
-      "domain": "system_framework",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.4",
-      "rationale": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
-      "reviewed_digests": {
-        "route:jsonrpc:ANY:/web/action/load_breadcrumbs": "799548b0037dd87a8788b3d3905a44febecf7364ef2f69288c9341f7880ef5eb"
-      },
-      "targets": [
-        "rpc:ir.actions.server.run"
-      ]
-    },
-    {
-      "action_keys": [
-        "route:jsonrpc:ANY:/web/action/run"
-      ],
-      "classification": "transport",
-      "consequence": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
-      "domain": "system_framework",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.5",
-      "rationale": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
-      "reviewed_digests": {
-        "route:jsonrpc:ANY:/web/action/run": "0f4475f0f23153f4d380c1b5dd5d056683a2dc6b9466a31f01663e208eead735"
-      },
-      "targets": [
-        "rpc:ir.actions.server.run"
-      ]
-    },
-    {
-      "action_keys": [
-        "route:jsonrpc:ANY:/web_editor/bus_broadcast"
-      ],
-      "classification": "operational",
-      "consequence": "Checks document read/write authority and sends editor collaboration bus events; the new batch/peer routing does not remove that authority boundary. This emits notifications and is not a read-only operation.",
-      "domain": "system_framework",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.6",
-      "rationale": "Checks document read/write authority and sends editor collaboration bus events; the new batch/peer routing does not remove that authority boundary. This emits notifications and is not a read-only operation.",
-      "reviewed_digests": {
-        "route:jsonrpc:ANY:/web_editor/bus_broadcast": "7df5c77037e653a30cb331e8dc9e537e9fa425f1a97f6a25eef4ca496ea3483f"
-      }
-    },
-    {
-      "action_keys": [
-        "route:jsonrpc:ANY:/web_editor/generate_text"
-      ],
-      "classification": "operational",
-      "consequence": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
-      "domain": "system_framework",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.7",
-      "rationale": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
-      "reviewed_digests": {
-        "route:jsonrpc:ANY:/web_editor/generate_text": "7b2d4b71f10413bf194b17d3af7f4d443ae48a4db7560e4c540b13f9c85b39f8"
-      }
-    },
-    {
-      "action_keys": [
-        "route:jsonrpc:ANY:/web_editor/modify_image/<model(\"ir.attachment\"):attachment>"
-      ],
-      "classification": "operational",
-      "consequence": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
-      "domain": "documents_and_communications",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.8",
-      "rationale": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
-      "reviewed_digests": {
-        "route:jsonrpc:ANY:/web_editor/modify_image/<model(\"ir.attachment\"):attachment>": "eb1f5b787e9dcf5e364d00a0ce1156bec285f9edbaf6c126706e67f15df2e2e6"
-      }
-    },
-    {
-      "action_keys": [
-        "rpc:account.analytic.plan.write"
-      ],
-      "classification": "operational",
-      "consequence": "Public plan name/parent maintenance invokes fixed inverse and private _sync_all_plan_column. Registry analytic.plan.fields.mixin descendants fix models. _strict_column_name fixes account_id or x_plan{persisted id}_id; _hierarchy_name adds numeric depth. Only business name enters field_description; ttype=many2one, relation, related path, store, readonly and on_delete are fixed. Batched sudo ir.model.fields search/create/write/unlink operates only these generated fields. Existing analytic account values migrate before root column removal; unused hierarchy fields removed after write. analytic.group_analytic_accounting ACL controls plan CRUD; this exposes no arbitrary field-definition API. Generic field-definition API keeps its own guard.",
-      "domain": "accounting",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.9",
-      "rationale": "Public plan name/parent maintenance invokes fixed inverse and private _sync_all_plan_column. Registry analytic.plan.fields.mixin descendants fix models. _strict_column_name fixes account_id or x_plan{persisted id}_id; _hierarchy_name adds numeric depth. Only business name enters field_description; ttype=many2one, relation, related path, store, readonly and on_delete are fixed. Batched sudo ir.model.fields search/create/write/unlink operates only these generated fields. Existing analytic account values migrate before root column removal; unused hierarchy fields removed after write. analytic.group_analytic_accounting ACL controls plan CRUD; this exposes no arbitrary field-definition API. Generic field-definition API keeps its own guard.",
-      "reviewed_digests": {
-        "rpc:account.analytic.plan.write": "302cce3701fa5f03e3de604927420a658998e7b7b973aeff5730bfaeda7518c0"
-      }
-    },
-    {
-      "action_keys": [
         "rpc:account.move.action_cancel_peppol_documents"
       ],
       "classification": "operational",
@@ -204597,6 +204564,20 @@
     },
     {
       "action_keys": [
+        "route:jsonrpc:ANY:/html_editor/generate_text"
+      ],
+      "classification": "operational",
+      "consequence": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
+      "domain": "system_framework",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.2",
+      "rationale": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
+      "reviewed_digests": {
+        "route:jsonrpc:ANY:/html_editor/generate_text": "b00102b90870fe0f87637ad180a5d8405c56a7522110558f1745005aa84929eb"
+      }
+    },
+    {
+      "action_keys": [
         "rpc:product.product.name_search"
       ],
       "classification": "read_only",
@@ -204733,6 +204714,20 @@
       "rationale": "Exact delivered closure includes delivery and stock_delivery only. Carrier dispatcher reaches fixed_cancel_shipment or base_on_rule_cancel_shipment; both raise NotImplementedError before picking chatter or tracking reset. Upstream corrects recordset dispatch from self to each picking. No remote provider or remote reversal exists here. Preserve fixed normal workflow and explicitly drop unsupported remote-recovery claim; adding a provider requires new registry review.",
       "reviewed_digests": {
         "rpc:stock.picking.cancel_shipment": "80a2ae4c65eb92fdc724ba83290b36fcdb640a262cacc6d5a4d7f8e53156e050"
+      }
+    },
+    {
+      "action_keys": [
+        "route:jsonrpc:ANY:/html_editor/modify_image/<model(\"ir.attachment\"):attachment>"
+      ],
+      "classification": "operational",
+      "consequence": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
+      "domain": "documents_and_communications",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.3",
+      "rationale": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
+      "reviewed_digests": {
+        "route:jsonrpc:ANY:/html_editor/modify_image/<model(\"ir.attachment\"):attachment>": "035375acd2da4c4fdbcaa10f34d00337de874c315abfa025c096c37ed990c3f7"
       }
     },
     {
@@ -204882,6 +204877,23 @@
       "reviewed_digests": {
         "sink:account:addons/account/models/product.py:product.template.write:orm_write:1": "6006ca69ad31e5f64021eac08f8d47193fd3367eb95769add5d34ae8352ac514"
       }
+    },
+    {
+      "action_keys": [
+        "route:jsonrpc:ANY:/web/action/load_breadcrumbs"
+      ],
+      "classification": "transport",
+      "consequence": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
+      "domain": "system_framework",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.4",
+      "rationale": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
+      "reviewed_digests": {
+        "route:jsonrpc:ANY:/web/action/load_breadcrumbs": "799548b0037dd87a8788b3d3905a44febecf7364ef2f69288c9341f7880ef5eb"
+      },
+      "targets": [
+        "rpc:ir.actions.server.run"
+      ]
     },
     {
       "action_keys": [
@@ -205035,6 +205047,23 @@
     },
     {
       "action_keys": [
+        "route:jsonrpc:ANY:/web/action/run"
+      ],
+      "classification": "transport",
+      "consequence": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
+      "domain": "system_framework",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.5",
+      "rationale": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
+      "reviewed_digests": {
+        "route:jsonrpc:ANY:/web/action/run": "0f4475f0f23153f4d380c1b5dd5d056683a2dc6b9466a31f01663e208eead735"
+      },
+      "targets": [
+        "rpc:ir.actions.server.run"
+      ]
+    },
+    {
+      "action_keys": [
         "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_edi_ubl_cen_en16931.py:account.edi.ubl_cen_en16931._ubl_get_partner_address_node:orm_write:1"
       ],
       "classification": "system_internal",
@@ -205181,6 +205210,20 @@
       "reachability_proof": "Exact implementation sink only; it has no independent public method/controller dispatch. Its reviewed native parent owns actor, record and company authority.",
       "reviewed_digests": {
         "sink:base_automation:addons/base_automation/models/base_automation.py:base.automation._process:sudo:3": "f3876a33d3dab335a239a2576432833e5da601c1f36ea1abb8c8c2b2feae1f5b"
+      }
+    },
+    {
+      "action_keys": [
+        "route:jsonrpc:ANY:/web_editor/bus_broadcast"
+      ],
+      "classification": "operational",
+      "consequence": "Checks document read/write authority and sends editor collaboration bus events; the new batch/peer routing does not remove that authority boundary. This emits notifications and is not a read-only operation.",
+      "domain": "system_framework",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.6",
+      "rationale": "Checks document read/write authority and sends editor collaboration bus events; the new batch/peer routing does not remove that authority boundary. This emits notifications and is not a read-only operation.",
+      "reviewed_digests": {
+        "route:jsonrpc:ANY:/web_editor/bus_broadcast": "7df5c77037e653a30cb331e8dc9e537e9fa425f1a97f6a25eef4ca496ea3483f"
       }
     },
     {
@@ -205335,6 +205378,20 @@
     },
     {
       "action_keys": [
+        "route:jsonrpc:ANY:/web_editor/generate_text"
+      ],
+      "classification": "operational",
+      "consequence": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
+      "domain": "system_framework",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.7",
+      "rationale": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
+      "reviewed_digests": {
+        "route:jsonrpc:ANY:/web_editor/generate_text": "7b2d4b71f10413bf194b17d3af7f4d443ae48a4db7560e4c540b13f9c85b39f8"
+      }
+    },
+    {
+      "action_keys": [
         "sink:l10n_fr_pdp:addons/l10n_fr_pdp/models/account_edi_xml_ubl_21_fr.py:account.edi.xml.ubl_21_fr._ubl_add_invoice_type_code_node:orm_write:1"
       ],
       "classification": "system_internal",
@@ -205481,6 +205538,20 @@
       "reachability_proof": "Exact implementation sink only; it has no independent public method/controller dispatch. Its reviewed native parent owns actor, record and company authority.",
       "reviewed_digests": {
         "sink:mrp_account:addons/mrp_account/models/mrp_production.py:mrp.production.write:sudo:3": "7425bf9a3c7c33f602278db591d6d493958f8bb29a35bfe43d54c4a031c3e9cf"
+      }
+    },
+    {
+      "action_keys": [
+        "route:jsonrpc:ANY:/web_editor/modify_image/<model(\"ir.attachment\"):attachment>"
+      ],
+      "classification": "operational",
+      "consequence": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
+      "domain": "documents_and_communications",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.8",
+      "rationale": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
+      "reviewed_digests": {
+        "route:jsonrpc:ANY:/web_editor/modify_image/<model(\"ir.attachment\"):attachment>": "eb1f5b787e9dcf5e364d00a0ce1156bec285f9edbaf6c126706e67f15df2e2e6"
       }
     },
     {
@@ -205635,6 +205706,20 @@
     },
     {
       "action_keys": [
+        "rpc:account.analytic.plan.write"
+      ],
+      "classification": "operational",
+      "consequence": "Public plan name/parent maintenance invokes fixed inverse and private _sync_all_plan_column. Registry analytic.plan.fields.mixin descendants fix models. _strict_column_name fixes account_id or x_plan{persisted id}_id; _hierarchy_name adds numeric depth. Only business name enters field_description; ttype=many2one, relation, related path, store, readonly and on_delete are fixed. Batched sudo ir.model.fields search/create/write/unlink operates only these generated fields. Existing analytic account values migrate before root column removal; unused hierarchy fields removed after write. analytic.group_analytic_accounting ACL controls plan CRUD; this exposes no arbitrary field-definition API. Generic field-definition API keeps its own guard.",
+      "domain": "accounting",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.9",
+      "rationale": "Public plan name/parent maintenance invokes fixed inverse and private _sync_all_plan_column. Registry analytic.plan.fields.mixin descendants fix models. _strict_column_name fixes account_id or x_plan{persisted id}_id; _hierarchy_name adds numeric depth. Only business name enters field_description; ttype=many2one, relation, related path, store, readonly and on_delete are fixed. Batched sudo ir.model.fields search/create/write/unlink operates only these generated fields. Existing analytic account values migrate before root column removal; unused hierarchy fields removed after write. analytic.group_analytic_accounting ACL controls plan CRUD; this exposes no arbitrary field-definition API. Generic field-definition API keeps its own guard.",
+      "reviewed_digests": {
+        "rpc:account.analytic.plan.write": "302cce3701fa5f03e3de604927420a658998e7b7b973aeff5730bfaeda7518c0"
+      }
+    },
+    {
+      "action_keys": [
         "ui:account.view_move_form:button:object:action_open_journal_items:1"
       ],
       "classification": "transport",
@@ -205784,6 +205869,17 @@
         "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_native_after_post_autopost_action_is_retained_after_matching"
       ]
     },
+    "feedback-capture-20261013": {
+      "contract": "Bounded session technical navigation is checked under reporter access and omitted on opt-out; quick offline provider completion advances at two seconds while long calls retain ten-second polling. Existing ownership, company, service permissions, lock and stale-result checks remain enforced.",
+      "tests": [
+        "custom-addons/usl_feedback/tests/test_feedback.py::TestProductFeedback.test_navigation_candidates_are_bounded_sanitized_and_opt_out",
+        "custom-addons/usl_feedback/tests/test_feedback.py::TestProductFeedback.test_completed_provider_phase_advances_after_two_seconds",
+        "custom-addons/usl_feedback/tests/test_feedback.py::TestProductFeedback.test_quick_provider_completion_has_two_second_product_wait",
+        "custom-addons/usl_feedback/tests/test_feedback.py::TestProductFeedback.test_only_reporter_or_maintainer_can_drive_agent_rpc",
+        "custom-addons/usl_feedback/tests/test_feedback.py::TestProductFeedback.test_shared_board_preserves_source_company_without_cross_company_business_access",
+        "custom-addons/usl_feedback/tests/test_feedback.py::TestProductFeedback.test_claimed_agent_run_is_not_processed_twice"
+      ]
+    },
     "feedback-provider-phases-20260906": {
       "contract": "Offline phase separation, secret-safe diagnostics, task-owned bounded image evidence, rate-limit polling, cleanup and unchanged reporter/maintainer/company/service ACLs. Full live provider availability remains a staging release qualification, not a claim of these tests.",
       "tests": [
@@ -205896,6 +205992,16 @@
         "custom-addons/usl_project/tests/test_task_content_search.py::TestTaskContentSearch.test_content_execution_transaction_and_exception_boundaries",
         "custom-addons/usl_project/tests/test_task_content_search.py::TestTaskContentSearch.test_content_execution_preserves_pending_orm_write",
         "custom-addons/usl_project/tests/test_task_content_search.py::TestTaskContentSearch.test_content_execution_readonly_and_ended_transaction"
+      ]
+    },
+    "notification-productivity-20261014": {
+      "contract": "Real native self-preference changes preserve authority; Agent conversations use internal Inbox while external email and ordinary human preferences remain native. Assignment filtering keeps the actual work and ordinary conversations. Verified personal todo alias never implicitly assigns its recipient.",
+      "tests": [
+        "custom-addons/usl_access_control/tests/test_notification_preferences.py::TestNotificationPreferences.test_real_preference_change_round_trip_preserves_authority",
+        "custom-addons/usl_access_control/tests/test_notification_preferences.py::TestNotificationPreferences.test_native_token_does_not_authorize_extra_commands_or_fields",
+        "custom-addons/usl_access_control/tests/test_notification_delivery.py::TestNotificationDelivery.test_agent_conversation_keeps_external_email",
+        "custom-addons/usl_access_control/tests/test_notification_delivery.py::TestNotificationDelivery.test_assignment_filters_effective_inbox_after_routing",
+        "custom-addons/usl_project/tests/test_project_task.py::TestProjectTask.test_todo_alias_does_not_assign_a_matching_service_recipient"
       ]
     },
     "operational-authorized-workflow-v1": {
