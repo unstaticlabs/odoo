@@ -514,6 +514,11 @@ class RebuildAccountDeclaration(models.Model):
             "portal_entry_guidance": rule.filing_guidance,
         }
         if declaration:
+            # A previously (and perhaps mistakenly) superseded open row must
+            # become preparable again when its obligation re-enters the schedule.
+            # Keep any recorded accountant judgment intact.
+            if declaration.status == "not_applicable" and not declaration._with_recorded_review():
+                vals["status"] = "to_prepare"
             declaration.write(vals)
         else:
             declaration = self.create({
