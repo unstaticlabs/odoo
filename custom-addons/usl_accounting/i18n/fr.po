@@ -397,6 +397,8 @@ msgstr "<span class=\"o_stat_text\">Fichier original</span>"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "A learned host name cannot be changed."
 msgstr "Le nom d’hôte appris ne peut pas être modifié."
 
@@ -434,6 +436,9 @@ msgstr "Nombre de tentatives"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "Automatic linked-receipt download is disabled in this environment."
 msgstr ""
 "Le téléchargement automatique des justificatifs liés est désactivé dans cet "
@@ -466,10 +471,13 @@ msgstr "Choisir un justificatif PDF lié"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "Choose a receipt link before retrying."
 msgstr "Choisissez un lien de justificatif avant de réessayer."
 
 #. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_move_form_linked_receipt
 msgid "Choose another link"
 msgstr "Choisir un autre lien"
 
@@ -480,11 +488,17 @@ msgstr "Choisir le lien du justificatif"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_move.py:0
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
+#. odoo-python
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_mail_pdf_candidate_wizard_form
 msgid "Choose the PDF receipt link"
 msgstr "Choisir le lien du justificatif PDF"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
+#. odoo-python
 msgid "Choose the receipt link so Odoo can learn this email format."
 msgstr ""
 "Choisissez le lien du justificatif pour qu’Odoo apprenne ce format d’e-mail."
@@ -528,6 +542,8 @@ msgstr "Télécharger ce justificatif"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "Enter a valid host name."
 msgstr "Saisissez un nom d’hôte valide."
 
@@ -553,6 +569,8 @@ msgstr "Mode de récupération"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "Fetch linked receipt %(retrieval)s"
 msgstr "Récupérer le justificatif lié %(retrieval)s"
 
@@ -576,6 +594,7 @@ msgstr "Renvoi vers le site appris le"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__hostname
 msgid "Hostname"
 msgstr "Nom d’hôte"
 
@@ -590,11 +609,13 @@ msgstr "Fiabilité avec laquelle ce modèle désigne le lien du justificatif, in
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_move_form_linked_receipt
 msgid "Ignore"
 msgstr "Ignorer"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__label
 msgid "Label"
 msgstr "Libellé"
 
@@ -690,11 +711,16 @@ msgstr "Nombre d’exemples négatifs"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
+#. odoo-python
 msgid "Odoo is downloading the linked PDF receipt."
 msgstr "Odoo télécharge le justificatif PDF lié."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
+#. odoo-python
 msgid ""
 "Only the expense owner or an Accounting Manager can manage its linked "
 "receipt."
@@ -703,15 +729,20 @@ msgstr ""
 "gérer son justificatif lié."
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
+#. odoo-python
 msgid "Odoo picked %(label)s on %(host)s, the only receipt link in this email."
 msgstr "Odoo a retenu %(label)s sur %(host)s, le seul lien de justificatif de cet e-mail."
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
+#. odoo-python
 msgid "Odoo picked %(label)s on %(host)s. Download it, or choose another link from this email."
 msgstr "Odoo a retenu %(label)s sur %(host)s. Téléchargez-le ou choisissez un autre lien de cet e-mail."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__path_template
 msgid "Path Template"
 msgstr "Modèle de chemin"
 
@@ -874,6 +905,8 @@ msgid "Teach and download"
 msgstr "Apprendre et télécharger"
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "This email no longer offers a receipt link to download."
 msgstr "Cet e-mail ne propose plus de lien de justificatif à télécharger."
 
@@ -882,11 +915,13 @@ msgid "Unavailable Count"
 msgstr "Nombre d’indisponibilités"
 
 #. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_mail_pdf_candidate_wizard_form
 msgid "Use this link"
 msgstr "Utiliser ce lien"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_move_form_linked_receipt
 msgid "Teach another link"
 msgstr "Apprendre un autre lien"
 
@@ -899,74 +934,104 @@ msgstr ""
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#. odoo-python
 msgid "The downloaded receipt failed its integrity check."
 msgstr "Le contrôle d’intégrité du justificatif téléchargé a échoué."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#. odoo-python
 msgid "The linked PDF receipt was downloaded safely."
 msgstr "Le justificatif PDF lié a été téléchargé en toute sécurité."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#. odoo-python
 msgid "The linked file is not a valid PDF receipt."
 msgstr "Le fichier lié n’est pas un justificatif PDF valide."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#. odoo-python
 msgid "The linked receipt is larger than 20 MB."
 msgstr "Le justificatif lié dépasse 20 Mo."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
+#. odoo-python
 msgid "The linked receipt needs attention."
 msgstr "Le justificatif lié nécessite votre attention."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#. odoo-python
 msgid "The receipt could not be downloaded."
 msgstr "Le justificatif n’a pas pu être téléchargé."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#. odoo-python
 msgid "The receipt download failed after four attempts."
 msgstr "Le téléchargement du justificatif a échoué après quatre tentatives."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#. odoo-python
 msgid "The receipt download service is unavailable."
 msgstr "Le service de téléchargement des justificatifs est indisponible."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
+#. odoo-python
 msgid "The receipt download will retry automatically."
 msgstr "Le téléchargement du justificatif sera réessayé automatiquement."
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#. odoo-python
 msgid "The receipt host is blocked for the Odoo instance."
 msgstr "L’hôte du justificatif est bloqué pour l’instance Odoo."
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#. odoo-python
 msgid "The learned receipt pattern is paused or blocked."
 msgstr "Le modèle appris pour ce justificatif est suspendu ou bloqué."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#. odoo-python
 msgid "The selected link is no longer present in the source email."
 msgstr "Le lien sélectionné n’est plus présent dans l’e-mail source."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "The selected receipt link is no longer present in the source email."
 msgstr ""
 "Le lien de justificatif sélectionné n’est plus présent dans l’e-mail source."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "This receipt host is blocked for the Odoo instance."
 msgstr "Cet hôte de justificatif est bloqué pour l’instance Odoo."
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "This receipt pattern is blocked for the Odoo instance."
 msgstr "Ce modèle de justificatif est bloqué pour l’instance Odoo."
 
@@ -980,6 +1045,7 @@ msgstr ""
 "mails similaires. Les liens signés ne sont ni affichés ni stockés à nouveau."
 
 #. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_mail_pdf_candidate_wizard_form
 msgid ""
 "Choose the link that downloads the receipt. Odoo will remember the sender, "
 "host, and link pattern across this instance. Signed URLs stay only in the "
@@ -1664,6 +1730,7 @@ msgstr "Peut se lettrer"
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_bank_statement_exception_resolution_form
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_bank_statement_reopen_form
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_expense_bank_match_wizard_form
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_mail_pdf_candidate_wizard_form
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -4180,6 +4247,7 @@ msgstr "L’identité du fichier source conservé est immuable."
 
 #. module: usl_accounting
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_bank_ingestion_form
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_move_form_linked_receipt
 msgid "Retry"
 msgstr "Réessayer"
 
@@ -4318,6 +4386,7 @@ msgstr "Exports planifiés"
 
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__score
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__score
 msgid "Score"
 msgstr "Note"
 
@@ -6305,6 +6374,7 @@ msgstr ""
 "source restent disponibles."
 
 #. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_mail_pdf_candidate_wizard_form
 msgid "Teach this choice instance-wide and queue its safe PDF retrieval."
 msgstr ""
 "Mémoriser ce choix pour toute l’instance et mettre en file sa récupération "
@@ -6312,6 +6382,7 @@ msgstr ""
 
 #. module: usl_accounting
 #. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
 msgid "A host in the receipt download chain was blocked."
 msgstr "Un hôte de la chaîne de téléchargement du justificatif a été bloqué."
 
@@ -6336,30 +6407,42 @@ msgid "Restore"
 msgstr "Restaurer"
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
+#. odoo-python
 msgid "This expense has no linked receipt to manage."
 msgstr "Cette dépense ne comporte aucun justificatif lié à gérer."
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "This linked receipt is already complete."
 msgstr "Le traitement de ce justificatif lié est déjà terminé."
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "This linked receipt no longer needs a link selection."
 msgstr "Ce justificatif lié ne nécessite plus de sélection de lien."
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "Use the linked-receipt governance actions to change a host."
 msgstr ""
 "Utilisez les actions de gouvernance des justificatifs liés pour modifier un "
 "hôte."
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "Use the linked-receipt governance actions to change a pattern."
 msgstr ""
 "Utilisez les actions de gouvernance des justificatifs liés pour modifier un "
 "modèle."
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "A receipt has already been attached to this expense."
 msgstr "Un justificatif a déjà été joint à cette dépense."
 
@@ -6408,12 +6491,16 @@ msgstr "Dernier utilisateur ayant ouvert le site"
 
 #. module: usl_accounting
 #. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt_move.py:0
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
 msgid "Linked receipt retrieval is disabled in this environment."
 msgstr ""
 "La récupération des justificatifs liés est désactivée dans cet environnement."
 
 #. module: usl_accounting
 #. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt.py:0
 msgid "Only the expense owner can open its receipt website."
 msgstr ""
 "Seul le propriétaire de la dépense peut ouvrir le site de son justificatif."
@@ -6432,6 +6519,7 @@ msgstr "Site du justificatif indisponible"
 
 #. module: usl_accounting
 #. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
 msgid ""
 "Sign in on the receipt website, download the PDF, then attach it here. Your "
 "credentials stay with the provider."
@@ -6441,21 +6529,25 @@ msgstr ""
 
 #. module: usl_accounting
 #. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt.py:0
 msgid "The receipt link is no longer available in the source email."
 msgstr "Le lien du justificatif n’est plus disponible dans l’e-mail source."
 
 #. module: usl_accounting
 #. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt.py:0
 msgid "This expense can no longer receive a linked receipt."
 msgstr "Cette dépense ne peut plus recevoir de justificatif lié."
 
 #. module: usl_accounting
 #. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt.py:0
 msgid "This receipt recovery request is no longer active."
 msgstr "Cette demande de récupération de justificatif n’est plus active."
 
 #. module: usl_accounting
 #. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt.py:0
 msgid "The receipt link no longer matches this recovery request."
 msgstr ""
 "Le lien du justificatif ne correspond plus à cette demande de récupération."
@@ -6467,6 +6559,7 @@ msgstr "Le site du justificatif est indisponible."
 
 #. module: usl_accounting
 #. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt.py:0
 msgid "This receipt website is unavailable for the Odoo instance."
 msgstr "Ce site de justificatif est indisponible pour l’instance Odoo."
 
@@ -6506,12 +6599,15 @@ msgstr "Rechercher des justificatifs dans les e-mails existants"
 #. module: usl_accounting
 #. odoo-python
 #: code:addons/usl_accounting/models/linked_receipt.py:0
+#: code:addons/usl_accounting/models/linked_receipt_move.py:0
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
 msgid "Receipt email scan complete"
 msgstr "Recherche de justificatifs terminée"
 
 #. module: usl_accounting
 #. odoo-python
 #: code:addons/usl_accounting/models/linked_receipt.py:0
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
 msgid "Found receipt links for %(count)s expenses. Existing requests and expenses with receipts were skipped."
 msgstr "Des liens vers des justificatifs ont été trouvés pour %(count)s notes de frais. Les demandes existantes et les notes de frais avec justificatif ont été ignorées."
 
@@ -6878,3 +6974,138 @@ msgstr "Fichiers d’origine"
 #: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_inspection_form
 msgid "History"
 msgstr "Historique"
+
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_move.py:0
+#. odoo-python
+msgid ""
+"The bill or source email changed after this download was requested. Check "
+"the latest supplier email and attach its original PDF."
+msgstr ""
+"La facture ou le courriel source a changé depuis la demande de "
+"téléchargement. Vérifiez le dernier courriel du fournisseur et joignez son "
+"PDF original."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_move.py:0
+#. odoo-python
+msgid "This bill has no linked receipt to manage."
+msgstr "Cette facture ne comporte aucun document lié à gérer."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_move.py:0
+#. odoo-python
+msgid ""
+"Found receipt links for %(count)s vendor bills. Bills with files or existing"
+" requests were skipped."
+msgstr ""
+"Liens trouvés pour %(count)s factures fournisseurs. Les factures comportant "
+"des fichiers ou des demandes existantes ont été ignorées."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_move.py:0
+#. odoo-python
+msgid "Choose a vendor bill for this downloaded document."
+msgstr "Choisissez une facture fournisseur pour ce document téléchargé."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_move.py:0
+#. odoo-python
+msgid "Upload the downloaded document on this bill before attaching it."
+msgstr ""
+"Téléversez le document téléchargé sur cette facture avant de le joindre."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_move.py:0
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
+msgid "Select this bill’s company before managing its linked receipt."
+msgstr ""
+"Sélectionnez la société de cette facture avant de gérer son document lié."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#. odoo-python
+msgid ""
+"The bill can no longer be edited by the person who requested this download. "
+"Ask an authorized collaborator to retry."
+msgstr ""
+"La personne ayant demandé ce téléchargement ne peut plus modifier la "
+"facture. Demandez à un collaborateur disposant des droits nécessaires de "
+"réessayer."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_move_form_linked_receipt
+msgid "Find document links in emails"
+msgstr "Rechercher les liens de documents dans les courriels"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_move_form_linked_receipt
+msgid "Download this document"
+msgstr "Télécharger ce document"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_move_form_linked_receipt
+msgid ""
+"Download the suggested link from the supplier email and keep its original "
+"PDF on this bill."
+msgstr ""
+"Téléchargez le lien suggéré dans le courriel du fournisseur et conservez son"
+" PDF original sur cette facture."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_move_form_linked_receipt
+msgid "Open document website"
+msgstr "Ouvrir le site du document"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_move_form_linked_receipt
+msgid "Attach downloaded document"
+msgstr "Joindre le document téléchargé"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_move_form_linked_receipt
+msgid ""
+"Stop automatic retrieval for this email. The bill and source email remain "
+"available."
+msgstr ""
+"Arrêter la récupération automatique pour ce courriel. La facture et le "
+"courriel source restent disponibles."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
+msgid "This bill can no longer receive a linked document."
+msgstr "Cette facture ne peut plus recevoir de document lié."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
+msgid "A document is already attached to this bill."
+msgstr "Un document est déjà joint à cette facture."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/static/src/js/linked_receipt_handoff.js:0
+#. odoo-javascript
+msgid "The receipt website could not be opened. Try again from the document."
+msgstr ""
+"Le site du justificatif n'a pas pu être ouvert. Réessayez depuis le "
+"document."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__move_id
+msgid "Vendor bill"
+msgstr "Facture fournisseur"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/linked_receipt_candidate_wizard.py:0
+msgid "Link %(position)s in source email"
+msgstr "Lien %(position)s dans l’e-mail source"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/linked_receipt_candidate_wizard.py:0
+msgid "%(label)s (link %(position)s in source email)"
+msgstr "%(label)s (lien %(position)s dans l’e-mail source)"

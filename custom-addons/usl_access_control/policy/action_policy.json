@@ -309,6 +309,42 @@
     },
     {
       "action_keys": [
+        "rpc:account.move.action_accept_linked_receipt",
+        "rpc:account.move.action_attach_linked_receipt",
+        "rpc:account.move.action_dismiss_linked_receipt",
+        "rpc:account.move.action_open_linked_receipt_website",
+        "rpc:account.move.action_retry_linked_receipt",
+        "rpc:account.move.action_review_linked_receipt",
+        "rpc:account.move.action_scan_existing_receipt_emails",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move.action_attach_linked_receipt:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move.action_review_linked_receipt:orm_create:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move.action_scan_existing_receipt_emails:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move.action_scan_existing_receipt_emails:sudo:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move.action_scan_existing_receipt_emails:sudo:3"
+      ],
+      "classification": "operational",
+      "consequence": "Retains a supplier original on the same bill or manages its visible recovery without changing financial meaning.",
+      "domain": "accounting",
+      "evidence_id": "vendor-bill-linked-receipt-20261017",
+      "id": "operational.accounting.vendor-bill-linked-receipt-20261017",
+      "rationale": "A fixed document-recovery workflow checks native bill write access, selected company and exact source or attachment ownership. It preserves original files and history without posting, paying, reconciling or changing accounting content. Delegated Agents use the same native bill access as people.",
+      "reviewed_digests": {
+        "rpc:account.move.action_accept_linked_receipt": "f382d72a6c1b93f170fbf0c7750e5de1ca0da4f847848f08a21820d9f290cdb3",
+        "rpc:account.move.action_attach_linked_receipt": "98bc5fbcf7cf8ef5be8fbd372cef63d993d7d48ef57a576516dd16dfcb744883",
+        "rpc:account.move.action_dismiss_linked_receipt": "9c9392c3000bae4d43a0b61ea7c0c4526f2a36b1ebfa4b67a45d6a7376a7c858",
+        "rpc:account.move.action_open_linked_receipt_website": "235c76e1ffda2013d2121097847b559dd6b44ab22fed3162b26f6893deb27911",
+        "rpc:account.move.action_retry_linked_receipt": "e07296f5b7e1c623e109c6f7a1202c8c7835c428b6ccaa976f772c6dfc8fcb53",
+        "rpc:account.move.action_review_linked_receipt": "2e37b112a003d5f6629559cf8815eb192a28aebd1072a3ba20b2a9a2d8d134d6",
+        "rpc:account.move.action_scan_existing_receipt_emails": "f47811c7b743910083757c08838e4f2e5ddadf6f90ddf797e6b1fbba555830a9",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move.action_attach_linked_receipt:orm_write:1": "59248a1b2d31aafbc5da1efbeac6d4834e117ada1024db136df7cf4627e4918b",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move.action_review_linked_receipt:orm_create:1": "b36fbc255e2b8ea00b41ecc4cf7831831e0c8a0a9d783a8af3f838a2739947e5",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move.action_scan_existing_receipt_emails:sudo:1": "a3f0d4935c69f962669a468aadb98eaeb4c64b327b85742d132488848fca9260",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move.action_scan_existing_receipt_emails:sudo:2": "e688f4a72798e7f794a2bebb88362f10398e75a6468d9cd7fc16ee055fc99ed0",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move.action_scan_existing_receipt_emails:sudo:3": "05ade2dc18062c867fa1bf5fb79195eed3d7019e318f45768ea2d78b67985fa4"
+      }
+    },
+    {
+      "action_keys": [
         "rpc:account.move.action_choose_vendor_bill_merge_winner",
         "rpc:account.move.action_merge_vendor_bills",
         "rpc:usl.vendor.bill.merge.wizard.action_merge",
@@ -1520,7 +1556,7 @@
         "rpc:usl.mail.pdf.pattern.write": "1243dafd384366c70727d4077e777c8834b8c68a3b381282a1114599ecba9c49",
         "rpc:usl.mail.pdf.retrieval.action_accept_suggestion": "edadd3df1558658f29a3369512e1ed920d226858e6e76243fa4338fd851bdc86",
         "rpc:usl.mail.pdf.retrieval.action_dismiss": "985489a3240b7590fc1601db4f7dfd9ffdcc76560657cfe866036c39a43ba619",
-        "rpc:usl.mail.pdf.retrieval.action_retry": "4317980a53bd01c5b0a471eb20ce82b738e78ed9c830368626c5c90b4c5b5f7c",
+        "rpc:usl.mail.pdf.retrieval.action_retry": "0ba7ce0d74d2ad2b49260577ca9694e3bfdf4547c29dbcb60ad913a0d412f125",
         "rpc:usl.mail.pdf.retrieval.action_select_candidate": "519475d5746bc04ceeed6789a27e593d5c19bc0d9dd1c86dd661cf61ae0b99fa",
         "rpc:usl.mail.pdf.retrieval.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:usl.mail.pdf.retrieval.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
@@ -1551,11 +1587,11 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.pattern.write:orm_write:1": "6c1e7e6594aec1d0c9591c617397167be52747e9b2408178eda9424b587f36b0",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_dismiss:orm_write:1": "bcf92968bf07c81a7379c99f8f4d452d136ef39755aa4083d68ecd0c421e02b9",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_dismiss:sudo:1": "daaf2905f440628220e7bf88b82213f9c35d765af562eee2a46ff5efc8af55e0",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:orm_write:1": "d9922511cf166316b879b32d5b76dc51279a623e0a1b3a02747bd97966af3837",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:orm_write:2": "1873e501d89a9bc699246c279cc628aecb6748e4cb1b1a7ed57f000745689c08",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:sudo:1": "bc92af79eb616a2e180420a05af631f7210a6e0d0c63e09b2edf15246759e74f",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:sudo:2": "4daae490acbaab48033afccf5b784703d3aadd70e2bad284c67104b79722f357",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:sudo:3": "2b7ae8633032530751081b60edea2ad84ed897e02e9ad069606ed1a01ff8949f",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:orm_write:1": "404f800c5a84bfd55128e28263703a52d83b9985ed7d938ba45a0fdedbee57c8",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:orm_write:2": "19b6cfabfc2bce1364fe4e15a26c3db5140996a97f2f587e14b23b9d8aa8d120",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:sudo:1": "26fdb3b1f1b06b083e5f14dbd3715ae731bbb2f04ae4539d61821570e58a0c8c",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:sudo:2": "07fe40024f241c275afd2ac8b2194e6beb9849aff92eaa8117688852798f4cab",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:sudo:3": "b76a42709e4f8e6710ff09c95e0fbdd1f53990e75f1ef235dc2e4fa44bee8fcc",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense.action_review_linked_receipt:orm_create:1": "b36fbc255e2b8ea00b41ecc4cf7831831e0c8a0a9d783a8af3f838a2739947e5",
         "sink:usl_accounting:custom-addons/usl_accounting/models/queue_job.py:queue.job.write:orm_write:1": "88ab2425c7a4d0569bb64a6f61f7e61c93a96274da48b3d7d662a287ca7a2223"
       }
@@ -161142,6 +161178,47 @@
     },
     {
       "action_keys": [
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._enqueue:orm_write:3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._enqueue:sudo:3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._has_manual_receipt:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:_compute_receipt_status:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._bill_worker_recordset:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._bill_worker_recordset:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:17",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:18",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:19",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:20",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move._message_post_after_hook:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move._message_post_after_hook:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move._supersede_linked_receipts:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move._supersede_linked_receipts:sudo:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Computes existing receipt context or performs fixed, generation-bound technical receipt discovery/worker bookkeeping under native bill authority.",
+      "domain": "accounting",
+      "evidence_id": "vendor-bill-linked-receipt-20261017",
+      "id": "system_internal.accounting.vendor-bill-linked-receipt-20261017",
+      "rationale": "These exact underscore helpers or the module-local computed-status helper are unavailable to ordinary RPC. Native form/mail actions and the fixed persisted receipt job are their only callers. The worker reconstructs its in-process scope only after exact stored job/model/method/record/actor/company/generation identity and current native requester authority; denied work gets only a fixed technical failure and no scope/file.",
+      "reachability_proof": "These exact underscore helpers or the module-local computed-status helper are unavailable to ordinary RPC. Native form/mail actions and the fixed persisted receipt job are their only callers. The worker reconstructs its in-process scope only after exact stored job/model/method/record/actor/company/generation identity and current native requester authority; denied work gets only a fixed technical failure and no scope/file.",
+      "reviewed_digests": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._enqueue:orm_write:3": "c6b2f78195bc7186ca3ef60a6b12ceaf5e44fb6b58dfdfec23e9196522194962",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._enqueue:sudo:3": "59d1dd573b2890a68714956a219c89f096113c219f3f97bd1d1fb97b00fd60f9",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._has_manual_receipt:sudo:1": "314bb96dba0a313b39e338bde335f7460aae513432681c317edb83444d25896a",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:_compute_receipt_status:sudo:1": "591b8999b828c300138fa0f1a4fd5dcbf8cc37895fc0e727f64f0a5c20274533",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._bill_worker_recordset:orm_write:1": "c1789b61596f5fa692dbc853fc1660277661ef0406b3daff49fa9b2ed9b2a4f3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._bill_worker_recordset:sudo:1": "83b4da95d550f2178923a1e940b57710caf18cc9d471f63475ba889dcf823544",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:17": "eae898a5bbf4edf69eedc4d2d7c305ecab7eabaf62f5f29603183d2df416d0d5",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:18": "23a373be021b789537ab73df95d81cd296ef4c6c5b85e212e431281b125ff2ec",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:19": "e36d2e59ccb78c8756cde4bdb551cf180abe29af775045927fbf8431b86c38b4",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:20": "1ef378d392e356fd2cade35c4a7511243dbc56d2397a794539621cd4fa22fc27",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move._message_post_after_hook:orm_write:1": "bbf251ee01b93081be4547368dc3bcae01a0985d1f9cf288587b3c41db54c0a8",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move._message_post_after_hook:sudo:1": "c34ad9f4ea8698704a35183a17693426c58a9454feff6109b60ec1a51d69f4e0",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move._supersede_linked_receipts:orm_write:1": "ac2de028455e8fa9edb88f4e951ca17eaec4824eddcbcc3a0e59ca15b306245a",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move._supersede_linked_receipts:sudo:1": "34c87d38a5f89b5eadfddc689bc5d2432217b5ce0715cebf09938537944f063b"
+      }
+    },
+    {
+      "action_keys": [
         "cron:payment.cron_post_process_payment_tx",
         "cron:sale.send_invoice_cron",
         "cron:sale_pdf_quote_builder.cron_post_upgrade_assign_missing_form_fields",
@@ -178515,7 +178592,6 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._select_candidate:sudo:3",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._supersede_for_expense:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._supersede_for_expense:sudo:1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._compute_linked_receipt_status:sudo:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._latest_linked_receipt:sudo:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._message_post_after_hook:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._message_post_after_hook:sudo:1",
@@ -178748,11 +178824,6 @@
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._supersede_for_expense:sudo:1": {
           "rationale": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed.",
-          "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
-        },
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._compute_linked_receipt_status:sudo:1": {
-          "evidence_id": "receipt-batch-handoff-20261014",
-          "rationale": "Receipt navigation returns only internal identifiers; the native CSRF POST owns the handoff audit. Queue-age status is observational and does not admit, cancel or fetch work. Existing owner/company/generation checks and read-only boundaries remain.",
           "reachability_proof": "This exact private/internal implementation is not an ordinary RPC method: receipt underscore helpers are reached through owner/manager validation or fixed jobs; OCA Job/runner Python objects and private create use in-process identity sentinel/native queue locking. Public dispatch remains operational and separately reviewed."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._latest_linked_receipt:sudo:1": {
@@ -178992,17 +179063,17 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.pattern._register_terminal_failure:sudo:1": "184737af48f43d61e175b32c908eaae6e6bb046b5f82dc6ebc6d159c2ddb5438",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.pattern._register_terminal_failure:sudo:2": "3d68af1d0f2955f830918943b661632091a0727642ca8df8a9ed815e589ffb75",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.pattern._register_terminal_failure:sudo:3": "4e360879aa9bf4e65eb06760d238404eba71762c71a0c33a23d066eae5b4ed82",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._check_can_open_handoff:sudo:1": "ecb24a5b6b16612c33fd652027ca191bd4a7fd6178017c4f784ee9d20e87fa93",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._check_can_open_handoff:sudo:2": "58cc6adb924b6790be15544f9c5336819f5280e9baca34c196e11a5d6149efd6",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._consume_handoff:orm_write:1": "a1b431d59494cfd69e700398f81ae68dc3432f5875d710edb60f8a96faa7652f",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._consume_handoff:sudo:1": "954f5d0c83de2c3dd6a3a4fbdc5d576a488165fa1855c6ad3dc2cfecf5ef759c",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._discover_for_expense:orm_create:1": "d5512ce5deccafbb3b837f5dfc251c06cb61633c3c80d1d44914920eba57eef8",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._discover_for_expense:sudo:1": "90de3865a5b880ecbfd709d4adc7698b48664415b5eb22a338ef60489dd1ad1d",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._discover_for_expense:sudo:2": "485e13938558c665833614949822b55837b97de94af59218fa1f23f396ce25fc",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._enqueue:orm_write:1": "ac7496b882e493f2194504b16bcdd44cf96ed3daad8a49e74ac255f75bee0239",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._enqueue:orm_write:2": "ebedcb74117514b30ae093a1fbb59a7417af24815e4873c430146c4c0c387f76",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._enqueue:sudo:1": "26b422bc0ccca2baa93dc3faa31e9f777162d8c99711c915aca9ea731112fdb1",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._enqueue:sudo:2": "eaacd4c5ea333e82e0d6d2015897028b461b23f7e32520f84d3b19d7bc2ac7f3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._check_can_open_handoff:sudo:1": "6d57dda8084eeadf4570970bc6038734b4c146eb39b077296bbd014073b1456f",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._check_can_open_handoff:sudo:2": "173fbb2a828cbfc5665f516989db79e52c34398114fad3374499ca2ffa1ba414",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._consume_handoff:orm_write:1": "b2b8710a001aa7ab6aafaa7b95c9e9bff62e229e6fddaea0bdc6b10d14c6a512",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._consume_handoff:sudo:1": "ae3423e88777118d126fc034c18820523ed6fbe499dbbe857c34adaca89e3d2d",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._discover_for_expense:orm_create:1": "62d062e0afd07c1a5fa2a8964b20acd0a7cdceb49e440edbd03c3c9931ee6261",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._discover_for_expense:sudo:1": "c0914b8ab95a7e559b08bff7bcd1ccf348a9dc822a3e58369bc409b8be8f4f35",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._discover_for_expense:sudo:2": "398b8c9d9e02253831d32233219e89d5307dc12e28e93c2b57ddbf9c8491a4e0",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._enqueue:orm_write:1": "cd3a20f8583435fc55858bc806b99b1318afed4406535fb75f08826da12b2e29",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._enqueue:orm_write:2": "f58b4881e0c7f6dc2fddfd523cb65d93ddc855180254f1c338561b01c163071d",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._enqueue:sudo:1": "3765cd4be5d33220fbbb517bb5b683b029721e995475aa1e5fb95944e6e08e74",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._enqueue:sudo:2": "a1a5b2e9a52cc0a2e3ba9f9b82a97c2325e1fc621e3e8ac5206579ee01e4fb8a",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._extract_candidates:sudo:1": "7821d6bc21eaf0a65aa9696d2e1d0697dc240ea06d00e4db64a1ef206f5209a2",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._extract_candidates:sudo:2": "5123c0019cd4f4e6bd42beec1682571cde1e1db6c324956b7a0db5fcc896257f",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._extract_candidates:sudo:3": "49372098f87c2af5e8eb028d82549cbb443b8eb379d2dba71e13319836eee0de",
@@ -179015,7 +179086,6 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._select_candidate:sudo:3": "6d510672be550e7247fd47dacd75e7960da13077a5de131f41b0a2711eb818eb",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._supersede_for_expense:orm_write:1": "23e505b1d23735f9dbac8db3a2f404f05a0afda42920c2e1c7aa9ac7307e31ef",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._supersede_for_expense:sudo:1": "b8f2f822460b5bba0507a993d76a7f5a4bc97278c4f8a1d60be08c701474140e",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._compute_linked_receipt_status:sudo:1": "dda002ba0989e65e0299750ac4866ba934d1af032f72c5011514b44ba3c1b98e",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._latest_linked_receipt:sudo:1": "e1ff9a3f613eaa67167957d417c1ea3e68de596236c82d97f707c12432bb9d30",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._message_post_after_hook:orm_write:1": "1dc1c01c36d70b9f9e5f70531d5299e8ae91a472dcb4b249b1b284441993d787",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._message_post_after_hook:sudo:1": "299589f7326a27ec19251c2c6905249bed5c63cc9950a6f471b21c125f9bc06c",
@@ -179024,30 +179094,30 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._fetcher_request:external_call:3": "46d53bcaaab5a3237306578d31c66723ba8a531789bee363b40f6f9a2a6de188",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._fetcher_request:sudo:1": "240c716becfefc74642d14c605482b6c681bd3f6cfc712e8f29c79ba57bee8ef",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_attempt_number:sudo:1": "622b20a1c12b2dfcb6059a0af161bdace0b64b7d1308cd04a54e6586647de6bb",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:message_send:1": "492d56c6cf613562b509eca517faa0b437d1257338b7be81991621e2155feefd",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_create:1": "268f4f98e35a6d7eee018cf7d974033c95964d9edc21ae126c5b5fafd9b4146f",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:1": "b69d343a6e3d149a6f928c420ec916c7d0faaa2cc57d7d8219a646bb802a6437",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:10": "def40fa4a025b77b09b0bece3ad16aed6d864bb1d984725f836683b95e0312bb",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:11": "84ac997d9e11c628946207b00081345548dd96231e2580196823d05d346a81c8",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:12": "26787ef3de80f30efa4f1088e0039b7e4b51919bdd15f51f774af0e342d82193",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:13": "4e9eb9d16706226a51a9babe9bcb8f7684e2cf1171187da06ba1d4c15593eee7",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:14": "a21bc213793693f45c11121a249fd1b6a3566a87ce6334b54e4e7d581c4d21e0",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:15": "e84993ab51dc2f0b8bac8136bae3d95a25eca1b798a04c2a25dd5ef0e72d3139",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:16": "aa0d326796f0511ad47fad241fef27bb37fa4202e37b80e192a20334abc60fee",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:2": "df851ccbd2310c340e9cb60aa33695d36085a5dc0d6ce08b928c00bcf757ed3d",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:3": "0a892a2d0bf18c176fedcf9dc5bfaface4fad2e5e28f927a337a1155c20620e4",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:4": "3a597df596f276af5182a8ded019bac229c17ca55672eaab6c51026990814da2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:5": "798ef616aa6c2cd407c2b748e57e70d19555e64244ebebc335b53a817cf6972a",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:6": "d552b7a115ceb3b7926ca3866344286a3394a8db8c0394f27ad17eefa95a3ba6",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:7": "eb304819ffb4888485d45cd995d40c591f78e51d0d811650fb7e3cc3e4f16867",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:8": "ec0d0be02259c5ac250b8096ed55728f493416592cbf9367a801b6492564070c",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:9": "bc82c1c9513deee255c869b9207b1a3add63e9a7df2c7ef82d3952e581905b19",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:1": "c13740705a38ec6ca6f6cd4c2b1c229fef4aa21e8960515674da6d248c83d3f2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:2": "26fdbfa88b340450c3c368ede5a98a69b0ef30b44bd44901f204e87f27e13d67",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:3": "e59610fce9392f88d6f5f9fb5dcfbf3c611fd1f97604eec79591884c113ee6d2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:4": "39072137c3a9fcd34fc886eb1fc98423712499e8402cc453b46ff7fa9c2eabe9",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:5": "b6928417f8ad153bfa8a5fe1d6dc759b3ce441dfdfbabfbc8119b11fa3ee6bb2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:6": "b649d3b1ec903384e11ac328a1a1154d620ce7e75dcab6af289b47d2fb1c8d2f",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:message_send:1": "54d6d764a3292b157c1b112d81019619f387a7c576b83124f7e2d2f94e366cc2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_create:1": "ba89fab9bd234288adfd45fde621b0c6c17862174a3f81380602dd2ef916120a",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:1": "3d90850b11a07e2bbeceda081bd87a60471a1cc60f7c353967ae293baff26fe0",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:10": "8c3d30776eb90192caa4a9309c1b006dfb13666c262be3ab1ad699094cfbb9a7",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:11": "f086c3b69b1f646aea0f9039b86b7d0ba6c22e5d2a29d38e1ecbf9dd6659e7ec",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:12": "a346d96f458fb08348eaf28108c17d1041041a7f23c8525f138f597d39c89a42",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:13": "f9a80a7a65f70b3b2a2852dab921674f36f836e1a90d9baa4882d38fd31d1709",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:14": "63bc7297d7deae3ea55cae0a07bae6a40077835bb22983d5ae198109d6fc698f",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:15": "a83c4025ca0a4ca0308af973a58539dd4b6c5ca412460445a58c5c61782f0521",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:16": "21ce24d0b709cfc26d0b82fe6a25faf718cd08da1312bb12839ef69325a03056",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:2": "49dc29cede0a048d273f9fb248d9d675edfe2894b1669e0a59f025d5f873dd30",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:3": "9b0de70bbb5761fd32d3ad8e90085d079fa38d7a7775858d6df052e010a0c992",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:4": "3f59baf5880e1bbbf6e41e118817dba61bb9cf9b5149aec905c2f1688eb0b064",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:5": "61b01585b84e5e5cc814c616c52c51463700166986b65c4d5b27a431ce7f36d0",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:6": "7ecc804f53ae31101d37e3e94ddf7854a2eb7599481c220967e0e5b8260adbcd",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:7": "00175f47faa6326b920d0f8994e8b242a2fc4a8b66593f363bb474a0e39aa06d",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:8": "70b67cdb8948e652b98a0b6e346a313021d4474f0709f4b448f04fec891f687b",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:9": "06842afcffdf2d3595ac9a43d1d19f4950aa9d96bfe68054900629c8df364c4b",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:1": "89502235d4d65114e8e8c0e65d140e0b94a1c47a27e71431e275f8d50d0b0541",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:2": "aadab2d2d5a6d4875228fa0e814a5c390683c40d8930145bfe282d3cf8c7063a",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:3": "520fdef0582aaa9ff6517d92f401e20ed1b07009cc3da44a547ffccb4b729381",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:4": "5ac80d4632bb9f43a4863c6af8c82465d041e2cd31524270704afec0b2cc0b65",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:5": "5515099392899e44c946b9567e19697465ac4fd2a2dfd394ef0c25cf3fb492bc",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:6": "e929ea206ff54ee3d41ee8247e54d0791eb2b537a6350004c47d756a745c867b",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt_failed:orm_write:1": "db59beb24ac87fcbfefa2ace06f400536ec8ef17eaee4acc3cc50e55976cbd34",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt_failed:sudo:1": "5fa8e2e9cb2fe155281846b5217b58520ba6ab535c7b6415fbfd21375e65f2ee",
         "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_generation:sudo:1": "1bef749720d973c32dcd4171d9d95641badea1637f53a35690eaaa65e336dc1f",
@@ -181209,6 +181279,26 @@
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:1": "0a4223845d3fde2aa758baec8332b22b8d7e0e34e5c0c6abbeccbb86f2561b07",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:2": "8f30c19e2c0680e89c58007a6b008dd353e9638a2563c7a5ac07b8b7ad32a43a",
         "sink:usl_feedback:custom-addons/usl_feedback/wizard/feedback_submission.py:usl.feedback.submission._validated_page_context:sudo:3": "24d6394ce3d67f5450e1d12ae833ce076fc57e55b8a4bd24baa563848be3d530"
+      }
+    },
+    {
+      "action_keys": [
+        "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Private native aggregate delegation; existing public callers retain their authorization and classification.",
+      "domain": "projects",
+      "evidence_id": "live-content-search-20261014",
+      "id": "system_internal.projects.live_content_search",
+      "overrides": {
+        "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1": {
+          "rationale": "Exact native signature and @api.model remain. The context manager restores healthy prior planner state, preserves original SQL errors for caller rollback and does not own a savepoint. Actual native Pivot GROUPING SETS and nested schema SQL are observed under jit=off with exact aggregate/project assertions.",
+          "reachability_proof": "This private helper adds no callable RPC/controller/UI/cron entry. Existing native formatted_read_grouping_sets remains the public parent and keeps its classification and access."
+        }
+      },
+      "rationale": "Reviewed 2026-10-15: discovery conservatively matches '_set' within _read_grouping_sets as orm_write, as with the existing native Project/ORM wrappers. This override only scopes the transaction-local JIT setting and delegates unchanged to native aggregation; no business row write, elevation, global configuration or external effect.",
+      "reviewed_digests": {
+        "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1": "dd3f23fbed92b3839174ec67e638ea9073a9effeeff7232f0d0e6799357de1c4"
       }
     },
     {
@@ -194780,6 +194870,69 @@
     },
     {
       "action_keys": [
+        "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_accept_linked_receipt:1",
+        "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_dismiss_linked_receipt:1",
+        "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_open_linked_receipt_website:1",
+        "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_retry_linked_receipt:1",
+        "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_review_linked_receipt:1",
+        "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_review_linked_receipt:2",
+        "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_scan_existing_receipt_emails:1"
+      ],
+      "classification": "transport",
+      "consequence": "Forwards only to the listed native bill-recovery actions.",
+      "domain": "accounting",
+      "evidence_id": "vendor-bill-linked-receipt-20261017",
+      "id": "transport.accounting.vendor-bill-linked-receipt-20261017",
+      "overrides": {
+        "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_accept_linked_receipt:1": {
+          "targets": [
+            "rpc:account.move.action_accept_linked_receipt"
+          ]
+        },
+        "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_dismiss_linked_receipt:1": {
+          "targets": [
+            "rpc:account.move.action_dismiss_linked_receipt"
+          ]
+        },
+        "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_open_linked_receipt_website:1": {
+          "targets": [
+            "rpc:account.move.action_open_linked_receipt_website"
+          ]
+        },
+        "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_retry_linked_receipt:1": {
+          "targets": [
+            "rpc:account.move.action_retry_linked_receipt"
+          ]
+        },
+        "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_review_linked_receipt:1": {
+          "targets": [
+            "rpc:account.move.action_review_linked_receipt"
+          ]
+        },
+        "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_review_linked_receipt:2": {
+          "targets": [
+            "rpc:account.move.action_review_linked_receipt"
+          ]
+        },
+        "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_scan_existing_receipt_emails:1": {
+          "targets": [
+            "rpc:account.move.action_scan_existing_receipt_emails"
+          ]
+        }
+      },
+      "rationale": "Each native object button invokes only its explicitly named operational account.move method; it adds no independent business authority or mutation.",
+      "reviewed_digests": {
+        "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_accept_linked_receipt:1": "c4d7df2ed4967218fb327a9e29b2daa6acd759c435462cf18aaa140741625143",
+        "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_dismiss_linked_receipt:1": "480b4888d64967671bc8491f63e7df148337f8488e5dc1a0895b84c309e145c5",
+        "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_open_linked_receipt_website:1": "e7aa55aa6f9a823a618272aa9642e1a905e674702213776454579d0b0341a77e",
+        "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_retry_linked_receipt:1": "262fd63e08f951ea02242fdf8a3ffaf47915a92150f985a4a99628c49e713df7",
+        "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_review_linked_receipt:1": "6d39018324405d6f6ae9c27103a59ae12045bc9c61d29bbfd21b4681906aef03",
+        "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_review_linked_receipt:2": "68adda238ecbb18fa1e67bb9bea47dca8b85466e869c7fef6a3d16622f6adef3",
+        "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_scan_existing_receipt_emails:1": "0880be461b18215c23b9e1c08cc6f4a7a7b1d2ce0dee3f57288baf40b54fdd3b"
+      }
+    },
+    {
+      "action_keys": [
         "client:payment:addons/payment/static/src/interactions/payment_form.js:_archiveToken:route:1",
         "client:payment:addons/payment/static/src/interactions/post_processing.js:poll:route:1",
         "client:product:addons/product/static/src/product_catalog/kanban_model.js:if:route:1",
@@ -204339,124 +204492,6 @@
     },
     {
       "action_keys": [
-        "route:jsonrpc:ANY:/html_editor/generate_text"
-      ],
-      "classification": "operational",
-      "consequence": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
-      "domain": "system_framework",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.2",
-      "rationale": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
-      "reviewed_digests": {
-        "route:jsonrpc:ANY:/html_editor/generate_text": "b00102b90870fe0f87637ad180a5d8405c56a7522110558f1745005aa84929eb"
-      }
-    },
-    {
-      "action_keys": [
-        "route:jsonrpc:ANY:/html_editor/modify_image/<model(\"ir.attachment\"):attachment>"
-      ],
-      "classification": "operational",
-      "consequence": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
-      "domain": "documents_and_communications",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.3",
-      "rationale": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
-      "reviewed_digests": {
-        "route:jsonrpc:ANY:/html_editor/modify_image/<model(\"ir.attachment\"):attachment>": "035375acd2da4c4fdbcaa10f34d00337de874c315abfa025c096c37ed990c3f7"
-      }
-    },
-    {
-      "action_keys": [
-        "route:jsonrpc:ANY:/web/action/load_breadcrumbs"
-      ],
-      "classification": "transport",
-      "consequence": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
-      "domain": "system_framework",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.4",
-      "rationale": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
-      "reviewed_digests": {
-        "route:jsonrpc:ANY:/web/action/load_breadcrumbs": "799548b0037dd87a8788b3d3905a44febecf7364ef2f69288c9341f7880ef5eb"
-      },
-      "targets": [
-        "rpc:ir.actions.server.run"
-      ]
-    },
-    {
-      "action_keys": [
-        "route:jsonrpc:ANY:/web/action/run"
-      ],
-      "classification": "transport",
-      "consequence": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
-      "domain": "system_framework",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.5",
-      "rationale": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
-      "reviewed_digests": {
-        "route:jsonrpc:ANY:/web/action/run": "0f4475f0f23153f4d380c1b5dd5d056683a2dc6b9466a31f01663e208eead735"
-      },
-      "targets": [
-        "rpc:ir.actions.server.run"
-      ]
-    },
-    {
-      "action_keys": [
-        "route:jsonrpc:ANY:/web_editor/bus_broadcast"
-      ],
-      "classification": "operational",
-      "consequence": "Checks document read/write authority and sends editor collaboration bus events; the new batch/peer routing does not remove that authority boundary. This emits notifications and is not a read-only operation.",
-      "domain": "system_framework",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.6",
-      "rationale": "Checks document read/write authority and sends editor collaboration bus events; the new batch/peer routing does not remove that authority boundary. This emits notifications and is not a read-only operation.",
-      "reviewed_digests": {
-        "route:jsonrpc:ANY:/web_editor/bus_broadcast": "7df5c77037e653a30cb331e8dc9e537e9fa425f1a97f6a25eef4ca496ea3483f"
-      }
-    },
-    {
-      "action_keys": [
-        "route:jsonrpc:ANY:/web_editor/generate_text"
-      ],
-      "classification": "operational",
-      "consequence": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
-      "domain": "system_framework",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.7",
-      "rationale": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
-      "reviewed_digests": {
-        "route:jsonrpc:ANY:/web_editor/generate_text": "7b2d4b71f10413bf194b17d3af7f4d443ae48a4db7560e4c540b13f9c85b39f8"
-      }
-    },
-    {
-      "action_keys": [
-        "route:jsonrpc:ANY:/web_editor/modify_image/<model(\"ir.attachment\"):attachment>"
-      ],
-      "classification": "operational",
-      "consequence": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
-      "domain": "documents_and_communications",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.8",
-      "rationale": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
-      "reviewed_digests": {
-        "route:jsonrpc:ANY:/web_editor/modify_image/<model(\"ir.attachment\"):attachment>": "eb1f5b787e9dcf5e364d00a0ce1156bec285f9edbaf6c126706e67f15df2e2e6"
-      }
-    },
-    {
-      "action_keys": [
-        "rpc:account.analytic.plan.write"
-      ],
-      "classification": "operational",
-      "consequence": "Public plan name/parent maintenance invokes fixed inverse and private _sync_all_plan_column. Registry analytic.plan.fields.mixin descendants fix models. _strict_column_name fixes account_id or x_plan{persisted id}_id; _hierarchy_name adds numeric depth. Only business name enters field_description; ttype=many2one, relation, related path, store, readonly and on_delete are fixed. Batched sudo ir.model.fields search/create/write/unlink operates only these generated fields. Existing analytic account values migrate before root column removal; unused hierarchy fields removed after write. analytic.group_analytic_accounting ACL controls plan CRUD; this exposes no arbitrary field-definition API. Generic field-definition API keeps its own guard.",
-      "domain": "accounting",
-      "evidence_id": "upstream-sync-20261015",
-      "id": "upstream-sync-20261015.9",
-      "rationale": "Public plan name/parent maintenance invokes fixed inverse and private _sync_all_plan_column. Registry analytic.plan.fields.mixin descendants fix models. _strict_column_name fixes account_id or x_plan{persisted id}_id; _hierarchy_name adds numeric depth. Only business name enters field_description; ttype=many2one, relation, related path, store, readonly and on_delete are fixed. Batched sudo ir.model.fields search/create/write/unlink operates only these generated fields. Existing analytic account values migrate before root column removal; unused hierarchy fields removed after write. analytic.group_analytic_accounting ACL controls plan CRUD; this exposes no arbitrary field-definition API. Generic field-definition API keeps its own guard.",
-      "reviewed_digests": {
-        "rpc:account.analytic.plan.write": "302cce3701fa5f03e3de604927420a658998e7b7b973aeff5730bfaeda7518c0"
-      }
-    },
-    {
-      "action_keys": [
         "rpc:account.move.action_cancel_peppol_documents"
       ],
       "classification": "operational",
@@ -204597,6 +204632,20 @@
     },
     {
       "action_keys": [
+        "route:jsonrpc:ANY:/html_editor/generate_text"
+      ],
+      "classification": "operational",
+      "consequence": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
+      "domain": "system_framework",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.2",
+      "rationale": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
+      "reviewed_digests": {
+        "route:jsonrpc:ANY:/html_editor/generate_text": "b00102b90870fe0f87637ad180a5d8405c56a7522110558f1745005aa84929eb"
+      }
+    },
+    {
+      "action_keys": [
         "rpc:product.product.name_search"
       ],
       "classification": "read_only",
@@ -204733,6 +204782,20 @@
       "rationale": "Exact delivered closure includes delivery and stock_delivery only. Carrier dispatcher reaches fixed_cancel_shipment or base_on_rule_cancel_shipment; both raise NotImplementedError before picking chatter or tracking reset. Upstream corrects recordset dispatch from self to each picking. No remote provider or remote reversal exists here. Preserve fixed normal workflow and explicitly drop unsupported remote-recovery claim; adding a provider requires new registry review.",
       "reviewed_digests": {
         "rpc:stock.picking.cancel_shipment": "80a2ae4c65eb92fdc724ba83290b36fcdb640a262cacc6d5a4d7f8e53156e050"
+      }
+    },
+    {
+      "action_keys": [
+        "route:jsonrpc:ANY:/html_editor/modify_image/<model(\"ir.attachment\"):attachment>"
+      ],
+      "classification": "operational",
+      "consequence": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
+      "domain": "documents_and_communications",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.3",
+      "rationale": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
+      "reviewed_digests": {
+        "route:jsonrpc:ANY:/html_editor/modify_image/<model(\"ir.attachment\"):attachment>": "035375acd2da4c4fdbcaa10f34d00337de874c315abfa025c096c37ed990c3f7"
       }
     },
     {
@@ -204882,6 +204945,23 @@
       "reviewed_digests": {
         "sink:account:addons/account/models/product.py:product.template.write:orm_write:1": "6006ca69ad31e5f64021eac08f8d47193fd3367eb95769add5d34ae8352ac514"
       }
+    },
+    {
+      "action_keys": [
+        "route:jsonrpc:ANY:/web/action/load_breadcrumbs"
+      ],
+      "classification": "transport",
+      "consequence": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
+      "domain": "system_framework",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.4",
+      "rationale": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
+      "reviewed_digests": {
+        "route:jsonrpc:ANY:/web/action/load_breadcrumbs": "799548b0037dd87a8788b3d3905a44febecf7364ef2f69288c9341f7880ef5eb"
+      },
+      "targets": [
+        "rpc:ir.actions.server.run"
+      ]
     },
     {
       "action_keys": [
@@ -205035,6 +205115,23 @@
     },
     {
       "action_keys": [
+        "route:jsonrpc:ANY:/web/action/run"
+      ],
+      "classification": "transport",
+      "consequence": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
+      "domain": "system_framework",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.5",
+      "rationale": "Loads native metadata and can dispatch a selected server action. Its exact effectful delegate is ir.actions.server.run, whose qualified fixed-action policy and native access rules govern execution; do not claim server-action execution is read-only.",
+      "reviewed_digests": {
+        "route:jsonrpc:ANY:/web/action/run": "0f4475f0f23153f4d380c1b5dd5d056683a2dc6b9466a31f01663e208eead735"
+      },
+      "targets": [
+        "rpc:ir.actions.server.run"
+      ]
+    },
+    {
+      "action_keys": [
         "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_edi_ubl_cen_en16931.py:account.edi.ubl_cen_en16931._ubl_get_partner_address_node:orm_write:1"
       ],
       "classification": "system_internal",
@@ -205181,6 +205278,20 @@
       "reachability_proof": "Exact implementation sink only; it has no independent public method/controller dispatch. Its reviewed native parent owns actor, record and company authority.",
       "reviewed_digests": {
         "sink:base_automation:addons/base_automation/models/base_automation.py:base.automation._process:sudo:3": "f3876a33d3dab335a239a2576432833e5da601c1f36ea1abb8c8c2b2feae1f5b"
+      }
+    },
+    {
+      "action_keys": [
+        "route:jsonrpc:ANY:/web_editor/bus_broadcast"
+      ],
+      "classification": "operational",
+      "consequence": "Checks document read/write authority and sends editor collaboration bus events; the new batch/peer routing does not remove that authority boundary. This emits notifications and is not a read-only operation.",
+      "domain": "system_framework",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.6",
+      "rationale": "Checks document read/write authority and sends editor collaboration bus events; the new batch/peer routing does not remove that authority boundary. This emits notifications and is not a read-only operation.",
+      "reviewed_digests": {
+        "route:jsonrpc:ANY:/web_editor/bus_broadcast": "7df5c77037e653a30cb331e8dc9e537e9fa425f1a97f6a25eef4ca496ea3483f"
       }
     },
     {
@@ -205335,6 +205446,20 @@
     },
     {
       "action_keys": [
+        "route:jsonrpc:ANY:/web_editor/generate_text"
+      ],
+      "classification": "operational",
+      "consequence": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
+      "domain": "system_framework",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.7",
+      "rationale": "An internal user requests content from the fixed administrator-configured IAP generation service; the new internal-user check tightens authority. The remote request is an ordinary operational effect, not a read-only query.",
+      "reviewed_digests": {
+        "route:jsonrpc:ANY:/web_editor/generate_text": "7b2d4b71f10413bf194b17d3af7f4d443ae48a4db7560e4c540b13f9c85b39f8"
+      }
+    },
+    {
+      "action_keys": [
         "sink:l10n_fr_pdp:addons/l10n_fr_pdp/models/account_edi_xml_ubl_21_fr.py:account.edi.xml.ubl_21_fr._ubl_add_invoice_type_code_node:orm_write:1"
       ],
       "classification": "system_internal",
@@ -205481,6 +205606,20 @@
       "reachability_proof": "Exact implementation sink only; it has no independent public method/controller dispatch. Its reviewed native parent owns actor, record and company authority.",
       "reviewed_digests": {
         "sink:mrp_account:addons/mrp_account/models/mrp_production.py:mrp.production.write:sudo:3": "7425bf9a3c7c33f602278db591d6d493958f8bb29a35bfe43d54c4a031c3e9cf"
+      }
+    },
+    {
+      "action_keys": [
+        "route:jsonrpc:ANY:/web_editor/modify_image/<model(\"ir.attachment\"):attachment>"
+      ],
+      "classification": "operational",
+      "consequence": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
+      "domain": "documents_and_communications",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.8",
+      "rationale": "Native code checks source read, destination write and mimetype/editor authority before creating a modified image copy and any access token. The original image remains; creation/token issuance are operational effects, not read-only metadata.",
+      "reviewed_digests": {
+        "route:jsonrpc:ANY:/web_editor/modify_image/<model(\"ir.attachment\"):attachment>": "eb1f5b787e9dcf5e364d00a0ce1156bec285f9edbaf6c126706e67f15df2e2e6"
       }
     },
     {
@@ -205635,6 +205774,20 @@
     },
     {
       "action_keys": [
+        "rpc:account.analytic.plan.write"
+      ],
+      "classification": "operational",
+      "consequence": "Public plan name/parent maintenance invokes fixed inverse and private _sync_all_plan_column. Registry analytic.plan.fields.mixin descendants fix models. _strict_column_name fixes account_id or x_plan{persisted id}_id; _hierarchy_name adds numeric depth. Only business name enters field_description; ttype=many2one, relation, related path, store, readonly and on_delete are fixed. Batched sudo ir.model.fields search/create/write/unlink operates only these generated fields. Existing analytic account values migrate before root column removal; unused hierarchy fields removed after write. analytic.group_analytic_accounting ACL controls plan CRUD; this exposes no arbitrary field-definition API. Generic field-definition API keeps its own guard.",
+      "domain": "accounting",
+      "evidence_id": "upstream-sync-20261015",
+      "id": "upstream-sync-20261015.9",
+      "rationale": "Public plan name/parent maintenance invokes fixed inverse and private _sync_all_plan_column. Registry analytic.plan.fields.mixin descendants fix models. _strict_column_name fixes account_id or x_plan{persisted id}_id; _hierarchy_name adds numeric depth. Only business name enters field_description; ttype=many2one, relation, related path, store, readonly and on_delete are fixed. Batched sudo ir.model.fields search/create/write/unlink operates only these generated fields. Existing analytic account values migrate before root column removal; unused hierarchy fields removed after write. analytic.group_analytic_accounting ACL controls plan CRUD; this exposes no arbitrary field-definition API. Generic field-definition API keeps its own guard.",
+      "reviewed_digests": {
+        "rpc:account.analytic.plan.write": "302cce3701fa5f03e3de604927420a658998e7b7b973aeff5730bfaeda7518c0"
+      }
+    },
+    {
+      "action_keys": [
         "ui:account.view_move_form:button:object:action_open_journal_items:1"
       ],
       "classification": "transport",
@@ -205669,22 +205822,24 @@
     },
     {
       "action_keys": [
-        "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1"
+        "ui:usl_accounting.view_usl_mail_pdf_candidate_wizard_form:button:object:action_choose:2"
       ],
-      "classification": "system_internal",
-      "consequence": "Private native aggregate delegation; existing public callers retain their authorization and classification.",
-      "domain": "projects",
-      "evidence_id": "live-content-search-20261014",
-      "id": "system_internal.projects.live_content_search",
+      "classification": "transport",
+      "consequence": "Shows the existing document-choice RPC as a visible native mobile card action.",
+      "domain": "accounting",
+      "evidence_id": "vendor-bill-linked-receipt-20261017",
+      "id": "transport.accounting.linked_receipt_mobile_20261017",
       "overrides": {
-        "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1": {
-          "rationale": "Exact native signature and @api.model remain. The context manager restores healthy prior planner state, preserves original SQL errors for caller rollback and does not own a savepoint. Actual native Pivot GROUPING SETS and nested schema SQL are observed under jit=off with exact aggregate/project assertions.",
-          "reachability_proof": "This private helper adds no callable RPC/controller/UI/cron entry. Existing native formatted_read_grouping_sets remains the public parent and keeps its classification and access."
+        "ui:usl_accounting.view_usl_mail_pdf_candidate_wizard_form:button:object:action_choose:2": {
+          "rationale": "Exact existing native line-selection RPC; its ordinary target authority and selected fingerprint remain unchanged.",
+          "targets": [
+            "rpc:usl.mail.pdf.candidate.wizard.line.action_choose"
+          ]
         }
       },
-      "rationale": "Reviewed 2026-10-15: discovery conservatively matches '_set' within _read_grouping_sets as orm_write, as with the existing native Project/ORM wrappers. This override only scopes the transaction-local JIT setting and delegates unchanged to native aggregation; no business row write, elevation, global configuration or external effect.",
+      "rationale": "The shared native picker uses the same persisted line and existing action_choose method on desktop and mobile; no additional mutation, authority or selection path is introduced.",
       "reviewed_digests": {
-        "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1": "dd3f23fbed92b3839174ec67e638ea9073a9effeeff7232f0d0e6799357de1c4"
+        "ui:usl_accounting.view_usl_mail_pdf_candidate_wizard_form:button:object:action_choose:2": "caa30f1f7368b3ea66a4deccec0d1aec624d7d8983f25137e59aa5bf3d9c3b05"
       }
     }
   ],
@@ -206059,6 +206214,24 @@
         "addons/web/tests/test_action.py",
         "custom-addons/usl_access_control/tests/test_action_policy.py",
         "custom-addons/usl_access_control/tests/test_agents.py"
+      ]
+    },
+    "vendor-bill-linked-receipt-20261017": {
+      "contract": "Native supplier email, link choice, persisted actor-owned queue execution and exact original PDF/main attachment/audit on the same bill. Native bill readers/writers including invoicing-only delegated Agents retain their normal authority; source, company, manual-file and generation changes prevent stale publication. Existing expense ownership and recovery remain unchanged. Native Chromium form cases prove clean saved bills recover or upload before the date is known, while dirty/new bill validation, financial actions and expense upload remain native. Native mobile cards keep the source label, site and exact line-selection action within a narrow viewport; bill source wording remains transient while existing expense semantics and desktop list selection remain intact.",
+      "tests": [
+        "custom-addons/usl_accounting/tests/test_vendor_linked_receipt.py::TestVendorLinkedReceipt.test_native_purchase_email_to_original_pdf_main_and_history",
+        "custom-addons/usl_accounting/tests/test_vendor_linked_receipt.py::TestVendorLinkedReceipt.test_delegated_worker_retains_native_request_after_rpc_context_ends",
+        "custom-addons/usl_accounting/tests/test_vendor_linked_receipt.py::TestVendorLinkedReceipt.test_invoicing_only_writer_uses_native_bill_visibility",
+        "custom-addons/usl_accounting/tests/test_vendor_linked_receipt.py::TestVendorLinkedReceipt.test_selected_company_bill_does_not_have_to_be_current_company",
+        "custom-addons/usl_accounting/tests/test_vendor_linked_receipt.py::TestVendorLinkedReceipt.test_native_upload_widget_callback_selects_original_and_preserves_files",
+        "custom-addons/usl_accounting/tests/test_vendor_linked_receipt.py::TestVendorLinkedReceipt.test_source_changed_while_queued_is_not_fetched",
+        "custom-addons/usl_accounting/tests/test_vendor_linked_receipt.py::TestVendorLinkedReceipt.test_manual_original_during_fetch_wins",
+        "custom-addons/usl_accounting/tests/test_vendor_linked_receipt.py::TestVendorLinkedReceipt.test_french_status_translation_on_bill_and_existing_expense",
+        "custom-addons/usl_accounting/tests/test_vendor_linked_receipt_ui.py::TestVendorLinkedReceiptUi.test_source_first_bill_controls",
+        "custom-addons/usl_accounting/tests/test_vendor_linked_receipt.py::TestVendorLinkedReceipt.test_bill_picker_uses_distinct_source_copy_and_exact_original_choice",
+        "custom-addons/usl_accounting/tests/test_vendor_linked_receipt.py::TestVendorLinkedReceipt.test_bill_picker_ambiguous_or_url_labels_use_honest_source_order",
+        "custom-addons/usl_accounting/tests/test_vendor_linked_receipt.py::TestVendorLinkedReceipt.test_existing_expense_picker_keeps_its_semantic_labels",
+        "custom-addons/usl_accounting/tests/test_vendor_linked_receipt.py::TestVendorLinkedReceipt.test_french_picker_view_fields_and_fallback_are_translated"
       ]
     },
     "vendor-bill-merge-20261014": {
