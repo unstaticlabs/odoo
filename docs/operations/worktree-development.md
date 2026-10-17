@@ -81,6 +81,15 @@ script. `scripts/odoo-dev` and `accounting_compat.cli` resolve the same order.
 
 ## The database
 
+For ordinary local-password browser QA, create a disposable human with identity
+classification unset, using the same native groups and companies as the intended
+reviewer. An `active` identity is Pocket ID-managed in this distribution; its
+native form/password login can be denied even when an `HttpCase` login helper
+can impersonate it. Verify an actual password session before handing off the
+fixture. Keep the intended SSO identity separate and never weaken Pocket ID
+policy to make a local QA login work. Identity/SSO changes require their own
+representative authentication journey.
+
 `make worktree-env` isolates the runtime, not the data, so a worktree starts
 with no database and `make doctor` reports one missing. What to do next depends
 on what you actually need, and the two needs are not interchangeable.
