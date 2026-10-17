@@ -250,6 +250,7 @@ action-risk-refresh:
 
 action-risk-compile-policy:
 	@python3 scripts/action_risk_inventory.py compile-runtime-policy
+	@python3 scripts/action_risk_inventory.py compile-agent-readonly-runtime-policy
 
 action-risk-inventory: action-helpers
 	@python3 scripts/action_risk_inventory.py check-source
