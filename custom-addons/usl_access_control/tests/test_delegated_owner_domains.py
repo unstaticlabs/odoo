@@ -355,3 +355,87 @@ class TestDelegatedOwnerDomains(HttpCase):
         denied = self._call(key, "write", ids=[], vals={"name": "Forbidden"})
         self.assertEqual(denied.status_code, 403, denied.text)
         self.assertEqual(self._business_fingerprints(), before)
+
+    def test_native_notification_render_keeps_authorship_and_owner_ceiling(self):
+        writer, user = self._writer()
+        recipient = self.env["res.partner"].create({
+            "name": "[QA owner domains] Recipient", "email": "recipient.owner.domains@example.test",
+        })
+        task = self.tasks[0]
+        notification = task.with_user(user).message_notify(
+            body="[QA owner domains] Agent notification", partner_ids=recipient.ids, force_send=False,
+        )
+        stored = notification.with_env(self.env)
+        self.assertEqual(stored.author_id, user.partner_id)
+        self.assertEqual(stored.create_uid, user)
+        self.assertEqual(stored.partner_ids, recipient)
+        self.assertEqual(stored.message_type, "user_notification")
+        self.assertEqual((stored.model, stored.res_id), (task._name, task.id))
+        mail = self.env["mail.mail"].search([("mail_message_id", "=", stored.id)])
+        self.assertTrue(mail)
+        self.assertIn("Agent notification", mail.body_html)
+        # Rendering exact technical output does not expose it through ordinary
+        # reads: native user notifications exclude related-document authority.
+        self.env._access_cache.clear()
+        ordinary = self.env["mail.message"].with_user(user).browse(stored.id)
+        self.assertFalse(ordinary.has_access("read"))
+        with self.assertRaises(AccessError):
+            ordinary.read(["body"])
+        private = self.hidden_task.message_post(body="[QA owner domains] Unrelated private")
+        with self.assertRaises(AccessError):
+            self.env["mail.message"].with_user(user).browse(private.id).read(["body"])
+        human = task.with_user(self.owner).message_notify(
+            body="[QA owner domains] Human notification", partner_ids=recipient.ids, force_send=False,
+        )
+        self.assertEqual(human.author_id, self.owner.partner_id)
+        self.assertEqual(human.create_uid, self.owner)
+        self.assertIn("Human notification", human.body)
+        self.assertEqual(human.partner_ids, recipient)
+        self.assertIn("Human notification", self.env["mail.mail"].search([
+            ("mail_message_id", "=", human.id),
+        ]).body_html)
+
+    def test_notification_render_boundary_context_and_values(self):
+        from odoo.addons.mail.models.mail_thread import MailThread as NativeMailThread
+        from ..models.agent_policy_tokens import AGENT_COLLABORATION_CONTEXT_KEY
+
+        writer, user = self._writer()
+        records = self.tasks[0].with_user(user)
+        scoped = records._usl_agent_collaboration(operation="write")
+        message = self.tasks[0].message_post(body="[QA owner domains] Render").with_user(user)
+        supplied = {"message": message, "record": records, "lang": "fr_FR"}
+        snapshots = []
+
+        def native_render(record, msg, recipients_group, msg_vals=False, render_values=None):
+            snapshots.append((record, msg, recipients_group, msg_vals, render_values))
+            return "native rendered layout"
+
+        recipients = {"notification_group_name": "customer"}
+        msg_vals = {"email_layout_xmlid": "mail.mail_notification_light"}
+        with patch.object(NativeMailThread, "_notify_by_email_render_layout", native_render):
+            self.assertEqual(scoped._notify_by_email_render_layout(
+                message, recipients, msg_vals=msg_vals, render_values=supplied,
+            ), "native rendered layout")
+            record, rendered, actual_recipients, actual_vals, values = snapshots[-1]
+            self.assertFalse(record.env.su)
+            self.assertTrue(rendered.env.su)
+            self.assertEqual(rendered.env.uid, user.id)
+            self.assertIs(values["message"], rendered)
+            self.assertIs(values["record"], records)
+            self.assertEqual(values["lang"], "fr_FR")
+            self.assertIs(actual_recipients, recipients)
+            self.assertIs(actual_vals, msg_vals)
+            self.assertIs(supplied["message"], message)
+            self.assertFalse(message.env.su)
+            scoped._notify_by_email_render_layout(message, recipients)
+            self.assertTrue(snapshots[-1][-1]["message"].env.su)
+            # A serializable marker cannot enable the private technical scope.
+            forged = records.with_context(**{AGENT_COLLABORATION_CONTEXT_KEY: True})
+            forged._notify_by_email_render_layout(message, recipients, render_values=supplied)
+            self.assertIs(snapshots[-1][1], message)
+            self.assertIs(snapshots[-1][-1], supplied)
+            records.with_user(self.owner)._notify_by_email_render_layout(
+                message, recipients, render_values=supplied,
+            )
+            self.assertIs(snapshots[-1][1], message)
+            self.assertIs(snapshots[-1][-1], supplied)

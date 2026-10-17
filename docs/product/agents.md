@@ -44,6 +44,12 @@ Agent records. Record filtering and writes use the owner's native rules for
 the requested operation. Explicit caller search predicates keep their native
 caller context.
 
+An already-authorized Chatter notification renders its exact technical message
+with native sudo while retaining the Agent's author identity and recipients.
+This internal rendering returns HTML to the native notification workflow;
+ordinary subsequent message reads still use the current owner's rule ceiling.
+It does not extend the Agent's personal-message authority globally.
+
 When owner authority contracts, Odoo removes the lost groups and companies
 immediately and records an authority-reduction warning. The warning is
 informational: the Agent may continue within its reduced authority while the

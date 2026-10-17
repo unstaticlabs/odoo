@@ -203306,6 +203306,21 @@
       "reviewed_digests": {
         "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base._access_domain:sudo:1": "fa6921d51a264e011a0dd920160e1d9004950611162a8b56559e1d55d95e7e41"
       }
+    },
+    {
+      "action_keys": [
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.thread._notify_by_email_render_layout:sudo:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Renders the exact technical notification message passed by the already-authorized native collaboration flow, retaining the Agent UID, business-record environment and recipients; returns native layout HTML only.",
+      "domain": "security_and_administration",
+      "evidence_id": "delegated-owner-domain-context",
+      "id": "system_internal.agent_native_notification_render",
+      "rationale": "Native user notifications rely on author/creator/recipient identity rather than related-document visibility. Owner-bound rule expansion must not prevent the native email preview of the Agent-authored output of an already-authorized collaboration. Elevation is confined to the exact message argument and copied rendering context in the private native hook; ordinary message reads keep the owner ceiling.",
+      "reachability_proof": "Private native MailThread notification-layout helper is called by reviewed mail notification/compose/preview internals and is not an ordinary RPC. Only an existing unforgeable server collaboration token on a managed Agent enables the exact-message sudo; public recordsets, business-record access and unrelated ordinary reads are unchanged.",
+      "reviewed_digests": {
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.thread._notify_by_email_render_layout:sudo:1": "e522a0c6ba217529619c5f956b458676d315e5b8a553f343b8e88d856667faa0"
+      }
     }
   ],
   "evidence_families": {
@@ -203343,7 +203358,9 @@
         "custom-addons/usl_access_control/tests/test_delegated_owner_domains.py::TestDelegatedOwnerDomains.test_native_create_write_unlink_relations_and_owner_acl_loss",
         "custom-addons/usl_access_control/tests/test_delegated_owner_domains.py::TestDelegatedOwnerDomains.test_bounded_native_mail_context",
         "custom-addons/usl_access_control/tests/test_delegated_owner_domains.py::TestDelegatedOwnerDomains.test_record_access_batching",
-        "custom-addons/usl_access_control/tests/test_delegated_owner_domains.py::TestDelegatedOwnerDomains.test_fresh_key_native_http_personal_search_and_group"
+        "custom-addons/usl_access_control/tests/test_delegated_owner_domains.py::TestDelegatedOwnerDomains.test_fresh_key_native_http_personal_search_and_group",
+        "custom-addons/usl_access_control/tests/test_delegated_owner_domains.py::TestDelegatedOwnerDomains.test_native_notification_render_keeps_authorship_and_owner_ceiling",
+        "custom-addons/usl_access_control/tests/test_delegated_owner_domains.py::TestDelegatedOwnerDomains.test_notification_render_boundary_context_and_values"
       ]
     },
     "documents-batch-metadata-20261014": {
