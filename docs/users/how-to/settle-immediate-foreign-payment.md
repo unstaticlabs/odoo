@@ -69,7 +69,7 @@ Open the information icon for the bank amount, document-derived foreign
 amount, discarded estimate, original and applied document rates, original and
 repriced EUR values, provenance, or native FX.
 
-Use the normal **Unreconcile** action, or **Reverse Settlement** on the audit
+Use the normal **Unreconcile** action, or **Undo settlement** on the audit
 record, to undo the whole linked settlement. Odoo restores the original
 document rate and EUR carrying value, the bank suspense, and the original
 missing-foreign-amount state. If the original document period was locked after

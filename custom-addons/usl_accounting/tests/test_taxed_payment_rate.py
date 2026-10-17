@@ -332,13 +332,27 @@ class TestTaxedPaymentRate(AccountTestInvoicingCommon):
                 self.assertFalse(statement.is_reconciled)
             else:
                 self.assertFalse(caller.env.user.has_group('usl_access_control.group_irreversible_actions'))
-                outcome=caller.js_use_payment_rate_outstanding_line(source.id)
+                from odoo.addons.usl_access_control.controllers.json2 import UslAgentJson2Controller
+                access=UslAgentJson2Controller._check_agent_call(agent=agent,
+                    model_name='account.move',method_name='js_use_payment_rate_outstanding_line',
+                    kwargs={'line_id':source.id})
+                context=UslAgentJson2Controller._agent_call_context(context=caller.env.context,
+                    agent=agent,model_name='account.move',
+                    method_name='js_use_payment_rate_outstanding_line',access=access)
+                outcome=caller.with_context(context).js_use_payment_rate_outstanding_line(source.id)
                 self.assertEqual(bill.write_uid,agent.user_id)
                 self.assertEqual(bill.amount_residual,0)
-                self.env['account.immediate.settlement'].with_user(agent.user_id).browse(outcome['settlement_id']).action_reverse()
+                # The native bank Undo delegates to the full immutable audit recovery.
+                access=UslAgentJson2Controller._check_agent_call(agent=agent,
+                    model_name='account.bank.statement.line',method_name='action_undo_reconciliation',kwargs={})
+                context=UslAgentJson2Controller._agent_call_context(context=caller.env.context,
+                    agent=agent,model_name='account.bank.statement.line',
+                    method_name='action_undo_reconciliation',access=access)
+                statement.with_user(agent.user_id).with_context(context).action_undo_reconciliation()
+                self.assertEqual(self.env['account.immediate.settlement'].browse(outcome['settlement_id']).state,'reversed')
                 self.assertEqual(bill.invoice_currency_rate,1.25)
 
-    def test_taxed_locks_foreign_company_and_current_owner_reduction(self):
+    def test_taxed_locks_and_foreign_company_authority(self):
         bill=self._fixture()
         statement,source=self._statement(bill,108)
         self.company.sudo().tax_lock_date=self.day
@@ -353,3 +367,15 @@ class TestTaxedPaymentRate(AccountTestInvoicingCommon):
             company_id=other['company'].id,company_ids=[Command.set(other['company'].ids)])
         with self.assertRaises(AccessError),self.env.cr.savepoint():
             bill.with_user(outsider).with_context(allowed_company_ids=other['company'].ids).js_use_payment_rate_outstanding_line(source.id)
+
+    def test_recovery_view_exposes_action_and_keeps_raw_snapshots_in_technical_tab(self):
+        from lxml import etree
+        view=self.env.ref('usl_accounting.view_account_immediate_settlement_form')
+        arch=etree.fromstring(self.env['account.immediate.settlement'].with_context(lang='en_US').get_view(view.id,'form')['arch'])
+        self.assertEqual(arch.xpath('//header/button[@name="action_reverse"]/@string'),['Undo settlement'])
+        technical=arch.xpath('//page[@name="technical_details"]')
+        self.assertEqual(len(technical),1)
+        self.assertFalse(technical[0].get('groups'))
+        for field in ['provenance_details','original_document_line_snapshot','repriced_document_line_snapshot']:
+            self.assertEqual(len(technical[0].xpath('.//field[@name="%s"]'%field)),1)
+        self.assertEqual(len(arch.xpath('//field[@name="original_document_company_amount"]')),1)

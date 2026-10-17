@@ -1608860,7 +1608860,7 @@
       ]
     },
     {
-      "digest": "669db424fb2044bbb6dba0d5d90e8f512f64b9b007cee536901085ae1bf11f3a",
+      "digest": "2edf1302550b9c5889f195ba370523b1a03a91e7604a3b78ef2ecd1f11b9b886",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._restore_payment_rate_document:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1608875,7 +1608875,7 @@
       ]
     },
     {
-      "digest": "f062255fec7c9e27bdfc87a75b625f6975ef39c4b8ba12b14bb159ff3e553ea3",
+      "digest": "7ba969f872839e5d627b1383b870a98f647a9ed1e85c46ba59082cc1d51fda7a",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._restore_payment_rate_document:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1609169,7 +1609169,7 @@
       ]
     },
     {
-      "digest": "61633b882d8ddee58c1c890a08984f0e982936cde2fbaa288dc98bce64e6de1b",
+      "digest": "bd10eeba25f703a30c032c936a60c738f7f5f891ed0f8f3e3f7fcc4930c56a53",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._apply_payment_rate_to_document:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1609178,13 +1609178,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 724,
+          "line": 797,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
     },
     {
-      "digest": "2801942aa1928eded22a23cd5acecb9efa066d248cb0c25a421a8445b0091bbf",
+      "digest": "48740127b47860a1659404c2572d2f81d6425695da03d11d466d3e2ecf46febd",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._apply_payment_rate_to_document:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1609193,7 +1609193,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 724,
+          "line": 797,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609208,7 +1609208,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 867,
+          "line": 933,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609223,7 +1609223,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 867,
+          "line": 933,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609238,7 +1609238,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 867,
+          "line": 933,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609253,7 +1609253,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 867,
+          "line": 933,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609268,7 +1609268,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 867,
+          "line": 933,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609283,7 +1609283,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 867,
+          "line": 933,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609298,7 +1609298,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 867,
+          "line": 933,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609313,7 +1609313,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 867,
+          "line": 933,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609328,7 +1609328,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 867,
+          "line": 933,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609343,7 +1609343,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 867,
+          "line": 933,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609358,7 +1609358,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 867,
+          "line": 933,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609373,7 +1609373,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 867,
+          "line": 933,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609388,7 +1609388,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 867,
+          "line": 933,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609403,7 +1609403,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 867,
+          "line": 933,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609418,7 +1609418,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 867,
+          "line": 933,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609433,7 +1609433,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 867,
+          "line": 933,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609448,7 +1609448,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 867,
+          "line": 933,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609463,7 +1609463,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 867,
+          "line": 933,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609478,7 +1609478,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 867,
+          "line": 933,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609493,7 +1609493,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 867,
+          "line": 933,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609508,13 +1609508,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 867,
+          "line": 933,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
     },
     {
-      "digest": "d397e12f4e06d863fab7a6cd1b1fc33f9d5492027cdc119bb28ab86a78d30531",
+      "digest": "1742079f88c35e2d6e8d6b9d8470af87ed4c24ee423fd7434ec4e3e51bf4a5db",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._foreign_settlement_announce:message_send:1",
       "kind": "sink",
       "modules": [
@@ -1609523,13 +1609523,13 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 1312,
+          "line": 1378,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
     },
     {
-      "digest": "5fe98b3438dd4666e92b80c7d9a27f5e3a2e990e336b41410dc71bc77cda8d69",
+      "digest": "dadae938cf10a38d88c7646f9fe5b66999fbdced0c09dfa96f1c0e8272b90eec",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._foreign_settlement_announce:message_send:2",
       "kind": "sink",
       "modules": [
@@ -1609538,13 +1609538,13 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 1312,
+          "line": 1378,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
     },
     {
-      "digest": "21e372d4aa7888da3117d6c5fb69db035d00e40ec95bbd9a2975e7cc9cd3291f",
+      "digest": "0e40df024cd0cff82b5a98411caf88c8162d465f7bc543d03da66af5d987a97c",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._foreign_settlement_announce:message_send:3",
       "kind": "sink",
       "modules": [
@@ -1609553,7 +1609553,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 1312,
+          "line": 1378,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609568,7 +1609568,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1017,
+          "line": 1083,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609583,7 +1609583,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1017,
+          "line": 1083,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609598,7 +1609598,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1074,
+          "line": 1140,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609613,7 +1609613,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1074,
+          "line": 1140,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609628,7 +1609628,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 22,
+          "line": 25,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609643,7 +1609643,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 22,
+          "line": 25,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609658,7 +1609658,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 22,
+          "line": 25,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1609673,13 +1609673,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 308,
+          "line": 311,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
     },
     {
-      "digest": "618321943ff24377996274262ffa402beb05c264263db51d0cdebd133c693af0",
+      "digest": "07adcb14893a28467cdcc68c5196df2fa96129eef85ff9e54ad449e476608c28",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_payment_rate_settlement_eligibility:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1609688,13 +1609688,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 499,
+          "line": 528,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
     },
     {
-      "digest": "64dd7d0fbd866b1333aa32271d21b982b5ac6b5dcc064c9d269e2570e7a00ef8",
+      "digest": "caba4eb694c6a730106a83eceff02d7e28419f6809553f5b4692e6bbaf69c59c",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_payment_rate_settlement_eligibility:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1609703,7 +1609703,37 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 499,
+          "line": 528,
+          "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
+        }
+      ]
+    },
+    {
+      "digest": "5120b2496a22bd332791713bc33f68be6febb63cccb6980cf22b772d4b12d97a",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._payment_rate_native_tax_preview:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 736,
+          "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
+        }
+      ]
+    },
+    {
+      "digest": "c3cf223f57df06ffead03e09c7e9262681396a1644e8869a900040f7910d15f2",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._payment_rate_native_tax_preview:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 736,
           "path": "custom-addons/usl_accounting/models/immediate_settlement_foreign.py"
         }
       ]
@@ -1688397,7 +1688427,7 @@
       "delegates": [
         "rpc:account.immediate.settlement.action_reverse"
       ],
-      "digest": "177ab60a18833fb45a211afec18dd5d7db09d2f83d5332c4075c218613205fc1",
+      "digest": "2071402ee9a64a3aea5e856d48012937836b6dae24b4552b8d09a83481cadde6",
       "guards": [],
       "key": "ui:usl_accounting.view_account_immediate_settlement_form:button:object:action_reverse:1",
       "kind": "ui",
@@ -1688406,7 +1688436,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "b4d40061e2df14caeb407aee2c5406da9d0ef0a0c95bbc56810c87962db16023",
+      "runtime_digest": "f972cfdd8357691cfaf9d0e90f49bda6bba45f515b550416e0a432af9e642886",
       "sinks": [],
       "sources": [
         {
@@ -1697724,6 +1697754,7 @@
     }
   ],
   "country_codes": [
+    "fr",
     "us"
   ],
   "diagnostics": [],
@@ -1698717,11 +1698748,11 @@
       "version": "saas~19.3.1.8.1"
     },
     {
-      "manifest_sha256": "2d4f291c27ad7c2892ad8fd578313cb7bd45b5ad202e44f3087d7270dc084f31",
+      "manifest_sha256": "143d8d6c26c80091ed05872858fbacb83d9b47fe7ad165acbf5de811d7622ec6",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "c80272c8e603a5ae1471fb1c95124eb9153669ef67dd1b8c328345d9e69e7d7e",
-      "version": "saas~19.3.2.2.9"
+      "source_sha256": "6bed0556615eff3c0054b598b5baa4bbf65cc5c4af419f1af83268760eb72109",
+      "version": "saas~19.3.2.2.17"
     },
     {
       "manifest_sha256": "d3991a85f02eca8b6b43179b39270cc15cfaf68325f4ff2181e354ccb01c4cf0",

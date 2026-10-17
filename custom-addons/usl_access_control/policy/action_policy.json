@@ -150528,6 +150528,8 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_immediate_settlement_eligibility:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_payment_rate_settlement_eligibility:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_payment_rate_settlement_eligibility:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._payment_rate_native_tax_preview:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._payment_rate_native_tax_preview:orm_write:2",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line._has_internal_settlement_token:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.action_undo_reconciliation:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.create:orm_create:1",
@@ -156942,6 +156944,12 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_payment_rate_settlement_eligibility:orm_write:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._payment_rate_native_tax_preview:orm_write:1": {
+          "reachability_proof": "Private native tax preview helper has no direct RPC/controller/UI/server-action/cron entry. These conservative AST sinks prepare in-memory native tax dictionaries and do not write ORM records; the classified correction action retains native authorization and atomic repost/actual-gross validation."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._payment_rate_native_tax_preview:orm_write:2": {
+          "reachability_proof": "Private native tax preview helper has no direct RPC/controller/UI/server-action/cron entry. These conservative AST sinks prepare in-memory native tax dictionaries and do not write ORM records; the classified correction action retains native authorization and atomic repost/actual-gross validation."
+        },
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line._has_internal_settlement_token:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -159412,8 +159420,8 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:4": "436363acc6c30888a940241824a1d163c6e5fec14b3f8d17952acf2f289d97fe",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate.action_open_confirmation:orm_create:1": "67062504254f638db41d8a9a718463ebfdd96155ef4cbec247e3d84b5bc502e0",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:_as_settlement_service:sudo:1": "c046d4cf41402742f11b795c47fcaaf65026f0c7e4237cb5a63484f3207e12f6",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._restore_payment_rate_document:orm_write:1": "669db424fb2044bbb6dba0d5d90e8f512f64b9b007cee536901085ae1bf11f3a",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._restore_payment_rate_document:orm_write:2": "f062255fec7c9e27bdfc87a75b625f6975ef39c4b8ba12b14bb159ff3e553ea3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._restore_payment_rate_document:orm_write:1": "2edf1302550b9c5889f195ba370523b1a03a91e7604a3b78ef2ecd1f11b9b886",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._restore_payment_rate_document:orm_write:2": "7ba969f872839e5d627b1383b870a98f647a9ed1e85c46ba59082cc1d51fda7a",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._reverse_bank_statement_settlement:orm_write:1": "57569656e76f2e40229c7936ec0c8200ea532728d5ac2bb659799277cc86e291",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._reverse_legacy_settlement:orm_write:1": "d0fb46d6d0abbdb3d3210abbda9bf5febbafc5d5db5d22f34692a4d90d2df3e9",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._reverse_legacy_settlement:orm_write:2": "69209f167bef1060adb3b9734b0d25d49d6ce2021fdea7b1d7c8f91ff3918230",
@@ -159430,8 +159438,8 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement.create:orm_write:1": "d9eacae9ae9ba7d155e6cbe51207cf3dd104b91552678e38db9a644aeaca28de",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement.write:orm_write:1": "cb20cfdae2ff60d9243b98ab4287387e41448ad7c43df0e9de33e8c3b1b00fe1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement.write:orm_write:2": "ba9614909d35d4330eb6ee19bc185ac09fb2ef48b7adcc11c4c5824ac00e9ab2",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._apply_payment_rate_to_document:orm_write:1": "61633b882d8ddee58c1c890a08984f0e982936cde2fbaa288dc98bce64e6de1b",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._apply_payment_rate_to_document:orm_write:2": "2801942aa1928eded22a23cd5acecb9efa066d248cb0c25a421a8445b0091bbf",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._apply_payment_rate_to_document:orm_write:1": "bd10eeba25f703a30c032c936a60c738f7f5f891ed0f8f3e3f7fcc4930c56a53",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._apply_payment_rate_to_document:orm_write:2": "48740127b47860a1659404c2572d2f81d6425695da03d11d466d3e2ecf46febd",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_create:1": "1755244420d75d0e6cd5302d0012fdcaaa68d86bc142c8292d5952038eebced6",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:1": "c48b96f254ed8f26a98de10d42b53faeb39798e67ee0b9ef9fc16a591081a616",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:10": "68c8a9825323ae5acc9029b46c9026daaca01565236668b4e6b60dd69fda1a78",
@@ -159453,9 +159461,9 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:7": "c60177a6e6cf49f6671c7e17610629708fc1ce5ef8abc554310c109100bd3544",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:8": "433c6ed4fdead4d9f713c22bb32d87574bf252b244c280518752b0fe8227a458",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._execute_foreign_settlement:orm_write:9": "6c3df13647e849f3a8a730a3bb6455c444fb6214b488b919be531584907b0959",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._foreign_settlement_announce:message_send:1": "d397e12f4e06d863fab7a6cd1b1fc33f9d5492027cdc119bb28ab86a78d30531",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._foreign_settlement_announce:message_send:2": "5fe98b3438dd4666e92b80c7d9a27f5e3a2e990e336b41410dc71bc77cda8d69",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._foreign_settlement_announce:message_send:3": "21e372d4aa7888da3117d6c5fb69db035d00e40ec95bbd9a2975e7cc9cd3291f",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._foreign_settlement_announce:message_send:1": "1742079f88c35e2d6e8d6b9d8470af87ed4c24ee423fd7434ec4e3e51bf4a5db",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._foreign_settlement_announce:message_send:2": "dadae938cf10a38d88c7646f9fe5b66999fbdced0c09dfa96f1c0e8272b90eec",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._foreign_settlement_announce:message_send:3": "0e40df024cd0cff82b5a98411caf88c8162d465f7bc543d03da66af5d987a97c",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._foreign_settlement_reconcile:orm_write:1": "d7a87dc8cadaf085e1eeb377ff4af1b91103ed01f7c741ef958f40d9bd9d9891",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._foreign_settlement_reconcile:orm_write:2": "fedef048af10cb4a256f28caa1f194c0f06f77a7f6a40e546167dd2e9729c49a",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._foreign_settlement_verify:orm_write:1": "507c4ee98d9c3b8bbd62e1f4d6a7661939671b967e9374e51451de6280645f26",
@@ -159464,8 +159472,10 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_foreign_settlement_context:orm_write:2": "718a3739cf41d9aff34a7fc8b2a189aa0d307ad6b93dd7ec7945ee5378d1fd89",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_foreign_settlement_context:orm_write:3": "1201f71f09a5d42edd2b280c673f4e129f67482582f98511e3f21e389827afcf",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_immediate_settlement_eligibility:orm_write:1": "c6e92a1894e8b9eeae5610df307ae3d7c0b5243191160ebe4df56f9059bf58f8",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_payment_rate_settlement_eligibility:orm_write:1": "618321943ff24377996274262ffa402beb05c264263db51d0cdebd133c693af0",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_payment_rate_settlement_eligibility:orm_write:2": "64dd7d0fbd866b1333aa32271d21b982b5ac6b5dcc064c9d269e2570e7a00ef8",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_payment_rate_settlement_eligibility:orm_write:1": "07adcb14893a28467cdcc68c5196df2fa96129eef85ff9e54ad449e476608c28",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._get_payment_rate_settlement_eligibility:orm_write:2": "caba4eb694c6a730106a83eceff02d7e28419f6809553f5b4692e6bbaf69c59c",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._payment_rate_native_tax_preview:orm_write:1": "5120b2496a22bd332791713bc33f68be6febb63cccb6980cf22b772d4b12d97a",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_foreign.py:account.move._payment_rate_native_tax_preview:orm_write:2": "c3cf223f57df06ffead03e09c7e9262681396a1644e8869a900040f7910d15f2",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line._has_internal_settlement_token:orm_write:1": "c14a88264c8387fa299c60544bfe397532597ec0fb58f88da3101cb436982282",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.action_undo_reconciliation:orm_write:1": "a51c6cf567d3e095e61642df4aebf0fe2bb9b0dae7031d99240176e2e6bc92fd",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement_move.py:account.bank.statement.line.create:orm_create:1": "b5b0a5644e5a673c4d669ab9926fae9051df462e2d7c918ba1947b2877c3c143",
@@ -194687,7 +194697,7 @@
         "ui:stock_landed_costs.account_view_move_form_inherited:button:object:button_create_landed_costs:1": "8d438d2176e2e9f60e451e8f7b06261321a782d3c8923acd3bf26bd097f4597f",
         "ui:usl_accounting.ir_cron_bank_export_expected_activities_ir_actions_server": "daaa34323f3a499a1c0e4c57532897bb480f493459014be0a4c40aa593a96d58",
         "ui:usl_accounting.ir_cron_process_bank_exports_ir_actions_server": "0a481307ab71f53e3cbd7fc7dc700a3e9f591df74e50c684cf0444bd62f45311",
-        "ui:usl_accounting.view_account_immediate_settlement_form:button:object:action_reverse:1": "177ab60a18833fb45a211afec18dd5d7db09d2f83d5332c4075c218613205fc1",
+        "ui:usl_accounting.view_account_immediate_settlement_form:button:object:action_reverse:1": "2071402ee9a64a3aea5e856d48012937836b6dae24b4552b8d09a83481cadde6",
         "ui:usl_accounting.view_bank_ingestion_config_form:button:object:action_open_expected_statement:1": "ce4eaaa37ca14eecca776c26d1820c48e51f359fc0cb1f39dfd3db31ae01fd4d",
         "ui:usl_accounting.view_bank_ingestion_file_form:button:object:action_accept_evidence:1": "0edb1e941cfa22884e4de4341626e3acf93cc2f92707e4b5053d90543bc64315",
         "ui:usl_accounting.view_bank_ingestion_file_form:button:object:action_download:1": "8691d5902bf8f9179e346bd72f6d65d2f0bbe0b3350519ec402ee8f41faf3e3e",

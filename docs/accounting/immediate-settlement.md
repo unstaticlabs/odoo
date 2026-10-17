@@ -43,7 +43,7 @@ including its tax valuation. A later bank conversion cost alone does not establi
 that the original tax euros were wrong. The existing date/deviation policy remains
 a product condition, not fiscal evidence. No upload, additional approver or
 Agent-only rule is required. Native VAT follows tax exigibility; see the
-[BOFiP foreign-currency VAT guidance](https://bofip.impots.gouv.fr/bofip/1475-PGP.html/identifiant=BOI-TVA-BASE-10-20-40-20-20120912).
+[BOFiP foreign-currency VAT guidance](https://bofip.impots.gouv.fr/bofip/140-PGP.html/identifiant=BOI-TVA-DECLA-30-20-20-10-20131018).
 
 ## Shared validation
 
@@ -181,7 +181,7 @@ drafted, cancelled, or deleted; users must reverse the settlement.
 
 ## Reversal and migration
 
-Unreconciling a linked partial or choosing **Reverse Settlement** routes through
+Unreconciling a linked partial or choosing **Undo settlement** routes through
 OCA's native `unreconcile_bank_line()` path. It removes reconciliation and
 generated bank counterpart lines, restores suspense and the statement's
 original foreign currency, amount, and source state, then resets the document

@@ -440,7 +440,7 @@ test("posted bill keeps Odoo's native Add matching action", async () => {
         "title",
         "Add this existing payment to the bill and reconcile the available amount."
     );
-    expect(".o_rebuild_payment_suggestion_context").toHaveAttribute(
+    expect(".o_rebuild_payment_suggestion_context:not(.o_payment_rate_context)").toHaveAttribute(
         "title",
         "Alternative payment. Match: Exact amount. Source: existing payment."
     );
@@ -521,7 +521,7 @@ test("immediate suggestion shows all three actions and recommends payment rate",
         "Use the document's exact $5.00. Odoo records €0.02 FX loss."
     );
     expect(".payment_rate_assign").toHaveCount(1);
-    expect(".payment_rate_assign").toHaveText("Use payment rate");
+    expect(".payment_rate_assign").toHaveText("Correct original rate");
     expect(".payment_rate_assign").toHaveClass("btn-primary");
     expect(".payment_rate_assign").toHaveAttribute(
         "title",
@@ -532,7 +532,7 @@ test("immediate suggestion shows all three actions and recommends payment rate",
     expect(".o_rebuild_payment_suggestion_review").toHaveCount(0);
     expect(".o_rebuild_payment_suggestion_best").toHaveText("Best match");
     expect(".o_rebuild_payment_suggestion_kind").toHaveText("Bank transaction");
-    expect(".o_rebuild_payment_suggestion_context").toHaveText(
+    expect(".o_rebuild_payment_suggestion_context:not(.o_payment_rate_context)").toHaveText(
         /Best match\s*Bank transaction\s*Reference match\s*Larger available payment\s*1-day gap from due date/
     );
     expect(".outstanding_credit_assign").toHaveCount(1);
@@ -541,7 +541,7 @@ test("immediate suggestion shows all three actions and recommends payment rate",
         "Use Odoo's $5.03 estimate. This may leave a $0.03 difference."
     );
     expect(".o_rebuild_payment_suggestion_estimate_label").toHaveCount(0);
-    expect(".o_rebuild_payment_suggestion_context").toHaveAttribute(
+    expect(".o_rebuild_payment_suggestion_context:not(.o_payment_rate_context)").toHaveAttribute(
         "title",
         "Highest-ranked payment. Match: Reference match; Larger available payment; 1-day gap from due date. Source: bank transaction. Partner: Assigned partner matches Cloudflare."
     );
@@ -549,7 +549,10 @@ test("immediate suggestion shows all three actions and recommends payment rate",
     expect(".o_immediate_settlement_actions > :nth-child(1)").toHaveText("Add");
     expect(".o_immediate_settlement_actions > :nth-child(2)").toHaveText("Settle");
     expect(".o_immediate_settlement_actions > :nth-child(3)").toHaveText(
-        "Use payment rate"
+        "Correct original rate"
+    );
+    expect(".o_payment_rate_context").toHaveText(
+        "Value the document at the bank's €4.40 rate and match $5.00. No FX."
     );
     await contains(".outstanding_credit_assign").click();
     await contains(".immediate_settlement_assign").click();
@@ -604,10 +607,10 @@ test("delayed payment recommends Settle and keeps payment-rate warning in helper
     expect(".o_rebuild_payment_suggestion_recommendation").toHaveCount(0);
     expect(".o_rebuild_payment_suggestion_review").toHaveCount(0);
     expect(".o_rebuild_payment_suggestion_best").toHaveText("Best match");
-    expect(".o_rebuild_payment_suggestion_context").toHaveText(
+    expect(".o_rebuild_payment_suggestion_context:not(.o_payment_rate_context)").toHaveText(
         /Best match\s*Bank transaction\s*Reference match\s*Larger available payment/
     );
-    expect(".o_rebuild_payment_suggestion_context").toHaveAttribute(
+    expect(".o_rebuild_payment_suggestion_context:not(.o_payment_rate_context)").toHaveAttribute(
         "title",
         "Highest-ranked payment. Match: Reference match; Larger available payment. Source: bank transaction. Partner: Assigned partner matches Cloudflare. Review: Use payment rate is limited to 3 days; this transaction is 8 days from the document."
     );
@@ -633,10 +636,10 @@ test("conflicting facts keep Add with the warning in compact match evidence", as
     expect(".payment_rate_assign").toHaveCount(0);
     expect(".o_rebuild_payment_suggestion_review").toHaveCount(0);
     expect(".o_rebuild_payment_suggestion_best").toHaveText("Best match");
-    expect(".o_rebuild_payment_suggestion_context").toHaveText(
+    expect(".o_rebuild_payment_suggestion_context:not(.o_payment_rate_context)").toHaveText(
         /Best match\s*Bank transaction\s*Reference match\s*Larger available payment/
     );
-    expect(".o_rebuild_payment_suggestion_context").toHaveAttribute(
+    expect(".o_rebuild_payment_suggestion_context:not(.o_payment_rate_context)").toHaveAttribute(
         "title",
         "Highest-ranked payment. Match: Reference match; Larger available payment. Source: bank transaction. Partner: Assigned partner matches Cloudflare. Review: The bank or integration foreign amount conflicts with the document. Review it in Bank Matching."
     );
@@ -764,7 +767,7 @@ test("all three actions remain visible in a compact mobile layout", async () => 
     expect(".o_rebuild_payment_suggestion_recommendation").toHaveCount(0);
     expect(".o_rebuild_payment_suggestion_review").toHaveCount(0);
     expect(".o_rebuild_payment_suggestion_best").toHaveText("Best match");
-    expect(".o_rebuild_payment_suggestion_context").toHaveText(
+    expect(".o_rebuild_payment_suggestion_context:not(.o_payment_rate_context)").toHaveText(
         /Best match\s*Bank transaction\s*Reference match\s*Larger available payment\s*1-day gap from due date/
     );
 });

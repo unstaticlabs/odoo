@@ -6912,3 +6912,13 @@ msgstr "%(tax)s : base %(base_before)s → %(base_after)s ; taxe %(tax_before)s 
 #, python-format
 msgid "Original valuation corrected at the payment rate for %(foreign)s against %(company)s. Its company-currency value changed from %(original)s to %(repriced)s; no FX was recorded."
 msgstr "Valorisation initiale corrigée au taux du paiement pour %(foreign)s contre %(company)s. Sa valeur dans la devise de la société passe de %(original)s à %(repriced)s ; aucun écart de change n’a été comptabilisé."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_account_immediate_settlement_form
+msgid "Undo settlement"
+msgstr "Annuler le règlement"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_account_immediate_settlement_form
+msgid "Technical details"
+msgstr "Détails techniques"
