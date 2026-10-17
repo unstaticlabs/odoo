@@ -276,6 +276,9 @@ class TestDeclarationAndClosing(TransactionCase):
         ])
         self.assertEqual(set(fy2026.mapped("rule_id.code")), codes)
         original_ids = set(fy2026.ids)
+        # Reproduce the data corruption that occurred in production when the
+        # FY2026 rows were incorrectly retired at the October rollover.
+        fy2026.write({"status": "not_applicable", "applicability": "not_applicable"})
 
         with patch.object(fields.Date, "context_today", return_value=date(2026, 10, 17)):
             Declaration.sync_for_company(company)
