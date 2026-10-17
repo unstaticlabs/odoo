@@ -43,6 +43,39 @@ Draft, Submitted and Approved expenses are eligible. An already posted
 employee-paid expense is not silently converted; the user must correct it
 through Odoo's normal accounting workflow.
 
+## Review when posting
+
+Posting an approved expense now checks the same current company-bank evidence,
+even if **Find bank transactions** has never been selected. When a possible
+match exists, the posting operator must explicitly choose what to do:
+
+- **Review expenses** returns to the selected expenses. Use the existing
+  **Company payment match** panel to select and confirm an exact transaction.
+- **Post without matching** keeps the existing **Paid by** setting and uses
+  native Odoo posting. It neither selects nor reconciles a bank transaction.
+- **Cancel** leaves the expenses and accounting unchanged.
+
+The same confirmation applies to people and delegated Agents. It is a decision
+by the current authorized operator, not a request for another approver. Existing
+native permissions, delegation and irreversible-action controls still apply.
+Agents can read `usl_review_expense_ids`, `usl_review_matches` (readable expense
+and bank transaction IDs, exactness and evidence) and `usl_review_evidence` on
+the returned native posting wizard, then call
+`action_confirm_bank_match_posting` to make the same explicit decision.
+
+Near amounts remain possible matches for review, although only an exact amount
+can use the existing reconciliation action. A bulk post reviews all selected
+expenses before posting any of them. If the expense or matching bank evidence
+changes while the dialog is open, the dialog refreshes and asks for confirmation
+again. Repeating a completed posting cannot create another expense entry.
+The final employee-paid posting step also checks newly arrived bank data.
+
+Opening a review only creates a temporary native wizard. It does not create
+candidate-cache records, change the expense, create a payment, post an entry or
+reconcile a transaction. No-match posting retains the normal Odoo journey.
+No existing business records are migrated by the module upgrade; the new fields
+belong only to Odoo's temporary posting wizard.
+
 ## Access and history
 
 - Accounting Managers can refresh and use suggestions.

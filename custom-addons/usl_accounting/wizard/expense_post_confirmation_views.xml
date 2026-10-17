@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_expense_post_bank_match_review" model="ir.ui.view">
+        <field name="name">hr.expense.post.company.payment.review</field>
+        <field name="model">hr.expense.post.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Review possible company payments" create="0">
+                <field name="usl_review_changed" invisible="1"/>
+                <field name="usl_review_has_matches" invisible="1"/>
+                <field name="usl_review_employee_paid" invisible="1"/>
+                <div class="alert alert-warning" role="alert" invisible="not usl_review_changed">
+                    The expense or bank transactions changed. Review the updated information before confirming again.
+                </div>
+                <p invisible="not usl_review_has_matches">A company bank transaction may already cover this expense. Review the possible matches before posting to avoid recording the payment twice.</p>
+                <p invisible="usl_review_has_matches">No possible company payment matches remain. You can continue posting with the current Paid by setting.</p>
+                <field name="usl_review_evidence" nolabel="1" invisible="not usl_review_has_matches"/>
+                <p>Posting without matching keeps the current Paid by setting and does not reconcile any bank transaction. To use a suggested payment, open the expenses, select Find bank transactions, then choose Use in Company payment match.</p>
+                <group invisible="not usl_review_employee_paid">
+                    <field name="employee_journal_id" string="Journal"/>
+                    <field name="accounting_date" string="Accounting date"/>
+                </group>
+                <footer>
+                    <button name="action_review_expense_bank_matches" type="object" string="Review expenses" class="btn-primary"/>
+                    <button name="action_confirm_bank_match_posting" type="object" string="Post without matching" class="btn-secondary" title="Post these expenses with their current payer setting through Odoo, without reconciling a bank transaction."/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
