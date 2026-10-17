@@ -4,6 +4,7 @@
 
 from . import (
     edi_line_compatibility,
+    purchase_mail_grouping,
     account_group_compat,
     account_direction_guard,
     account_reconcile_compat,

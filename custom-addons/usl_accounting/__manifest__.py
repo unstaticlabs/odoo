@@ -47,6 +47,7 @@
         "views/queue_job_menu_views.xml",
         "wizard/linked_receipt_candidate_wizard_views.xml",
         "views/vendor_bill_merge_views.xml",
+        "views/purchase_mail_grouping_views.xml",
     ],
     "assets": {
         "web.assets_backend": [
