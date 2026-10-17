@@ -1,7 +1,7 @@
 {
     "name": "USL Accounting Foundation",
     "summary": "Shared operational extensions for the USL Accounting product",
-    "version": "saas~19.3.2.2.9",
+    "version": "saas~19.3.2.2.12",
     "category": "Accounting/Accounting",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -42,6 +42,7 @@
         "views/expense_batch_reporting_views.xml",
         "views/immediate_settlement_views.xml",
         "views/res_users_views.xml",
+        "views/company_expense_alias_views.xml",
         "views/document_invoice_settings_views.xml",
         "views/queue_job_menu_views.xml",
         "wizard/linked_receipt_candidate_wizard_views.xml",

@@ -3754,7 +3754,8 @@
         },
         "rpc:res.company.write": {
           "action_name": "change accounting lock dates",
-          "guard_key": "guard:accounting.lock.change"
+          "guard_key": "guard:accounting.lock.change",
+          "rationale": "The existing accounting-lock guard and native company/alias configuration ACLs remain unchanged. Optional company expense alias configuration validates native ownership, never repurposes global/other-company aliases, and changes no Agent-specific authority."
         },
         "rpc:res.config.settings.action_eu_oss_tax_mapping": {
           "action_name": "install or import module code",
@@ -3835,7 +3836,7 @@
         "rpc:rebuild.account.report.definition.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:res.company.create": "6309e616b79d1d83a0564ada270d64efbcf99fcd6676ce8e34799dfb4f217f7a",
         "rpc:res.company.install_l10n_modules": "8f91a8a5dec057617d14f27ad7473b2a4f58f085566330122d1a45bf751e8c1b",
-        "rpc:res.company.write": "d3cd3106f063d7c542a9b81e9ea84a8f57d08d94933a1f1ce0f6cf4a21bf42e8",
+        "rpc:res.company.write": "849b57ee8a7f235840c8a9fd626c6abdc168a292a74bf1362795c8c3e34e6f59",
         "rpc:res.config.settings.action_eu_oss_tax_mapping": "8dad78de64ee287fa5ce2df312cc2e709c1cfe57d17785046059846fe770353c",
         "rpc:res.config.settings.button_disconnect_this_database": "4687c0607be62050eebb2eef3be94c9c441b2d81a4c31d32ec7401cd1bbd3cfa",
         "rpc:res.config.settings.button_peppol_deregister": "f3c90d64c91abafb6c060368dd49ab9ea3a1ebc586337b5dec6f223d480f8923",
@@ -5133,7 +5134,8 @@
             "kind": "model_operation",
             "model": "res.company",
             "operation": "unlink"
-          }
+          },
+          "rationale": "Existing irreversible/native company deletion authority and all native FK constraints remain unchanged. Only after successful native deletion, clean this company’s own hr.expense aliases using the native optional-alias lifecycle pattern; failed deletion preserves complete stored company and alias rows."
         },
         "rpc:res.currency.unlink": {
           "action_name": "permanently delete res.currency",
@@ -5601,7 +5603,7 @@
         "rpc:project.role.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:purchase.order.unlink": "0d4f03287c19f90987ae3de67ef5d1019d3eb6e7a270b2c865ac3b63f2fdb382",
         "rpc:quotation.document.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
-        "rpc:res.company.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
+        "rpc:res.company.unlink": "8872131c1e276aa9b0b9b42aab48de4a580367c07407b61bdca76b3ea64085b1",
         "rpc:res.currency.unlink": "6f5bdf9f65813f6ba07355976e057afa94afbf9ff1d481d0b511274f42297e0a",
         "rpc:res.groups.create": "37b76f9937e66a72c0555d93394a9e3336325c81c16eec20667bed140b30b44a",
         "rpc:res.groups.privilege.create": "37b76f9937e66a72c0555d93394a9e3336325c81c16eec20667bed140b30b44a",
@@ -100178,6 +100180,7 @@
           "reversal_action": "rpc:hr.expense.write"
         },
         "rpc:hr.expense.message_new": {
+          "rationale": "Native expense import still creates a draft, retains receipts and sends its existing success reply. Only an actual configured company alias route chooses an existing employee in that company, using unchanged verified identity when present. Global/custom-default/forged-marker behavior and native context remain unchanged. No posting, new employee, approval or Agent-specific restriction.",
           "reversal_action": "rpc:hr.expense.write"
         },
         "rpc:hr.expense.message_notify": {
@@ -106152,7 +106155,7 @@
         "rpc:hr.expense.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
         "rpc:hr.expense.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:hr.expense.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
-        "rpc:hr.expense.message_new": "134fa784492f94f57aa740e4e61653a113a246305ae09f29be4dd9bc365b8e7e",
+        "rpc:hr.expense.message_new": "49151b625e75050851d45b9da5f5dc3fd23ec9d0efcd2c9b2677cb26f7c4c5ca",
         "rpc:hr.expense.message_notify": "b568fe9d567d0b1007a82514c3532ab6c0e273860092814c1e754ab167ba0a86",
         "rpc:hr.expense.message_parse": "c8e71ccbae570a707b8e261de28b25ea70dc463a1b40807f4b465ac337ac8707",
         "rpc:hr.expense.message_post_with_source": "245fb964979dcb73e5a6189fb10c8ffceade74f7f6eada6d48977d1f86270d4e",
@@ -183228,9 +183231,11 @@
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
         "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:hr.expense._get_employee_from_email:orm_write:1": {
+          "rationale": "The same verified partner lookup and same employee candidate set are retained. A cooperative read-only selector narrows only an internal typed company-alias route; global inference and verified/pending address state are unchanged. Native message_process collision/no-target/global regressions cover the actual MRO.",
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
         "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:hr.expense._get_employee_from_email:sudo:1": {
+          "rationale": "The same verified partner lookup and same employee candidate set are retained. A cooperative read-only selector narrows only an internal typed company-alias route; global inference and verified/pending address state are unchanged. Native message_process collision/no-target/global regressions cover the actual MRO.",
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
         "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:mail.thread._mail_find_partner_from_emails:orm_write:1": {
@@ -183305,8 +183310,8 @@
         "sink:usl_pocketid:custom-addons/usl_pocketid/controllers/sender_alias.py:SenderAliasVerificationController.verify_sender_alias:sudo:1": "6e912bbe3c585065c4460a36d300bb1b0def5658b03da834e490b08c619bf3d2",
         "sink:usl_pocketid:custom-addons/usl_pocketid/models/res_users.py:res.users.action_open_pocketid_account:sudo:1": "f92862b582557e0521b5a1d2cfbf2d49210ec3ee05ed2202b2a694abe6eacf90",
         "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:base._alias_get_error:sudo:1": "6313b1705eed75a38f202fb2662f6ebdba7002b74beadf2d90351c5099ff2065",
-        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:hr.expense._get_employee_from_email:orm_write:1": "cc6a130d8005af8cfc031c807e6dee8afd697e50a4243eaf91037a84eff9f0a8",
-        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:hr.expense._get_employee_from_email:sudo:1": "a6e9a84c2e3e16bfe83ed3da55427d90af931e45a74addd27f87983717b15118",
+        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:hr.expense._get_employee_from_email:orm_write:1": "497d4c1ebc31722de8d62edcc0a34f97d1e1669ec993cacb2548710c45897037",
+        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:hr.expense._get_employee_from_email:sudo:1": "e5fc3eb2e42ee761c0385dea3e887bf4332cedb12ef337fac6adb843421772d6",
         "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:mail.thread._mail_find_partner_from_emails:orm_write:1": "258794c4b6a02af720b3e6dc63665b9724d67a293e214f7a9e4cddb3eba84716",
         "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:res.partner._find_or_create_from_emails:orm_write:1": "4111db39dc8bcc1e531bbea18ff3153f00de6d7ef45a40aa9fc3eecea59ad7e9",
         "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:res.partner._find_or_create_from_emails:orm_write:2": "bdb3211c309d17119950eedd86f8a7b7743a29455e5d90fd78daa7b182d20b15",
@@ -205686,6 +205691,92 @@
       "reviewed_digests": {
         "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1": "dd3f23fbed92b3839174ec67e638ea9073a9effeeff7232f0d0e6799357de1c4"
       }
+    },
+    {
+      "action_keys": [
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:hr.expense._get_employee_from_email:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:hr.expense.message_new:message_send:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:mail.alias._check_company_expense_alias_owner:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:mail.thread._message_route_process:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company._inverse_expense_alias_name:orm_create:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company._inverse_expense_alias_name:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.unlink:orm_unlink:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.unlink:sudo:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.unlink:sudo:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.write:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.write:orm_write:2",
+        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:hr.expense._get_employee_from_email:orm_write:2"
+      ],
+      "classification": "system_internal",
+      "consequence": "Fixed native configuration, routing and identity-selection implementation sinks; no independent action or additional authority.",
+      "domain": "accounting",
+      "evidence_id": "company-expense-inboxes-20261017",
+      "id": "system_internal.company_expense_inboxes_20261017",
+      "overrides": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:hr.expense._get_employee_from_email:orm_write:1": {
+          "rationale": "Private employee identity/selection helper has no independent RPC/controller entry. The scanner conservatively labels a fixed helper invocation as orm_write; actual code performs only native employee/verified-partner lookup, candidate filtering and ordinary record browsing. PocketID verification resolver/state and identity candidate set remain unchanged. Only an internal typed native alias route selects the existing company profile; global and forged-marker paths retain native behavior.",
+          "reachability_proof": "Private employee identity/selection helper has no independent RPC/controller entry. The scanner conservatively labels a fixed helper invocation as orm_write; actual code performs only native employee/verified-partner lookup, candidate filtering and ordinary record browsing. PocketID verification resolver/state and identity candidate set remain unchanged. Only an internal typed native alias route selects the existing company profile; global and forged-marker paths retain native behavior."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:hr.expense.message_new:message_send:1": {
+          "rationale": "This AST sink is not independently dispatchable; it is the internal company-disagreement note in reviewed rpc:hr.expense.message_new. It posts only an internal native note on the newly created draft expense. Native creation, receipt retention and existing success reply remain unchanged; no accounting posting or employee creation occurs.",
+          "reachability_proof": "This AST sink is not independently dispatchable; it is the internal company-disagreement note in reviewed rpc:hr.expense.message_new. It posts only an internal native note on the newly created draft expense. Native creation, receipt retention and existing success reply remain unchanged; no accounting posting or employee creation occurs."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:mail.alias._check_company_expense_alias_owner:sudo:1": {
+          "rationale": "Private ORM constraint, not an independently dispatchable RPC/controller. Elevated company lookup is read-only, limited to explicit configured alias pointers and includes archived owners. It validates exact native parent/model ownership without writing any company, alias, identity or business record.",
+          "reachability_proof": "Private ORM constraint, not an independently dispatchable RPC/controller. Elevated company lookup is read-only, limited to explicit configured alias pointers and includes archived owners. It validates exact native parent/model ownership without writing any company, alias, identity or business record."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:mail.thread._message_route_process:sudo:1": {
+          "rationale": "Private native gateway hook has no independent RPC/controller/UI action. Elevated lookup is read-only and limited to aliases already present in actual native routes, including archived owners. A server-created typed object selects existing target-company employees; plain JSON/string markers and arbitrary company defaults cannot activate routing. Native route processing remains the sole creator.",
+          "reachability_proof": "Private native gateway hook has no independent RPC/controller/UI action. Elevated lookup is read-only and limited to aliases already present in actual native routes, including archived owners. A server-created typed object selects existing target-company employees; plain JSON/string markers and arbitrary company defaults cannot activate routing. Native route processing remains the sole creator."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company._inverse_expense_alias_name:orm_create:1": {
+          "rationale": "Private computed-field inverse reached by ordinary company/settings writes only. It creates or renames this company’s native hr.expense alias after native company and mail.alias ACLs, with exact owner/model and unique-pointer validation. Empty names disable only that owned alias; the global alias is unchanged.",
+          "reachability_proof": "Private computed-field inverse reached by ordinary company/settings writes only. It creates or renames this company’s native hr.expense alias after native company and mail.alias ACLs, with exact owner/model and unique-pointer validation. Empty names disable only that owned alias; the global alias is unchanged."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company._inverse_expense_alias_name:orm_write:1": {
+          "rationale": "Private computed-field inverse reached by ordinary company/settings writes only. It creates or renames this company’s native hr.expense alias after native company and mail.alias ACLs, with exact owner/model and unique-pointer validation. Empty names disable only that owned alias; the global alias is unchanged.",
+          "reachability_proof": "Private computed-field inverse reached by ordinary company/settings writes only. It creates or renames this company’s native hr.expense alias after native company and mail.alias ACLs, with exact owner/model and unique-pointer validation. Empty names disable only that owned alias; the global alias is unchanged."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.unlink:orm_unlink:1": {
+          "rationale": "This AST sink is not independently dispatchable; it belongs to reviewed protected rpc:res.company.unlink. The elevated lookup reads only hr.expense aliases whose native parent model and IDs are these companies. Alias deletion occurs only after native company deletion succeeds; native FK/authority refusal preserves current, detached and global alias rows. This follows native optional-alias lifecycle cleanup.",
+          "reachability_proof": "This AST sink is not independently dispatchable; it belongs to reviewed protected rpc:res.company.unlink. The elevated lookup reads only hr.expense aliases whose native parent model and IDs are these companies. Alias deletion occurs only after native company deletion succeeds; native FK/authority refusal preserves current, detached and global alias rows. This follows native optional-alias lifecycle cleanup."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.unlink:sudo:1": {
+          "rationale": "This AST sink is not independently dispatchable; it belongs to reviewed protected rpc:res.company.unlink. The elevated lookup reads only hr.expense aliases whose native parent model and IDs are these companies. Alias deletion occurs only after native company deletion succeeds; native FK/authority refusal preserves current, detached and global alias rows. This follows native optional-alias lifecycle cleanup.",
+          "reachability_proof": "This AST sink is not independently dispatchable; it belongs to reviewed protected rpc:res.company.unlink. The elevated lookup reads only hr.expense aliases whose native parent model and IDs are these companies. Alias deletion occurs only after native company deletion succeeds; native FK/authority refusal preserves current, detached and global alias rows. This follows native optional-alias lifecycle cleanup."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.unlink:sudo:2": {
+          "rationale": "This AST sink is not independently dispatchable; it belongs to reviewed protected rpc:res.company.unlink. The elevated lookup reads only hr.expense aliases whose native parent model and IDs are these companies. Alias deletion occurs only after native company deletion succeeds; native FK/authority refusal preserves current, detached and global alias rows. This follows native optional-alias lifecycle cleanup.",
+          "reachability_proof": "This AST sink is not independently dispatchable; it belongs to reviewed protected rpc:res.company.unlink. The elevated lookup reads only hr.expense aliases whose native parent model and IDs are these companies. Alias deletion occurs only after native company deletion succeeds; native FK/authority refusal preserves current, detached and global alias rows. This follows native optional-alias lifecycle cleanup."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.write:orm_write:1": {
+          "rationale": "This AST sink is not independently dispatchable; it belongs to reviewed rpc:res.company.write. Native parent write runs first, existing accounting-lock guard is unchanged, and native mail.alias write access covers both old and incoming pointers. Only a detached owned alias is disabled or the current owned alias domain synchronized.",
+          "reachability_proof": "This AST sink is not independently dispatchable; it belongs to reviewed rpc:res.company.write. Native parent write runs first, existing accounting-lock guard is unchanged, and native mail.alias write access covers both old and incoming pointers. Only a detached owned alias is disabled or the current owned alias domain synchronized."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.write:orm_write:2": {
+          "rationale": "This AST sink is not independently dispatchable; it belongs to reviewed rpc:res.company.write. Native parent write runs first, existing accounting-lock guard is unchanged, and native mail.alias write access covers both old and incoming pointers. Only a detached owned alias is disabled or the current owned alias domain synchronized.",
+          "reachability_proof": "This AST sink is not independently dispatchable; it belongs to reviewed rpc:res.company.write. Native parent write runs first, existing accounting-lock guard is unchanged, and native mail.alias write access covers both old and incoming pointers. Only a detached owned alias is disabled or the current owned alias domain synchronized."
+        },
+        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:hr.expense._get_employee_from_email:orm_write:2": {
+          "rationale": "The same verified partner lookup and same employee candidate set are retained. A cooperative read-only selector narrows only an internal typed company-alias route; global inference and verified/pending address state are unchanged. Native message_process collision/no-target/global regressions cover the actual MRO.",
+          "reachability_proof": "Private employee identity/selection helper has no independent RPC/controller entry. The scanner conservatively labels a fixed helper invocation as orm_write; actual code performs only native employee/verified-partner lookup, candidate filtering and ordinary record browsing. PocketID verification resolver/state and identity candidate set remain unchanged. Only an internal typed native alias route selects the existing company profile; global and forged-marker paths retain native behavior."
+        }
+      },
+      "rationale": "Use existing native company/alias access, mail acceptance, verified identity and accounting workflows. These exact sinks introduce no independently callable approval, permission or business gate.",
+      "reviewed_digests": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:hr.expense._get_employee_from_email:orm_write:1": "4d8a224ceda38624397e40959bd779c47aabacc63a717e44b70dd584282921dd",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:hr.expense.message_new:message_send:1": "29990b1a153adb6a7e447d7f26191cd934421adfe093477c5aef4b407eb120bb",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:mail.alias._check_company_expense_alias_owner:sudo:1": "c518ded78e54060559d4b8ad63df8562cb1411d1ae11045a8dcc205e77574540",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:mail.thread._message_route_process:sudo:1": "aadf42bd37c38aa4271b6529cde6f6f241bfc1d40482efc19af873641761c9ce",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company._inverse_expense_alias_name:orm_create:1": "5c1028ed7f1878b7093ab1e88216c974243bdf6359763024d9abfe1de8970184",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company._inverse_expense_alias_name:orm_write:1": "4029ede2b0bfb9898e70a6c9bd61f5c81f0a1c31ac604083f8369fd8ec74039b",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.unlink:orm_unlink:1": "b0938c6ca4647a7553dea9dbde27476fb558b909a7b453fab1da5fc04f4e31f3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.unlink:sudo:1": "3688d40ae62f5b5bbac12762fb3fbce63ca85218686a20fe4afacab8e0c2a4fd",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.unlink:sudo:2": "a6ff427c7a9801d335049e4bf24515d89e921909b6911f5b2efb7d199a0a39f7",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.write:orm_write:1": "93deac8d52d7feaef8e642f727844f220e15ab63fd4308afaa99404902c0b99f",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.write:orm_write:2": "237fb81cc55425483b4dfe42cb732a2510c936c9980a716e764fbd68e29f1d97",
+        "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:hr.expense._get_employee_from_email:orm_write:2": "da34bee8777fed9033edea7acc9c1d87f7f7e63763df42705e167ded52dcbe82"
+      }
     }
   ],
   "evidence_families": {
@@ -205710,6 +205801,36 @@
       "tests": [
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_project_agent_edits_one_activity_without_completing_it",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_agent_activity_edit_refuses_other_tasks_and_companies"
+      ]
+    },
+    "company-expense-inboxes-20261017": {
+      "contract": "Optional company expense inboxes retain global inference, actual native alias identity and context, existing native/verified sender identity, existing target-company employees, ordinary shared configuration authority, native financial/receipt meaning and owned-alias lifecycle. Native company deletion refusal preserves exact stored company/global/current/detached alias rows; truly empty-company cleanup is qualified where native deletion permits it. No employee creation or Agent-only gate.",
+      "tests": [
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_ambiguous_employee_keeps_alias_usable_with_hr_recovery",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_archived_company_alias_still_validates_native_owner",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_archived_company_retains_explicit_native_alias_destination",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_archived_company_retains_ordinary_native_hr_recovery",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_company_alias_cannot_be_retargeted_through_native_alias_write",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_company_alias_pointer_cannot_repurpose_global_or_other_company_alias",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_company_alias_selects_existing_employee_in_target_company",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_company_write_permission_does_not_replace_native_alias_configuration_rights",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_configuration_rename_clear_retry_domain_preserves_global",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_direct_native_message_new_preserves_caller_defaults",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_employee_without_user_can_use_company_inbox",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_empty_company_deletion_cleans_owned_aliases_only",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_forged_route_values_and_context_do_not_redirect_global_creation",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_global_alias_keeps_native_company_even_with_company_defaults",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_global_and_company_inboxes_preserve_native_creation_context",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_global_and_company_recipients_keep_independent_company_selection",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_missing_company_employee_uses_native_alias_recovery",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_multiple_native_sender_companies_do_not_break_unique_company_route",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_native_company_delete_refusal_preserves_current_and_detached_aliases",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_native_product_account_tax_currency_and_receipt_follow_destination",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_ordinary_employee_cannot_configure_company_inbox",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_settings_save_is_company_scoped_and_pointer_clear_disables_owned_alias",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_verified_identity_wins_over_colliding_work_email",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_verified_personal_sender_global_inference_remains_unchanged",
+        "custom-addons/usl_accounting/tests/test_company_expense_alias.py::TestCompanyExpenseAliases.test_verified_personal_sender_keeps_identity_and_selects_company_employee"
       ]
     },
     "documents-batch-metadata-20261014": {
