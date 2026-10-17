@@ -196,19 +196,94 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
             ),
         )
 
-    def _bank_wizard(self, session, *, mode="link"):
+    def _bank_wizard(self, session, *, mode="link", scope="all"):
         wizard = self.env[
             "usl.platform.billing.bank.import.wizard"
         ].create(
             {
                 "session_id": session.id,
                 "mode": mode,
-                "candidate_scope": "all",
+                "candidate_scope": scope,
             },
         )
         wizard._populate_payout_candidates()
         wizard._populate_candidates()
         return wizard
+
+    def _reconcile_in_accounting(self, bank_line, invoice):
+        """Reconcile a bank line with an invoice the way Accounting does,
+        without any Platform Billing allocation."""
+        receivable = invoice.line_ids.filtered(
+            lambda line: (
+                line.account_id.account_type == "asset_receivable"
+                and not line.reconciled
+            ),
+        )
+        return self._reconcile_with_lines(
+            bank_line,
+            receivable,
+            invoice.commercial_partner_id,
+        )
+
+    def _reconcile_with_lines(self, bank_line, lines, partner):
+        bank_line._write_reconciliation_metadata({"partner_id": partner.id})
+        bank_line.reconcile_data_info = bank_line._default_reconcile_data()
+        for line in lines.sorted(key=lambda item: (item.date, item.id)):
+            bank_line._add_account_move_line(line)
+        bank_line.reconcile_bank_line()
+        self.assertTrue(bank_line.is_reconciled)
+        return bank_line
+
+    def _intermediate_entry(self, invoice, amount):
+        """A bank-journal entry with one debit and one credit customer line,
+        the credit line reconciled with the invoice. Returns its debit line,
+        still open, for a bank transaction to be reconciled against."""
+        receivable = invoice.line_ids.filtered(
+            lambda line: line.account_id.account_type == "asset_receivable",
+        )
+        partner = invoice.commercial_partner_id
+        entry = self.env["account.move"].create(
+            {
+                "move_type": "entry",
+                "date": fields.Date.from_string("2026-07-18"),
+                "journal_id": self.company_data["default_journal_bank"].id,
+                "line_ids": [
+                    Command.create(
+                        {
+                            "account_id": receivable.account_id.id,
+                            "partner_id": partner.id,
+                            "name": "Intermediate debit",
+                            "debit": amount,
+                            "credit": 0.0,
+                        },
+                    ),
+                    Command.create(
+                        {
+                            "account_id": receivable.account_id.id,
+                            "partner_id": partner.id,
+                            "name": "Intermediate credit",
+                            "debit": 0.0,
+                            "credit": amount,
+                        },
+                    ),
+                ],
+            },
+        )
+        entry.action_post()
+        debit_line = entry.line_ids.filtered("debit")
+        credit_line = entry.line_ids.filtered("credit")
+        (receivable.filtered(lambda line: not line.reconciled) | credit_line).reconcile()
+        self.assertTrue(credit_line.reconciled)
+        self.assertFalse(debit_line.reconciled)
+        return debit_line
+
+    def _adoption_counts(self):
+        return {
+            "moves": self.env["account.move"].search_count([]),
+            "move_lines": self.env["account.move.line"].search_count([]),
+            "payments": self.env["account.payment"].search_count([]),
+            "partials": self.env["account.partial.reconcile"].search_count([]),
+        }
 
     def test_documents_context_is_stable_and_relationship_complete(self):
         session = self._session()
@@ -1230,6 +1305,563 @@ class TestPlatformBilling(AccountTestInvoicingCommon):
                 bank_amount=50.0,
                 payout_amount=50.0,
             )
+
+    def test_reconciled_scope_offers_only_reconciled_incoming_lines(self):
+        session = self._session(name="Reconciled scope — July 2026")
+        payout = self._payout(session)
+        self._generate_and_post(session)
+        reconciled_line = self._bank_line(80.0, label="Already matched receipt")
+        self._reconcile_in_accounting(reconciled_line, payout.customer_invoice_id)
+        open_line = self._bank_line(12.5, label="Still open receipt")
+
+        for scope in ("all", "recommended"):
+            wizard = self._bank_wizard(session, scope=scope)
+            self.assertNotIn(
+                reconciled_line,
+                wizard.candidate_ids.bank_statement_line_id,
+                scope,
+            )
+        wizard = self._bank_wizard(session, scope="reconciled")
+
+        self.assertEqual(wizard.candidate_ids.bank_statement_line_id, reconciled_line)
+        self.assertNotIn(open_line, wizard.candidate_ids.bank_statement_line_id)
+        self.assertEqual(wizard.candidate_ids.allocated_bank_amount, 80.0)
+
+    def test_reconciled_scope_offers_paid_payouts_only_in_that_scope(self):
+        session = self._session(name="Paid payouts — July 2026")
+        payout = self._payout(session)
+        self._generate_and_post(session)
+        self._reconcile_in_accounting(
+            self._bank_line(80.0),
+            payout.customer_invoice_id,
+        )
+        self.assertEqual(payout.state, "paid")
+
+        self.assertNotIn(
+            payout,
+            self._bank_wizard(session).payout_candidate_ids.payout_id,
+        )
+        self.assertIn(
+            payout,
+            self._bank_wizard(session, scope="reconciled").payout_candidate_ids.payout_id,
+        )
+
+    def test_adopting_a_reconciled_line_records_evidence_without_touching_accounting(self):
+        session = self._session(name="Adopt exact match — July 2026")
+        payout = self._payout(session)
+        self._generate_and_post(session)
+        bank_line = self._bank_line(80.0, label="Already matched receipt")
+        self._reconcile_in_accounting(bank_line, payout.customer_invoice_id)
+        self.assertEqual(payout.state, "paid")
+        self.assertEqual(payout.bank_match_status, "unmatched")
+        counts = self._adoption_counts()
+        fingerprint = self._ledger_fingerprint(session.generated_move_ids)
+
+        wizard = self._bank_wizard(session, scope="reconciled")
+        wizard.candidate_ids.selected = True
+        wizard.action_link_payouts()
+
+        allocation = payout.bank_allocation_ids
+        self.assertEqual(len(allocation), 1)
+        self.assertEqual(allocation.bank_statement_line_id, bank_line)
+        self.assertEqual(allocation.bank_amount, 80.0)
+        self.assertEqual(allocation.payout_amount, 80.0)
+        self.assertEqual(allocation.state, "reconciled")
+        self.assertEqual(payout.bank_match_status, "reconciled")
+        self.assertEqual(payout.state, "paid")
+        self.assertEqual(session.state, "paid")
+        self.assertEqual(self._adoption_counts(), counts)
+        self.assertEqual(
+            self._ledger_fingerprint(session.generated_move_ids),
+            fingerprint,
+        )
+        note = " ".join(session.message_ids.mapped("body"))
+        self.assertIn("1 bank transaction(s) adopted", note)
+
+    def test_adopting_the_same_reconciled_line_twice_is_idempotent(self):
+        session = self._session(name="Adopt twice — July 2026")
+        payout = self._payout(session)
+        self._generate_and_post(session)
+        bank_line = self._bank_line(80.0)
+        self._reconcile_in_accounting(bank_line, payout.customer_invoice_id)
+        wizard = self._bank_wizard(session, scope="reconciled")
+        wizard.candidate_ids.selected = True
+
+        wizard.action_link_payouts()
+        wizard.action_link_payouts()
+
+        self.assertEqual(len(payout.bank_allocation_ids), 1)
+        notes = session.message_ids.filtered(
+            lambda message: "adopted from existing" in (message.body or ""),
+        )
+        self.assertEqual(len(notes), 1)
+        fresh = self._bank_wizard(session, scope="reconciled")
+        self.assertFalse(fresh.candidate_ids)
+
+    def test_one_reconciled_line_can_be_split_across_two_payouts(self):
+        session = self._session(name="Adopt split — July 2026")
+        first = self._payout(session, reference="SPLIT-A", amount=80.0)
+        second = self._payout(
+            session,
+            reference="SPLIT-B",
+            amount=40.0,
+            payout_date="2026-07-16",
+        )
+        self._generate_and_post(session)
+        invoice = first.customer_invoice_id | second.customer_invoice_id
+        self.assertEqual(len(invoice), 1)
+        line_a = self._bank_line(50.0, label="Receipt A", bank_date="2026-07-20")
+        line_b = self._bank_line(70.0, label="Receipt B", bank_date="2026-07-21")
+        self._reconcile_in_accounting(line_a, invoice)
+        self._reconcile_in_accounting(line_b, invoice)
+        self.assertEqual((first.state, second.state), ("paid", "paid"))
+        counts = self._adoption_counts()
+
+        wizard = self._bank_wizard(session, scope="reconciled")
+        self.assertEqual(
+            wizard.candidate_ids.bank_statement_line_id,
+            line_a | line_b,
+        )
+        wizard.candidate_ids.selected = True
+        wizard.action_link_payouts()
+
+        def amounts(payout):
+            return sorted(
+                (
+                    allocation.bank_statement_line_id.payment_ref,
+                    allocation.bank_amount,
+                )
+                for allocation in payout.bank_allocation_ids
+            )
+
+        self.assertEqual(amounts(first), [("Receipt A", 50.0), ("Receipt B", 30.0)])
+        self.assertEqual(amounts(second), [("Receipt B", 40.0)])
+        self.assertEqual(first.bank_match_status, "reconciled")
+        self.assertEqual(second.bank_match_status, "reconciled")
+        self.assertEqual((first.state, second.state), ("paid", "paid"))
+        self.assertEqual(self._adoption_counts(), counts)
+        note = " ".join(session.message_ids.mapped("body"))
+        self.assertIn("2 bank transaction(s) adopted", note)
+
+    def test_payout_slightly_above_its_bank_receipts_is_settled_by_two_lines(self):
+        session = self._session(name="Adopt two lines — July 2026")
+        payout = self._payout(session, reference="TWO-LINES", amount=80.30)
+        self._generate_and_post(session)
+        line_a = self._bank_line(50.0, label="First receipt", bank_date="2026-07-20")
+        line_b = self._bank_line(30.0, label="Second receipt", bank_date="2026-07-21")
+        invoice = payout.customer_invoice_id
+        self._reconcile_in_accounting(line_a, invoice)
+        self._reconcile_in_accounting(line_b, invoice)
+        self.assertEqual(payout.state, "posted")
+        counts = self._adoption_counts()
+
+        wizard = self._bank_wizard(session, scope="reconciled")
+        wizard.candidate_ids.selected = True
+        self.assertEqual(
+            wizard.payout_candidate_ids.allocated_payout_amount,
+            80.30,
+        )
+        with self.assertRaisesRegex(UserError, "Adjust the selected amounts"):
+            wizard.action_link_payouts()
+        self.assertFalse(payout.bank_allocation_ids)
+
+        wizard.payout_candidate_ids.allocated_payout_amount = 80.0
+        wizard.action_link_payouts()
+
+        self.assertEqual(payout.bank_statement_line_ids, line_a | line_b)
+        self.assertEqual(payout.bank_received_amount, 80.0)
+        self.assertEqual(payout.remaining_platform_amount, 0.30)
+        self.assertEqual(payout.state, "posted")
+        self.assertEqual(self._adoption_counts(), counts)
+
+    def test_reconciled_line_cannot_be_over_allocated(self):
+        session = self._session(name="Adopt over-allocation — July 2026")
+        payout = self._payout(session)
+        other = self._payout(session, reference="OVER-B", amount=40.0)
+        self._generate_and_post(session)
+        bank_line = self._bank_line(100.0)
+        self._reconcile_in_accounting(bank_line, payout.customer_invoice_id)
+        self._allocation(other, bank_line, bank_amount=40.0, payout_amount=40.0)
+
+        wizard = self._bank_wizard(session, scope="reconciled")
+        candidate = wizard.candidate_ids
+        self.assertEqual(candidate.allocated_bank_amount, 60.0)
+        self.assertEqual(wizard.payout_candidate_ids.payout_id, payout)
+        candidate.selected = True
+        candidate.allocated_bank_amount = 70.0
+        wizard.payout_candidate_ids.allocated_payout_amount = 70.0
+
+        with self.assertRaisesRegex(UserError, "cannot exceed the remaining"):
+            wizard.action_link_payouts()
+        self.assertFalse(payout.bank_allocation_ids)
+
+        with self.assertRaises(ValidationError), self.cr.savepoint():
+            self._allocation(payout, bank_line, bank_amount=70.0, payout_amount=70.0)
+
+    def test_open_line_is_not_adopted_in_the_reconciled_scope(self):
+        session = self._session(name="Adopt open line — July 2026")
+        payout = self._payout(session)
+        self._generate_and_post(session)
+        open_line = self._bank_line(80.0, label="Open receipt")
+        wizard = self._bank_wizard(session, scope="reconciled")
+        self.assertFalse(wizard.candidate_ids)
+        wizard.candidate_ids = [
+            Command.create(
+                {
+                    "selected": True,
+                    "bank_statement_line_id": open_line.id,
+                    "allocated_bank_amount": 80.0,
+                    "remaining_bank_amount": 80.0,
+                },
+            ),
+        ]
+
+        with self.assertRaisesRegex(UserError, "already reconciled"):
+            wizard.action_link_payouts()
+
+        self.assertFalse(payout.bank_allocation_ids)
+
+    def test_reconciled_line_is_refused_outside_the_reconciled_scope(self):
+        session = self._session(name="Adopt wrong scope — July 2026")
+        payout = self._payout(session, amount=80.30)
+        self._generate_and_post(session)
+        bank_line = self._bank_line(80.0)
+        self._reconcile_in_accounting(bank_line, payout.customer_invoice_id)
+        self.assertEqual(payout.state, "posted")
+        wizard = self._bank_wizard(session, scope="all")
+        self.assertEqual(wizard.payout_candidate_ids.payout_id, payout)
+        wizard.payout_candidate_ids.allocated_payout_amount = 80.0
+        wizard.candidate_ids = [
+            Command.create(
+                {
+                    "selected": True,
+                    "bank_statement_line_id": bank_line.id,
+                    "allocated_bank_amount": 80.0,
+                    "remaining_bank_amount": 80.0,
+                },
+            ),
+        ]
+
+        with self.assertRaisesRegex(UserError, "no longer an eligible"):
+            wizard.action_link_payouts()
+
+        self.assertFalse(payout.bank_allocation_ids)
+
+    def test_reconciled_scope_can_be_chosen_in_the_form(self):
+        session = self._session(name="Adopt in form — July 2026")
+        payout = self._payout(session)
+        self._generate_and_post(session)
+        bank_line = self._bank_line(80.0)
+        self._reconcile_in_accounting(bank_line, payout.customer_invoice_id)
+        wizard = self._bank_wizard(session).with_user(self.operator)
+        self.assertFalse(wizard.candidate_ids)
+        self.assertFalse(wizard.payout_candidate_ids)
+
+        with Form(wizard) as form:
+            form.candidate_scope = "reconciled"
+            for index in range(len(form.candidate_ids)):
+                with form.candidate_ids.edit(index) as candidate_form:
+                    candidate_form.selected = True
+
+        self.assertEqual(wizard.candidate_ids.bank_statement_line_id, bank_line)
+        self.assertEqual(wizard.payout_candidate_ids.payout_id, payout)
+        self.assertTrue(wizard.payout_candidate_ids.selected)
+        wizard.action_link_payouts()
+        self.assertEqual(payout.bank_match_status, "reconciled")
+        self.assertEqual(payout.state, "paid")
+
+        with Form(wizard) as form:
+            form.mode = "create"
+        self.assertEqual(wizard.candidate_scope, "all")
+
+    def test_reconciled_scope_lists_nothing_until_a_payout_is_selected(self):
+        session = self._session(name="Adopt needs a payout — July 2026")
+        payout = self._payout(session)
+        self._generate_and_post(session)
+        bank_line = self._bank_line(80.0)
+        self._reconcile_in_accounting(bank_line, payout.customer_invoice_id)
+        wizard = self._bank_wizard(session, scope="reconciled")
+        self.assertEqual(wizard.candidate_ids.bank_statement_line_id, bank_line)
+
+        wizard.payout_candidate_ids.selected = False
+        wizard._populate_candidates()
+        self.assertFalse(wizard.candidate_ids)
+
+        wizard.payout_candidate_ids.selected = True
+        wizard._populate_candidates()
+        self.assertEqual(wizard.candidate_ids.bank_statement_line_id, bank_line)
+
+    def test_indirect_reconciliation_through_an_intermediate_entry_is_accepted(self):
+        session = self._session(name="Adopt two hops — July 2026")
+        payout = self._payout(session)
+        self._generate_and_post(session)
+        invoice = payout.customer_invoice_id
+        intermediate_debit = self._intermediate_entry(invoice, 80.0)
+        bank_line = self._bank_line(80.0, label="Receipt through intermediate entry")
+        self._reconcile_with_lines(
+            bank_line,
+            intermediate_debit,
+            invoice.commercial_partner_id,
+        )
+        self.assertEqual(payout.state, "paid")
+        # The bank line shares no partial reconciliation with the invoice.
+        invoice_receivable = invoice.line_ids.filtered(
+            lambda line: line.account_id.account_type == "asset_receivable",
+        )
+        bank_receivable = bank_line.move_id.line_ids.filtered(
+            lambda line: line.account_id.account_type == "asset_receivable",
+        )
+        direct = self.env["account.partial.reconcile"].search(
+            [
+                ("debit_move_id", "in", (invoice_receivable | bank_receivable).ids),
+                ("credit_move_id", "in", (invoice_receivable | bank_receivable).ids),
+            ],
+        )
+        self.assertFalse(direct)
+        counts = self._adoption_counts()
+
+        wizard = self._bank_wizard(session, scope="reconciled").with_user(
+            self.operator,
+        )
+        wizard._populate_candidates()
+        self.assertEqual(wizard.candidate_ids.bank_statement_line_id, bank_line)
+        wizard.candidate_ids.selected = True
+        wizard.action_link_payouts()
+
+        self.assertEqual(payout.bank_statement_line_id, bank_line)
+        self.assertEqual(payout.bank_match_status, "reconciled")
+        self.assertEqual(payout.state, "paid")
+        self.assertEqual(self._adoption_counts(), counts)
+
+    def test_line_reconciled_against_an_unrelated_invoice_is_refused(self):
+        session = self._session(name="Adopt unrelated — July 2026")
+        payout = self._payout(session)
+        other_session = self._session(
+            name="Unrelated — August 2026",
+            period_month="2026-08-01",
+            invoice_date="2026-08-31",
+            due_date="2026-08-31",
+        )
+        other_payout = self._payout(
+            other_session,
+            reference="UNRELATED-001",
+            payout_date="2026-08-15",
+        )
+        self._generate_and_post(session)
+        self._generate_and_post(other_session)
+        bank_line = self._bank_line(80.0, label="Receipt for another payout")
+        self._reconcile_in_accounting(bank_line, other_payout.customer_invoice_id)
+        counts = self._adoption_counts()
+
+        wizard = self._bank_wizard(session, scope="reconciled")
+        self.assertEqual(wizard.payout_candidate_ids.payout_id, payout | other_payout)
+        wizard.payout_candidate_ids.filtered(
+            lambda line: line.payout_id == other_payout,
+        ).selected = False
+        wizard._populate_candidates()
+        self.assertFalse(wizard.candidate_ids)
+
+        wizard.candidate_ids = [
+            Command.create(
+                {
+                    "selected": True,
+                    "bank_statement_line_id": bank_line.id,
+                    "allocated_bank_amount": 80.0,
+                    "remaining_bank_amount": 80.0,
+                },
+            ),
+        ]
+        with self.assertRaisesRegex(UserError, "already reconciled"):
+            wizard.action_link_payouts()
+
+        self.assertFalse(payout.bank_allocation_ids)
+        self.assertFalse(other_payout.bank_allocation_ids)
+        self.assertEqual(self._adoption_counts(), counts)
+
+    def test_line_is_only_accepted_for_the_payouts_it_is_connected_to(self):
+        session = self._session(name="Adopt per payout — July 2026")
+        payout = self._payout(session)
+        other_session = self._session(
+            name="Per payout other — August 2026",
+            period_month="2026-08-01",
+            invoice_date="2026-08-31",
+            due_date="2026-08-31",
+        )
+        other_payout = self._payout(
+            other_session,
+            reference="CONNECTED-001",
+            payout_date="2026-08-15",
+        )
+        self._generate_and_post(session)
+        self._generate_and_post(other_session)
+        bank_line = self._bank_line(80.0, label="Receipt for the other payout")
+        self._reconcile_in_accounting(bank_line, other_payout.customer_invoice_id)
+        counts = self._adoption_counts()
+
+        wizard = self._bank_wizard(session, scope="reconciled")
+        wizard.payout_candidate_ids.selected = True
+        wizard._populate_candidates()
+        # Offered, because it is connected to one of the selected payouts.
+        self.assertEqual(wizard.candidate_ids.bank_statement_line_id, bank_line)
+        wizard.candidate_ids.selected = True
+        for line in wizard.payout_candidate_ids:
+            line.allocated_payout_amount = 40.0
+
+        with self.assertRaisesRegex(UserError, "not connected"):
+            wizard.action_link_payouts()
+
+        self.assertFalse(payout.bank_allocation_ids)
+        self.assertFalse(other_payout.bank_allocation_ids)
+        self.assertEqual(self._adoption_counts(), counts)
+
+        # Linked on its own, the connected payout accepts it.
+        wizard.payout_candidate_ids.filtered(
+            lambda line: line.payout_id == payout,
+        ).selected = False
+        wizard.payout_candidate_ids.filtered(
+            lambda line: line.payout_id == other_payout,
+        ).allocated_payout_amount = 80.0
+        wizard.action_link_payouts()
+        self.assertEqual(other_payout.bank_statement_line_id, bank_line)
+        self.assertFalse(payout.bank_allocation_ids)
+
+    def _pooled_payouts(self):
+        """Two payouts on two platforms, the second one pooled into the first
+        one's compensation move. Returns (session, first, second)."""
+        session = self._session(name="Adopt pool — July 2026")
+        other_platform = self.platform.copy({"name": "Pooled second platform"})
+        first = self._payout(session, reference="POOL-A")
+        second = self._payout(
+            session,
+            reference="POOL-B",
+            platform=other_platform,
+            payout_date="2026-07-16",
+        )
+        self._generate_and_post(session)
+        self.assertNotEqual(first.customer_invoice_id, second.customer_invoice_id)
+        first.compensation_move_id.platform_billing_payout_ids = [
+            Command.link(second.id),
+        ]
+        return session, first, second
+
+    def test_compensation_pool_sibling_invoice_is_offered_and_accepted(self):
+        session, first, second = self._pooled_payouts()
+        bank_line = self._bank_line(80.0, label="Receipt on the sibling invoice")
+        self._reconcile_in_accounting(bank_line, second.customer_invoice_id)
+        counts = self._adoption_counts()
+
+        wizard = self._bank_wizard(session, scope="reconciled")
+        wizard.payout_candidate_ids.filtered(
+            lambda line: line.payout_id == second,
+        ).selected = False
+        wizard._populate_candidates()
+        # Only the first payout is selected; the line was reconciled against
+        # the invoice of its compensation pool sibling.
+        self.assertEqual(wizard.candidate_ids.bank_statement_line_id, bank_line)
+        wizard.candidate_ids.selected = True
+        wizard.action_link_payouts()
+
+        self.assertEqual(first.bank_statement_line_id, bank_line)
+        self.assertEqual(first.bank_match_status, "reconciled")
+        self.assertFalse(second.bank_allocation_ids)
+        self.assertEqual(self._adoption_counts(), counts)
+
+        # Without the pool the same line is not connected to the first payout.
+        first.compensation_move_id.platform_billing_payout_ids = [
+            Command.unlink(second.id),
+        ]
+        fresh = self._bank_wizard(session, scope="reconciled")
+        fresh.payout_candidate_ids.filtered(
+            lambda line: line.payout_id == second,
+        ).selected = False
+        fresh._populate_candidates()
+        self.assertFalse(fresh.candidate_ids)
+
+    def test_one_refused_row_aborts_the_whole_request(self):
+        session, first, second = self._pooled_payouts()
+        # Connected to both payouts: reconciled against the second invoice,
+        # which is in the first payout's pool.
+        line_one = self._bank_line(40.0, label="Receipt one", bank_date="2026-07-20")
+        # Connected to the first payout only.
+        line_two = self._bank_line(40.0, label="Receipt two", bank_date="2026-07-21")
+        self._reconcile_in_accounting(line_one, second.customer_invoice_id)
+        self._reconcile_in_accounting(line_two, first.customer_invoice_id)
+        counts = self._adoption_counts()
+
+        wizard = self._bank_wizard(session, scope="reconciled")
+        wizard.payout_candidate_ids.selected = True
+        wizard._populate_candidates()
+        self.assertEqual(
+            wizard.candidate_ids.bank_statement_line_id,
+            line_one | line_two,
+        )
+        wizard.candidate_ids.selected = True
+        for line in wizard.payout_candidate_ids:
+            line.allocated_payout_amount = 40.0
+
+        with self.assertRaisesRegex(UserError, "not connected"):
+            wizard.action_link_payouts()
+
+        self.assertFalse(
+            self.env["usl.platform.billing.bank.allocation"].search(
+                [("bank_statement_line_id", "in", (line_one | line_two).ids)],
+            ),
+        )
+        self.assertFalse(first.bank_allocation_ids | second.bank_allocation_ids)
+        self.assertEqual(self._adoption_counts(), counts)
+
+    def test_adopted_count_only_counts_lines_with_a_new_allocation(self):
+        session = self._session(name="Adopt count — July 2026")
+        first = self._payout(session, reference="COUNT-A", amount=80.0)
+        second = self._payout(
+            session,
+            reference="COUNT-B",
+            amount=40.0,
+            payout_date="2026-07-16",
+        )
+        self._generate_and_post(session)
+        invoice = first.customer_invoice_id
+        line_a = self._bank_line(50.0, label="Receipt A", bank_date="2026-07-20")
+        line_b = self._bank_line(70.0, label="Receipt B", bank_date="2026-07-21")
+        self._reconcile_in_accounting(line_a, invoice)
+        self._reconcile_in_accounting(line_b, invoice)
+        self._allocation(first, line_b, bank_amount=30.0, payout_amount=30.0)
+
+        wizard = self._bank_wizard(session, scope="reconciled")
+        wizard.candidate_ids.selected = True
+        amounts = {
+            line.payout_id: line for line in wizard.payout_candidate_ids
+        }
+        amounts[first].allocated_payout_amount = 50.0
+        amounts[second].allocated_payout_amount = 40.0
+        wizard.action_link_payouts()
+
+        self.assertEqual(
+            self.env["usl.platform.billing.bank.allocation"].search_count(
+                [("bank_statement_line_id", "in", (line_a | line_b).ids)],
+            ),
+            3,
+        )
+        note = " ".join(session.message_ids.mapped("body"))
+        self.assertIn("2 bank transaction(s) adopted", note)
+
+        values = {
+            "payout_id": second.id,
+            "bank_statement_line_id": line_b.id,
+            "bank_amount": 40.0,
+            "payout_amount": 40.0,
+        }
+        allocation, created = wizard._get_or_create_allocation(values)
+        self.assertEqual(allocation.payout_id, second)
+        self.assertFalse(created)
+
+    def test_reconciled_scope_does_not_create_payouts(self):
+        session = self._session(name="Adopt create mode — July 2026")
+        wizard = self._bank_wizard(session, mode="create", scope="reconciled")
+
+        self.assertFalse(wizard.candidate_ids)
+        with self.assertRaisesRegex(UserError, "can only be linked"):
+            wizard.action_create_payouts()
 
     def test_delayed_pooled_receipt_reconciles_multiple_sessions(self):
         july = self._session(name="Pooled receipt — July 2026")
