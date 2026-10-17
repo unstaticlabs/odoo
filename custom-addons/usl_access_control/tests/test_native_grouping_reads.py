@@ -4,8 +4,9 @@ import hashlib
 import json
 from unittest.mock import patch
 
+from psycopg2 import errors as pgerrors
 
-from odoo import SUPERUSER_ID, Command
+from odoo import SUPERUSER_ID, Command, api, fields
 from odoo.tests import HttpCase, tagged
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.tools import SQL
@@ -134,6 +135,30 @@ class TestNativeGroupingReads(AccountTestInvoicingCommon, HttpCase):
         self.assertEqual(denied.status_code, 403, denied.text)
         self.assertEqual(before, self._fingerprint())
 
+    def test_existing_secret_denial_applies_to_native_grouping_specs(self):
+        self.owner.with_user(SUPERUSER_ID).write({
+            "group_ids": [Command.link(self.env.ref("base.group_system").id)],
+        })
+        self.agent.with_user(self.owner).action_grant_all_read()
+        secret = "qa-grouping-synthetic-secret"
+        server = self.env["ir.mail_server"].sudo().create({
+            "name": "[QA grouping] Secret", "smtp_host": "smtp.example.invalid",
+            "smtp_user": "qa@example.invalid", "smtp_pass": secret,
+        })
+        direct = self._call(model="ir.mail_server", method="read", ids=server.ids, fields=["smtp_pass"])
+        self.assertEqual(direct.status_code, 403, direct.text)
+        for method, spec in (
+            ("formatted_read_grouping_sets", {"grouping_sets": [[]], "aggregates": ["smtp_pass:array_agg"]}),
+            ("formatted_read_grouping_sets", {"grouping_sets": [["smtp_pass"]], "aggregates": ["__count"]}),
+            ("formatted_read_group", {"groupby": [], "aggregates": ["smtp_pass:array_agg"]}),
+        ):
+            with self.subTest(method=method, spec=spec):
+                response = self._call(model="ir.mail_server", method=method, domain=[("id", "=", server.id)], **spec)
+                self.assertEqual(response.status_code, 403, response.text)
+                self.assertNotIn(secret, response.text)
+        public = self._call(model="ir.mail_server", domain=[("id", "=", server.id)], grouping_sets=[["smtp_host"]], aggregates=["__count"])
+        self.assertEqual(public.status_code, 200, public.text)
+        self.assertEqual(public.json()[0][0]["smtp_host"], "smtp.example.invalid")
 
     def test_many2many_grouping_preserves_sums_without_duplicate_rows(self):
         tags = self.env["project.tags"].sudo().create([
@@ -183,3 +208,32 @@ class TestNativeGroupingReads(AccountTestInvoicingCommon, HttpCase):
         after = self._call(domain=[("id", "in", self.tasks.ids)], grouping_sets=[[]], aggregates=["__count"])
         self.assertEqual(after.status_code, 200, after.text)
         self.assertEqual(after.json()[0][0]["__count"], 0)
+
+    def test_readonly_native_auth_defers_usage_telemetry_until_commit(self):
+        agent = self.agent
+        credential = agent.credential_ids
+        now = fields.Datetime.now()
+        callbacks = []
+        with self.env.registry.cursor(readonly=True) as cursor:
+            readonly_credential = api.Environment(cursor, SUPERUSER_ID, {})[
+                "usl.agent.credential"
+            ].browse(credential.id)
+            with patch.object(type(cursor.postcommit), "add", lambda _callbacks, callback: callbacks.append(callback)):
+                self.assertFalse(readonly_credential._touch_last_used_at(now))
+        credential.invalidate_recordset(["last_used_at"])
+        self.assertFalse(credential.last_used_at)
+        self.assertEqual(len(callbacks), 1)
+        updates = []
+        touch = type(credential)._touch_last_used_at
+
+        def observed_touch(records, used_at):
+            result = touch(records, used_at)
+            updates.append((records.env.cr.readonly, records.last_used_at))
+            return result
+
+        with patch.object(type(credential), "_touch_last_used_at", observed_touch):
+            callbacks[0]()
+        self.assertEqual(updates, [(False, now)])
+        with patch.object(type(credential), "_touch_last_used_at", side_effect=pgerrors.OperationalError):
+            with self.assertLogs("odoo.addons.usl_access_control.models.agent_credential", level="ERROR"):
+                callbacks[0]()

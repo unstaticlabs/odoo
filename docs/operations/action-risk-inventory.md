@@ -333,3 +333,11 @@ Real writes in an override remain mutation evidence; a method name or
 `@api.readonly` decorator does not override that evidence. Native read-only
 formatting may retain `sudo` for relation labels and fold metadata. Review that
 read context without treating it as a product mutation.
+
+Authenticated native read-only calls defer best-effort Agent credential usage
+telemetry until commit, using a separate writable governance cursor. The
+callback retains only the database name, credential ID and timestamp; a denied
+or rolled-back request does not run it. Authority, expiry and transport checks
+still run before dispatch. Native grouping field specifications also pass their
+field identities through the existing secret-field checker, including aggregate
+suffixes and nested grouping sets; this does not change the secret field list.

@@ -227549,7 +227549,7 @@
           "path": "odoo/addons/base/models/res_users.py"
         },
         {
-          "line": 370,
+          "line": 395,
           "path": "custom-addons/usl_access_control/models/agent_credential.py"
         },
         {
@@ -228325,7 +228325,7 @@
           "path": "odoo/addons/base/models/res_users.py"
         },
         {
-          "line": 379,
+          "line": 404,
           "path": "custom-addons/usl_access_control/models/agent_credential.py"
         },
         {
@@ -1120614,7 +1120614,7 @@
           "path": "odoo/addons/base/models/res_users.py"
         },
         {
-          "line": 370,
+          "line": 395,
           "path": "custom-addons/usl_access_control/models/agent_credential.py"
         },
         {
@@ -1121390,7 +1121390,7 @@
           "path": "odoo/addons/base/models/res_users.py"
         },
         {
-          "line": 379,
+          "line": 404,
           "path": "custom-addons/usl_access_control/models/agent_credential.py"
         },
         {
@@ -1316722,7 +1316722,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 129,
+          "line": 154,
           "path": "custom-addons/usl_access_control/models/agent_credential.py"
         },
         {
@@ -1316762,7 +1316762,7 @@
       ],
       "sources": [
         {
-          "line": 118,
+          "line": 143,
           "path": "custom-addons/usl_access_control/models/agent_credential.py"
         },
         {
@@ -1316942,7 +1316942,7 @@
       ],
       "sources": [
         {
-          "line": 146,
+          "line": 171,
           "path": "custom-addons/usl_access_control/models/agent_credential.py"
         },
         {
@@ -1318002,7 +1318002,7 @@
       ],
       "sources": [
         {
-          "line": 156,
+          "line": 181,
           "path": "custom-addons/usl_access_control/models/agent_credential.py"
         },
         {
@@ -1318398,7 +1318398,7 @@
       ],
       "sources": [
         {
-          "line": 151,
+          "line": 176,
           "path": "custom-addons/usl_access_control/models/agent_credential.py"
         },
         {
@@ -1319105,7 +1319105,7 @@
       ],
       "sources": [
         {
-          "line": 188,
+          "line": 213,
           "path": "custom-addons/usl_access_control/models/agent_credential.py"
         },
         {
@@ -1321265,7 +1321265,7 @@
       ],
       "sources": [
         {
-          "line": 256,
+          "line": 281,
           "path": "custom-addons/usl_access_control/models/agent_credential.py"
         },
         {
@@ -1608607,13 +1608607,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 64,
+          "line": 69,
           "path": "custom-addons/usl_access_control/models/agent_credential.py"
         }
       ]
     },
     {
-      "digest": "5a8d08e234e9b50548fc9cef563d6829e54b5f4b1b218af8511d3d4b37154a97",
+      "digest": "c8ecd90430bce614f16a9d36c55cee7f78ae57d57685bca69de58c63c8da3986",
       "key": "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential._touch_last_used_at:raw_sql_mutation:1",
       "kind": "sink",
       "modules": [
@@ -1608622,7 +1608622,7 @@
       "sink_kind": "raw_sql_mutation",
       "sources": [
         {
-          "line": 76,
+          "line": 81,
           "path": "custom-addons/usl_access_control/models/agent_credential.py"
         }
       ]
@@ -1608640,7 +1608640,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 118,
+          "line": 143,
           "path": "custom-addons/usl_access_control/models/agent_credential.py"
         }
       ]
@@ -1608658,7 +1608658,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 118,
+          "line": 143,
           "path": "custom-addons/usl_access_control/models/agent_credential.py"
         }
       ]
@@ -1608676,7 +1608676,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 118,
+          "line": 143,
           "path": "custom-addons/usl_access_control/models/agent_credential.py"
         }
       ]
@@ -1608694,7 +1608694,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 146,
+          "line": 171,
           "path": "custom-addons/usl_access_control/models/agent_credential.py"
         }
       ]
@@ -1608712,7 +1608712,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 151,
+          "line": 176,
           "path": "custom-addons/usl_access_control/models/agent_credential.py"
         }
       ]
@@ -1608730,7 +1608730,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 188,
+          "line": 213,
           "path": "custom-addons/usl_access_control/models/agent_credential.py"
         }
       ]
@@ -1608748,7 +1608748,7 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 188,
+          "line": 213,
           "path": "custom-addons/usl_access_control/models/agent_credential.py"
         }
       ]
@@ -1608766,7 +1608766,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 188,
+          "line": 213,
           "path": "custom-addons/usl_access_control/models/agent_credential.py"
         }
       ]
@@ -1608784,7 +1608784,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 256,
+          "line": 281,
           "path": "custom-addons/usl_access_control/models/agent_credential.py"
         }
       ]
@@ -1701805,11 +1701805,11 @@
       "version": ""
     },
     {
-      "manifest_sha256": "f3d0885a9b4edf95a0688d51542f7b6e519f602de53f509f7368a602bd230f33",
+      "manifest_sha256": "9eac1a8618ba6058044945c5ef82f6be6fd37d6f373e98aa75d91e184d56b05f",
       "name": "usl_access_control",
       "origin": "custom",
-      "source_sha256": "d4d2d8a40086aa01b06430dbaa2a50cf8f0f99ada63575a90f45305da4554a1e",
-      "version": "saas~19.3.1.8.6"
+      "source_sha256": "86504ed1e4fe63830024c6962a405998f4bd99db743c07f081a4abddfc29d6f7",
+      "version": "saas~19.3.1.8.8"
     },
     {
       "manifest_sha256": "2d4f291c27ad7c2892ad8fd578313cb7bd45b5ad202e44f3087d7270dc084f31",

@@ -179092,13 +179092,15 @@
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential._touch_last_used_at:raw_sql_mutation:1": {
+          "evidence_id": "native-grouping-auth-compatibility",
+          "rationale": "Server-owned, throttled and nonblocking usage metadata update for an already authenticated governed credential. Native readonly calls defer it until transaction commit, with only database name, credential ID and timestamp retained. No product authority is granted; failures remain best-effort.",
           "reachability_proof": "Private authenticated-credential telemetry helper; updates only last_used_at and ORM audit timestamps on its own credential. No public RPC entry point; credential validity, Agent status and transport checks run before this helper."
         }
       },
       "rationale": "Reachability is limited to the reviewed caller or scheduler; any separately reachable action is classified independently.",
       "reviewed_digests": {
         "sink:usl_access_control:custom-addons/usl_access_control/controllers/json2.py:UslAgentJson2Controller.web_json_2_rpc:sudo:1": "e2685d6f7c17b07858f9a944ed44e9d238af50c2f9d7f29810776ca198456be6",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential._touch_last_used_at:raw_sql_mutation:1": "5a8d08e234e9b50548fc9cef563d6829e54b5f4b1b218af8511d3d4b37154a97"
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_credential.py:usl.agent.credential._touch_last_used_at:raw_sql_mutation:1": "c8ecd90430bce614f16a9d36c55cee7f78ae57d57685bca69de58c63c8da3986"
       }
     },
     {
@@ -203497,6 +203499,13 @@
         "custom-addons/usl_project/tests/test_task_content_search.py::TestTaskContentSearch.test_content_execution_transaction_and_exception_boundaries",
         "custom-addons/usl_project/tests/test_task_content_search.py::TestTaskContentSearch.test_content_execution_preserves_pending_orm_write",
         "custom-addons/usl_project/tests/test_task_content_search.py::TestTaskContentSearch.test_content_execution_readonly_and_ended_transaction"
+      ]
+    },
+    "native-grouping-auth-compatibility": {
+      "contract": "Native readonly bearer authentication preserves authoritative governance checks and schedules only best-effort credential usage telemetry after commit on a writable governance cursor. Existing throttle and nonblocking updates remain; denied and rolled-back requests do not run the callback. Native grouping field identities obey the existing secret checker.",
+      "tests": [
+        "custom-addons/usl_access_control/tests/test_native_grouping_reads.py::TestNativeGroupingReads",
+        "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents"
       ]
     },
     "native-grouping-sets-read": {
