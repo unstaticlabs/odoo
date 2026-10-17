@@ -11,20 +11,17 @@ These are ordinary browser exports, so the optional shell qualification banner
 is absent. They illustrate the final tested product revision; native tests,
 PDF text checks and upgrade preservation separately prove behavior.
 
-- `final-accountant-ledger-open-page1.png`: ordinary accountant, open exercise;
-  the preamble gives the provisional reason and the footer repeats it.
 - `final-accountant-ledger-open-page4.png`: continuation of that eleven-page
   browser-generated ledger; the footer retains Document provisoire.
 - `final-reader-trial-locked-page1.png`: native read-only accountant after
   switching to the locked company; no generated provisional label. This does
   not certify the report.
 
-Superseded wording: these captures predate the owner decision of 17 October
-2026 that a report is provisional until the global fiscal lock or hard lock
-covers its closing date. The preamble reason in the images still reads that an
-exercise is not entirely locked; the current text says the lock does not yet
-cover the closing date. The ledgers, layout and footer are unchanged, and the
-status itself is proved by `TestReportProvisionalStatus`.
+The first-page capture of the open ledger was removed: its preamble reason
+predates the owner decision of 17 October 2026 that a report is provisional
+until the global fiscal lock or hard lock covers its closing date. The status
+itself is proved by `TestReportProvisionalStatus`; a fresh first-page capture
+can be added with the next browser qualification.
 
 The lead personally inspected the pixels and all PNG chunks of these exact
 bytes before publication. These replace the earlier pre-format illustrative
