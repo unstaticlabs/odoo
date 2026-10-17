@@ -47,6 +47,11 @@ Read-only enforcement applies per application at both the ORM and JSON-2
 boundaries, including code that retains the Agent actor through `sudo()`.
 Create, write, delete, archive, workflow, import, module, server-action and
 unknown public methods are denied outside explicitly write-enabled scopes.
+Native ORM creation with an empty values list, and writes or deletions on an
+empty recordset, keep Odoo’s no-op behavior, including internal calls reached by
+Accounting workflows. This does not permit changing an actual record or alter
+the access required for a public API method.
+
 Agent keys work only with JSON-2 and the qualified API-document
 endpoints; legacy RPC transports are rejected. The exact read allowlist is
 generated from the audited Agent-eligible subset of `read_only` action-risk
