@@ -1097,6 +1097,7 @@ msgstr "Adresses d’expéditeur autorisées"
 #. module: usl_accounting
 #: model:ir.model,name:usl_accounting.model_account_account
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__account_id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__account_id
 msgid "Account"
 msgstr "Compte"
 
@@ -1800,6 +1801,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__company_id
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__company_id
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__company_id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__company_ids model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__company_id model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__company_id
 msgid "Company"
 msgstr "Société"
 
@@ -1958,6 +1960,7 @@ msgstr "Contribution nette"
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__create_uid
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__create_uid
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__create_uid
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__create_uid model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__create_uid
 msgid "Created by"
 msgstr "Créé par"
 
@@ -1975,6 +1978,7 @@ msgstr "Créé par"
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__create_date
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__create_date
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__create_date
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__create_date model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__create_date
 msgid "Created on"
 msgstr "Créé le"
 
@@ -1991,6 +1995,7 @@ msgstr "Note de crédit"
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__company_currency_id
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__currency_id
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__currency_id
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
 msgid "Currency"
 msgstr "Devise"
 
@@ -2084,6 +2089,7 @@ msgstr "Estimation Odoo rejetée :"
 #: model:ir.model.fields,field_description:usl_accounting.field_res_users__display_name
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__display_name
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__display_name
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__display_name model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__display_name model:ir.model.fields,field_description:usl_accounting.field_queue_job__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__display_name model:ir.model.fields,field_description:usl_accounting.field_validate_account_move__display_name
 msgid "Display Name"
 msgstr "Nom d'affichage"
 
@@ -2555,6 +2561,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:usl_accounting.field_res_users__id
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__id
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__id model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__id model:ir.model.fields,field_description:usl_accounting.field_queue_job__id model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__id model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__id model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__id model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__id model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__id model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__id model:ir.model.fields,field_description:usl_accounting.field_validate_account_move__id
 msgid "ID"
 msgstr "ID"
 
@@ -2701,6 +2708,7 @@ msgstr "Paiement disponible plus important"
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__write_uid
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__write_uid
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__write_uid
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__write_uid model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__write_uid
 msgid "Last Updated by"
 msgstr "Mis à jour par"
 
@@ -2718,6 +2726,7 @@ msgstr "Mis à jour par"
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__write_date
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__write_date
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__write_date
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__write_date model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__write_date
 msgid "Last Updated on"
 msgstr "Mis à jour le"
 
@@ -3536,6 +3545,7 @@ msgstr "Partiellement apparié – il reste un résidu"
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__partner_id
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__partner_id
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__partner_id
 msgid "Partner"
 msgstr "Partenaire"
 
@@ -6878,3 +6888,329 @@ msgstr "Fichiers d’origine"
 #: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_inspection_form
 msgid "History"
 msgstr "Historique"
+
+
+# Shared Remaining-balance review marks.
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid ". The reviewed balance has not been replaced."
+msgstr ". Le solde vérifié n’a pas été remplacé."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/reconciliation_review.py:0
+msgid "A colleague changed this review. Reload the group before continuing."
+msgstr ""
+"Un collègue a modifié cette vérification. Rechargez le groupe avant de "
+"continuer."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/reconciliation_review.py:0
+msgid "A review must identify an account group."
+msgstr "La vérification doit identifier un groupe de comptes."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__access_key
+msgid "Access Key"
+msgstr "Clé d’accès"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Acknowledge change"
+msgstr "Prendre acte de l’écart"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__acknowledged
+msgid "Acknowledged"
+msgstr "Écart pris en compte"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__acknowledged_at
+msgid "Acknowledged At"
+msgstr "Date de prise en compte"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__acknowledged_by_id
+msgid "Acknowledged By"
+msgstr "Pris en compte par"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__baseline
+msgid "Baseline"
+msgstr "Solde vérifié"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__baseline_context
+msgid "Baseline Context"
+msgstr "Contexte du solde vérifié"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Change"
+msgstr "Écart"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Change acknowledged by"
+msgstr "Écart pris en compte par"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Current"
+msgstr "Actuel"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__domain
+msgid "Domain"
+msgstr "Domaine"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/reconciliation_review.js:0
+msgid "Loading shared review"
+msgstr "Chargement de la vérification partagée"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Mark reviewed"
+msgstr "Marquer comme vérifié"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Mixed currencies use Odoo’s native rates on"
+msgstr "Les devises mixtes utilisent les taux natifs d’Odoo au"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__path
+msgid "Path"
+msgstr "Chemin"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Remaining balance review"
+msgstr "Vérification du solde restant"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/reconciliation_review.js:0
+msgid "Remaining change acknowledged"
+msgstr "Écart du solde restant pris en compte"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/reconciliation_review.js:0
+msgid "Remaining changed since review"
+msgstr "Solde restant modifié depuis la vérification"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Remaining differs from the reviewed balance."
+msgstr "Le solde restant diffère du solde vérifié."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/reconciliation_review.js:0
+msgid "Remaining not reviewed"
+msgstr "Solde restant non vérifié"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/reconciliation_review.js:0
+msgid "Remaining reviewed"
+msgstr "Solde restant vérifié"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid ""
+"Remaining uses the same currency and aggregation as the native group header."
+msgstr ""
+"Le solde restant utilise la même devise et le même calcul que l’en-tête "
+"natif du groupe."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/reconciliation_review.py:0
+msgid "Request between 1 and 200 reconciliation groups."
+msgstr "Demandez entre 1 et 200 groupes de lettrage."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Review current balance"
+msgstr "Vérifier le solde actuel"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/reconciliation_review.py:0
+msgid "Review the Remaining balance before acknowledging a change."
+msgstr "Vérifiez le solde restant avant de prendre acte d’un écart."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid ""
+"Review this group for the current filters. The mark is shared with your "
+"accounting team."
+msgstr ""
+"Vérifiez ce groupe pour les filtres actuels. La marque est partagée avec "
+"votre équipe comptable."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/reconciliation_review.js:0
+msgid "Review unavailable. Retry"
+msgstr "Vérification indisponible. Réessayer"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Reviewed"
+msgstr "Vérifié"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__reviewed_at
+msgid "Reviewed At"
+msgstr "Date de vérification"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Reviewed by"
+msgstr "Vérifié par"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Reviewed filters and group"
+msgstr "Filtres et groupe vérifiés"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/reconciliation_review.js:0
+msgid ""
+"Reviewed: %(baseline)s; current: %(current)s; change: %(delta)s %(currency)s"
+msgstr ""
+"Vérifié : %(baseline)s ; actuel : %(current)s ; écart : %(delta)s "
+"%(currency)s"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__reviewer_id
+msgid "Reviewer"
+msgstr "Responsable de vérification"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__revision
+msgid "Revision"
+msgstr "Révision"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__scope_key
+msgid "Scope Key"
+msgstr "Clé de périmètre"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Selected companies:"
+msgstr "Sociétés sélectionnées :"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Shared Remaining review"
+msgstr "Vérification partagée du solde restant"
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_account_reconciliation_review
+msgid "Shared reconciliation Remaining review"
+msgstr "Vérification partagée du solde restant à lettrer"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/reconciliation_review.py:0
+msgid "The Remaining balance changed. Reload the group before continuing."
+msgstr "Le solde restant a changé. Rechargez le groupe avant de continuer."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid ""
+"The displayed currency changed. Review the current balance; amounts in "
+"different currencies are not subtracted."
+msgstr ""
+"La devise affichée a changé. Vérifiez le solde actuel ; les montants en "
+"devises différentes ne sont pas soustraits."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/reconciliation_review.py:0
+msgid "The reconciliation group is invalid. Reload the list."
+msgstr "Le groupe de lettrage est invalide. Rechargez la liste."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/reconciliation_review.js:0
+msgid "The review could not be saved. Reload the group and try again."
+msgstr ""
+"La vérification n’a pas pu être enregistrée. Rechargez le groupe et "
+"réessayez."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/reconciliation_review.py:0
+msgid "The review filters are too large. Narrow the search and try again."
+msgstr ""
+"Les filtres de vérification sont trop volumineux. Précisez la recherche et "
+"réessayez."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "The reviewed balance used native rates on"
+msgstr "Le solde vérifié utilisait les taux natifs du"
+
+#. module: usl_accounting
+#: model:ir.model.constraint,message:usl_accounting.constraint_account_reconciliation_review_scope_unique
+msgid "This reconciliation scope already has a shared review."
+msgstr "Ce périmètre de lettrage possède déjà une vérification partagée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/reconciliation_review.py:0
+msgid "Use Mark reviewed or Acknowledge change to update a shared review."
+msgstr ""
+"Utilisez Marquer comme vérifié ou Prendre acte de l’écart pour actualiser "
+"une vérification partagée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/reconciliation_review.py:0
+msgid ""
+"Use Mark reviewed to record the current Remaining balance and reviewer."
+msgstr ""
+"Utilisez Marquer comme vérifié pour enregistrer le solde restant actuel et "
+"son responsable de vérification."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/reconciliation_review.py:0
+msgid "Use a resolved calendar month for the review."
+msgstr "Utilisez un mois civil explicite pour la vérification."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/reconciliation_review.py:0
+msgid "Use an Account, Partner or Month group containing an account."
+msgstr "Utilisez un groupe Compte, Partenaire ou Mois contenant un compte."

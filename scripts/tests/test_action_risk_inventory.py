@@ -949,6 +949,23 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
         compiled = inventory.build_agent_readonly_runtime_policy(self.surface(actions), policy)
         self.assertEqual(compiled["read_only_actions"], sorted(keys[:2]))
 
+    def test_reconciliation_review_read_does_not_admit_annotation_writes(self):
+        keys = [
+            "rpc:account.reconciliation.review.get_review_status",
+            "rpc:account.reconciliation.review.mark_reviewed",
+            "rpc:account.reconciliation.review.dismiss_variance",
+        ]
+        actions = [self.action(key, "rpc") for key in keys]
+        # Exact registration remains narrow even if a mutation is mislabeled.
+        policy = self.policy({action["key"]: self.entry(action, "read_only") for action in actions})
+        compiled = inventory.build_agent_readonly_runtime_policy(self.surface(actions), policy)
+        self.assertEqual(compiled["read_only_actions"], keys[:1])
+        policy = self.policy({action["key"]: self.entry(action, "read_only" if index == 0 else "operational")
+                              for index, action in enumerate(actions)})
+        compiled = inventory.build_agent_readonly_runtime_policy(self.surface(actions), policy)
+        self.assertEqual(compiled["read_only_actions"], keys[:1])
+        self.assertEqual(compiled["write_actions"], sorted(keys[1:]))
+
     def test_tracked_agent_readonly_runtime_policy_is_bounded(self):
         runtime_policy = inventory.load_json(
             inventory.DEFAULT_AGENT_READONLY_RUNTIME_POLICY,
