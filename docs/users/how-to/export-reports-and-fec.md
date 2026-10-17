@@ -19,12 +19,13 @@ unit near the title, high-contrast financial sections, and document/page
 context in the footer. If screen and export do not show the same scope, do not
 use the export as review evidence.
 
-A PDF displays **Document provisoire** in its preamble and on every page when
-any selected fiscal exercise is not fully covered by the global fiscal lock or
-hard lock. This includes comparison periods and each selected company's fiscal
-calendar. A tax, sales or purchase lock alone is insufficient. Draft-inclusive
-exports and incomplete periods also remain provisional; the preamble explains
-why. Personal lock exceptions do not change this document status.
+A PDF displays **Document provisoire** in its preamble and on every page until
+the global fiscal lock or hard lock covers the report's closing date. A report
+closing on 30 June is final once the lock is at 30 June or later; a lock on 29
+June is not enough. This applies to every selected company and to the
+comparison period. A tax, sales or purchase lock alone is insufficient, and
+lock exceptions do not count. Draft-inclusive exports and incomplete periods
+also remain provisional; the preamble explains why.
 
 The absence of that label does not certify the report or replace professional
 review. The label changes presentation only; it does not change entries, totals

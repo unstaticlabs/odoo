@@ -240,14 +240,15 @@ PCG classification rules used by the canonical statements include:
   presented as a real zero.
 
 PDF exports display **Document provisoire** in the scope preamble and on every
-page while any selected company's fiscal exercise remains open. The effective
-native global fiscal lock or hard lock must cover the complete exercise ending
-at the report date, using that company's fiscal calendar and exceptional first
-year. Comparison periods are checked too. Tax, sales and purchase locks do not
-close an exercise; personal lock exceptions do not change document status.
-Draft-inclusive exports and incomplete date scopes remain provisional, with the
-reason in the preamble and export metadata. A mid-year lock does not close the
-rest of that exercise.
+page until the native global fiscal lock or hard lock covers the report's
+closing date. The comparison is made against that date, not against the end of
+the fiscal exercise that contains it: a report closing on 30 June is final once
+the lock is at 30 June or later, and provisional while the lock is on 29 June or
+earlier. Every selected company and the comparison period must be covered. Tax,
+sales and purchase locks never count, and active lock exceptions are ignored, so
+a personal exception does not change document status. Draft-inclusive exports
+and incomplete date scopes remain provisional, with the reason in the preamble
+and export metadata. The owner confirmed this rule on 17 October 2026.
 
 This presentation status neither restricts posting nor certifies a locked
 report. Existing preparation, review and attestation qualifications remain in

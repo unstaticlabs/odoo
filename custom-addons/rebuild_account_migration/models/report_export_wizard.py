@@ -1495,8 +1495,12 @@ class RebuildAccountReportExportWizard(models.TransientModel):
     def _report_provisional_status(self):
         """Describe preparation status without changing posting authority.
 
-        Use Odoo's inherited fiscal locks, independently of personal exceptions.
-        A partial-period report still belongs to its complete fiscal exercise.
+        A report is provisional until Odoo's global fiscal-year lock, or the
+        hard lock, covers the report's closing date. The fiscal exercise that
+        contains that date does not matter, and neither do the tax, sales and
+        purchase locks. Active lock exceptions are ignored, so a personal
+        exception never changes the document status. Every selected company and
+        the comparison period must be covered.
         """
         self.ensure_one()
         companies = self._selected_companies()
@@ -1508,7 +1512,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             reasons.append("Les écritures brouillon sont incluses.")
         if not companies or any(not start or not end for start, end in periods):
             reasons.append(
-                "Le périmètre est incomplet : le verrouillage des exercices "
+                "Le périmètre est incomplet : le verrouillage fiscal "
                 "ne peut pas être établi.",
             )
         else:
@@ -1519,13 +1523,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                     ),
                     company.user_hard_lock_date,
                 )
-                if any(
-                    start > end
-                    or company.compute_fiscalyear_dates(end)["date_to"] > fiscal_lock
-                    for start, end in periods
-                ):
+                if any(start > end or end > fiscal_lock for start, end in periods):
                     reasons.append(
-                        "Un exercice du périmètre n’est pas entièrement verrouillé.",
+                        "Le verrouillage fiscal ne couvre pas encore la date de "
+                        "clôture du rapport.",
                     )
                     break
         return {"required": bool(reasons), "reasons": reasons}

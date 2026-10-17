@@ -40,24 +40,55 @@ class TestReportProvisionalStatus(TransactionCase):
             )
         )
 
-    def test_pdf_provisional_requires_full_fiscal_exercise_lock(self):
+    def _provisional(self, wizard):
+        return wizard._export_metadata()["provisional"]["required"]
+
+    def test_pdf_provisional_requires_lock_to_cover_closing_date(self):
         wizard = self._wizard(company_ids=[Command.set([self.first_company.id])])
         company = self.first_company
         for lock, expected in (
             (False, True),
             ("2026-12-30", True),
             ("2026-12-31", False),
+            ("2027-01-01", False),
         ):
             with self.subTest(lock=lock):
                 company.fiscalyear_lock_date = lock
-                self.assertEqual(
-                    wizard._export_metadata()["provisional"]["required"], expected,
-                )
-        wizard.write({"date_to": "2026-06-30"})
-        company.fiscalyear_lock_date = "2026-06-30"
-        self.assertTrue(wizard._export_metadata()["provisional"]["required"])
-        company.write({"fiscalyear_last_month": "6", "fiscalyear_last_day": 30})
-        self.assertFalse(wizard._export_metadata()["provisional"]["required"])
+                self.assertEqual(self._provisional(wizard), expected)
+
+    def test_pdf_provisional_lock_equal_to_closing_date_is_final(self):
+        # The fiscal exercise does not matter, only the report's closing date.
+        wizard = self._wizard(
+            company_ids=[Command.set([self.first_company.id])],
+            date_from="2026-01-01",
+            date_to="2026-06-30",
+        )
+        self.first_company.fiscalyear_lock_date = "2026-06-30"
+        self.assertFalse(self._provisional(wizard))
+        self.assertEqual(wizard._export_metadata()["provisional"]["reasons"], [])
+        # A calendar change does not move the closing date being judged.
+        self.first_company.write(
+            {"fiscalyear_last_month": "6", "fiscalyear_last_day": 30},
+        )
+        self.assertFalse(self._provisional(wizard))
+
+    def test_pdf_provisional_lock_one_day_before_closing_date_is_provisional(self):
+        wizard = self._wizard(
+            company_ids=[Command.set([self.first_company.id])],
+            date_from="2026-01-01",
+            date_to="2026-06-30",
+        )
+        self.first_company.fiscalyear_lock_date = "2026-06-29"
+        self.assertTrue(self._provisional(wizard))
+        reasons = " ".join(wizard._export_metadata()["provisional"]["reasons"])
+        self.assertIn("date de clôture", reasons)
+        self.assertNotIn("entièrement", reasons)
+
+    def test_pdf_provisional_without_any_lock_is_provisional(self):
+        wizard = self._wizard()
+        self.assertFalse(self.first_company.fiscalyear_lock_date)
+        self.assertFalse(self.second_company.fiscalyear_lock_date)
+        self.assertTrue(self._provisional(wizard))
 
     def test_pdf_provisional_ignores_tax_sales_purchase_locks(self):
         wizard = self._wizard(company_ids=[Command.set([self.first_company.id])])
@@ -71,6 +102,46 @@ class TestReportProvisionalStatus(TransactionCase):
         self.assertTrue(wizard._export_metadata()["provisional"]["required"])
         self.first_company.hard_lock_date = "2026-12-31"
         self.assertFalse(wizard._export_metadata()["provisional"]["required"])
+
+    def test_pdf_provisional_hard_lock_alone_covers_closing_date(self):
+        wizard = self._wizard(
+            company_ids=[Command.set([self.first_company.id])],
+            date_to="2026-06-30",
+        )
+        self.first_company.hard_lock_date = "2026-06-29"
+        self.assertTrue(self._provisional(wizard))
+        self.first_company.hard_lock_date = "2026-06-30"
+        self.assertFalse(self._provisional(wizard))
+        # The later of the two locks applies.
+        self.first_company.fiscalyear_lock_date = "2026-05-31"
+        self.assertFalse(self._provisional(wizard))
+
+    def test_pdf_provisional_one_uncovered_company_makes_report_provisional(self):
+        wizard = self._wizard(date_to="2026-06-30")
+        self.first_company.fiscalyear_lock_date = "2026-06-30"
+        self.second_company.fiscalyear_lock_date = "2026-06-29"
+        self.assertTrue(self._provisional(wizard))
+        self.second_company.fiscalyear_lock_date = "2026-06-30"
+        self.assertFalse(self._provisional(wizard))
+
+    def test_pdf_provisional_uncovered_comparison_period_is_provisional(self):
+        wizard = self._wizard(
+            company_ids=[Command.set([self.first_company.id])],
+            date_to="2026-06-30",
+            comparison_mode="custom",
+            comparison_date_from="2025-07-01",
+            comparison_date_to="2025-12-31",
+        )
+        self.first_company.fiscalyear_lock_date = "2026-06-30"
+        self.assertFalse(self._provisional(wizard))
+        wizard.write(
+            {"comparison_date_from": "2026-07-01", "comparison_date_to": "2026-07-31"},
+        )
+        self.assertTrue(self._provisional(wizard))
+        self.first_company.fiscalyear_lock_date = "2026-07-30"
+        self.assertTrue(self._provisional(wizard))
+        self.first_company.fiscalyear_lock_date = "2026-07-31"
+        self.assertFalse(self._provisional(wizard))
 
     def test_pdf_provisional_covers_every_company_and_comparison(self):
         wizard = self._wizard()
@@ -143,6 +214,9 @@ class TestReportProvisionalStatus(TransactionCase):
         )
         self.assertFalse(self.first_company.user_fiscalyear_lock_date > date.min)
         self.assertFalse(wizard._export_metadata()["provisional"]["required"])
+        # An exception never makes an uncovered closing date final either.
+        self.first_company.fiscalyear_lock_date = "2026-06-30"
+        self.assertTrue(wizard._export_metadata()["provisional"]["required"])
 
     def test_pdf_provisional_preamble_footer_preserve_rendered_financial_rows(self):
         wizard = self._wizard(
@@ -217,7 +291,6 @@ class TestReportProvisionalStatus(TransactionCase):
                 "fiscalyear_last_day": 30,
                 "rebuild_first_fiscalyear_start": "2024-01-10",
                 "rebuild_first_fiscalyear_end": "2025-09-30",
-                "fiscalyear_lock_date": "2024-09-30",
             },
         )
         wizard = self._wizard(
@@ -225,6 +298,13 @@ class TestReportProvisionalStatus(TransactionCase):
             date_from="2024-01-10",
             date_to="2024-03-31",
         )
-        self.assertTrue(wizard._export_metadata()["provisional"]["required"])
-        self.first_company.fiscalyear_lock_date = "2025-09-30"
-        self.assertFalse(wizard._export_metadata()["provisional"]["required"])
+        # The report ends inside the long first exercise: the lock must reach
+        # its closing date, not the end of that exercise.
+        for lock, expected in (
+            ("2024-03-30", True),
+            ("2024-03-31", False),
+            ("2025-09-30", False),
+        ):
+            with self.subTest(lock=lock):
+                self.first_company.fiscalyear_lock_date = lock
+                self.assertEqual(self._provisional(wizard), expected)
