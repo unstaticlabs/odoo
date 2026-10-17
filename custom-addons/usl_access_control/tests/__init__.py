@@ -6,3 +6,5 @@ from . import (
     test_orm_payload_contract,
     test_empty_write,
 )
+
+from . import test_native_action_dispatch
