@@ -202,6 +202,11 @@ class TestPurchaseMailGrouping(AccountTestInvoicingCommon):
         self.assertEqual(summary.get("nolabel"), "1")
         self.assertEqual([field.get("name") for field in summary.itersiblings()],
                          ["attachment_ids", "main_attachment_id"])
+        bill_view = self.env["account.move"].get_view(
+            self.env.ref("account.view_move_form").id, "form")
+        bill_arch = etree.fromstring(bill_view["arch"])
+        with self.subTest("recorded review summary full row"):
+            self.assertEqual(bill_arch.xpath("//field[@name='usl_mail_grouping_summary']")[0].get("colspan"), "2")
 
     def test_review_keeps_financial_state_and_uses_native_main_selection(self):
         bill = self._uncertain_bill()

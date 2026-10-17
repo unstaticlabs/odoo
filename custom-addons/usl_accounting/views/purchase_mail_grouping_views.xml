@@ -18,7 +18,7 @@
             <xpath expr="//page[@name='other_info']" position="inside">
                 <group string="Mail attachments" invisible="not usl_mail_grouping">
                     <field name="usl_mail_grouping" invisible="1"/>
-                    <field name="usl_mail_grouping_summary" nolabel="1"/>
+                    <field name="usl_mail_grouping_summary" nolabel="1" colspan="2"/>
                     <field name="usl_mail_grouping_reviewed_by" invisible="not usl_mail_grouping_reviewed_by"/>
                     <field name="usl_mail_grouping_reviewed_at" invisible="not usl_mail_grouping_reviewed_at"/>
                 </group>
