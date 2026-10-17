@@ -5,6 +5,7 @@ from . import test_declaration_closing
 from . import test_hygiene_structured_evidence
 from . import test_einvoice_reception
 from . import test_expense_receipt_waiver
+from . import test_fiscal_period_buckets
 from . import test_fec_export
 from . import test_french_tax_report
 from . import test_multi_company_overview

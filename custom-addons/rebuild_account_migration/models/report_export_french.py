@@ -684,9 +684,25 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             row["account_breakdown"] = breakdown
 
     def _french_tax_package_rows(self):
-        period_key = "Fiscal year 2024-01-10 to 2025-09-30"
-        if fields.Date.to_string(self.date_from) != "2024-01-10" or fields.Date.to_string(self.date_to) != "2025-09-30":
-            return []
+        date_from = fields.Date.to_date(self.date_from)
+        date_to = fields.Date.to_date(self.date_to)
+        fiscal_from, fiscal_to = (
+            self.company_id.rebuild_compute_fiscalyear_dates(date_from)
+            if date_from
+            else (None, None)
+        )
+        if (date_from, date_to) != (fiscal_from, fiscal_to):
+            message = (
+                "Le dossier fiscal se prépare pour un exercice comptable "
+                "complet. La période choisie ne correspond à aucun exercice "
+                "de la société"
+            )
+            if fiscal_from and fiscal_to:
+                message += (
+                    f" ; l’exercice contenant la date de début va du "
+                    f"{fiscal_from.isoformat()} au {fiscal_to.isoformat()}"
+                )
+            raise UserError(f"{message}.")
         self.env.cr.execute(
             """
             SELECT form_code,
@@ -709,9 +725,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                    review_status
               FROM rebuild_account_french_tax_package_line
              WHERE company_id = %s
-               AND period_key = %s
+               AND period_date_from = %s
+               AND period_date_to = %s
              ORDER BY form_code, line_sequence, field_code
             """,
-            [self.company_id.id, period_key],
+            [self.company_id.id, date_from, date_to],
         )
         return [dict(row) for row in self.env.cr.dictfetchall()]

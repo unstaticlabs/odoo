@@ -1,5 +1,6 @@
 """Rule applicability, calendar instances, deadline computation and declaration synchronization."""
 
+import logging
 from datetime import date, timedelta
 
 from dateutil.relativedelta import relativedelta
@@ -7,6 +8,9 @@ from dateutil.relativedelta import relativedelta
 from odoo import _, api, fields, models
 
 from .declaration import EU_COUNTRY_CODES, _month_end
+from .fiscal_period import stored_label_bounds
+
+_logger = logging.getLogger(__name__)
 
 
 class RebuildAccountDeclaration(models.Model):
@@ -310,9 +314,9 @@ class RebuildAccountDeclaration(models.Model):
             ("form_code", "=", form_code),
             ("review_status", "in", ["accepted", "accepted_with_difference"]),
         ])
-        prior_year = str(period_end.year - 1)
+        prior_year = period_end.year - 1
         return any(
-            prior_year in (value.period_key or "")
+            self._external_value_is_for_year(value, prior_year)
             and (
                 (value.amount or 0.0) >= threshold
                 if inclusive
@@ -320,6 +324,27 @@ class RebuildAccountDeclaration(models.Model):
             )
             for value in values
         )
+
+    @api.model
+    def _external_value_is_for_year(self, value, year):
+        """Whether the reviewed value covers a period that ends in ``year``.
+
+        The period is read as real dates, never matched as text inside the
+        label, so a fiscal year that merely starts in ``year`` does not count.
+        A label that is neither a fiscal year nor a calendar year is ignored
+        and reported instead of being guessed at.
+        """
+        bounds = stored_label_bounds(value.period_key)
+        if not bounds:
+            _logger.warning(
+                "External report value %s has the period label %r, which is "
+                "neither a fiscal year nor a calendar year; the prior-year "
+                "threshold check ignores it.",
+                value.id,
+                value.period_key,
+            )
+            return False
+        return bounds[1].year == year
 
     @api.model
     def _sync_rule_instances(self, company, rule, fiscal_start, fiscal_end):

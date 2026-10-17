@@ -99,6 +99,22 @@ Report date fields display `DD/MM/YYYY` and retain the calendar picker. Start,
 end, reference and comparison dates never inherit the browser's
 `MM/DD/YYYY` order.
 
+## Fiscal years in list reports
+
+Trial balance, ledger, statement, tax and management lists show one block per
+fiscal year, labelled `Fiscal year <start> to <end>`. Each company uses its own
+fiscal-year end, and an exceptional first fiscal year counts as one block.
+Entries dated before it appear under `Earlier posted accounting`. A line opens
+only the journal items of its own fiscal year.
+
+**Current fiscal year** keeps the lines whose fiscal year contains today's date.
+It follows each company's own calendar, so it needs no yearly update.
+
+The EC sales list and the OSS reports are filed by calendar month: pick a start
+date on the first day of a month and an end date on the last day of a month. The
+French tax package is prepared for one complete fiscal year; any other range
+shows a message that names the fiscal year containing the start date.
+
 ## Reading results
 
 Light, high-contrast section rows identify the statement's principal
