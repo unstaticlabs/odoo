@@ -1490,11 +1490,6 @@
       }
     },
     {
-      "action_key": "rpc:res.company.write",
-      "action_name": "change accounting lock dates",
-      "classification": "protected"
-    },
-    {
       "action_key": "rpc:res.config.settings.action_eu_oss_tax_mapping",
       "action_name": "install or import module code",
       "classification": "protected"

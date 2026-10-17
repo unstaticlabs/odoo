@@ -1,5 +1,7 @@
 from odoo import api, models
 
+from .agent_policy_tokens import ACCOUNTING_LOCK_GUARD_TOKEN
+
 
 class ResCompany(models.Model):
     _inherit = "res.company"
@@ -21,9 +23,9 @@ class ResCompany(models.Model):
             "sale_lock_date",
             "tax_lock_date",
         }
-        if self and protected & set(vals) and not self.env.context.get(
+        if self and protected & set(vals) and self.env.context.get(
             "usl_accounting_lock_guarded",
-        ):
+        ) is not ACCOUNTING_LOCK_GUARD_TOKEN:
             self._usl_require_irreversible_action(
                 "accounting.lock.change",
                 "change accounting lock dates",
@@ -222,7 +224,7 @@ class RebuildAccountClosingPeriod(models.Model):
         )
         return super(
             RebuildAccountClosingPeriod,
-            self.with_context(usl_accounting_lock_guarded=True),
+            self.with_context(usl_accounting_lock_guarded=ACCOUNTING_LOCK_GUARD_TOKEN),
         ).action_close_and_apply_lock_dates()
 
 
