@@ -242583,7 +242583,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 134,
+          "line": 136,
           "path": "custom-addons/usl_b2c_ingest/models/transfers.py"
         },
         {
@@ -242712,7 +242712,7 @@
       ],
       "sources": [
         {
-          "line": 117,
+          "line": 119,
           "path": "custom-addons/usl_b2c_ingest/models/transfers.py"
         },
         {
@@ -1617467,13 +1617467,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 146,
+          "line": 148,
           "path": "custom-addons/usl_b2c_ingest/models/transfers.py"
         }
       ]
     },
     {
-      "digest": "6a544be97c533468c7b34ada8e2bba1640cf4c5cd78a790b47a7a6aa219dba7a",
+      "digest": "32c31889a921427f7b7e3b8e1e6bbaeba1c7255a4c1a19ad2b08b174a327a382",
       "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/transfers.py:b2c.import.batch._transfer_entry:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1617482,13 +1617482,13 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 240,
+          "line": 242,
           "path": "custom-addons/usl_b2c_ingest/models/transfers.py"
         }
       ]
     },
     {
-      "digest": "e5e22e885eb0c318393e3a34bba9149e1d78c09081bad147c191fdd566f197f8",
+      "digest": "61088358dbc096250be8344fa6eac5c91de5a68196f74ffc0c88e31e65efe15c",
       "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/transfers.py:b2c.import.batch._transfer_entry:orm_create:2",
       "kind": "sink",
       "modules": [
@@ -1617497,13 +1617497,13 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 240,
+          "line": 242,
           "path": "custom-addons/usl_b2c_ingest/models/transfers.py"
         }
       ]
     },
     {
-      "digest": "af51d80dc4fd1f9d7914eb15966695628e8394d9358b4e7e441bd06e47b908ec",
+      "digest": "e46f2a85fb18c09922ace33729d92f18820c92ce6c6d2494d9453e6fb257893f",
       "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/transfers.py:b2c.import.batch._transfer_entry:orm_create:3",
       "kind": "sink",
       "modules": [
@@ -1617512,13 +1617512,13 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 240,
+          "line": 242,
           "path": "custom-addons/usl_b2c_ingest/models/transfers.py"
         }
       ]
     },
     {
-      "digest": "f7a2f106cb30e1c47331aad1b9fe839c0b31189846b15e9ed0f168b6208d3056",
+      "digest": "728d956f22f3b0a0cd23cc77829d27f519290ff57d0d16f3e083631f205b953e",
       "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/transfers.py:b2c.import.batch._transfer_entry:orm_create:4",
       "kind": "sink",
       "modules": [
@@ -1617527,7 +1617527,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 240,
+          "line": 242,
           "path": "custom-addons/usl_b2c_ingest/models/transfers.py"
         }
       ]
@@ -1617545,7 +1617545,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 117,
+          "line": 119,
           "path": "custom-addons/usl_b2c_ingest/models/transfers.py"
         }
       ]
@@ -1617563,7 +1617563,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 117,
+          "line": 119,
           "path": "custom-addons/usl_b2c_ingest/models/transfers.py"
         }
       ]
@@ -1699464,11 +1699464,11 @@
       "version": "saas~19.3.1.5.1"
     },
     {
-      "manifest_sha256": "12dffcb7652e3d8da83658699b8fe672d39ff9beb478d7d767d8c8f25804c6ce",
+      "manifest_sha256": "9592deb7b170ff1d928b4705553dae7988b320132bb14dca59cfcc6bd4d055be",
       "name": "usl_b2c_ingest",
       "origin": "custom",
-      "source_sha256": "8ee2a050f54f8a4fce8f7d172d7d7057068552c8088d7dbc07d9c9ac561e1b22",
-      "version": "saas~19.3.1.3.1"
+      "source_sha256": "c6aa2eb86af27f9f2895bbbf42f551be80153de2b246f8e6118fed55e942b6ab",
+      "version": "saas~19.3.1.3.2"
     },
     {
       "manifest_sha256": "bf9bcefb3f3b92cb7ffaec57a229c482fe363380db2edfd9bc7c0130abc07ad4",
