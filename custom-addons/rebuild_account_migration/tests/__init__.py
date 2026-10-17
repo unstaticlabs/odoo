@@ -12,3 +12,4 @@ from . import test_pocketid_profiles
 from . import test_shared_currency_rates
 
 from . import test_fiscal_result_presentation
+from . import test_report_header_cards

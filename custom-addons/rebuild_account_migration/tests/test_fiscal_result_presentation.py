@@ -88,6 +88,39 @@ class TestFiscalResultPresentation(TransactionCase):
                 self.assertEqual(totals['PASSIF_TOTAL'], Decimal('130.00'))
         self.assertEqual(self._ledger_fingerprint(fixture), before)
 
+    def test_fiscal_result_and_complete_header_share_the_financial_scope(self):
+        fixture = self._fixture('Synthetic combined report controls')
+        self._post(fixture, '2030-09-20', {'cash': 100, 'income': -100})
+        self._post(fixture, '2031-02-20', {'cash': 30, 'income': -30})
+        self._post(fixture, '2031-03-20', {
+            'appropriation': 100, 'reserve': -60, 'dividend': -40,
+        })
+        self.env.flush_all()
+        before = self._ledger_fingerprint(fixture)
+        for report in ('balance_sheet', 'french_balance_sheet_2024'):
+            with self.subTest(report=report):
+                wizard = self._wizard(fixture, report, group_by='section', preview_limit=1)
+                wizard.action_preview_report()
+                self.assertEqual(
+                    [card['value'] for card in wizard._report_client_summary()['cards']],
+                    [130, 130, 0],
+                )
+                wizard.write({'search_text': 'Synthetic cash'})
+                wizard.action_preview_report()
+                self.assertEqual(
+                    [card['value'] for card in wizard._report_client_summary()['cards']],
+                    [130, 130, 0],
+                )
+        wizard = self._wizard(
+            fixture, account_ids=[Command.set(fixture[2]['cash'].ids)],
+        )
+        wizard.action_preview_report()
+        self.assertEqual(
+            [card['value'] for card in wizard._report_client_summary()['cards']],
+            [130, 0, 130],
+        )
+        self.assertEqual(self._ledger_fingerprint(fixture), before)
+
     def test_posted_result_and_appropriation_classes(self):
         # Ordinary posted input classes; no entry is classified by its reference.
         cases = [
