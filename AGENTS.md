@@ -56,6 +56,12 @@ the contract.
 
 ## Development
 
+- Treat Agents as capable collaborators using delegated human access. Native
+  business rules apply equally to people and Agents with the same effective
+  permissions; the existing delegation and irreversible-action controls govern
+  their authority. Do not add Agent-only business restrictions or extra approval
+  gates. Improve precise context, evidence, consequences and recovery guidance
+  so Agents can make informed decisions and act through native workflows.
 - Inspect existing Odoo, OCA, custom add-ons, tests and relevant product or
   operations documentation before changing behavior.
 - Prefer native Odoo or maintained OCA behavior. Compare credible alternatives

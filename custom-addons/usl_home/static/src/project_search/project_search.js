@@ -14,39 +14,66 @@ export class ProjectsContentSearchBar extends SearchBar {
         this.action = useService("action");
         this.notification = useService("notification");
         this.contentGeneration = 0;
+        this.contentRequests = new Set();
         onWillUnmount(() => {
             this.contentGeneration++;
             clearTimeout(this.contentTimer);
+            this.cancelContentRequests();
         });
     }
 
     async computeState(options = {}) {
         const generation = ++this.contentGeneration;
         clearTimeout(this.contentTimer);
+        this.cancelContentRequests();
+        this.contentGroups = {};
         await super.computeState(options);
         const query = this.state.query.trim();
         if (!query || generation !== this.contentGeneration) {
             return;
         }
-        this.contentTimer = setTimeout(async () => {
-            try {
-                const { groups } = await this.orm.call("usl.home.service", "search_records", [query], { categories: ["tasks", "projects"] });
-                if (generation !== this.contentGeneration) {
-                    return;
-                }
-                const items = groups.flatMap((group) => group.records.map((record) => ({
+        this.contentTimer = setTimeout(() => {
+            for (const category of ["tasks", "projects"]) {
+                this.loadContentCategory(query, category, generation);
+            }
+        }, 250);
+    }
+
+    cancelContentRequests() {
+        for (const request of this.contentRequests) {
+            request.abort?.();
+        }
+        this.contentRequests.clear();
+    }
+
+    async loadContentCategory(query, category, generation) {
+        const request = this.orm.call("usl.home.service", "search_records", [query], { categories: [category] });
+        this.contentRequests.add(request);
+        try {
+            const { groups } = await request;
+            if (generation !== this.contentGeneration) {
+                return;
+            }
+            for (const group of groups) {
+                this.contentGroups[group.key] = group.records.map((record) => ({
                     id: `usl-content-${record.model}-${record.id}`,
                     title: record.title, record,
                     label: `${group.label}: ${record.title}`,
-                })));
-                this.items.unshift(...items);
-            } catch {
-                // Native project filters remain usable if direct lookup fails.
-                if (generation === this.contentGeneration) {
-                    this.notification.add(_t("Direct task matches could not be loaded. Project filters remain available."), { type: "warning" });
-                }
+                }));
             }
-        }, 250);
+            const nativeItems = this.items.filter((item) => !item.record);
+            this.items.splice(0, this.items.length,
+                ...(this.contentGroups.tasks || []),
+                ...(this.contentGroups.projects || []), ...nativeItems);
+        } catch {
+            // Each category can finish independently; native facets and the
+            // other category remain usable when one lookup fails.
+            if (generation === this.contentGeneration) {
+                this.notification.add(_t("Direct task matches could not be loaded. Project filters remain available."), { type: "warning" });
+            }
+        } finally {
+            this.contentRequests.delete(request);
+        }
     }
 
     getDropdownNavigation() {

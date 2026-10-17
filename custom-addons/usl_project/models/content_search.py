@@ -2,8 +2,11 @@
 
 import math
 import re
+from contextlib import contextmanager
 from datetime import datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+from psycopg2.extensions import TRANSACTION_STATUS_INTRANS
 
 from odoo import fields
 from odoo.exceptions import AccessError
@@ -16,6 +19,32 @@ _CREDENTIAL_FIELD = re.compile(
 _EXCLUDED_FIELDS = {"display_name", "access_url", "access_warning", "usl_search_text", "activity_ids", "portal_user_names"}
 _TEXT_TYPES = {"char", "text", "html"}
 _RELATION_TYPES = {"many2one", "many2many", "one2many"}
+
+
+@contextmanager
+def task_content_execution(model, domain):
+    """Avoid JIT compilation of broad content predicates, only during execution.
+
+    A search compiler returns a lazy Query, so setting jit there would outlive
+    compilation and affect unrelated work. Native execution methods own this
+    scope instead. A failed SQL transaction must be rolled back by its caller;
+    issuing cleanup SQL then would mask the original database exception.
+    """
+    if not any(condition.field_expr == "usl_search_text" for condition in Domain(domain).iter_conditions()):
+        yield
+        return
+    cr = model.env.cr
+    cr.execute("SHOW jit")
+    previous = cr.fetchone()[0]
+    if previous == "off":
+        yield
+        return
+    cr.execute("SELECT set_config('jit', 'off', true)")
+    try:
+        yield
+    finally:
+        if not cr.closed and cr.connection.get_transaction_status() == TRANSACTION_STATUS_INTRANS:
+            cr.execute("SELECT set_config('jit', %s, true)", (previous,))
 
 
 def company_domain(model):
@@ -142,12 +171,13 @@ def _property_domains(model, name, text, typed, cache):
         [owner_field.name], ["id:min"], order="id:min",
     )
     representatives = model.browse([record_id for _owner, record_id in grouped])._filtered_access("read")
-    clauses = []
+    # Native Domains can contain unhashable list operands (for example tags).
+    # Their literal representation preserves the complete predicate as a key.
+    owners_by_predicate = {}
     seen = set()
     representatives.fetch([owner_field.name])
     for record in representatives.with_context(prefetch_fields=False):
         owner_id = record[owner_field.name].id
-        owner_scope = Domain(owner_field.name, "=", owner_id)
         # This native accessor elevates only the definition metadata read.
         for definition in field._get_properties_definition(record) or []:
             key = definition.get("name")
@@ -166,10 +196,17 @@ def _property_domains(model, name, text, typed, cache):
                 if comodel in model.env.registry:
                     query = _label_query(model.env[comodel], text, cache)
                     if query is not None:
-                        clauses.append(owner_scope & Domain(path, "in", query.get_result_ids()))
+                        predicate = Domain(path, "in", query.get_result_ids())
+                        owners_by_predicate.setdefault(str(predicate), (predicate, []))[1].append(owner_id)
             else:
-                clauses.append(owner_scope & _scalar_domain(path, definition, text, typed))
-    return clauses
+                predicate = _scalar_domain(path, definition, text, typed)
+                if not predicate.is_false():
+                    owners_by_predicate.setdefault(str(predicate), (predicate, []))[1].append(owner_id)
+    # Reused schemas have one predicate, constrained to exactly the owners
+    # whose readable definitions authorize it. Never merge different predicates
+    # merely because their property labels or keys happen to coincide.
+    return [Domain(owner_field.name, "in", list(dict.fromkeys(owners))) & predicate
+            for predicate, owners in owners_by_predicate.values()]
 
 
 def readable_content_domain(model, value):

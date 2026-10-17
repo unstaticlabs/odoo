@@ -96,6 +96,10 @@ class B2cImportBatchInvoicing(models.Model):
         Every order this drop names is considered, not only the ones it added:
         an order paid in an earlier drop and shipped in this one becomes an
         invoice here, which is the whole point of dropping the later export.
+
+        An order that is history is passed over whole.  Its revenue is booked
+        by summary entries, so an invoice, or an advance held against the
+        customer, would state it a second time.
         """
         for batch in self:
             if batch.state != "applied":
@@ -106,6 +110,8 @@ class B2cImportBatchInvoicing(models.Model):
             for order, row in batch._stated_orders().items():
                 sale = order.sale_order_id
                 if not sale or sale.state == "cancel":
+                    continue
+                if sale.usl_historical_b2c:
                     continue
                 if batch._shipped_on(row):
                     posted |= batch._invoice_sale(sale)

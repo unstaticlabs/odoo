@@ -34,6 +34,7 @@ ISSUE_KINDS = [
     ("retired_rate", "A fiscal position states a retired rate"),
     ("cancelled_after_delivery", "A cancelled order has already shipped"),
     ("part_refund_unallocated", "Part of an order was refunded, without saying which part"),
+    ("historical_refund_unbooked", "An order booked by summary entries was given back"),
     ("wallet_overdrawn", "The supplier drew more than the wallet holds"),
     ("fee_source_missing", "A channel's own account of what it kept is all there is"),
     ("payout_unattributed", "A payout left an account nothing names"),

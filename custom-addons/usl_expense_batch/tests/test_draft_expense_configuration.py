@@ -37,6 +37,67 @@ class TestDraftExpenseConfiguration(TestExpenseCommon):
         return {'company_id': self.target_company.id, 'employee_id': self.target_employee.id,
                 'product_id': False, 'account_id': False, 'tax_ids': [], 'analytic_distribution': {}}
 
+    def test_financial_comparison_reports_native_included_tax_before_and_after(self):
+        eur = self.env.ref("base.EUR")
+        self.env.company.currency_id = eur
+        tax = self.env["account.tax"].create({
+            "name": "[QA] Included purchase VAT", "amount": 20,
+            "type_tax_use": "purchase", "company_id": self.env.company.id,
+        })
+        expense = self._expense()
+        expense.write({"currency_id": eur.id, "tax_ids": [Command.set(tax.ids)],
+                       "total_amount_currency": 120})
+        self.assertEqual(expense.untaxed_amount_currency, 100)
+        self.assertEqual(expense.tax_amount_currency, 20)
+        result = expense.configure_draft_expense({"total_amount": 60})
+        comparison = result["financial_comparison"]
+        for snapshot, total, net, vat in ((comparison["before"], 120, 100, 20),
+                                         (comparison["after"], 60, 50, 10)):
+            self.assertEqual(snapshot["id"], expense.id)
+            self.assertEqual(snapshot["state"], "draft")
+            self.assertEqual(snapshot["currency_id"][0], eur.id)
+            self.assertEqual(snapshot["company_currency_id"][0], eur.id)
+            self.assertEqual(snapshot["tax_ids"], tax.ids)
+            self.assertEqual(snapshot["total_amount_currency"], total)
+            self.assertEqual(snapshot["untaxed_amount_currency"], net)
+            self.assertEqual(snapshot["tax_amount_currency"], vat)
+            self.assertEqual(snapshot["total_amount"], total)
+            self.assertEqual(snapshot["untaxed_amount"], net)
+            self.assertEqual(snapshot["tax_amount"], vat)
+        expense.invalidate_recordset()
+        self.assertEqual(expense.total_amount_currency, 60)
+        self.assertEqual(expense.untaxed_amount_currency, 50)
+        self.assertEqual(expense.tax_amount_currency, 10)
+
+    def test_financial_comparison_keeps_original_batch_before_explicit_clears(self):
+        expense = self._expense()
+        baseline = expense.account_id
+        override = self.env["account.account"].create({
+            "name": "[QA] Shared expense account", "code": "QA6112", "account_type": "expense",
+        })
+        batch = self.env["usl.expense.batch"].create({
+            "name": "[QA] Receipt context", "purpose": "[QA] Verify original context",
+            "company_id": self.env.company.id, "employee_id": self.expense_employee.id,
+            "account_override_id": override.id,
+        })
+        batch.add_expenses(expense.ids)
+        batch.apply_context(force_expense_ids=expense.ids)
+        self.assertEqual(expense.pre_batch_account_id, baseline)
+        self.assertEqual(expense.account_id, override)
+        comparison = expense.configure_draft_expense({
+            "expense_batch_id": False, "product_id": False, "account_id": False,
+            "tax_ids": [], "analytic_distribution": {},
+        })["financial_comparison"]
+        self.assertEqual(comparison["before"]["expense_batch_id"][0], batch.id)
+        self.assertEqual(comparison["before"]["account_id"][0], override.id)
+        self.assertFalse(comparison["after"]["expense_batch_id"])
+        self.assertFalse(comparison["after"]["product_id"])
+        self.assertFalse(comparison["after"]["account_id"])
+        self.assertEqual(comparison["after"]["tax_ids"], [])
+        self.assertFalse(comparison["after"]["analytic_distribution"])
+        self.assertEqual(expense.total_amount_currency, 42)
+        self.assertFalse(expense.account_move_id)
+
     def test_owned_pair_correction_preserves_identity_document_amount_and_receipt(self):
         expense = self._expense()
         attachment = expense.message_main_attachment_id
@@ -158,7 +219,12 @@ class TestDraftExpenseConfiguration(TestExpenseCommon):
             'name': '2026-10-14', 'rate': 2,
         })
         document_currency, document_amount = expense.currency_id, expense.total_amount_currency
-        expense.configure_draft_expense(self._move_values())
+        comparison = expense.configure_draft_expense(self._move_values())["financial_comparison"]
+        self.assertEqual(comparison["before"]["company_currency_id"][0], self.env.company.currency_id.id)
+        self.assertEqual(comparison["after"]["company_currency_id"][0], self.other_currency.id)
+        self.assertEqual(comparison["after"]["currency_id"][0], document_currency.id)
+        self.assertEqual(comparison["before"]["total_amount_currency"], 42)
+        self.assertEqual(comparison["after"]["total_amount_currency"], 42)
         self.assertEqual(expense.currency_id, document_currency)
         self.assertEqual(expense.total_amount_currency, document_amount)
         expected = document_currency._convert(document_amount, self.other_currency, self.target_company, expense.date)
