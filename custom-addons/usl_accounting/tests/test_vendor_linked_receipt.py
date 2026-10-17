@@ -409,3 +409,77 @@ class TestVendorLinkedReceipt(TestExpenseCommon):
         with patch.object(type(requests), "_queue_runtime_status", return_value="paused"):
             self.assertEqual(bill.with_context(lang="fr_FR").linked_receipt_message, expected)
             self.assertEqual(expense.with_context(lang="fr_FR").linked_receipt_message, expected)
+
+
+    def _picker_bill(self, suffix, labels):
+        message = EmailMessage()
+        message["From"] = "Synthetic supplier <supplier@example.invalid>"
+        message["To"] = "purchases@example.invalid"
+        message["Subject"] = "[QA] Original invoice documents"
+        message["Message-ID"] = f"<qa-picker-{suffix}@example.invalid>"
+        message.set_content("Your invoice documents are available.")
+        message.add_alternative("<p>Invoice PDF documents</p>" + "".join(
+            f'<a href="https://picker.example.com/invoices/{index}/download?token=synthetic-private">{label}</a>'
+            for index, label in enumerate(labels)
+        ), subtype="html")
+        with patch.object(type(self), "_email", return_value=message.as_bytes()):
+            return self._ingest(suffix)
+
+    def test_bill_picker_uses_distinct_source_copy_and_exact_original_choice(self):
+        import hashlib
+        import json
+        bill = self._picker_bill("distinct", ["Invoice PDF", "Detailed invoice PDF"])
+        retrieval = bill._latest_linked_receipt()
+        self.assertEqual(retrieval.state, "selection_required")
+        before = json.dumps(retrieval.candidate_features, sort_keys=True)
+        with patch.dict("os.environ", {"USL_LINKED_PDF_DOWNLOAD_ENABLED": "1"}):
+            action = bill.action_review_linked_receipt()
+            wizard = self.env["usl.mail.pdf.candidate.wizard"].browse(action["res_id"])
+            self.assertEqual(set(wizard.candidate_ids.mapped("label")), {"Invoice PDF", "Detailed invoice PDF"})
+            line = wizard.candidate_ids.filtered(lambda row: row.label == "Detailed invoice PDF")
+            expected = hashlib.sha256(b"https://picker.example.com/invoices/1/download?token=synthetic-private").hexdigest()
+            self.assertEqual(line.fingerprint, expected)
+            self.assertEqual(json.dumps(retrieval.candidate_features, sort_keys=True), before)
+            line.action_choose()
+            self.assertEqual(retrieval.selected_fingerprint, expected)
+            self.assertNotIn("Detailed", json.dumps(retrieval.candidate_features))
+            self.assertNotIn("Detailed", retrieval.pattern_id.label_tokens or "")
+        self._complete(retrieval)
+        self.assertTrue(bill.message_main_attachment_id)
+        self.assertEqual(bill.message_main_attachment_id, retrieval.attachment_id)
+
+    def test_bill_picker_ambiguous_or_url_labels_use_honest_source_order(self):
+        for suffix, labels in (("identical", ["Invoice PDF", "Invoice PDF"]), ("empty", ["", "https://picker.example.com/invoices/1/download?token=synthetic-private"])):
+            bill = self._picker_bill(suffix, labels)
+            action = bill.action_review_linked_receipt()
+            wizard = self.env["usl.mail.pdf.candidate.wizard"].browse(action["res_id"])
+            shown = wizard.candidate_ids.mapped("label")
+            self.assertEqual(len(shown), 2)
+            self.assertTrue(all("source email" in label for label in shown))
+            self.assertTrue(any("1" in label for label in shown))
+            self.assertTrue(any("2" in label for label in shown))
+            self.assertFalse(any("https" in label.casefold() or "never-display" in label for label in shown))
+
+    def test_existing_expense_picker_keeps_its_semantic_labels(self):
+        from markupsafe import Markup
+        expense = self.create_expenses({"name": "[QA] Existing expense picker"})
+        with patch.object(type(self.env["usl.mail.pdf.retrieval"]), "_feature_enabled", return_value=True):
+            expense.message_post(body=Markup('<a href="https://picker.example.com/invoices/expense/download">Detailed invoice PDF</a>'), message_type="email")
+        action = expense.action_review_linked_receipt()
+        wizard = self.env["usl.mail.pdf.candidate.wizard"].browse(action["res_id"])
+        self.assertEqual(wizard.candidate_ids.mapped("label"), ["Invoice PDF"])
+
+    def test_french_picker_view_fields_and_fallback_are_translated(self):
+        from lxml import etree
+        Wizard = self.env["usl.mail.pdf.candidate.wizard"].with_context(lang="fr_FR")
+        arch = Wizard.get_view(self.env.ref("usl_accounting.view_usl_mail_pdf_candidate_wizard_form").id, "form")["arch"]
+        root = etree.fromstring(arch.encode())
+        self.assertTrue("Choisissez le lien qui télécharge" in " ".join(root.itertext()))
+        self.assertEqual(root.xpath("//button[@name='action_choose']/@string"), ["Utiliser ce lien"])
+        self.assertEqual(root.xpath("//button[@special='cancel']/@string"), ["Annuler"])
+        info = self.env["usl.mail.pdf.candidate.wizard.line"].with_context(lang="fr_FR").fields_get(["label", "hostname"])
+        self.assertEqual(info["label"]["string"], "Libellé")
+        self.assertEqual(info["hostname"]["string"], "Nom d’hôte")
+        bill = self._picker_bill("french-empty", ["", ""])
+        candidates = bill._latest_linked_receipt()._extract_candidates(bill._latest_linked_receipt().source_message_id)
+        self.assertEqual(set(Wizard._bill_display_labels(bill._latest_linked_receipt(), candidates).values()), {"Lien 1 dans l’e-mail source", "Lien 2 dans l’e-mail source"})

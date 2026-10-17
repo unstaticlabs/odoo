@@ -1374856,7 +1374856,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 62,
+          "line": 99,
           "path": "custom-addons/usl_accounting/wizard/linked_receipt_candidate_wizard.py"
         },
         {
@@ -1699453,7 +1699453,7 @@
       "manifest_sha256": "f8f1e59037417e025f2be593368630ebbb61b8feb76b15d1d5cc37a05f74c5cd",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "7b238d020240a12b50ff795c0a4c928fa42d3b5fda16e1a062922fc51bce6f69",
+      "source_sha256": "a68f672034c835f9096759fe827b46aa6967137358c49f38c04f8e663511f980",
       "version": "saas~19.3.2.2.11"
     },
     {

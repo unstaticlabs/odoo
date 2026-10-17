@@ -491,6 +491,7 @@ msgstr "Choisir le lien du justificatif"
 #: code:addons/usl_accounting/models/linked_receipt_move.py:0
 #: code:addons/usl_accounting/models/linked_receipt_expense.py:0
 #. odoo-python
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_mail_pdf_candidate_wizard_form
 msgid "Choose the PDF receipt link"
 msgstr "Choisir le lien du justificatif PDF"
 
@@ -593,6 +594,7 @@ msgstr "Renvoi vers le site appris le"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__hostname
 msgid "Hostname"
 msgstr "Nom d’hôte"
 
@@ -613,6 +615,7 @@ msgstr "Ignorer"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__label
 msgid "Label"
 msgstr "Libellé"
 
@@ -739,6 +742,7 @@ msgstr "Odoo a retenu %(label)s sur %(host)s. Téléchargez-le ou choisissez un 
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__path_template
 msgid "Path Template"
 msgstr "Modèle de chemin"
 
@@ -911,6 +915,7 @@ msgid "Unavailable Count"
 msgstr "Nombre d’indisponibilités"
 
 #. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_mail_pdf_candidate_wizard_form
 msgid "Use this link"
 msgstr "Utiliser ce lien"
 
@@ -1040,6 +1045,7 @@ msgstr ""
 "mails similaires. Les liens signés ne sont ni affichés ni stockés à nouveau."
 
 #. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_mail_pdf_candidate_wizard_form
 msgid ""
 "Choose the link that downloads the receipt. Odoo will remember the sender, "
 "host, and link pattern across this instance. Signed URLs stay only in the "
@@ -1724,6 +1730,7 @@ msgstr "Peut se lettrer"
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_bank_statement_exception_resolution_form
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_bank_statement_reopen_form
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_expense_bank_match_wizard_form
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_mail_pdf_candidate_wizard_form
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -4379,6 +4386,7 @@ msgstr "Exports planifiés"
 
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__score
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__score
 msgid "Score"
 msgstr "Note"
 
@@ -6366,6 +6374,7 @@ msgstr ""
 "source restent disponibles."
 
 #. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_mail_pdf_candidate_wizard_form
 msgid "Teach this choice instance-wide and queue its safe PDF retrieval."
 msgstr ""
 "Mémoriser ce choix pour toute l’instance et mettre en file sa récupération "
@@ -7088,3 +7097,15 @@ msgstr ""
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__move_id
 msgid "Vendor bill"
 msgstr "Facture fournisseur"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/linked_receipt_candidate_wizard.py:0
+msgid "Link %(position)s in source email"
+msgstr "Lien %(position)s dans l’e-mail source"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/linked_receipt_candidate_wizard.py:0
+msgid "%(label)s (link %(position)s in source email)"
+msgstr "%(label)s (lien %(position)s dans l’e-mail source)"
