@@ -37,3 +37,5 @@ from . import cash_position
 from . import oca_report_defaults
 from . import fec_export_wizard
 from . import reconciliation_model_intelligence
+
+from . import report_export_fiscal_result

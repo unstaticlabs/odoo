@@ -128,6 +128,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
 
     def _french_annual_rows(self, statement_keys=None, report_variant=""):
         tb = self._trial_balance_rows()
+        partition = self._fiscal_result_partition(tb, french=True)
 
         def sum_bal(
             prefixes,
@@ -272,7 +273,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             balance_field="closing_balance",
         )
         other_equity_balance, other_equity_count = sum_types(
-            {"equity", "equity_unaffected"},
+            {"equity"},
             excluded_prefixes=["101"],
             balance_field="closing_balance",
         )
@@ -334,8 +335,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             other_liability_credit_count + asset_credit_count
         )
         financial_debt = -financial_debt_balance
-        current_result = -balance_result
-        equity = -capital - other_equity_balance + current_result
+        current_result = partition["current"]
+        equity = -capital - other_equity_balance + current_result + partition["carryforward"]
         total_debt = (
             financial_debt
             - trade_payables
@@ -511,7 +512,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             row("bilan_actif", "ACTIF_TOTAL", "Total actif", total_assets, "Tous les comptes d’actif selon leur type comptable", ["2", "3", "4", "5"], fixed_count + other_receivable_count + cash_count, fixed_gross + other_receivables + cash, depreciation),
             row("bilan_passif", "PASSIF_CAPITAL", "Capital social", -capital, "101", ["101"], capital_count),
             row("bilan_passif", "PASSIF_RESERVES_REPORT", "Réserves, report à nouveau et autres capitaux propres", -other_equity_balance, "Autres comptes classés en capitaux propres", ["10", "11", "12", "13", "14"], other_equity_count),
-            row("bilan_passif", "PASSIF_RESULTAT", "Résultat de l’exercice", current_result, "6 et 7", ["6", "7"], balance_result_count),
+            row("bilan_passif", "PASSIF_RESULTAT", f"Résultat de l’exercice ({partition['date_from']} — {partition['date_to']})", current_result, "6 et 7 sur l’exercice", ["6", "7"], partition["current_count"]),
             row("bilan_passif", "PASSIF_CAPITAUX_PROPRES", "Total des capitaux propres", equity, "Capitaux propres + résultat de l’exercice", ["1", "6", "7"], capital_count + other_equity_count + balance_result_count, presentation_role="subtotal"),
             row("bilan_passif", "PASSIF_DETTES_FINANCIERES", "Emprunts et dettes financières diverses", financial_debt, "Soldes créditeurs 16/17 et comptes courants d’associés 455", ["16", "17", "455"], financial_debt_count),
             row("bilan_passif", "PASSIF_DETTES_FOURNISSEURS", "Dettes fournisseurs et comptes rattachés", -trade_payables, "Solde net des comptes fournisseurs 400/401/402/403/408", FRENCH_BALANCE_SUPPLIER_PREFIXES, trade_payable_count),
@@ -594,7 +595,21 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 item["presentation_role"] = "total"
             elif item["line_code"] in FRENCH_PROFIT_LOSS_SUBTOTALS:
                 item["presentation_role"] = "subtotal"
-        self._attach_statement_account_breakdowns(rows, tb)
+        for item in rows:
+            if item.get("line_code") == "PASSIF_RESULTAT":
+                item.update(self._fiscal_result_row_context(partition, "current"))
+            elif item.get("line_code") == "PASSIF_TOTAL":
+                item.update({key: value for key, value in self._fiscal_result_row_context(partition, "current").items()
+                             if key.startswith("source_fiscal_")})
+        if partition["carryforward"] and (not statement_keys or "bilan_passif" in statement_keys):
+            position = next((i for i, item in enumerate(rows)
+                             if item.get("line_code") == "PASSIF_CAPITAUX_PROPRES"), len(rows))
+            carryforward = row("bilan_passif", "PASSIF_REPORT_AFFECTATIONS",
+                               "Report et affectations du résultat", partition["carryforward"],
+                               "Résultats historiques et comptes d’affectation", [])
+            carryforward.update(self._fiscal_result_row_context(partition, "carryforward"))
+            rows.insert(position, carryforward)
+        self._attach_statement_account_breakdowns(rows, tb, fiscal_trial_balance_rows=partition["_fiscal_rows"])
         if statement_keys:
             rows = [item for item in rows if item["statement_key"] in statement_keys]
         if report_variant:
@@ -603,7 +618,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 item["applicability_basis"] = self._report_variant_basis()
         return rows
 
-    def _attach_statement_account_breakdowns(self, rows, trial_balance_rows):
+    def _attach_statement_account_breakdowns(self, rows, trial_balance_rows, *, fiscal_trial_balance_rows=None):
         """Attach only account contributions that reconcile to their line."""
         self.ensure_one()
         account_ids = [
@@ -617,7 +632,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             for account in accounts
         }
         for row in rows:
-            if row.get("presentation_role") in {"subtotal", "total"}:
+            if row.get("fiscal_result_kind") == "carryforward" or row.get("presentation_role") in {"subtotal", "total"}:
                 continue
             prefixes = [
                 prefix.strip()
@@ -630,7 +645,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 continue
             contributions = [
                 item
-                for item in trial_balance_rows
+                for item in (fiscal_trial_balance_rows if row.get("fiscal_result_kind") == "current" else trial_balance_rows)
                 if _matches(item, prefixes)
                 and _amount(item.get("balance"))
                 and int(item.get("move_line_count") or 0)

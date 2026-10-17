@@ -2,6 +2,15 @@
 
 ## Product contract
 
+Header controls come from a complete authorized financial snapshot, saved
+with the existing transient preview metadata before visible rows are limited.
+Older previews without that snapshot recalculate it under the caller's normal
+rights. Statement controls use their stable total codes; movement controls
+sum source detail rows once, excluding explicit group/subtotal/total/control
+roles. An account or partner name never establishes a calculation role.
+Text search affects displayed/exported rows; dates, companies and financial
+filters define the header controls. Ledger history is not changed.
+
 Canonical interactive reports use one statement presentation contract while
 preserving each report's professional columns and terminology. The report
 engine returns explicit hierarchy roles:
