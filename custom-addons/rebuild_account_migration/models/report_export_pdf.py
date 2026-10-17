@@ -221,6 +221,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 or row.get("partner_name")
                 or ""
             )
+            if row.get("fiscal_result_kind") and row.get("source_description"):
+                row_label = f"{row_label} — {row['source_description']}"
             values = {"label": str(row_label).strip()}
             for sequence, (field_name, _label) in enumerate(value_columns, start=1):
                 values[f"value_{sequence}"] = display_value(row, field_name)

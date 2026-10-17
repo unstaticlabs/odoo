@@ -80585,6 +80585,7 @@
           "reversal_action": "rpc:rebuild.account.report.export.wizard.write"
         },
         "rpc:rebuild.account.report.export.wizard.action_preview_report": {
+          "rationale": "Existing transient report preview now retains complete authorized financial header controls before display truncation. Native permissions and financial rows are unchanged; source roles exclude duplicate presentation totals.",
           "reversal_action": "rpc:rebuild.account.report.export.wizard.write"
         },
         "rpc:rebuild.account.report.export.wizard.copy": {
@@ -85217,7 +85218,7 @@
         "rpc:rebuild.account.report.export.wizard.action_collapse_all": "458e6cdac7f0b46c5f23c0cae7713a19efe91ba67164de6c5af5ee9d153e5a72",
         "rpc:rebuild.account.report.export.wizard.action_expand_all": "f48185cc5d086aef523cd6af531c81adca8f027943f9a967d0c5d2c6a11206b3",
         "rpc:rebuild.account.report.export.wizard.action_generate_export": "bcbb24f06657bfe8187ccc0590820ce37ba381a8eace4918b21706161b22c837",
-        "rpc:rebuild.account.report.export.wizard.action_preview_report": "ac4fb3dbd1f39354a8bb82fc35531f4fae61f1a36655806f22d385f2c397e75d",
+        "rpc:rebuild.account.report.export.wizard.action_preview_report": "c3038ee50990dfd5bf6983d9c3ffb5f3b115bc25215104a92562475b358f62e9",
         "rpc:rebuild.account.report.export.wizard.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:rebuild.account.report.export.wizard.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
         "rpc:rebuild.account.report.export.wizard.create": "19bd76d06dd9ec9b41f4f266df335c3876dca12b7c7b96341692832d4fdab717",
@@ -150171,7 +150172,6 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_definition.py:rebuild.account.report.definition.create:orm_create:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_definition.py:rebuild.account.report.definition.write:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard._report_client_payload:orm_write:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard._report_client_summary:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard.report_client_load:orm_create:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard.report_client_load:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard.report_client_load:orm_write:2",
@@ -155851,9 +155851,6 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard._report_client_payload:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard._report_client_summary:orm_write:1": {
-          "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
-        },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard.report_client_load:orm_create:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.account.report.export.wizard.report_client_load"
         },
@@ -155912,18 +155909,23 @@
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.account.report.export.wizard.action_generate_export"
         },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_create:1": {
+          "rationale": "Existing transient report preview now retains complete authorized financial header controls before display truncation. Native permissions and financial rows are unchanged; source roles exclude duplicate presentation totals.",
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.account.report.export.wizard.action_preview_report"
         },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_write:1": {
+          "rationale": "Existing transient report preview now retains complete authorized financial header controls before display truncation. Native permissions and financial rows are unchanged; source roles exclude duplicate presentation totals.",
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.account.report.export.wizard.action_preview_report"
         },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_write:2": {
+          "rationale": "Existing transient report preview now retains complete authorized financial header controls before display truncation. Native permissions and financial rows are unchanged; source roles exclude duplicate presentation totals.",
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.account.report.export.wizard.action_preview_report"
         },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_write:3": {
+          "rationale": "Existing transient report preview now retains complete authorized financial header controls before display truncation. Native permissions and financial rows are unchanged; source roles exclude duplicate presentation totals.",
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.account.report.export.wizard.action_preview_report"
         },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:sudo:1": {
+          "rationale": "Existing transient report preview now retains complete authorized financial header controls before display truncation. Native permissions and financial rows are unchanged; source roles exclude duplicate presentation totals.",
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:rebuild.account.report.export.wizard.action_preview_report"
         },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.create:orm_create:1": {
@@ -159108,8 +159110,7 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_definition.py:rebuild.account.report.definition._ensure_standard_definitions:orm_write:1": "2222af00998390bdf76e5c6cb14d627cada0ea2fc77b9196c22dbd3ca3b11de4",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_definition.py:rebuild.account.report.definition.create:orm_create:1": "900e7d389f0fc7a6d22cad0ffe1ad8850c1ef06e64ff0cfeab7cbfb6dd8b192b",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_definition.py:rebuild.account.report.definition.write:orm_write:1": "983f3a260add301061405b74e7a9ca3384184c5f14ff41559e7f66692a9067f3",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard._report_client_payload:orm_write:1": "2be6cc8716a8be953cfbac632fefb812d163556f2daab8e389dcbe567d3e7611",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard._report_client_summary:orm_write:1": "9e445724535faa69f67ab6852d784d5960e223d67e78bf136ee8b75759082e09",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard._report_client_payload:orm_write:1": "7b2b70ce79949abddce4acf0fcf147081bf699de4bfab78ef55cf24250ef8a78",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard.report_client_load:orm_create:1": "555afed6431ad4e1ec73d9ab54eff801c2ed8c44453f0ed5233f58614e381b58",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard.report_client_load:orm_write:1": "39e9b3c9b7fea224caf0278c39247b70b518187ad3e96c3a0c68ee0b64d31fda",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard.report_client_load:orm_write:2": "441292db64d272443ba47fe29c29495acb39a397a2a6408cca0e0bc3af9d48bf",
@@ -159129,11 +159130,11 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_collapse_all:orm_write:1": "cc1f59fb5d76bc1918809bdbeb19d32db26c1950de2836dad5f0d3629a5b3421",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_expand_all:orm_write:1": "581f3e26f767af8b77e435557cb349a58607271a7cc74c48a0a459f684105471",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_generate_export:orm_write:1": "88921874951a52aeb3aa60fa3118cda602f7346eaa1c0b07a5bc8a21f37bf400",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_create:1": "e4e1d572e690bbecf963b63159c9dd2e3986f1551449d740837f35035bc8a567",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_write:1": "01ee2606cf1e1f19bde50185d1b95657156f3d328ca17e9e2f481d5870c4c29c",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_write:2": "fe6455642f44ef21f1ce4b516a706fead2374fa3f8045dfe6f4f77489a9eb4c5",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_write:3": "3bbbbe713a145c350a9036b1c282746f1cda88b7a0a4ca2ce3237a51d0687784",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:sudo:1": "a1607fcb7d775abf84b2b7848cddb7c124abd92aef1210075597a11399c8a165",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_create:1": "5fc879728b63901b014f4ad41339b81bf3d2a8eeddee48536cfab8b07b21e534",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_write:1": "e9f2aed5e66d220964ca045307fe6587bbc82667abe594d4ad0c2baa37ed55ea",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_write:2": "7a8539687c3d5d405cb298ef9251abe9ef74d86ba1e9ebc340ae25505b408c70",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_write:3": "78f38fad4216dfe55b4b0d81c166f3014ca275035dd6fac250955e59f890c605",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:sudo:1": "83ffe34a95479916eb7933ef1c00a4b98a6721422fa2d56c5376ffe2ce13c4e4",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.create:orm_create:1": "b63398e2314fd5c9f57d0f0e58cf58641db7ebdba2169b6a1940483f500a59ba",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.write:orm_write:1": "b3c64708b9f3c05539c7a4a0c74a461360f409a32500841139e946c170e98b42",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:1": "996ca01f45c70ac64963ac313e73072b46b6d7e0c516f3194d321163d66d37e4",
@@ -205867,7 +205868,9 @@
     "internal-reachability-v1": {
       "contract": "Has no ordinary RPC/controller actor entry; manual scheduler execution uses a separately guarded action.",
       "tests": [
-        "scripts/tests/test_action_risk_inventory.py::TestDiscovery.test_runtime_facts_replace_approximate_rpc_and_routes"
+        "scripts/tests/test_action_risk_inventory.py::TestDiscovery.test_runtime_facts_replace_approximate_rpc_and_routes",
+        "custom-addons/rebuild_account_migration/tests/test_report_header_cards.py::TestReportHeaderCards.test_trial_balance_counts_posted_movements_once",
+        "custom-addons/rebuild_account_migration/tests/test_report_header_cards.py::TestReportHeaderCards.test_old_partial_preview_recalculates_without_fabricating_zero"
       ]
     },
     "live-content-search-20261014": {
@@ -205976,7 +205979,9 @@
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_agent_scope_intersects_selected_companies",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_json2_policy_denies_unknown_mutations_and_secrets",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_profile_exposes_every_owner_application",
-        "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_scope_uses_owner_private_project_and_assignment_rules"
+        "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_scope_uses_owner_private_project_and_assignment_rules",
+        "custom-addons/rebuild_account_migration/tests/test_report_header_cards.py::TestReportHeaderCards.test_trial_balance_counts_posted_movements_once",
+        "custom-addons/rebuild_account_migration/tests/test_report_header_cards.py::TestReportHeaderCards.test_old_partial_preview_recalculates_without_fabricating_zero"
       ]
     },
     "task-github-reference-20261014": {
