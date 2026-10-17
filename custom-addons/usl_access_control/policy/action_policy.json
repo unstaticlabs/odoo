@@ -4338,10 +4338,12 @@
           "action_name": "execute a server action"
         },
         "guard:documents.permanent_delete": {
-          "action_name": "permanently delete a document"
+          "action_name": "permanently delete a document",
+          "rationale": "Retains the existing irreversible authority and native document workflow. Direct calls require the existing authority; only its already-checked native action passes an in-process identity marker. Client JSON context cannot stand in for that checked caller. Agent public dispatch remains protected as before."
         },
         "guard:documents.permanent_deletion.approve": {
-          "action_name": "approve permanent document deletion"
+          "action_name": "approve permanent document deletion",
+          "rationale": "Retains the existing irreversible authority and native document workflow. Direct calls require the existing authority; only its already-checked native action passes an in-process identity marker. Client JSON context cannot stand in for that checked caller. Agent public dispatch remains protected as before."
         },
         "guard:einvoice.pdp.deregister": {
           "action_name": "deregister from an electronic-invoice platform"
@@ -5341,19 +5343,23 @@
         },
         "rpc:usl.document.action_approve_permanent_deletion": {
           "action_name": "approve permanent document deletion",
-          "guard_key": "guard:documents.permanent_deletion.approve"
+          "guard_key": "guard:documents.permanent_deletion.approve",
+          "rationale": "Retains the existing irreversible authority and native document workflow. Direct calls require the existing authority; only its already-checked native action passes an in-process identity marker. Client JSON context cannot stand in for that checked caller. Agent public dispatch remains protected as before."
         },
         "rpc:usl.document.action_permanently_delete_from_trash": {
           "action_name": "permanently delete a document",
-          "guard_key": "guard:documents.permanent_delete"
+          "guard_key": "guard:documents.permanent_delete",
+          "rationale": "Retains the existing irreversible authority and native document workflow. Direct calls require the existing authority; only its already-checked native action passes an in-process identity marker. Client JSON context cannot stand in for that checked caller. Agent public dispatch remains protected as before."
         },
         "rpc:usl.document.approve_permanent_deletion": {
           "action_name": "approve permanent document deletion",
-          "guard_key": "guard:documents.permanent_deletion.approve"
+          "guard_key": "guard:documents.permanent_deletion.approve",
+          "rationale": "Retains the existing irreversible authority and native document workflow. Direct calls require the existing authority; only its already-checked native action passes an in-process identity marker. Client JSON context cannot stand in for that checked caller. Agent public dispatch remains protected as before."
         },
         "rpc:usl.document.permanently_delete_from_trash": {
           "action_name": "permanently delete a document",
-          "guard_key": "guard:documents.permanent_delete"
+          "guard_key": "guard:documents.permanent_delete",
+          "rationale": "Retains the existing irreversible authority and native document workflow. Direct calls require the existing authority; only its already-checked native action passes an in-process identity marker. Client JSON context cannot stand in for that checked caller. Agent public dispatch remains protected as before."
         },
         "rpc:usl.document.unlink": {
           "action_name": "permanently delete usl.document",
@@ -5487,8 +5493,8 @@
         "guard:authorization.user.create": "0df0ee1a9641d4212897433183f71d743063e59a74e3cb9a4ae4a872535d6a9c",
         "guard:authorization.user.delete": "7761b0119a86e1271e23ace600b15b287309f1327a36c0caf1e8f66a700f6985",
         "guard:automation.server_action.execute": "c854e12e8cbd4a6416bfefcbdd6c902fb70f1a2af861050d8ddcd0284104277d",
-        "guard:documents.permanent_delete": "cf51bb1a00246cc929d137830c61409f9ec7905a973c6b02f83a3c2f6c8c97fc",
-        "guard:documents.permanent_deletion.approve": "3fc1dea7d77a3e9abf192c8acfd7fd4fab45adf1d38e81ecd7eaaf6db6d33a2b",
+        "guard:documents.permanent_delete": "cd92bf92d8afe84c4442ac5f27f48b4c5f6ad8c888196bd4d51e3747908ea0a9",
+        "guard:documents.permanent_deletion.approve": "975d517d3016290989e33d62ae41e88c7ce5e918791e8bce0e8f364f81879985",
         "guard:einvoice.pdp.deregister": "debce91a440eba0ddf192607f3709e6922a9401023c95b631077e374fca0bf85",
         "guard:einvoice.pdp.register": "59003fed7f4daca55b422b8153a882c5b8895916b6db1b7eced8c4a64eadefe3",
         "guard:einvoice.peppol.branch.disconnect": "01d1fe540900e427d2f906f9b75644f22f76e17edc5bdf610775d15e1f99d6a6",
@@ -5628,10 +5634,10 @@
         "rpc:uom.uom.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:usl.audit.event.unlink": "ed0fd6f33280845fd470bc62bbe23fe7e7c4a9f0a55ac9064f9dbb6cccca231b",
         "rpc:usl.audit.event.write": "544830db22195f17202b96bd8d65d87f891097c016d8b3069cded45c6b989cf2",
-        "rpc:usl.document.action_approve_permanent_deletion": "9386761f4efad9be3dbf26347f7a0ff9a9fad9fdea7b4197c0ce8c4943922e40",
-        "rpc:usl.document.action_permanently_delete_from_trash": "8c6ef61a3bddaa6c8f291434c3a855f83d7fb7e456483ddfdf0f394b0861fae1",
-        "rpc:usl.document.approve_permanent_deletion": "5c46308d81a573bb9f4a58a81095b5bed8923075438fc9e21a8697c0e4d99666",
-        "rpc:usl.document.permanently_delete_from_trash": "a403a6b89434edbae1fb711d5cb2aa02876a676fd94b5f0de4abdf74e3cdb31e",
+        "rpc:usl.document.action_approve_permanent_deletion": "a8a3a952ed7e4bfb36b1a1b85d084ebf5533efa5a050e0175c2ef79882e53769",
+        "rpc:usl.document.action_permanently_delete_from_trash": "d890a4617de4cde2506292ef570a746d271e15d1157280d7a821e5048b6dffa1",
+        "rpc:usl.document.approve_permanent_deletion": "98a2658b4dec4227c71bdbecea9c9815949b94cc1caa13ef8e772832b88a2bfb",
+        "rpc:usl.document.permanently_delete_from_trash": "fae5a35afb8db96f893e28f5d80e51a2ee96a088ab956ebe87874b0acdb8f4ff",
         "rpc:usl.document.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
         "rpc:usl.oidc.identity.create": "65a1cb1cb3062934560db709f6c8fae747dbba83368f2bc67f6ccb527e6bc34f",
         "rpc:usl.oidc.identity.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
@@ -205932,7 +205938,8 @@
         "custom-addons/usl_access_control/tests/test_access_control.py::TestDistributionAccessControl.test_external_registration_actions_are_guarded_before_provider_calls",
         "custom-addons/usl_access_control/tests/test_access_control.py::TestDistributionAccessControl.test_landed_cost_actions_require_irreversible_actions",
         "custom-addons/usl_access_control/tests/test_access_control.py::TestDistributionAccessControl.test_permanent_deletion_is_denied_to_agent_and_restricted_humans",
-        "custom-addons/usl_access_control/tests/test_access_control.py::TestDistributionAccessControl.test_sudo_does_not_bypass_actor_or_technical_guards"
+        "custom-addons/usl_access_control/tests/test_access_control.py::TestDistributionAccessControl.test_sudo_does_not_bypass_actor_or_technical_guards",
+        "custom-addons/usl_access_control/tests/test_document_checked_callers.py::TestDocumentCheckedCallers"
       ]
     },
     "read-only-no-sink-v1": {

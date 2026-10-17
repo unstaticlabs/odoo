@@ -185,3 +185,13 @@ normal user to local-password login during an outage.
   helper broadly or downgrade an entire model because one operation is safe.
 - If the refusal concerns electronic invoicing, leave both live guards at zero
   until the approved production activation runbook explicitly says otherwise.
+
+### Checked document deletion callers
+
+Permanent-deletion approval and emptying Trash retain their existing
+Irreversible Actions checks and native Documents Manager, reason, approval,
+retention, hold and relationship requirements. The checked native actions pass
+separate in-process markers to avoid repeating a check already performed by
+the same action. Client context values cannot stand in for those markers.
+The public Agent API already refuses these protected actions before model
+execution; the markers preserve the same authority for direct native callers.
