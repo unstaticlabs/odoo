@@ -99,8 +99,15 @@ msgstr ""
 #. odoo-python
 #: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
 msgid ""
-"%s is not an incoming bank transaction already reconciled in Accounting with"
-" an amount left to link."
+"%s is not a bank transaction already reconciled in Accounting against the "
+"selected payouts, or it has no amount left to link."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid ""
+"%(bank)s is not connected to the Accounting documents of %(payout)s."
 msgstr ""
 
 #. module: usl_platform_billing
@@ -258,8 +265,10 @@ msgstr ""
 msgid ""
 "All open keeps every eligible incoming transaction available. Suggested only"
 " applies the configured recognition rules. Already reconciled in Accounting "
-"lists incoming transactions that Accounting has already reconciled, so they "
-"can be linked to their payouts as bank evidence without changing any entry."
+"lists, for the selected payouts, the incoming transactions that Accounting "
+"has already reconciled against their invoices or compensation entries, "
+"directly or through intermediate entries, so they can be linked as bank "
+"evidence without changing any entry. Select the payouts first."
 msgstr ""
 
 #. module: usl_platform_billing
@@ -1762,12 +1771,14 @@ msgstr ""
 #. module: usl_platform_billing
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
 msgid ""
-"These bank transactions are already reconciled in\n"
-"                        Accounting. Linking them only records the bank evidence on\n"
-"                        the payouts: no entry, payment or reconciliation is created\n"
-"                        or changed. If a payout is slightly above the bank amount,\n"
-"                        lower its amount to settle to match the selected\n"
-"                        transactions."
+"Select the payouts first. The list then shows the bank\n"
+"                        transactions Accounting already reconciled against those\n"
+"                        payouts' invoices or compensation entries, directly or\n"
+"                        through intermediate entries. Linking them only records the\n"
+"                        bank evidence on the payouts: no entry, payment or\n"
+"                        reconciliation is created or changed. If a payout is\n"
+"                        slightly above the bank amount, lower its amount to settle\n"
+"                        to match the selected transactions."
 msgstr ""
 
 #. module: usl_platform_billing

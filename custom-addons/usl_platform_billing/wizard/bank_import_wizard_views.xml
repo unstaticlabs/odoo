@@ -25,12 +25,14 @@
 
                     <div class="alert alert-warning py-2" role="status"
                          invisible="mode != 'link' or candidate_scope != 'reconciled'">
-                        These bank transactions are already reconciled in
-                        Accounting. Linking them only records the bank evidence on
-                        the payouts: no entry, payment or reconciliation is created
-                        or changed. If a payout is slightly above the bank amount,
-                        lower its amount to settle to match the selected
-                        transactions.
+                        Select the payouts first. The list then shows the bank
+                        transactions Accounting already reconciled against those
+                        payouts' invoices or compensation entries, directly or
+                        through intermediate entries. Linking them only records the
+                        bank evidence on the payouts: no entry, payment or
+                        reconciliation is created or changed. If a payout is
+                        slightly above the bank amount, lower its amount to settle
+                        to match the selected transactions.
                     </div>
 
                     <separator string="Open payouts" invisible="mode != 'link'"/>

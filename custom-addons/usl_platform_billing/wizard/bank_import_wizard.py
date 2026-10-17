@@ -7,6 +7,13 @@ from odoo.exceptions import UserError, ValidationError
 from odoo.tools import float_compare
 
 
+SETTLEMENT_ACCOUNT_TYPES = ("asset_receivable", "liability_payable")
+# How far from a payout's documents a bank transaction's reconciliation may be
+# traced: one hop is a partial reconciliation plus the sibling settlement lines
+# of the move it reaches.
+RECONCILIATION_HOPS = 4
+
+
 class UslPlatformBillingBankImportWizard(models.TransientModel):
     _name = "usl.platform.billing.bank.import.wizard"
     _description = "Select Platform Bank Transactions"
@@ -43,9 +50,11 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
         help=(
             "All open keeps every eligible incoming transaction available. "
             "Suggested only applies the configured recognition rules. "
-            "Already reconciled in Accounting lists incoming transactions that "
-            "Accounting has already reconciled, so they can be linked to their "
-            "payouts as bank evidence without changing any entry."
+            "Already reconciled in Accounting lists, for the selected payouts, "
+            "the incoming transactions that Accounting has already reconciled "
+            "against their invoices or compensation entries, directly or through "
+            "intermediate entries, so they can be linked as bank evidence "
+            "without changing any entry. Select the payouts first."
         ),
     )
     payout_candidate_ids = fields.One2many(
@@ -236,7 +245,60 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
             for payout in payouts
         ]
 
-    def _eligible_bank_lines(self):
+    @staticmethod
+    def _ledger_counterpart_lines(moves):
+        return moves.line_ids.filtered(
+            lambda line: line.account_id.account_type in SETTLEMENT_ACCOUNT_TYPES,
+        )
+
+    def _payout_reconciliation_reach(self, payouts):
+        """Receivable and payable lines reconciled with each payout's documents.
+
+        Returns ``{payout id: account.move.line}``. The walk starts from the
+        settlement lines of the payout's customer invoices and compensation
+        moves, including the other payouts of the same compensation (the pool
+        ``_reconcile_bank_transaction`` reconciles as one). From there it
+        follows partial reconciliations and, inside each reached move, the
+        other settlement lines, for a small fixed number of hops. A bank
+        transaction reconciled through an intermediate entry is therefore
+        found, while one reconciled against unrelated documents is not.
+        """
+        Partial = self.env["account.partial.reconcile"]
+        reach = {}
+        for payout in payouts:
+            pool = payout
+            for compensation in payout.compensation_move_id:
+                pool |= compensation.platform_billing_payout_ids
+            reached = self._ledger_counterpart_lines(
+                pool.customer_invoice_id | pool.compensation_move_id,
+            )
+            frontier = reached
+            for _hop in range(RECONCILIATION_HOPS):
+                if not frontier:
+                    break
+                partials = Partial.search(
+                    [
+                        "|",
+                        ("debit_move_id", "in", frontier.ids),
+                        ("credit_move_id", "in", frontier.ids),
+                    ],
+                )
+                neighbours = partials.debit_move_id | partials.credit_move_id
+                neighbours |= self._ledger_counterpart_lines(neighbours.move_id)
+                frontier = neighbours - reached
+                reached |= frontier
+            reach[payout.id] = reached
+        return reach
+
+    def _line_connected_to_payout(self, bank_line, payout, reach):
+        """Whether the bank line was reconciled against the payout's documents."""
+        connected = reach.get(payout.id)
+        return bool(
+            connected
+            and (self._ledger_counterpart_lines(bank_line.move_id) & connected),
+        )
+
+    def _eligible_bank_lines(self, restrict_to=None, reach=None):
         self.ensure_one()
         platforms = self._active_platforms()
         configured_journals = platforms.bank_journal_id
@@ -253,6 +315,18 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
         ]
         if restrict_journals:
             domain.append(("journal_id", "in", configured_journals.ids))
+        adopting = self._adopts_reconciled_lines()
+        if adopting:
+            # Build the list outward from the selected payouts' documents, not
+            # from every reconciled line of the journals.
+            if reach is None:
+                reach = self._payout_reconciliation_reach(
+                    self._selected_payout_lines().payout_id,
+                )
+            reached = self.env["account.move.line"].union(*reach.values())
+            domain.append(("move_id", "in", reached.move_id.ids))
+            if restrict_to is not None:
+                domain.append(("id", "in", restrict_to.ids))
         bank_lines = self.env["account.bank.statement.line"].search(
             domain,
             order="date desc, id desc",
@@ -277,6 +351,8 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
                 continue
             eligible |= bank_line
             remaining_by_line[bank_line.id] = remaining
+        if adopting:
+            return eligible, remaining_by_line, {}
         excluded = {
             "outgoing": self.env["account.bank.statement.line"].search_count(
                 [
@@ -466,15 +542,23 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
         ]
         del excluded
 
-    def _revalidate_candidate(self, candidate):
+    def _revalidate_candidate(self, candidate, reach=None):
         bank_line = candidate.bank_statement_line_id
-        eligible, remaining_by_line, _excluded = self._eligible_bank_lines()
+        if self._adopts_reconciled_lines():
+            # Only this candidate's own line is looked at.
+            eligible, remaining_by_line, _excluded = self._eligible_bank_lines(
+                restrict_to=bank_line,
+                reach=reach,
+            )
+        else:
+            eligible, remaining_by_line, _excluded = self._eligible_bank_lines()
         if bank_line not in eligible:
             if self._adopts_reconciled_lines():
                 raise UserError(
                     _(
-                        "%s is not an incoming bank transaction already "
-                        "reconciled in Accounting with an amount left to link.",
+                        "%s is not a bank transaction already reconciled in "
+                        "Accounting against the selected payouts, or it has no "
+                        "amount left to link.",
                         bank_line.display_name,
                     ),
                 )
@@ -698,9 +782,14 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
                         remaining=payout.remaining_platform_amount,
                     ),
                 )
+        reach = (
+            self._payout_reconciliation_reach(payout_lines.payout_id)
+            if self._adopts_reconciled_lines()
+            else None
+        )
         for candidate in candidates:
-            self._revalidate_candidate(candidate)
-        return payout_lines, candidates
+            self._revalidate_candidate(candidate, reach=reach)
+        return payout_lines, candidates, reach
 
     def _candidate_payout_capacity(self, candidate, payout_currency):
         bank_line = candidate.bank_statement_line_id
@@ -835,7 +924,7 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
             limit=1,
         )
         if not existing:
-            return Allocation._action_create(values)
+            return Allocation._action_create(values), True
         if (
             existing.bank_currency_id.compare_amounts(
                 existing.bank_amount,
@@ -851,7 +940,7 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
                     "An allocation already exists with different amounts.",
                 ),
             )
-        return existing
+        return existing, False
 
     def _completed_existing_link_plan(self):
         """Return payouts when a repeated request is already fully applied."""
@@ -906,7 +995,7 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
         if completed_payouts:
             completed_payouts.session_id._refresh_state()
             return self._session_action()
-        payout_lines, candidates = self._selected_link_inputs()
+        payout_lines, candidates, reach = self._selected_link_inputs()
         plan = self._allocation_plan(payout_lines, candidates)
         imported = self.env["usl.platform.billing.payout"]
         failures = []
@@ -915,11 +1004,29 @@ class UslPlatformBillingBankImportWizard(models.TransientModel):
             bank_line = candidate.bank_statement_line_id
             try:
                 with self.env.cr.savepoint():
-                    self._revalidate_candidate(candidate)
+                    self._revalidate_candidate(candidate, reach=reach)
+                    created_any = False
                     for values in plan[candidate.id]:
-                        allocation = self._get_or_create_allocation(values)
+                        payout = self.env["usl.platform.billing.payout"].browse(
+                            values["payout_id"],
+                        )
+                        if reach is not None and not self._line_connected_to_payout(
+                            bank_line,
+                            payout,
+                            reach,
+                        ):
+                            raise UserError(
+                                _(
+                                    "%(bank)s is not connected to the Accounting "
+                                    "documents of %(payout)s.",
+                                    bank=bank_line.display_name,
+                                    payout=payout.display_name,
+                                ),
+                            )
+                        allocation, created = self._get_or_create_allocation(values)
+                        created_any = created_any or created
                         imported |= allocation.payout_id
-                    if self._adopts_reconciled_lines():
+                    if reach is not None and created_any:
                         adopted_count += 1
             except (IntegrityError, UserError, ValidationError) as error:
                 failures.append(self._failure_text(bank_line, error))

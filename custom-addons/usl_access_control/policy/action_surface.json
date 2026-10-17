@@ -1400031,6 +1400031,7 @@
       "delegates": [
         "rpc:account.bank.statement.line.search",
         "rpc:account.bank.statement.line.search_count",
+        "rpc:account.move.line.union",
         "rpc:usl.platform.billing.bank.allocation.search",
         "rpc:usl.platform.billing.bank.import.wizard.ensure_one",
         "rpc:usl.platform.billing.payout.create",
@@ -1400055,7 +1400056,7 @@
       ],
       "sources": [
         {
-          "line": 592,
+          "line": 676,
           "path": "custom-addons/usl_platform_billing/wizard/bank_import_wizard.py"
         },
         {
@@ -1400064,6 +1400065,7 @@
       ],
       "transient": true,
       "unresolved_delegates": [
+        "rpc:account.move.line.union",
         "rpc:usl.platform.billing.bank.import.wizard.ensure_one"
       ]
     },
@@ -1400073,11 +1400075,13 @@
       "delegates": [
         "rpc:account.bank.statement.line.search",
         "rpc:account.bank.statement.line.search_count",
+        "rpc:account.move.line.union",
         "rpc:usl.platform.billing.bank.allocation.search",
         "rpc:usl.platform.billing.bank.import.wizard.ensure_one",
+        "rpc:usl.platform.billing.payout.browse",
         "rpc:usl.platform.billing.platform.search"
       ],
-      "digest": "be309fde7ac867985627178dc21f04691a3fb876678b246e39ee7e4a93715a5c",
+      "digest": "127ac89824d094d9fd378c66a3157bb2424a754740a59d589b7f06a250733347",
       "guards": [],
       "key": "rpc:usl.platform.billing.bank.import.wizard.action_link_payouts",
       "kind": "rpc",
@@ -1400088,14 +1400092,14 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "2e39a0d3d7396d482e9d1e5da6d67cc872bc525c46fe72dc01f6b0fc2be22243",
+      "runtime_digest": "c88f17587ea7ba7796badbf5753a693d75f06d35a713887535bbb31c92e479db",
       "sinks": [
         "message_send",
         "orm_write"
       ],
       "sources": [
         {
-          "line": 900,
+          "line": 989,
           "path": "custom-addons/usl_platform_billing/wizard/bank_import_wizard.py"
         },
         {
@@ -1400104,7 +1400108,9 @@
       ],
       "transient": true,
       "unresolved_delegates": [
-        "rpc:usl.platform.billing.bank.import.wizard.ensure_one"
+        "rpc:account.move.line.union",
+        "rpc:usl.platform.billing.bank.import.wizard.ensure_one",
+        "rpc:usl.platform.billing.payout.browse"
       ]
     },
     {
@@ -1402790,7 +1402796,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 977,
+          "line": 1084,
           "path": "custom-addons/usl_platform_billing/wizard/bank_import_wizard.py"
         },
         {
@@ -1402850,7 +1402856,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 984,
+          "line": 1091,
           "path": "custom-addons/usl_platform_billing/wizard/bank_import_wizard.py"
         },
         {
@@ -1629299,7 +1629305,7 @@
       ]
     },
     {
-      "digest": "a48bd325ccc8c8af56dea612685c78e7d6bb6ade2bf0a4b7c704ff1ba04c71d7",
+      "digest": "62613064361c121b86b8bf76975b218aa7a00a3f8c0459137bc9ec574866d63c",
       "key": "sink:usl_platform_billing:custom-addons/usl_platform_billing/wizard/bank_import_wizard.py:usl.platform.billing.bank.import.wizard._get_or_create_allocation:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1629308,7 +1629314,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 824,
+          "line": 913,
           "path": "custom-addons/usl_platform_billing/wizard/bank_import_wizard.py"
         }
       ]
@@ -1629323,7 +1629329,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 410,
+          "line": 486,
           "path": "custom-addons/usl_platform_billing/wizard/bank_import_wizard.py"
         }
       ]
@@ -1629338,7 +1629344,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 193,
+          "line": 202,
           "path": "custom-addons/usl_platform_billing/wizard/bank_import_wizard.py"
         }
       ]
@@ -1629353,7 +1629359,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 532,
+          "line": 616,
           "path": "custom-addons/usl_platform_billing/wizard/bank_import_wizard.py"
         }
       ]
@@ -1629371,7 +1629377,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 592,
+          "line": 676,
           "path": "custom-addons/usl_platform_billing/wizard/bank_import_wizard.py"
         }
       ]
@@ -1629389,7 +1629395,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 592,
+          "line": 676,
           "path": "custom-addons/usl_platform_billing/wizard/bank_import_wizard.py"
         }
       ]
@@ -1629407,13 +1629413,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 592,
+          "line": 676,
           "path": "custom-addons/usl_platform_billing/wizard/bank_import_wizard.py"
         }
       ]
     },
     {
-      "digest": "aaaae549ea63f7912fa7ac34c7058f95dbf7b50a3348e21933a38b98e169b89e",
+      "digest": "0a15c33ab94afe24362073a236267232bcf7f5f3267a2bb39b68676fcbcc8563",
       "key": "sink:usl_platform_billing:custom-addons/usl_platform_billing/wizard/bank_import_wizard.py:usl.platform.billing.bank.import.wizard.action_link_payouts:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1629425,7 +1629431,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 900,
+          "line": 989,
           "path": "custom-addons/usl_platform_billing/wizard/bank_import_wizard.py"
         }
       ]
@@ -1698797,7 +1698803,7 @@
       "manifest_sha256": "2ec0a9439281e80154dcb4f753929d5e37e73e721e300ebb9249cb5104cf4951",
       "name": "usl_platform_billing",
       "origin": "custom",
-      "source_sha256": "0605af97680a260a6cac218d1a7baebe7d4b9f084dd102dba71e58550dd11077",
+      "source_sha256": "440b2a31cba9350502d7b8ca94ebba1da4442ef3181103e474bd1ba612db1d59",
       "version": "saas~19.3.1.3.6"
     },
     {
