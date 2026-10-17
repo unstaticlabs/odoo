@@ -3,6 +3,7 @@
 # ruff: noqa: I001
 
 from . import (
+    edi_line_compatibility,
     account_group_compat,
     account_direction_guard,
     account_reconcile_compat,
