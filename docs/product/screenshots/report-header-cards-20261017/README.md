@@ -9,4 +9,4 @@ Captured 17 October 2026 from the final tested product source, using invented po
 - 07: The financial account scope on mobile.
 - 08: Clearing the financial filter and searching Banque on mobile restores full 100/100/0 controls while narrowing table rows.
 
-Native financial filters determine the header. Display search determines table and export rows. This is the provisional search interpretation recorded on the task; no user approval of that optional choice is claimed. No production data or private documents were used.
+Native financial filters determine the header. Display search determines table and export rows. The owner confirmed this search interpretation on 17 October 2026. No production data or private documents were used.
