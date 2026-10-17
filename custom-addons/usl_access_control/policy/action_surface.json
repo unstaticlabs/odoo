@@ -139609,6 +139609,42 @@
     {
       "abstract": false,
       "archiveable": false,
+      "delegates": [
+        "rpc:account.move.check_access",
+        "rpc:account.move.ensure_one",
+        "rpc:usl.mail.pdf.retrieval.search"
+      ],
+      "digest": "f382d72a6c1b93f170fbf0c7750e5de1ca0da4f847848f08a21820d9f290cdb3",
+      "guards": [],
+      "key": "rpc:account.move.action_accept_linked_receipt",
+      "kind": "rpc",
+      "method": "action_accept_linked_receipt",
+      "model": "account.move",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "504b2e9adb12a1ed58123499ab1c5ceb209b9fe1cab701b898addf909dd15192",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 126,
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:account.move.check_access",
+        "rpc:account.move.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
       "digest": "2e81f285a4e78512e4502c5b88daf57f40289ef443d6e8bf062b3aa51e2c2c92",
       "guards": [],
       "key": "rpc:account.move.action_activate_currency",
@@ -139740,6 +139776,50 @@
       "abstract": false,
       "archiveable": false,
       "delegates": [
+        "rpc:account.move.check_access",
+        "rpc:account.move.ensure_one",
+        "rpc:account.move.invalidate_recordset",
+        "rpc:ir.attachment.browse",
+        "rpc:usl.mail.pdf.retrieval.sudo"
+      ],
+      "digest": "98bc5fbcf7cf8ef5be8fbd372cef63d993d7d48ef57a576516dd16dfcb744883",
+      "guards": [],
+      "key": "rpc:account.move.action_attach_linked_receipt",
+      "kind": "rpc",
+      "method": "action_attach_linked_receipt",
+      "model": "account.move",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "dacc2e1601597d03110526b27fa17550b80ca89673ee79c36ae606282150efee",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 163,
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:account.move.check_access",
+        "rpc:account.move.ensure_one",
+        "rpc:account.move.invalidate_recordset",
+        "rpc:ir.attachment.browse",
+        "rpc:usl.mail.pdf.retrieval.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
         "rpc:account.move.filtered"
       ],
       "digest": "c6ef3fad3df848846642bd37b9a77c59b1ccef0158a846dfd095b2615a8134a9",
@@ -139834,6 +139914,42 @@
         }
       ],
       "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:account.move.check_access",
+        "rpc:account.move.ensure_one",
+        "rpc:usl.mail.pdf.retrieval.search"
+      ],
+      "digest": "9c9392c3000bae4d43a0b61ea7c0c4526f2a36b1ebfa4b67a45d6a7376a7c858",
+      "guards": [],
+      "key": "rpc:account.move.action_dismiss_linked_receipt",
+      "kind": "rpc",
+      "method": "action_dismiss_linked_receipt",
+      "model": "account.move",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ce0f3d006b8c3f6516eef83c00ed40021111a586a64702b16d2a27b8b0a539da",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 149,
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:account.move.check_access",
+        "rpc:account.move.ensure_one"
+      ]
     },
     {
       "abstract": false,
@@ -140326,6 +140442,42 @@
       ],
       "transient": false,
       "unresolved_delegates": [
+        "rpc:account.move.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:account.move.check_access",
+        "rpc:account.move.ensure_one",
+        "rpc:usl.mail.pdf.retrieval.search"
+      ],
+      "digest": "235c76e1ffda2013d2121097847b559dd6b44ab22fed3162b26f6893deb27911",
+      "guards": [],
+      "key": "rpc:account.move.action_open_linked_receipt_website",
+      "kind": "rpc",
+      "method": "action_open_linked_receipt_website",
+      "model": "account.move",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "6c4adb2527dcae6bced737c6003ae08b340c0724590d80c94719673993ba4079",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 136,
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:account.move.check_access",
         "rpc:account.move.ensure_one"
       ]
     },
@@ -141008,6 +141160,42 @@
       "abstract": false,
       "archiveable": false,
       "delegates": [
+        "rpc:account.move.check_access",
+        "rpc:account.move.ensure_one",
+        "rpc:usl.mail.pdf.retrieval.search"
+      ],
+      "digest": "e07296f5b7e1c623e109c6f7a1202c8c7835c428b6ccaa976f772c6dfc8fcb53",
+      "guards": [],
+      "key": "rpc:account.move.action_retry_linked_receipt",
+      "kind": "rpc",
+      "method": "action_retry_linked_receipt",
+      "model": "account.move",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5d9a248f238dd077a01544988c28d94ab53850428e0c0c39be46223da9d3d62e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 131,
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:account.move.check_access",
+        "rpc:account.move.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
         "rpc:account.move.is_invoice"
       ],
       "digest": "e4b413faf368946fa7151cd396c0d5f1fd131524b562b6e50fff185ec52140ad",
@@ -141033,6 +141221,83 @@
         }
       ],
       "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:account.move.check_access",
+        "rpc:account.move.ensure_one",
+        "rpc:usl.mail.pdf.retrieval.search"
+      ],
+      "digest": "2e37b112a003d5f6629559cf8815eb192a28aebd1072a3ba20b2a9a2d8d134d6",
+      "guards": [],
+      "key": "rpc:account.move.action_review_linked_receipt",
+      "kind": "rpc",
+      "method": "action_review_linked_receipt",
+      "model": "account.move",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "c4fad7286c4bde8746dddc309b760627115c7905d2fadc802fa87350ce6fbba1",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 106,
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:account.move.check_access",
+        "rpc:account.move.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:account.move.check_access",
+        "rpc:account.move.sorted",
+        "rpc:ir.attachment.sudo"
+      ],
+      "digest": "f47811c7b743910083757c08838e4f2e5ddadf6f90ddf797e6b1fbba555830a9",
+      "guards": [],
+      "key": "rpc:account.move.action_scan_existing_receipt_emails",
+      "kind": "rpc",
+      "method": "action_scan_existing_receipt_emails",
+      "model": "account.move",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "743c88e171ca1eb332af49151420b6f29dd6272ae0efd0d4635a7c8903532570",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 70,
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:account.move.check_access",
+        "rpc:account.move.sorted",
+        "rpc:ir.attachment.sudo"
+      ]
     },
     {
       "abstract": false,
@@ -409200,7 +409465,7 @@
       ],
       "sources": [
         {
-          "line": 216,
+          "line": 220,
           "path": "custom-addons/usl_accounting/models/linked_receipt_expense.py"
         },
         {
@@ -409379,7 +409644,7 @@
       ],
       "sources": [
         {
-          "line": 239,
+          "line": 243,
           "path": "custom-addons/usl_accounting/models/linked_receipt_expense.py"
         },
         {
@@ -409557,7 +409822,7 @@
       ],
       "sources": [
         {
-          "line": 226,
+          "line": 230,
           "path": "custom-addons/usl_accounting/models/linked_receipt_expense.py"
         },
         {
@@ -410016,7 +410281,7 @@
       ],
       "sources": [
         {
-          "line": 221,
+          "line": 225,
           "path": "custom-addons/usl_accounting/models/linked_receipt_expense.py"
         },
         {
@@ -410083,7 +410348,7 @@
       ],
       "sources": [
         {
-          "line": 196,
+          "line": 200,
           "path": "custom-addons/usl_accounting/models/linked_receipt_expense.py"
         },
         {
@@ -410121,7 +410386,7 @@
       ],
       "sources": [
         {
-          "line": 144,
+          "line": 148,
           "path": "custom-addons/usl_accounting/models/linked_receipt_expense.py"
         },
         {
@@ -412274,7 +412539,7 @@
           "path": "addons/hr_expense/models/hr_expense.py"
         },
         {
-          "line": 244,
+          "line": 248,
           "path": "custom-addons/usl_accounting/models/linked_receipt_expense.py"
         },
         {
@@ -1377110,7 +1377375,7 @@
       ],
       "sources": [
         {
-          "line": 343,
+          "line": 344,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         },
         {
@@ -1377173,7 +1377438,7 @@
       ],
       "sources": [
         {
-          "line": 339,
+          "line": 340,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         },
         {
@@ -1377352,7 +1377617,7 @@
       ],
       "sources": [
         {
-          "line": 323,
+          "line": 324,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         },
         {
@@ -1378798,7 +1379063,7 @@
       ],
       "sources": [
         {
-          "line": 330,
+          "line": 331,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         },
         {
@@ -1378847,7 +1379112,7 @@
       ],
       "sources": [
         {
-          "line": 633,
+          "line": 634,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         },
         {
@@ -1378910,7 +1379175,7 @@
       ],
       "sources": [
         {
-          "line": 646,
+          "line": 647,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         },
         {
@@ -1378947,7 +1379212,7 @@
       ],
       "sources": [
         {
-          "line": 629,
+          "line": 630,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         },
         {
@@ -1380571,7 +1380836,7 @@
           "path": "odoo/orm/models.py"
         },
         {
-          "line": 423,
+          "line": 424,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         },
         {
@@ -1380598,6 +1380863,7 @@
       "archiveable": false,
       "delegates": [
         "rpc:usl.mail.pdf.retrieval.action_select_candidate",
+        "rpc:usl.mail.pdf.retrieval.check_access",
         "rpc:usl.mail.pdf.retrieval.ensure_one"
       ],
       "digest": "edadd3df1558658f29a3369512e1ed920d226858e6e76243fa4338fd851bdc86",
@@ -1380615,7 +1380881,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1141,
+          "line": 1228,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         },
         {
@@ -1380624,6 +1380890,7 @@
       ],
       "transient": false,
       "unresolved_delegates": [
+        "rpc:usl.mail.pdf.retrieval.check_access",
         "rpc:usl.mail.pdf.retrieval.ensure_one"
       ]
     },
@@ -1380658,6 +1380925,7 @@
       "abstract": false,
       "archiveable": false,
       "delegates": [
+        "rpc:usl.mail.pdf.retrieval.check_access",
         "rpc:usl.mail.pdf.retrieval.ensure_one",
         "rpc:usl.mail.pdf.retrieval.sudo"
       ],
@@ -1380679,7 +1380947,7 @@
       ],
       "sources": [
         {
-          "line": 1270,
+          "line": 1365,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         },
         {
@@ -1380688,6 +1380956,7 @@
       ],
       "transient": false,
       "unresolved_delegates": [
+        "rpc:usl.mail.pdf.retrieval.check_access",
         "rpc:usl.mail.pdf.retrieval.ensure_one",
         "rpc:usl.mail.pdf.retrieval.sudo"
       ]
@@ -1380698,12 +1380967,13 @@
       "delegates": [
         "rpc:ir.config_parameter.sudo",
         "rpc:usl.mail.pdf.host.sudo",
+        "rpc:usl.mail.pdf.retrieval.check_access",
         "rpc:usl.mail.pdf.retrieval.ensure_one",
         "rpc:usl.mail.pdf.retrieval.invalidate_recordset",
         "rpc:usl.mail.pdf.retrieval.sudo",
-        "rpc:usl.mail.pdf.retrieval.with_delay"
+        "rpc:usl.mail.pdf.retrieval.with_company"
       ],
-      "digest": "4317980a53bd01c5b0a471eb20ce82b738e78ed9c830368626c5c90b4c5b5f7c",
+      "digest": "0ba7ce0d74d2ad2b49260577ca9694e3bfdf4547c29dbcb60ad913a0d412f125",
       "guards": [],
       "key": "rpc:usl.mail.pdf.retrieval.action_retry",
       "kind": "rpc",
@@ -1380714,14 +1380984,14 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "20df0586bd5f1b716791a439602a30209476bdda6eb799153fce42c96df4937d",
+      "runtime_digest": "d1480ce5fa2b8bc852ebb0dec93dcaa956a9e1ee03b14f1505db980f5cda19fc",
       "sinks": [
         "orm_write",
         "sudo"
       ],
       "sources": [
         {
-          "line": 1224,
+          "line": 1319,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         },
         {
@@ -1380732,10 +1381002,11 @@
       "unresolved_delegates": [
         "rpc:ir.config_parameter.sudo",
         "rpc:usl.mail.pdf.host.sudo",
+        "rpc:usl.mail.pdf.retrieval.check_access",
         "rpc:usl.mail.pdf.retrieval.ensure_one",
         "rpc:usl.mail.pdf.retrieval.invalidate_recordset",
         "rpc:usl.mail.pdf.retrieval.sudo",
-        "rpc:usl.mail.pdf.retrieval.with_delay"
+        "rpc:usl.mail.pdf.retrieval.with_company"
       ]
     },
     {
@@ -1380745,9 +1381016,10 @@
         "rpc:ir.config_parameter.sudo",
         "rpc:usl.mail.pdf.host.sudo",
         "rpc:usl.mail.pdf.pattern.sudo",
+        "rpc:usl.mail.pdf.retrieval.check_access",
         "rpc:usl.mail.pdf.retrieval.ensure_one",
         "rpc:usl.mail.pdf.retrieval.sudo",
-        "rpc:usl.mail.pdf.retrieval.with_delay"
+        "rpc:usl.mail.pdf.retrieval.with_company"
       ],
       "digest": "519475d5746bc04ceeed6789a27e593d5c19bc0d9dd1c86dd661cf61ae0b99fa",
       "guards": [],
@@ -1380767,7 +1381039,7 @@
       ],
       "sources": [
         {
-          "line": 1152,
+          "line": 1239,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         },
         {
@@ -1380779,9 +1381051,10 @@
         "rpc:ir.config_parameter.sudo",
         "rpc:usl.mail.pdf.host.sudo",
         "rpc:usl.mail.pdf.pattern.sudo",
+        "rpc:usl.mail.pdf.retrieval.check_access",
         "rpc:usl.mail.pdf.retrieval.ensure_one",
         "rpc:usl.mail.pdf.retrieval.sudo",
-        "rpc:usl.mail.pdf.retrieval.with_delay"
+        "rpc:usl.mail.pdf.retrieval.with_company"
       ]
     },
     {
@@ -1610324,7 +1610597,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 351,
+          "line": 352,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610339,7 +1610612,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 351,
+          "line": 352,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610354,7 +1610627,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 351,
+          "line": 352,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610369,7 +1610642,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 351,
+          "line": 352,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610387,7 +1610660,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 343,
+          "line": 344,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610405,7 +1610678,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 339,
+          "line": 340,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610423,7 +1610696,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 323,
+          "line": 324,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610441,7 +1610714,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 330,
+          "line": 331,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610456,7 +1610729,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 617,
+          "line": 618,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610471,7 +1610744,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 617,
+          "line": 618,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610486,7 +1610759,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 506,
+          "line": 507,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610501,7 +1610774,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 506,
+          "line": 507,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610516,7 +1610789,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 506,
+          "line": 507,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610531,7 +1610804,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 506,
+          "line": 507,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610546,7 +1610819,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 506,
+          "line": 507,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610561,7 +1610834,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 506,
+          "line": 507,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610576,7 +1610849,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 445,
+          "line": 446,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610591,7 +1610864,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 548,
+          "line": 549,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610606,7 +1610879,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 548,
+          "line": 549,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610621,7 +1610894,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 575,
+          "line": 576,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610636,7 +1610909,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 575,
+          "line": 576,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610651,7 +1610924,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 575,
+          "line": 576,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610666,7 +1610939,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 575,
+          "line": 576,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610681,7 +1610954,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 575,
+          "line": 576,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610696,7 +1610969,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 575,
+          "line": 576,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610714,7 +1610987,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 633,
+          "line": 634,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610732,7 +1611005,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 646,
+          "line": 647,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610750,7 +1611023,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 629,
+          "line": 630,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610768,13 +1611041,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 423,
+          "line": 424,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
     },
     {
-      "digest": "ecb24a5b6b16612c33fd652027ca191bd4a7fd6178017c4f784ee9d20e87fa93",
+      "digest": "6d57dda8084eeadf4570970bc6038734b4c146eb39b077296bbd014073b1456f",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._check_can_open_handoff:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1610783,13 +1611056,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1001,
+          "line": 1084,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
     },
     {
-      "digest": "58cc6adb924b6790be15544f9c5336819f5280e9baca34c196e11a5d6149efd6",
+      "digest": "173fbb2a828cbfc5665f516989db79e52c34398114fad3374499ca2ffa1ba414",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._check_can_open_handoff:sudo:2",
       "kind": "sink",
       "modules": [
@@ -1610798,13 +1611071,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1001,
+          "line": 1084,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
     },
     {
-      "digest": "a1b431d59494cfd69e700398f81ae68dc3432f5875d710edb60f8a96faa7652f",
+      "digest": "b2b8710a001aa7ab6aafaa7b95c9e9bff62e229e6fddaea0bdc6b10d14c6a512",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._consume_handoff:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1610813,13 +1611086,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1036,
+          "line": 1123,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
     },
     {
-      "digest": "954f5d0c83de2c3dd6a3a4fbdc5d576a488165fa1855c6ad3dc2cfecf5ef759c",
+      "digest": "ae3423e88777118d126fc034c18820523ed6fbe499dbbe857c34adaca89e3d2d",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._consume_handoff:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1610828,13 +1611101,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1036,
+          "line": 1123,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
     },
     {
-      "digest": "d5512ce5deccafbb3b837f5dfc251c06cb61633c3c80d1d44914920eba57eef8",
+      "digest": "62d062e0afd07c1a5fa2a8964b20acd0a7cdceb49e440edbd03c3c9931ee6261",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._discover_for_expense:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1610843,13 +1611116,13 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 947,
+          "line": 1023,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
     },
     {
-      "digest": "90de3865a5b880ecbfd709d4adc7698b48664415b5eb22a338ef60489dd1ad1d",
+      "digest": "c0914b8ab95a7e559b08bff7bcd1ccf348a9dc822a3e58369bc409b8be8f4f35",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._discover_for_expense:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1610858,13 +1611131,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 947,
+          "line": 1023,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
     },
     {
-      "digest": "485e13938558c665833614949822b55837b97de94af59218fa1f23f396ce25fc",
+      "digest": "398b8c9d9e02253831d32233219e89d5307dc12e28e93c2b57ddbf9c8491a4e0",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._discover_for_expense:sudo:2",
       "kind": "sink",
       "modules": [
@@ -1610873,13 +1611146,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 947,
+          "line": 1023,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
     },
     {
-      "digest": "ac7496b882e493f2194504b16bcdd44cf96ed3daad8a49e74ac255f75bee0239",
+      "digest": "cd3a20f8583435fc55858bc806b99b1318afed4406535fb75f08826da12b2e29",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._enqueue:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1610888,13 +1611161,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1161,
+          "line": 1248,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
     },
     {
-      "digest": "ebedcb74117514b30ae093a1fbb59a7417af24815e4873c430146c4c0c387f76",
+      "digest": "f58b4881e0c7f6dc2fddfd523cb65d93ddc855180254f1c338561b01c163071d",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._enqueue:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1610903,13 +1611176,28 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1161,
+          "line": 1248,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
     },
     {
-      "digest": "26b422bc0ccca2baa93dc3faa31e9f777162d8c99711c915aca9ea731112fdb1",
+      "digest": "c6b2f78195bc7186ca3ef60a6b12ceaf5e44fb6b58dfdfec23e9196522194962",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._enqueue:orm_write:3",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 1248,
+          "path": "custom-addons/usl_accounting/models/linked_receipt.py"
+        }
+      ]
+    },
+    {
+      "digest": "3765cd4be5d33220fbbb517bb5b683b029721e995475aa1e5fb95944e6e08e74",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._enqueue:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1610918,13 +1611206,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1161,
+          "line": 1248,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
     },
     {
-      "digest": "eaacd4c5ea333e82e0d6d2015897028b461b23f7e32520f84d3b19d7bc2ac7f3",
+      "digest": "a1a5b2e9a52cc0a2e3ba9f9b82a97c2325e1fc621e3e8ac5206579ee01e4fb8a",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._enqueue:sudo:2",
       "kind": "sink",
       "modules": [
@@ -1610933,7 +1611221,22 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1161,
+          "line": 1248,
+          "path": "custom-addons/usl_accounting/models/linked_receipt.py"
+        }
+      ]
+    },
+    {
+      "digest": "59d1dd573b2890a68714956a219c89f096113c219f3f97bd1d1fb97b00fd60f9",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._enqueue:sudo:3",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 1248,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610948,7 +1611251,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 732,
+          "line": 808,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610963,7 +1611266,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 732,
+          "line": 808,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610978,7 +1611281,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 732,
+          "line": 808,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1610993,7 +1611296,22 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 721,
+          "line": 797,
+          "path": "custom-addons/usl_accounting/models/linked_receipt.py"
+        }
+      ]
+    },
+    {
+      "digest": "314bb96dba0a313b39e338bde335f7460aae513432681c317edb83444d25896a",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval._has_manual_receipt:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 1379,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1611008,7 +1611326,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1074,
+          "line": 1161,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1611023,7 +1611341,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1074,
+          "line": 1161,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1611038,7 +1611356,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1074,
+          "line": 1161,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1611053,7 +1611371,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1074,
+          "line": 1161,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1611068,7 +1611386,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1074,
+          "line": 1161,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1611083,7 +1611401,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1074,
+          "line": 1161,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1611098,7 +1611416,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1297,
+          "line": 1398,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1611113,7 +1611431,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1297,
+          "line": 1398,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1611131,7 +1611449,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1270,
+          "line": 1365,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
@@ -1611149,13 +1611467,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1270,
+          "line": 1365,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
     },
     {
-      "digest": "d9922511cf166316b879b32d5b76dc51279a623e0a1b3a02747bd97966af3837",
+      "digest": "404f800c5a84bfd55128e28263703a52d83b9985ed7d938ba45a0fdedbee57c8",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1611167,13 +1611485,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1224,
+          "line": 1319,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
     },
     {
-      "digest": "1873e501d89a9bc699246c279cc628aecb6748e4cb1b1a7ed57f000745689c08",
+      "digest": "19b6cfabfc2bce1364fe4e15a26c3db5140996a97f2f587e14b23b9d8aa8d120",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1611185,13 +1611503,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1224,
+          "line": 1319,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
     },
     {
-      "digest": "bc92af79eb616a2e180420a05af631f7210a6e0d0c63e09b2edf15246759e74f",
+      "digest": "26fdb3b1f1b06b083e5f14dbd3715ae731bbb2f04ae4539d61821570e58a0c8c",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1611203,13 +1611521,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1224,
+          "line": 1319,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
     },
     {
-      "digest": "4daae490acbaab48033afccf5b784703d3aadd70e2bad284c67104b79722f357",
+      "digest": "07fe40024f241c275afd2ac8b2194e6beb9849aff92eaa8117688852798f4cab",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:sudo:2",
       "kind": "sink",
       "modules": [
@@ -1611221,13 +1611539,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1224,
+          "line": 1319,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
     },
     {
-      "digest": "2b7ae8633032530751081b60edea2ad84ed897e02e9ad069606ed1a01ff8949f",
+      "digest": "b76a42709e4f8e6710ff09c95e0fbdd1f53990e75f1ef235dc2e4fa44bee8fcc",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt.py:usl.mail.pdf.retrieval.action_retry:sudo:3",
       "kind": "sink",
       "modules": [
@@ -1611239,14 +1611557,14 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1224,
+          "line": 1319,
           "path": "custom-addons/usl_accounting/models/linked_receipt.py"
         }
       ]
     },
     {
-      "digest": "dda002ba0989e65e0299750ac4866ba934d1af032f72c5011514b44ba3c1b98e",
-      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:hr.expense._compute_linked_receipt_status:sudo:1",
+      "digest": "591b8999b828c300138fa0f1a4fd5dcbf8cc37895fc0e727f64f0a5c20274533",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_expense.py:_compute_receipt_status:sudo:1",
       "kind": "sink",
       "modules": [
         "usl_accounting"
@@ -1611254,7 +1611572,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 45,
+          "line": 9,
           "path": "custom-addons/usl_accounting/models/linked_receipt_expense.py"
         }
       ]
@@ -1611269,7 +1611587,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 135,
+          "line": 139,
           "path": "custom-addons/usl_accounting/models/linked_receipt_expense.py"
         }
       ]
@@ -1611284,7 +1611602,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 249,
+          "line": 253,
           "path": "custom-addons/usl_accounting/models/linked_receipt_expense.py"
         }
       ]
@@ -1611299,7 +1611617,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 249,
+          "line": 253,
           "path": "custom-addons/usl_accounting/models/linked_receipt_expense.py"
         }
       ]
@@ -1611317,7 +1611635,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 196,
+          "line": 200,
           "path": "custom-addons/usl_accounting/models/linked_receipt_expense.py"
         }
       ]
@@ -1611335,7 +1611653,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 144,
+          "line": 148,
           "path": "custom-addons/usl_accounting/models/linked_receipt_expense.py"
         }
       ]
@@ -1611353,8 +1611671,38 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 144,
+          "line": 148,
           "path": "custom-addons/usl_accounting/models/linked_receipt_expense.py"
+        }
+      ]
+    },
+    {
+      "digest": "c1789b61596f5fa692dbc853fc1660277661ef0406b3daff49fa9b2ed9b2a4f3",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._bill_worker_recordset:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 270,
+          "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
+        }
+      ]
+    },
+    {
+      "digest": "83b4da95d550f2178923a1e940b57710caf18cc9d471f63475ba889dcf823544",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._bill_worker_recordset:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 270,
+          "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
@@ -1611434,7 +1611782,7 @@
       ]
     },
     {
-      "digest": "492d56c6cf613562b509eca517faa0b437d1257338b7be81991621e2155feefd",
+      "digest": "54d6d764a3292b157c1b112d81019619f387a7c576b83124f7e2d2f94e366cc2",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:message_send:1",
       "kind": "sink",
       "modules": [
@@ -1611443,13 +1611791,13 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "268f4f98e35a6d7eee018cf7d974033c95964d9edc21ae126c5b5fafd9b4146f",
+      "digest": "ba89fab9bd234288adfd45fde621b0c6c17862174a3f81380602dd2ef916120a",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1611458,13 +1611806,13 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "b69d343a6e3d149a6f928c420ec916c7d0faaa2cc57d7d8219a646bb802a6437",
+      "digest": "3d90850b11a07e2bbeceda081bd87a60471a1cc60f7c353967ae293baff26fe0",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1611473,13 +1611821,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "def40fa4a025b77b09b0bece3ad16aed6d864bb1d984725f836683b95e0312bb",
+      "digest": "8c3d30776eb90192caa4a9309c1b006dfb13666c262be3ab1ad699094cfbb9a7",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:10",
       "kind": "sink",
       "modules": [
@@ -1611488,13 +1611836,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "84ac997d9e11c628946207b00081345548dd96231e2580196823d05d346a81c8",
+      "digest": "f086c3b69b1f646aea0f9039b86b7d0ba6c22e5d2a29d38e1ecbf9dd6659e7ec",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:11",
       "kind": "sink",
       "modules": [
@@ -1611503,13 +1611851,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "26787ef3de80f30efa4f1088e0039b7e4b51919bdd15f51f774af0e342d82193",
+      "digest": "a346d96f458fb08348eaf28108c17d1041041a7f23c8525f138f597d39c89a42",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:12",
       "kind": "sink",
       "modules": [
@@ -1611518,13 +1611866,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "4e9eb9d16706226a51a9babe9bcb8f7684e2cf1171187da06ba1d4c15593eee7",
+      "digest": "f9a80a7a65f70b3b2a2852dab921674f36f836e1a90d9baa4882d38fd31d1709",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:13",
       "kind": "sink",
       "modules": [
@@ -1611533,13 +1611881,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "a21bc213793693f45c11121a249fd1b6a3566a87ce6334b54e4e7d581c4d21e0",
+      "digest": "63bc7297d7deae3ea55cae0a07bae6a40077835bb22983d5ae198109d6fc698f",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:14",
       "kind": "sink",
       "modules": [
@@ -1611548,13 +1611896,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "e84993ab51dc2f0b8bac8136bae3d95a25eca1b798a04c2a25dd5ef0e72d3139",
+      "digest": "a83c4025ca0a4ca0308af973a58539dd4b6c5ca412460445a58c5c61782f0521",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:15",
       "kind": "sink",
       "modules": [
@@ -1611563,13 +1611911,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "aa0d326796f0511ad47fad241fef27bb37fa4202e37b80e192a20334abc60fee",
+      "digest": "21ce24d0b709cfc26d0b82fe6a25faf718cd08da1312bb12839ef69325a03056",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:16",
       "kind": "sink",
       "modules": [
@@ -1611578,13 +1611926,58 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "df851ccbd2310c340e9cb60aa33695d36085a5dc0d6ce08b928c00bcf757ed3d",
+      "digest": "eae898a5bbf4edf69eedc4d2d7c305ecab7eabaf62f5f29603183d2df416d0d5",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:17",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 317,
+          "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
+        }
+      ]
+    },
+    {
+      "digest": "23a373be021b789537ab73df95d81cd296ef4c6c5b85e212e431281b125ff2ec",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:18",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 317,
+          "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
+        }
+      ]
+    },
+    {
+      "digest": "e36d2e59ccb78c8756cde4bdb551cf180abe29af775045927fbf8431b86c38b4",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:19",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 317,
+          "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
+        }
+      ]
+    },
+    {
+      "digest": "49dc29cede0a048d273f9fb248d9d675edfe2894b1669e0a59f025d5f873dd30",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1611593,13 +1611986,28 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "0a892a2d0bf18c176fedcf9dc5bfaface4fad2e5e28f927a337a1155c20620e4",
+      "digest": "1ef378d392e356fd2cade35c4a7511243dbc56d2397a794539621cd4fa22fc27",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:20",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 317,
+          "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
+        }
+      ]
+    },
+    {
+      "digest": "9b0de70bbb5761fd32d3ad8e90085d079fa38d7a7775858d6df052e010a0c992",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:3",
       "kind": "sink",
       "modules": [
@@ -1611608,13 +1612016,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "3a597df596f276af5182a8ded019bac229c17ca55672eaab6c51026990814da2",
+      "digest": "3f59baf5880e1bbbf6e41e118817dba61bb9cf9b5149aec905c2f1688eb0b064",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:4",
       "kind": "sink",
       "modules": [
@@ -1611623,13 +1612031,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "798ef616aa6c2cd407c2b748e57e70d19555e64244ebebc335b53a817cf6972a",
+      "digest": "61b01585b84e5e5cc814c616c52c51463700166986b65c4d5b27a431ce7f36d0",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:5",
       "kind": "sink",
       "modules": [
@@ -1611638,13 +1612046,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "d552b7a115ceb3b7926ca3866344286a3394a8db8c0394f27ad17eefa95a3ba6",
+      "digest": "7ecc804f53ae31101d37e3e94ddf7854a2eb7599481c220967e0e5b8260adbcd",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:6",
       "kind": "sink",
       "modules": [
@@ -1611653,13 +1612061,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "eb304819ffb4888485d45cd995d40c591f78e51d0d811650fb7e3cc3e4f16867",
+      "digest": "00175f47faa6326b920d0f8994e8b242a2fc4a8b66593f363bb474a0e39aa06d",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:7",
       "kind": "sink",
       "modules": [
@@ -1611668,13 +1612076,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "ec0d0be02259c5ac250b8096ed55728f493416592cbf9367a801b6492564070c",
+      "digest": "70b67cdb8948e652b98a0b6e346a313021d4474f0709f4b448f04fec891f687b",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:8",
       "kind": "sink",
       "modules": [
@@ -1611683,13 +1612091,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "bc82c1c9513deee255c869b9207b1a3add63e9a7df2c7ef82d3952e581905b19",
+      "digest": "06842afcffdf2d3595ac9a43d1d19f4950aa9d96bfe68054900629c8df364c4b",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:orm_write:9",
       "kind": "sink",
       "modules": [
@@ -1611698,13 +1612106,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "c13740705a38ec6ca6f6cd4c2b1c229fef4aa21e8960515674da6d248c83d3f2",
+      "digest": "89502235d4d65114e8e8c0e65d140e0b94a1c47a27e71431e275f8d50d0b0541",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1611713,13 +1612121,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "26fdbfa88b340450c3c368ede5a98a69b0ef30b44bd44901f204e87f27e13d67",
+      "digest": "aadab2d2d5a6d4875228fa0e814a5c390683c40d8930145bfe282d3cf8c7063a",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:2",
       "kind": "sink",
       "modules": [
@@ -1611728,13 +1612136,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "e59610fce9392f88d6f5f9fb5dcfbf3c611fd1f97604eec79591884c113ee6d2",
+      "digest": "520fdef0582aaa9ff6517d92f401e20ed1b07009cc3da44a547ffccb4b729381",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:3",
       "kind": "sink",
       "modules": [
@@ -1611743,13 +1612151,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "39072137c3a9fcd34fc886eb1fc98423712499e8402cc453b46ff7fa9c2eabe9",
+      "digest": "5ac80d4632bb9f43a4863c6af8c82465d041e2cd31524270704afec0b2cc0b65",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:4",
       "kind": "sink",
       "modules": [
@@ -1611758,13 +1612166,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "b6928417f8ad153bfa8a5fe1d6dc759b3ce441dfdfbabfbc8119b11fa3ee6bb2",
+      "digest": "5515099392899e44c946b9567e19697465ac4fd2a2dfd394ef0c25cf3fb492bc",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:5",
       "kind": "sink",
       "modules": [
@@ -1611773,13 +1612181,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
     },
     {
-      "digest": "b649d3b1ec903384e11ac328a1a1154d620ce7e75dcab6af289b47d2fb1c8d2f",
+      "digest": "e929ea206ff54ee3d41ee8247e54d0791eb2b537a6350004c47d756a745c867b",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_job.py:usl.mail.pdf.retrieval._job_fetch_receipt:sudo:6",
       "kind": "sink",
       "modules": [
@@ -1611788,7 +1612196,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 270,
+          "line": 317,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
         }
       ]
@@ -1612015,6 +1612423,156 @@
         {
           "line": 162,
           "path": "custom-addons/usl_accounting/models/linked_receipt_job.py"
+        }
+      ]
+    },
+    {
+      "digest": "bbf251ee01b93081be4547368dc3bcae01a0985d1f9cf288587b3c41db54c0a8",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move._message_post_after_hook:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 182,
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
+        }
+      ]
+    },
+    {
+      "digest": "c34ad9f4ea8698704a35183a17693426c58a9454feff6109b60ec1a51d69f4e0",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move._message_post_after_hook:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 182,
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
+        }
+      ]
+    },
+    {
+      "digest": "ac2de028455e8fa9edb88f4e951ca17eaec4824eddcbcc3a0e59ca15b306245a",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move._supersede_linked_receipts:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 154,
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
+        }
+      ]
+    },
+    {
+      "digest": "34c87d38a5f89b5eadfddc689bc5d2432217b5ce0715cebf09938537944f063b",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move._supersede_linked_receipts:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 154,
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
+        }
+      ]
+    },
+    {
+      "digest": "59248a1b2d31aafbc5da1efbeac6d4834e117ada1024db136df7cf4627e4918b",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move.action_attach_linked_receipt:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:account.move.action_attach_linked_receipt"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 163,
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
+        }
+      ]
+    },
+    {
+      "digest": "b36fbc255e2b8ea00b41ecc4cf7831831e0c8a0a9d783a8af3f838a2739947e5",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move.action_review_linked_receipt:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:account.move.action_review_linked_receipt"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 106,
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
+        }
+      ]
+    },
+    {
+      "digest": "a3f0d4935c69f962669a468aadb98eaeb4c64b327b85742d132488848fca9260",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move.action_scan_existing_receipt_emails:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:account.move.action_scan_existing_receipt_emails"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 70,
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
+        }
+      ]
+    },
+    {
+      "digest": "e688f4a72798e7f794a2bebb88362f10398e75a6468d9cd7fc16ee055fc99ed0",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move.action_scan_existing_receipt_emails:sudo:2",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:account.move.action_scan_existing_receipt_emails"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 70,
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
+        }
+      ]
+    },
+    {
+      "digest": "05ade2dc18062c867fa1bf5fb79195eed3d7019e318f45768ea2d78b67985fa4",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/linked_receipt_move.py:account.move.action_scan_existing_receipt_emails:sudo:3",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:account.move.action_scan_existing_receipt_emails"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 70,
+          "path": "custom-addons/usl_accounting/models/linked_receipt_move.py"
         }
       ]
     },
@@ -1689195,6 +1689753,181 @@
     },
     {
       "delegates": [
+        "rpc:account.move.action_accept_linked_receipt"
+      ],
+      "digest": "c4d7df2ed4967218fb327a9e29b2daa6acd759c435462cf18aaa140741625143",
+      "guards": [],
+      "key": "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_accept_linked_receipt:1",
+      "kind": "ui",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "267b06ec283556c6cafe401f9669464cb093da17f46c4745ef40dee8abf1e080",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_accounting/views/linked_receipt_views.xml"
+        },
+        {
+          "path": "database:ir.ui.view:usl_accounting.view_move_form_linked_receipt"
+        }
+      ],
+      "xmlid": "usl_accounting.view_move_form_linked_receipt"
+    },
+    {
+      "delegates": [
+        "rpc:account.move.action_dismiss_linked_receipt"
+      ],
+      "digest": "480b4888d64967671bc8491f63e7df148337f8488e5dc1a0895b84c309e145c5",
+      "guards": [],
+      "key": "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_dismiss_linked_receipt:1",
+      "kind": "ui",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1576ef9f02249727f27629cf07a6897030099ff6b746bef3af2ae05e8d90dbdd",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_accounting/views/linked_receipt_views.xml"
+        },
+        {
+          "path": "database:ir.ui.view:usl_accounting.view_move_form_linked_receipt"
+        }
+      ],
+      "xmlid": "usl_accounting.view_move_form_linked_receipt"
+    },
+    {
+      "delegates": [
+        "rpc:account.move.action_open_linked_receipt_website"
+      ],
+      "digest": "e7aa55aa6f9a823a618272aa9642e1a905e674702213776454579d0b0341a77e",
+      "guards": [],
+      "key": "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_open_linked_receipt_website:1",
+      "kind": "ui",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "fe75896ebb945487d5616df7bc2f5172ec504abde3b0db6c6eec06fec4341ba5",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_accounting/views/linked_receipt_views.xml"
+        },
+        {
+          "path": "database:ir.ui.view:usl_accounting.view_move_form_linked_receipt"
+        }
+      ],
+      "xmlid": "usl_accounting.view_move_form_linked_receipt"
+    },
+    {
+      "delegates": [
+        "rpc:account.move.action_retry_linked_receipt"
+      ],
+      "digest": "262fd63e08f951ea02242fdf8a3ffaf47915a92150f985a4a99628c49e713df7",
+      "guards": [],
+      "key": "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_retry_linked_receipt:1",
+      "kind": "ui",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "165cb56a398b5b6ee82d038a46ad92c2aeba3346e8f7d349e5ab2ee26da8823c",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_accounting/views/linked_receipt_views.xml"
+        },
+        {
+          "path": "database:ir.ui.view:usl_accounting.view_move_form_linked_receipt"
+        }
+      ],
+      "xmlid": "usl_accounting.view_move_form_linked_receipt"
+    },
+    {
+      "delegates": [
+        "rpc:account.move.action_review_linked_receipt"
+      ],
+      "digest": "6d39018324405d6f6ae9c27103a59ae12045bc9c61d29bbfd21b4681906aef03",
+      "guards": [],
+      "key": "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_review_linked_receipt:1",
+      "kind": "ui",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "eb86517d4ad22956359010b657b99c336fc994f270178d0eddcb4a6f10012c53",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_accounting/views/linked_receipt_views.xml"
+        },
+        {
+          "path": "database:ir.ui.view:usl_accounting.view_move_form_linked_receipt"
+        }
+      ],
+      "xmlid": "usl_accounting.view_move_form_linked_receipt"
+    },
+    {
+      "delegates": [
+        "rpc:account.move.action_review_linked_receipt"
+      ],
+      "digest": "68adda238ecbb18fa1e67bb9bea47dca8b85466e869c7fef6a3d16622f6adef3",
+      "guards": [],
+      "key": "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_review_linked_receipt:2",
+      "kind": "ui",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "c25fc243e973df7edc84d462c31a44b23aedc44df83899b67b4ae73ab6a88a6a",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_accounting/views/linked_receipt_views.xml"
+        },
+        {
+          "path": "database:ir.ui.view:usl_accounting.view_move_form_linked_receipt"
+        }
+      ],
+      "xmlid": "usl_accounting.view_move_form_linked_receipt"
+    },
+    {
+      "delegates": [
+        "rpc:account.move.action_scan_existing_receipt_emails"
+      ],
+      "digest": "0880be461b18215c23b9e1c08cc6f4a7a7b1d2ce0dee3f57288baf40b54fdd3b",
+      "guards": [],
+      "key": "ui:usl_accounting.view_move_form_linked_receipt:button:object:action_scan_existing_receipt_emails:1",
+      "kind": "ui",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "eea321f6c5539c4ba828d4739ed044b4d3e3e1b9d47e641f30b25c1f8146d11c",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_accounting/views/linked_receipt_views.xml"
+        },
+        {
+          "path": "database:ir.ui.view:usl_accounting.view_move_form_linked_receipt"
+        }
+      ],
+      "xmlid": "usl_accounting.view_move_form_linked_receipt"
+    },
+    {
+      "delegates": [
         "rpc:res.users.action_usl_sync_expense_company_profiles"
       ],
       "digest": "637fa9782374ce1e55c96a1ff11fb8957e32b4044cc2135c4936ade889385fdd",
@@ -1698717,11 +1699450,11 @@
       "version": "saas~19.3.1.8.1"
     },
     {
-      "manifest_sha256": "2d4f291c27ad7c2892ad8fd578313cb7bd45b5ad202e44f3087d7270dc084f31",
+      "manifest_sha256": "f8f1e59037417e025f2be593368630ebbb61b8feb76b15d1d5cc37a05f74c5cd",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "c80272c8e603a5ae1471fb1c95124eb9153669ef67dd1b8c328345d9e69e7d7e",
-      "version": "saas~19.3.2.2.9"
+      "source_sha256": "c06be27618ea790de9cc38fdb36d081e9a276416e85a094d3e9825eb4854a9cb",
+      "version": "saas~19.3.2.2.11"
     },
     {
       "manifest_sha256": "d3991a85f02eca8b6b43179b39270cc15cfaf68325f4ff2181e354ccb01c4cf0",

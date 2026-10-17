@@ -17,3 +17,7 @@ from . import (
 )
 
 from . import test_vendor_bill_merge
+
+from . import test_vendor_linked_receipt
+
+from . import test_vendor_linked_receipt_ui
