@@ -237,6 +237,7 @@ class TestPurchaseMailGrouping(AccountTestInvoicingCommon):
         self.assertNotIn(clear, results)
 
     def test_grouping_review_does_not_gate_native_explicit_posting(self):
+        self.env.ref("base.EUR").active = True
         with file_open("usl_accounting/tests/fixtures/mail_invoice.xml", "rb") as source:
             invoice = source.read()
         bill = self._receive([

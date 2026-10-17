@@ -1700627,10 +1700627,10 @@
       "version": "saas~19.3.1.8.1"
     },
     {
-      "manifest_sha256": "41e06596729f5a743d779f46292db7753899989b742ef739f57392f0fe942ed0",
+      "manifest_sha256": "3af58d890540053194d5252c4fffda6cb037cd89785aeea72da601662d23ed78",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "84ada2e05cb3f4ef24592947a18b9c59930a4469eb3599a7caf08aa14e590836",
+      "source_sha256": "93d58fee243768ebff47eb211ec0ff7723a692846463d8a4333d26a11b4856ff",
       "version": "saas~19.3.2.2.15"
     },
     {

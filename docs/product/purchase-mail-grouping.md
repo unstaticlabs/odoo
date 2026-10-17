@@ -63,6 +63,9 @@ never suppresses a separate later email's business event.
 Uncertain drafts appear in the existing **To Review** search alongside native
 posted accounting reviews. The bill banner opens the current attachment list,
 original classification reasons and optional native main-document selection.
+An already saved, unchanged purchase draft can open this review before its
+invoice date is known. Pending edits and new records retain native save
+validation, as do posting and unrelated actions.
 **Keep these files together** records the operator and time. It does not
 complete the separate accounting review, create financial lines, post, pay or
 reconcile. Cancel leaves the bill untouched. An attachment change while the
