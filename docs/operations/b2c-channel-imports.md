@@ -215,8 +215,11 @@ Per company (**Settings → B2C**):
   the supply cannot be settled and the button says so.
 - **B2C bank** and **B2C transfers** — the bank the channels pay into, whose
   suspense account is where a payout waits for its statement line, and the
-  journal the movements are written in. Without them nothing can be posted for
-  a payout and the button says so.
+  fallback journal for the movements. Each payout or top-up is written in the
+  one journal holding the account it moves money out of or into (the channel's
+  clearing journal, or the wallet); the fallback is used only when no single
+  journal does. Without a bank and a fallback nothing can be posted for a
+  payout and the button says so.
 - **Registered for the One Stop Shop**, and the two accounts destination VAT
   reaches before and after registration. Until registration it accrues as a
   liability to be regularised rather than as VAT collected under a scheme the
