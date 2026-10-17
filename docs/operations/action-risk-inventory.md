@@ -313,3 +313,31 @@ advance. Fixed server actions and their scheduled jobs are dispatched according
 to their exact reviewed classifications. Manually triggering a qualified
 ordinary job therefore does not require the Irreversible Actions capability,
 while an unknown job or a qualified protected job still fails closed.
+
+
+## Agent read-only projection
+
+The compiler includes every reviewed `read_only` RPC in the Agent read-only
+projection, except methods already using the existing collaboration contract.
+A method does not need a second generic-name or individually named helper grant.
+Native access, current owner/company ceilings and protected operations remain
+runtime responsibilities. Changing an action's reviewed classification still
+requires the normal evidence and digest review; method names alone neither
+approve a mutation nor veto an already reviewed read.
+
+Native grouping-set aggregation is resolved as an inherited helper effect, not
+as a setter because `_read_grouping_sets` contains `_set`. Source discovery
+includes the helper implementations for the effective model, and the public
+`formatted_read_grouping_sets` runtime digest binds its installed helper MRO.
+Real writes in an override remain mutation evidence; a method name or
+`@api.readonly` decorator does not override that evidence. Native read-only
+formatting may retain `sudo` for relation labels and fold metadata. Review that
+read context without treating it as a product mutation.
+
+Authenticated native read-only calls defer best-effort Agent credential usage
+telemetry until commit, using a separate writable governance cursor. The
+callback retains only the database name, credential ID and timestamp; a denied
+or rolled-back request does not run it. Authority, expiry and transport checks
+still run before dispatch. Native grouping field specifications also pass their
+field identities through the existing secret-field checker, including aggregate
+suffixes and nested grouping sets; this does not change the secret field list.

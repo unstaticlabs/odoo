@@ -5,6 +5,7 @@ from . import (
     test_agents,
     test_orm_payload_contract,
     test_empty_write,
+    test_native_grouping_reads,
 )
 
 from . import test_native_action_dispatch
