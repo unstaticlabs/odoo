@@ -5,12 +5,15 @@ fiscal calendar, amount, entry or partner.
 """
 
 import importlib.util
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from pathlib import Path
 
-from odoo import Command
+from dateutil.relativedelta import relativedelta
+
+from odoo import Command, fields
 from odoo.exceptions import UserError
 from odoo.tests import TransactionCase, tagged
+from odoo.tools.safe_eval import safe_eval
 
 from odoo.addons.rebuild_account_migration.models.fiscal_period import (
     EARLIER_POSTED_LABEL,
@@ -586,23 +589,32 @@ class TestFiscalPeriodBuckets(TransactionCase):
                 other, "CFE-PRIOR", date(2026, 9, 30), 3000.0,
             ),
         )
-        Value.create({
-            "name": "[QA] free text value",
-            "company_id": company.id,
-            "currency_id": company.currency_id.id,
-            "period_key": "Reviewed in 2025",
-            "form_code": "CVAE-FREE",
-            "field_code": "PRIOR_LIABILITY",
-            "source_key": "free",
-            "amount": 5000.0,
-            "review_status": "accepted",
-        })
-        self.env.flush_all()
-        self.assertFalse(
-            Declaration._external_value_exceeds(
-                company, "CVAE-FREE", date(2026, 9, 30), 3000.0,
-            ),
-        )
+        # An unreadable label keeps the earlier rule instead of dropping the
+        # obligation: a year number found in the label still counts.
+        for label, source_key, expected in (
+            ("Reviewed in 2025", "free", True),
+            ("Reviewed in 2023", "other-year", False),
+        ):
+            form_code = f"CVAE-{source_key}"
+            Value.create({
+                "name": "[QA] free text value",
+                "company_id": company.id,
+                "currency_id": company.currency_id.id,
+                "period_key": label,
+                "form_code": form_code,
+                "field_code": "PRIOR_LIABILITY",
+                "source_key": source_key,
+                "amount": 5000.0,
+                "review_status": "accepted",
+            })
+            self.env.flush_all()
+            self.assertEqual(
+                Declaration._external_value_exceeds(
+                    company, form_code, date(2026, 9, 30), 3000.0,
+                ),
+                expected,
+                label,
+            )
 
     def test_declaration_tax_package_domain_follows_company_year(self):
         company = self._company(
@@ -649,78 +661,144 @@ class TestFiscalPeriodBuckets(TransactionCase):
         self.env.invalidate_all()
         return record
 
-    def test_relabel_helper_and_collision_raises(self):
+    def _legacy_decision(self, company, period_key):
+        decision = self.env["rebuild.account.assurance.decision"].create({
+            "name": "[QA] decision",
+            "company_id": company.id,
+            "period_key": period_key,
+        })
+        self.env.flush_all()
+        return decision
+
+    def test_relabel_helper(self):
         migration = _load_migration()
         legacy = "Fiscal year from 2025-10-01"
-        created = datetime(2026, 3, 1, 10, 0)
         self.assertEqual(
             migration.relabel_target(
-                legacy, created, 30, "9", date(2024, 1, 10), date(2025, 9, 30),
+                legacy, 30, "9", date(2024, 1, 10), date(2025, 9, 30),
             ),
             "Fiscal year 2025-10-01 to 2026-09-30",
         )
-        with self.assertRaisesRegex(
-            migration.FiscalPeriodRelabelError, "starts inside a fiscal year",
-        ):
-            migration.relabel_target(legacy, created, 31, "12")
-        with self.assertRaisesRegex(
-            migration.FiscalPeriodRelabelError, "after the fiscal year",
-        ):
+        # No fiscal year of the company starts on that date.
+        self.assertIsNone(migration.relabel_target(legacy, 31, "12"))
+        self.assertIsNone(
             migration.relabel_target(
-                legacy, datetime(2026, 10, 2, 8, 0), 30, "9",
-                date(2024, 1, 10), date(2025, 9, 30),
-            )
-        with self.assertRaisesRegex(
-            migration.FiscalPeriodRelabelError, "cannot read a start date",
-        ):
-            migration.relabel_target("Fiscal year from soon", created, 30, "9")
+                legacy, 30, "9", date(2025, 3, 1), date(2025, 12, 31),
+            ),
+        )
+        self.assertIsNone(migration.relabel_target("Fiscal year from soon", 30, "9"))
+        self.assertIsNone(migration.relabel_target("Calendar year 2025", 30, "9"))
 
+    def test_relabel_moves_every_legacy_row_even_after_year_end(self):
+        migration = _load_migration()
         company = self._company("Relabel", first=("2024-01-10", "2025-09-30"))
+        legacy = "Fiscal year from 2025-10-01"
+        explicit = "Fiscal year 2025-10-01 to 2026-09-30"
         first_label = "Fiscal year 2024-01-10 to 2025-09-30"
         kept = self._stored_value(company, first_label, "first")
         moved = self._stored_value(company, legacy, "open")
-        Decision = self.env["rebuild.account.assurance.decision"]
-        decision = Decision.create({
-            "name": "[QA] decision",
-            "company_id": company.id,
-            "period_key": legacy,
-        })
-        self.env.flush_all()
+        late = self._stored_value(
+            company, legacy, "late", created="2026-10-15 09:00:00",
+        )
+        decision = self._legacy_decision(company, legacy)
         self.env.cr.execute(
             "UPDATE rebuild_account_assurance_decision SET create_date = %s WHERE id = %s",
-            ["2026-03-01 10:00:00", decision.id],
+            ["2026-10-15 09:00:00", decision.id],
         )
         migration.migrate(self.env.cr, "saas~19.3.1.13.38")
         self.env.invalidate_all()
         self.assertEqual(kept.period_key, first_label)
-        self.assertEqual(moved.period_key, "Fiscal year 2025-10-01 to 2026-09-30")
-        self.assertEqual(decision.period_key, "Fiscal year 2025-10-01 to 2026-09-30")
+        self.assertEqual(moved.period_key, explicit)
+        self.assertEqual(late.period_key, explicit)
+        self.assertEqual(decision.period_key, explicit)
         # A second run finds nothing left to relabel.
         migration.migrate(self.env.cr, "saas~19.3.1.13.38")
-
-        # A relabel that would duplicate an existing source stops everything.
-        pending = self._stored_value(company, legacy, "duplicate")
-        self._stored_value(
-            company, "Fiscal year 2025-10-01 to 2026-09-30", "duplicate",
+        self.env.invalidate_all()
+        self.assertEqual(
+            (kept.period_key, moved.period_key, late.period_key, decision.period_key),
+            (first_label, explicit, explicit, explicit),
         )
+
+    def test_relabel_leaves_row_without_matching_year_and_warns(self):
+        migration = _load_migration()
+        # The exceptional first year ends in December: no fiscal year of this
+        # company starts on 1 October.
+        company = self._company("No match", first=("2025-03-01", "2025-12-31"))
+        legacy = "Fiscal year from 2025-10-01"
+        value = self._stored_value(company, legacy, "unmatched")
+        decision = self._legacy_decision(company, legacy)
+        with self.assertLogs(migration._logger, level="WARNING") as logs:
+            migration.migrate(self.env.cr, "saas~19.3.1.13.38")
+        self.env.invalidate_all()
+        self.assertEqual(value.period_key, legacy)
+        self.assertEqual(decision.period_key, legacy)
+        warnings = "\n".join(logs.output)
+        self.assertIn("1 legacy period label(s)", warnings)
+        self.assertNotIn(company.name, warnings)
+        self.assertNotIn(legacy, warnings)
+
+    def test_relabel_collision_still_raises(self):
+        migration = _load_migration()
+        company = self._company("Collision", first=("2024-01-10", "2025-09-30"))
+        legacy = "Fiscal year from 2025-10-01"
+        explicit = "Fiscal year 2025-10-01 to 2026-09-30"
+        pending = self._stored_value(company, legacy, "duplicate")
+        existing = self._stored_value(company, explicit, "duplicate")
         with self.assertRaisesRegex(
             migration.FiscalPeriodRelabelError, "would duplicate",
         ):
             migration.migrate(self.env.cr, "saas~19.3.1.13.38")
         self.env.invalidate_all()
         self.assertEqual(pending.period_key, legacy)
+        self.assertEqual(existing.period_key, explicit)
 
-        # A row created after its fiscal year ended is ambiguous and stops too.
-        pending.unlink()
-        late = self._stored_value(
-            company, legacy, "late", created="2026-10-15 09:00:00",
-        )
-        with self.assertRaisesRegex(
-            migration.FiscalPeriodRelabelError, "after the fiscal year",
+    def test_report_export_menus_default_to_whole_months(self):
+        company = self._company("Menus")
+        books = self._books(company)
+        tax = self._eu_tax(company)
+        self._post(books, date(2026, 8, 15), 100.0, taxes=tax)
+        for xml_id, report_type in (
+            ("action_rebuild_account_report_export_ec_sales_list", "ec_sales_list"),
+            ("action_rebuild_account_report_export_oss_sales", "oss_sales"),
+            ("action_rebuild_account_report_export_oss_imports", "oss_imports"),
         ):
-            migration.migrate(self.env.cr, "saas~19.3.1.13.38")
-        self.env.invalidate_all()
-        self.assertEqual(late.period_key, legacy)
+            action = self.env.ref(f"rebuild_account_migration.{xml_id}")
+            for today in (
+                date(2026, 3, 1),
+                date(2026, 3, 31),
+                date(2026, 1, 31),
+                date(2026, 9, 17),
+            ):
+                context = safe_eval(
+                    action.context,
+                    {
+                        "context_today": lambda today=today: today,
+                        "relativedelta": relativedelta,
+                    },
+                )
+                self.assertEqual(context["default_report_type"], report_type)
+                date_from = fields.Date.to_date(context["default_date_from"])
+                date_to = fields.Date.to_date(context["default_date_to"])
+                self.assertEqual(date_from.day, 1, (xml_id, today))
+                self.assertEqual(
+                    date_to, fields.Date.end_of(date_to, "month"), (xml_id, today),
+                )
+                self.assertEqual(
+                    (date_from.year, date_from.month),
+                    (date_to.year, date_to.month),
+                )
+                self.assertEqual(date_to + timedelta(days=1), today.replace(day=1))
+            # The menu's own defaults export without any date edit.
+            wizard = self.env["rebuild.account.report.export.wizard"].with_context(
+                default_report_type=report_type,
+            ).create({
+                "company_id": company.id,
+                "company_ids": [Command.set(company.ids)],
+                "date_from": context["default_date_from"],
+                "date_to": context["default_date_to"],
+                "target_move": "posted",
+            })
+            self.assertIsInstance(wizard._eu_tax_report_rows(), list)
 
     def test_report_period_fields_exist_on_every_bucketed_view(self):
         views = [

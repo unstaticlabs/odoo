@@ -4333,7 +4333,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'ec_sales_list', 'default_date_from': '2025-10-01', 'default_export_format': 'xlsx'}</field>
+        <field name="context">{'default_report_type': 'ec_sales_list', 'default_date_from': (context_today() - relativedelta(months=1)).strftime('%Y-%m-01'), 'default_date_to': (context_today() - relativedelta(days=context_today().day)).strftime('%Y-%m-%d'), 'default_export_format': 'xlsx'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_oss_sales" model="ir.actions.act_window">
@@ -4341,7 +4341,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'oss_sales', 'default_date_from': '2025-10-01', 'default_export_format': 'xlsx'}</field>
+        <field name="context">{'default_report_type': 'oss_sales', 'default_date_from': (context_today() - relativedelta(months=1)).strftime('%Y-%m-01'), 'default_date_to': (context_today() - relativedelta(days=context_today().day)).strftime('%Y-%m-%d'), 'default_export_format': 'xlsx'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_oss_imports" model="ir.actions.act_window">
@@ -4349,7 +4349,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'oss_imports', 'default_date_from': '2025-10-01', 'default_export_format': 'xlsx'}</field>
+        <field name="context">{'default_report_type': 'oss_imports', 'default_date_from': (context_today() - relativedelta(months=1)).strftime('%Y-%m-01'), 'default_date_to': (context_today() - relativedelta(days=context_today().day)).strftime('%Y-%m-%d'), 'default_export_format': 'xlsx'}</field>
     </record>
 
     <record id="view_rebuild_account_deferral_list" model="ir.ui.view">

@@ -6,11 +6,14 @@ The views now bucket each date into the closed ``Fiscal year <start> to <end>``
 of its company. Reviewed external values and assurance decisions keep a copy of
 that label in ``period_key``, so they are relabelled with the same rule.
 
-The script writes only ``period_key`` on those two tables. It never touches a
-posted entry, a lock date or a ledger row, and it refuses to guess: it stops
-without changing anything when a relabel would collide with the unique
-constraint, when a label cannot be tied to one company fiscal year, or when a
-row was created after the fiscal year its label would now name had ended.
+A row is moved to the explicit label of the fiscal year of its company that
+starts on the date in the legacy label. When the company has no fiscal year
+starting on that date (for instance an exceptional first year), the row is left
+as it is and only the number of such rows is logged. The script writes only
+``period_key`` on those two tables. It never touches a posted entry, a lock
+date or a ledger row, and it never merges rows: it stops, changing nothing, only
+when a relabel would duplicate an existing external value on the unique
+company, period, form, field, kind and source.
 """
 
 import logging
@@ -31,44 +34,29 @@ TABLES = (
 
 
 class FiscalPeriodRelabelError(Exception):
-    """A stored period label cannot be moved to a closed fiscal year safely."""
+    """Relabelling would merge two external values."""
 
 
 def relabel_target(
     legacy_label,
-    created_at,
     last_day,
     last_month,
     first_start=None,
     first_end=None,
 ):
-    """Return the closed label that replaces ``legacy_label`` for one row.
+    """Return the closed label that replaces ``legacy_label``, or ``None``.
 
-    Raises :class:`FiscalPeriodRelabelError` when the legacy label cannot be
-    tied to exactly one fiscal year of the company, or when the row was created
-    after that fiscal year ended (the open-ended label may then have been used
-    for a later year).
+    ``None`` means the company has no fiscal year starting on the date the
+    legacy label names, so the row must be left as it is.
     """
     start = legacy_open_label_start(legacy_label)
     if start is None:
-        message = f"cannot read a start date from the label {legacy_label!r}"
-        raise FiscalPeriodRelabelError(message)
+        return None
     date_from, date_to = fiscal_period_bounds(
         start, last_day, last_month, first_start, first_end,
     )
     if date_from != start:
-        message = (
-            f"the label {legacy_label!r} starts inside a fiscal year of the "
-            f"company ({date_from} to {date_to}), not on its first day"
-        )
-        raise FiscalPeriodRelabelError(message)
-    if created_at is not None and created_at.date() > date_to:
-        message = (
-            f"a row labelled {legacy_label!r} was created on "
-            f"{created_at.date()}, after the fiscal year it would now name "
-            f"({date_from} to {date_to}) ended"
-        )
-        raise FiscalPeriodRelabelError(message)
+        return None
     return fiscal_period_label(date_from, date_to)
 
 
@@ -76,9 +64,7 @@ def _legacy_rows(cr, table):
     cr.execute(
         f"""
         SELECT value.id,
-               value.company_id,
                value.period_key,
-               value.create_date,
                company.fiscalyear_last_day,
                company.fiscalyear_last_month,
                company.rebuild_first_fiscalyear_start,
@@ -133,57 +119,49 @@ def _unique_collisions(cr, plan):
 def migrate(cr, version):
     del version
     plans = {}
-    problems = []
     for table in TABLES:
         plan = []
+        unmatched = 0
         for (
             row_id,
-            company_id,
             period_key,
-            created_at,
             last_day,
             last_month,
             first_start,
             first_end,
         ) in _legacy_rows(cr, table):
-            try:
-                new_key = relabel_target(
-                    period_key,
-                    created_at,
-                    last_day,
-                    last_month,
-                    first_start,
-                    first_end,
-                )
-            except FiscalPeriodRelabelError as error:
-                problems.append(f"{table} #{row_id} (company {company_id}): {error}")
+            new_key = relabel_target(
+                period_key, last_day, last_month, first_start, first_end,
+            )
+            if new_key is None:
+                unmatched += 1
                 continue
-            plan.append((row_id, new_key, period_key))
+            plan.append((row_id, new_key))
         plans[table] = plan
+        if unmatched:
+            _logger.warning(
+                "%s legacy period label(s) in %s match no fiscal year of "
+                "their company and were left unchanged.",
+                unmatched,
+                table,
+            )
 
-    external_plan = [
-        (row_id, new_key)
-        for row_id, new_key, _old in plans["rebuild_account_external_report_value"]
-    ]
-    for first_id, second_id in _unique_collisions(cr, external_plan):
-        problems.append(
-            "rebuild_account_external_report_value: relabelling row "
-            f"#{first_id} would duplicate row #{second_id} on the unique "
-            "company, period, form, field, kind and source",
-        )
-
-    if problems:
+    collisions = _unique_collisions(cr, plans["rebuild_account_external_report_value"])
+    if collisions:
         message = (
-            "The open-ended fiscal period labels were not changed. "
-            "Resolve each item below (move the row to the explicit "
-            "'Fiscal year <start> to <end>' label of the year it belongs to, "
-            "or remove the duplicate), then upgrade again:\n- "
-            + "\n- ".join(problems)
+            "The open-ended fiscal period labels were not changed because "
+            "relabelling would duplicate an existing external value on the "
+            "unique company, period, form, field, kind and source. Move or "
+            "remove the duplicate, then upgrade again:\n- "
+            + "\n- ".join(
+                f"row #{first_id} would duplicate row #{second_id}"
+                for first_id, second_id in collisions
+            )
         )
         raise FiscalPeriodRelabelError(message)
 
     for table, plan in plans.items():
-        for row_id, new_key, _old_key in plan:
+        for row_id, new_key in plan:
             cr.execute(
                 f"UPDATE {table} SET period_key = %s WHERE id = %s",
                 [new_key, row_id],

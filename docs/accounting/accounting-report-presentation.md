@@ -178,16 +178,20 @@ and never parse the label, so a next-year entry can no longer appear in a
 closed year and a drill-down opens exactly the entries the line summed.
 **Current fiscal year** keeps the rows of each company whose bucket contains
 today. The EC/OSS lines also carry `period_month`; their export takes whole
-calendar months and refuses a range that cuts a month. The French tax package
+calendar months and refuses a range that cuts a month. The EC sales list and OSS
+menus open on the previous full calendar month. The French tax package
 takes one complete fiscal year and refuses any other range instead of
 returning nothing.
 
 Reviewed external values and assurance decisions store the label in
 `period_key`. The 19.3.1.13.39 upgrade moves the former open-ended
-`Fiscal year from <start>` label to the closed label of the year it started.
-It writes nothing else, and it stops without changing anything when a relabel
-would duplicate an existing value, when the start does not match a fiscal year
-of the company, or when a row was created after that year ended.
+`Fiscal year from <start>` label to the closed label of the fiscal year of the
+company that starts on that date, whenever the row was created. When the company
+has no fiscal year starting on that date, the row is left unchanged and the
+upgrade logs only how many rows that concerns. It writes nothing else and never
+merges rows: it stops without changing anything only when a relabel would
+duplicate an existing external value on the unique company, period, form, field,
+kind and source.
 
 ## Export rules
 

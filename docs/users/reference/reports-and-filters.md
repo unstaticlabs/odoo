@@ -110,8 +110,9 @@ only the journal items of its own fiscal year.
 **Current fiscal year** keeps the lines whose fiscal year contains today's date.
 It follows each company's own calendar, so it needs no yearly update.
 
-The EC sales list and the OSS reports are filed by calendar month: pick a start
-date on the first day of a month and an end date on the last day of a month. The
+The EC sales list and the OSS reports are filed by calendar month, and their
+menus open on the previous full month. Pick a start date on the first day of a
+month and an end date on the last day of a month. The
 French tax package is prepared for one complete fiscal year; any other range
 shows a message that names the fiscal year containing the start date.
 
