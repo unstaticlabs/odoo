@@ -1,5 +1,7 @@
 """Interactive report workbench payloads consumed by the browser client."""
 
+import json
+
 from odoo import (
     Command,
     api,
@@ -273,6 +275,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "date": fields.Date.to_string(line.date) if line.date else "",
                 "section": line.section or "",
                 "label": display_label,
+                "source_description": row.get("source_description") or "",
                 "account_code": line.account_code or "",
                 "account_name": line.account_name or "",
                 "partner_name": line.partner_name or "",
@@ -641,16 +644,28 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         return capabilities
 
     def _report_client_summary(self):
-        """Return compact statement controls, not technical calculation logs."""
+        """Read the complete financial snapshot, including older report sessions."""
         self.ensure_one()
-        collapsed_groups = self._collapsed_group_key_set()
-        rows = [
-            line._row_payload()
-            for line in self.preview_line_ids
-            if (
-                not line.is_group
-                or line.group_key in collapsed_groups
-            )
+        try:
+            metadata = json.loads(self.preview_metadata or "{}")
+        except (TypeError, ValueError):
+            metadata = {}
+        summary = metadata.get("financial_summary") if isinstance(metadata, dict) else None
+        if isinstance(summary, dict) and isinstance(summary.get("cards"), list):
+            return summary
+        # Old transient previews hold only visible rows. Recalculate under the
+        # same native rights rather than treating a partial page as a report.
+        self._validate_filter_scope()
+        return self._report_summary_from_rows(self._report_rows(apply_search=False))
+
+    def _report_summary_from_rows(self, rows):
+        """Calculate controls once from full rows, before display truncation."""
+        self.ensure_one()
+        detail_rows = [
+            row for row in rows
+            if row.get("is_group") not in (True, "true")
+            and row.get("presentation_role", "detail") == "detail"
+            and row.get("hierarchy_kind") not in {"pcg_group", "account"}
         ]
 
         def amount_for(code, key="amount"):
@@ -665,7 +680,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             return float(_amount(row.get(key)))
 
         def total_for(key):
-            return float(sum(_amount(row.get(key)) for row in rows))
+            return float(sum(_amount(row.get(key)) for row in detail_rows))
 
         if self.report_type == "trial_balance":
             debit = total_for("debit")
@@ -714,32 +729,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 }],
             }
         if self.report_type == "balance_sheet":
-            asset_sections = {
-                "Immobilisations",
-                "Actif circulant",
-                # Preserve old report sessions created before the French
-                # presentation labels were introduced.
-                "Fixed assets",
-                "Current assets",
-            }
-
-            def is_asset(row):
-                account_type = str(row.get("account_type") or "")
-                return (
-                    account_type.startswith("asset")
-                    or str(row.get("section") or "") in asset_sections
-                )
-
-            assets = float(sum(
-                _amount(row.get("amount"))
-                for row in rows
-                if is_asset(row)
-            ))
-            liabilities = float(sum(
-                _amount(row.get("amount"))
-                for row in rows
-                if not is_asset(row)
-            ))
+            assets = amount_for("ACTIF_TOTAL")
+            liabilities = amount_for("PASSIF_TOTAL")
             difference = round(assets - liabilities, 2)
             return {
                 "cards": [

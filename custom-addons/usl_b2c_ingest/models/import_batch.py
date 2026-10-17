@@ -613,6 +613,15 @@ class B2cImportBatch(models.Model):
                     count=len(reversed_orders),
                 ),
             )
+        history = self._historical_sales()
+        if history:
+            lines.append(
+                self.env._(
+                    "%(count)s order(s) are history, booked by summary entries, so "
+                    "none is invoiced or held as an advance.",
+                    count=len(history),
+                ),
+            )
         if self.advance_payment_ids:
             lines.append(
                 self.env._(

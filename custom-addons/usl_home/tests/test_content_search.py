@@ -153,3 +153,13 @@ class TestHomeContentSearch(TransactionCase):
         with patch.object(type(self.env["usl.document"]), "mcp_search") as search:
             self.assertTrue(service.search_documents("Azure", offset=50)["group"]["continue_in_documents"])
             search.assert_not_called()
+
+    def test_progressive_batches_cover_the_same_authorized_catalog(self):
+        self._task(description='<p>Progressive amber evidence</p>')
+        all_groups = self.service.search_records('Progressive amber evidence')['groups']
+        primary = self.service.search_records('Progressive amber evidence', categories=['tasks', 'projects'])['groups']
+        remaining = self.service.search_records('Progressive amber evidence', exclude_categories=['tasks', 'projects'])['groups']
+        self.assertEqual(primary + remaining, all_groups)
+        for invalid in ('tasks', ['unknown'], [{}]):
+            with self.assertRaises(ValidationError):
+                self.service.search_records('Amber', exclude_categories=invalid)

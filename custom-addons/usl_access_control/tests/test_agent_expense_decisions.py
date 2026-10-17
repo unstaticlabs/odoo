@@ -1,6 +1,7 @@
 from odoo import SUPERUSER_ID, Command
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
+from odoo.addons.hr_expense.tests.common import TestExpenseCommon
 
 from ..controllers.json2 import UslAgentJson2Controller
 
@@ -95,6 +96,26 @@ class TestAgentReceiptDecisions(TransactionCase):
         self.assertEqual(expense.state, "draft")
         self.assertEqual(expense.create_uid, agent.user_id)
         self.assertFalse(expense.account_move_id)
+
+    def test_writable_agent_and_human_share_native_approved_expense_writes(self):
+        agent = self._create_agent()
+        for actor in (self.owner, agent.user_id):
+            with self.subTest(actor=actor.id):
+                expense = self._create_expense()
+                expense.approval_state = "approved"
+                context = UslAgentJson2Controller._agent_call_context(
+                    context={}, agent=agent, model_name="hr.expense", method_name="write", access="write",
+                ) if actor == agent.user_id else {}
+                candidate = expense.with_user(actor).with_context(context)
+                candidate.write({"total_amount_currency": 60.0})
+                expense.invalidate_recordset()
+                self.assertEqual(expense.total_amount_currency, 60.0)
+                self.assertEqual(expense.state, "approved")
+                # The generic ORM path follows the same native access and state rules.
+                candidate.write({"approval_state": False})
+                expense.invalidate_recordset()
+                self.assertEqual(expense.state, "draft")
+                self.assertFalse(expense.account_move_id)
 
     def test_agent_cleans_only_expense_approval_activities(self):
         agent = self._create_agent()
@@ -271,3 +292,141 @@ class TestAgentReceiptDecisions(TransactionCase):
                 agent_confirmed=True,
             )
         self.assertFalse(expense.rebuild_receipt_waived_at)
+
+
+@tagged("post_install", "-at_install", "usl_access_control")
+class TestAgentExpenseWorkflows(TestExpenseCommon):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = cls.env.company
+        cls.owner = cls.expense_user_manager
+        cls.groups = cls.env.ref("hr_expense.group_hr_expense_manager") | cls.env.ref("account.group_account_manager")
+        cls.owner.write({"group_ids": [Command.link(group.id) for group in cls.groups],
+                         "usl_identity_classification": "active"})
+        cls.product_c.rebuild_receipt_required = False
+        cls.bank = cls.company_data["default_journal_bank"]
+        cls.method = cls.bank.outbound_payment_method_line_ids.filtered(lambda line: line.code == "manual")[:1]
+        cls.method.payment_account_id = cls.env["account.chart.template"].ref("account_journal_payment_credit_account_id")
+        cls.company.company_expense_allowed_payment_method_line_ids = [Command.set(cls.method.ids)]
+
+    def _agent(self):
+        return self.env["usl.agent"].with_user(self.owner).create({
+            "name": "[QA] Expense workflow Agent", "purpose": "[QA] Native workflow controls",
+            "owner_id": self.owner.id, "company_id": self.company.id,
+            "company_ids": [Command.set(self.company.ids)],
+            "delegated_group_ids": [Command.set(self.groups.ids)], "access_mode": "read_write",
+        })
+
+    def _operation(self, records, agent, method, **context):
+        scope = UslAgentJson2Controller._agent_call_context(
+            context=context, agent=agent, model_name=records._name, method_name=method, access="write",
+        )
+        return records.with_user(agent.user_id).with_context(scope)
+
+    def _expense(self, amount, *, payer="own_account"):
+        return self.env["hr.expense"].create({
+            "name": f"[QA] Native workflow {amount}", "employee_id": self.expense_employee.id,
+            "company_id": self.company.id, "product_id": self.product_c.id,
+            "date": "2026-10-14", "tax_ids": [Command.clear()],
+            "total_amount_currency": amount, "payment_mode": payer,
+            "payment_method_line_id": self.method.id,
+        })
+
+    def test_agent_split_under_authenticated_operation_root_stays_draft(self):
+        agent = self._agent()
+        expense = self._expense(160)
+        result = self._operation(expense, agent, "split_draft_expense").split_draft_expense([
+            {"total_amount_currency": 60}, {"total_amount_currency": 100},
+        ])
+        family = self.env["hr.expense"].browse([part["id"] for part in result["expenses"]])
+        self.assertEqual(len(family), 2)
+        self.assertEqual(family.mapped("state"), ["draft", "draft"])
+        self.assertEqual(sum(family.mapped("total_amount_currency")), 160)
+        self.assertFalse(family.account_move_id)
+
+    def test_agent_native_submit_approve_reset_and_refuse_keep_their_authority(self):
+        agent = self._agent()
+        expense = self._expense(120)
+        self._operation(expense, agent, "action_submit").action_submit()
+        self.assertEqual(expense.state, "submitted")
+        self._operation(expense, agent, "action_approve").action_approve()
+        self.assertEqual(expense.state, "approved")
+        self._operation(expense, agent, "action_reset").action_reset()
+        self.assertEqual(expense.state, "draft")
+        self._operation(expense, agent, "action_submit").action_submit()
+        action = self._operation(expense, agent, "action_refuse").action_refuse()
+        wizard = self.env[action["res_model"]].with_user(agent.user_id).create({
+            "reason": "[QA] Request corrected evidence", "expense_ids": [Command.set(expense.ids)],
+        })
+        self._operation(wizard, agent, "action_refuse").action_refuse()
+        self.assertEqual(expense.state, "refused")
+        self.assertFalse(expense.account_move_id)
+
+    def test_agent_native_employee_and_company_posting_keep_their_entries(self):
+        agent = self._agent()
+        for amount, payer in ((121, "own_account"), (122, "company_account")):
+            expense = self._expense(amount, payer=payer)
+            self._operation(expense, agent, "action_submit").action_submit()
+            self._operation(expense, agent, "action_approve").action_approve()
+            action = self._operation(expense, agent, "action_post").action_post()
+            if payer == "own_account":
+                wizard = self.env[action["res_model"]].browse(action["res_id"])
+                self._operation(wizard, agent, "action_post_entry", active_ids=expense.ids).action_post_entry()
+            expense.invalidate_recordset()
+            self.assertTrue(expense.account_move_id)
+            self.assertEqual(expense.account_move_id.state, "posted")
+            self.assertEqual(expense.total_amount_currency, amount)
+            if payer == "own_account":
+                self.assertEqual(expense.state, "posted")
+                pay = self._operation(expense, agent, "action_pay").action_pay()
+                self.assertEqual(pay["res_model"], "account.payment.register")
+            else:
+                self.assertTrue(expense.account_move_id.origin_payment_id)
+
+    def test_agent_native_batch_add_submit_approve_return_restores_baseline(self):
+        agent = self._agent()
+        expense = self._expense(123)
+        baseline = expense.account_id
+        override = self.env["account.account"].create({"name": "[QA] Batch override", "code": "QA6111", "account_type": "expense"})
+        batch = self.env["usl.expense.batch"].with_user(self.owner).create({
+            "name": "[QA] Native Agent batch", "purpose": "[QA] Review travel context",
+            "company_id": self.company.id, "employee_id": self.expense_employee.id,
+            "account_override_id": override.id,
+        })
+        self._operation(batch, agent, "add_expenses").add_expenses(expense.ids)
+        self.assertEqual(expense.expense_batch_id, batch)
+        self._operation(batch, agent, "apply_context").apply_context()
+        self.assertEqual(expense.account_id, override)
+        self._operation(batch, agent, "action_submit").action_submit()
+        self._operation(batch, agent, "action_approve").action_approve()
+        self.assertEqual(expense.state, "approved")
+        self._operation(expense, agent, "action_return_from_batch").action_return_from_batch()
+        self.assertEqual(expense.state, "draft")
+        self.assertFalse(expense.expense_batch_id)
+        self.assertEqual(expense.account_id, baseline)
+
+    def test_agent_native_approved_bank_match_keeps_validated_conversion(self):
+        agent = self._agent()
+        expense = self._expense(124)
+        self._operation(expense, agent, "action_submit").action_submit()
+        self._operation(expense, agent, "action_approve").action_approve()
+        statement = self.env["account.bank.statement"].create({"journal_id": self.bank.id, "date": expense.date,
+                                                                  "name": "[QA] Bank match"})
+        bank_line = self.env["account.bank.statement.line"].create({
+            "payment_ref": expense.name, "journal_id": self.bank.id, "statement_id": statement.id,
+            "amount": -124, "date": expense.date,
+        })
+        self._operation(expense, agent, "action_refresh_bank_match_candidates").action_refresh_bank_match_candidates()
+        candidate = expense.usl_bank_match_candidate_ids.filtered(lambda row: row.bank_statement_line_id == bank_line)
+        self.assertEqual(len(candidate), 1)
+        action = self._operation(candidate, agent, "action_open_confirmation").action_open_confirmation()
+        wizard = self.env[action["res_model"]].browse(action["res_id"])
+        self._operation(wizard, agent, "action_confirm").action_confirm()
+        expense.invalidate_recordset()
+        self.assertEqual(expense.payment_mode, "company_account")
+        self.assertEqual(expense.payment_method_line_id, self.method)
+        self.assertEqual(expense.total_amount_currency, 124)
+        self.assertTrue(expense.account_move_id)
+        self.assertEqual(expense.account_move_id.state, "posted")
+        self.assertTrue(bank_line.is_reconciled)

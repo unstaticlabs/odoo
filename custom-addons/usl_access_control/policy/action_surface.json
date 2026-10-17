@@ -3011,7 +3011,7 @@
       "delegates": [
         "rpc:usl.home.service.search_records"
       ],
-      "digest": "10f940116c19e0987ac26a9ab2228c388bb1d9ecea688e323ca71dea1835486c",
+      "digest": "e310b9e9185620f7f0ac965bc796cae62a3cdb31b307404f7dd126302f6fa092",
       "handler": "if",
       "key": "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:1",
       "kind": "client",
@@ -3020,7 +3020,7 @@
       ],
       "sources": [
         {
-          "line": 96,
+          "line": 119,
           "path": "custom-addons/usl_home/static/src/home/content_search.js"
         }
       ]
@@ -3029,7 +3029,7 @@
       "delegates": [
         "rpc:usl.home.service.search_records"
       ],
-      "digest": "543465818859ba898de82a298a2004dd3cf64f6334d8e6e1558a04f0ce2b14c7",
+      "digest": "1f22146774247720c0aa6dff88854a76d16438e4e3ea7515fb22915998830ea9",
       "handler": "if",
       "key": "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:2",
       "kind": "client",
@@ -3038,7 +3038,7 @@
       ],
       "sources": [
         {
-          "line": 145,
+          "line": 178,
           "path": "custom-addons/usl_home/static/src/home/content_search.js"
         }
       ]
@@ -3047,7 +3047,7 @@
       "delegates": [
         "rpc:usl.home.service.search_documents"
       ],
-      "digest": "36f56fab197f8ae5eb634278bb47507fc0998b4d4038b5ab00f7bc9f221e580c",
+      "digest": "e663c1c551ab15dfe08a5c1575d464e05c0b92a883f3e6c697504ae361e391ec",
       "handler": "loadDocuments",
       "key": "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:loadDocuments:rpc:1",
       "kind": "client",
@@ -3056,7 +3056,7 @@
       ],
       "sources": [
         {
-          "line": 117,
+          "line": 150,
           "path": "custom-addons/usl_home/static/src/home/content_search.js"
         }
       ]
@@ -3074,7 +3074,7 @@
       ],
       "sources": [
         {
-          "line": 160,
+          "line": 195,
           "path": "custom-addons/usl_home/static/src/home/content_search.js"
         }
       ]
@@ -3158,10 +3158,9 @@
     },
     {
       "delegates": [
-        "rpc:usl.home.service.get_search_result_action",
-        "rpc:usl.home.service.search_records"
+        "rpc:usl.home.service.get_search_result_action"
       ],
-      "digest": "558c88b9cbf9bf37c219046e7a3b624925203424cacf607716f2789c68db3a27",
+      "digest": "c6f89f06aa43c5df3ee4de9c90a668c3264167ece9309770e4d549c651991b3e",
       "handler": "if",
       "key": "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:if:rpc:1",
       "kind": "client",
@@ -3170,11 +3169,25 @@
       ],
       "sources": [
         {
-          "line": 33,
+          "line": 93,
           "path": "custom-addons/usl_home/static/src/project_search/project_search.js"
-        },
+        }
+      ]
+    },
+    {
+      "delegates": [
+        "rpc:usl.home.service.search_records"
+      ],
+      "digest": "cf91808b8322c4b0937b69f6820ae28e4f8990d301dc2ac500d3b570176ee841",
+      "handler": "loadContentCategory",
+      "key": "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:loadContentCategory:rpc:1",
+      "kind": "client",
+      "modules": [
+        "usl_home"
+      ],
+      "sources": [
         {
-          "line": 66,
+          "line": 50,
           "path": "custom-addons/usl_home/static/src/project_search/project_search.js"
         }
       ]
@@ -242126,7 +242139,7 @@
     {
       "abstract": false,
       "archiveable": false,
-      "digest": "23d4be16088474719aa9957f5f7a281ad596a39ccd9ff4eb9184242546cc3d1d",
+      "digest": "89c3e630e94e0ea9d5f7f6049e0aa4d6775d79b5efc2bb38240b4d70dda18186",
       "guards": [],
       "key": "rpc:b2c.import.batch.action_invoice",
       "kind": "rpc",
@@ -242137,7 +242150,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "afbde799bd106f2f6c1af5d7d342d8d737ccae9cefa6c3f0b31a6ecbbd892e93",
+      "runtime_digest": "0114c28573c2fdc914a1a6ce906a44fe86dd366c2ade736f3e5da51feebe6bdc",
       "sinks": [
         "orm_write"
       ],
@@ -242173,7 +242186,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 133,
+          "line": 139,
           "path": "custom-addons/usl_b2c_ingest/models/invoicing.py"
         },
         {
@@ -242206,7 +242219,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 131,
+          "line": 135,
           "path": "custom-addons/usl_b2c_ingest/models/lifecycle.py"
         },
         {
@@ -242239,7 +242252,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 123,
+          "line": 129,
           "path": "custom-addons/usl_b2c_ingest/models/invoicing.py"
         },
         {
@@ -242305,7 +242318,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 134,
+          "line": 136,
           "path": "custom-addons/usl_b2c_ingest/models/transfers.py"
         },
         {
@@ -242434,7 +242447,7 @@
       ],
       "sources": [
         {
-          "line": 117,
+          "line": 119,
           "path": "custom-addons/usl_b2c_ingest/models/transfers.py"
         },
         {
@@ -242463,7 +242476,7 @@
       ],
       "sources": [
         {
-          "line": 110,
+          "line": 114,
           "path": "custom-addons/usl_b2c_ingest/models/lifecycle.py"
         },
         {
@@ -247377,7 +247390,7 @@
       ],
       "sources": [
         {
-          "line": 119,
+          "line": 120,
           "path": "custom-addons/usl_b2c_ingest/models/import_issue.py"
         },
         {
@@ -247442,7 +247455,7 @@
       ],
       "sources": [
         {
-          "line": 77,
+          "line": 78,
           "path": "custom-addons/usl_b2c_ingest/models/import_issue.py"
         },
         {
@@ -412316,6 +412329,7 @@
         "rpc:hr.expense.ensure_one",
         "rpc:hr.expense.flush_recordset",
         "rpc:hr.expense.invalidate_recordset",
+        "rpc:hr.expense.read",
         "rpc:hr.expense.with_company",
         "rpc:hr.expense.write",
         "rpc:res.company.browse"
@@ -412338,7 +412352,7 @@
       ],
       "sources": [
         {
-          "line": 102,
+          "line": 111,
           "path": "custom-addons/usl_expense_batch/models/expense_draft_configuration.py"
         },
         {
@@ -876681,23 +876695,31 @@
     {
       "abstract": false,
       "archiveable": true,
-      "digest": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+      "digest": "ea2e5db601da2ff641512ed92274061faee31fb202d3172a6ce267a0cde9289b",
       "guards": [],
       "key": "rpc:project.task.search_count",
       "kind": "rpc",
       "method": "search_count",
       "model": "project.task",
       "modules": [
-        "base"
+        "base",
+        "usl_project"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "123617ed36078cbf6b54e9ac2229a2f8905d7189d3d85f5e9be5765bc082d666",
+      "runtime_digest": "7e961b93f75600950c39f10a407f48df5b4913d4828665ed8ced9ede87098ab5",
       "sinks": [],
       "sources": [
         {
           "line": 1387,
           "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 25,
+          "path": "custom-addons/usl_project/models/task_content_search.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/task_content_search.py"
         },
         {
           "path": "odoo/orm/models.py"
@@ -983333,7 +983355,7 @@
       ],
       "sources": [
         {
-          "line": 532,
+          "line": 538,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         },
         {
@@ -983369,7 +983391,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 806,
+          "line": 812,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         },
         {
@@ -983390,7 +983412,7 @@
         "rpc:rebuild.account.report.export.wizard.ensure_one",
         "rpc:rebuild.account.report.export.wizard.write"
       ],
-      "digest": "ac4fb3dbd1f39354a8bb82fc35531f4fae61f1a36655806f22d385f2c397e75d",
+      "digest": "c3038ee50990dfd5bf6983d9c3ffb5f3b115bc25215104a92562475b358f62e9",
       "guards": [],
       "key": "rpc:rebuild.account.report.export.wizard.action_preview_report",
       "kind": "rpc",
@@ -983401,7 +983423,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "bd6c186c6658474402f3014c17524941b02932ab79251d7ad8ca70b0f783e9f0",
+      "runtime_digest": "757a6147f444b346160151577e8065077da61d54579c1c466fec247beba8c1ab",
       "sinks": [
         "orm_create",
         "orm_write",
@@ -984492,7 +984514,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 961,
+          "line": 952,
           "path": "custom-addons/rebuild_account_migration/models/report_export_client.py"
         },
         {
@@ -984530,7 +984552,7 @@
       ],
       "sources": [
         {
-          "line": 23,
+          "line": 25,
           "path": "custom-addons/rebuild_account_migration/models/report_export_client.py"
         },
         {
@@ -984565,7 +984587,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1007,
+          "line": 998,
           "path": "custom-addons/rebuild_account_migration/models/report_export_client.py"
         },
         {
@@ -984640,7 +984662,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1017,
+          "line": 1008,
           "path": "custom-addons/rebuild_account_migration/models/report_export_client.py"
         },
         {
@@ -985294,7 +985316,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1707,
+          "line": 1713,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         },
         {
@@ -985327,7 +985349,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1716,
+          "line": 1722,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         },
         {
@@ -1372571,7 +1372593,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 158,
+          "line": 162,
           "path": "custom-addons/usl_home/models/content_search.py"
         },
         {
@@ -1373161,7 +1373183,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 137,
+          "line": 141,
           "path": "custom-addons/usl_home/models/content_search.py"
         },
         {
@@ -1373269,7 +1373291,7 @@
     {
       "abstract": true,
       "archiveable": false,
-      "digest": "f20ff609b54755e2044f2c2a932ca978b424396aabcad5bf2cbd1c2e016b6ece",
+      "digest": "1276894379ac289a5c58f7be745d64ce72fde2cb747a413fe6799e3c1291b8bc",
       "guards": [],
       "key": "rpc:usl.home.service.search_records",
       "kind": "rpc",
@@ -1373280,7 +1373302,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "094493f8d10036988def05b6a940f65d0dbbc23fd276ff5d05a0397ff3cd4a65",
+      "runtime_digest": "22f6955dd8c89c8da2636ff3cc6c64963a085471f9fe8427afca887b74713c32",
       "sinks": [],
       "sources": [
         {
@@ -1585645,7 +1585667,7 @@
       ]
     },
     {
-      "digest": "2be6cc8716a8be953cfbac632fefb812d163556f2daab8e389dcbe567d3e7611",
+      "digest": "7b2b70ce79949abddce4acf0fcf147081bf699de4bfab78ef55cf24250ef8a78",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard._report_client_payload:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1585654,22 +1585676,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 226,
-          "path": "custom-addons/rebuild_account_migration/models/report_export_client.py"
-        }
-      ]
-    },
-    {
-      "digest": "9e445724535faa69f67ab6852d784d5960e223d67e78bf136ee8b75759082e09",
-      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard._report_client_summary:orm_write:1",
-      "kind": "sink",
-      "modules": [
-        "rebuild_account_migration"
-      ],
-      "sink_kind": "orm_write",
-      "sources": [
-        {
-          "line": 643,
+          "line": 228,
           "path": "custom-addons/rebuild_account_migration/models/report_export_client.py"
         }
       ]
@@ -1585687,7 +1585694,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 23,
+          "line": 25,
           "path": "custom-addons/rebuild_account_migration/models/report_export_client.py"
         }
       ]
@@ -1585705,7 +1585712,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 23,
+          "line": 25,
           "path": "custom-addons/rebuild_account_migration/models/report_export_client.py"
         }
       ]
@@ -1585723,7 +1585730,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 23,
+          "line": 25,
           "path": "custom-addons/rebuild_account_migration/models/report_export_client.py"
         }
       ]
@@ -1585798,7 +1585805,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 726,
+          "line": 732,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1585813,7 +1585820,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 726,
+          "line": 732,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1585828,7 +1585835,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 684,
+          "line": 690,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1585843,7 +1585850,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 612,
+          "line": 618,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1585858,7 +1585865,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 612,
+          "line": 618,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1585873,7 +1585880,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1489,
+          "line": 1495,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1585888,7 +1585895,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1086,
+          "line": 1092,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1585903,7 +1585910,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1086,
+          "line": 1092,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1585918,7 +1585925,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1044,
+          "line": 1050,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1585972,7 +1585979,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 532,
+          "line": 538,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1585990,7 +1585997,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 532,
+          "line": 538,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1586008,13 +1586015,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 532,
+          "line": 538,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
     },
     {
-      "digest": "e4e1d572e690bbecf963b63159c9dd2e3986f1551449d740837f35035bc8a567",
+      "digest": "5fc879728b63901b014f4ad41339b81bf3d2a8eeddee48536cfab8b07b21e534",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1586032,7 +1586039,7 @@
       ]
     },
     {
-      "digest": "01ee2606cf1e1f19bde50185d1b95657156f3d328ca17e9e2f481d5870c4c29c",
+      "digest": "e9f2aed5e66d220964ca045307fe6587bbc82667abe594d4ad0c2baa37ed55ea",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1586050,7 +1586057,7 @@
       ]
     },
     {
-      "digest": "fe6455642f44ef21f1ce4b516a706fead2374fa3f8045dfe6f4f77489a9eb4c5",
+      "digest": "7a8539687c3d5d405cb298ef9251abe9ef74d86ba1e9ebc340ae25505b408c70",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1586068,7 +1586075,7 @@
       ]
     },
     {
-      "digest": "3bbbbe713a145c350a9036b1c282746f1cda88b7a0a4ca2ce3237a51d0687784",
+      "digest": "78f38fad4216dfe55b4b0d81c166f3014ca275035dd6fac250955e59f890c605",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:orm_write:3",
       "kind": "sink",
       "modules": [
@@ -1586086,7 +1586093,7 @@
       ]
     },
     {
-      "digest": "a1607fcb7d775abf84b2b7848cddb7c124abd92aef1210075597a11399c8a165",
+      "digest": "83ffe34a95479916eb7933ef1c00a4b98a6721422fa2d56c5376ffe2ce13c4e4",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard.action_preview_report:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1615483,7 +1615490,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 729,
+          "line": 738,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1615513,7 +1615520,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 664,
+          "line": 673,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1615528,7 +1615535,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 686,
+          "line": 695,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1615708,7 +1615715,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 119,
+          "line": 120,
           "path": "custom-addons/usl_b2c_ingest/models/import_issue.py"
         }
       ]
@@ -1615726,7 +1615733,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 77,
+          "line": 78,
           "path": "custom-addons/usl_b2c_ingest/models/import_issue.py"
         }
       ]
@@ -1615744,7 +1615751,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 77,
+          "line": 78,
           "path": "custom-addons/usl_b2c_ingest/models/import_issue.py"
         }
       ]
@@ -1615762,7 +1615769,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 77,
+          "line": 78,
           "path": "custom-addons/usl_b2c_ingest/models/import_issue.py"
         }
       ]
@@ -1615777,7 +1615784,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 252,
+          "line": 258,
           "path": "custom-addons/usl_b2c_ingest/models/invoicing.py"
         }
       ]
@@ -1615792,7 +1615799,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 143,
+          "line": 149,
           "path": "custom-addons/usl_b2c_ingest/models/invoicing.py"
         }
       ]
@@ -1615807,7 +1615814,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 143,
+          "line": 149,
           "path": "custom-addons/usl_b2c_ingest/models/invoicing.py"
         }
       ]
@@ -1615822,7 +1615829,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 143,
+          "line": 149,
           "path": "custom-addons/usl_b2c_ingest/models/invoicing.py"
         }
       ]
@@ -1615837,13 +1615844,13 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 201,
+          "line": 207,
           "path": "custom-addons/usl_b2c_ingest/models/invoicing.py"
         }
       ]
     },
     {
-      "digest": "b45729fa86a695ae2a2b7054e19a30c6b234d34ff3e3ea58cbab8436f45f3159",
+      "digest": "623de9a59dffbe70019a58ca4569afd99681981ecd17a8861fe3e1b9f3086916",
       "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch.action_invoice:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1615861,7 +1615868,7 @@
       ]
     },
     {
-      "digest": "435c6e4de5aa23a719b2975f84f91c43ca85c139b65c6a34f208a671f1edf8a3",
+      "digest": "23166992458b9d5155c61da9a4b0905de13a9d0ccea7ca2f4515f941bc263acb",
       "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch.action_invoice:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1615879,7 +1615886,7 @@
       ]
     },
     {
-      "digest": "68cfde487bb777799053cdb51001eff4dc58809893ac68c7bd980a91e7e366b3",
+      "digest": "039201ffddaf3ab198c7e2382e0617bc60af803412941c8260e237e0c902cab8",
       "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch.action_invoice:orm_write:3",
       "kind": "sink",
       "modules": [
@@ -1615897,7 +1615904,7 @@
       ]
     },
     {
-      "digest": "448671ebec91bd8d8d52d6d250064a3ae7f15ccdab67c3482b9ba4aa446f2112",
+      "digest": "9db2089579b91972b5b156b8c4e67f9f676724c727bde9a93fe36db6254f017f",
       "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/lifecycle.py:b2c.import.batch._cancel_as_stated:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1615906,7 +1615913,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 295,
+          "line": 348,
           "path": "custom-addons/usl_b2c_ingest/models/lifecycle.py"
         }
       ]
@@ -1615921,7 +1615928,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 268,
+          "line": 321,
           "path": "custom-addons/usl_b2c_ingest/models/lifecycle.py"
         }
       ]
@@ -1615936,7 +1615943,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 337,
+          "line": 392,
           "path": "custom-addons/usl_b2c_ingest/models/lifecycle.py"
         }
       ]
@@ -1615954,7 +1615961,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 110,
+          "line": 114,
           "path": "custom-addons/usl_b2c_ingest/models/lifecycle.py"
         }
       ]
@@ -1615972,7 +1615979,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 110,
+          "line": 114,
           "path": "custom-addons/usl_b2c_ingest/models/lifecycle.py"
         }
       ]
@@ -1616887,13 +1616894,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 146,
+          "line": 148,
           "path": "custom-addons/usl_b2c_ingest/models/transfers.py"
         }
       ]
     },
     {
-      "digest": "6a544be97c533468c7b34ada8e2bba1640cf4c5cd78a790b47a7a6aa219dba7a",
+      "digest": "32c31889a921427f7b7e3b8e1e6bbaeba1c7255a4c1a19ad2b08b174a327a382",
       "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/transfers.py:b2c.import.batch._transfer_entry:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1616902,13 +1616909,13 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 240,
+          "line": 242,
           "path": "custom-addons/usl_b2c_ingest/models/transfers.py"
         }
       ]
     },
     {
-      "digest": "e5e22e885eb0c318393e3a34bba9149e1d78c09081bad147c191fdd566f197f8",
+      "digest": "61088358dbc096250be8344fa6eac5c91de5a68196f74ffc0c88e31e65efe15c",
       "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/transfers.py:b2c.import.batch._transfer_entry:orm_create:2",
       "kind": "sink",
       "modules": [
@@ -1616917,13 +1616924,13 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 240,
+          "line": 242,
           "path": "custom-addons/usl_b2c_ingest/models/transfers.py"
         }
       ]
     },
     {
-      "digest": "af51d80dc4fd1f9d7914eb15966695628e8394d9358b4e7e441bd06e47b908ec",
+      "digest": "e46f2a85fb18c09922ace33729d92f18820c92ce6c6d2494d9453e6fb257893f",
       "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/transfers.py:b2c.import.batch._transfer_entry:orm_create:3",
       "kind": "sink",
       "modules": [
@@ -1616932,13 +1616939,13 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 240,
+          "line": 242,
           "path": "custom-addons/usl_b2c_ingest/models/transfers.py"
         }
       ]
     },
     {
-      "digest": "f7a2f106cb30e1c47331aad1b9fe839c0b31189846b15e9ed0f168b6208d3056",
+      "digest": "728d956f22f3b0a0cd23cc77829d27f519290ff57d0d16f3e083631f205b953e",
       "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/transfers.py:b2c.import.batch._transfer_entry:orm_create:4",
       "kind": "sink",
       "modules": [
@@ -1616947,7 +1616954,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 240,
+          "line": 242,
           "path": "custom-addons/usl_b2c_ingest/models/transfers.py"
         }
       ]
@@ -1616965,7 +1616972,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 117,
+          "line": 119,
           "path": "custom-addons/usl_b2c_ingest/models/transfers.py"
         }
       ]
@@ -1616983,7 +1616990,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 117,
+          "line": 119,
           "path": "custom-addons/usl_b2c_ingest/models/transfers.py"
         }
       ]
@@ -1625239,7 +1625246,7 @@
       ]
     },
     {
-      "digest": "72d3adedee2d2ad32b739835655a29c5c2e96c1a1382f0876627039076584ec3",
+      "digest": "183aa18542b890265c3dad46d5c5af2ec9d22cb80cfefa3e2c47732d1fadd2f7",
       "key": "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:message_send:1",
       "kind": "sink",
       "modules": [
@@ -1625248,13 +1625255,13 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 107,
+          "line": 116,
           "path": "custom-addons/usl_expense_batch/models/expense_draft_configuration.py"
         }
       ]
     },
     {
-      "digest": "9175c2e33ee130f5b6da6f59252cafebbd38f03d5abfd2caac76e6937dfc877d",
+      "digest": "5e9760732d7fdfda907e8f07c4950132e91064f42618df003a4e107713d738b8",
       "key": "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1625263,13 +1625270,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 107,
+          "line": 116,
           "path": "custom-addons/usl_expense_batch/models/expense_draft_configuration.py"
         }
       ]
     },
     {
-      "digest": "b4ad691ace841147c34ad347ea57d82aac2e2065bf75eb04e133d5e5168bac7c",
+      "digest": "e1b45e081fe50cfd47af63ef6554c5e57d20f8c643251eba5d69001a35dcd797",
       "key": "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1625278,13 +1625285,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 107,
+          "line": 116,
           "path": "custom-addons/usl_expense_batch/models/expense_draft_configuration.py"
         }
       ]
     },
     {
-      "digest": "27a078c6d7d67e8a731328b1610a30598b5b0635f783b28bde0421217b460f75",
+      "digest": "772d11d0ea8dedc28be39c49680330ac0dceb8bd783aa92bd9583fdd9c0a70ae",
       "key": "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:3",
       "kind": "sink",
       "modules": [
@@ -1625293,13 +1625300,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 107,
+          "line": 116,
           "path": "custom-addons/usl_expense_batch/models/expense_draft_configuration.py"
         }
       ]
     },
     {
-      "digest": "dfdd349451eb891faa8bcd737a773b6df76deecd83253d843fa32ce35ab3d0fc",
+      "digest": "b724c070bc4e0a31894fc7b27c52146e3a29de6e064b116e374860b7ed772d71",
       "key": "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_draft_configuration.py:hr.expense._configure_draft_expense:orm_write:4",
       "kind": "sink",
       "modules": [
@@ -1625308,7 +1625315,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 107,
+          "line": 116,
           "path": "custom-addons/usl_expense_batch/models/expense_draft_configuration.py"
         }
       ]
@@ -1631202,6 +1631209,21 @@
         {
           "line": 30,
           "path": "custom-addons/usl_project/models/project_task_type.py"
+        }
+      ]
+    },
+    {
+      "digest": "dd3f23fbed92b3839174ec67e638ea9073a9effeeff7232f0d0e6799357de1c4",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 35,
+          "path": "custom-addons/usl_project/models/task_content_search.py"
         }
       ]
     },
@@ -1698372,11 +1698394,11 @@
       "version": "1.1"
     },
     {
-      "manifest_sha256": "3955762432c04094858bd33cef7691586e7dbeed0764181d3ead04260d294260",
+      "manifest_sha256": "f8fbd53584242affdab3bb8dc7838b537159ce5f73b1500457aaa599bf786d1f",
       "name": "rebuild_account_migration",
       "origin": "custom",
-      "source_sha256": "a9883c66a3d7b6ae7f87b87420b5a0f96d27e38e58978bfa00834a0990846a67",
-      "version": "saas~19.3.1.13.30"
+      "source_sha256": "d821aa51133969329ea480ab1de33104360cb44fa830399a68c8db40f6a897eb",
+      "version": "saas~19.3.1.13.34"
     },
     {
       "manifest_sha256": "a3a8024b1226ef713cc665c6c804362fd897338a958493f6d860b650e62eae30",
@@ -1698673,11 +1698695,11 @@
       "version": ""
     },
     {
-      "manifest_sha256": "37275965675a2f2334525a33e1e4ab3d4fc7930f2e4d226948af851120ae86c3",
+      "manifest_sha256": "5697b43379473ef646c789828b1b656bf05122c2b43b56234e6654b251aaf00a",
       "name": "usl_access_control",
       "origin": "custom",
-      "source_sha256": "7c7a25eb683af2047f7a97ae1d5ab58681ee991ed09694298b28a0ce05b44a63",
-      "version": "saas~19.3.1.8.0"
+      "source_sha256": "f17ba91d277dbc4d294553789e6f7bfd90320e77c555b46ef8ceaa8f3a3049f2",
+      "version": "saas~19.3.1.8.1"
     },
     {
       "manifest_sha256": "2d4f291c27ad7c2892ad8fd578313cb7bd45b5ad202e44f3087d7270dc084f31",
@@ -1698694,11 +1698716,11 @@
       "version": "saas~19.3.1.5.1"
     },
     {
-      "manifest_sha256": "75cdb177e7431cdd4348986943057029e27449636e4f6c92fe5c30ba7a933905",
+      "manifest_sha256": "9592deb7b170ff1d928b4705553dae7988b320132bb14dca59cfcc6bd4d055be",
       "name": "usl_b2c_ingest",
       "origin": "custom",
-      "source_sha256": "909b10ccc72431111e6a78c62ed3fd59e2a01f48da639bf142c179ad7da1e7da",
-      "version": "saas~19.3.1.3.0"
+      "source_sha256": "c6aa2eb86af27f9f2895bbbf42f551be80153de2b246f8e6118fed55e942b6ab",
+      "version": "saas~19.3.1.3.2"
     },
     {
       "manifest_sha256": "bf9bcefb3f3b92cb7ffaec57a229c482fe363380db2edfd9bc7c0130abc07ad4",
@@ -1698729,11 +1698751,11 @@
       "version": "saas~19.3.1.0.0"
     },
     {
-      "manifest_sha256": "a7befb0d64e99a9597404af86565660bed9eed04992cf5dad3f880d4488f7472",
+      "manifest_sha256": "4e65c84418979d3922c8cfd1dd6c4b7d5ff5e9128e027687eccd8d3c8c2d2ae8",
       "name": "usl_expense_batch",
       "origin": "custom",
-      "source_sha256": "e37f4ad376ba1cf418d5334cb34e5ba64e9a5710d39c710e4ff5fb4c7ec487d5",
-      "version": "saas~19.3.1.3.16"
+      "source_sha256": "22a4345b69443c4579457c602d7965c15b7806214266e998083c1649a7784789",
+      "version": "saas~19.3.1.3.17"
     },
     {
       "manifest_sha256": "eb00e52ebf56517d6b46cc0d840354fb3a5fd83eadcd7d31aaf39feb0b06d4f3",
@@ -1698743,11 +1698765,11 @@
       "version": "saas~19.3.2.0.18"
     },
     {
-      "manifest_sha256": "deab62bc2d72c41a6eb0152c536c03f39bb5cc79ea2d3c9b3401f578634ff268",
+      "manifest_sha256": "93b74ae9c3a56f15e5908d6642d2d04929ca18d9f162b73fce0afce893a07755",
       "name": "usl_home",
       "origin": "custom",
-      "source_sha256": "b2da8a91cc71e23337bb838c84691b892cc2e683bd93dcbd3025bc943dfae705",
-      "version": "saas~19.3.1.0.12"
+      "source_sha256": "b64442a2c2e8cd1c94fd11669c9427fafb44e2a2dd9a4f47eb45a99216a7e487",
+      "version": "saas~19.3.1.0.13"
     },
     {
       "manifest_sha256": "bb43850f670e0acf9f0173cad4c0c93680767addca24c5251f053d2d1eaf7e0b",
@@ -1698778,11 +1698800,11 @@
       "version": "saas~19.3.1.4.4"
     },
     {
-      "manifest_sha256": "4a7f7147a0d62856eac539a1f90d278bb03b09ab93f2847277d2c90f9bb7dd86",
+      "manifest_sha256": "6c86320e9e572c577c42e44493da376107fc7d19eb722aac85652a3eeec71bee",
       "name": "usl_project",
       "origin": "custom",
-      "source_sha256": "2fab4ae2e8952d89abbfa14c4d5cbabb3047eb65009ebfd895832ba74f668cf0",
-      "version": "saas~19.3.1.0.16"
+      "source_sha256": "0ae5f3ae79b5fa71d34b4c249ee5a368fa80c72b293d27ac63a38127eb3e7019",
+      "version": "saas~19.3.1.0.17"
     },
     {
       "manifest_sha256": "fdc17bc172de42c3680d2f856c88ec910045db940de6d0fd31988944400cb74a",
