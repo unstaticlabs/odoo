@@ -1,5 +1,13 @@
 # Changelog
 
+## saas~19.3.1.3.6
+
+- Add an **Already reconciled in Accounting** scope to the bank import wizard.
+  It lists incoming bank transactions that Accounting reconciled before
+  Platform Billing linked them, and links them to their payouts as bank
+  evidence only: no entry, payment or reconciliation is created or changed,
+  and a paid payout stays paid.
+
 ## saas~19.3.1.2.1
 
 - Show a green **No Payment Required** status for generated miscellaneous

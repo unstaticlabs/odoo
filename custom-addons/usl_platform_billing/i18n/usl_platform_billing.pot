@@ -23,6 +23,14 @@ msgstr ""
 
 #. module: usl_platform_billing
 #. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid ""
+"%(count)s bank transaction(s) adopted from existing Accounting "
+"reconciliations. No entry, payment or reconciliation was created or changed."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
 #: code:addons/usl_platform_billing/models/session.py:0
 msgid "%(count)s payout(s) remain open while payment is delayed."
 msgstr ""
@@ -85,6 +93,14 @@ msgstr ""
 #. odoo-python
 #: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
 msgid "%s is no longer an eligible open incoming bank transaction."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid ""
+"%s is not an incoming bank transaction already reconciled in Accounting with"
+" an amount left to link."
 msgstr ""
 
 #. module: usl_platform_billing
@@ -241,7 +257,9 @@ msgstr ""
 #: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_bank_import_wizard__candidate_scope
 msgid ""
 "All open keeps every eligible incoming transaction available. Suggested only"
-" applies the configured recognition rules."
+" applies the configured recognition rules. Already reconciled in Accounting "
+"lists incoming transactions that Accounting has already reconciled, so they "
+"can be linked to their payouts as bank evidence without changing any entry."
 msgstr ""
 
 #. module: usl_platform_billing
@@ -274,6 +292,11 @@ msgstr ""
 #. odoo-python
 #: code:addons/usl_platform_billing/models/bank_allocation.py:0
 msgid "Allocations cannot exceed the platform payout amount."
+msgstr ""
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_import_wizard__candidate_scope__reconciled
+msgid "Already reconciled in Accounting"
 msgstr ""
 
 #. module: usl_platform_billing
@@ -1733,6 +1756,22 @@ msgstr ""
 
 #. module: usl_platform_billing
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
+msgid "Incoming bank transactions already reconciled in Accounting"
+msgstr ""
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
+msgid ""
+"These bank transactions are already reconciled in\n"
+"                        Accounting. Linking them only records the bank evidence on\n"
+"                        the payouts: no entry, payment or reconciliation is created\n"
+"                        or changed. If a payout is slightly above the bank amount,\n"
+"                        lower its amount to settle to match the selected\n"
+"                        transactions."
+msgstr ""
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
 msgid "Open payouts"
 msgstr ""
 
@@ -2295,6 +2334,14 @@ msgstr ""
 #. odoo-python
 #: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
 msgid "Switch to payout creation mode first."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid ""
+"Transactions already reconciled in Accounting can only be linked to "
+"registered payouts."
 msgstr ""
 
 #. module: usl_platform_billing

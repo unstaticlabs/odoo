@@ -111876,8 +111876,8 @@
       },
       "rationale": "The declared exact reversal restores the relevant state; native record identity/history and Distribution agent before/submitted-value evidence preserve how to perform and verify recovery.",
       "reviewed_digests": {
-        "rpc:usl.platform.billing.bank.import.wizard.action_create_payouts": "a2d6810f8d0df24328851faa49547b0b6907a3c714c767dd614c199e7453a87a",
-        "rpc:usl.platform.billing.bank.import.wizard.action_link_payouts": "9b571f865449f72a205590629b3d81c06db869e9bafc7f674c43b5793f0c188f",
+        "rpc:usl.platform.billing.bank.import.wizard.action_create_payouts": "fff4cecf923bb9ea7a6e83eeb1c3ff38041ad4e7e89550d68a93c6fb2e9592d7",
+        "rpc:usl.platform.billing.bank.import.wizard.action_link_payouts": "be309fde7ac867985627178dc21f04691a3fb876678b246e39ee7e4a93715a5c",
         "rpc:usl.platform.billing.payout.action_archive_attachment": "b709c664d814f18382ebd8438cd811570de88cb255a51bc05c7cad3e294c5b77",
         "rpc:usl.platform.billing.payout.action_open_documents_workspace": "a77c4b201439ce301a99985661cf9f8dbe058829d55d16ea62e0b5fcaaecbaad",
         "rpc:usl.platform.billing.platform.action_archive_attachment": "b709c664d814f18382ebd8438cd811570de88cb255a51bc05c7cad3e294c5b77",
@@ -180862,13 +180862,13 @@
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.write:orm_write:2": "02f9a01e7ebab5fd50e8146a15e0c19e571b963c6590366b40dd555345a5ec27",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/session.py:usl.platform.billing.session.write:orm_write:3": "de2299d28f5505cfbe8ff4d6c1c9b9e755ef27f62a414e77cab76b48f3b6e6ab",
         "sink:usl_platform_billing:custom-addons/usl_platform_billing/wizard/bank_import_wizard.py:usl.platform.billing.bank.import.wizard._get_or_create_allocation:orm_write:1": "a48bd325ccc8c8af56dea612685c78e7d6bb6ade2bf0a4b7c704ff1ba04c71d7",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/wizard/bank_import_wizard.py:usl.platform.billing.bank.import.wizard._populate_candidates:orm_create:1": "cc551dcd7c617bea925ff6d01a9ea23175003bf9292a091925d3319abd37ec99",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/wizard/bank_import_wizard.py:usl.platform.billing.bank.import.wizard._populate_payout_candidates:orm_create:1": "59089f8a580e45fa2cc0e1e158ced1559217caa7d1fe5a8604b224031bea9bdc",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/wizard/bank_import_wizard.py:usl.platform.billing.bank.import.wizard._result_action:message_send:1": "51341348c1154c20cd1f142cb74092d29470fa9c4c12a1b65c3461f75f96e54c",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/wizard/bank_import_wizard.py:usl.platform.billing.bank.import.wizard.action_create_payouts:orm_create:1": "a8d381c92b900e35f6b0fb6b9ab96dc0190f3ae9460b80d660dc71d77c964586",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/wizard/bank_import_wizard.py:usl.platform.billing.bank.import.wizard.action_create_payouts:orm_write:1": "614a82a9e0f1b807ecb8f67f2bf98f912d7110d97ca92f40dd6d40d33a59bafd",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/wizard/bank_import_wizard.py:usl.platform.billing.bank.import.wizard.action_create_payouts:orm_write:2": "1f612b1dcd5004e213e7de8e5afd1b4f78222463b2d9baf9df8a512779667a5c",
-        "sink:usl_platform_billing:custom-addons/usl_platform_billing/wizard/bank_import_wizard.py:usl.platform.billing.bank.import.wizard.action_link_payouts:orm_write:1": "9de6d0300d6c293dc72ab0017a5849b7e9b52ff1dadc39a50470b26f98528c37"
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/wizard/bank_import_wizard.py:usl.platform.billing.bank.import.wizard._populate_candidates:orm_create:1": "d6a1209beb93ce10f389c6f1993a74f76da7e9dc19f13926c359908e9ccfe9fa",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/wizard/bank_import_wizard.py:usl.platform.billing.bank.import.wizard._populate_payout_candidates:orm_create:1": "b192192de37397dcdcdd08c619ba629d42715c7a3a384ecedb044669b87f0326",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/wizard/bank_import_wizard.py:usl.platform.billing.bank.import.wizard._result_action:message_send:1": "c7b8c98b802f3ae696912de8f47cc8060b6627f061b7fd0bcad7e230a6c8abda",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/wizard/bank_import_wizard.py:usl.platform.billing.bank.import.wizard.action_create_payouts:orm_create:1": "d34bab28a5ec43d6820e9e3f0572c5021db18a96cbfad98ad6f0fe736dac398b",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/wizard/bank_import_wizard.py:usl.platform.billing.bank.import.wizard.action_create_payouts:orm_write:1": "b9f8d01b84696deba77f8814f1262f498644a2f81b802637ec8a9d81d02fa81c",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/wizard/bank_import_wizard.py:usl.platform.billing.bank.import.wizard.action_create_payouts:orm_write:2": "f82393aa2f36792ffcdf6398b2990a928980f5d941b2481636dc97f1bb53873f",
+        "sink:usl_platform_billing:custom-addons/usl_platform_billing/wizard/bank_import_wizard.py:usl.platform.billing.bank.import.wizard.action_link_payouts:orm_write:1": "aaaae549ea63f7912fa7ac34c7058f95dbf7b50a3348e21933a38b98e169b89e"
       }
     },
     {

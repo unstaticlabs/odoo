@@ -23,6 +23,16 @@
                         settles them.
                     </div>
 
+                    <div class="alert alert-warning py-2" role="status"
+                         invisible="mode != 'link' or candidate_scope != 'reconciled'">
+                        These bank transactions are already reconciled in
+                        Accounting. Linking them only records the bank evidence on
+                        the payouts: no entry, payment or reconciliation is created
+                        or changed. If a payout is slightly above the bank amount,
+                        lower its amount to settle to match the selected
+                        transactions.
+                    </div>
+
                     <separator string="Open payouts" invisible="mode != 'link'"/>
                     <field name="payout_candidate_ids"
                            invisible="mode != 'link'">
@@ -57,7 +67,10 @@
                         </list>
                     </field>
 
-                    <separator string="Open incoming bank transactions"/>
+                    <separator string="Open incoming bank transactions"
+                               invisible="candidate_scope == 'reconciled'"/>
+                    <separator string="Incoming bank transactions already reconciled in Accounting"
+                               invisible="candidate_scope != 'reconciled'"/>
                     <field name="candidate_ids">
                         <list editable="bottom" create="false" delete="false"
                               default_order="recommended desc, score desc, bank_date desc"
