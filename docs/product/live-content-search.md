@@ -34,7 +34,10 @@ values are excluded.
 Documents reuse the existing scoped content-search service. It can combine
 exact OCR/content matches with meaning-based matches when its semantic engine
 is available. This does not add embeddings or fuzzy search to Tasks or Projects.
-Local results load independently of the document provider. A document outage
+Task and Project results load independently of the remaining business categories
+and the document provider. Available results stay usable while another batch is
+still searching. A category failure preserves results already found and offers
+a retry. A document outage
 has its own retry; exact document matches remain usable when only the semantic
 engine is unavailable. Home offers a bounded document preview window, then a
 native Documents destination carrying the query.
@@ -53,7 +56,11 @@ under their native rules. Results recheck current access when opened. They do
 not carry stale project defaults into an unrelated task form.
 
 Typing, Refresh and company changes request current values. Clearing the query
-invalidates pending responses. Pagination does not require loading every match
+aborts superseded browser requests as well as invalidating late responses. At
+most two local search batches and one document request belong to the current
+Home query; Projects has one task lookup and one project lookup. Aborting the
+browser request does not promise cancellation of a query already executing on
+the server. Pagination does not require loading every match
 at once. Keyboard users can select a Home result with the arrow keys and open
 it with Enter; native Projects suggestion navigation remains available. The
 search input does not automatically claim focus on mobile.
@@ -75,3 +82,25 @@ clear stays empty across Forward and Back. Ordinary result navigation and native
 breadcrumbs are qualified separately. Explicit hard reload or leaving the app for
 another document is a separate native startup boundary; no custom persistent
 storage is introduced here.
+
+## Query and memory bounds
+
+Task pages keep authorized activity matching inside the database rather than
+loading every matching activity ID into application memory before applying the
+task page limit. Repeated property predicates are combined only when their
+expressions are identical, and remain constrained to the exact readable schema
+owners. Different selection meanings, field permissions and selected companies
+retain their own boundaries. This adds no cross-user cache or persistent index.
+
+Search still evaluates live readable fields and discovers the readable property
+schemas. Distinct schemas and large related-label populations still have a cost;
+this change does not impose a result cutoff that silently drops matches. The
+regressions measure native database fetch cardinality and statement growth, plus
+partial results and cancellation through the native browser request API.
+
+Task content searches also avoid PostgreSQL JIT compilation while their native
+page, count, grouped or Pivot query executes. Broad readable-field predicates can spend
+more time and memory compiling than executing. The setting is local to that
+execution and restored afterward; ordinary Task searches keep their existing
+planner settings. This does not change matching, ordering, page sizes or counts.
+Database errors retain the caller's normal rollback requirements.

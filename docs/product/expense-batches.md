@@ -52,6 +52,18 @@ is returned by the same transaction. Native batch removal and its context
 restoration participate in that transaction, so a later validation failure
 leaves the original batch and evidence intact.
 
+The reply keeps `result` and `expense` and adds `financial_comparison.before`
+and `financial_comparison.after`. Both snapshots come from the same locked
+transaction: before includes the original batch context, and after includes
+native removal/restoration, explicit clears and recomputation. Relation values
+use native read conventions (an ID/name pair or `false`; taxes are ID lists).
+`total_amount_currency`, `untaxed_amount_currency` and `tax_amount_currency`
+use `currency_id`. `total_amount`, `untaxed_amount` and `tax_amount` use
+`company_currency_id`, including for foreign-currency expenses. The company
+association is explicit because native `untaxed_amount` field metadata names
+the document currency even though its computation uses company currency. No
+companion read or tax calculation constructs this receipt.
+
 Submitted, approved, posted, paid or already-accounted expenses are refused.
 Ordinary label edits keep their normal access requirements, including when an
 unchanged supplier bill exists. Split-family ownership needs a coordinated

@@ -96,6 +96,7 @@ RUN --mount=type=bind,from=python-dependencies,source=/opt/wheels,target=/opt/wh
 
 COPY --link --chown=1000:1000 debian/odoo.conf /etc/odoo/upstream-odoo.conf
 COPY --link --chown=1000:1000 docker/odoo.conf.template /etc/odoo/odoo.conf.template
+COPY --link --chown=1000:1000 docker/pre_upgrade.py /opt/usl/pre_upgrade.py
 COPY --link --chown=1000:1000 --chmod=755 docker/entrypoint.sh /usr/local/bin/odoo-entrypoint
 
 EXPOSE 8069 8072

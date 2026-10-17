@@ -90,11 +90,22 @@ class TestChart(TestMaterialise):
 
     # -- one rate per product ----------------------------------------------
 
+    def _service(self, name, tax):
+        """Return a service sold for itself, which is what states a services rate."""
+        return self.env["product.template"].create(
+            {
+                "name": name,
+                "type": "service",
+                "taxes_id": [(6, 0, tax.ids)],
+                "property_account_income_id": self.income.id,
+            },
+        )
+
     def test_a_product_ends_up_charged_one_rate(self):
         services = self._tax("Invented 20% FR services", 20, self.france)
         # The rule tells the two apart by what already carries each, so the
-        # services rate must be what a service carries.
-        self.carriage.taxes_id = [(6, 0, services.ids)]
+        # services rate must be what a service sold for itself carries.
+        self._service("Invented engraving", services)
         template = self._product("Invented double-taxed").product_tmpl_id
         template.write(
             {
@@ -121,6 +132,58 @@ class TestChart(TestMaterialise):
         self.company._usl_b2c_settle_product_taxes()
 
         self.assertEqual(template.taxes_id, stated, "a guess was made")
+
+    # -- carriage follows the goods ------------------------------------------
+
+    def test_carriage_on_the_goods_rate_does_not_hide_the_goods_rate(self):
+        """Carriage is a service, and it is charged at the rate of the goods.
+
+        Counted as evidence of the services rate, it made the goods rate look
+        like one too, and then no rate was left for goods at all.
+        """
+        services = self._tax("Invented 20% FR services", 20, self.france)
+        self._service("Invented engraving", services)
+        self.assertEqual(
+            self.carriage.taxes_id.filtered(lambda tax: tax.company_id == self.company),
+            self.home_tax,
+            "the defect is not set up",
+        )
+
+        self.assertEqual(self.company._usl_b2c_standard_sale_tax(is_service=False), self.home_tax)
+        self.assertEqual(self.company._usl_b2c_standard_sale_tax(is_service=True), services)
+
+    def test_settling_the_catalog_leaves_carriage_on_the_goods_rate(self):
+        services = self._tax("Invented 20% FR services", 20, self.france)
+        self._service("Invented engraving", services)
+        carriage = self.carriage.product_tmpl_id
+        carriage.write(
+            {
+                "b2c_catalog_classification": "operational",
+                "taxes_id": [(6, 0, (self.home_tax | services).ids)],
+            },
+        )
+
+        self.company._usl_b2c_settle_product_taxes()
+
+        self.assertEqual(carriage.taxes_id, self.home_tax)
+
+    def test_settling_a_finding_leaves_carriage_on_the_goods_rate(self):
+        services = self._tax("Invented 20% FR services", 20, self.france)
+        self._service("Invented engraving", services)
+        self.carriage.taxes_id = [(6, 0, (self.home_tax | services).ids)]
+        batch = self._batch()
+        self.env["b2c.import.issue"].create(
+            {
+                "batch_id": batch.id,
+                "kind": "product_tax_unclear",
+                "name": "Invented carriage carries two sales taxes",
+                "proposal": {"product_id": self.carriage.id},
+            },
+        )
+
+        batch.action_settle_product_taxes()
+
+        self.assertEqual(self.carriage.taxes_id, self.home_tax)
 
     # -- where revenue goes ------------------------------------------------
 

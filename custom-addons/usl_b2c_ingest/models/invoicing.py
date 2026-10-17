@@ -12,8 +12,8 @@ what it is — an advance on the customer's account — and becomes an invoice i
 the drop that says the goods went out.
 """
 
-from odoo import Command, fields, models
-from odoo.exceptions import UserError
+from odoo import Command, api, fields, models
+from odoo.exceptions import UserError, ValidationError
 
 from odoo.addons.usl_b2c_ingest.models.readiness import BLOCKS_INVOICING
 
@@ -29,10 +29,44 @@ class B2cChannelClearing(models.Model):
         help="Where this channel's receipts are held until it pays them out, one "
              "per currency it collects in.",
     )
+    settlement_currency_id = fields.Many2one(
+        "res.currency",
+        string="Settles in",
+        ondelete="restrict",
+        help="The currency whoever collects for this channel pays out in, when it "
+             "converts every sale into it. Receipts in any other currency are "
+             "then held in this currency's clearing journal, and the processor's "
+             "statement says what each one became. Leave it empty for a channel "
+             "that holds each currency apart.",
+    )
+
+    @api.constrains("settlement_currency_id", "company_id")
+    def _check_settlement_currency(self):
+        for channel in self:
+            settles = channel.settlement_currency_id
+            if settles and settles != channel.company_id.currency_id:
+                raise ValidationError(
+                    channel.env._(
+                        "%(channel)s can settle in %(company)s's own currency or "
+                        "in none: what a conversion gained or lost is only known "
+                        "in the currency the books are kept in.",
+                        channel=channel.display_name,
+                        company=channel.company_id.display_name,
+                    ),
+                )
 
     def clearing_journal(self, currency):
-        """Return where receipts in one currency are held for this channel."""
+        """Return where receipts in one currency are held for this channel.
+
+        A channel whose collector converts every sale holds every currency in
+        the one it settles in.  Holding a dollar sale apart would leave it in
+        an account no fee and no payout ever reaches, because both arrive
+        already converted.
+        """
         self.ensure_one()
+        settles = self.settlement_currency_id
+        if settles and currency != settles:
+            return self.clearing_journal(settles)
         exact = self.clearing_journal_ids.filtered(
             lambda journal, c=currency: journal.currency_id == c,
         )
@@ -62,6 +96,10 @@ class B2cImportBatchInvoicing(models.Model):
         Every order this drop names is considered, not only the ones it added:
         an order paid in an earlier drop and shipped in this one becomes an
         invoice here, which is the whole point of dropping the later export.
+
+        An order that is history is passed over whole.  Its revenue is booked
+        by summary entries, so an invoice, or an advance held against the
+        customer, would state it a second time.
         """
         for batch in self:
             if batch.state != "applied":
@@ -72,6 +110,8 @@ class B2cImportBatchInvoicing(models.Model):
             for order, row in batch._stated_orders().items():
                 sale = order.sale_order_id
                 if not sale or sale.state == "cancel":
+                    continue
+                if sale.usl_historical_b2c:
                     continue
                 if batch._shipped_on(row):
                     posted |= batch._invoice_sale(sale)

@@ -34,6 +34,7 @@ ISSUE_KINDS = [
     ("retired_rate", "A fiscal position states a retired rate"),
     ("cancelled_after_delivery", "A cancelled order has already shipped"),
     ("part_refund_unallocated", "Part of an order was refunded, without saying which part"),
+    ("historical_refund_unbooked", "An order booked by summary entries was given back"),
     ("wallet_overdrawn", "The supplier drew more than the wallet holds"),
     ("fee_source_missing", "A channel's own account of what it kept is all there is"),
     ("payout_unattributed", "A payout left an account nothing names"),
@@ -44,6 +45,8 @@ ISSUE_KINDS = [
     ("transfer_period_closed", "A month the books are closed to, for a movement"),
     ("fee_source_conflict", "Two parties state what one channel kept"),
     ("transfer_already_posted", "A movement the ledger already shows"),
+    ("processor_charge_unmatched", "A converted payment matches no receipt"),
+    ("conversion_period_closed", "A month the books are closed to, for a conversion"),
 ]
 
 

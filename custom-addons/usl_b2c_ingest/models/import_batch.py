@@ -178,11 +178,12 @@ class B2cImportBatch(models.Model):
     def action_settle(self):
         """Do everything that follows applying, in the order it has to happen.
 
-        Five separate runs, each safe to repeat, and each meaningless before
+        Six separate runs, each safe to repeat, and each meaningless before
         the one in front of it: what an export says became of an order decides
         whether there is an invoice to write, an invoice decides what is left
-        in the clearing account, and only then can what the channel kept and
-        what the supplier drew leave it.  An operator should not have to hold
+        in the clearing account, a receipt the processor converted has to be
+        restated at what it became, and only then can what the channel kept
+        and what the supplier drew leave it.  An operator should not have to hold
         that order in their head, so this holds it for them — and each run
         stays on its own button for whoever needs one of them alone.
         """
@@ -191,6 +192,7 @@ class B2cImportBatch(models.Model):
                 raise UserError(batch.env._("Apply the drop before settling it."))
             batch.action_reconcile()
             batch.action_invoice()
+            batch.action_convert_receipts()
             batch.action_bill_fees()
             batch.action_settle_wallet()
             batch.action_post_transfers()
@@ -609,6 +611,15 @@ class B2cImportBatch(models.Model):
                 self.env._(
                     "%(count)s order(s) are stated cancelled or refunded.",
                     count=len(reversed_orders),
+                ),
+            )
+        history = self._historical_sales()
+        if history:
+            lines.append(
+                self.env._(
+                    "%(count)s order(s) are history, booked by summary entries, so "
+                    "none is invoiced or held as an advance.",
+                    count=len(history),
                 ),
             )
         if self.advance_payment_ids:

@@ -29,6 +29,24 @@ class ComponentBuildTests(unittest.TestCase):
                 self.assertIn("!" + path, ignores)
                 self.assertIn("COPY " + path + " /opt/usl/" + path, dockerfile)
 
+    def test_mail_pre_upgrade_hook_is_packaged_configured_and_hashed(self):
+        root = Path(__file__).resolve().parents[2]
+        files = set(component_files(COMPONENTS["distribution"]))
+        self.assertIn("docker/pre_upgrade.py", files)
+        self.assertIn("!docker/pre_upgrade.py", (root / "Dockerfile.dockerignore").read_text().splitlines())
+        self.assertIn("COPY --link --chown=1000:1000 docker/pre_upgrade.py /opt/usl/pre_upgrade.py", (root / "Dockerfile").read_text())
+        self.assertIn("pre_upgrade_scripts = /opt/usl/pre_upgrade.py", (root / "docker/odoo.conf.template").read_text().splitlines())
+
+    def test_mail_pre_upgrade_changes_distribution_identity(self):
+        root = self.create_repository()
+        (root / "docker").mkdir()
+        hook = root / "docker/pre_upgrade.py"
+        hook.write_text("def migrate(cr, version): pass\n")
+        subprocess.run(("git", "add", "docker/pre_upgrade.py"), cwd=root, check=True)
+        before = component_digest(COMPONENTS["distribution"], root)
+        hook.write_text("def migrate(cr, version): raise RuntimeError('fixture')\n")
+        self.assertNotEqual(component_digest(COMPONENTS["distribution"], root), before)
+
     def create_repository(self) -> Path:
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)

@@ -63,7 +63,7 @@ less the VAT.
    finding stopping only the step it would spoil.
 6. **Apply.** Contacts, canonical orders, sales orders priced at what was
    actually paid, and deliveries completed on the day the goods left.
-7. **Settle the drop.** The five runs that follow, in the order they have to
+7. **Settle the drop.** The six runs that follow, in the order they have to
    happen. Each is on its own button as well, for whoever needs one alone, and
    each is safe to run again:
    1. **Reconcile** what these exports now say became of the orders they name:
@@ -73,10 +73,14 @@ less the VAT.
       sale, settled into the channel's clearing account. An order paid and not
       yet shipped is held instead, and becomes an invoice in the drop that says
       it shipped.
-   3. **Bill what was kept** — one document per party, per month, per currency.
-   4. **Settle the supply** — one document per month for what the supplier drew
+   3. **Convert receipts** — for a channel that settles in one currency, each
+      payment the processor converted is restated at what it became, and the
+      difference is posted as an exchange gain or loss. See *A sale in another
+      currency* below.
+   4. **Bill what was kept** — one document per party, per month, per currency.
+   5. **Settle the supply** — one document per month for what the supplier drew
       on its wallet, paid out of the wallet itself.
-   5. **Post what moved to the bank** — one entry per payout and per top-up.
+   6. **Post what moved to the bank** — one entry per payout and per top-up.
 
 What is left is the bank. Four kinds of line, each meeting one entry: supplier
 bills, Printful top-ups, Etsy payouts and Stripe payouts. A payout entry exists
@@ -129,6 +133,60 @@ the invoice against the advance already held. Nothing is collected twice, and
 at closing the credit balances are what the customer-advances account is
 presented from.
 
+## A sale in another currency
+
+Medusa sells in euros, dollars and pounds; Stripe settles every one of them in
+euros. Its fees and its payouts arrive in euros too, so a dollar receipt held in
+a dollar journal would wait there for ever: nothing that empties a clearing
+account is ever stated in dollars.
+
+A channel naming **Settles in** therefore holds every currency in that one's
+clearing journal. The receipt is still in the currency the customer paid — the
+invoice, the advance and the credit note reconcile in dollars, and any exchange
+difference between them is Odoo's own, on the receivable — but it sits in the
+euro clearing account at Odoo's rate for the day.
+
+Stripe converted it at its own rate. Its balance history states both figures:
+`Amount` is what reached the balance in euros, and the `Customer Facing Amount`
+and `Customer Facing Currency` columns are what the customer was charged.
+**Convert receipts** finds the receipt each converted payment answers — a
+payment in the settlement journal, in the customer's currency, for exactly what
+they paid, within ten days of the charge, paired in date order — and posts one
+entry moving the difference between clearing and `656000` (a loss) or `756000`
+(a gain). With fees and payouts, that brings the clearing account back to
+nothing.
+
+A refund is matched the same way, against the payment that gave the money
+back, with one difference: that payment is dated the day it was registered, not
+the day Stripe refunded. The drop that states a refund registers it the day the
+drop is settled, which can be weeks later, so a refund's payment is looked for
+from ten days before Stripe's date onwards, with no upper limit. The conversion
+is posted on the later of the two dates, the day both halves are in the ledger.
+
+**A part refund of a sale in another currency is registered by hand.** The
+drop drafts the credit note and says how much was given back. Trim the credit
+note to what was refunded, post it, and register its payment in the Stripe
+journal (`STRP`) **in the customer's currency**, for exactly what Stripe gave
+back to the customer, dated the day Stripe refunded it. The next drop that
+carries the statement converts it like any other refund.
+
+Every applied Stripe statement in the company is read, not only the drop in
+hand, so the order export and the statement can arrive in either order: a
+payment converted before its receipt exists is converted by whichever drop
+brings the second of the two. Until then it is reported as matching no receipt,
+and once a later drop converts it the finding is withdrawn from the drop that
+raised it as well. The finding says what to do, and that differs: for a charge,
+drop the order export that states the sale; for a refund, drop the order export
+that states the refund, or register the refund by hand as above. A payment in a
+month the books are closed to is reported and not posted. Each payment is
+converted once, and a conversion record cannot be deleted from the interface;
+settling again changes nothing, and neither does losing the record, because the
+posted entry is recognised by its reference.
+
+A channel that leaves **Settles in** empty keeps today's behaviour: a currency
+it names no clearing journal for is refused, and one it does name is held
+there. Etsy and the Revolut pockets work that way.
+
 ## Configuration this depends on
 
 Per channel (**B2C → Configuration → Channels**):
@@ -138,6 +196,10 @@ Per channel (**B2C → Configuration → Channels**):
   this product's income account is where it goes.
 - **Clearing journals** — one per currency the channel collects in, each
   posting its payments to that channel's clearing account.
+- **Settles in** — for a channel whose processor converts every sale into the
+  company's currency, that currency. Every receipt is then held in its clearing
+  journal, and *Convert receipts* posts what each conversion gained or lost.
+  It can only be the company's own currency, or empty.
 - **Channel operator** and **Commission product** — who bills the commission
   and what it is bought as.
 - **Payment processor**, **Processor** and **Processing product** — for a shop
@@ -201,15 +263,18 @@ all, so they cannot be selected as a clearing journal, and no payment can be
 registered in one.
 
 Odoo allows the type to be changed and computes the payment methods when it is.
-Convert the three that hold an account, and add one per further currency:
+Convert the three that hold an account:
 
 | Journal | Type becomes | Default account | Journal currency |
 | --- | --- | --- | --- |
 | Etsy (`ETSY`) | Bank | `511210 Etsy Clearing EUR` | — |
 | Stripe (`STRP`) | Bank | `511220 Stripe Clearing EUR` | — |
 | Printful Wallet (`PFW`) | Bank | `409110 Printful Wallet EUR` | — |
-| *new* Stripe Clearing GBP | Bank | `511221` | GBP |
-| *new* Stripe Clearing USD | Bank | `511222` | USD |
+
+Stripe needs no journal per currency. Set **Settles in** to EUR on the Medusa
+channel instead: dollar and pound receipts are then held in `STRP`, and the
+conversion to Stripe's own figure goes to `656000` or `756000`. Both accounts
+must exist in the company's chart; the conversion refuses to post without them.
 
 Medusa (`MEDU`) stays Miscellaneous: it is where the payout and top-up entries
 are written. A shop of one's own holds no money of its own, so it needs no
@@ -252,7 +317,7 @@ period stays as filed, and it costs nothing to set.
 | Account | Filled by | Emptied by |
 | --- | --- | --- |
 | Etsy clearing | Each invoice, settled to the channel | The commission bill, then the payout entry |
-| Stripe clearing | Each Medusa invoice | Stripe's own charge, then the payout entry |
+| Stripe clearing | Each Medusa invoice, in whatever currency it was paid | The conversion to Stripe's own figure, Stripe's own charge, then the payout entry |
 | Printful wallet | Each top-up entry | The monthly supply document |
 | Bank suspense | Payouts and top-ups waiting | The bank statement line, matched by hand |
 
@@ -280,6 +345,17 @@ what it changed:
 | Give each catalog product one rate | The chart tells a goods rate from a services rate. Where two rates are stated at the same amount and nothing says which is which, the choice is a person's. |
 | Name where each category's revenue goes | The category names no account yet. One that does has been decided. |
 | Reverse-charge the operator's commission | The operator is in another Member State, no position requiring a tax number answers for it, and none has been set by hand. |
+
+Carriage is a service in Odoo but is charged at the rate of the goods it
+carries. A channel's carriage, commission and processing products are therefore
+never read as evidence of the services rate, and settling a product's tax gives
+the carriage the goods rate.
+
+Odoo's **OSS Tax mapping** button (Settings → Accounting) recreates every One
+Stop Shop tax a destination position no longer maps — named "(Copy)" when the
+name is taken — and states it outside the price. A rate retired by hand can come
+back that way, so press **Correct the chart** again after using it, and check
+that the position states one rate per destination.
 
 What it deliberately does **not** do is create master data or choose records for
 you — which product is the carriage, which partner is the marketplace, which

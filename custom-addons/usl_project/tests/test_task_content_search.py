@@ -241,3 +241,218 @@ class TestTaskContentSearch(TransactionCase):
         task = self._task(user_ids=[Command.link(self.actor.id), Command.link(other.id)], description="<p>Vermilion heliograph instructions</p>")
         self.assertFalse(other.with_user(self.actor).has_access("read"))
         self.assertEqual(self._matches("Vermilion heliograph"), task)
+
+    def test_bounded_task_page_does_not_fetch_every_matching_activity(self):
+        task = self._task()
+        self.env['mail.activity'].create([{
+            'res_model_id': self.env['ir.model']._get_id('project.task'),
+            'res_id': task.id, 'user_id': self.actor.id,
+            'activity_type_id': self.env.ref('mail.mail_activity_data_todo').id,
+            'summary': 'Bounded amber activity evidence',
+        } for _index in range(120)])
+        self.env.flush_all()
+        # Warm model metadata; observe real database fetches, without replacing
+        # the query or result. A one-record page must not first fetch 120 matches.
+        self._matches('metadata warmup with no matches')
+        batches = []
+        fetchall = self.env.cr.fetchall
+
+        def observe():
+            rows = fetchall()
+            batches.append(len(rows))
+            return rows
+
+        with patch.object(self.env.cr, 'fetchall', observe):
+            actual = self.env['project.task'].with_user(self.actor).search([
+                ('usl_search_text', 'ilike', 'Bounded amber activity evidence'),
+            ], limit=1)
+        self.assertEqual(actual, task)
+        self.assertLess(max(batches, default=0), 120,
+                        'A bounded task page fetched the complete activity population')
+
+    def test_shared_property_schema_does_not_repeat_the_database_predicate(self):
+        from ..models.content_search import readable_content_domain
+        Task = self.env['project.task'].with_user(self.actor)
+        definition = [{'name': f'qa_shared_{i}', 'string': f'QA shared {i}', 'type': 'char'}
+                      for i in range(8)]
+        self.project.task_properties_definition = definition
+        first = self._task(task_properties=[{'name': 'qa_shared_0', 'value': 'Bounded violet evidence'}])
+        self.env.flush_all()
+
+        def search_statement():
+            # This is the actual native SELECT passed to PostgreSQL, including
+            # current access rules, not a comparison of domain implementation.
+            query = Task._search(readable_content_domain(Task, 'Bounded violet evidence'), limit=5)
+            sql = query.select()
+            self.env.execute_query(sql)
+            return len(sql._sql_tuple[0])
+
+        initial = search_statement()
+        projects = self.env['project.project'].create([{
+            'name': f'[QA Search] Shared schema {i}',
+            'company_id': self.env.company.id,
+            'task_properties_definition': definition,
+        } for i in range(30)])
+        self.env['project.task'].create([{
+            'name': '[QA Search] Shared schema task', 'project_id': project.id,
+            'user_ids': [Command.link(self.actor.id)],
+            'task_properties': [{'name': 'qa_shared_0', 'value': 'Bounded violet evidence'}],
+        } for project in projects])
+        self.env.flush_all()
+        self.assertLess(search_statement() - initial, 4096,
+                        'Identical property schemas expanded the SQL once per project')
+        self.assertIn(first, self._matches('Bounded violet evidence'))
+
+    def test_shared_property_keys_keep_each_owners_selection_meaning(self):
+        self.project.task_properties_definition = [{
+            'name': 'qa_shared_choice', 'string': 'Topic', 'type': 'selection',
+            'selection': [['same_key', 'Amber permission evidence']],
+        }]
+        public = self._task(task_properties=[{'name': 'qa_shared_choice', 'value': 'same_key'}])
+        other = self.env['project.project'].create({
+            'name': '[QA Search] Different schema meaning', 'company_id': self.env.company.id,
+            'task_properties_definition': [{
+                'name': 'qa_shared_choice', 'string': 'Topic', 'type': 'selection',
+                'selection': [['same_key', 'Violet alternative']],
+            }],
+        })
+        self._task(project_id=other.id, task_properties=[{'name': 'qa_shared_choice', 'value': 'same_key'}])
+        self.assertEqual(self._matches('Amber permission evidence'), public)
+
+    def test_content_execution_disables_jit_and_restores_native_setting(self):
+        """Observe the setting at real Task SQL, including count and grouping."""
+        from odoo.fields import Domain
+
+        task = self._task(description='Amber execution boundary')
+        self.env.flush_all()
+        self.env.cr.execute("SELECT set_config('jit', 'on', true)")
+        execute = self.env.cr.execute
+        settings = []
+        expected = ["off"]
+
+        def observe(query, *args, **kwargs):
+            text = query._sql_tuple[0] if hasattr(query, '_sql_tuple') else query
+            if isinstance(text, str) and text.lstrip().startswith('SELECT') and 'project_task' in text:
+                execute('SHOW jit')
+                settings.append(self.env.cr.fetchone()[0])
+                self.assertEqual(settings[-1], expected[0], 'Task SQL must execute with the scoped planner setting')
+            return execute(query, *args, **kwargs)
+
+        Task = self.env['project.task'].with_user(self.actor)
+        content = Domain('usl_search_text', 'ilike', 'Amber execution boundary')
+        domains = [content, ~~content, content & Domain('id', '=', task.id),
+                   ~Domain('usl_search_text', 'not ilike', 'Amber execution boundary')]
+        with patch.object(self.env.cr, 'execute', observe):
+            for domain in domains:
+                self.assertEqual(Task.search_fetch(domain, ['name'], limit=1), task)
+                self.assertEqual(Task.search_count(domain), 1)
+                self.assertEqual(Task._read_group(domain, aggregates=['__count']), [(1,)])
+                execute('SHOW jit')
+                self.assertEqual(self.env.cr.fetchone()[0], 'on')
+        self.assertTrue(settings)
+        self.assertEqual(set(settings), {'off'})
+        settings.clear()
+        expected[0] = "on"
+        with patch.object(self.env.cr, 'execute', observe):
+            Task.search_fetch([('id', '=', task.id)], ['name'])
+        self.assertEqual(set(settings), {'on'})
+        self.env.cr.execute("SELECT set_config('jit', 'off', true)")
+        self.assertEqual(Task.search_count(content), 1)
+        self.env.cr.execute('SHOW jit')
+        self.assertEqual(self.env.cr.fetchone()[0], 'off')
+
+    def test_native_pivot_content_execution_and_nested_schema_scope(self):
+        task = self._task(description='Amber pivot boundary')
+        self.env.flush_all()
+        cr = self.env.cr
+        cr.execute("SELECT set_config('jit', 'on', true)")
+        execute = cr.execute
+        grouping_settings = []
+        schema_settings = []
+
+        def observe(query, *args, **kwargs):
+            text = query._sql_tuple[0] if hasattr(query, '_sql_tuple') else query
+            if isinstance(text, str) and text.lstrip().startswith('SELECT') and 'project_task' in text:
+                execute('SHOW jit')
+                setting = cr.fetchone()[0]
+                # Stop before executing unsafe SQL on a causal reversion.
+                if 'GROUPING SETS' in text:
+                    self.assertEqual(setting, 'off')
+                    grouping_settings.append(setting)
+                elif 'GROUP BY' in text:
+                    schema_settings.append(setting)
+            return execute(query, *args, **kwargs)
+
+        Task = self.env['project.task'].with_user(self.actor)
+        domain = [('usl_search_text', 'ilike', 'Amber pivot boundary')]
+        with patch.object(cr, 'execute', observe):
+            groups = Task.formatted_read_grouping_sets(domain, [[], ['project_id']], ['__count'])
+        self.assertEqual(groups[0][0]['__count'], 1)
+        self.assertEqual(len(groups[1]), 1)
+        self.assertEqual(groups[1][0]['__count'], 1)
+        self.assertEqual(groups[1][0]['project_id'][0], task.project_id.id)
+        self.assertTrue(grouping_settings, 'Exercise the actual native Pivot GROUPING SETS query')
+        self.assertTrue(schema_settings, 'Schema aggregation must stay inside the outer off scope')
+        self.assertEqual(set(schema_settings), {'off'})
+        cr.execute('SHOW jit')
+        self.assertEqual(cr.fetchone()[0], 'on')
+
+    def test_content_execution_transaction_and_exception_boundaries(self):
+        import psycopg2
+        from odoo.addons.usl_project.models.content_search import task_content_execution
+
+        content = [('usl_search_text', 'ilike', 'Amber')]
+        cr = self.env.cr
+        Task = self.env['project.task']
+        cr.execute("SELECT set_config('jit', 'on', true)")
+        with self.assertRaisesRegex(ValueError, 'healthy failure'):
+            with task_content_execution(Task, content):
+                with task_content_execution(Task, content):
+                    cr.execute('SHOW jit')
+                    self.assertEqual(cr.fetchone()[0], 'off')
+                raise ValueError('healthy failure')
+        cr.execute('SHOW jit')
+        self.assertEqual(cr.fetchone()[0], 'on')
+        # The caller owns rollback: the original SQL exception survives, and
+        # rollback to its savepoint restores settings along with database state.
+        with self.assertRaises(psycopg2.errors.DivisionByZero):
+            with cr.savepoint():
+                with task_content_execution(Task, content):
+                    cr.execute('SELECT 1 / 0')
+        cr.execute('SHOW jit')
+        self.assertEqual(cr.fetchone()[0], 'on')
+        for domain in ([], [('name', 'ilike', 'Amber')]):
+            with task_content_execution(Task, domain):
+                cr.execute('SHOW jit')
+                self.assertEqual(cr.fetchone()[0], 'on')
+
+    def test_content_execution_preserves_pending_orm_write(self):
+        task = self._task(description='Earlier pending value')
+        self.env.flush_all()
+        task.description = 'Amber pending flush'
+        self.assertEqual(self._matches('Amber pending flush'), task)
+        self.env.cr.execute('SELECT description FROM project_task WHERE id = %s', (task.id,))
+        self.assertIn('Amber pending flush', self.env.cr.fetchone()[0])
+
+    def test_content_execution_readonly_and_ended_transaction(self):
+        from odoo import api, SUPERUSER_ID
+        from odoo.addons.usl_project.models.content_search import task_content_execution
+
+        domain = [('usl_search_text', 'ilike', '')]
+        # An independent cursor avoids committing or closing the test's own
+        # transaction. Local planner settings are legal on a readonly cursor.
+        for readonly in (False, True):
+            with self.registry.cursor(readonly=readonly) as cr:
+                model = api.Environment(cr, SUPERUSER_ID, {})['project.task']
+                cr.execute("SELECT set_config('jit', 'on', true)")
+                with task_content_execution(model, domain):
+                    cr.execute('SHOW jit')
+                    self.assertEqual(cr.fetchone()[0], 'off')
+                cr.execute('SHOW jit')
+                self.assertEqual(cr.fetchone()[0], 'on')
+                with task_content_execution(model, domain):
+                    cr.rollback()
+                cr.execute('SHOW jit')
+                self.assertEqual(cr.fetchone()[0], 'on')
+                with task_content_execution(model, domain):
+                    cr.close()

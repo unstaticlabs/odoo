@@ -24,6 +24,15 @@ RESULT_FIELDS = [
 ]
 
 
+FINANCIAL_COMPARISON_FIELDS = [
+    "id", "state", "company_id", "employee_id", "date", "currency_id", "company_currency_id",
+    "product_id", "account_id", "tax_ids", "analytic_distribution", "quantity", "price_unit",
+    "payment_mode", "expense_batch_id", "vendor_id", "existing_bill_id", "has_existing_bill",
+    "total_amount_currency", "untaxed_amount_currency", "tax_amount_currency",
+    "total_amount", "untaxed_amount", "tax_amount",
+]
+
+
 class HrExpense(models.Model):
     _inherit = "hr.expense"
 
@@ -115,6 +124,7 @@ class HrExpense(models.Model):
             self.check_access("write")
             if self.state != "draft" or self.account_move_id:
                 raise UserError(_("Only draft expenses without a journal entry can be corrected."))
+            before = self.read(FINANCIAL_COMPARISON_FIELDS)[0]
             company = self.env["res.company"].browse(values.get("company_id", self.company_id.id)).exists()
             if not company or company not in self.env.companies or company not in self.env.user.company_ids:
                 raise AccessError(_("Select an authorized target company in your company context."))
@@ -198,4 +208,11 @@ class HrExpense(models.Model):
             target.check_access("read")
             if previous_company != company:
                 target.message_post(body=_("Draft expense company corrected from %(source)s to %(target)s.", source=previous_company.display_name, target=company.display_name), subtype_xmlid="mail.mt_note")
-            return {"result": True, "expense": target.read(RESULT_FIELDS)[0]}
+            return {
+                "result": True,
+                "expense": target.read(RESULT_FIELDS)[0],
+                "financial_comparison": {
+                    "before": before,
+                    "after": target.read(FINANCIAL_COMPARISON_FIELDS)[0],
+                },
+            }

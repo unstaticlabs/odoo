@@ -172,3 +172,15 @@ also applies. Read-only access does not permit either action.
 Expense draft creation and reset retain native approval-activity cleanup within
 the authorized expense workflow. This does not grant general activity deletion
 or bypass native expense, company or Accounting checks.
+
+
+Agents are collaborators acting with their delegated human access. Writable
+Agents use the same native expense capabilities and business rules as humans
+with equivalent permissions, including generic field writes and native
+workflows. Existing delegation, read-only application access and irreversible
+action controls still apply.
+
+Expense correction adds precise context for decisions: the same transaction
+returns the original and final financial values, with native tax totals and
+explicit document and company currencies. This context helps an Agent explain
+and check its work without adding Agent-specific restrictions.
