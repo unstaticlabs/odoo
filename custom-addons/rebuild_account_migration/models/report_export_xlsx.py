@@ -502,37 +502,27 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         metadata_sheet.write(0, 0, self._report_type_label(), formats["title"])
         metadata_sheet.merge_range(0, 0, 0, 1, self._report_type_label(), formats["title"])
         provisional = metadata["provisional"]
-        row_idx = 2
+        metadata_rows = []
         for key, value in metadata.items():
             if key == "provisional":
                 # A readable status, not the raw JSON the CSV carries.
-                metadata_sheet.write(row_idx, 0, "Statut", formats["metadata_key"])
-                metadata_sheet.write(
-                    row_idx,
-                    1,
+                metadata_rows.append((
+                    "Statut",
                     "Provisoire" if provisional["required"] else "Définitif",
-                    formats["metadata_value"],
-                )
-                row_idx += 1
+                ))
                 if provisional["required"]:
-                    metadata_sheet.write(
-                        row_idx, 0, "Motifs", formats["metadata_key"],
+                    metadata_rows.append(
+                        ("Motifs", "\n".join(provisional["reasons"])),
                     )
-                    metadata_sheet.write(
-                        row_idx,
-                        1,
-                        "\n".join(provisional["reasons"]),
-                        formats["metadata_value"],
-                    )
-                    row_idx += 1
                 continue
-            metadata_sheet.write(row_idx, 0, key.replace("_", " ").title(), formats["metadata_key"])
-            display_value = self._export_metadata_display_value(
-                key,
-                value,
-            )
-            metadata_sheet.write(row_idx, 1, "" if display_value is None else str(display_value), formats["metadata_value"])
-            row_idx += 1
+            display_value = self._export_metadata_display_value(key, value)
+            metadata_rows.append((
+                key.replace("_", " ").title(),
+                "" if display_value is None else str(display_value),
+            ))
+        for row_idx, (label, text) in enumerate(metadata_rows, start=2):
+            metadata_sheet.write(row_idx, 0, label, formats["metadata_key"])
+            metadata_sheet.write(row_idx, 1, text, formats["metadata_value"])
         metadata_sheet.set_column(0, 0, 28)
         metadata_sheet.set_column(1, 1, 88)
         metadata_sheet.set_landscape()
@@ -577,7 +567,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         else:
             report_sheet.write(0, 0, self._report_type_label(), formats["title"])
             if provisional_banner:
-                report_sheet.write(1, 0, provisional_banner, formats["provisional"])
+                report_sheet.write_string(1, 0, provisional_banner, formats["provisional"])
             report_sheet.write(subtitle_row, 0, subtitle, formats["subtitle"])
         report_sheet.set_row(0, 26)
         if provisional_banner:
