@@ -3636,7 +3636,8 @@
             "kind": "model_operation",
             "model": "account.reconcile.model",
             "operation": "unlink"
-          }
+          },
+          "evidence_id": "bank-rule-native-proof-20261015"
         },
         "rpc:account.report.unlink": {
           "action_name": "permanently delete account.report",
@@ -3815,7 +3816,7 @@
         "rpc:account.move.unlink": "46fa6219bc643fe6b0291f5186c7aebca446101499a5b3378df4ef96ed02fbd3",
         "rpc:account.payment.term.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:account.payment.unlink": "f00ef9a3f36a3243e6d80e37db40d58dc1390c67d3e0e1a3e142579f49df7696",
-        "rpc:account.reconcile.model.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
+        "rpc:account.reconcile.model.unlink": "2b29f7c7f5248766555d678cfc478c97d0b1cbf744bc111949799f58741114d4",
         "rpc:account.report.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:account.tax.unlink": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
         "rpc:account_edi_proxy_client.user.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
@@ -76577,9 +76578,11 @@
           "reversal_action": "rpc:account.reconcile.abstract.write"
         },
         "rpc:account.reconcile.model.action_rebuild_analyze_rule_opportunities": {
+          "evidence_id": "bank-rule-native-proof-20261015",
           "reversal_action": "rpc:account.reconcile.model.write"
         },
         "rpc:account.reconcile.model.action_rebuild_approve_proposal": {
+          "evidence_id": "bank-rule-native-proof-20261015",
           "reversal_action": "rpc:account.reconcile.model.write"
         },
         "rpc:account.reconcile.model.action_rebuild_archive_rule": {
@@ -76589,12 +76592,14 @@
           "reversal_action": "rpc:account.reconcile.model.write"
         },
         "rpc:account.reconcile.model.copy": {
+          "evidence_id": "bank-rule-native-proof-20261015",
           "reversal_action": "rpc:account.reconcile.model.unlink"
         },
         "rpc:account.reconcile.model.copy_data": {
           "reversal_action": "rpc:account.reconcile.model.unlink"
         },
         "rpc:account.reconcile.model.create": {
+          "evidence_id": "bank-rule-native-proof-20261015",
           "reversal_action": "rpc:account.reconcile.model.unlink"
         },
         "rpc:account.reconcile.model.formatted_read_grouping_sets": {
@@ -76613,6 +76618,7 @@
           "reversal_action": "rpc:account.reconcile.model.line.unlink"
         },
         "rpc:account.reconcile.model.line.create": {
+          "evidence_id": "bank-rule-native-proof-20261015",
           "reversal_action": "rpc:account.reconcile.model.line.unlink"
         },
         "rpc:account.reconcile.model.line.formatted_read_grouping_sets": {
@@ -76635,6 +76641,7 @@
           "reversal_action": "rpc:account.reconcile.model.line.write"
         },
         "rpc:account.reconcile.model.line.unlink": {
+          "evidence_id": "bank-rule-native-proof-20261015",
           "reversal_action": "rpc:account.reconcile.model.line.create"
         },
         "rpc:account.reconcile.model.line.update_field_translations": {
@@ -76659,6 +76666,7 @@
           "reversal_action": "rpc:account.reconcile.model.line.write"
         },
         "rpc:account.reconcile.model.line.write": {
+          "evidence_id": "bank-rule-native-proof-20261015",
           "reversal_action": "rpc:account.reconcile.model.line.write"
         },
         "rpc:account.reconcile.model.mcp_revise_own_message": {
@@ -76744,6 +76752,7 @@
           "reversal_action": "rpc:account.reconcile.model.write"
         },
         "rpc:account.reconcile.model.write": {
+          "evidence_id": "bank-rule-native-proof-20261015",
           "reversal_action": "rpc:account.reconcile.model.write"
         },
         "rpc:account.report.column.copy": {
@@ -83918,26 +83927,26 @@
         "rpc:account.reconcile.abstract.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:account.reconcile.abstract.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:account.reconcile.abstract.write": "b0373b6633d99d657d81a9aca3ec6bb0ebad5e3e7b41420276488a6f1ce1c8f4",
-        "rpc:account.reconcile.model.action_rebuild_analyze_rule_opportunities": "bb4993a480a669dc7a23832f9dd7410514d7cfccaaa1760921de99b69d96d539",
-        "rpc:account.reconcile.model.action_rebuild_approve_proposal": "081ee0fd87fa71429222915d333515edab9eb9c2bbd31d443eb82e3ca3ec2f8c",
+        "rpc:account.reconcile.model.action_rebuild_analyze_rule_opportunities": "7b9e758922ec66918f034d6b4cfe1bfb8f7bf0edc787d609f64dd558bcc1c8cb",
+        "rpc:account.reconcile.model.action_rebuild_approve_proposal": "ff4530abf041489cdf2e3868c6e0588fc8f2a4de877240b400eff45da0641655",
         "rpc:account.reconcile.model.action_rebuild_archive_rule": "dbdf235661652299a79b1ac0b1c12111eedf167147e57647423c4870739bfda6",
         "rpc:account.reconcile.model.action_rebuild_dismiss_proposal": "aeecbd4e71916dd4d674022cd961a66356099ca1dced74f14bfe4c19e5b642dc",
-        "rpc:account.reconcile.model.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+        "rpc:account.reconcile.model.copy": "c601adb003329f4db92af497bda601036d23f6a481c27f88ce92469d1159203d",
         "rpc:account.reconcile.model.copy_data": "7d7f25b7d86fdb1015383be942f04bb6a644f79177c8b03d5cfd4942bb797076",
-        "rpc:account.reconcile.model.create": "0ebda5a92e41005057fefbf8dc7ebe162af4ff04fc623216befcb77d430e9ed5",
+        "rpc:account.reconcile.model.create": "e5e9d186d81cf0ba8191a2518bf58a99c5d14695847216978888631f21b00130",
         "rpc:account.reconcile.model.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:account.reconcile.model.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:account.reconcile.model.get_views": "b9c336cd83d7ad7897897eb2051f041dee2c0b88c6700048eb29dac3681cddb3",
         "rpc:account.reconcile.model.line.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:account.reconcile.model.line.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
-        "rpc:account.reconcile.model.line.create": "eacc72f4c235e67339afd910e48bd7dad835dd59e3fb9a444c89e3e3f54e1e27",
+        "rpc:account.reconcile.model.line.create": "7d59a278281e8c2b6be0737d8ed8629afffd2e03832e9bb2c1c82321b13b22ec",
         "rpc:account.reconcile.model.line.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:account.reconcile.model.line.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:account.reconcile.model.line.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
         "rpc:account.reconcile.model.line.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
         "rpc:account.reconcile.model.line.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
         "rpc:account.reconcile.model.line.onchange_batch": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
-        "rpc:account.reconcile.model.line.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
+        "rpc:account.reconcile.model.line.unlink": "732c0d74e3f9fbda1dfa73499a6e4475491b4a846b2fba1fe64028804514c6d6",
         "rpc:account.reconcile.model.line.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
         "rpc:account.reconcile.model.line.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
         "rpc:account.reconcile.model.line.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
@@ -83945,7 +83954,7 @@
         "rpc:account.reconcile.model.line.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:account.reconcile.model.line.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:account.reconcile.model.line.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:account.reconcile.model.line.write": "4b20375106030fbee2fe853e3a21d0e666786885f89cb655f65a409dc32e762f",
+        "rpc:account.reconcile.model.line.write": "e5e66985d668f8726ebcbd338a9b31ef6f0b032457961b3fe2bf29a5ad033360",
         "rpc:account.reconcile.model.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:account.reconcile.model.message_change_thread": "137cabe06b00b1e4b877e5692c132cbe9f3639d0e43993cdf80e2344dbca0943",
         "rpc:account.reconcile.model.message_mail_with_source": "1875a51fe3cadd1205e37e9c808f00880c2c0dd342ffa5d5320c22295de8f347",
@@ -83972,7 +83981,7 @@
         "rpc:account.reconcile.model.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:account.reconcile.model.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:account.reconcile.model.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:account.reconcile.model.write": "641b7df7a55b7fec6e5ad37f4e4199640a30173e2b62f02a0c593c160956fc2f",
+        "rpc:account.reconcile.model.write": "690386bf10d4f7602890128461aa0ac7887ae098075f7f3d156eeda96b32c80c",
         "rpc:account.report.column.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:account.report.column.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
         "rpc:account.report.column.create": "37b76f9937e66a72c0555d93394a9e3336325c81c16eec20667bed140b30b44a",
@@ -150160,8 +150169,6 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.create:orm_create:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.unlink:orm_unlink:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.write:orm_write:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_create:1",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_create:2",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:account.reconcile.model.action_rebuild_approve_proposal:message_send:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:account.reconcile.model.action_rebuild_approve_proposal:orm_write:1",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:account.reconcile.model.action_rebuild_archive_rule:message_send:1",
@@ -155818,12 +155825,6 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.write:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:hr.expense.write"
         },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_create:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.reconcile.model.action_rebuild_analyze_rule_opportunities"
-        },
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_create:2": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.reconcile.model.action_rebuild_analyze_rule_opportunities"
-        },
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:account.reconcile.model.action_rebuild_approve_proposal:message_send:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.reconcile.model.action_rebuild_approve_proposal"
         },
@@ -159098,8 +159099,6 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.create:orm_create:1": "498fe1fd65cabccc7c2917466e03112c0e91b98f46a881dff353723cc1424349",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.unlink:orm_unlink:1": "6aa4ea04342b7aa9cae1c1a42610ba0f6d25385950c1f8c2a82955b91c24bd25",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/operational_extensions.py:hr.expense.write:orm_write:1": "3002c731d03b596ff8c6650243bfe1c715fd85a59a1bf861fb2eae89343662f5",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_create:1": "8759eef40cfcebacb088638ef2eede0ed81645423e7647349bfcf1ad6f1f9464",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_create:2": "ef2c78ea3fd4210bf69c20a81861375a75af963ecc8137a73ad6c229f621aacb",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:account.reconcile.model.action_rebuild_approve_proposal:message_send:1": "f63f09130910acaf32747578d3f4c6f78db969f2196a87058dc9c810059812ac",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:account.reconcile.model.action_rebuild_approve_proposal:orm_write:1": "e9842fa7b8c60847d1e404f31a424cdf6c8574ab12a7e206359d1c3414a06b13",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:account.reconcile.model.action_rebuild_archive_rule:message_send:1": "2449fdff026a5abff4a421f046ddb2ea87ba2f27e833a7dcff26feae49b0832e",
@@ -205668,6 +205667,264 @@
     },
     {
       "action_keys": [
+        "rpc:rebuild.reconcile.rule.coordination.check_field_access",
+        "rpc:rebuild.reconcile.rule.coordination.default_get",
+        "rpc:rebuild.reconcile.rule.coordination.export_data",
+        "rpc:rebuild.reconcile.rule.coordination.fields_get",
+        "rpc:rebuild.reconcile.rule.coordination.formatted_read_group",
+        "rpc:rebuild.reconcile.rule.coordination.get_base_url",
+        "rpc:rebuild.reconcile.rule.coordination.get_empty_list_help",
+        "rpc:rebuild.reconcile.rule.coordination.get_external_id",
+        "rpc:rebuild.reconcile.rule.coordination.get_field_translations",
+        "rpc:rebuild.reconcile.rule.coordination.get_formview_action",
+        "rpc:rebuild.reconcile.rule.coordination.get_formview_id",
+        "rpc:rebuild.reconcile.rule.coordination.get_import_templates",
+        "rpc:rebuild.reconcile.rule.coordination.get_metadata",
+        "rpc:rebuild.reconcile.rule.coordination.get_property_definition",
+        "rpc:rebuild.reconcile.rule.coordination.has_access",
+        "rpc:rebuild.reconcile.rule.coordination.has_field_access",
+        "rpc:rebuild.reconcile.rule.coordination.hierarchy_read",
+        "rpc:rebuild.reconcile.rule.coordination.mail_allowed_qweb_expressions",
+        "rpc:rebuild.reconcile.rule.coordination.mail_get_partner_fields",
+        "rpc:rebuild.reconcile.rule.coordination.name_search",
+        "rpc:rebuild.reconcile.rule.coordination.read",
+        "rpc:rebuild.reconcile.rule.coordination.read_progress_bar",
+        "rpc:rebuild.reconcile.rule.coordination.search",
+        "rpc:rebuild.reconcile.rule.coordination.search_count",
+        "rpc:rebuild.reconcile.rule.coordination.search_panel_select_multi_range",
+        "rpc:rebuild.reconcile.rule.coordination.search_panel_select_range",
+        "rpc:rebuild.reconcile.rule.coordination.search_read",
+        "rpc:rebuild.reconcile.rule.coordination.view_header_get",
+        "rpc:rebuild.reconcile.rule.coordination.web_name_search",
+        "rpc:rebuild.reconcile.rule.coordination.web_read",
+        "rpc:rebuild.reconcile.rule.coordination.web_search_read"
+      ],
+      "classification": "read_only",
+      "consequence": "Reads native metadata or the private coordination model under unchanged Odoo access checks.",
+      "domain": "accounting",
+      "evidence_id": "read-only-no-sink-v1",
+      "id": "read_only.accounting.bank_rule_coordination",
+      "rationale": "These exact inherited native methods have no reachable persistent mutation sink in this model. The model has no ordinary CRUD ACL; metadata access does not grant access to coordination rows.",
+      "reviewed_digests": {
+        "rpc:rebuild.reconcile.rule.coordination.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+        "rpc:rebuild.reconcile.rule.coordination.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+        "rpc:rebuild.reconcile.rule.coordination.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+        "rpc:rebuild.reconcile.rule.coordination.fields_get": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
+        "rpc:rebuild.reconcile.rule.coordination.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+        "rpc:rebuild.reconcile.rule.coordination.get_base_url": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+        "rpc:rebuild.reconcile.rule.coordination.get_empty_list_help": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+        "rpc:rebuild.reconcile.rule.coordination.get_external_id": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+        "rpc:rebuild.reconcile.rule.coordination.get_field_translations": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+        "rpc:rebuild.reconcile.rule.coordination.get_formview_action": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+        "rpc:rebuild.reconcile.rule.coordination.get_formview_id": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+        "rpc:rebuild.reconcile.rule.coordination.get_import_templates": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+        "rpc:rebuild.reconcile.rule.coordination.get_metadata": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+        "rpc:rebuild.reconcile.rule.coordination.get_property_definition": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+        "rpc:rebuild.reconcile.rule.coordination.has_access": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+        "rpc:rebuild.reconcile.rule.coordination.has_field_access": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+        "rpc:rebuild.reconcile.rule.coordination.hierarchy_read": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+        "rpc:rebuild.reconcile.rule.coordination.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+        "rpc:rebuild.reconcile.rule.coordination.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+        "rpc:rebuild.reconcile.rule.coordination.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+        "rpc:rebuild.reconcile.rule.coordination.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+        "rpc:rebuild.reconcile.rule.coordination.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+        "rpc:rebuild.reconcile.rule.coordination.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+        "rpc:rebuild.reconcile.rule.coordination.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+        "rpc:rebuild.reconcile.rule.coordination.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+        "rpc:rebuild.reconcile.rule.coordination.search_panel_select_range": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+        "rpc:rebuild.reconcile.rule.coordination.search_read": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+        "rpc:rebuild.reconcile.rule.coordination.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+        "rpc:rebuild.reconcile.rule.coordination.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+        "rpc:rebuild.reconcile.rule.coordination.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+        "rpc:rebuild.reconcile.rule.coordination.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:rebuild.reconcile.rule.coordination.action_archive",
+        "rpc:rebuild.reconcile.rule.coordination.action_unarchive",
+        "rpc:rebuild.reconcile.rule.coordination.copy",
+        "rpc:rebuild.reconcile.rule.coordination.copy_data",
+        "rpc:rebuild.reconcile.rule.coordination.copy_translations",
+        "rpc:rebuild.reconcile.rule.coordination.create",
+        "rpc:rebuild.reconcile.rule.coordination.formatted_read_grouping_sets",
+        "rpc:rebuild.reconcile.rule.coordination.get_view",
+        "rpc:rebuild.reconcile.rule.coordination.get_views",
+        "rpc:rebuild.reconcile.rule.coordination.load",
+        "rpc:rebuild.reconcile.rule.coordination.name_create",
+        "rpc:rebuild.reconcile.rule.coordination.onchange",
+        "rpc:rebuild.reconcile.rule.coordination.onchange_batch",
+        "rpc:rebuild.reconcile.rule.coordination.unlink",
+        "rpc:rebuild.reconcile.rule.coordination.update_field_translations",
+        "rpc:rebuild.reconcile.rule.coordination.web_override_translations",
+        "rpc:rebuild.reconcile.rule.coordination.web_read_group",
+        "rpc:rebuild.reconcile.rule.coordination.web_resequence",
+        "rpc:rebuild.reconcile.rule.coordination.web_save",
+        "rpc:rebuild.reconcile.rule.coordination.web_save_multi",
+        "rpc:rebuild.reconcile.rule.coordination.write"
+      ],
+      "classification": "operational",
+      "consequence": "Performs fixed native framework preparation or CRUD on company-scoped coordination metadata subject to native Odoo access.",
+      "domain": "accounting",
+      "evidence_id": "bank-rule-native-proof-20261015",
+      "id": "operational.accounting.bank_rule_coordination",
+      "rationale": "The private row has no independent business or accounting meaning. No ordinary CRUD ACL is granted, and native methods retain native checks. Authorized internal coordination is reached only after the parent rule/line actor and company checks; no new capability or Agent-only restriction is introduced.",
+      "reviewed_digests": {
+        "rpc:rebuild.reconcile.rule.coordination.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+        "rpc:rebuild.reconcile.rule.coordination.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+        "rpc:rebuild.reconcile.rule.coordination.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+        "rpc:rebuild.reconcile.rule.coordination.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+        "rpc:rebuild.reconcile.rule.coordination.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+        "rpc:rebuild.reconcile.rule.coordination.create": "37b76f9937e66a72c0555d93394a9e3336325c81c16eec20667bed140b30b44a",
+        "rpc:rebuild.reconcile.rule.coordination.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
+        "rpc:rebuild.reconcile.rule.coordination.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+        "rpc:rebuild.reconcile.rule.coordination.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+        "rpc:rebuild.reconcile.rule.coordination.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+        "rpc:rebuild.reconcile.rule.coordination.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+        "rpc:rebuild.reconcile.rule.coordination.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+        "rpc:rebuild.reconcile.rule.coordination.onchange_batch": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
+        "rpc:rebuild.reconcile.rule.coordination.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
+        "rpc:rebuild.reconcile.rule.coordination.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+        "rpc:rebuild.reconcile.rule.coordination.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+        "rpc:rebuild.reconcile.rule.coordination.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+        "rpc:rebuild.reconcile.rule.coordination.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+        "rpc:rebuild.reconcile.rule.coordination.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+        "rpc:rebuild.reconcile.rule.coordination.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+        "rpc:rebuild.reconcile.rule.coordination.write": "b0373b6633d99d657d81a9aca3ec6bb0ebad5e3e7b41420276488a6f1ce1c8f4"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:account.reconcile.model.action_rebuild_recheck_evidence"
+      ],
+      "classification": "operational",
+      "consequence": "Recomputes a suggestion or archived generated rule proof and overlap review from surviving current-company evidence without changing posted entries.",
+      "domain": "accounting",
+      "evidence_id": "bank-rule-native-proof-20261015",
+      "id": "operational.accounting.bank_rule_recheck",
+      "rationale": "The native Accounting Manager must have write access and complete readable evidence in the current company. Native replay and row locks verify the current accounting result before proof metadata is updated. This is an attributable fixed review workflow, shared by people and delegated Agents.",
+      "reviewed_digests": {
+        "rpc:account.reconcile.model.action_rebuild_recheck_evidence": "a1776e1e13462e50225d8acbf9a46443ce120e73c9c02c47bb21c521a6aae14a"
+      }
+    },
+    {
+      "action_keys": [
+        "ui:rebuild_account_migration.view_rebuild_account_reconcile_model_form:button:object:action_rebuild_recheck_evidence:1"
+      ],
+      "classification": "transport",
+      "consequence": "Invokes the exact native Recheck evidence method from the rule form.",
+      "domain": "accounting",
+      "evidence_id": "bank-rule-native-proof-20261015",
+      "id": "transport.accounting.bank_rule_recheck",
+      "rationale": "The object button only dispatches to the declared server-side action; all actor, company and evidence validation occurs there.",
+      "reviewed_digests": {
+        "ui:rebuild_account_migration.view_rebuild_account_reconcile_model_form:button:object:action_rebuild_recheck_evidence:1": "0c0537e0ec3fd408d7caa36f4c67798182946e87f5e25cfded85c1c5adfc4d19"
+      },
+      "targets": [
+        "rpc:account.reconcile.model.action_rebuild_recheck_evidence"
+      ]
+    },
+    {
+      "action_keys": [
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.create:orm_create:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.line.create:orm_create:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.line.unlink:orm_unlink:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.line.write:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.unlink:orm_unlink:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.write:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model._rebuild_invalidate_pending_line_proof:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_create:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_create:2",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_write:2",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_approve_proposal:message_send:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_approve_proposal:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_recheck_evidence:orm_write:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_recheck_evidence:orm_write:2",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.create:orm_create:1",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.write:orm_write:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Implements the reviewed native rule/line coordination, evidence-proof and proposal workflows.",
+      "domain": "accounting",
+      "evidence_id": "bank-rule-native-proof-20261015",
+      "id": "system_internal.accounting.bank_rule_proof",
+      "overrides": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its reviewed parent actions are rpc:account.reconcile.model.create."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.line.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its reviewed parent actions are rpc:account.reconcile.model.line.create."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.line.unlink:orm_unlink:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its reviewed parent actions are rpc:account.reconcile.model.line.unlink."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.line.write:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its reviewed parent actions are rpc:account.reconcile.model.line.write."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.unlink:orm_unlink:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its reviewed parent actions are rpc:account.reconcile.model.unlink."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.write:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its reviewed parent actions are rpc:account.reconcile.model.write."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model._rebuild_invalidate_pending_line_proof:orm_write:1": {
+          "reachability_proof": "The private _rebuild_invalidate_pending_line_proof helper is not callable by ordinary RPC; native rule-line create/write/unlink call it after their actor, parent and company authorization checks."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its reviewed parent actions are rpc:account.reconcile.model.action_rebuild_analyze_rule_opportunities."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_create:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its reviewed parent actions are rpc:account.reconcile.model.action_rebuild_analyze_rule_opportunities."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its reviewed parent actions are rpc:account.reconcile.model.action_rebuild_analyze_rule_opportunities."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its reviewed parent actions are rpc:account.reconcile.model.action_rebuild_analyze_rule_opportunities."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_approve_proposal:message_send:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its reviewed parent actions are rpc:account.reconcile.model.action_rebuild_approve_proposal."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_approve_proposal:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its reviewed parent actions are rpc:account.reconcile.model.action_rebuild_approve_proposal."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_recheck_evidence:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its reviewed parent actions are rpc:account.reconcile.model.action_rebuild_recheck_evidence."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_recheck_evidence:orm_write:2": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its reviewed parent actions are rpc:account.reconcile.model.action_rebuild_recheck_evidence."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its reviewed parent actions are rpc:account.reconcile.model.create."
+        },
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.write:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its reviewed parent actions are rpc:account.reconcile.model.write."
+        }
+      },
+      "rationale": "Each exact AST sink is internal to its reviewed parent or private proof helper; the ordinary parent action retains native access, company, audit and existing irreversible-action controls.",
+      "reviewed_digests": {
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.create:orm_create:1": "486f79f085904a737902558e78fa459bfc05f88fbb35ecb53ebbfaa472084672",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.line.create:orm_create:1": "19c4810f06525a69cb3e12a885bb74b8430c0ea7fbd4b481d9dde0826807ad2b",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.line.unlink:orm_unlink:1": "d19f19348c8d7ca0512cea773c5862aa2bd80e4c76c4b12ca27cbe421b1e53ea",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.line.write:orm_write:1": "c24f899418163bf493c3cf33c54f1be743828df79349b735a0399c0431d9103f",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.unlink:orm_unlink:1": "e89217588121fb826e4ecfafe7a3bc653a4150e4aff2855ee3c514d8c1168703",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.write:orm_write:1": "681f0c872d13cbee9e1bee86da126b1263b308f1a11008d4cec569c12c103d10",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model._rebuild_invalidate_pending_line_proof:orm_write:1": "7baea98cec26978b4ab4b5047655750df5d2d62147f804d157b2a90e59a9cfa6",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_create:1": "3045304034f06a692a18c5b93816745a8b560f252ea972e271c25b8207504a20",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_create:2": "f09a67fd9562d32752968491c465f83c62a962fc354714fca730334b41dcd7b8",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_write:1": "b50784bae7b5b3c1cac79cc6a9311c3860ac2884a4cedee44a2ecf7ceb229c27",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_write:2": "62cb87bd2e4af8cae0b08b2123c587f80b1425c091fdc966bd751c56008676e7",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_approve_proposal:message_send:1": "1df341ff81752d6cd54043703b7ccadf875e51ccd48829f3b517274a3abc6a7a",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_approve_proposal:orm_write:1": "42018dd5d16bd49fa2938dade5a4ba6d8672f398840b6ce6cac18a59668e4c8c",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_recheck_evidence:orm_write:1": "214953b3915f9e6e99707aa6deca34d1e84377136bb743a4a995cbdb4b2d27c5",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_recheck_evidence:orm_write:2": "b2da40885d3ff80630fd24ea4a726f7e29456a4ca5b73c932d3ca07c7a059f09",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.create:orm_create:1": "87aa0fcdf44e8278027fc3c905a4b651b8e9078d63e8d9c45d5bdf08dae25781",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.write:orm_write:1": "b2beff54674705f6075c7f29b1553b2f09b47bbfc499f1d82c0df0d75ffcd2dc"
+      }
+    },
+    {
+      "action_keys": [
         "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1"
       ],
       "classification": "system_internal",
@@ -205709,6 +205966,26 @@
       "tests": [
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_project_agent_edits_one_activity_without_completing_it",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_agent_activity_edit_refuses_other_tasks_and_companies"
+      ]
+    },
+    "bank-rule-native-proof-20261015": {
+      "contract": "Native Accounting-manager evidence discovery, recheck and approval preserve posted accounting results and native human/managed-Agent access parity. Generated proofs require complete surviving readable evidence; demonstrated overlaps are refused and uncertain future cross-field combinations warn. Company-scoped serialization metadata supports native rule/line authoring without granting journal-write authority. Ordinary native handwritten rules retain their permissions and do not require generated proof.",
+      "tests": [
+        "custom-addons/rebuild_account_migration/tests/test_proven_bank_rule_proposals.py::TestProvenBankRuleProposals.test_supported_varying_references_produce_one_evidenced_pattern",
+        "custom-addons/rebuild_account_migration/tests/test_proven_bank_rule_proposals.py::TestProvenBankRuleProposals.test_analysis_and_approval_do_not_call_financial_mutators",
+        "custom-addons/rebuild_account_migration/tests/test_proven_bank_rule_proposals.py::TestProvenBankRuleProposals.test_changed_surviving_effect_prevents_approval",
+        "custom-addons/rebuild_account_migration/tests/test_proven_bank_rule_proposals.py::TestProvenBankRuleProposals.test_generated_evidence_and_activation_are_not_public_write_credentials",
+        "custom-addons/rebuild_account_migration/tests/test_proven_bank_rule_proposals.py::TestProvenBankRuleProposals.test_approved_result_is_usable_by_native_future_bank_matching",
+        "custom-addons/rebuild_account_migration/tests/test_proven_bank_rule_proposals.py::TestProvenBankRuleProposals.test_archived_generated_rule_can_recheck_and_reactivate_without_source_change",
+        "custom-addons/rebuild_account_migration/tests/test_proven_bank_rule_proposals.py::TestProvenBankRuleProposals.test_managed_agent_uses_native_find_and_approval_under_owner_ceiling",
+        "custom-addons/rebuild_account_migration/tests/test_proven_bank_rule_proposals.py::TestProvenBankRuleProposals.test_billing_create_only_still_creates_disjoint_rule_beside_active_generated",
+        "custom-addons/rebuild_account_migration/tests/test_proven_bank_rule_proposals.py::TestProvenBankRuleProposals.test_basic_manual_rule_and_line_crud_beside_active_generated",
+        "custom-addons/rebuild_account_migration/tests/test_proven_bank_rule_proposals.py::TestProvenBankRuleProposals.test_proven_manual_overlap_with_active_generated_refuses",
+        "custom-addons/rebuild_account_migration/tests/test_proven_bank_rule_proposals.py::TestProvenBankRuleProposals.test_separate_label_shapes_warn_about_future_cross_field_matches",
+        "custom-addons/rebuild_account_migration/tests/test_proven_bank_rule_proposals.py::TestProvenBankRuleProposals.test_denied_company_create_does_not_seed_private_metadata",
+        "custom-addons/rebuild_account_migration/tests/test_proven_bank_rule_proposals.py::TestProvenBankRuleProposals.test_hidden_fourth_source_cannot_be_silently_removed_by_recheck",
+        "custom-addons/rebuild_account_migration/tests/test_proven_bank_rule_concurrency.py::TestProvenBankRuleConcurrency.test_native_outer_retry_rechecks_and_refuses_committed_overlap",
+        "custom-addons/rebuild_account_migration/tests/test_proven_bank_rule_concurrency.py::TestProvenBankRuleConcurrency.test_direct_line_write_retries_without_losing_legitimate_activation"
       ]
     },
     "documents-batch-metadata-20261014": {

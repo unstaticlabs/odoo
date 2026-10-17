@@ -176099,14 +176099,11 @@
       "abstract": false,
       "archiveable": true,
       "delegates": [
-        "rpc:account.account.browse",
         "rpc:account.bank.statement.line.browse",
         "rpc:account.bank.statement.line.search",
-        "rpc:account.reconcile.model.browse",
-        "rpc:account.reconcile.model.create",
-        "rpc:account.reconcile.model.with_context"
+        "rpc:account.reconcile.model.browse"
       ],
-      "digest": "bb4993a480a669dc7a23832f9dd7410514d7cfccaaa1760921de99b69d96d539",
+      "digest": "7b9e758922ec66918f034d6b4cfe1bfb8f7bf0edc787d609f64dd558bcc1c8cb",
       "guards": [],
       "key": "rpc:account.reconcile.model.action_rebuild_analyze_rule_opportunities",
       "kind": "rpc",
@@ -176117,36 +176114,36 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "28caa5f13f296da4f2532720deb2a33099979f0da96f0821d300293d2f20bf1e",
+      "runtime_digest": "aece6054d20fdf077f436d34547923c88b4cb6c3522a1838db3419f58026dabf",
       "sinks": [
-        "orm_create"
+        "orm_create",
+        "orm_write"
       ],
       "sources": [
         {
-          "line": 555,
-          "path": "custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py"
+          "line": 442,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py"
         },
         {
-          "path": "custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py"
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py"
         }
       ],
       "transient": false,
       "unresolved_delegates": [
-        "rpc:account.account.browse",
         "rpc:account.bank.statement.line.browse",
-        "rpc:account.reconcile.model.browse",
-        "rpc:account.reconcile.model.with_context"
+        "rpc:account.reconcile.model.browse"
       ]
     },
     {
       "abstract": false,
       "archiveable": true,
       "delegates": [
+        "rpc:account.reconcile.model.check_access",
         "rpc:account.reconcile.model.ensure_one",
         "rpc:account.reconcile.model.message_post",
         "rpc:account.reconcile.model.write"
       ],
-      "digest": "081ee0fd87fa71429222915d333515edab9eb9c2bbd31d443eb82e3ca3ec2f8c",
+      "digest": "ff4530abf041489cdf2e3868c6e0588fc8f2a4de877240b400eff45da0641655",
       "guards": [],
       "key": "rpc:account.reconcile.model.action_rebuild_approve_proposal",
       "kind": "rpc",
@@ -176157,22 +176154,30 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "af91910e54cb455505107c192ef69ee56e55df1258fd1f06e954bad195457607",
+      "runtime_digest": "92388db0d75827cb2f024fe59dcfe938431bf7d72f9d8a0333037974b8c08099",
       "sinks": [
         "message_send",
         "orm_write"
       ],
       "sources": [
         {
-          "line": 456,
+          "line": 418,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py"
+        },
+        {
+          "line": 451,
           "path": "custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py"
         },
         {
           "path": "custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py"
+        },
+        {
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py"
         }
       ],
       "transient": false,
       "unresolved_delegates": [
+        "rpc:account.reconcile.model.check_access",
         "rpc:account.reconcile.model.ensure_one"
       ]
     },
@@ -176200,7 +176205,7 @@
       ],
       "sources": [
         {
-          "line": 491,
+          "line": 486,
           "path": "custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py"
         },
         {
@@ -176236,7 +176241,7 @@
       ],
       "sources": [
         {
-          "line": 480,
+          "line": 475,
           "path": "custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py"
         },
         {
@@ -176270,7 +176275,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 433,
+          "line": 428,
           "path": "custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py"
         },
         {
@@ -176279,6 +176284,43 @@
       ],
       "transient": false,
       "unresolved_delegates": [
+        "rpc:account.reconcile.model.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": true,
+      "delegates": [
+        "rpc:account.reconcile.model.check_access",
+        "rpc:account.reconcile.model.ensure_one"
+      ],
+      "digest": "a1776e1e13462e50225d8acbf9a46443ce120e73c9c02c47bb21c521a6aae14a",
+      "guards": [],
+      "key": "rpc:account.reconcile.model.action_rebuild_recheck_evidence",
+      "kind": "rpc",
+      "method": "action_rebuild_recheck_evidence",
+      "model": "account.reconcile.model",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "caebfba16117088e409c7e30b108f95e6bd1ef82a17da48c33ba1db451d93299",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 399,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py"
+        },
+        {
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:account.reconcile.model.check_access",
         "rpc:account.reconcile.model.ensure_one"
       ]
     },
@@ -176426,18 +176468,24 @@
     {
       "abstract": false,
       "archiveable": true,
-      "digest": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+      "delegates": [
+        "rpc:account.reconcile.model.check_access",
+        "rpc:account.reconcile.model.ensure_one",
+        "rpc:account.reconcile.model.with_context"
+      ],
+      "digest": "c601adb003329f4db92af497bda601036d23f6a481c27f88ce92469d1159203d",
       "guards": [],
       "key": "rpc:account.reconcile.model.copy",
       "kind": "rpc",
       "method": "copy",
       "model": "account.reconcile.model",
       "modules": [
-        "base"
+        "base",
+        "rebuild_account_migration"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "e2701f4de378a2041241c55d30da98574d537a17c9ced308c1a1aaa37d3704ff",
+      "runtime_digest": "0fe453043f0f72c12ca0769d511c30cbfbea7378eeac7b7e8dc6d369d41e11e9",
       "sinks": [
         "orm_create"
       ],
@@ -176447,10 +176495,22 @@
           "path": "odoo/orm/models.py"
         },
         {
+          "line": 99,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py"
+        },
+        {
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py"
+        },
+        {
           "path": "odoo/orm/models.py"
         }
       ],
-      "transient": false
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:account.reconcile.model.check_access",
+        "rpc:account.reconcile.model.ensure_one",
+        "rpc:account.reconcile.model.with_context"
+      ]
     },
     {
       "abstract": false,
@@ -176523,10 +176583,17 @@
       "abstract": false,
       "archiveable": true,
       "delegates": [
+        "rpc:account.reconcile.model.browse",
+        "rpc:account.reconcile.model.check_access",
+        "rpc:account.reconcile.model.default_get",
+        "rpc:account.reconcile.model.line.browse",
+        "rpc:account.reconcile.model.new",
+        "rpc:account.reconcile.model.with_context",
         "rpc:mail.thread.with_context",
+        "rpc:res.company.browse",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "0ebda5a92e41005057fefbf8dc7ebe162af4ff04fc623216befcb77d430e9ed5",
+      "digest": "e5e9d186d81cf0ba8191a2518bf58a99c5d14695847216978888631f21b00130",
       "guards": [],
       "key": "rpc:account.reconcile.model.create",
       "kind": "rpc",
@@ -176535,11 +176602,12 @@
       "modules": [
         "base",
         "mail",
+        "rebuild_account_migration",
         "usl_access_control"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "1ac29b5d5927c809d0f56bd372d7a2f318e282254694d2fdcdb4a5bd7e99ce5c",
+      "runtime_digest": "e48b30f47d77e2ec1722befa484464b5cf00123442e00c87f1136e25947eab8e",
       "sinks": [
         "message_send",
         "orm_create",
@@ -176560,12 +176628,26 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
+          "line": 69,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py"
+        },
+        {
+          "line": 73,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py"
+        },
+        {
           "path": "decorators.py"
         }
       ],
       "transient": false,
       "unresolved_delegates": [
+        "rpc:account.reconcile.model.browse",
+        "rpc:account.reconcile.model.check_access",
+        "rpc:account.reconcile.model.line.browse",
+        "rpc:account.reconcile.model.new",
+        "rpc:account.reconcile.model.with_context",
         "rpc:mail.thread.with_context",
+        "rpc:res.company.browse",
         "rpc:usl.agent.sudo"
       ]
     },
@@ -177345,10 +177427,14 @@
       "abstract": false,
       "archiveable": false,
       "delegates": [
+        "rpc:account.reconcile.model.browse",
+        "rpc:account.reconcile.model.line.check_access",
+        "rpc:account.reconcile.model.line.new",
+        "rpc:account.reconcile.model.line.with_env",
         "rpc:decimal.precision.precision_get",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "eacc72f4c235e67339afd910e48bd7dad835dd59e3fb9a444c89e3e3f54e1e27",
+      "digest": "7d59a278281e8c2b6be0737d8ed8629afffd2e03832e9bb2c1c82321b13b22ec",
       "guards": [],
       "key": "rpc:account.reconcile.model.line.create",
       "kind": "rpc",
@@ -177357,17 +177443,22 @@
       "modules": [
         "analytic",
         "base",
+        "rebuild_account_migration",
         "usl_access_control"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "6a02934e1345bfd6292042d255674ba8996080b9a6ce92779e2d6634149b686a",
+      "runtime_digest": "97e719081013486b8bae18e8142d5df1372a4d31b00a3f469805937c40c0c78a",
       "sinks": [
         "orm_create",
         "orm_write",
         "sudo"
       ],
       "sources": [
+        {
+          "line": 126,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py"
+        },
         {
           "line": 176,
           "path": "addons/analytic/models/analytic_mixin.py"
@@ -177386,6 +177477,10 @@
       ],
       "transient": false,
       "unresolved_delegates": [
+        "rpc:account.reconcile.model.browse",
+        "rpc:account.reconcile.model.line.check_access",
+        "rpc:account.reconcile.model.line.new",
+        "rpc:account.reconcile.model.line.with_env",
         "rpc:usl.agent.sudo"
       ]
     },
@@ -178402,10 +178497,14 @@
       "abstract": false,
       "archiveable": false,
       "delegates": [
+        "rpc:account.reconcile.model.browse",
+        "rpc:account.reconcile.model.line.check_access",
+        "rpc:account.reconcile.model.line.new",
+        "rpc:account.reconcile.model.line.with_env",
         "rpc:mail.activity.with_context",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
+      "digest": "732c0d74e3f9fbda1dfa73499a6e4475491b4a846b2fba1fe64028804514c6d6",
       "guards": [],
       "key": "rpc:account.reconcile.model.line.unlink",
       "kind": "rpc",
@@ -178414,16 +178513,21 @@
       "modules": [
         "base",
         "mail",
+        "rebuild_account_migration",
         "usl_access_control"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "a9f2e9e3ac9125c6b4b643a46516ecd15e6fd4da08c0110183e89f9b2dba3dd3",
+      "runtime_digest": "198a34f676f29c52ac9f707220a9c9309a52caf1fc83e871a5847438f1bf86ae",
       "sinks": [
         "orm_unlink",
         "sudo"
       ],
       "sources": [
+        {
+          "line": 140,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py"
+        },
         {
           "line": 3550,
           "path": "odoo/orm/models.py"
@@ -178437,6 +178541,9 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py"
+        },
+        {
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
@@ -178448,6 +178555,10 @@
       ],
       "transient": false,
       "unresolved_delegates": [
+        "rpc:account.reconcile.model.browse",
+        "rpc:account.reconcile.model.line.check_access",
+        "rpc:account.reconcile.model.line.new",
+        "rpc:account.reconcile.model.line.with_env",
         "rpc:mail.activity.with_context",
         "rpc:usl.agent.sudo"
       ]
@@ -178793,10 +178904,14 @@
       "abstract": false,
       "archiveable": false,
       "delegates": [
+        "rpc:account.reconcile.model.browse",
+        "rpc:account.reconcile.model.line.check_access",
+        "rpc:account.reconcile.model.line.new",
+        "rpc:account.reconcile.model.line.with_env",
         "rpc:decimal.precision.precision_get",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "4b20375106030fbee2fe853e3a21d0e666786885f89cb655f65a409dc32e762f",
+      "digest": "e5e66985d668f8726ebcbd338a9b31ef6f0b032457961b3fe2bf29a5ad033360",
       "guards": [],
       "key": "rpc:account.reconcile.model.line.write",
       "kind": "rpc",
@@ -178805,16 +178920,21 @@
       "modules": [
         "analytic",
         "base",
+        "rebuild_account_migration",
         "usl_access_control"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "3690f5c14360626d999970b6c01b4127cf67282cde204ae1df75a18ab142789f",
+      "runtime_digest": "50b0fb806fc9edc28014d1f1cfd00358468af1a7038764f6162806d7fc828900",
       "sinks": [
         "orm_write",
         "sudo"
       ],
       "sources": [
+        {
+          "line": 133,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py"
+        },
         {
           "line": 169,
           "path": "addons/analytic/models/analytic_mixin.py"
@@ -178828,6 +178948,9 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py"
+        },
+        {
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
@@ -178839,6 +178962,10 @@
       ],
       "transient": false,
       "unresolved_delegates": [
+        "rpc:account.reconcile.model.browse",
+        "rpc:account.reconcile.model.line.check_access",
+        "rpc:account.reconcile.model.line.new",
+        "rpc:account.reconcile.model.line.with_env",
         "rpc:usl.agent.sudo"
       ]
     },
@@ -180133,6 +180260,9 @@
       "abstract": false,
       "archiveable": true,
       "delegates": [
+        "rpc:account.reconcile.model.check_access",
+        "rpc:account.reconcile.model.new",
+        "rpc:account.reconcile.model.with_context",
         "rpc:mail.activity.with_context",
         "rpc:mail.followers.sudo",
         "rpc:mail.message.sudo",
@@ -180140,7 +180270,7 @@
         "rpc:rating.rating.sudo",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
+      "digest": "2b29f7c7f5248766555d678cfc478c97d0b1cbf744bc111949799f58741114d4",
       "guards": [],
       "key": "rpc:account.reconcile.model.unlink",
       "kind": "rpc",
@@ -180150,11 +180280,12 @@
         "base",
         "mail",
         "rating",
+        "rebuild_account_migration",
         "usl_access_control"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "c4d45ea5b0ed45cf2d9ba1528290b84597a8455ae90aa15aeed4c02fe1ae1934",
+      "runtime_digest": "57dfcfdb5918257453d3cce946cf0eec290d8fc52a14dd6360a3be3b23648c71",
       "sinks": [
         "orm_unlink",
         "sudo"
@@ -180181,6 +180312,13 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
+          "line": 91,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py"
+        },
+        {
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py"
+        },
+        {
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
@@ -180198,6 +180336,9 @@
       ],
       "transient": false,
       "unresolved_delegates": [
+        "rpc:account.reconcile.model.check_access",
+        "rpc:account.reconcile.model.new",
+        "rpc:account.reconcile.model.with_context",
         "rpc:mail.activity.with_context",
         "rpc:mail.followers.sudo",
         "rpc:mail.message.sudo",
@@ -180547,12 +180688,19 @@
       "abstract": false,
       "archiveable": true,
       "delegates": [
+        "rpc:account.reconcile.model.browse",
+        "rpc:account.reconcile.model.check_access",
+        "rpc:account.reconcile.model.filtered",
+        "rpc:account.reconcile.model.line.browse",
+        "rpc:account.reconcile.model.new",
+        "rpc:account.reconcile.model.with_context",
         "rpc:mail.thread.with_context",
+        "rpc:res.company.browse",
         "rpc:res.partner.browse",
         "rpc:res.users.sudo",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "641b7df7a55b7fec6e5ad37f4e4199640a30173e2b62f02a0c593c160956fc2f",
+      "digest": "690386bf10d4f7602890128461aa0ac7887ae098075f7f3d156eeda96b32c80c",
       "guards": [],
       "key": "rpc:account.reconcile.model.write",
       "kind": "rpc",
@@ -180561,11 +180709,12 @@
       "modules": [
         "base",
         "mail",
+        "rebuild_account_migration",
         "usl_access_control"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "513f4b5231c8285ceceb31ed2706e3dd0f7975bfecf4cd17330f02d17c5ba20b",
+      "runtime_digest": "80e1fb8aa4492666c9e64511e87244f5118f14df62baf8ee4df08bfbeb4b378b",
       "sinks": [
         "orm_write",
         "sudo"
@@ -180584,6 +180733,20 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
+          "line": 76,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py"
+        },
+        {
+          "line": 83,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py"
+        },
+        {
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py"
+        },
+        {
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py"
+        },
+        {
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
@@ -180595,7 +180758,14 @@
       ],
       "transient": false,
       "unresolved_delegates": [
+        "rpc:account.reconcile.model.browse",
+        "rpc:account.reconcile.model.check_access",
+        "rpc:account.reconcile.model.filtered",
+        "rpc:account.reconcile.model.line.browse",
+        "rpc:account.reconcile.model.new",
+        "rpc:account.reconcile.model.with_context",
         "rpc:mail.thread.with_context",
+        "rpc:res.company.browse",
         "rpc:res.partner.browse",
         "rpc:res.users.sudo",
         "rpc:usl.agent.sudo"
@@ -995539,6 +995709,1658 @@
       ]
     },
     {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.action_archive",
+      "kind": "rpc",
+      "method": "action_archive",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "235abd6cb4038dd6a2c42caf9de8eae77f16c7778621633c9823beb3bd840539",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5196,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.action_unarchive",
+      "kind": "rpc",
+      "method": "action_unarchive",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e7c3c156fbd16e6d970313b9bb9b3394d43b56dfb1627dd220be3a47a71c75e8",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5207,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.check_field_access",
+      "kind": "rpc",
+      "method": "check_field_access",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "6ea1f9fac0c6643412d04dd4d3c9c9ad70723c75a4fbf7d4aae0a10636bfeff1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2672,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.copy",
+      "kind": "rpc",
+      "method": "copy",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e2701f4de378a2041241c55d30da98574d537a17c9ced308c1a1aaa37d3704ff",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 4945,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.copy_data",
+      "kind": "rpc",
+      "method": "copy_data",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1bcb637275cc868763d196999ce5a96ed738f7a52b0206f6fc826561249f3d13",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 4823,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.copy_translations",
+      "kind": "rpc",
+      "method": "copy_translations",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5675fce11d83c7502d5bcd12d8de06759f5cbccea4f69e7e4cac81fb5c2d6915",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 4880,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "37b76f9937e66a72c0555d93394a9e3336325c81c16eec20667bed140b30b44a",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.create",
+      "kind": "rpc",
+      "method": "create",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9c6eaedb7b168c256d1268de7b648367d97e6edddcfd800845bc624c82ea97ba",
+      "sinks": [
+        "orm_create",
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3980,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 532,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "decorators.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.default_get",
+      "kind": "rpc",
+      "method": "default_get",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5a254545bb7959b0d3f555c147fe3f5e60d3c5889fa39b3ab58165013561b62c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1298,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.export_data",
+      "kind": "rpc",
+      "method": "export_data",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "80bce7a82aa05b027a1d03304c15854a49afda0463cb1b81b1090b46ec7616ec",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 907,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.env",
+        "rpc:rebuild.reconcile.rule.coordination.with_env",
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.fields_get",
+      "kind": "rpc",
+      "method": "fields_get",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "baa7a932d91057120b35e7a5c3e4b7e1e61836083fb2f0ffd1bdf6f6efd537db",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 2612,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 268,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.env",
+        "rpc:rebuild.reconcile.rule.coordination.with_env",
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.get_property_definition"
+      ],
+      "digest": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.formatted_read_group",
+      "kind": "rpc",
+      "method": "formatted_read_group",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ad861b317e2d9b39640847bf88826fd861f2ecea91d0bb0b48322bc4c7a3a344",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 752,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.get_property_definition"
+      ],
+      "digest": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.formatted_read_grouping_sets",
+      "kind": "rpc",
+      "method": "formatted_read_grouping_sets",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1fcb23eb76c979d3163287b2076a032ff3eb5d50c4a4aa9b2cd9fb7b38370cf8",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 652,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.get_base_url",
+      "kind": "rpc",
+      "method": "get_base_url",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "67d503784e6d6f7548d55a2cfdf3bdd45f8195b37ec1b1c9d0251a8dd98aaf30",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3258,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.get_empty_list_help",
+      "kind": "rpc",
+      "method": "get_empty_list_help",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "71d9d7f85cddd3babee74d68b9bf1373cea9a671db1deb8a5b5a71f7cc68dae4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2755,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.get_external_id",
+      "kind": "rpc",
+      "method": "get_external_id",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d8ba5b2f03d09295cc21145c82fd52737b78a38b697ea7cdd704e2cedc9ae2ba",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5123,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.get_field_translations",
+      "kind": "rpc",
+      "method": "get_field_translations",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "24f016d8e2a430cf59d47b17206cb2e434bfbaac4046ef4d8a0ce4778d1af7f2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2927,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.sudo"
+      ],
+      "digest": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.get_formview_action",
+      "kind": "rpc",
+      "method": "get_formview_action",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f4edcfe3654b97ad72a319b821d294d1424decaa7390bc239027a6b78f9e970d",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3232,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.get_formview_id",
+      "kind": "rpc",
+      "method": "get_formview_id",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "95c1752af454541997c8ccf2725058469cf43a5fd4da850f3a10f7d5fd29fb27",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 3221,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.get_import_templates",
+      "kind": "rpc",
+      "method": "get_import_templates",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base_import"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d8392d1f12eba5b1791ef6af27e90a1fc627cacbc6da374ac0ea04942331091a",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 86,
+          "path": "addons/base_import/models/base_import.py"
+        },
+        {
+          "path": "odoo/addons/base_import/models/base_import.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.get_metadata",
+      "kind": "rpc",
+      "method": "get_metadata",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9478f042e1ad35efe156f1cebf773332d56b07c5d5a63ce07e245dea08083a64",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3217,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.get_property_definition",
+      "kind": "rpc",
+      "method": "get_property_definition",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1ac7b96c8c74abf184cdf2821627c7c899e14c965ece4dcc9af28468196b1217",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2303,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:ir.ui.view.sudo",
+        "rpc:rebuild.reconcile.rule.coordination.browse"
+      ],
+      "digest": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.get_view",
+      "kind": "rpc",
+      "method": "get_view",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0acf8bd48cd6c0a934eab7561db739e01d8bf0281b9acfeb6c0d80b806025011",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 288,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "line": 3139,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:ir.ui.view.sudo",
+        "rpc:rebuild.reconcile.rule.coordination.browse"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:ir.actions.actions.get_bindings",
+        "rpc:ir.filters.get_filters",
+        "rpc:rebuild.reconcile.rule.coordination.get_view"
+      ],
+      "digest": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.get_views",
+      "kind": "rpc",
+      "method": "get_views",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "28821b46e4ace196e2c4841baa399fd93e3de113f7b8a23e02a6ac1ebb808bb3",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2906,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.has_access",
+      "kind": "rpc",
+      "method": "has_access",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7dde4c8c80708d5316a9b4ba890ccf506ecf99b81b508323688f41a5583a122a",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3395,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.has_field_access",
+      "kind": "rpc",
+      "method": "has_field_access",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "799cce23243afb3ae60b8c02627890f175177862620a93c73cdf96aba995336e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2638,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.search"
+      ],
+      "digest": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.hierarchy_read",
+      "kind": "rpc",
+      "method": "hierarchy_read",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "web_hierarchy"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e2aa251578d309d82ce2e4591076f9e17bd1687af9431cb2f477aea366bdc069",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 10,
+          "path": "addons/web_hierarchy/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web_hierarchy/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.load",
+      "kind": "rpc",
+      "method": "load",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "aa42854816e20eef9f3bef4c8a7f7093ace251608e2835ac74c5b648ccdbb5a1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 922,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.mail_allowed_qweb_expressions",
+      "kind": "rpc",
+      "method": "mail_allowed_qweb_expressions",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "mail"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "db8fea907626f92f1ff6db9395f1e14164568b94e599a3998467f1cfebeb397c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 219,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.mail_get_partner_fields",
+      "kind": "rpc",
+      "method": "mail_get_partner_fields",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "mail"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a336a2519b3cd4da27cb4136737e46b9917505349b03486123f14e0c971a669e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 181,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.name_create",
+      "kind": "rpc",
+      "method": "name_create",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e6630daa1f607675b91db65c230d53ad6df4b76fe10f88b2f49eca774d4948ee",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 1543,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.name_search",
+      "kind": "rpc",
+      "method": "name_search",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f70bce1e80cfd78fda12b36edcf68116ce8fbc3d07b0eee6a5888480a03ed0dd",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 1564,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.check_access",
+        "rpc:rebuild.reconcile.rule.coordination.default_get",
+        "rpc:rebuild.reconcile.rule.coordination.fetch",
+        "rpc:rebuild.reconcile.rule.coordination.new"
+      ],
+      "digest": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.onchange",
+      "kind": "rpc",
+      "method": "onchange",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base",
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "bb63b0e5f4471bbe579f6bd9d01af667898fd0484a0b5bf5e725470a019f8433",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 1908,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "line": 6452,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.check_access",
+        "rpc:rebuild.reconcile.rule.coordination.fetch",
+        "rpc:rebuild.reconcile.rule.coordination.new"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.onchange"
+      ],
+      "digest": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.onchange_batch",
+      "kind": "rpc",
+      "method": "onchange_batch",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ea23ff314cc0eb80f6694e2cde1c27ec9b0ea33af0df59d0eacc21b25d53ad30",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1896,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.read",
+      "kind": "rpc",
+      "method": "read",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0d6c99c6016f86318429152c1963ab593f5a5c240600946465a0ace17820f327",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2733,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.formatted_read_group"
+      ],
+      "digest": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.read_progress_bar",
+      "kind": "rpc",
+      "method": "read_progress_bar",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "de4401e52e0cc988131fc11f0c347e20a6b4711220c1152b1a161d892da174a4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1315,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.search",
+      "kind": "rpc",
+      "method": "search",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "471d7d3160921d01da2add1ddbec37ccea1d00f6e1d65854177a91687eb04403",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1403,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.search_count",
+      "kind": "rpc",
+      "method": "search_count",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "123617ed36078cbf6b54e9ac2229a2f8905d7189d3d85f5e9be5765bc082d666",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1387,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.fields_get",
+        "rpc:rebuild.reconcile.rule.coordination.search_count",
+        "rpc:rebuild.reconcile.rule.coordination.with_context"
+      ],
+      "digest": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.search_panel_select_multi_range",
+      "kind": "rpc",
+      "method": "search_panel_select_multi_range",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "8d1084cfaa7d7812902ea17cd937614b41c19556ff0370dff296111612ed17d2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1728,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.fields_get",
+        "rpc:rebuild.reconcile.rule.coordination.with_context"
+      ],
+      "digest": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.search_panel_select_range",
+      "kind": "rpc",
+      "method": "search_panel_select_range",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f15fd0ab0ecc4f8a69aaba36f4bfc1948dc54f91dcd58f43abedfa92db7414ad",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1587,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.search_read",
+      "kind": "rpc",
+      "method": "search_read",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e24e0149cc13b22ffe7216068d9cc91d4ad8abd145bb39a15322f2f205593b19",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5155,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:mail.activity.with_context",
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.unlink",
+      "kind": "rpc",
+      "method": "unlink",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base",
+        "mail",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a9f2e9e3ac9125c6b4b643a46516ecd15e6fd4da08c0110183e89f9b2dba3dd3",
+      "sinks": [
+        "orm_unlink",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3550,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 45,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "line": 588,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:mail.activity.with_context",
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.update_field_translations",
+      "kind": "rpc",
+      "method": "update_field_translations",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ebb8d3f11a6eb5272e7826ecf89c2299f4e381db6db738774fca6a44ece50361",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 2756,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.view_header_get",
+      "kind": "rpc",
+      "method": "view_header_get",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "b14c94c41cfa171935e3cd3c93d8c9d8a732e022b83229ff98e6f8563f7dd110",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2770,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.browse",
+        "rpc:rebuild.reconcile.rule.coordination.name_search"
+      ],
+      "digest": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.web_name_search",
+      "kind": "rpc",
+      "method": "web_name_search",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "c432ba6a42dc18b2c8d36fc07d9fe66ab05e98d5bb4723f94b0e9a8cee8703a6",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 44,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.browse"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.ensure_one",
+        "rpc:rebuild.reconcile.rule.coordination.update_field_translations",
+        "rpc:res.lang.get_installed"
+      ],
+      "digest": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.web_override_translations",
+      "kind": "rpc",
+      "method": "web_override_translations",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "65b2b80d23fbf97f4beb6aa63793a2192c87df69a6b13e5205874744728e18e7",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2127,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.read"
+      ],
+      "digest": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.web_read",
+      "kind": "rpc",
+      "method": "web_read",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0397df491af3e68dbf5a2c82620a77599e65baba4ec9661805e0dee10c669b41",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 98,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.browse",
+        "rpc:rebuild.reconcile.rule.coordination.formatted_read_group",
+        "rpc:rebuild.reconcile.rule.coordination.search",
+        "rpc:rebuild.reconcile.rule.coordination.with_context"
+      ],
+      "digest": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.web_read_group",
+      "kind": "rpc",
+      "method": "web_read_group",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7cdc0dc7cd7348ca758ab89f1d40dd19c9157f3cd41788ad93bab7d62848bb5a",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 299,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.browse",
+        "rpc:rebuild.reconcile.rule.coordination.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.web_read"
+      ],
+      "digest": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.web_resequence",
+      "kind": "rpc",
+      "method": "web_resequence",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9fb7342771181391f3c6bae96f4df108874f3ce018d05005ab2e137ae42dc48b",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 272,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.browse",
+        "rpc:rebuild.reconcile.rule.coordination.create",
+        "rpc:rebuild.reconcile.rule.coordination.with_context",
+        "rpc:rebuild.reconcile.rule.coordination.write"
+      ],
+      "digest": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.web_save",
+      "kind": "rpc",
+      "method": "web_save",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "112c33674d0668e62e51bf2c39467d97d7134617b41020fc6ed35aabba1fd575",
+      "sinks": [
+        "orm_create",
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 79,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.browse",
+        "rpc:rebuild.reconcile.rule.coordination.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.with_context"
+      ],
+      "digest": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.web_save_multi",
+      "kind": "rpc",
+      "method": "web_save_multi",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "dd52456050d0b84dceed94a869936592107bb741e770b55c9a4086276fab48bb",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 88,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.search_count",
+        "rpc:rebuild.reconcile.rule.coordination.search_fetch"
+      ],
+      "digest": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.web_search_read",
+      "kind": "rpc",
+      "method": "web_search_read",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "883780099f8b4e2da155770cd316e20a5df8d7684c348d772c1d3e594b840018",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 55,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:rebuild.reconcile.rule.coordination.search_fetch"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "b0373b6633d99d657d81a9aca3ec6bb0ebad5e3e7b41420276488a6f1ce1c8f4",
+      "guards": [],
+      "key": "rpc:rebuild.reconcile.rule.coordination.write",
+      "kind": "rpc",
+      "method": "write",
+      "model": "rebuild.reconcile.rule.coordination",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7a5191605f427879f05c88a058a72d53a01df2395e223cd059b23b9cf71a4959",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3696,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 559,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
       "abstract": true,
       "archiveable": false,
       "digest": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
@@ -1585493,42 +1587315,6 @@
       ]
     },
     {
-      "digest": "8759eef40cfcebacb088638ef2eede0ed81645423e7647349bfcf1ad6f1f9464",
-      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_create:1",
-      "kind": "sink",
-      "modules": [
-        "rebuild_account_migration"
-      ],
-      "parents": [
-        "rpc:account.reconcile.model.action_rebuild_analyze_rule_opportunities"
-      ],
-      "sink_kind": "orm_create",
-      "sources": [
-        {
-          "line": 555,
-          "path": "custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py"
-        }
-      ]
-    },
-    {
-      "digest": "ef2c78ea3fd4210bf69c20a81861375a75af963ecc8137a73ad6c229f621aacb",
-      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_create:2",
-      "kind": "sink",
-      "modules": [
-        "rebuild_account_migration"
-      ],
-      "parents": [
-        "rpc:account.reconcile.model.action_rebuild_analyze_rule_opportunities"
-      ],
-      "sink_kind": "orm_create",
-      "sources": [
-        {
-          "line": 555,
-          "path": "custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py"
-        }
-      ]
-    },
-    {
       "digest": "f63f09130910acaf32747578d3f4c6f78db969f2196a87058dc9c810059812ac",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:account.reconcile.model.action_rebuild_approve_proposal:message_send:1",
       "kind": "sink",
@@ -1585541,7 +1587327,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 456,
+          "line": 451,
           "path": "custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py"
         }
       ]
@@ -1585559,7 +1587345,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 456,
+          "line": 451,
           "path": "custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py"
         }
       ]
@@ -1585577,7 +1587363,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 491,
+          "line": 486,
           "path": "custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py"
         }
       ]
@@ -1585595,8 +1587381,311 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 480,
+          "line": 475,
           "path": "custom-addons/rebuild_account_migration/models/reconciliation_model_intelligence.py"
+        }
+      ]
+    },
+    {
+      "digest": "486f79f085904a737902558e78fa459bfc05f88fbb35ecb53ebbfaa472084672",
+      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.create:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "parents": [
+        "rpc:account.reconcile.model.create"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 73,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py"
+        }
+      ]
+    },
+    {
+      "digest": "19c4810f06525a69cb3e12a885bb74b8430c0ea7fbd4b481d9dde0826807ad2b",
+      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.line.create:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "parents": [
+        "rpc:account.reconcile.model.line.create"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 126,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py"
+        }
+      ]
+    },
+    {
+      "digest": "d19f19348c8d7ca0512cea773c5862aa2bd80e4c76c4b12ca27cbe421b1e53ea",
+      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.line.unlink:orm_unlink:1",
+      "kind": "sink",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "parents": [
+        "rpc:account.reconcile.model.line.unlink"
+      ],
+      "sink_kind": "orm_unlink",
+      "sources": [
+        {
+          "line": 140,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py"
+        }
+      ]
+    },
+    {
+      "digest": "c24f899418163bf493c3cf33c54f1be743828df79349b735a0399c0431d9103f",
+      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.line.write:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "parents": [
+        "rpc:account.reconcile.model.line.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 133,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py"
+        }
+      ]
+    },
+    {
+      "digest": "e89217588121fb826e4ecfafe7a3bc653a4150e4aff2855ee3c514d8c1168703",
+      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.unlink:orm_unlink:1",
+      "kind": "sink",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "parents": [
+        "rpc:account.reconcile.model.unlink"
+      ],
+      "sink_kind": "orm_unlink",
+      "sources": [
+        {
+          "line": 91,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py"
+        }
+      ]
+    },
+    {
+      "digest": "681f0c872d13cbee9e1bee86da126b1263b308f1a11008d4cec569c12c103d10",
+      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py:account.reconcile.model.write:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "parents": [
+        "rpc:account.reconcile.model.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 83,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_coordination.py"
+        }
+      ]
+    },
+    {
+      "digest": "7baea98cec26978b4ab4b5047655750df5d2d62147f804d157b2a90e59a9cfa6",
+      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model._rebuild_invalidate_pending_line_proof:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 92,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py"
+        }
+      ]
+    },
+    {
+      "digest": "3045304034f06a692a18c5b93816745a8b560f252ea972e271c25b8207504a20",
+      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "parents": [
+        "rpc:account.reconcile.model.action_rebuild_analyze_rule_opportunities"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 442,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py"
+        }
+      ]
+    },
+    {
+      "digest": "f09a67fd9562d32752968491c465f83c62a962fc354714fca730334b41dcd7b8",
+      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_create:2",
+      "kind": "sink",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "parents": [
+        "rpc:account.reconcile.model.action_rebuild_analyze_rule_opportunities"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 442,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py"
+        }
+      ]
+    },
+    {
+      "digest": "b50784bae7b5b3c1cac79cc6a9311c3860ac2884a4cedee44a2ecf7ceb229c27",
+      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "parents": [
+        "rpc:account.reconcile.model.action_rebuild_analyze_rule_opportunities"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 442,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py"
+        }
+      ]
+    },
+    {
+      "digest": "62cb87bd2e4af8cae0b08b2123c587f80b1425c091fdc966bd751c56008676e7",
+      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_analyze_rule_opportunities:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "parents": [
+        "rpc:account.reconcile.model.action_rebuild_analyze_rule_opportunities"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 442,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py"
+        }
+      ]
+    },
+    {
+      "digest": "1df341ff81752d6cd54043703b7ccadf875e51ccd48829f3b517274a3abc6a7a",
+      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_approve_proposal:message_send:1",
+      "kind": "sink",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "parents": [
+        "rpc:account.reconcile.model.action_rebuild_approve_proposal"
+      ],
+      "sink_kind": "message_send",
+      "sources": [
+        {
+          "line": 418,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py"
+        }
+      ]
+    },
+    {
+      "digest": "42018dd5d16bd49fa2938dade5a4ba6d8672f398840b6ce6cac18a59668e4c8c",
+      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_approve_proposal:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "parents": [
+        "rpc:account.reconcile.model.action_rebuild_approve_proposal"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 418,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py"
+        }
+      ]
+    },
+    {
+      "digest": "214953b3915f9e6e99707aa6deca34d1e84377136bb743a4a995cbdb4b2d27c5",
+      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_recheck_evidence:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "parents": [
+        "rpc:account.reconcile.model.action_rebuild_recheck_evidence"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 399,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py"
+        }
+      ]
+    },
+    {
+      "digest": "b2da40885d3ff80630fd24ea4a726f7e29456a4ca5b73c932d3ca07c7a059f09",
+      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.action_rebuild_recheck_evidence:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "parents": [
+        "rpc:account.reconcile.model.action_rebuild_recheck_evidence"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 399,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py"
+        }
+      ]
+    },
+    {
+      "digest": "87aa0fcdf44e8278027fc3c905a4b651b8e9078d63e8d9c45d5bdf08dae25781",
+      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.create:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "parents": [
+        "rpc:account.reconcile.model.create"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 69,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py"
+        }
+      ]
+    },
+    {
+      "digest": "b2beff54674705f6075c7f29b1553b2f09b47bbfc499f1d82c0df0d75ffcd2dc",
+      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py:account.reconcile.model.write:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "parents": [
+        "rpc:account.reconcile.model.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 76,
+          "path": "custom-addons/rebuild_account_migration/models/reconciliation_rule_proof.py"
         }
       ]
     },
@@ -1675258,6 +1677347,31 @@
     },
     {
       "delegates": [
+        "rpc:account.reconcile.model.action_rebuild_recheck_evidence"
+      ],
+      "digest": "0c0537e0ec3fd408d7caa36f4c67798182946e87f5e25cfded85c1c5adfc4d19",
+      "guards": [],
+      "key": "ui:rebuild_account_migration.view_rebuild_account_reconcile_model_form:button:object:action_rebuild_recheck_evidence:1",
+      "kind": "ui",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "3e55202f42c6ae570265a234dd559d0b68726caed79c072dfbc690c331f044b6",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/rebuild_account_migration/views/reconciliation_model_views.xml"
+        },
+        {
+          "path": "database:ir.ui.view:rebuild_account_migration.view_rebuild_account_reconcile_model_form"
+        }
+      ],
+      "xmlid": "rebuild_account_migration.view_rebuild_account_reconcile_model_form"
+    },
+    {
+      "delegates": [
         "rpc:account.reconcile.model.action_reconcile_stat"
       ],
       "digest": "0cab351d64d5ebcf3c57c520d3cbdc6e1f71545d5b1c62bedc488451c0428322",
@@ -1698409,11 +1700523,11 @@
       "version": "1.1"
     },
     {
-      "manifest_sha256": "3955762432c04094858bd33cef7691586e7dbeed0764181d3ead04260d294260",
+      "manifest_sha256": "6a12580414df3906dc242c62a28b5ef0b30ca7deee1262f2fbaca721262e2a79",
       "name": "rebuild_account_migration",
       "origin": "custom",
-      "source_sha256": "a9883c66a3d7b6ae7f87b87420b5a0f96d27e38e58978bfa00834a0990846a67",
-      "version": "saas~19.3.1.13.30"
+      "source_sha256": "c32a3f3258de99bb6c62a09fafd8433f166c6fd18b630e2809bdec6dfff6f4b0",
+      "version": "saas~19.3.1.13.31"
     },
     {
       "manifest_sha256": "a3a8024b1226ef713cc665c6c804362fd897338a958493f6d860b650e62eae30",
