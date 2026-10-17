@@ -1698710,11 +1698710,11 @@
       "version": ""
     },
     {
-      "manifest_sha256": "5697b43379473ef646c789828b1b656bf05122c2b43b56234e6654b251aaf00a",
+      "manifest_sha256": "f3d0885a9b4edf95a0688d51542f7b6e519f602de53f509f7368a602bd230f33",
       "name": "usl_access_control",
       "origin": "custom",
-      "source_sha256": "f17ba91d277dbc4d294553789e6f7bfd90320e77c555b46ef8ceaa8f3a3049f2",
-      "version": "saas~19.3.1.8.1"
+      "source_sha256": "d4d2d8a40086aa01b06430dbaa2a50cf8f0f99ada63575a90f45305da4554a1e",
+      "version": "saas~19.3.1.8.6"
     },
     {
       "manifest_sha256": "2d4f291c27ad7c2892ad8fd578313cb7bd45b5ad202e44f3087d7270dc084f31",
