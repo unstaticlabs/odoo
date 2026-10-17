@@ -5,4 +5,5 @@ from . import (
     test_agents,
     test_orm_payload_contract,
     test_native_grouping_reads,
+    test_delegated_owner_domains,
 )

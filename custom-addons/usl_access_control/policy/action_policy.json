@@ -203291,6 +203291,21 @@
         "rpc:wizard.ir.model.menu.create.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
         "rpc:wizard.open.tax.balances.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8"
       }
+    },
+    {
+      "action_keys": [
+        "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base._access_domain:sudo:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Compiles the existing owner record-rule domain in native rule-evaluation sudo context while retaining the owner UID; no elevated Agent recordset or mutation is returned.",
+      "domain": "security_and_administration",
+      "evidence_id": "delegated-owner-domain-context",
+      "id": "system_internal.delegated_owner_rule_resolution",
+      "rationale": "Native Odoo compiles security domains under sudo with active_test=False and the actual caller search_domain. Deferred native full optimization binds computed rule searches to the current owner while operation-specific owner predicates preserve record access and writes. Existing delegation, owner/company, field, readonly and protected controls remain authoritative.",
+      "reachability_proof": "Private Base._access_domain is called by native ORM access checks, not an ordinary public RPC/controller/UI/scheduled action. Its sudo recordset is confined to native domain optimization and never used for returned Agent records.",
+      "reviewed_digests": {
+        "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base._access_domain:sudo:1": "fa6921d51a264e011a0dd920160e1d9004950611162a8b56559e1d55d95e7e41"
+      }
     }
   ],
   "evidence_families": {
@@ -203315,6 +203330,20 @@
       "tests": [
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_project_agent_edits_one_activity_without_completing_it",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_agent_activity_edit_refuses_other_tasks_and_companies"
+      ]
+    },
+    "delegated-owner-domain-context": {
+      "contract": "Native personal and manager HR search/group follow current owner rule identity; SQL and operation-specific record filtering retain company/field/delegation/readonly/protected authority and native bounded caller context.",
+      "tests": [
+        "custom-addons/usl_access_control/tests/test_delegated_owner_domains.py::TestDelegatedOwnerDomains.test_personal_native_search_group_and_record_access",
+        "custom-addons/usl_access_control/tests/test_delegated_owner_domains.py::TestDelegatedOwnerDomains.test_nested_computed_rule_and_explicit_caller_identity",
+        "custom-addons/usl_access_control/tests/test_delegated_owner_domains.py::TestDelegatedOwnerDomains.test_generated_small_hierarchy_owner_ceiling",
+        "custom-addons/usl_access_control/tests/test_delegated_owner_domains.py::TestDelegatedOwnerDomains.test_company_subsets_and_current_owner_reduction",
+        "custom-addons/usl_access_control/tests/test_delegated_owner_domains.py::TestDelegatedOwnerDomains.test_empty_record_native_access_operator_and_true_false",
+        "custom-addons/usl_access_control/tests/test_delegated_owner_domains.py::TestDelegatedOwnerDomains.test_native_create_write_unlink_relations_and_owner_acl_loss",
+        "custom-addons/usl_access_control/tests/test_delegated_owner_domains.py::TestDelegatedOwnerDomains.test_bounded_native_mail_context",
+        "custom-addons/usl_access_control/tests/test_delegated_owner_domains.py::TestDelegatedOwnerDomains.test_record_access_batching",
+        "custom-addons/usl_access_control/tests/test_delegated_owner_domains.py::TestDelegatedOwnerDomains.test_fresh_key_native_http_personal_search_and_group"
       ]
     },
     "documents-batch-metadata-20261014": {

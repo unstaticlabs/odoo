@@ -37,6 +37,13 @@ does not silently restore the Agent's delegation. Deactivating an owner
 suspends all of their Agents; an owner or administrator must reactivate them
 explicitly.
 
+Computed record-rule searches resolve as the current owner, including personal
+employee and manager hierarchy rules. Rule compilation retains native Odoo's
+sudo evaluation and caller search bounds; it does not elevate the returned
+Agent records. Record filtering and writes use the owner's native rules for
+the requested operation. Explicit caller search predicates keep their native
+caller context.
+
 When owner authority contracts, Odoo removes the lost groups and companies
 immediately and records an authority-reduction warning. The warning is
 informational: the Agent may continue within its reduced authority while the
