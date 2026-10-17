@@ -84517,7 +84517,7 @@
         "rpc:iap.account.write": "e4e55b742596fc95073aab2159b92656b1cfa33a5fb4a18ff8dcefb8a01d6304",
         "rpc:ir.actions.server.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:ir.actions.server.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
-        "rpc:ir.attachment.create": "a9c0b04606f754d6431cfb7ac9d979af39e46b657d48faf39ebe9d4a44b05f0d",
+        "rpc:ir.attachment.create": "7d0b9780dec0b0b6cc62fe87899dd3b47fa1ed46b86361ae2eebc772ce3f15cc",
         "rpc:ir.attachment.write": "0651e27f8f1faa09166011f22d4d0b25bd612775781e554d5c732e773b15dc81",
         "rpc:ir.cron.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:ir.cron.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
@@ -205684,6 +205684,21 @@
       "rationale": "Reviewed 2026-10-15: discovery conservatively matches '_set' within _read_grouping_sets as orm_write, as with the existing native Project/ORM wrappers. This override only scopes the transaction-local JIT setting and delegates unchanged to native aggregation; no business row write, elevation, global configuration or external effect.",
       "reviewed_digests": {
         "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1": "dd3f23fbed92b3839174ec67e638ea9073a9effeeff7232f0d0e6799357de1c4"
+      }
+    },
+    {
+      "action_keys": [
+        "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:ir.attachment.create:orm_create:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Delegates native attachment creation to the existing ORM under authenticated operation context.",
+      "domain": "authorization",
+      "evidence_id": "internal-reachability-v1",
+      "id": "system_internal.authorization.native_attachment_copy",
+      "rationale": "The exact private ORM sink is reached through the existing reviewed ir.attachment.create RPC/native call chain. It adds no direct RPC and calls ordinary native creation without sudo; valid server-issued write scope supplies only the existing internal collaboration context. Native linked-record checks and owner/company access remain authoritative.",
+      "reachability_proof": "The sole parent is rpc:ir.attachment.create. The added super(IrAttachment, records).create ORM sink has no independent RPC, controller, UI, client, server-action or cron entry; that existing parent retains its reviewed recoverable classification and native access checks.",
+      "reviewed_digests": {
+        "sink:usl_access_control:custom-addons/usl_access_control/models/protected_models.py:ir.attachment.create:orm_create:1": "246d040a743f4313851f9b2e5abb92c9517e03ffcad7c8b8d7fa0031a30836c6"
       }
     }
   ],
