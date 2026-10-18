@@ -17318,6 +17318,7 @@
     "rpc:hr.expense.notify_cancel_by_type",
     "rpc:hr.expense.onchange",
     "rpc:hr.expense.onchange_batch",
+    "rpc:hr.expense.post.wizard.action_confirm_bank_match_posting",
     "rpc:hr.expense.post.wizard.action_post_entry",
     "rpc:hr.expense.post.wizard.copy",
     "rpc:hr.expense.post.wizard.copy_data",

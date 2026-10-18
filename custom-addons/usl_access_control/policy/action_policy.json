@@ -78251,6 +78251,8 @@
           "reversal_action": "rpc:hr.expense.write"
         },
         "rpc:hr.expense.action_post": {
+          "evidence_id": "expense-payment-posting-confirmation-3240",
+          "rationale": "The shared potential-payment review reads current company-scoped evidence before the existing native posting chain. A same-call internal object carries an explicit confirmation; a crafted RPC boolean cannot skip review. Existing authorization, posting/recovery semantics and the classification remain unchanged. Final employee posting rechecks current evidence and approved state.",
           "reversal_action": "rpc:hr.expense.write"
         },
         "rpc:hr.expense.action_rebuild_waive_receipt": {
@@ -84462,7 +84464,7 @@
         "rpc:hr.employee.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:hr.employee.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:hr.expense.action_approve": "1c5ac92f4e60de5d22469b23fbadc8bf0d27d8d1d48a2e6e9af434993b0205ed",
-        "rpc:hr.expense.action_post": "966aac07eb839e4dd47962cfdaac11f44154e4fdabd630e9a0ada9037004bcde",
+        "rpc:hr.expense.action_post": "11fe4de776c409ca644596040d3a3ffe46bec6c4276f425cddd8276e7d5b9f01",
         "rpc:hr.expense.action_rebuild_waive_receipt": "46b4cd9ad2696afc1844b16977c1ea16f5f511d86ed8c0392d2be95cf48c0de4",
         "rpc:hr.expense.action_refresh_bank_match_candidates": "52ba6d0bd98f5a482ae99e7e69a58fd06866a8019c2a075b22ed369f8075bbab",
         "rpc:hr.expense.create": "6da29167cbaa69241ea938ec2ac99578b2d5754653a5b0c5d8c1ccd621b342dc",
@@ -109862,8 +109864,8 @@
           "reversal_action": "rpc:hr.expense.write"
         },
         "rpc:hr.expense.post.wizard.action_post_entry": {
-          "evidence_id": "upstream-sync-20261015",
-          "rationale": "Native public posting now explicitly checks expenses.has_access(write) and account.move create before existing fixed accounting sudo. Existing native self.company configuration write only selected expense journal. Retain recoverable current policy; no authority widening. New return list fixes tuple/list combination.",
+          "evidence_id": "expense-payment-posting-confirmation-3240",
+          "rationale": "The shared potential-payment review reads current company-scoped evidence before the existing native posting chain. A same-call internal object carries an explicit confirmation; a crafted RPC boolean cannot skip review. Existing authorization, posting/recovery semantics and the classification remain unchanged. Final employee posting rechecks current evidence and approved state.",
           "reversal_action": "rpc:hr.expense.post.wizard.write"
         },
         "rpc:hr.expense.post.wizard.copy": {
@@ -111304,7 +111306,7 @@
         "rpc:hr.expense.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
         "rpc:hr.expense.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
         "rpc:hr.expense.onchange_batch": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
-        "rpc:hr.expense.post.wizard.action_post_entry": "8b4774440c69688baa6ea7fe5bd22b8eb2dd2144d5bb2cc1f324227d61ffd8ac",
+        "rpc:hr.expense.post.wizard.action_post_entry": "5f0835cae1f8a2cdd4c32aeddcde15ad07dd12b809f59320c62255eca0548295",
         "rpc:hr.expense.post.wizard.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:hr.expense.post.wizard.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
         "rpc:hr.expense.post.wizard.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
@@ -156759,21 +156761,33 @@
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:message_send:1": {
+          "evidence_id": "expense-payment-posting-confirmation-3240",
+          "rationale": "The only change in this existing native matching helper is the internal same-call marker after its already explicit per-candidate confirmation. Native submit/approve/post, reconciliation, audit messages and all caller/company checks are unchanged.",
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:message_send:2": {
+          "evidence_id": "expense-payment-posting-confirmation-3240",
+          "rationale": "The only change in this existing native matching helper is the internal same-call marker after its already explicit per-candidate confirmation. Native submit/approve/post, reconciliation, audit messages and all caller/company checks are unchanged.",
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:1": {
+          "evidence_id": "expense-payment-posting-confirmation-3240",
+          "rationale": "The only change in this existing native matching helper is the internal same-call marker after its already explicit per-candidate confirmation. Native submit/approve/post, reconciliation, audit messages and all caller/company checks are unchanged.",
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:2": {
+          "evidence_id": "expense-payment-posting-confirmation-3240",
+          "rationale": "The only change in this existing native matching helper is the internal same-call marker after its already explicit per-candidate confirmation. Native submit/approve/post, reconciliation, audit messages and all caller/company checks are unchanged.",
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:3": {
+          "evidence_id": "expense-payment-posting-confirmation-3240",
+          "rationale": "The only change in this existing native matching helper is the internal same-call marker after its already explicit per-candidate confirmation. Native submit/approve/post, reconciliation, audit messages and all caller/company checks are unchanged.",
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:4": {
+          "evidence_id": "expense-payment-posting-confirmation-3240",
+          "rationale": "The only change in this existing native matching helper is the internal same-call marker after its already explicit per-candidate confirmation. Native submit/approve/post, reconciliation, audit messages and all caller/company checks are unchanged.",
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate.action_open_confirmation:orm_create:1": {
@@ -159405,12 +159419,12 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_refresh_bank_match_candidates:orm_create:1": "f23ced9433def45ad1622d23f83db37de0c0096696d7af6c9fbffc00ddf6a081",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_refresh_bank_match_candidates:orm_write:1": "961f7e997c4ca190aaa2f2d6aedba86b3b2cbba32e59cb1b23afbb46b37d24a4",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_refresh_bank_match_candidates:orm_write:2": "cf4cbd218d95d70da7708c7cd6919320b28917f2a17fa878d9ab36209d5d7534",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:message_send:1": "15412a1f67701c744a586f1c0ddaed221372363108ae58b5b5c60cec2e0b641e",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:message_send:2": "0a545ca5ebdb4562d0b7105fdce4d3857db8f4073da7cd3e0bf4799078133b95",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:1": "1c6360adbfeb458092af861fecd79643c95de9e10596ab88a532111ac929db26",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:2": "c483a605ae432017c0197c955385f60611bacfa50c42e960235b44811a48c79d",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:3": "abcfe94ccb5884c83986ac786f7820852c34c0d1230a8fc08dc55587cc5bba35",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:4": "436363acc6c30888a940241824a1d163c6e5fec14b3f8d17952acf2f289d97fe",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:message_send:1": "99c56a816ccecc29ba01a6c480d2f493e955387a5d323e1f6f417c57c6378fbd",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:message_send:2": "b22fdb5db09992043428b28155f8dcc9363d107f25e3b22c09491ed47ae4c700",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:1": "b79c6abd844be939470c675a89ba01f5d21aaa8463b5f00bbe0cb3973659a598",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:2": "d2bb835a5d04baf4a7e4029aa9df9842548efbddfd4e3bed2590d5f1725e3400",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:3": "309ba8796dadda9768af00caa9bcc652f542e53c9a4f6488004f035891cd2933",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:4": "59a7030f66645b1154517667150b0ece8011ed447d7301c4394e40b0787a6ace",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate.action_open_confirmation:orm_create:1": "67062504254f638db41d8a9a718463ebfdd96155ef4cbec247e3d84b5bc502e0",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:_as_settlement_service:sudo:1": "c046d4cf41402742f11b795c47fcaaf65026f0c7e4237cb5a63484f3207e12f6",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._restore_payment_rate_document:orm_write:1": "669db424fb2044bbb6dba0d5d90e8f512f64b9b007cee536901085ae1bf11f3a",
@@ -205686,6 +205700,93 @@
       "reviewed_digests": {
         "sink:usl_project:custom-addons/usl_project/models/task_content_search.py:project.task._read_grouping_sets:orm_write:1": "dd3f23fbed92b3839174ec67e638ea9073a9effeeff7232f0d0e6799357de1c4"
       }
+    },
+    {
+      "action_keys": [
+        "rpc:hr.expense.post.wizard.action_confirm_bank_match_posting"
+      ],
+      "classification": "operational",
+      "consequence": "Explicitly posts the reviewed expense set through the existing native accounting methods as the current operator; no bank transaction is automatically matched or reconciled.",
+      "domain": "accounting",
+      "evidence_id": "expense-payment-posting-confirmation-3240",
+      "id": "expense-payment-confirmation.confirm",
+      "rationale": "The same operator who can already post the expenses makes the shared confirmation. Current expense/bank fingerprints are rechecked before native effects; changed evidence reopens review. Native ACLs, company rules, lock dates, tax handling, delegation and existing irreversible controls remain authoritative. The confirmed marker is an internal object scoped to this call, not a new permission or external approval. Confirmation always redispatches the current native payer set, including a native payer edit made after an employee posting dialog opened; the actual returned employee wizard retains the selected journal/date.",
+      "reviewed_digests": {
+        "rpc:hr.expense.post.wizard.action_confirm_bank_match_posting": "32760a35bbc6990dc2687e756e0b620f524ea1431012e56f27c43d187656d273"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:hr.expense.post.wizard.action_review_expense_bank_matches"
+      ],
+      "classification": "read_only",
+      "consequence": "Returns native navigation to the already readable expense set.",
+      "domain": "accounting",
+      "evidence_id": "expense-payment-posting-confirmation-3240",
+      "id": "expense-payment-confirmation.review",
+      "rationale": "Reads the current user-owned native transient wizard and returns an ordinary expense form/list action. It neither refreshes candidates nor posts, reconciles, writes business data, elevates authority or calls a provider.",
+      "reviewed_digests": {
+        "rpc:hr.expense.post.wizard.action_review_expense_bank_matches": "02d1e5e7fe6375ad43cb5832308a49db58acce50e665656ee25542bd5ed68dfb"
+      }
+    },
+    {
+      "action_keys": [
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense.action_post:orm_create:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense.action_post:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense.action_post:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard._usl_open_bank_match_review:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard.action_confirm_bank_match_posting:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard.action_confirm_bank_match_posting:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard.action_confirm_bank_match_posting:orm_write:3",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard.action_post_entry:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard.action_post_entry:orm_write:2"
+      ],
+      "classification": "system_internal",
+      "consequence": "Records temporary review evidence or delegates through the exact reviewed native posting entry points.",
+      "domain": "accounting",
+      "evidence_id": "expense-payment-posting-confirmation-3240",
+      "id": "expense-payment-confirmation.internal",
+      "rationale": "These exact AST sink records are implementation fragments, not independent public RPC actions. They only create/update the native user-owned transient posting wizard or call its fixed posting/review helpers. No new sudo, raw SQL, provider, deletion, generic execution or permission grant is introduced.",
+      "reachability_proof": "Each listed sink key is an AST fragment in the shared posting helpers; it has no independent runtime RPC/controller/UI/cron key. Public parents are the separately reviewed hr.expense.action_post, hr.expense.post.wizard.action_post_entry and action_confirm_bank_match_posting entries. The underscore-prefixed _usl_open_bank_match_review helper is not callable over native RPC.",
+      "reviewed_digests": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense.action_post:orm_create:1": "8618df381b5eccdcc87cfbba258fd12155f83f3a8038153de1f82f480cc8d9d5",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense.action_post:orm_write:1": "579cdbea2aa4b01461c2de0bcd096a2ba74a0bc02bf34aa9c7c36d14d15800d3",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense.action_post:orm_write:2": "9a17891928e580c87c259bbfb13b9596becf90b65d7ffb617c5f5a80bb39c905",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard._usl_open_bank_match_review:orm_write:1": "f94b05f1f63c971f4cc29c14177a8d8eaa88b479c24f6b133b15c44f72e8c570",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard.action_confirm_bank_match_posting:orm_write:1": "6e1ff918f4751c7466e73745f022283a176e747098bb0f0bc11315e43880d968",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard.action_confirm_bank_match_posting:orm_write:2": "aedc23a3f89a9bca5afacc00942d551d04d858e6145205bfa32a97887de1bd4a",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard.action_confirm_bank_match_posting:orm_write:3": "e0f95b2a77ad52402f97bea583b78e34ed06386377cdb5406c467d6b63226017",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard.action_post_entry:orm_write:1": "0460039f86b3622b5e36f923c767f2b4c12806e3dc517209ea72e4347cd38f62",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard.action_post_entry:orm_write:2": "d76f2293d62b8d38e2938f16bb25f2e624fe045bd8f4be3f776453e8f9105949"
+      }
+    },
+    {
+      "action_keys": [
+        "ui:usl_accounting.view_expense_post_bank_match_review:button:object:action_confirm_bank_match_posting:1",
+        "ui:usl_accounting.view_expense_post_bank_match_review:button:object:action_review_expense_bank_matches:1"
+      ],
+      "classification": "transport",
+      "consequence": "Exposes only the exact reviewed native-wizard confirmation or expense-navigation action.",
+      "domain": "accounting",
+      "evidence_id": "expense-payment-posting-confirmation-3240",
+      "id": "expense-payment-confirmation.ui",
+      "overrides": {
+        "ui:usl_accounting.view_expense_post_bank_match_review:button:object:action_confirm_bank_match_posting:1": {
+          "targets": [
+            "rpc:hr.expense.post.wizard.action_confirm_bank_match_posting"
+          ]
+        },
+        "ui:usl_accounting.view_expense_post_bank_match_review:button:object:action_review_expense_bank_matches:1": {
+          "targets": [
+            "rpc:hr.expense.post.wizard.action_review_expense_bank_matches"
+          ]
+        }
+      },
+      "rationale": "The native object buttons contain no separate sink. Their exact target method retains the caller, current-company rules and its own reviewed behavior.",
+      "reviewed_digests": {
+        "ui:usl_accounting.view_expense_post_bank_match_review:button:object:action_confirm_bank_match_posting:1": "8ad84e836f92ac18f9b0e53d6b787f02df999941de34b8170764883784cd4b9a",
+        "ui:usl_accounting.view_expense_post_bank_match_review:button:object:action_review_expense_bank_matches:1": "5326bd13fc282a323c0a3c6921aca8ab0cbeceb7b94e990a091280e21007abb5"
+      }
     }
   ],
   "evidence_families": {
@@ -205782,6 +205883,19 @@
         "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_reviewed_match_rejects_same_amount_line_edit_after_native_confirmation",
         "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_reviewed_match_rejects_changed_bank_reference_after_native_confirmation",
         "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_native_after_post_autopost_action_is_retained_after_matching"
+      ]
+    },
+    "expense-payment-posting-confirmation-3240": {
+      "contract": "A potential company bank payment requires an explicit decision by the current native-authorized posting operator. Opening or cancelling the review changes no expense, payment, entry, bank transaction or candidate cache. Changed evidence refreshes the review; explicit confirmation uses native posting and never auto-reconciles. People and delegated Agents share the same business flow and existing authority.",
+      "tests": [
+        "custom-addons/usl_accounting/tests/test_expense_bank_matching.py::TestExpenseBankMatching.test_post_requires_review_before_company_payment_creation",
+        "custom-addons/usl_accounting/tests/test_expense_bank_matching.py::TestExpenseBankMatching.test_post_confirmation_keeps_native_company_payment_and_bank_unmatched",
+        "custom-addons/usl_accounting/tests/test_expense_bank_matching.py::TestExpenseBankMatching.test_open_and_cancel_review_preserves_financial_state_and_candidate_cache",
+        "custom-addons/usl_accounting/tests/test_expense_bank_matching.py::TestExpenseBankMatching.test_employee_final_post_rechecks_new_bank_data",
+        "custom-addons/usl_accounting/tests/test_expense_bank_matching.py::TestExpenseBankMatching.test_boolean_context_cannot_accidentally_skip_confirmation",
+        "custom-addons/usl_accounting/tests/test_expense_bank_matching.py::TestExpenseBankMatching.test_review_evidence_uses_only_the_expense_company",
+        "custom-addons/usl_accounting/tests/test_expense_bank_matching.py::TestExpenseBankMatching.test_final_review_redispatches_current_company_payment_mode",
+        "custom-addons/usl_accounting/tests/test_expense_bank_matching.py::TestExpenseBankMatching.test_final_review_redispatches_current_mixed_payment_membership"
       ]
     },
     "feedback-provider-phases-20260906": {
