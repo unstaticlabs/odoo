@@ -78,6 +78,14 @@ Each row is a focused, deterministic recommendation. Open one to see:
 
 Open **Declarations** and choose the next obligation. Ledger-derived values and external confirmations are separate. Use **View Entries** to trace a field to journal items.
 
+The schedule opens under **Accounting > Review > Declarations**, with the
+**Open** filter selected. Remove that filter to inspect completed obligations.
+Their lifecycle, external filing and payment outcomes remain recorded facts.
+Open **Data Checks** to inspect current preparation inputs, automated validation
+and the last refresh. Missing data there does not undo a recorded filing or
+payment, and these checks are not a snapshot of the data at filing. An external
+rejection remains visible; its response and evidence are in **Review and Filing**.
+
 Open **Accounting > Closing > Closing Workspaces**. Controls are calculated from current records. Accountant review is available, but internal approval can progress without it when every blocking control is clear.
 
 You now know where daily work starts, how accounting values connect, and where review and statutory preparation live.

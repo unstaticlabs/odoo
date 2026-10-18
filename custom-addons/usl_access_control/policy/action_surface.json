@@ -928112,7 +928112,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 421,
+          "line": 437,
           "path": "custom-addons/rebuild_account_migration/models/report_views_ledgers.py"
         },
         {
@@ -929797,7 +929797,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1561,
+          "line": 1614,
           "path": "custom-addons/rebuild_account_migration/models/report_views.py"
         },
         {
@@ -933258,7 +933258,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 709,
+          "line": 740,
           "path": "custom-addons/rebuild_account_migration/models/report_views.py"
         },
         {
@@ -943842,7 +943842,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 818,
+          "line": 851,
           "path": "custom-addons/rebuild_account_migration/models/report_views.py"
         },
         {
@@ -945563,7 +945563,7 @@
       ],
       "sources": [
         {
-          "line": 554,
+          "line": 550,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         },
         {
@@ -945595,7 +945595,7 @@
       ],
       "sources": [
         {
-          "line": 499,
+          "line": 495,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         },
         {
@@ -945624,7 +945624,7 @@
       ],
       "sources": [
         {
-          "line": 577,
+          "line": 573,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         },
         {
@@ -945657,7 +945657,7 @@
       ],
       "sources": [
         {
-          "line": 517,
+          "line": 513,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         },
         {
@@ -945726,7 +945726,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 602,
+          "line": 598,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         },
         {
@@ -945759,7 +945759,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 606,
+          "line": 602,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         },
         {
@@ -945792,7 +945792,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 591,
+          "line": 587,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         },
         {
@@ -945825,7 +945825,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 530,
+          "line": 526,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         },
         {
@@ -945861,7 +945861,7 @@
       ],
       "sources": [
         {
-          "line": 234,
+          "line": 228,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         },
         {
@@ -945897,7 +945897,7 @@
       ],
       "sources": [
         {
-          "line": 512,
+          "line": 508,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         },
         {
@@ -946198,7 +946198,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 667,
+          "line": 663,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         },
         {
@@ -952398,7 +952398,7 @@
       ],
       "sources": [
         {
-          "line": 16,
+          "line": 17,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         },
         {
@@ -956450,7 +956450,7 @@
       "delegates": [
         "rpc:rebuild.account.eu.tax.report.line.ensure_one"
       ],
-      "digest": "942080b2b53023ceaefb30b1efc0d0ae521227fa0d7e6fc0147400fb93a2f226",
+      "digest": "03e4a9a284fa70ba5f5d19d473c6b44351b6210597de7742470a8dad9f2ca83f",
       "guards": [],
       "key": "rpc:rebuild.account.eu.tax.report.line.action_open_journal_items",
       "kind": "rpc",
@@ -956461,11 +956461,11 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "7065e41b0ff07ad1896d178d7ede653bb679da0554fea489f1ae19541cb761df",
+      "runtime_digest": "8183cf6f709320ba50043fc561350a81c031b329a6fe4308a2ad038e7639306a",
       "sinks": [],
       "sources": [
         {
-          "line": 444,
+          "line": 450,
           "path": "custom-addons/rebuild_account_migration/models/report_views.py"
         },
         {
@@ -959868,7 +959868,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 135,
+          "line": 132,
           "path": "custom-addons/rebuild_account_migration/models/report_views.py"
         },
         {
@@ -961553,7 +961553,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 38,
+          "line": 43,
           "path": "custom-addons/rebuild_account_migration/models/report_views_french.py"
         },
         {
@@ -963239,7 +963239,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 656,
+          "line": 667,
           "path": "custom-addons/rebuild_account_migration/models/report_views_french.py"
         },
         {
@@ -964921,7 +964921,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 116,
+          "line": 124,
           "path": "custom-addons/rebuild_account_migration/models/report_views_ledgers.py"
         },
         {
@@ -970043,7 +970043,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 182,
+          "line": 192,
           "path": "custom-addons/rebuild_account_migration/models/report_views_ledgers.py"
         },
         {
@@ -971728,7 +971728,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1003,
+          "line": 1050,
           "path": "custom-addons/rebuild_account_migration/models/report_views.py"
         },
         {
@@ -973410,7 +973410,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 350,
+          "line": 364,
           "path": "custom-addons/rebuild_account_migration/models/report_views_ledgers.py"
         },
         {
@@ -978165,7 +978165,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 268,
+          "line": 280,
           "path": "custom-addons/rebuild_account_migration/models/report_views_ledgers.py"
         },
         {
@@ -984514,7 +984514,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 952,
+          "line": 981,
           "path": "custom-addons/rebuild_account_migration/models/report_export_client.py"
         },
         {
@@ -984587,7 +984587,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 998,
+          "line": 1027,
           "path": "custom-addons/rebuild_account_migration/models/report_export_client.py"
         },
         {
@@ -984662,7 +984662,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1008,
+          "line": 1037,
           "path": "custom-addons/rebuild_account_migration/models/report_export_client.py"
         },
         {
@@ -985316,7 +985316,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1713,
+          "line": 1753,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         },
         {
@@ -985349,7 +985349,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1722,
+          "line": 1762,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         },
         {
@@ -987034,7 +987034,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1418,
+          "line": 1469,
           "path": "custom-addons/rebuild_account_migration/models/report_views.py"
         },
         {
@@ -988719,7 +988719,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 296,
+          "line": 299,
           "path": "custom-addons/rebuild_account_migration/models/report_views.py"
         },
         {
@@ -990404,7 +990404,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 35,
+          "line": 41,
           "path": "custom-addons/rebuild_account_migration/models/report_views_ledgers.py"
         },
         {
@@ -1583489,7 +1583489,7 @@
       ]
     },
     {
-      "digest": "4fd672b994728fea45b5504d80a73c4a2ab99dc6a7a5c82a61573d03cb0957ee",
+      "digest": "109f1ba5b974fe5fceb8cdc04c12c046d965d664d1ce65ed3416c487db969153",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._sync_field_lines:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1583498,7 +1583498,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 277,
+          "line": 271,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1583513,7 +1583513,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 324,
+          "line": 323,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1583528,7 +1583528,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 324,
+          "line": 323,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1583543,7 +1583543,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 390,
+          "line": 386,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1583561,7 +1583561,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 554,
+          "line": 550,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1583579,7 +1583579,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 499,
+          "line": 495,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1583597,7 +1583597,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 577,
+          "line": 573,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1583615,7 +1583615,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 517,
+          "line": 513,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1583633,7 +1583633,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 234,
+          "line": 228,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1583651,7 +1583651,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 234,
+          "line": 228,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1583669,7 +1583669,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 512,
+          "line": 508,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1583684,7 +1583684,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 658,
+          "line": 654,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1583699,7 +1583699,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 658,
+          "line": 654,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1583780,7 +1583780,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 436,
+          "line": 451,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1583795,7 +1583795,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 436,
+          "line": 451,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1583810,7 +1583810,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 465,
+          "line": 480,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1583825,7 +1583825,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 465,
+          "line": 480,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1583843,7 +1583843,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 16,
+          "line": 17,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1583861,7 +1583861,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 16,
+          "line": 17,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1585667,7 +1585667,7 @@
       ]
     },
     {
-      "digest": "7b2b70ce79949abddce4acf0fcf147081bf699de4bfab78ef55cf24250ef8a78",
+      "digest": "a89e9b38613ed7421a59fe79a7c6be988683815dcfb989d8db0aa0d69766f2d2",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_client.py:rebuild.account.report.export.wizard._report_client_payload:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1585871,7 +1585871,7 @@
       ]
     },
     {
-      "digest": "273109f3d12b24fde0441825b60caea21850ecc3cd8ecf07183ab2762f4352b8",
+      "digest": "baa4064d1629a5e9a82dedbedea89801a61051a29a88cd431247570704239343",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_wizard.py:rebuild.account.report.export.wizard._export_metadata:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1585880,7 +1585880,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1495,
+          "line": 1534,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1586147,7 +1586147,7 @@
       ]
     },
     {
-      "digest": "996ca01f45c70ac64963ac313e73072b46b6d7e0c516f3194d321163d66d37e4",
+      "digest": "397705052aa2a4c3af92fd8e5f9d63ab85ad16659c87d1ff1e6325fb19bab82e",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1586162,7 +1586162,7 @@
       ]
     },
     {
-      "digest": "3b579244a17c2fb8ced481258333460466c539e5c78beb4663aaaf9f8364618a",
+      "digest": "200e51a4dfc4905263ade9333b891a07041596c779dff12382bf2dacb1df373c",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1586177,7 +1586177,7 @@
       ]
     },
     {
-      "digest": "3c7478bc649dae93daf7d3b2d84239730f9b9c70ae6b416db8506dbeff0e4b21",
+      "digest": "cbc41982eec917a62f4e97131ed192742a80fff0769b7de02403607b24ccfec8",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:3",
       "kind": "sink",
       "modules": [
@@ -1586192,7 +1586192,7 @@
       ]
     },
     {
-      "digest": "4a8ef494bba2b54e7c5819a683f4768408e4a3b9a4baf45db17e03c9ba42a3d1",
+      "digest": "d50f6a93222118a8624333ab1abec860736665012edb579af3a976f4209f201f",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:4",
       "kind": "sink",
       "modules": [
@@ -1586207,7 +1586207,7 @@
       ]
     },
     {
-      "digest": "fc9c9ed61461767356458b19265523315b0313d8af4c8cd921043e18a2f74990",
+      "digest": "93e2890794a67b930d867024b62c7d4a8e61f32cf16813583e674a9e10d9a8bd",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:5",
       "kind": "sink",
       "modules": [
@@ -1586222,7 +1586222,7 @@
       ]
     },
     {
-      "digest": "d1f27314c219debee32dfb2a910948619e33383807f402b0b79c2b73ad4270b5",
+      "digest": "6c61ab574dbc0f18c5aefc529a887649528002a9889e0fae847dc38021f966f2",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:6",
       "kind": "sink",
       "modules": [
@@ -1586237,7 +1586237,7 @@
       ]
     },
     {
-      "digest": "db858304494a908abfaeb748b46c69b4ca9a669722f774cabe432f24a8072061",
+      "digest": "5b2ff661509598f1593312c643bab29838607409d836920506a78c56278d866e",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:7",
       "kind": "sink",
       "modules": [
@@ -1586252,7 +1586252,7 @@
       ]
     },
     {
-      "digest": "f8a4674528166f65c9f5e89c2d5832c09c2ebbcced36fd2b6bc314375c05b362",
+      "digest": "b9ab255a21f9d1df5491cf9ea9c0ac9dfdd30407afc4fd8de39ebe8eb709e333",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:8",
       "kind": "sink",
       "modules": [
@@ -1586267,7 +1586267,7 @@
       ]
     },
     {
-      "digest": "1db0f0d292aa6210049c70920638b32e38debc68b8896944f3f8e8eaf9b4de9a",
+      "digest": "86702b2a0b986a4981ba9a9f305f44f94cdfa27627df97d06d60c8ecffe3d4a2",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/report_export_xlsx.py:rebuild.account.report.export.wizard._xlsx_payload:orm_write:9",
       "kind": "sink",
       "modules": [
@@ -1670947,7 +1670947,7 @@
       "xmlid": "rebuild_account_migration.action_rebuild_account_report_export_depreciation_schedule"
     },
     {
-      "digest": "d1aaff6f3890a766b861d4b30857fbfb2584e04f8548b632acb41f29bdff0113",
+      "digest": "d1a133c4af8e09a16978451043c24d42625a023223e6376571083db84b483a0e",
       "guards": [],
       "key": "ui:rebuild_account_migration.action_rebuild_account_report_export_ec_sales_list",
       "kind": "ui",
@@ -1670956,7 +1670956,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "0a9a99412aeeba05d6e81804a928bc0125c24e654eb9008457548bc5cb428b73",
+      "runtime_digest": "b97b6105563b0e09322031a74d7c9b001b9fd7ebdf7d6e551ca87aac4fe886cb",
       "sinks": [],
       "sources": [
         {
@@ -1671223,7 +1671223,7 @@
       "xmlid": "rebuild_account_migration.action_rebuild_account_report_export_open_items"
     },
     {
-      "digest": "0a8158e25b1c987c4bacb033ff4893bf9083e6844b39f6957c47741d9a9f6ac4",
+      "digest": "8c37801c2c4d4ffd80208a691cb032e473e751217c7cbf0df139b085ad7dd2c4",
       "guards": [],
       "key": "ui:rebuild_account_migration.action_rebuild_account_report_export_oss_imports",
       "kind": "ui",
@@ -1671232,7 +1671232,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "fb85125af22a9882878bd13a51d5e9f9ab0d90cd4c17b1aad7d3cb3ddf6df75c",
+      "runtime_digest": "baea15824b21e876a6bd036adb96c7dd665c61a552e728307ff6453c43d3a3a2",
       "sinks": [],
       "sources": [
         {
@@ -1671246,7 +1671246,7 @@
       "xmlid": "rebuild_account_migration.action_rebuild_account_report_export_oss_imports"
     },
     {
-      "digest": "2d12c2c2da9467ea63c1e0bfcd6320b1674886be4ebcf039e0a5e4fa9ee9362d",
+      "digest": "32faf8c07f726147d231a6f72e6a17a68af5e280254ea1b4866599d2cb5b6e35",
       "guards": [],
       "key": "ui:rebuild_account_migration.action_rebuild_account_report_export_oss_sales",
       "kind": "ui",
@@ -1671255,7 +1671255,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "51144acdbba04f47308b5fcf2edec9b9e6e0b36ec9a4683ca77e1e0df0bb8a4c",
+      "runtime_digest": "e3953bab4221655aed863f8bf298b5c0f3c706c78e4d28f640adddb53f6bbff7",
       "sinks": [],
       "sources": [
         {
@@ -1698394,11 +1698394,11 @@
       "version": "1.1"
     },
     {
-      "manifest_sha256": "f8fbd53584242affdab3bb8dc7838b537159ce5f73b1500457aaa599bf786d1f",
+      "manifest_sha256": "0b535cc087f6f8f19d701571b61eaf263adcb5b11a9ab4cf4fcca8eee6cafe44",
       "name": "rebuild_account_migration",
       "origin": "custom",
-      "source_sha256": "d821aa51133969329ea480ab1de33104360cb44fa830399a68c8db40f6a897eb",
-      "version": "saas~19.3.1.13.34"
+      "source_sha256": "c5ffad1a939835e6b33ec385c4830793583524dd1b3de2a821f105f39b7d59de",
+      "version": "saas~19.3.1.13.40"
     },
     {
       "manifest_sha256": "a3a8024b1226ef713cc665c6c804362fd897338a958493f6d860b650e62eae30",

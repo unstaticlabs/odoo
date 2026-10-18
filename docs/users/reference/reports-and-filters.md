@@ -99,6 +99,23 @@ Report date fields display `DD/MM/YYYY` and retain the calendar picker. Start,
 end, reference and comparison dates never inherit the browser's
 `MM/DD/YYYY` order.
 
+## Fiscal years in list reports
+
+Trial balance, ledger, statement, tax and management lists show one block per
+fiscal year, labelled `Fiscal year <start> to <end>`. Each company uses its own
+fiscal-year end, and an exceptional first fiscal year counts as one block.
+Entries dated before it appear under `Earlier posted accounting`. A line opens
+only the journal items of its own fiscal year.
+
+**Current fiscal year** keeps the lines whose fiscal year contains today's date.
+It follows each company's own calendar, so it needs no yearly update.
+
+The EC sales list and the OSS reports are filed by calendar month, and their
+menus open on the previous full month. Pick a start date on the first day of a
+month and an end date on the last day of a month. The
+French tax package is prepared for one complete fiscal year; any other range
+shows a message that names the fiscal year containing the start date.
+
 ## Reading results
 
 The figures above the table cover the complete authorized report for its
@@ -139,6 +156,19 @@ Back returns to the same report session with its filters and opened groups.
 
 Draft warnings mean the displayed period includes unposted accounting that can still change.
 
+### Provisional status
+
+A yellow **PROVISOIRE** pill, the first of the active-scope pills, and a notice
+listing the reasons appear while a report is **provisional**. A report is
+provisional until the global fiscal-year lock (or the hard lock) of every
+selected company covers its closing date, comparison period included. Tax,
+sales and purchase locks do not count, active lock exceptions are ignored, and
+a report that includes draft entries stays provisional. The status follows the
+lock dates and cannot be set by hand: lock the period and open the report again
+to see it become final, with no pill and no notice. The same status is carried
+into the PDF, the XLSX and the CSV metadata; the FEC text file is never
+labelled.
+
 ## Screen and exports
 
 The screen uses a centered A4-like reading width for portrait statements and a
@@ -155,6 +185,10 @@ values remain in source units and it is not the presentation reference.
 Readable PDF/XLSX periods, date columns, headers, metadata and generation
 timestamps use `DD/MM/YYYY`. Machine metadata and the raw audit sheet retain
 ISO dates where software interchange requires them.
+A provisional XLSX adds a bold **DOCUMENT PROVISOIRE** row above the subtitle on
+the `Report` sheet and the words **Document provisoire** in its printed header
+and footer; the `Metadata` sheet shows a **Statut** row (**Provisoire** or
+**Définitif**).
 
 Each report resolves a governed definition for the selected company and period.
 Its version and origin are retained in the report session and export metadata.

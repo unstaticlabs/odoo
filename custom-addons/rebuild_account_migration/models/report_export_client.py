@@ -464,6 +464,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "draft_entry_count": self.draft_entry_count,
             "capabilities": self._report_client_capabilities(),
             "summary": self._report_client_summary(),
+            "provisional": self._report_client_provisional(),
             "generated_at": fields.Datetime.to_string(
                 self.preview_generated_at,
             ),
@@ -642,6 +643,34 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "xlsx": definition.supports_xlsx,
             })
         return capabilities
+
+    def _report_client_provisional(self):
+        """Read the document status the preview was built with.
+
+        The status is the one the exports carry: it comes from the preview
+        metadata, so the screen cannot disagree with the file generated from
+        the same preview. Older or invalid transient previews hold no usable
+        status; it is then derived again by the same function, under the same
+        native rights, rather than shown as final by default.
+        """
+        self.ensure_one()
+        try:
+            metadata = json.loads(self.preview_metadata or "{}")
+        except (TypeError, ValueError):
+            metadata = {}
+        status = metadata.get("provisional") if isinstance(metadata, dict) else None
+        if not (
+            isinstance(status, dict)
+            and isinstance(status.get("required"), bool)
+            and isinstance(status.get("reasons"), list)
+            and all(isinstance(reason, str) for reason in status["reasons"])
+        ):
+            self._validate_filter_scope()
+            status = self._report_provisional_status()
+        return {
+            "required": bool(status["required"]),
+            "reasons": list(status["reasons"]) if status["required"] else [],
+        }
 
     def _report_client_summary(self):
         """Read the complete financial snapshot, including older report sessions."""

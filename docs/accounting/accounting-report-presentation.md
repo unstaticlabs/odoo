@@ -163,6 +163,45 @@ actions behind every canonical report.
   text. Hover retains the same contrast instead of applying the generic detail
   row hover color.
 
+## Fiscal-year buckets
+
+The list reports (trial balance, ledgers, financial and French statements, tax,
+EC/OSS, currency, bank, management and analytic lines) group posted accounting
+by fiscal year. Each date falls in exactly one closed bucket of its own
+company:
+
+- the bucket comes from the company's fiscal-year end
+  (`fiscalyear_last_month` and `fiscalyear_last_day`), with the same rule as
+  `compute_fiscalyear_dates`, including a February year end that means the last
+  day of February;
+- the optional exceptional first fiscal year of the company
+  (`rebuild_first_fiscalyear_start` and `rebuild_first_fiscalyear_end`) is one
+  bucket; dates before it fall in `Earlier posted accounting`, which ends the
+  day before the first year starts;
+- the label is `Fiscal year <start> to <end>`, and the same bucket is also
+  carried as the two date columns `period_date_from` and `period_date_to`.
+
+The label is for display. Drill-down domains, the **Current fiscal year**
+filter, the French tax package and the declarations read the two date columns
+and never parse the label, so a next-year entry can no longer appear in a
+closed year and a drill-down opens exactly the entries the line summed.
+**Current fiscal year** keeps the rows of each company whose bucket contains
+today. The EC/OSS lines also carry `period_month`; their export takes whole
+calendar months and refuses a range that cuts a month. The EC sales list and OSS
+menus open on the previous full calendar month. The French tax package
+takes one complete fiscal year and refuses any other range instead of
+returning nothing.
+
+Reviewed external values and assurance decisions store the label in
+`period_key`. The 19.3.1.13.39 upgrade moves the former open-ended
+`Fiscal year from <start>` label to the closed label of the fiscal year of the
+company that starts on that date, whenever the row was created. When the company
+has no fiscal year starting on that date, the row is left unchanged and the
+upgrade logs only how many rows that concerns. It writes nothing else and never
+merges rows: it stops without changing anything only when a relabel would
+duplicate an existing external value on the unique company, period, form, field,
+kind and source.
+
 ## Export rules
 
 PDF and XLSX carry the same company, resolved dates, posted/draft scope,
@@ -239,8 +278,42 @@ PCG classification rules used by the canonical statements include:
   `jours` or `x` shown beside every value and no denominator-zero result
   presented as a real zero.
 
-An export is provisional accounting evidence. It does not replace statutory
-review, filing or a recorded closing decision.
+The same status reaches every surface that presents a report. On screen, a
+`text-bg-warning` **PROVISOIRE** pill is the first active-scope pill and an
+`alert-warning` notice (`role="status"`) lists the reasons; nothing is shown
+when the report is final, and the French tax report keeps both. In XLSX, the
+`Report` sheet gains a merged bold **DOCUMENT PROVISOIRE** row above the
+subtitle (the table header moves down one row) and the printed header and
+footer read **Document provisoire**; the `Metadata` sheet shows a readable
+**Statut** (**Provisoire** or **Définitif**) with the reasons instead of the
+raw JSON. A final workbook is laid out exactly as before. CSV keeps the status
+in its metadata column without a visible label. The FEC `.txt` is never labelled,
+because its layout is legal, and the analytic pivot PDF has no closing date.
+The screen reads the status stored with the preview, so it matches the file
+generated from that preview; a preview that predates the field is recomputed
+rather than shown as final.
+
+PDF exports display **Document provisoire** in the scope preamble and on every
+page until the native global fiscal lock or hard lock covers the report's
+closing date. The comparison is made against that date, not against the end of
+the fiscal exercise that contains it: a report closing on 30 June is final once
+the lock is at 30 June or later, and provisional while the lock is on 29 June or
+earlier. Every selected company and the comparison period must be covered. Tax,
+sales and purchase locks never count, and active lock exceptions are ignored, so
+a personal exception does not change document status. Draft-inclusive exports
+and incomplete date scopes remain provisional, with the reason in the preamble
+and export metadata. The owner confirmed this rule on 17 October 2026.
+
+This presentation status neither restricts posting nor certifies a locked
+report. Existing preparation, review and attestation qualifications remain in
+place, as do the selected theme, footer label, legal identity and financial
+rows. Historical generated files are never rewritten. Company logos continue
+to use native precedence: a configured custom logo overrides the existing
+horizontal builtin wordmark. Selecting a different document brand requires an
+explicit branding decision; it must not silently replace custom logos.
+
+An export does not replace statutory review, filing or a recorded closing
+decision.
 
 ## References checked
 

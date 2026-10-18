@@ -2988,7 +2988,7 @@
                 <field name="account_id"/>
                 <field name="account_code"/>
                 <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
-                <filter name="usl_current" string="USL Current" domain="[('period_key','=','Fiscal year from 2025-10-01')]"/>
+                <filter name="current_fiscal_year" string="Current fiscal year" domain="[('period_date_from','&lt;=',context_today().strftime('%Y-%m-%d')),('period_date_to','&gt;=',context_today().strftime('%Y-%m-%d'))]"/>
                 <filter name="usl_media" string="USL Media" domain="[('period_key','=','All posted accounting')]"/>
                 <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
                 <filter name="group_period" string="Period" context="{'group_by': 'period_key'}"/>
@@ -3043,7 +3043,7 @@
                 <field name="move_name"/>
                 <field name="source_move_type"/>
                 <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
-                <filter name="usl_current" string="USL Current" domain="[('period_key','=','Fiscal year from 2025-10-01')]"/>
+                <filter name="current_fiscal_year" string="Current fiscal year" domain="[('period_date_from','&lt;=',context_today().strftime('%Y-%m-%d')),('period_date_to','&gt;=',context_today().strftime('%Y-%m-%d'))]"/>
                 <filter name="usl_media" string="USL Media" domain="[('period_key','=','All posted accounting')]"/>
                 <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
                 <filter name="group_period" string="Period" context="{'group_by': 'period_key'}"/>
@@ -3090,7 +3090,7 @@
                 <field name="period_key"/>
                 <field name="journal_id"/>
                 <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
-                <filter name="usl_current" string="USL Current" domain="[('period_key','=','Fiscal year from 2025-10-01')]"/>
+                <filter name="current_fiscal_year" string="Current fiscal year" domain="[('period_date_from','&lt;=',context_today().strftime('%Y-%m-%d')),('period_date_to','&gt;=',context_today().strftime('%Y-%m-%d'))]"/>
                 <filter name="usl_media" string="USL Media" domain="[('period_key','=','All posted accounting')]"/>
                 <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
                 <filter name="group_period" string="Period" context="{'group_by': 'period_key'}"/>
@@ -3148,7 +3148,7 @@
                 <field name="journal_id"/>
                 <field name="move_name"/>
                 <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
-                <filter name="usl_current" string="USL Current" domain="[('period_key','=','Fiscal year from 2025-10-01')]"/>
+                <filter name="current_fiscal_year" string="Current fiscal year" domain="[('period_date_from','&lt;=',context_today().strftime('%Y-%m-%d')),('period_date_to','&gt;=',context_today().strftime('%Y-%m-%d'))]"/>
                 <filter name="usl_media" string="USL Media" domain="[('period_key','=','All posted accounting')]"/>
                 <filter name="receivable" string="Receivable" domain="[('account_type','=','asset_receivable')]"/>
                 <filter name="payable" string="Payable" domain="[('account_type','=','liability_payable')]"/>
@@ -3204,7 +3204,7 @@
                 <field name="account_id"/>
                 <field name="journal_id"/>
                 <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
-                <filter name="usl_current" string="USL Current" domain="[('period_key','=','Fiscal year from 2025-10-01')]"/>
+                <filter name="current_fiscal_year" string="Current fiscal year" domain="[('period_date_from','&lt;=',context_today().strftime('%Y-%m-%d')),('period_date_to','&gt;=',context_today().strftime('%Y-%m-%d'))]"/>
                 <filter name="usl_media" string="USL Media" domain="[('period_key','=','All posted accounting')]"/>
                 <filter name="receivable" string="Receivable" domain="[('account_type','=','asset_receivable')]"/>
                 <filter name="payable" string="Payable" domain="[('account_type','=','liability_payable')]"/>
@@ -3371,7 +3371,7 @@
                 <field name="account_id"/>
                 <field name="account_code"/>
                 <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
-                <filter name="usl_current" string="USL Current" domain="[('period_key','=','Fiscal year from 2025-10-01')]"/>
+                <filter name="current_fiscal_year" string="Current fiscal year" domain="[('period_date_from','&lt;=',context_today().strftime('%Y-%m-%d')),('period_date_to','&gt;=',context_today().strftime('%Y-%m-%d'))]"/>
                 <filter name="usl_media" string="USL Media" domain="[('period_key','=','All posted accounting')]"/>
                 <filter name="tax_grid_tags" string="Tax Grid Tags" domain="[('report_section','=','Tax grid tags')]"/>
                 <filter name="vat_accounts" string="VAT Accounts" domain="[('report_section','=','VAT accounts')]"/>
@@ -3411,6 +3411,7 @@
             <list string="EC/OSS Tax Review" create="0" edit="0" delete="0">
                 <field name="company_id"/>
                 <field name="period_key"/>
+                <field name="period_month"/>
                 <field name="report_type"/>
                 <field name="country_code"/>
                 <field name="country_name"/>
@@ -3448,7 +3449,7 @@
                 <field name="journal_id"/>
                 <field name="account_id"/>
                 <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
-                <filter name="usl_current" string="USL Current" domain="[('period_key','=','Fiscal year from 2025-10-01')]"/>
+                <filter name="current_fiscal_year" string="Current fiscal year" domain="[('period_date_from','&lt;=',context_today().strftime('%Y-%m-%d')),('period_date_to','&gt;=',context_today().strftime('%Y-%m-%d'))]"/>
                 <filter name="ec_sales" string="EC Sales" domain="[('report_type','=','ec_sales_list')]"/>
                 <filter name="oss_sales" string="OSS Sales" domain="[('report_type','=','oss_sales')]"/>
                 <filter name="oss_imports" string="OSS Imports" domain="[('report_type','=','oss_imports')]"/>
@@ -3529,7 +3530,7 @@
                 <field name="partner_id"/>
                 <field name="reconciliation_status"/>
                 <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
-                <filter name="usl_current" string="USL Current" domain="[('period_key','=','Fiscal year from 2025-10-01')]"/>
+                <filter name="current_fiscal_year" string="Current fiscal year" domain="[('period_date_from','&lt;=',context_today().strftime('%Y-%m-%d')),('period_date_to','&gt;=',context_today().strftime('%Y-%m-%d'))]"/>
                 <filter name="reconciled" string="Reconciled" domain="[('is_reconciled','=',True)]"/>
                 <filter name="open_residual" string="Open Residual" domain="[('reconciliation_status','=','Open residual')]"/>
                 <filter name="group_journal" string="Journal" context="{'group_by': 'journal_id'}"/>
@@ -3633,7 +3634,7 @@
                 <field name="line_name"/>
                 <field name="metric_type"/>
                 <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
-                <filter name="usl_current" string="USL Current" domain="[('period_key','=','Fiscal year from 2025-10-01')]"/>
+                <filter name="current_fiscal_year" string="Current fiscal year" domain="[('period_date_from','&lt;=',context_today().strftime('%Y-%m-%d')),('period_date_to','&gt;=',context_today().strftime('%Y-%m-%d'))]"/>
                 <filter name="usl_media" string="USL Media" domain="[('period_key','=','All posted accounting')]"/>
                 <filter name="cash_flow" string="Cash Flow" domain="[('report_key','=','cash_flow')]"/>
                 <filter name="executive_summary" string="Executive Summary" domain="[('report_key','=','executive_summary')]"/>
@@ -3839,7 +3840,7 @@
                 <field name="line_code"/>
                 <field name="line_name"/>
                 <filter name="first_fiscal_year" string="First Fiscal Year" domain="[('period_key','=','Fiscal year 2024-01-10 to 2025-09-30')]"/>
-                <filter name="usl_current" string="USL Current" domain="[('period_key','=','Fiscal year from 2025-10-01')]"/>
+                <filter name="current_fiscal_year" string="Current fiscal year" domain="[('period_date_from','&lt;=',context_today().strftime('%Y-%m-%d')),('period_date_to','&gt;=',context_today().strftime('%Y-%m-%d'))]"/>
                 <filter name="usl_media" string="USL Media" domain="[('period_key','=','All posted accounting')]"/>
                 <filter name="bilan_actif" string="Bilan Actif" domain="[('statement_key','=','bilan_actif')]"/>
                 <filter name="bilan_passif" string="Bilan Passif" domain="[('statement_key','=','bilan_passif')]"/>
@@ -4332,7 +4333,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'ec_sales_list', 'default_date_from': '2025-10-01', 'default_export_format': 'xlsx'}</field>
+        <field name="context">{'default_report_type': 'ec_sales_list', 'default_date_from': (context_today() - relativedelta(months=1)).strftime('%Y-%m-01'), 'default_date_to': (context_today() - relativedelta(days=context_today().day)).strftime('%Y-%m-%d'), 'default_export_format': 'xlsx'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_oss_sales" model="ir.actions.act_window">
@@ -4340,7 +4341,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'oss_sales', 'default_date_from': '2025-10-01', 'default_export_format': 'xlsx'}</field>
+        <field name="context">{'default_report_type': 'oss_sales', 'default_date_from': (context_today() - relativedelta(months=1)).strftime('%Y-%m-01'), 'default_date_to': (context_today() - relativedelta(days=context_today().day)).strftime('%Y-%m-%d'), 'default_export_format': 'xlsx'}</field>
     </record>
 
     <record id="action_rebuild_account_report_export_oss_imports" model="ir.actions.act_window">
@@ -4348,7 +4349,7 @@
         <field name="res_model">rebuild.account.report.export.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_report_type': 'oss_imports', 'default_date_from': '2025-10-01', 'default_export_format': 'xlsx'}</field>
+        <field name="context">{'default_report_type': 'oss_imports', 'default_date_from': (context_today() - relativedelta(months=1)).strftime('%Y-%m-01'), 'default_date_to': (context_today() - relativedelta(days=context_today().day)).strftime('%Y-%m-%d'), 'default_export_format': 'xlsx'}</field>
     </record>
 
     <record id="view_rebuild_account_deferral_list" model="ir.ui.view">

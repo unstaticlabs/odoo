@@ -221,6 +221,8 @@
 
             <div class="o_usl_report_pills">
                 <span class="o_usl_report_scope_label">Périmètre actif</span>
+                <span class="badge rounded-pill text-bg-warning o_usl_report_provisional_pill"
+                      t-if="state.data.provisional and state.data.provisional.required">PROVISOIRE</span>
                 <span class="badge rounded-pill text-bg-light" t-if="state.data.multi_company">
                     <t t-if="state.data.aggregation_mode === 'aggregate'">Total combiné · </t>
                     <t t-else="">Vue par société · </t>
@@ -271,6 +273,16 @@
                 </span>
             </div>
 
+            <div class="alert alert-warning mx-3 o_usl_report_provisional_alert" role="status"
+                 t-if="state.data.provisional and state.data.provisional.required">
+                <i class="fa fa-exclamation-triangle me-2"/>
+                <strong>Rapport provisoire.</strong>
+                <ul class="mb-0 ps-4">
+                    <li t-foreach="state.data.provisional.reasons" t-as="reason" t-key="reason_index">
+                        <t t-esc="reason"/>
+                    </li>
+                </ul>
+            </div>
             <div t-foreach="state.data.notices || []" t-as="notice" t-key="notice.message"
                  t-att-class="'alert mx-3 alert-' + (notice.level || 'info')">
                 <i class="fa fa-info-circle me-2"/>
