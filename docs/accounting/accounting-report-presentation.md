@@ -302,7 +302,10 @@ earlier. Every selected company and the comparison period must be covered. Tax,
 sales and purchase locks never count, and active lock exceptions are ignored, so
 a personal exception does not change document status. Draft-inclusive exports
 and incomplete date scopes remain provisional, with the reason in the preamble
-and export metadata. The owner confirmed this rule on 17 October 2026.
+and export metadata. The notice shares one preamble cell with the
+posted-entries line (`Écritures comptabilisées au …`), on its own line below
+it, instead of occupying a cell of its own. The owner confirmed this rule on
+17 October 2026.
 
 This presentation status neither restricts posting nor certifies a locked
 report. Existing preparation, review and attestation qualifications remain in

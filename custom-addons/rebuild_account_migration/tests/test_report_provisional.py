@@ -267,6 +267,85 @@ class TestReportProvisionalStatus(TransactionCase):
             unlocked_company["footer_label"].startswith(locked_company["footer_label"]),
         )
 
+    def _pdf_context(self, wizard):
+        renderer = self.allowed_env["usl.document.renderer"]
+        with (
+            patch.object(
+                type(self.first_company),
+                "_usl_document_renderer_company_payload",
+                return_value=(dict(COMPANY_PAYLOAD), []),
+            ),
+            patch.object(type(renderer), "render", return_value=RENDER_RESULT) as render,
+        ):
+            wizard._pdf_payload([], return_result=True)
+        return render.call_args.args[2]["context"]
+
+    def test_pdf_provisional_notice_shares_the_posted_entries_cell(self):
+        wizard = self._wizard(
+            company_ids=[Command.set([self.first_company.id])], export_format="pdf",
+        )
+        self.assertTrue(self._provisional(wizard))
+        reasons = " ".join(wizard._export_metadata()["provisional"]["reasons"])
+        context = self._pdf_context(wizard)
+        self.assertFalse(
+            [item for item in context if item.startswith("Document provisoire")],
+            "the notice must not be a cell of its own",
+        )
+        merged = [
+            item for item in context if item.startswith("Écritures comptabilisées au ")
+        ]
+        self.assertEqual(len(merged), 1)
+        entries_line, notice = merged[0].split("\n")
+        self.assertRegex(entries_line, r"^Écritures comptabilisées au \d\d/\d\d/\d{4}$")
+        self.assertEqual(notice, f"Document provisoire — {reasons}")
+        self.assertIn(
+            "Le verrouillage fiscal ne couvre pas encore la date de clôture du rapport.",
+            notice,
+        )
+        # The grid keeps its other cells and gains none: company, period,
+        # entries and unit, in that order.
+        self.assertEqual(len(context), 4)
+        self.assertTrue(context[0].startswith("Société : "))
+        self.assertTrue(context[1].startswith("Période : "))
+        self.assertIs(context[2], merged[0])
+        self.assertTrue(context[3].startswith("Unité : "))
+
+    def test_pdf_provisional_notice_merges_into_the_draft_inclusive_cell(self):
+        wizard = self._wizard(
+            company_ids=[Command.set([self.first_company.id])],
+            export_format="pdf",
+            target_move="all",
+        )
+        context = self._pdf_context(wizard)
+        self.assertFalse(
+            [item for item in context if item.startswith("Document provisoire")],
+        )
+        merged = [
+            item
+            for item in context
+            if item.startswith("Écritures comptabilisées et brouillons au ")
+        ]
+        self.assertEqual(len(merged), 1)
+        self.assertIn(
+            "\nDocument provisoire — Les écritures brouillon sont incluses.",
+            merged[0],
+        )
+
+    def test_pdf_final_report_keeps_a_plain_posted_entries_cell(self):
+        self.first_company.fiscalyear_lock_date = "2026-12-31"
+        wizard = self._wizard(
+            company_ids=[Command.set([self.first_company.id])], export_format="pdf",
+        )
+        self.assertFalse(self._provisional(wizard))
+        context = self._pdf_context(wizard)
+        merged = [
+            item for item in context if item.startswith("Écritures comptabilisées au ")
+        ]
+        self.assertEqual(len(merged), 1)
+        self.assertNotIn("\n", merged[0])
+        self.assertNotIn("provisoire", " ".join(context).lower())
+        self.assertEqual(len(context), 4)
+
     def test_provisional_metadata_rejects_unselected_company_scope(self):
         wizard = self._wizard().with_context(allowed_company_ids=self.first_company.ids)
         with self.assertRaises(AccessError):
