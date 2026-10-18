@@ -24,6 +24,17 @@ msgstr "%(count)s allocation(s) bancaire(s) enregistrée(s)."
 
 #. module: usl_platform_billing
 #. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid ""
+"%(count)s bank transaction(s) adopted from existing Accounting "
+"reconciliations. No entry, payment or reconciliation was created or changed."
+msgstr ""
+"%(count)s transaction(s) bancaire(s) reprise(s) depuis des rapprochements "
+"existants en comptabilité. Aucune écriture, aucun paiement et aucun "
+"rapprochement n’a été créé ou modifié."
+
+#. module: usl_platform_billing
+#. odoo-python
 #: code:addons/usl_platform_billing/models/session.py:0
 msgid "%(count)s payout(s) remain open while payment is delayed."
 msgstr "%(count)s versement(s) restent ouverts dans l’attente du paiement."
@@ -93,6 +104,24 @@ msgstr "%(platform)s : %(message)s"
 #: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
 msgid "%s is no longer an eligible open incoming bank transaction."
 msgstr "%s n'est plus une transaction bancaire entrante ouverte éligible."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid ""
+"%s is not a bank transaction already reconciled in Accounting against the "
+"selected payouts, or it has no amount left to link."
+msgstr ""
+"%s n’est pas une transaction bancaire déjà rapprochée en comptabilité avec "
+"les versements sélectionnés, ou il ne reste aucun montant à lier."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid ""
+"%(bank)s is not connected to the Accounting documents of %(payout)s."
+msgstr ""
+"%(bank)s n’est pas relié aux documents comptables de %(payout)s."
 
 #. module: usl_platform_billing
 #. odoo-python
@@ -265,10 +294,24 @@ msgstr "Toutes les transactions ouvertes"
 #: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_bank_import_wizard__candidate_scope
 msgid ""
 "All open keeps every eligible incoming transaction available. Suggested only"
-" applies the configured recognition rules."
+" applies the configured recognition rules. Already reconciled in Accounting "
+"lists, for the selected payouts, the incoming transactions that Accounting "
+"has already reconciled against their invoices or compensation entries, "
+"directly or through intermediate entries, so they can be linked as bank "
+"evidence without changing any entry. Select the payouts first. The search "
+"follows reconciliations of receivable lines, within 4 steps; a transaction "
+"reconciled through a payment's outstanding receipts account is not found."
 msgstr ""
 "Toutes les transactions ouvertes affiche chaque encaissement éligible. "
-"Suggestions uniquement applique les règles de reconnaissance configurées."
+"Suggestions uniquement applique les règles de reconnaissance configurées. "
+"Déjà rapprochées en comptabilité affiche, pour les versements sélectionnés, "
+"les encaissements que la comptabilité a déjà rapprochés avec leurs factures "
+"ou leurs écritures de compensation, directement ou par des écritures "
+"intermédiaires, afin de les lier comme justificatif bancaire sans modifier "
+"aucune écriture. Sélectionnez d’abord les versements. La recherche suit les "
+"rapprochements des lignes clients, jusqu’à 4 étapes ; une transaction "
+"rapprochée par le compte de réceptions en attente d’un paiement n’est pas "
+"trouvée."
 
 #. module: usl_platform_billing
 #. odoo-python
@@ -307,6 +350,11 @@ msgid "Allocations cannot exceed the platform payout amount."
 msgstr ""
 "Les allocations ne peuvent pas dépasser le montant du versement de la "
 "plateforme."
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_import_wizard__candidate_scope__reconciled
+msgid "Already reconciled in Accounting"
+msgstr "Déjà rapprochées en comptabilité"
 
 #. module: usl_platform_billing
 #: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_import_wizard_line__confidence__ambiguous
@@ -1847,6 +1895,32 @@ msgstr "Encaissements bancaires non rapprochés"
 
 #. module: usl_platform_billing
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
+msgid "Incoming bank transactions already reconciled in Accounting"
+msgstr "Encaissements bancaires déjà rapprochés en comptabilité"
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
+msgid ""
+"Select the payouts first. The list then shows the bank\n"
+"                        transactions Accounting already reconciled against those\n"
+"                        payouts' invoices or compensation entries, directly or\n"
+"                        through intermediate entries. Linking them only records the\n"
+"                        bank evidence on the payouts: no entry, payment or\n"
+"                        reconciliation is created or changed. If a payout is\n"
+"                        slightly above the bank amount, lower its amount to settle\n"
+"                        to match the selected transactions."
+msgstr ""
+"Sélectionnez d’abord les versements. La liste affiche alors les transactions "
+"bancaires que la comptabilité a déjà rapprochées avec les factures ou les "
+"écritures de compensation de ces versements, directement ou par des "
+"écritures intermédiaires. Les lier enregistre seulement le justificatif "
+"bancaire sur les versements : aucune écriture, aucun paiement et aucun "
+"rapprochement n’est créé ou modifié. Si un versement dépasse légèrement le "
+"montant bancaire, diminuez son montant à régler pour qu’il corresponde aux "
+"transactions sélectionnées."
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
 msgid "Open payouts"
 msgstr "Versements ouverts"
 
@@ -2481,6 +2555,16 @@ msgstr "Documents justificatifs"
 #: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
 msgid "Switch to payout creation mode first."
 msgstr "Passez d'abord en mode de création de versement."
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid ""
+"Transactions already reconciled in Accounting can only be linked to "
+"registered payouts."
+msgstr ""
+"Les transactions déjà rapprochées en comptabilité ne peuvent être liées qu’à "
+"des versements enregistrés."
 
 #. module: usl_platform_billing
 #. odoo-python
