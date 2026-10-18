@@ -326,9 +326,42 @@ class TestReportProvisionalStatus(TransactionCase):
             if item.startswith("Écritures comptabilisées et brouillons au ")
         ]
         self.assertEqual(len(merged), 1)
-        self.assertIn(
-            "\nDocument provisoire — Les écritures brouillon sont incluses.",
-            merged[0],
+        reasons = " ".join(wizard._export_metadata()["provisional"]["reasons"])
+        self.assertIn("Les écritures brouillon sont incluses.", reasons)
+        entries_line, notice = merged[0].split("\n")
+        self.assertRegex(
+            entries_line, r"^Écritures comptabilisées et brouillons au \d\d/\d\d/\d{4}$",
+        )
+        # The whole notice, every reason, is in the entries cell.
+        self.assertEqual(notice, f"Document provisoire — {reasons}")
+        self.assertEqual(len(context), 4)
+        self.assertIs(context[2], merged[0])
+
+    def test_pdf_provisional_notice_stays_in_the_entries_cell_with_comparison(self):
+        wizard = self._wizard(
+            company_ids=[Command.set([self.first_company.id])],
+            export_format="pdf",
+            comparison_mode="custom",
+            comparison_date_from="2025-01-01",
+            comparison_date_to="2025-12-31",
+        )
+        self.assertTrue(self._provisional(wizard))
+        reasons = " ".join(wizard._export_metadata()["provisional"]["reasons"])
+        context = self._pdf_context(wizard)
+        self.assertFalse(
+            [item for item in context if item.startswith("Document provisoire")],
+        )
+        self.assertEqual(len(context), 5)
+        self.assertTrue(context[0].startswith("Société : "))
+        self.assertTrue(context[1].startswith("Période : "))
+        self.assertEqual(
+            context[2].split("\n")[1], f"Document provisoire — {reasons}",
+        )
+        self.assertTrue(context[3].startswith("Unité : "))
+        self.assertTrue(context[4].startswith("Comparaison : "))
+        self.assertEqual(
+            [item for item in context if "provisoire" in item.lower()],
+            [context[2]],
         )
 
     def test_pdf_final_report_keeps_a_plain_posted_entries_cell(self):
