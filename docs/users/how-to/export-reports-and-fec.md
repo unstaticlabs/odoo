@@ -32,7 +32,8 @@ label. It appears in the same way on screen and in the files:
   pills, and a notice below them lists the reasons. A final report shows
   neither. The screen layout adapts to a phone.
 - **PDF:** **Document provisoire** in the preamble and on every page, with the
-  reasons in the preamble.
+  reasons in the preamble. In the preamble the notice sits in the same box as
+  the entries line (`Écritures comptabilisées au …`).
 - **XLSX:** on the `Report` sheet, a bold row **DOCUMENT PROVISOIRE** with the
   reasons above the subtitle, and **Document provisoire** in the printed header
   and footer. The `Metadata` sheet shows a readable **Statut** row
