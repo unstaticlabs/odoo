@@ -77,8 +77,16 @@ the OCA add-ons also gets the module. The release workflow checks out the
 pinned commit by name, without a token, and gives it to the script through
 `USL_MATTERMOST_ODOO_SOURCE`.
 
-To ship a new version of the module, change `commit` in the pin file and run
-`make external-addons-sync`. Do not edit `custom-addons/usl_mattermost/`: the
+The pinned commit must be in the history of `main` of that repository. GitHub
+also serves a commit that exists only in a fork through the URL of the parent
+repository, so a checkout by SHA alone accepts a fork-only commit.
+`scripts/mattermost-odoo verify` refuses such a pin. The qualification check
+and the release workflow run it before they use the pin. On a pull request,
+`scripts/mattermost-odoo review` puts the `git diff --stat` and the diff of
+the module between the old and the new pin into the job summary.
+
+To ship a new version of the module, merge it to `main` of mattermost-odoo,
+change `commit` in the pin file, and run `make external-addons-sync`. Do not edit `custom-addons/usl_mattermost/`: the
 next sync replaces it. A pin change changes the `distribution` component
 identity and the module source, so it needs the same action-risk refresh as
 any other change under `custom-addons/`.

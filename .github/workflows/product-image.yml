@@ -79,6 +79,11 @@ jobs:
               evidence_sha256="$(sha256sum recovery-evidence.json | cut -d' ' -f1)"
           fi
           echo "evidence_sha256=$evidence_sha256" >> "$GITHUB_OUTPUT"
+      - name: Verify the Mattermost Odoo pin is on main
+        # GitHub serves a fork-only commit through the parent repository URL,
+        # so the checkout by SHA in the component job accepts one. Refuse the
+        # pin before any job uses it unless main of the repository holds it.
+        run: scripts/mattermost-odoo verify
       - name: Resolve deterministic component identities
         id: inputs
         run: |
