@@ -29,6 +29,7 @@ production-admission work.
 | Channel export ingestion into native sales, deliveries, invoices, destination VAT and settlement | `usl_b2c_ingest`, `usl_b2c` | **B2C > Channel Imports** | Delivered and proven against a production clone; the chart corrections it requires and the first production drop remain |
 | French-first terminology, European dates and company-aware presentation | `usl_locale` | All affected backend views | Operational |
 | French electronic-invoice reception for UBL, CII and Factur-X | `rebuild_account_migration`, native Accounting/localization | **Vendors > Incoming E-Invoices** | Ready but inactive pending approved-platform production onboarding |
+| Odoo task cards in Mattermost and links between projects and Mattermost channels | `usl_mattermost`, Mattermost plugin | **Projects** (project form) and Mattermost | Shipped in the image; inactive until the deployed stack mounts the plugin and webhook key files |
 | Agent-authenticated Odoo automation endpoint and tool contract | separately built `odoo-mcp` image admitted by its environment GitOps ledger | **My Agents** and the MCP service endpoint | MCP operational; governed Agent identities are qualified for compatibility, while MCP advances independently |
 
 Detailed behavior belongs in the relevant product, Accounting, user and
@@ -53,6 +54,7 @@ Only `custom-addons/` is part of the normal USL add-ons path.
 | `usl_feedback` | Shared conversational product feedback, private local page previews, bounded assistant processing and reporter-confirmed Project workflow. |
 | `usl_home` | Personal launcher, durable destinations and bounded attention summaries. |
 | `usl_locale` | European date conventions and company-aware presentation. |
+| `usl_mattermost` | Signed API for the Mattermost plugin, task-card refresh and project-channel links. Its source is pinned, not tracked; see below. |
 | `usl_platform_billing` | Platform sessions, payouts, generated native Accounting documents and settlement. |
 | `usl_platform_billing_pocketid` | Pocket ID role mapping for Platform Billing administrators. |
 | `usl_pocketid` | Pocket ID authentication and identity governance. |
@@ -61,6 +63,29 @@ Only `custom-addons/` is part of the normal USL add-ons path.
 | `usl_tese_payroll` | External-provider payroll records, evidence, Accounting and settlement. |
 | `usl_tese_accounting` | TESE state and evidence in Accounting closing controls. |
 | `usl_bootstrap` | Synthetic test fixtures only; forbidden from production dependency graphs. |
+
+### Pinned external add-ons
+
+`usl_mattermost` lives in the public repository
+[unstaticlabs/mattermost-odoo](https://github.com/unstaticlabs/mattermost-odoo),
+next to the Mattermost plugin that calls it.
+`deploy/mattermost-odoo/release.json` pins one commit of that repository.
+`scripts/sync-external-addons` exports the module tree of that commit to
+`custom-addons/usl_mattermost/`, which Git ignores. `scripts/sync-oca-addons`
+and `make oca-addons-sync` run it, so every build, test and check that prepares
+the OCA add-ons also gets the module. The release workflow checks out the
+pinned commit by name, without a token, and gives it to the script through
+`USL_MATTERMOST_ODOO_SOURCE`.
+
+To ship a new version of the module, change `commit` in the pin file and run
+`make external-addons-sync`. Do not edit `custom-addons/usl_mattermost/`: the
+next sync replaces it. A pin change changes the `distribution` component
+identity and the module source, so it needs the same action-risk refresh as
+any other change under `custom-addons/`.
+
+Without the key files that `USL_MATTERMOST_PLUGIN_KEY_FILE` and
+`USL_MATTERMOST_WEBHOOK_KEY_FILE` name, the module answers `not_configured` and
+its scheduled action returns without a request.
 
 The detailed dependency policy is in
 [`docs/accounting/custom-addon-architecture.md`](../accounting/custom-addon-architecture.md).
