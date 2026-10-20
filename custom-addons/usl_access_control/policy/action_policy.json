@@ -3786,7 +3786,8 @@
         },
         "rpc:res.users.write": {
           "action_name": "change user identity or authorization",
-          "guard_key": "guard:authorization.user.change"
+          "guard_key": "guard:authorization.user.change",
+          "rationale": "A stable semantic guard or exact model-operation enforcement denies ordinary humans and Agents before side effects while allowing the Irreversible Actions capability with immutable evidence. usl_mattermost 0.2.0 adds an override after the native write: archiving a user or changing group_ids or share marks every Mattermost card for refresh. The authorization guard is unchanged."
         },
         "server_action:account_peppol_response.ir_cron_peppol_auto_register_services_ir_actions_server": {
           "action_name": "change registered Peppol services",
@@ -3843,7 +3844,7 @@
         "rpc:res.config.settings.button_peppol_reregister": "f3bfad36ebb81e00b28174212fa40786ec96fd36303732b2d1007473526b435b",
         "rpc:res.config.settings.button_reconnect_this_database": "8e85397db3f1633eaec17b735efaef554240f9fd00e08953dc729ce50281b024",
         "rpc:res.users.create": "8d910a7bb66b5da68f7d244257ba60588d71cb7051b57ad950f78316947675f1",
-        "rpc:res.users.write": "8a24ca606bf3235e0adb3c7978e9953c3140528c2429819f062fe0a8a2b65210",
+        "rpc:res.users.write": "8dde3fce6c95622b92eed9cc2bc7b30a0d36c009b37d80662fe8667a19961bf8",
         "server_action:account_peppol_response.ir_cron_peppol_auto_register_services_ir_actions_server": "fc327488428a5b7e8e82eb936c77e6b281e6e21cfd216f28556ea964f8f57ae5"
       }
     },
@@ -103796,6 +103797,7 @@
           "reversal_action": "rpc:project.project.write"
         },
         "rpc:project.project.message_unsubscribe": {
+          "rationale": "The declared exact reversal restores the relevant state; native record identity/history and Distribution agent before/submitted-value evidence preserve how to perform and verify recovery. usl_mattermost 0.2.0 adds an override after the native unsubscribe: it marks the cards of the project's tasks for refresh, because a follower-only project can now hide them.",
           "reversal_action": "rpc:project.project.write"
         },
         "rpc:project.project.message_update": {
@@ -107323,7 +107325,7 @@
         "rpc:project.project.message_process": "3649a84c1bb4f462dd7bacee43fb65b7322f2f54636d62ed0e7c7b6c44e35f75",
         "rpc:project.project.message_route": "d61ba3fa54f5c4d768c7604cbbb24391e7ecb8c1e682277538660ff91b6732fd",
         "rpc:project.project.message_subscribe": "4aaff2c261ed644b73ecdb434e50ef264cce67e0aeae27991ed85ed01b443818",
-        "rpc:project.project.message_unsubscribe": "6ba8c351154c6bfca0fec885d328c2286ff5e4607ef2fc993be115c26975a0ce",
+        "rpc:project.project.message_unsubscribe": "be1707550085233f4e28c54f62054a84737ce37ae15fef3d571f1732937203e0",
         "rpc:project.project.message_update": "828521b3aad47bbb3c2c0086f0aad67cb493ed0980bf2021775b50695eac29f1",
         "rpc:project.project.notify_cancel_by_type": "528b72e8f6bbf60f288ae1e017b5c7e4733a9765520f12bb1a5a51379da903f8",
         "rpc:project.project.set_message_pin": "9baf99f91a0aaa874eac4b4dc5ca89e14716a1d917f369e29ab0155ff18cd0a8",
@@ -113561,7 +113563,7 @@
           "reversal_action": "rpc:project.project.unlink"
         },
         "rpc:project.project.write": {
-          "rationale": "Reviewed feedback override preserves prior native consequence and enforcement/reversal; adds maintainer checks, restricted follows/activities, or immutable per-task identity consolidation.",
+          "rationale": "Reviewed feedback override preserves prior native consequence and enforcement/reversal; adds maintainer checks, restricted follows/activities, or immutable per-task identity consolidation. usl_mattermost 0.2.0 adds an override after the native write: a change of privacy_visibility, active or company_id marks the cards of the project's tasks for refresh; the write itself is unchanged.",
           "reversal_action": "rpc:project.project.write"
         },
         "rpc:project.tags.create": {
@@ -113595,7 +113597,7 @@
           "reversal_action": "rpc:project.task.write"
         },
         "rpc:project.task.message_unsubscribe": {
-          "rationale": "Reviewed feedback override preserves prior native consequence and enforcement/reversal; adds maintainer checks, restricted follows/activities, or immutable per-task identity consolidation.",
+          "rationale": "Reviewed feedback override preserves prior native consequence and enforcement/reversal; adds maintainer checks, restricted follows/activities, or immutable per-task identity consolidation. usl_mattermost 0.2.0 adds an override after the native unsubscribe: it marks the task's cards for refresh.",
           "reversal_action": "rpc:project.task.write"
         },
         "rpc:project.task.type.create": {
@@ -113622,7 +113624,7 @@
         "rpc:mail.activity.write": "3cbc64f876ccbacfda45349286e7e5854c80f03b4b68913a3b74be1f3e336597",
         "rpc:project.project.action_view_tasks": "905758f2da62ea6ed0be8cbd04133fd7de57470a3e242e4e105f743401210e56",
         "rpc:project.project.create": "beeefc9e74cd9522db70dd09382519b5600d1dc3f96da844b6b546dae239bc7e",
-        "rpc:project.project.write": "6f02aef015499fdc41ffd2b7341e3c2b0ae924e339749652f335a9974e68660d",
+        "rpc:project.project.write": "f0489b5b0e94aedd62f031bb0e5128223c05cc06674d2f097444caf20d8e4a94",
         "rpc:project.tags.create": "9597990fed314037b05ac27b26796f023469ee67cad69ff432177d9ec2c37d48",
         "rpc:project.tags.unlink": "81303435fdb5c1a1aa1fd0296c8790e27bcc7aac69d4f4dbbdbc7b7ec76c9811",
         "rpc:project.tags.write": "4c143998b9388668498a6bc6827696f0c4a0b2612be1917b9a536bc435b0e8fb",
@@ -113630,7 +113632,7 @@
         "rpc:project.task.mcp_revise_own_message": "b62b3537e87fbe263f16681c6488e45d66a5184e1ccdf785ebdf16da2ccc2ba1",
         "rpc:project.task.message_post": "25970b083c3f682f81765f5b89e6b1e380f54ddc8793af0ac24d27a15840b892",
         "rpc:project.task.message_subscribe": "a7c7f118a020eb51d3bc3b4c13bf658034895c50ad8f73b711d62848afc11036",
-        "rpc:project.task.message_unsubscribe": "71470054c0af3f1c444c8c6e4dbb508f13ab8e628264a8db7b0e7636d1e4467b",
+        "rpc:project.task.message_unsubscribe": "64443b9d89a0f17b6ea18205d3cceed7362b5b47db841519c5170854aa033f97",
         "rpc:project.task.type.create": "9597990fed314037b05ac27b26796f023469ee67cad69ff432177d9ec2c37d48",
         "rpc:project.task.type.write": "bbeeaae27618e4f20d25b6e879d02cb96533e0df94ad6a6ac8d7f8586f427f2a",
         "rpc:project.task.write": "df460f18efb21b61780cff6ce6757dda2fa680270530c7fd1e9ddc23394bd108",
@@ -205985,6 +205987,9 @@
         "route:http:POST:/usl/mattermost/task/watch": {
           "rationale": "Public route that refuses any request without a valid HMAC signature from the plugin key file (not_configured when the file is absent, 401 for a bad or stale signature, 413 above 64 KiB), then delegates to the private usl.mattermost.service _api_* rule of the same name, which is not callable over RPC."
         },
+        "rpc:usl.mattermost.channel.link.unlink": {
+          "rationale": "Reviewed usl_mattermost workflow; native ACLs apply to ORM writes (cards: no write ACL; links: project managers may unlink, which posts a chatter note); see the exact per-action rationale. Since usl_mattermost 0.2.0 only project managers read and unlink links (the internal-user read row is gone); an unlink also marks the project's cards for refresh."
+        },
         "server_action:usl_mattermost.ir_cron_push_cards_ir_actions_server": {
           "rationale": "Fixed scheduled retry of signed task-changed notifications to the configured Mattermost URL; returns at once without the URL parameter or the webhook key file. Writes only usl.mattermost.card retry state."
         }
@@ -206029,7 +206034,7 @@
         "rpc:usl.mattermost.channel.link.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
         "rpc:usl.mattermost.channel.link.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
         "rpc:usl.mattermost.channel.link.onchange_batch": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
-        "rpc:usl.mattermost.channel.link.unlink": "4369299c2e40200e970acdd1198bb03f6bc5b383d31fdcdbbc370969c90a5ad4",
+        "rpc:usl.mattermost.channel.link.unlink": "aed6a1f584d2eecdc5d7cc80a2e7b3df7bc68c210c595e46b7e4f0d2191c6b5c",
         "rpc:usl.mattermost.channel.link.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
         "rpc:usl.mattermost.channel.link.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
         "rpc:usl.mattermost.channel.link.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
@@ -206090,7 +206095,6 @@
         "sink:usl_mattermost:custom-addons/usl_mattermost/controllers/main.py:UslMattermostApi.health:sudo:1",
         "sink:usl_mattermost:custom-addons/usl_mattermost/controllers/main.py:UslMattermostApi.health:sudo:2",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._cron_push:sudo:1",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._cron_push:sudo:2",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_changed:orm_write:1",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_changed:sudo:1",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_changed:sudo:2",
@@ -206134,9 +206138,6 @@
           "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._cron_push:sudo:1": {
-          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
-        },
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._cron_push:sudo:2": {
           "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_changed:orm_write:1": {
@@ -206220,21 +206221,20 @@
       },
       "rationale": "Reviewed usl_mattermost helper; see the exact per-action reachability proof.",
       "reviewed_digests": {
-        "sink:usl_mattermost:custom-addons/usl_mattermost/controllers/main.py:UslMattermostApi._authenticated:sudo:1": "4fc985b29249739220298c1ca05bd36c8de10a2498102285ed41546743ec413d",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/controllers/main.py:UslMattermostApi._authenticated:sudo:1": "ed1d3f72d0b56afbc26f0187913cfa279d9263e2b160ccc92aff2efc0259789a",
         "sink:usl_mattermost:custom-addons/usl_mattermost/controllers/main.py:UslMattermostApi.health:sudo:1": "c49c142c16c5d4f72b4e2fa9f72e568e06430632ef6db8767fd7fe925839cad6",
         "sink:usl_mattermost:custom-addons/usl_mattermost/controllers/main.py:UslMattermostApi.health:sudo:2": "0f9d49c7fe8e484079ed9a442bbf848b1fe2d52e2e6554b065d27ca5a4faea58",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._cron_push:sudo:1": "f3970bf43895b8589f973ef0ed538e69f9356af95730e96c70ce25957a1e9df1",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._cron_push:sudo:2": "7cd3487fe1e0a91d08309a224a0df01ac09ef411f574a7cea452b9ee23becac0",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._cron_push:sudo:1": "3ce2faf07d2f59715cf8263fc5779f425b510c3474a3431fae4d8a3d2fc596e4",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_changed:orm_write:1": "b0cd738f52324ab437c9bb89b7a79a34a9ddd8bd08cdc05dbaf828ea83dcfb6c",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_changed:sudo:1": "aaddfc52a6a58890f40e33177286b187eb4113bc20f244668fcb36b28722a37a",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_changed:sudo:2": "b3653323cec629b2cb3557e2bcc362a22ca7a552978c4174dddfa76f1acf6797",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_push_task:external_call:1": "621b5cb27598f7b70075f991b0270f46f07592d03bf18914e3e3012c56d441ec",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_push_task:orm_write:1": "61a38c0f05a741f6da08bf33fb34e14976232de2cffee501a8b973b60a045744",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_push_task:orm_write:2": "71a5d6fc6d7d0595ca1d32125ba15a2ecea7649f9501076a0c59805a76dd4988",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_push_task:external_call:1": "760839ef5c0f96d71e480db4a1eb180d802ea708e18f8092b9efccbe5eb1c150",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_push_task:orm_write:1": "aa8832732256665888b33d80dd71a1a3abf74065f4bb359d80c73abd3bb2deba",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_push_task:orm_write:2": "87c60b3f1a645b34cbc5e72357d3dc4e60477f7beb61d8b76df16fe46938319a",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/channel_link.py:usl.mattermost.channel.link._usl_post_note:message_send:1": "36beb1ea292df75453ea5914136026c708376538ab8438c3eccfdddf74800973",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/channel_link.py:usl.mattermost.channel.link._usl_post_note:sudo:1": "9b5a2310cd39c15e80e3570de344aebcf59b408a1ea6ff37697d83cd1228138e",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/channel_link.py:usl.mattermost.channel.link.unlink:orm_unlink:1": "0cf2fa2f19be45fbe4c052295001968381d2ef09f39acd6306dc1e8073510023",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/channel_link.py:usl.mattermost.channel.link.unlink:orm_write:1": "7f1e84b0c03b5a3811c5e3c3f524233e4786e799d4e514b6b1fe5cac34cc1a97",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/channel_link.py:usl.mattermost.channel.link.unlink:orm_unlink:1": "7700ac30ce8cbb9e5d67603194bf537ceb94bd921b82569be082ca8e03315cc4",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/channel_link.py:usl.mattermost.channel.link.unlink:orm_write:1": "2073df75367e45c3cd21424386660556ed7369fd00d672a71a3eefc5c0a8d8d3",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/project.py:project.task.unlink:orm_unlink:1": "479b2dc05a1e7253e1f103e4e30455c4796c055ac972e9034a65c7dbdfd91e58",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/project.py:project.task.write:orm_write:1": "c4e7edef37e92da353b969e10977d89084efbea26dcf429d28a8ca2619ae09d6",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_link:orm_create:1": "f2a32ffb3749872fdcb542c0a607cfa82cff86b085f4c9b31ff08cc1e2bca6f7",
@@ -206247,10 +206247,202 @@
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_watch:sudo:1": "20160f955380101c68a45c9aa0cef1d0f127dd21b43179cdb475e3427f741141",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._is_linked:sudo:1": "a4b7313afef0167988eef112fc7ca4f10c7c132627385301a0da228ac61eab28",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._resolve_task:sudo:1": "d7f63a88fa0aa25a00307e7e076cbb11acc9a10038d9d2314c54c163f9938e7d",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._task_action:sudo:1": "018d19620d93b487e9fedc1ff94a81abf6acdc30bb1273a1e36becfb1851bc28",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._task_action:sudo:1": "f15927abe62618fecc37bc67405b8f612164978ee9d69c7ea026e532210c2035",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._task_card:sudo:1": "093c6147341c4710a7d8e89a12afc713fec51d25eb80daae22239d86e5a4dff8",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._task_card:sudo:2": "1c09f4deeb7c649bc3ac56d414df8a34fbc54386bc0edfb67e5ce6929e6d30a5",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._user_for_subject:sudo:1": "4952942f2cb8e0d3616f53de77bbf92e921dea26cf716b5f5f0b9b5b24d6576b"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:usl.mattermost.nonce.check_field_access",
+        "rpc:usl.mattermost.nonce.copy_translations",
+        "rpc:usl.mattermost.nonce.default_get",
+        "rpc:usl.mattermost.nonce.export_data",
+        "rpc:usl.mattermost.nonce.fields_get",
+        "rpc:usl.mattermost.nonce.formatted_read_group",
+        "rpc:usl.mattermost.nonce.get_base_url",
+        "rpc:usl.mattermost.nonce.get_empty_list_help",
+        "rpc:usl.mattermost.nonce.get_external_id",
+        "rpc:usl.mattermost.nonce.get_field_translations",
+        "rpc:usl.mattermost.nonce.get_formview_action",
+        "rpc:usl.mattermost.nonce.get_formview_id",
+        "rpc:usl.mattermost.nonce.get_import_templates",
+        "rpc:usl.mattermost.nonce.get_metadata",
+        "rpc:usl.mattermost.nonce.get_property_definition",
+        "rpc:usl.mattermost.nonce.has_access",
+        "rpc:usl.mattermost.nonce.has_field_access",
+        "rpc:usl.mattermost.nonce.hierarchy_read",
+        "rpc:usl.mattermost.nonce.mail_allowed_qweb_expressions",
+        "rpc:usl.mattermost.nonce.mail_get_partner_fields",
+        "rpc:usl.mattermost.nonce.name_search",
+        "rpc:usl.mattermost.nonce.read",
+        "rpc:usl.mattermost.nonce.read_progress_bar",
+        "rpc:usl.mattermost.nonce.search",
+        "rpc:usl.mattermost.nonce.search_count",
+        "rpc:usl.mattermost.nonce.search_panel_select_multi_range",
+        "rpc:usl.mattermost.nonce.search_panel_select_range",
+        "rpc:usl.mattermost.nonce.search_read",
+        "rpc:usl.mattermost.nonce.view_header_get",
+        "rpc:usl.mattermost.nonce.web_name_search",
+        "rpc:usl.mattermost.nonce.web_read"
+      ],
+      "classification": "read_only",
+      "consequence": "Reads accepted-signature records permitted by native ACLs, with no mutation or external effect.",
+      "domain": "projects",
+      "evidence_id": "mattermost-module-20261020",
+      "id": "read_only.projects.mattermost_v020_20261020",
+      "rationale": "Generic ORM read on usl.mattermost.nonce; its only ACL row grants read to system administrators.",
+      "reviewed_digests": {
+        "rpc:usl.mattermost.nonce.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+        "rpc:usl.mattermost.nonce.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+        "rpc:usl.mattermost.nonce.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+        "rpc:usl.mattermost.nonce.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+        "rpc:usl.mattermost.nonce.fields_get": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
+        "rpc:usl.mattermost.nonce.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+        "rpc:usl.mattermost.nonce.get_base_url": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+        "rpc:usl.mattermost.nonce.get_empty_list_help": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+        "rpc:usl.mattermost.nonce.get_external_id": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+        "rpc:usl.mattermost.nonce.get_field_translations": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+        "rpc:usl.mattermost.nonce.get_formview_action": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+        "rpc:usl.mattermost.nonce.get_formview_id": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+        "rpc:usl.mattermost.nonce.get_import_templates": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+        "rpc:usl.mattermost.nonce.get_metadata": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+        "rpc:usl.mattermost.nonce.get_property_definition": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+        "rpc:usl.mattermost.nonce.has_access": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+        "rpc:usl.mattermost.nonce.has_field_access": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+        "rpc:usl.mattermost.nonce.hierarchy_read": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+        "rpc:usl.mattermost.nonce.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+        "rpc:usl.mattermost.nonce.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+        "rpc:usl.mattermost.nonce.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+        "rpc:usl.mattermost.nonce.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+        "rpc:usl.mattermost.nonce.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+        "rpc:usl.mattermost.nonce.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+        "rpc:usl.mattermost.nonce.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+        "rpc:usl.mattermost.nonce.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+        "rpc:usl.mattermost.nonce.search_panel_select_range": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+        "rpc:usl.mattermost.nonce.search_read": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+        "rpc:usl.mattermost.nonce.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+        "rpc:usl.mattermost.nonce.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+        "rpc:usl.mattermost.nonce.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:usl.mattermost.nonce.action_archive",
+        "rpc:usl.mattermost.nonce.action_unarchive",
+        "rpc:usl.mattermost.nonce.copy",
+        "rpc:usl.mattermost.nonce.copy_data",
+        "rpc:usl.mattermost.nonce.create",
+        "rpc:usl.mattermost.nonce.formatted_read_grouping_sets",
+        "rpc:usl.mattermost.nonce.get_view",
+        "rpc:usl.mattermost.nonce.get_views",
+        "rpc:usl.mattermost.nonce.load",
+        "rpc:usl.mattermost.nonce.name_create",
+        "rpc:usl.mattermost.nonce.onchange",
+        "rpc:usl.mattermost.nonce.onchange_batch",
+        "rpc:usl.mattermost.nonce.unlink",
+        "rpc:usl.mattermost.nonce.update_field_translations",
+        "rpc:usl.mattermost.nonce.web_override_translations",
+        "rpc:usl.mattermost.nonce.web_read_group",
+        "rpc:usl.mattermost.nonce.web_resequence",
+        "rpc:usl.mattermost.nonce.web_save",
+        "rpc:usl.mattermost.nonce.web_save_multi",
+        "rpc:usl.mattermost.nonce.web_search_read",
+        "rpc:usl.mattermost.nonce.write"
+      ],
+      "classification": "operational",
+      "consequence": "Would create, change or remove accepted-signature records; no ACL row grants create, write or unlink, so ordinary RPC callers are refused.",
+      "domain": "projects",
+      "evidence_id": "mattermost-module-20261020",
+      "id": "operational.projects.mattermost_v020_20261020",
+      "rationale": "Generic ORM write on usl.mattermost.nonce; the replay check writes the table only through its private raw-SQL helper.",
+      "reviewed_digests": {
+        "rpc:usl.mattermost.nonce.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+        "rpc:usl.mattermost.nonce.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+        "rpc:usl.mattermost.nonce.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+        "rpc:usl.mattermost.nonce.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+        "rpc:usl.mattermost.nonce.create": "37b76f9937e66a72c0555d93394a9e3336325c81c16eec20667bed140b30b44a",
+        "rpc:usl.mattermost.nonce.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
+        "rpc:usl.mattermost.nonce.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+        "rpc:usl.mattermost.nonce.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+        "rpc:usl.mattermost.nonce.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+        "rpc:usl.mattermost.nonce.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+        "rpc:usl.mattermost.nonce.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+        "rpc:usl.mattermost.nonce.onchange_batch": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
+        "rpc:usl.mattermost.nonce.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
+        "rpc:usl.mattermost.nonce.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+        "rpc:usl.mattermost.nonce.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+        "rpc:usl.mattermost.nonce.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+        "rpc:usl.mattermost.nonce.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+        "rpc:usl.mattermost.nonce.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+        "rpc:usl.mattermost.nonce.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+        "rpc:usl.mattermost.nonce.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+        "rpc:usl.mattermost.nonce.write": "b0373b6633d99d657d81a9aca3ec6bb0ebad5e3e7b41420276488a6f1ce1c8f4"
+      }
+    },
+    {
+      "action_keys": [
+        "sink:usl_mattermost:custom-addons/usl_mattermost/controllers/main.py:UslMattermostApi._authenticated:sudo:2",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_all_changed:orm_write:1",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_all_changed:sudo:1",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_all_changed:sudo:2",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_projects_changed:sudo:1",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mattermost_url:sudo:1",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/nonce.py:usl.mattermost.nonce._usl_first_use:raw_sql_mutation:1",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/nonce.py:usl.mattermost.nonce._usl_first_use:raw_sql_mutation:2",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/project.py:project.project.write:orm_write:1",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/project.py:res.users.write:orm_write:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Private usl_mattermost sink reached only through the signed API, the write, unlink and unsubscribe overrides, or the scheduled card refresh.",
+      "domain": "projects",
+      "evidence_id": "mattermost-module-20261020",
+      "id": "system_internal.projects.mattermost_v020_20261020",
+      "overrides": {
+        "sink:usl_mattermost:custom-addons/usl_mattermost/controllers/main.py:UslMattermostApi._authenticated:sudo:2": {
+          "reachability_proof": "Sink inside an underscore helper (the nonce check runs only in the HMAC-checked controller; the mark-changed helpers run from the reviewed write, unlink and unsubscribe overrides), or inside a public override whose rpc entry point carries its own reviewed classification; not an RPC entry point by itself."
+        },
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_all_changed:orm_write:1": {
+          "reachability_proof": "Sink inside an underscore helper (the nonce check runs only in the HMAC-checked controller; the mark-changed helpers run from the reviewed write, unlink and unsubscribe overrides), or inside a public override whose rpc entry point carries its own reviewed classification; not an RPC entry point by itself."
+        },
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_all_changed:sudo:1": {
+          "reachability_proof": "Sink inside an underscore helper (the nonce check runs only in the HMAC-checked controller; the mark-changed helpers run from the reviewed write, unlink and unsubscribe overrides), or inside a public override whose rpc entry point carries its own reviewed classification; not an RPC entry point by itself."
+        },
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_all_changed:sudo:2": {
+          "reachability_proof": "Sink inside an underscore helper (the nonce check runs only in the HMAC-checked controller; the mark-changed helpers run from the reviewed write, unlink and unsubscribe overrides), or inside a public override whose rpc entry point carries its own reviewed classification; not an RPC entry point by itself."
+        },
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_projects_changed:sudo:1": {
+          "reachability_proof": "Sink inside an underscore helper (the nonce check runs only in the HMAC-checked controller; the mark-changed helpers run from the reviewed write, unlink and unsubscribe overrides), or inside a public override whose rpc entry point carries its own reviewed classification; not an RPC entry point by itself."
+        },
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mattermost_url:sudo:1": {
+          "reachability_proof": "Sink inside an underscore helper (the nonce check runs only in the HMAC-checked controller; the mark-changed helpers run from the reviewed write, unlink and unsubscribe overrides), or inside a public override whose rpc entry point carries its own reviewed classification; not an RPC entry point by itself."
+        },
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/nonce.py:usl.mattermost.nonce._usl_first_use:raw_sql_mutation:1": {
+          "reachability_proof": "Sink inside an underscore helper (the nonce check runs only in the HMAC-checked controller; the mark-changed helpers run from the reviewed write, unlink and unsubscribe overrides), or inside a public override whose rpc entry point carries its own reviewed classification; not an RPC entry point by itself."
+        },
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/nonce.py:usl.mattermost.nonce._usl_first_use:raw_sql_mutation:2": {
+          "reachability_proof": "Sink inside an underscore helper (the nonce check runs only in the HMAC-checked controller; the mark-changed helpers run from the reviewed write, unlink and unsubscribe overrides), or inside a public override whose rpc entry point carries its own reviewed classification; not an RPC entry point by itself."
+        },
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/project.py:project.project.write:orm_write:1": {
+          "reachability_proof": "Sink inside an underscore helper (the nonce check runs only in the HMAC-checked controller; the mark-changed helpers run from the reviewed write, unlink and unsubscribe overrides), or inside a public override whose rpc entry point carries its own reviewed classification; not an RPC entry point by itself."
+        },
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/project.py:res.users.write:orm_write:1": {
+          "reachability_proof": "Sink inside an underscore helper (the nonce check runs only in the HMAC-checked controller; the mark-changed helpers run from the reviewed write, unlink and unsubscribe overrides), or inside a public override whose rpc entry point carries its own reviewed classification; not an RPC entry point by itself."
+        }
+      },
+      "rationale": "Reviewed usl_mattermost 0.2.0 helper; see the exact per-action reachability proof.",
+      "reviewed_digests": {
+        "sink:usl_mattermost:custom-addons/usl_mattermost/controllers/main.py:UslMattermostApi._authenticated:sudo:2": "d41caaf22d13f19a30be73a9e820261dfd40be5e420ac19451e24fc2c72c83bf",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_all_changed:orm_write:1": "1f7e307a09ec6478e29655115d7b913895654ebf232b9c8e01540f4e3bf4856d",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_all_changed:sudo:1": "1b630d5bbeb30fd48c2e0dafa5c6bab2f8728bc6737766030f182199e9641ba2",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_all_changed:sudo:2": "e2106930c967f2b576dd2f8f84ab4c5a8aa94683fdd2a1efc935b085a03e104a",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_projects_changed:sudo:1": "d75744f5e224e75d476bf49998612a65e8ee62b534f48dbe0c41d40bb550371a",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mattermost_url:sudo:1": "8eb200249a45553186023bbdf5d895b6243bb6c0f1fb136bd0bd81777b0bad06",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/nonce.py:usl.mattermost.nonce._usl_first_use:raw_sql_mutation:1": "8cd7afc56ff65231eaa9f542e7f4fc852cd961451bd9024d4f77602450854653",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/nonce.py:usl.mattermost.nonce._usl_first_use:raw_sql_mutation:2": "abc3ff6f734e976cc61c6e0485695b1067af3e14bc62984d1b89e73e1ffd293d",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/project.py:project.project.write:orm_write:1": "2f989062dd69e1a444127e1353c9da9c56ae84e196326e091f9b3706c90bdec0",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/project.py:res.users.write:orm_write:1": "b51c8e2305ae6efc82e7365ff1b3deb21324d6c288c1a8d11a87dd58f46127f9"
       }
     }
   ],
@@ -206485,7 +206677,15 @@
         "custom-addons/usl_mattermost/tests/test_api.py::TestMattermostApi.test_links_hide_unreadable_projects",
         "custom-addons/usl_mattermost/tests/test_api.py::TestMattermostApi.test_watch_follows_the_card_rule",
         "custom-addons/usl_mattermost/tests/test_api.py::TestMattermostApi.test_a_change_is_sent_to_mattermost",
-        "custom-addons/usl_mattermost/tests/test_api.py::TestMattermostApi.test_a_failed_send_stays_queued"
+        "custom-addons/usl_mattermost/tests/test_api.py::TestMattermostApi.test_a_failed_send_stays_queued",
+        "custom-addons/usl_mattermost/tests/test_api.py::TestMattermostApi.test_a_copied_request_is_refused",
+        "custom-addons/usl_mattermost/tests/test_api.py::TestMattermostApi.test_a_query_string_is_refused",
+        "custom-addons/usl_mattermost/tests/test_api.py::TestMattermostApi.test_a_non_ascii_signature_is_refused",
+        "custom-addons/usl_mattermost/tests/test_api.py::TestMattermostApi.test_a_bad_action_is_not_a_server_error",
+        "custom-addons/usl_mattermost/tests/test_api.py::TestMattermostApi.test_archived_task_of_another_user_looks_unreadable",
+        "custom-addons/usl_mattermost/tests/test_api.py::TestMattermostApi.test_links_are_for_project_managers",
+        "custom-addons/usl_mattermost/tests/test_api.py::TestMattermostApi.test_lost_access_refreshes_the_cards",
+        "custom-addons/usl_mattermost/tests/test_api.py::TestMattermostApi.test_only_an_https_mattermost_url_is_used"
       ]
     },
     "operational-authorized-workflow-v1": {
