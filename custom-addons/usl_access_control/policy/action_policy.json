@@ -205949,16 +205949,12 @@
         "rpc:usl.mattermost.service.formatted_read_grouping_sets",
         "rpc:usl.mattermost.service.get_view",
         "rpc:usl.mattermost.service.get_views",
-        "rpc:usl.mattermost.service.link",
-        "rpc:usl.mattermost.service.links",
         "rpc:usl.mattermost.service.load",
         "rpc:usl.mattermost.service.name_create",
         "rpc:usl.mattermost.service.onchange",
         "rpc:usl.mattermost.service.onchange_batch",
-        "rpc:usl.mattermost.service.read_task",
         "rpc:usl.mattermost.service.unlink",
         "rpc:usl.mattermost.service.update_field_translations",
-        "rpc:usl.mattermost.service.watch",
         "rpc:usl.mattermost.service.web_override_translations",
         "rpc:usl.mattermost.service.web_read_group",
         "rpc:usl.mattermost.service.web_resequence",
@@ -205978,28 +205974,16 @@
           "rationale": "Fixed scheduled retry of signed task-changed notifications to the configured Mattermost URL; returns at once without the URL parameter or the webhook key file. Writes only usl.mattermost.card retry state."
         },
         "route:http:POST:/usl/mattermost/link": {
-          "rationale": "Public route that refuses any request without a valid HMAC signature from the plugin key file (not_configured when the file is absent, 401 for a bad or stale signature, 413 above 64 KiB), then delegates to the usl.mattermost.service rule of the same name."
+          "rationale": "Public route that refuses any request without a valid HMAC signature from the plugin key file (not_configured when the file is absent, 401 for a bad or stale signature, 413 above 64 KiB), then delegates to the private usl.mattermost.service _api_* rule of the same name, which is not callable over RPC."
         },
         "route:http:POST:/usl/mattermost/links": {
-          "rationale": "Public route that refuses any request without a valid HMAC signature from the plugin key file (not_configured when the file is absent, 401 for a bad or stale signature, 413 above 64 KiB), then delegates to the usl.mattermost.service rule of the same name."
+          "rationale": "Public route that refuses any request without a valid HMAC signature from the plugin key file (not_configured when the file is absent, 401 for a bad or stale signature, 413 above 64 KiB), then delegates to the private usl.mattermost.service _api_* rule of the same name, which is not callable over RPC."
         },
         "route:http:POST:/usl/mattermost/task/read": {
-          "rationale": "Public route that refuses any request without a valid HMAC signature from the plugin key file (not_configured when the file is absent, 401 for a bad or stale signature, 413 above 64 KiB), then delegates to the usl.mattermost.service rule of the same name."
+          "rationale": "Public route that refuses any request without a valid HMAC signature from the plugin key file (not_configured when the file is absent, 401 for a bad or stale signature, 413 above 64 KiB), then delegates to the private usl.mattermost.service _api_* rule of the same name, which is not callable over RPC."
         },
         "route:http:POST:/usl/mattermost/task/watch": {
-          "rationale": "Public route that refuses any request without a valid HMAC signature from the plugin key file (not_configured when the file is absent, 401 for a bad or stale signature, 413 above 64 KiB), then delegates to the usl.mattermost.service rule of the same name."
-        },
-        "rpc:usl.mattermost.service.link": {
-          "rationale": "Signed Mattermost API rule, called by the HMAC-checked public routes as superuser. It acts as the Odoo user that the caller-supplied Pocket ID subject names and checks native task/project access as that user. Known gap: the method is public, so an authenticated Odoo user can also call it over ordinary RPC without the plugin signature and choose the subject; it is therefore not read_only and not relied on as an authority boundary. The module fix (private methods) belongs in unstaticlabs/mattermost-odoo."
-        },
-        "rpc:usl.mattermost.service.links": {
-          "rationale": "Signed Mattermost API rule, called by the HMAC-checked public routes as superuser. It acts as the Odoo user that the caller-supplied Pocket ID subject names and checks native task/project access as that user. Known gap: the method is public, so an authenticated Odoo user can also call it over ordinary RPC without the plugin signature and choose the subject; it is therefore not read_only and not relied on as an authority boundary. The module fix (private methods) belongs in unstaticlabs/mattermost-odoo."
-        },
-        "rpc:usl.mattermost.service.read_task": {
-          "rationale": "Signed Mattermost API rule, called by the HMAC-checked public routes as superuser. It acts as the Odoo user that the caller-supplied Pocket ID subject names and checks native task/project access as that user. Known gap: the method is public, so an authenticated Odoo user can also call it over ordinary RPC without the plugin signature and choose the subject; it is therefore not read_only and not relied on as an authority boundary. The module fix (private methods) belongs in unstaticlabs/mattermost-odoo."
-        },
-        "rpc:usl.mattermost.service.watch": {
-          "rationale": "Signed Mattermost API rule, called by the HMAC-checked public routes as superuser. It acts as the Odoo user that the caller-supplied Pocket ID subject names and checks native task/project access as that user. Known gap: the method is public, so an authenticated Odoo user can also call it over ordinary RPC without the plugin signature and choose the subject; it is therefore not read_only and not relied on as an authority boundary. The module fix (private methods) belongs in unstaticlabs/mattermost-odoo."
+          "rationale": "Public route that refuses any request without a valid HMAC signature from the plugin key file (not_configured when the file is absent, 401 for a bad or stale signature, 413 above 64 KiB), then delegates to the private usl.mattermost.service _api_* rule of the same name, which is not callable over RPC."
         },
         "server_action:usl_mattermost.ir_cron_push_cards_ir_actions_server": {
           "rationale": "Fixed scheduled retry of signed task-changed notifications to the configured Mattermost URL; returns at once without the URL parameter or the webhook key file. Writes only usl.mattermost.card retry state."
@@ -206008,10 +205992,10 @@
       "rationale": "Reviewed usl_mattermost workflow; native ACLs apply to ORM writes (cards: no write ACL; links: project managers may unlink, which posts a chatter note); see the exact per-action rationale.",
       "reviewed_digests": {
         "cron:usl_mattermost.ir_cron_push_cards": "bea333df56786d9130d9835dc2acd0420950fe45777181310044ac3bd5116e93",
-        "route:http:POST:/usl/mattermost/link": "de2cc4ca154afca3887efe2b43e0af1a19c2e356671888e9e07a5bde289023aa",
-        "route:http:POST:/usl/mattermost/links": "229f1c1a72a9f8afc415bf9b3a27db7007b873fddcbc023ab734e6b75057ba91",
-        "route:http:POST:/usl/mattermost/task/read": "ca326eb38f31829d5b9a2767c1d07f05b91d2b3ab46f4ce2c40f664dc790b6ab",
-        "route:http:POST:/usl/mattermost/task/watch": "4836d9807c72b1aa92c50288f479a8be1c254838374216160b4294b17bc40d1d",
+        "route:http:POST:/usl/mattermost/link": "45db010230cb69717e6e0323dbf797a3b12d91e8956c4b263688c56410bc8332",
+        "route:http:POST:/usl/mattermost/links": "fbacb012e478e91e85518093ac29cf1b45d2dc86e9a9c6e5967b743a81cf394d",
+        "route:http:POST:/usl/mattermost/task/read": "4d70df85b0818e870a7cab267dc80e7257b9c899dc9a646c2339045be0168da9",
+        "route:http:POST:/usl/mattermost/task/watch": "7c47b0678673185338680695ca1c22aa18f84fb824544e54506ee56b4a7101d8",
         "rpc:usl.mattermost.card.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
         "rpc:usl.mattermost.card.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:usl.mattermost.card.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
@@ -206062,16 +206046,12 @@
         "rpc:usl.mattermost.service.formatted_read_grouping_sets": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
         "rpc:usl.mattermost.service.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:usl.mattermost.service.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
-        "rpc:usl.mattermost.service.link": "736f66e3e83fdf51070159b38a476400185777840216017109cd561115dba049",
-        "rpc:usl.mattermost.service.links": "9695e7a1ef7d5b978536f0e446af42005e490666e9878ae2f6bae3cc2dbb8130",
         "rpc:usl.mattermost.service.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
         "rpc:usl.mattermost.service.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
         "rpc:usl.mattermost.service.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
         "rpc:usl.mattermost.service.onchange_batch": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
-        "rpc:usl.mattermost.service.read_task": "ce243f502872eb65cf90ead868a4ea5fe6b1ac83533541350e613e044afd7c42",
         "rpc:usl.mattermost.service.unlink": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
         "rpc:usl.mattermost.service.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
-        "rpc:usl.mattermost.service.watch": "1b103a6b5c5a0c75c375c58c53f688ecc8aa228cf532f77aa96fef4cea5226cd",
         "rpc:usl.mattermost.service.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
         "rpc:usl.mattermost.service.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
         "rpc:usl.mattermost.service.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
@@ -206123,20 +206103,20 @@
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/channel_link.py:usl.mattermost.channel.link.unlink:orm_write:1",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/project.py:project.task.unlink:orm_unlink:1",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/project.py:project.task.write:orm_write:1",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_link:orm_create:1",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_link:orm_write:1",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_link:sudo:1",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_link:sudo:2",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_link:sudo:3",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_links:sudo:1",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_watch:orm_create:1",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_watch:sudo:1",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._is_linked:sudo:1",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._resolve_task:sudo:1",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._task_action:sudo:1",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._task_card:sudo:1",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._task_card:sudo:2",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._user_for_subject:sudo:1",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:orm_create:1",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:orm_write:1",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:sudo:1",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:sudo:2",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:sudo:3",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.links:sudo:1",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.watch:orm_create:1",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.watch:sudo:1"
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._user_for_subject:sudo:1"
       ],
       "classification": "system_internal",
       "consequence": "Private usl_mattermost sink reached only through the signed API rules, the task write/unlink override, or the scheduled card refresh.",
@@ -206145,97 +206125,97 @@
       "id": "system_internal.projects.mattermost_20261020",
       "overrides": {
         "sink:usl_mattermost:custom-addons/usl_mattermost/controllers/main.py:UslMattermostApi._authenticated:sudo:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/controllers/main.py:UslMattermostApi.health:sudo:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/controllers/main.py:UslMattermostApi.health:sudo:2": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._cron_push:sudo:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._cron_push:sudo:2": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_changed:orm_write:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_changed:sudo:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_changed:sudo:2": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_push_task:external_call:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_push_task:orm_write:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_push_task:orm_write:2": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/channel_link.py:usl.mattermost.channel.link._usl_post_note:message_send:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/channel_link.py:usl.mattermost.channel.link._usl_post_note:sudo:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/channel_link.py:usl.mattermost.channel.link.unlink:orm_unlink:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/channel_link.py:usl.mattermost.channel.link.unlink:orm_write:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/project.py:project.task.unlink:orm_unlink:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/project.py:project.task.write:orm_write:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+        },
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_link:orm_create:1": {
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+        },
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_link:orm_write:1": {
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+        },
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_link:sudo:1": {
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+        },
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_link:sudo:2": {
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+        },
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_link:sudo:3": {
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+        },
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_links:sudo:1": {
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+        },
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_watch:orm_create:1": {
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+        },
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_watch:sudo:1": {
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._is_linked:sudo:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._resolve_task:sudo:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._task_action:sudo:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._task_card:sudo:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._task_card:sudo:2": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         },
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._user_for_subject:sudo:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
-        },
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:orm_create:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
-        },
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:orm_write:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
-        },
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:sudo:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
-        },
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:sudo:2": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
-        },
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:sudo:3": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
-        },
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.links:sudo:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
-        },
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.watch:orm_create:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
-        },
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.watch:sudo:1": {
-          "reachability_proof": "Sink inside an underscore helper, the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
+          "reachability_proof": "Sink inside an underscore helper (the _api_* rules are reached only from the signed routes), the HMAC-checked controller, or the public usl_mattermost override whose rpc/route entry point carries its own reviewed classification; not an RPC entry point by itself."
         }
       },
       "rationale": "Reviewed usl_mattermost helper; see the exact per-action reachability proof.",
@@ -206257,20 +206237,20 @@
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/channel_link.py:usl.mattermost.channel.link.unlink:orm_write:1": "7f1e84b0c03b5a3811c5e3c3f524233e4786e799d4e514b6b1fe5cac34cc1a97",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/project.py:project.task.unlink:orm_unlink:1": "479b2dc05a1e7253e1f103e4e30455c4796c055ac972e9034a65c7dbdfd91e58",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/project.py:project.task.write:orm_write:1": "c4e7edef37e92da353b969e10977d89084efbea26dcf429d28a8ca2619ae09d6",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_link:orm_create:1": "f2a32ffb3749872fdcb542c0a607cfa82cff86b085f4c9b31ff08cc1e2bca6f7",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_link:orm_write:1": "4cf427c4322380ab826c70b8c07b385990c1aae7754bc8f9980be362c2c4b2f7",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_link:sudo:1": "e2389d3ad6911ba25f8799d3600dab0e919fd39b441449993f63b5b81dd54bc2",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_link:sudo:2": "e19a750e7c151b4e090c055a652c3393169a89c89849eb1c5166f0701774a3cf",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_link:sudo:3": "3696c543790a02452ba1a83e361b52344e9fe1f6bdf74c4d8aadac8474bb1305",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_links:sudo:1": "53e88807d57db30c1239bd27f45fc505094a57a4e5b5d9235a9c1a6d4c4d86bb",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_watch:orm_create:1": "815834a8f541a2549fcd66ceb69426a8ab654deea5378e58f079d5e26fa93f19",
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_watch:sudo:1": "20160f955380101c68a45c9aa0cef1d0f127dd21b43179cdb475e3427f741141",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._is_linked:sudo:1": "a4b7313afef0167988eef112fc7ca4f10c7c132627385301a0da228ac61eab28",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._resolve_task:sudo:1": "d7f63a88fa0aa25a00307e7e076cbb11acc9a10038d9d2314c54c163f9938e7d",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._task_action:sudo:1": "018d19620d93b487e9fedc1ff94a81abf6acdc30bb1273a1e36becfb1851bc28",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._task_card:sudo:1": "093c6147341c4710a7d8e89a12afc713fec51d25eb80daae22239d86e5a4dff8",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._task_card:sudo:2": "1c09f4deeb7c649bc3ac56d414df8a34fbc54386bc0edfb67e5ce6929e6d30a5",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._user_for_subject:sudo:1": "4952942f2cb8e0d3616f53de77bbf92e921dea26cf716b5f5f0b9b5b24d6576b",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:orm_create:1": "b30e873c7ad9266eb7649aad931f7f13c2af4c1dc7a1ac0bc70ba740b9a80a42",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:orm_write:1": "ce354d644aab555d19e95c0a02e888c08336450714bc51378def2addd6364279",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:sudo:1": "678577992a3f388607fb73d41a0cc4cf5308fb785751c84c55e3a171f89c999f",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:sudo:2": "fc923f28c352cb2f11b314fd70c4a195edfe1b7bfc138fa47654945c999ec5e5",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:sudo:3": "fdf7bbaa887f8039427be5d9d788d750990430309d9435ec52ee958297e9c220",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.links:sudo:1": "a69d61861c26957ce602c7e7ca72d87347bec9b9b47ced8248d6d160352128bb",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.watch:orm_create:1": "9f7f98c3baa6e3758006c76d6f489fb6d97b32c79283589bd153a7f2fc6699e9",
-        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.watch:sudo:1": "cc6fed93f681fbf9fb4b08ce1da22eb574fc2f515bba07824c97228648269fc4"
+        "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._user_for_subject:sudo:1": "4952942f2cb8e0d3616f53de77bbf92e921dea26cf716b5f5f0b9b5b24d6576b"
       }
     }
   ],
@@ -206487,6 +206467,7 @@
     "mattermost-module-20261020": {
       "contract": "Signed Mattermost API: HMAC over timestamp, method, path and body with a key read from a file; missing key answers not_configured; Pocket ID subject resolves one active internal user; task cards follow native task read access plus project visibility or an explicit channel link; links need channel membership and project edit right; failed pushes stay queued. Offline tests use a mocked Mattermost endpoint.",
       "tests": [
+        "custom-addons/usl_mattermost/tests/test_api.py::TestMattermostApi.test_rpc_cannot_call_the_api_methods",
         "custom-addons/usl_mattermost/tests/test_signing.py::TestSigning.test_valid_signature",
         "custom-addons/usl_mattermost/tests/test_signing.py::TestSigning.test_every_signed_part_counts",
         "custom-addons/usl_mattermost/tests/test_signing.py::TestSigning.test_timestamp_window",

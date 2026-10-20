@@ -10480,14 +10480,14 @@
       ]
     },
     {
-      "digest": "de2cc4ca154afca3887efe2b43e0af1a19c2e356671888e9e07a5bde289023aa",
+      "digest": "45db010230cb69717e6e0323dbf797a3b12d91e8956c4b263688c56410bc8332",
       "key": "route:http:POST:/usl/mattermost/link",
       "kind": "route",
       "modules": [
         "usl_mattermost"
       ],
       "route": "/usl/mattermost/link",
-      "runtime_digest": "de2cc4ca154afca3887efe2b43e0af1a19c2e356671888e9e07a5bde289023aa",
+      "runtime_digest": "45db010230cb69717e6e0323dbf797a3b12d91e8956c4b263688c56410bc8332",
       "sources": [
         {
           "path": "custom-addons/usl_mattermost/controllers/main.py"
@@ -10495,14 +10495,14 @@
       ]
     },
     {
-      "digest": "229f1c1a72a9f8afc415bf9b3a27db7007b873fddcbc023ab734e6b75057ba91",
+      "digest": "fbacb012e478e91e85518093ac29cf1b45d2dc86e9a9c6e5967b743a81cf394d",
       "key": "route:http:POST:/usl/mattermost/links",
       "kind": "route",
       "modules": [
         "usl_mattermost"
       ],
       "route": "/usl/mattermost/links",
-      "runtime_digest": "229f1c1a72a9f8afc415bf9b3a27db7007b873fddcbc023ab734e6b75057ba91",
+      "runtime_digest": "fbacb012e478e91e85518093ac29cf1b45d2dc86e9a9c6e5967b743a81cf394d",
       "sources": [
         {
           "path": "custom-addons/usl_mattermost/controllers/main.py"
@@ -10510,14 +10510,14 @@
       ]
     },
     {
-      "digest": "ca326eb38f31829d5b9a2767c1d07f05b91d2b3ab46f4ce2c40f664dc790b6ab",
+      "digest": "4d70df85b0818e870a7cab267dc80e7257b9c899dc9a646c2339045be0168da9",
       "key": "route:http:POST:/usl/mattermost/task/read",
       "kind": "route",
       "modules": [
         "usl_mattermost"
       ],
       "route": "/usl/mattermost/task/read",
-      "runtime_digest": "ca326eb38f31829d5b9a2767c1d07f05b91d2b3ab46f4ce2c40f664dc790b6ab",
+      "runtime_digest": "4d70df85b0818e870a7cab267dc80e7257b9c899dc9a646c2339045be0168da9",
       "sources": [
         {
           "path": "custom-addons/usl_mattermost/controllers/main.py"
@@ -10525,14 +10525,14 @@
       ]
     },
     {
-      "digest": "4836d9807c72b1aa92c50288f479a8be1c254838374216160b4294b17bc40d1d",
+      "digest": "7c47b0678673185338680695ca1c22aa18f84fb824544e54506ee56b4a7101d8",
       "key": "route:http:POST:/usl/mattermost/task/watch",
       "kind": "route",
       "modules": [
         "usl_mattermost"
       ],
       "route": "/usl/mattermost/task/watch",
-      "runtime_digest": "4836d9807c72b1aa92c50288f479a8be1c254838374216160b4294b17bc40d1d",
+      "runtime_digest": "7c47b0678673185338680695ca1c22aa18f84fb824544e54506ee56b4a7101d8",
       "sources": [
         {
           "path": "custom-addons/usl_mattermost/controllers/main.py"
@@ -1388357,84 +1388357,6 @@
     {
       "abstract": true,
       "archiveable": false,
-      "delegates": [
-        "rpc:project.project.with_user",
-        "rpc:usl.mattermost.channel.link.sudo",
-        "rpc:usl.oidc.identity.sudo"
-      ],
-      "digest": "736f66e3e83fdf51070159b38a476400185777840216017109cd561115dba049",
-      "guards": [],
-      "key": "rpc:usl.mattermost.service.link",
-      "kind": "rpc",
-      "method": "link",
-      "model": "usl.mattermost.service",
-      "modules": [
-        "usl_mattermost"
-      ],
-      "parents": [],
-      "risk_flags": [],
-      "runtime_digest": "81f3b8cf0c5203c9afc1ed59705f9b5fa5564953582976a3173c822fb71d127d",
-      "sinks": [
-        "orm_create",
-        "orm_write",
-        "sudo"
-      ],
-      "sources": [
-        {
-          "line": 184,
-          "path": "custom-addons/usl_mattermost/models/service.py"
-        },
-        {
-          "path": "custom-addons/usl_mattermost/models/service.py"
-        }
-      ],
-      "transient": false,
-      "unresolved_delegates": [
-        "rpc:project.project.with_user",
-        "rpc:usl.mattermost.channel.link.sudo",
-        "rpc:usl.oidc.identity.sudo"
-      ]
-    },
-    {
-      "abstract": true,
-      "archiveable": false,
-      "delegates": [
-        "rpc:usl.mattermost.channel.link.sudo",
-        "rpc:usl.oidc.identity.sudo"
-      ],
-      "digest": "9695e7a1ef7d5b978536f0e446af42005e490666e9878ae2f6bae3cc2dbb8130",
-      "guards": [],
-      "key": "rpc:usl.mattermost.service.links",
-      "kind": "rpc",
-      "method": "links",
-      "model": "usl.mattermost.service",
-      "modules": [
-        "usl_mattermost"
-      ],
-      "parents": [],
-      "risk_flags": [],
-      "runtime_digest": "a7659e4c7db82dd23c0db1e8efc87f381003e9e23ab2218b992476e44eb75ae6",
-      "sinks": [
-        "sudo"
-      ],
-      "sources": [
-        {
-          "line": 227,
-          "path": "custom-addons/usl_mattermost/models/service.py"
-        },
-        {
-          "path": "custom-addons/usl_mattermost/models/service.py"
-        }
-      ],
-      "transient": false,
-      "unresolved_delegates": [
-        "rpc:usl.mattermost.channel.link.sudo",
-        "rpc:usl.oidc.identity.sudo"
-      ]
-    },
-    {
-      "abstract": true,
-      "archiveable": false,
       "digest": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
       "guards": [],
       "key": "rpc:usl.mattermost.service.load",
@@ -1388709,49 +1388631,6 @@
     {
       "abstract": true,
       "archiveable": false,
-      "delegates": [
-        "rpc:ir.actions.act_window.sudo",
-        "rpc:ir.config_parameter.sudo",
-        "rpc:project.task.sudo",
-        "rpc:usl.mattermost.channel.link.sudo",
-        "rpc:usl.oidc.identity.sudo"
-      ],
-      "digest": "ce243f502872eb65cf90ead868a4ea5fe6b1ac83533541350e613e044afd7c42",
-      "guards": [],
-      "key": "rpc:usl.mattermost.service.read_task",
-      "kind": "rpc",
-      "method": "read_task",
-      "model": "usl.mattermost.service",
-      "modules": [
-        "usl_mattermost"
-      ],
-      "parents": [],
-      "risk_flags": [],
-      "runtime_digest": "9fb8bdfb3bb1f057a93d6731c5427ccc89942d30c5eddb71a7f65733da741d6a",
-      "sinks": [
-        "sudo"
-      ],
-      "sources": [
-        {
-          "line": 133,
-          "path": "custom-addons/usl_mattermost/models/service.py"
-        },
-        {
-          "path": "custom-addons/usl_mattermost/models/service.py"
-        }
-      ],
-      "transient": false,
-      "unresolved_delegates": [
-        "rpc:ir.actions.act_window.sudo",
-        "rpc:ir.config_parameter.sudo",
-        "rpc:project.task.sudo",
-        "rpc:usl.mattermost.channel.link.sudo",
-        "rpc:usl.oidc.identity.sudo"
-      ]
-    },
-    {
-      "abstract": true,
-      "archiveable": false,
       "digest": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
       "guards": [],
       "key": "rpc:usl.mattermost.service.search",
@@ -1389008,50 +1388887,6 @@
         }
       ],
       "transient": false
-    },
-    {
-      "abstract": true,
-      "archiveable": false,
-      "delegates": [
-        "rpc:ir.actions.act_window.sudo",
-        "rpc:project.task.sudo",
-        "rpc:usl.mattermost.card.sudo",
-        "rpc:usl.mattermost.channel.link.sudo",
-        "rpc:usl.oidc.identity.sudo"
-      ],
-      "digest": "1b103a6b5c5a0c75c375c58c53f688ecc8aa228cf532f77aa96fef4cea5226cd",
-      "guards": [],
-      "key": "rpc:usl.mattermost.service.watch",
-      "kind": "rpc",
-      "method": "watch",
-      "model": "usl.mattermost.service",
-      "modules": [
-        "usl_mattermost"
-      ],
-      "parents": [],
-      "risk_flags": [],
-      "runtime_digest": "b2ac1a9950ae47d3088f12112d3707e46c665dcbb1999d2b9c5f84bc63531a76",
-      "sinks": [
-        "orm_create",
-        "sudo"
-      ],
-      "sources": [
-        {
-          "line": 144,
-          "path": "custom-addons/usl_mattermost/models/service.py"
-        },
-        {
-          "path": "custom-addons/usl_mattermost/models/service.py"
-        }
-      ],
-      "transient": false,
-      "unresolved_delegates": [
-        "rpc:ir.actions.act_window.sudo",
-        "rpc:project.task.sudo",
-        "rpc:usl.mattermost.card.sudo",
-        "rpc:usl.mattermost.channel.link.sudo",
-        "rpc:usl.oidc.identity.sudo"
-      ]
     },
     {
       "abstract": true,
@@ -1633668,6 +1633503,126 @@
       ]
     },
     {
+      "digest": "f2a32ffb3749872fdcb542c0a607cfa82cff86b085f4c9b31ff08cc1e2bca6f7",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_link:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 184,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ]
+    },
+    {
+      "digest": "4cf427c4322380ab826c70b8c07b385990c1aae7754bc8f9980be362c2c4b2f7",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_link:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 184,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ]
+    },
+    {
+      "digest": "e2389d3ad6911ba25f8799d3600dab0e919fd39b441449993f63b5b81dd54bc2",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_link:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 184,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ]
+    },
+    {
+      "digest": "e19a750e7c151b4e090c055a652c3393169a89c89849eb1c5166f0701774a3cf",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_link:sudo:2",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 184,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ]
+    },
+    {
+      "digest": "3696c543790a02452ba1a83e361b52344e9fe1f6bdf74c4d8aadac8474bb1305",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_link:sudo:3",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 184,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ]
+    },
+    {
+      "digest": "53e88807d57db30c1239bd27f45fc505094a57a4e5b5d9235a9c1a6d4c4d86bb",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_links:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 227,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ]
+    },
+    {
+      "digest": "815834a8f541a2549fcd66ceb69426a8ab654deea5378e58f079d5e26fa93f19",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_watch:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 144,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ]
+    },
+    {
+      "digest": "20160f955380101c68a45c9aa0cef1d0f127dd21b43179cdb475e3427f741141",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._api_watch:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 144,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ]
+    },
+    {
       "digest": "a4b7313afef0167988eef112fc7ca4f10c7c132627385301a0da228ac61eab28",
       "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._is_linked:sudo:1",
       "kind": "sink",
@@ -1633753,150 +1633708,6 @@
       "sources": [
         {
           "line": 29,
-          "path": "custom-addons/usl_mattermost/models/service.py"
-        }
-      ]
-    },
-    {
-      "digest": "b30e873c7ad9266eb7649aad931f7f13c2af4c1dc7a1ac0bc70ba740b9a80a42",
-      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:orm_create:1",
-      "kind": "sink",
-      "modules": [
-        "usl_mattermost"
-      ],
-      "parents": [
-        "rpc:usl.mattermost.service.link"
-      ],
-      "sink_kind": "orm_create",
-      "sources": [
-        {
-          "line": 184,
-          "path": "custom-addons/usl_mattermost/models/service.py"
-        }
-      ]
-    },
-    {
-      "digest": "ce354d644aab555d19e95c0a02e888c08336450714bc51378def2addd6364279",
-      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:orm_write:1",
-      "kind": "sink",
-      "modules": [
-        "usl_mattermost"
-      ],
-      "parents": [
-        "rpc:usl.mattermost.service.link"
-      ],
-      "sink_kind": "orm_write",
-      "sources": [
-        {
-          "line": 184,
-          "path": "custom-addons/usl_mattermost/models/service.py"
-        }
-      ]
-    },
-    {
-      "digest": "678577992a3f388607fb73d41a0cc4cf5308fb785751c84c55e3a171f89c999f",
-      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:sudo:1",
-      "kind": "sink",
-      "modules": [
-        "usl_mattermost"
-      ],
-      "parents": [
-        "rpc:usl.mattermost.service.link"
-      ],
-      "sink_kind": "sudo",
-      "sources": [
-        {
-          "line": 184,
-          "path": "custom-addons/usl_mattermost/models/service.py"
-        }
-      ]
-    },
-    {
-      "digest": "fc923f28c352cb2f11b314fd70c4a195edfe1b7bfc138fa47654945c999ec5e5",
-      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:sudo:2",
-      "kind": "sink",
-      "modules": [
-        "usl_mattermost"
-      ],
-      "parents": [
-        "rpc:usl.mattermost.service.link"
-      ],
-      "sink_kind": "sudo",
-      "sources": [
-        {
-          "line": 184,
-          "path": "custom-addons/usl_mattermost/models/service.py"
-        }
-      ]
-    },
-    {
-      "digest": "fdf7bbaa887f8039427be5d9d788d750990430309d9435ec52ee958297e9c220",
-      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:sudo:3",
-      "kind": "sink",
-      "modules": [
-        "usl_mattermost"
-      ],
-      "parents": [
-        "rpc:usl.mattermost.service.link"
-      ],
-      "sink_kind": "sudo",
-      "sources": [
-        {
-          "line": 184,
-          "path": "custom-addons/usl_mattermost/models/service.py"
-        }
-      ]
-    },
-    {
-      "digest": "a69d61861c26957ce602c7e7ca72d87347bec9b9b47ced8248d6d160352128bb",
-      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.links:sudo:1",
-      "kind": "sink",
-      "modules": [
-        "usl_mattermost"
-      ],
-      "parents": [
-        "rpc:usl.mattermost.service.links"
-      ],
-      "sink_kind": "sudo",
-      "sources": [
-        {
-          "line": 227,
-          "path": "custom-addons/usl_mattermost/models/service.py"
-        }
-      ]
-    },
-    {
-      "digest": "9f7f98c3baa6e3758006c76d6f489fb6d97b32c79283589bd153a7f2fc6699e9",
-      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.watch:orm_create:1",
-      "kind": "sink",
-      "modules": [
-        "usl_mattermost"
-      ],
-      "parents": [
-        "rpc:usl.mattermost.service.watch"
-      ],
-      "sink_kind": "orm_create",
-      "sources": [
-        {
-          "line": 144,
-          "path": "custom-addons/usl_mattermost/models/service.py"
-        }
-      ]
-    },
-    {
-      "digest": "cc6fed93f681fbf9fb4b08ce1da22eb574fc2f515bba07824c97228648269fc4",
-      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.watch:sudo:1",
-      "kind": "sink",
-      "modules": [
-        "usl_mattermost"
-      ],
-      "parents": [
-        "rpc:usl.mattermost.service.watch"
-      ],
-      "sink_kind": "sudo",
-      "sources": [
-        {
-          "line": 144,
           "path": "custom-addons/usl_mattermost/models/service.py"
         }
       ]
@@ -1704568,7 +1704379,7 @@
       "manifest_sha256": "a6015e08cd26922c576836d293b4a7a323341d745b3e602dde8dca917668549d",
       "name": "usl_mattermost",
       "origin": "custom",
-      "source_sha256": "23af65f549d634c3000b05ae9f695fc29b1e6dfb0b8d8d17a5a6a4c1110676b1",
+      "source_sha256": "37ce5f72770be11d8b6a477b113f361daba5640f4040ce8c47ab11394b02a498",
       "version": "saas~19.3.0.1.0"
     },
     {
