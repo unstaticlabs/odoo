@@ -59,6 +59,10 @@ COMPONENTS = {
                 "docs/users/**",
                 "oca-patches/**",
                 "scripts/sync-oca-addons",
+                # The pinned external add-ons are exported into
+                # custom-addons/ at build time, so their pin is an input.
+                "deploy/mattermost-odoo/release.json",
+                "scripts/sync-external-addons",
             ),
             ("custom-addons/usl_bootstrap/**",),
         ),

@@ -73,6 +73,10 @@ usl-online-dump
 /oca-addons/*
 !/oca-addons/README.md
 /oca-src/
+# Pinned external USL add-ons: scripts/sync-external-addons exports them from
+# deploy/mattermost-odoo/release.json. The pin is tracked; the exported tree is not.
+/external-src/
+/custom-addons/usl_mattermost/
 /accounting_compat/private/
 /artifacts/accounting-compat/private/
 /artifacts/action-risk/
