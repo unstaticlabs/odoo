@@ -5228,6 +5228,28 @@
       "xmlid": "usl_feedback.ir_cron_feedback_agent"
     },
     {
+      "digest": "bea333df56786d9130d9835dc2acd0420950fe45777181310044ac3bd5116e93",
+      "guards": [],
+      "key": "cron:usl_mattermost.ir_cron_push_cards",
+      "kind": "cron",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "464722e2cda93fdab3f2072595f70bd090a6536668861b761c3bd5751d51b0e6",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_mattermost/data/ir_cron.xml"
+        },
+        {
+          "path": "database:ir.cron:usl_mattermost.ir_cron_push_cards"
+        }
+      ],
+      "xmlid": "usl_mattermost.ir_cron_push_cards"
+    },
+    {
       "digest": "2c06d1a0ff7075d54b44b85a840ed96a40ce0372414d00e6954e1c9f330a6550",
       "guards": [],
       "key": "cron:usl_project.ir_cron_usl_reactivate_later_tasks",
@@ -9750,6 +9772,21 @@
       ]
     },
     {
+      "digest": "a031f75bb12fefde2b96abdf33786fabb80eaad825e64c3eaabde9af5324b0bf",
+      "key": "route:http:GET:/usl/mattermost/health",
+      "kind": "route",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "route": "/usl/mattermost/health",
+      "runtime_digest": "a031f75bb12fefde2b96abdf33786fabb80eaad825e64c3eaabde9af5324b0bf",
+      "sources": [
+        {
+          "path": "custom-addons/usl_mattermost/controllers/main.py"
+        }
+      ]
+    },
+    {
       "digest": "d3d0c7f2d5935a9f2d8405589cbd57c7a72ad29a419cfb2ccfebd966c9bf3e01",
       "key": "route:http:GET:/usl/pocketid/reauth/complete",
       "kind": "route",
@@ -10440,6 +10477,66 @@
       ],
       "unresolved_delegates": [
         "rpc:usl.mail.pdf.retrieval.browse"
+      ]
+    },
+    {
+      "digest": "de2cc4ca154afca3887efe2b43e0af1a19c2e356671888e9e07a5bde289023aa",
+      "key": "route:http:POST:/usl/mattermost/link",
+      "kind": "route",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "route": "/usl/mattermost/link",
+      "runtime_digest": "de2cc4ca154afca3887efe2b43e0af1a19c2e356671888e9e07a5bde289023aa",
+      "sources": [
+        {
+          "path": "custom-addons/usl_mattermost/controllers/main.py"
+        }
+      ]
+    },
+    {
+      "digest": "229f1c1a72a9f8afc415bf9b3a27db7007b873fddcbc023ab734e6b75057ba91",
+      "key": "route:http:POST:/usl/mattermost/links",
+      "kind": "route",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "route": "/usl/mattermost/links",
+      "runtime_digest": "229f1c1a72a9f8afc415bf9b3a27db7007b873fddcbc023ab734e6b75057ba91",
+      "sources": [
+        {
+          "path": "custom-addons/usl_mattermost/controllers/main.py"
+        }
+      ]
+    },
+    {
+      "digest": "ca326eb38f31829d5b9a2767c1d07f05b91d2b3ab46f4ce2c40f664dc790b6ab",
+      "key": "route:http:POST:/usl/mattermost/task/read",
+      "kind": "route",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "route": "/usl/mattermost/task/read",
+      "runtime_digest": "ca326eb38f31829d5b9a2767c1d07f05b91d2b3ab46f4ce2c40f664dc790b6ab",
+      "sources": [
+        {
+          "path": "custom-addons/usl_mattermost/controllers/main.py"
+        }
+      ]
+    },
+    {
+      "digest": "4836d9807c72b1aa92c50288f479a8be1c254838374216160b4294b17bc40d1d",
+      "key": "route:http:POST:/usl/mattermost/task/watch",
+      "kind": "route",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "route": "/usl/mattermost/task/watch",
+      "runtime_digest": "4836d9807c72b1aa92c50288f479a8be1c254838374216160b4294b17bc40d1d",
+      "sources": [
+        {
+          "path": "custom-addons/usl_mattermost/controllers/main.py"
+        }
       ]
     },
     {
@@ -882037,7 +882134,7 @@
         "rpc:rating.rating.sudo",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "cb0c5875034053d2dc4fb8323e5254515bc399b9cc966275bc14c8cbbf16d782",
+      "digest": "aea5ede0adf993366a26b9121d4a00b9b787638bc01787c638d6d4967676a0d6",
       "guards": [],
       "key": "rpc:project.task.unlink",
       "kind": "rpc",
@@ -882050,11 +882147,12 @@
         "rating",
         "usl_access_control",
         "usl_feedback",
+        "usl_mattermost",
         "usl_project"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "cf43dc162cfd7e294d81f8d7d5a7b715e4337dea06298724ba61f9eec7b7faff",
+      "runtime_digest": "457090f80d8e96f562ffd9d9bd4a030e4e3a91c638af0062510cec16452682cb",
       "sinks": [
         "orm_unlink",
         "sudo"
@@ -882077,6 +882175,10 @@
           "path": "odoo/orm/models.py"
         },
         {
+          "line": 38,
+          "path": "custom-addons/usl_mattermost/models/project.py"
+        },
+        {
           "line": 421,
           "path": "addons/mail/models/mail_thread.py"
         },
@@ -882097,6 +882199,9 @@
         },
         {
           "path": "custom-addons/usl_feedback/models/project_task.py"
+        },
+        {
+          "path": "custom-addons/usl_mattermost/models/project.py"
         },
         {
           "path": "custom-addons/usl_project/models/project_task.py"
@@ -882525,7 +882630,7 @@
         "rpc:usl.agent.sudo",
         "rpc:usl.document.link.sudo"
       ],
-      "digest": "d55137942721329bafacfaa95a7d417fe6a8b96364cee3259baaccdf816b397e",
+      "digest": "df460f18efb21b61780cff6ce6757dda2fa680270530c7fd1e9ddc23394bd108",
       "guards": [],
       "key": "rpc:project.task.write",
       "kind": "rpc",
@@ -882541,11 +882646,12 @@
         "usl_access_control",
         "usl_documents",
         "usl_feedback",
+        "usl_mattermost",
         "usl_project"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "51a0c698d09ac97577420cf8eba5b9c74de9580b8a1962f5e920cb2869da102e",
+      "runtime_digest": "73b605b7e5c7282e027e82dd250c39bb61b732d3bc65238ade90670477e51aa3",
       "sinks": [
         "orm_create",
         "orm_write",
@@ -882571,6 +882677,10 @@
         {
           "line": 305,
           "path": "custom-addons/usl_feedback/models/project_task.py"
+        },
+        {
+          "line": 32,
+          "path": "custom-addons/usl_mattermost/models/project.py"
         },
         {
           "line": 3696,
@@ -882600,6 +882710,9 @@
         },
         {
           "path": "custom-addons/usl_feedback/models/project_task.py"
+        },
+        {
+          "path": "custom-addons/usl_mattermost/models/project.py"
         },
         {
           "path": "custom-addons/usl_project/models/project_task.py"
@@ -1384139,6 +1384252,5137 @@
       "archiveable": false,
       "digest": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
       "guards": [],
+      "key": "rpc:usl.mattermost.card.action_archive",
+      "kind": "rpc",
+      "method": "action_archive",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "235abd6cb4038dd6a2c42caf9de8eae77f16c7778621633c9823beb3bd840539",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5196,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.action_unarchive",
+      "kind": "rpc",
+      "method": "action_unarchive",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e7c3c156fbd16e6d970313b9bb9b3394d43b56dfb1627dd220be3a47a71c75e8",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5207,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.check_field_access",
+      "kind": "rpc",
+      "method": "check_field_access",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "6ea1f9fac0c6643412d04dd4d3c9c9ad70723c75a4fbf7d4aae0a10636bfeff1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2672,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.copy",
+      "kind": "rpc",
+      "method": "copy",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e2701f4de378a2041241c55d30da98574d537a17c9ced308c1a1aaa37d3704ff",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 4945,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.copy_data",
+      "kind": "rpc",
+      "method": "copy_data",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1bcb637275cc868763d196999ce5a96ed738f7a52b0206f6fc826561249f3d13",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 4823,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.copy_translations",
+      "kind": "rpc",
+      "method": "copy_translations",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5675fce11d83c7502d5bcd12d8de06759f5cbccea4f69e7e4cac81fb5c2d6915",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 4880,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "37b76f9937e66a72c0555d93394a9e3336325c81c16eec20667bed140b30b44a",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.create",
+      "kind": "rpc",
+      "method": "create",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9c6eaedb7b168c256d1268de7b648367d97e6edddcfd800845bc624c82ea97ba",
+      "sinks": [
+        "orm_create",
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3980,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 532,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "decorators.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.default_get",
+      "kind": "rpc",
+      "method": "default_get",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5a254545bb7959b0d3f555c147fe3f5e60d3c5889fa39b3ab58165013561b62c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1298,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.export_data",
+      "kind": "rpc",
+      "method": "export_data",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "80bce7a82aa05b027a1d03304c15854a49afda0463cb1b81b1090b46ec7616ec",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 907,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo",
+        "rpc:usl.mattermost.card.env",
+        "rpc:usl.mattermost.card.with_env"
+      ],
+      "digest": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.fields_get",
+      "kind": "rpc",
+      "method": "fields_get",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "baa7a932d91057120b35e7a5c3e4b7e1e61836083fb2f0ffd1bdf6f6efd537db",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 2612,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 268,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo",
+        "rpc:usl.mattermost.card.env",
+        "rpc:usl.mattermost.card.with_env"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.card.get_property_definition"
+      ],
+      "digest": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.formatted_read_group",
+      "kind": "rpc",
+      "method": "formatted_read_group",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ad861b317e2d9b39640847bf88826fd861f2ecea91d0bb0b48322bc4c7a3a344",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 752,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.card.get_property_definition"
+      ],
+      "digest": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.formatted_read_grouping_sets",
+      "kind": "rpc",
+      "method": "formatted_read_grouping_sets",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1fcb23eb76c979d3163287b2076a032ff3eb5d50c4a4aa9b2cd9fb7b38370cf8",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 652,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.get_base_url",
+      "kind": "rpc",
+      "method": "get_base_url",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "67d503784e6d6f7548d55a2cfdf3bdd45f8195b37ec1b1c9d0251a8dd98aaf30",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3258,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.get_empty_list_help",
+      "kind": "rpc",
+      "method": "get_empty_list_help",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "71d9d7f85cddd3babee74d68b9bf1373cea9a671db1deb8a5b5a71f7cc68dae4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2755,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.get_external_id",
+      "kind": "rpc",
+      "method": "get_external_id",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d8ba5b2f03d09295cc21145c82fd52737b78a38b697ea7cdd704e2cedc9ae2ba",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5123,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.get_field_translations",
+      "kind": "rpc",
+      "method": "get_field_translations",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "24f016d8e2a430cf59d47b17206cb2e434bfbaac4046ef4d8a0ce4778d1af7f2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2927,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.card.sudo"
+      ],
+      "digest": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.get_formview_action",
+      "kind": "rpc",
+      "method": "get_formview_action",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f4edcfe3654b97ad72a319b821d294d1424decaa7390bc239027a6b78f9e970d",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3232,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.card.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.get_formview_id",
+      "kind": "rpc",
+      "method": "get_formview_id",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "95c1752af454541997c8ccf2725058469cf43a5fd4da850f3a10f7d5fd29fb27",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 3221,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.get_import_templates",
+      "kind": "rpc",
+      "method": "get_import_templates",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base_import"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d8392d1f12eba5b1791ef6af27e90a1fc627cacbc6da374ac0ea04942331091a",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 86,
+          "path": "addons/base_import/models/base_import.py"
+        },
+        {
+          "path": "odoo/addons/base_import/models/base_import.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.get_metadata",
+      "kind": "rpc",
+      "method": "get_metadata",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9478f042e1ad35efe156f1cebf773332d56b07c5d5a63ce07e245dea08083a64",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3217,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.get_property_definition",
+      "kind": "rpc",
+      "method": "get_property_definition",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1ac7b96c8c74abf184cdf2821627c7c899e14c965ece4dcc9af28468196b1217",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2303,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:ir.ui.view.sudo",
+        "rpc:usl.mattermost.card.browse"
+      ],
+      "digest": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.get_view",
+      "kind": "rpc",
+      "method": "get_view",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0acf8bd48cd6c0a934eab7561db739e01d8bf0281b9acfeb6c0d80b806025011",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 288,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "line": 3139,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:ir.ui.view.sudo",
+        "rpc:usl.mattermost.card.browse"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:ir.actions.actions.get_bindings",
+        "rpc:ir.filters.get_filters",
+        "rpc:usl.mattermost.card.get_view"
+      ],
+      "digest": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.get_views",
+      "kind": "rpc",
+      "method": "get_views",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "28821b46e4ace196e2c4841baa399fd93e3de113f7b8a23e02a6ac1ebb808bb3",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2906,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.has_access",
+      "kind": "rpc",
+      "method": "has_access",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7dde4c8c80708d5316a9b4ba890ccf506ecf99b81b508323688f41a5583a122a",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3395,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.has_field_access",
+      "kind": "rpc",
+      "method": "has_field_access",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "799cce23243afb3ae60b8c02627890f175177862620a93c73cdf96aba995336e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2638,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.card.search"
+      ],
+      "digest": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.hierarchy_read",
+      "kind": "rpc",
+      "method": "hierarchy_read",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "web_hierarchy"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e2aa251578d309d82ce2e4591076f9e17bd1687af9431cb2f477aea366bdc069",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 10,
+          "path": "addons/web_hierarchy/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web_hierarchy/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.load",
+      "kind": "rpc",
+      "method": "load",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "aa42854816e20eef9f3bef4c8a7f7093ace251608e2835ac74c5b648ccdbb5a1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 922,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.mail_allowed_qweb_expressions",
+      "kind": "rpc",
+      "method": "mail_allowed_qweb_expressions",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "mail"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "db8fea907626f92f1ff6db9395f1e14164568b94e599a3998467f1cfebeb397c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 219,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.mail_get_partner_fields",
+      "kind": "rpc",
+      "method": "mail_get_partner_fields",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "mail"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a336a2519b3cd4da27cb4136737e46b9917505349b03486123f14e0c971a669e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 181,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.name_create",
+      "kind": "rpc",
+      "method": "name_create",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e6630daa1f607675b91db65c230d53ad6df4b76fe10f88b2f49eca774d4948ee",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 1543,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.name_search",
+      "kind": "rpc",
+      "method": "name_search",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f70bce1e80cfd78fda12b36edcf68116ce8fbc3d07b0eee6a5888480a03ed0dd",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 1564,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.card.check_access",
+        "rpc:usl.mattermost.card.default_get",
+        "rpc:usl.mattermost.card.fetch",
+        "rpc:usl.mattermost.card.new"
+      ],
+      "digest": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.onchange",
+      "kind": "rpc",
+      "method": "onchange",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base",
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "bb63b0e5f4471bbe579f6bd9d01af667898fd0484a0b5bf5e725470a019f8433",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 1908,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "line": 6452,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.card.check_access",
+        "rpc:usl.mattermost.card.fetch",
+        "rpc:usl.mattermost.card.new"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.card.onchange"
+      ],
+      "digest": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.onchange_batch",
+      "kind": "rpc",
+      "method": "onchange_batch",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ea23ff314cc0eb80f6694e2cde1c27ec9b0ea33af0df59d0eacc21b25d53ad30",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1896,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.read",
+      "kind": "rpc",
+      "method": "read",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0d6c99c6016f86318429152c1963ab593f5a5c240600946465a0ace17820f327",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2733,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.card.formatted_read_group"
+      ],
+      "digest": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.read_progress_bar",
+      "kind": "rpc",
+      "method": "read_progress_bar",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "de4401e52e0cc988131fc11f0c347e20a6b4711220c1152b1a161d892da174a4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1315,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.search",
+      "kind": "rpc",
+      "method": "search",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "471d7d3160921d01da2add1ddbec37ccea1d00f6e1d65854177a91687eb04403",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1403,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.search_count",
+      "kind": "rpc",
+      "method": "search_count",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "123617ed36078cbf6b54e9ac2229a2f8905d7189d3d85f5e9be5765bc082d666",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1387,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.card.fields_get",
+        "rpc:usl.mattermost.card.search_count",
+        "rpc:usl.mattermost.card.with_context"
+      ],
+      "digest": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.search_panel_select_multi_range",
+      "kind": "rpc",
+      "method": "search_panel_select_multi_range",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "8d1084cfaa7d7812902ea17cd937614b41c19556ff0370dff296111612ed17d2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1728,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.card.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.card.fields_get",
+        "rpc:usl.mattermost.card.with_context"
+      ],
+      "digest": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.search_panel_select_range",
+      "kind": "rpc",
+      "method": "search_panel_select_range",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f15fd0ab0ecc4f8a69aaba36f4bfc1948dc54f91dcd58f43abedfa92db7414ad",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1587,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.card.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.search_read",
+      "kind": "rpc",
+      "method": "search_read",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e24e0149cc13b22ffe7216068d9cc91d4ad8abd145bb39a15322f2f205593b19",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5155,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:mail.activity.with_context",
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.unlink",
+      "kind": "rpc",
+      "method": "unlink",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base",
+        "mail",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a9f2e9e3ac9125c6b4b643a46516ecd15e6fd4da08c0110183e89f9b2dba3dd3",
+      "sinks": [
+        "orm_unlink",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3550,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 45,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "line": 588,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:mail.activity.with_context",
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.update_field_translations",
+      "kind": "rpc",
+      "method": "update_field_translations",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ebb8d3f11a6eb5272e7826ecf89c2299f4e381db6db738774fca6a44ece50361",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 2756,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.view_header_get",
+      "kind": "rpc",
+      "method": "view_header_get",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "b14c94c41cfa171935e3cd3c93d8c9d8a732e022b83229ff98e6f8563f7dd110",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2770,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.card.browse",
+        "rpc:usl.mattermost.card.name_search"
+      ],
+      "digest": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.web_name_search",
+      "kind": "rpc",
+      "method": "web_name_search",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "c432ba6a42dc18b2c8d36fc07d9fe66ab05e98d5bb4723f94b0e9a8cee8703a6",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 44,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.card.browse"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:res.lang.get_installed",
+        "rpc:usl.mattermost.card.ensure_one",
+        "rpc:usl.mattermost.card.update_field_translations"
+      ],
+      "digest": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.web_override_translations",
+      "kind": "rpc",
+      "method": "web_override_translations",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "65b2b80d23fbf97f4beb6aa63793a2192c87df69a6b13e5205874744728e18e7",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2127,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.card.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.card.read"
+      ],
+      "digest": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.web_read",
+      "kind": "rpc",
+      "method": "web_read",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0397df491af3e68dbf5a2c82620a77599e65baba4ec9661805e0dee10c669b41",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 98,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.card.browse",
+        "rpc:usl.mattermost.card.formatted_read_group",
+        "rpc:usl.mattermost.card.search",
+        "rpc:usl.mattermost.card.with_context"
+      ],
+      "digest": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.web_read_group",
+      "kind": "rpc",
+      "method": "web_read_group",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7cdc0dc7cd7348ca758ab89f1d40dd19c9157f3cd41788ad93bab7d62848bb5a",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 299,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.card.browse",
+        "rpc:usl.mattermost.card.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.card.web_read"
+      ],
+      "digest": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.web_resequence",
+      "kind": "rpc",
+      "method": "web_resequence",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9fb7342771181391f3c6bae96f4df108874f3ce018d05005ab2e137ae42dc48b",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 272,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.card.browse",
+        "rpc:usl.mattermost.card.create",
+        "rpc:usl.mattermost.card.with_context",
+        "rpc:usl.mattermost.card.write"
+      ],
+      "digest": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.web_save",
+      "kind": "rpc",
+      "method": "web_save",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "112c33674d0668e62e51bf2c39467d97d7134617b41020fc6ed35aabba1fd575",
+      "sinks": [
+        "orm_create",
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 79,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.card.browse",
+        "rpc:usl.mattermost.card.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.card.with_context"
+      ],
+      "digest": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.web_save_multi",
+      "kind": "rpc",
+      "method": "web_save_multi",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "dd52456050d0b84dceed94a869936592107bb741e770b55c9a4086276fab48bb",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 88,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.card.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.card.search_count",
+        "rpc:usl.mattermost.card.search_fetch"
+      ],
+      "digest": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.web_search_read",
+      "kind": "rpc",
+      "method": "web_search_read",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "883780099f8b4e2da155770cd316e20a5df8d7684c348d772c1d3e594b840018",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 55,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.card.search_fetch"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "b0373b6633d99d657d81a9aca3ec6bb0ebad5e3e7b41420276488a6f1ce1c8f4",
+      "guards": [],
+      "key": "rpc:usl.mattermost.card.write",
+      "kind": "rpc",
+      "method": "write",
+      "model": "usl.mattermost.card",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7a5191605f427879f05c88a058a72d53a01df2395e223cd059b23b9cf71a4959",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3696,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 559,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.action_archive",
+      "kind": "rpc",
+      "method": "action_archive",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "235abd6cb4038dd6a2c42caf9de8eae77f16c7778621633c9823beb3bd840539",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5196,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.action_unarchive",
+      "kind": "rpc",
+      "method": "action_unarchive",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e7c3c156fbd16e6d970313b9bb9b3394d43b56dfb1627dd220be3a47a71c75e8",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5207,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.check_field_access",
+      "kind": "rpc",
+      "method": "check_field_access",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "6ea1f9fac0c6643412d04dd4d3c9c9ad70723c75a4fbf7d4aae0a10636bfeff1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2672,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.copy",
+      "kind": "rpc",
+      "method": "copy",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e2701f4de378a2041241c55d30da98574d537a17c9ced308c1a1aaa37d3704ff",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 4945,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.copy_data",
+      "kind": "rpc",
+      "method": "copy_data",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1bcb637275cc868763d196999ce5a96ed738f7a52b0206f6fc826561249f3d13",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 4823,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.copy_translations",
+      "kind": "rpc",
+      "method": "copy_translations",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5675fce11d83c7502d5bcd12d8de06759f5cbccea4f69e7e4cac81fb5c2d6915",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 4880,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "37b76f9937e66a72c0555d93394a9e3336325c81c16eec20667bed140b30b44a",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.create",
+      "kind": "rpc",
+      "method": "create",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9c6eaedb7b168c256d1268de7b648367d97e6edddcfd800845bc624c82ea97ba",
+      "sinks": [
+        "orm_create",
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3980,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 532,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "decorators.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.default_get",
+      "kind": "rpc",
+      "method": "default_get",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5a254545bb7959b0d3f555c147fe3f5e60d3c5889fa39b3ab58165013561b62c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1298,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.export_data",
+      "kind": "rpc",
+      "method": "export_data",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "80bce7a82aa05b027a1d03304c15854a49afda0463cb1b81b1090b46ec7616ec",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 907,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo",
+        "rpc:usl.mattermost.channel.link.env",
+        "rpc:usl.mattermost.channel.link.with_env"
+      ],
+      "digest": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.fields_get",
+      "kind": "rpc",
+      "method": "fields_get",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "baa7a932d91057120b35e7a5c3e4b7e1e61836083fb2f0ffd1bdf6f6efd537db",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 2612,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 268,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo",
+        "rpc:usl.mattermost.channel.link.env",
+        "rpc:usl.mattermost.channel.link.with_env"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.channel.link.get_property_definition"
+      ],
+      "digest": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.formatted_read_group",
+      "kind": "rpc",
+      "method": "formatted_read_group",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ad861b317e2d9b39640847bf88826fd861f2ecea91d0bb0b48322bc4c7a3a344",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 752,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.channel.link.get_property_definition"
+      ],
+      "digest": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.formatted_read_grouping_sets",
+      "kind": "rpc",
+      "method": "formatted_read_grouping_sets",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1fcb23eb76c979d3163287b2076a032ff3eb5d50c4a4aa9b2cd9fb7b38370cf8",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 652,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.get_base_url",
+      "kind": "rpc",
+      "method": "get_base_url",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "67d503784e6d6f7548d55a2cfdf3bdd45f8195b37ec1b1c9d0251a8dd98aaf30",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3258,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.get_empty_list_help",
+      "kind": "rpc",
+      "method": "get_empty_list_help",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "71d9d7f85cddd3babee74d68b9bf1373cea9a671db1deb8a5b5a71f7cc68dae4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2755,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.get_external_id",
+      "kind": "rpc",
+      "method": "get_external_id",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d8ba5b2f03d09295cc21145c82fd52737b78a38b697ea7cdd704e2cedc9ae2ba",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5123,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.get_field_translations",
+      "kind": "rpc",
+      "method": "get_field_translations",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "24f016d8e2a430cf59d47b17206cb2e434bfbaac4046ef4d8a0ce4778d1af7f2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2927,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.channel.link.sudo"
+      ],
+      "digest": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.get_formview_action",
+      "kind": "rpc",
+      "method": "get_formview_action",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f4edcfe3654b97ad72a319b821d294d1424decaa7390bc239027a6b78f9e970d",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3232,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.channel.link.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.get_formview_id",
+      "kind": "rpc",
+      "method": "get_formview_id",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "95c1752af454541997c8ccf2725058469cf43a5fd4da850f3a10f7d5fd29fb27",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 3221,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.get_import_templates",
+      "kind": "rpc",
+      "method": "get_import_templates",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base_import"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d8392d1f12eba5b1791ef6af27e90a1fc627cacbc6da374ac0ea04942331091a",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 86,
+          "path": "addons/base_import/models/base_import.py"
+        },
+        {
+          "path": "odoo/addons/base_import/models/base_import.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.get_metadata",
+      "kind": "rpc",
+      "method": "get_metadata",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9478f042e1ad35efe156f1cebf773332d56b07c5d5a63ce07e245dea08083a64",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3217,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.get_property_definition",
+      "kind": "rpc",
+      "method": "get_property_definition",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1ac7b96c8c74abf184cdf2821627c7c899e14c965ece4dcc9af28468196b1217",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2303,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:ir.ui.view.sudo",
+        "rpc:usl.mattermost.channel.link.browse"
+      ],
+      "digest": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.get_view",
+      "kind": "rpc",
+      "method": "get_view",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0acf8bd48cd6c0a934eab7561db739e01d8bf0281b9acfeb6c0d80b806025011",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 288,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "line": 3139,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:ir.ui.view.sudo",
+        "rpc:usl.mattermost.channel.link.browse"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:ir.actions.actions.get_bindings",
+        "rpc:ir.filters.get_filters",
+        "rpc:usl.mattermost.channel.link.get_view"
+      ],
+      "digest": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.get_views",
+      "kind": "rpc",
+      "method": "get_views",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "28821b46e4ace196e2c4841baa399fd93e3de113f7b8a23e02a6ac1ebb808bb3",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2906,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.has_access",
+      "kind": "rpc",
+      "method": "has_access",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7dde4c8c80708d5316a9b4ba890ccf506ecf99b81b508323688f41a5583a122a",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3395,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.has_field_access",
+      "kind": "rpc",
+      "method": "has_field_access",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "799cce23243afb3ae60b8c02627890f175177862620a93c73cdf96aba995336e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2638,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.channel.link.search"
+      ],
+      "digest": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.hierarchy_read",
+      "kind": "rpc",
+      "method": "hierarchy_read",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "web_hierarchy"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e2aa251578d309d82ce2e4591076f9e17bd1687af9431cb2f477aea366bdc069",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 10,
+          "path": "addons/web_hierarchy/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web_hierarchy/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.load",
+      "kind": "rpc",
+      "method": "load",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "aa42854816e20eef9f3bef4c8a7f7093ace251608e2835ac74c5b648ccdbb5a1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 922,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.mail_allowed_qweb_expressions",
+      "kind": "rpc",
+      "method": "mail_allowed_qweb_expressions",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "mail"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "db8fea907626f92f1ff6db9395f1e14164568b94e599a3998467f1cfebeb397c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 219,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.mail_get_partner_fields",
+      "kind": "rpc",
+      "method": "mail_get_partner_fields",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "mail"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a336a2519b3cd4da27cb4136737e46b9917505349b03486123f14e0c971a669e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 181,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.name_create",
+      "kind": "rpc",
+      "method": "name_create",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e6630daa1f607675b91db65c230d53ad6df4b76fe10f88b2f49eca774d4948ee",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 1543,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.name_search",
+      "kind": "rpc",
+      "method": "name_search",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f70bce1e80cfd78fda12b36edcf68116ce8fbc3d07b0eee6a5888480a03ed0dd",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 1564,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.channel.link.check_access",
+        "rpc:usl.mattermost.channel.link.default_get",
+        "rpc:usl.mattermost.channel.link.fetch",
+        "rpc:usl.mattermost.channel.link.new"
+      ],
+      "digest": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.onchange",
+      "kind": "rpc",
+      "method": "onchange",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base",
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "bb63b0e5f4471bbe579f6bd9d01af667898fd0484a0b5bf5e725470a019f8433",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 1908,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "line": 6452,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.channel.link.check_access",
+        "rpc:usl.mattermost.channel.link.fetch",
+        "rpc:usl.mattermost.channel.link.new"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.channel.link.onchange"
+      ],
+      "digest": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.onchange_batch",
+      "kind": "rpc",
+      "method": "onchange_batch",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ea23ff314cc0eb80f6694e2cde1c27ec9b0ea33af0df59d0eacc21b25d53ad30",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1896,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.read",
+      "kind": "rpc",
+      "method": "read",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0d6c99c6016f86318429152c1963ab593f5a5c240600946465a0ace17820f327",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2733,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.channel.link.formatted_read_group"
+      ],
+      "digest": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.read_progress_bar",
+      "kind": "rpc",
+      "method": "read_progress_bar",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "de4401e52e0cc988131fc11f0c347e20a6b4711220c1152b1a161d892da174a4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1315,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.search",
+      "kind": "rpc",
+      "method": "search",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "471d7d3160921d01da2add1ddbec37ccea1d00f6e1d65854177a91687eb04403",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1403,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.search_count",
+      "kind": "rpc",
+      "method": "search_count",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "123617ed36078cbf6b54e9ac2229a2f8905d7189d3d85f5e9be5765bc082d666",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1387,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.channel.link.fields_get",
+        "rpc:usl.mattermost.channel.link.search_count",
+        "rpc:usl.mattermost.channel.link.with_context"
+      ],
+      "digest": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.search_panel_select_multi_range",
+      "kind": "rpc",
+      "method": "search_panel_select_multi_range",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "8d1084cfaa7d7812902ea17cd937614b41c19556ff0370dff296111612ed17d2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1728,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.channel.link.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.channel.link.fields_get",
+        "rpc:usl.mattermost.channel.link.with_context"
+      ],
+      "digest": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.search_panel_select_range",
+      "kind": "rpc",
+      "method": "search_panel_select_range",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f15fd0ab0ecc4f8a69aaba36f4bfc1948dc54f91dcd58f43abedfa92db7414ad",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1587,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.channel.link.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.search_read",
+      "kind": "rpc",
+      "method": "search_read",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e24e0149cc13b22ffe7216068d9cc91d4ad8abd145bb39a15322f2f205593b19",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5155,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:mail.activity.with_context",
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "4369299c2e40200e970acdd1198bb03f6bc5b383d31fdcdbbc370969c90a5ad4",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.unlink",
+      "kind": "rpc",
+      "method": "unlink",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base",
+        "mail",
+        "usl_access_control",
+        "usl_mattermost"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "8bab56b7a342edf9d2c786fc97612dbe37fac244e918a490f8af9c6f525db145",
+      "sinks": [
+        "message_send",
+        "orm_unlink",
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3550,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 45,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "line": 54,
+          "path": "custom-addons/usl_mattermost/models/channel_link.py"
+        },
+        {
+          "line": 588,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_mattermost/models/channel_link.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:mail.activity.with_context",
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.update_field_translations",
+      "kind": "rpc",
+      "method": "update_field_translations",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ebb8d3f11a6eb5272e7826ecf89c2299f4e381db6db738774fca6a44ece50361",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 2756,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.view_header_get",
+      "kind": "rpc",
+      "method": "view_header_get",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "b14c94c41cfa171935e3cd3c93d8c9d8a732e022b83229ff98e6f8563f7dd110",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2770,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.channel.link.browse",
+        "rpc:usl.mattermost.channel.link.name_search"
+      ],
+      "digest": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.web_name_search",
+      "kind": "rpc",
+      "method": "web_name_search",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "c432ba6a42dc18b2c8d36fc07d9fe66ab05e98d5bb4723f94b0e9a8cee8703a6",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 44,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.channel.link.browse"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:res.lang.get_installed",
+        "rpc:usl.mattermost.channel.link.ensure_one",
+        "rpc:usl.mattermost.channel.link.update_field_translations"
+      ],
+      "digest": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.web_override_translations",
+      "kind": "rpc",
+      "method": "web_override_translations",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "65b2b80d23fbf97f4beb6aa63793a2192c87df69a6b13e5205874744728e18e7",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2127,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.channel.link.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.channel.link.read"
+      ],
+      "digest": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.web_read",
+      "kind": "rpc",
+      "method": "web_read",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0397df491af3e68dbf5a2c82620a77599e65baba4ec9661805e0dee10c669b41",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 98,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.channel.link.browse",
+        "rpc:usl.mattermost.channel.link.formatted_read_group",
+        "rpc:usl.mattermost.channel.link.search",
+        "rpc:usl.mattermost.channel.link.with_context"
+      ],
+      "digest": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.web_read_group",
+      "kind": "rpc",
+      "method": "web_read_group",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7cdc0dc7cd7348ca758ab89f1d40dd19c9157f3cd41788ad93bab7d62848bb5a",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 299,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.channel.link.browse",
+        "rpc:usl.mattermost.channel.link.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.channel.link.web_read"
+      ],
+      "digest": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.web_resequence",
+      "kind": "rpc",
+      "method": "web_resequence",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9fb7342771181391f3c6bae96f4df108874f3ce018d05005ab2e137ae42dc48b",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 272,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.channel.link.browse",
+        "rpc:usl.mattermost.channel.link.create",
+        "rpc:usl.mattermost.channel.link.with_context",
+        "rpc:usl.mattermost.channel.link.write"
+      ],
+      "digest": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.web_save",
+      "kind": "rpc",
+      "method": "web_save",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "112c33674d0668e62e51bf2c39467d97d7134617b41020fc6ed35aabba1fd575",
+      "sinks": [
+        "orm_create",
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 79,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.channel.link.browse",
+        "rpc:usl.mattermost.channel.link.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.channel.link.with_context"
+      ],
+      "digest": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.web_save_multi",
+      "kind": "rpc",
+      "method": "web_save_multi",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "dd52456050d0b84dceed94a869936592107bb741e770b55c9a4086276fab48bb",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 88,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.channel.link.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.channel.link.search_count",
+        "rpc:usl.mattermost.channel.link.search_fetch"
+      ],
+      "digest": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.web_search_read",
+      "kind": "rpc",
+      "method": "web_search_read",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "883780099f8b4e2da155770cd316e20a5df8d7684c348d772c1d3e594b840018",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 55,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.channel.link.search_fetch"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "b0373b6633d99d657d81a9aca3ec6bb0ebad5e3e7b41420276488a6f1ce1c8f4",
+      "guards": [],
+      "key": "rpc:usl.mattermost.channel.link.write",
+      "kind": "rpc",
+      "method": "write",
+      "model": "usl.mattermost.channel.link",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7a5191605f427879f05c88a058a72d53a01df2395e223cd059b23b9cf71a4959",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3696,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 559,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.action_archive",
+      "kind": "rpc",
+      "method": "action_archive",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "235abd6cb4038dd6a2c42caf9de8eae77f16c7778621633c9823beb3bd840539",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5196,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.action_unarchive",
+      "kind": "rpc",
+      "method": "action_unarchive",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e7c3c156fbd16e6d970313b9bb9b3394d43b56dfb1627dd220be3a47a71c75e8",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5207,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.check_field_access",
+      "kind": "rpc",
+      "method": "check_field_access",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "6ea1f9fac0c6643412d04dd4d3c9c9ad70723c75a4fbf7d4aae0a10636bfeff1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2672,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.copy",
+      "kind": "rpc",
+      "method": "copy",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e2701f4de378a2041241c55d30da98574d537a17c9ced308c1a1aaa37d3704ff",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 4945,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.copy_data",
+      "kind": "rpc",
+      "method": "copy_data",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1bcb637275cc868763d196999ce5a96ed738f7a52b0206f6fc826561249f3d13",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 4823,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.copy_translations",
+      "kind": "rpc",
+      "method": "copy_translations",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5675fce11d83c7502d5bcd12d8de06759f5cbccea4f69e7e4cac81fb5c2d6915",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 4880,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "37b76f9937e66a72c0555d93394a9e3336325c81c16eec20667bed140b30b44a",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.create",
+      "kind": "rpc",
+      "method": "create",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9c6eaedb7b168c256d1268de7b648367d97e6edddcfd800845bc624c82ea97ba",
+      "sinks": [
+        "orm_create",
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3980,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 532,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "decorators.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.default_get",
+      "kind": "rpc",
+      "method": "default_get",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5a254545bb7959b0d3f555c147fe3f5e60d3c5889fa39b3ab58165013561b62c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1298,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.export_data",
+      "kind": "rpc",
+      "method": "export_data",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "80bce7a82aa05b027a1d03304c15854a49afda0463cb1b81b1090b46ec7616ec",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 907,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo",
+        "rpc:usl.mattermost.service.env",
+        "rpc:usl.mattermost.service.with_env"
+      ],
+      "digest": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.fields_get",
+      "kind": "rpc",
+      "method": "fields_get",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "baa7a932d91057120b35e7a5c3e4b7e1e61836083fb2f0ffd1bdf6f6efd537db",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 2612,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 268,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo",
+        "rpc:usl.mattermost.service.env",
+        "rpc:usl.mattermost.service.with_env"
+      ]
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.service.get_property_definition"
+      ],
+      "digest": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.formatted_read_group",
+      "kind": "rpc",
+      "method": "formatted_read_group",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ad861b317e2d9b39640847bf88826fd861f2ecea91d0bb0b48322bc4c7a3a344",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 752,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.service.get_property_definition"
+      ],
+      "digest": "945333a498ed11d7b24f9139114537764b90afcc8f7e2d84bdaadbcee9ab7f7b",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.formatted_read_grouping_sets",
+      "kind": "rpc",
+      "method": "formatted_read_grouping_sets",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1fcb23eb76c979d3163287b2076a032ff3eb5d50c4a4aa9b2cd9fb7b38370cf8",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 652,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.get_base_url",
+      "kind": "rpc",
+      "method": "get_base_url",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "67d503784e6d6f7548d55a2cfdf3bdd45f8195b37ec1b1c9d0251a8dd98aaf30",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3258,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.get_empty_list_help",
+      "kind": "rpc",
+      "method": "get_empty_list_help",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "71d9d7f85cddd3babee74d68b9bf1373cea9a671db1deb8a5b5a71f7cc68dae4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2755,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.get_external_id",
+      "kind": "rpc",
+      "method": "get_external_id",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d8ba5b2f03d09295cc21145c82fd52737b78a38b697ea7cdd704e2cedc9ae2ba",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5123,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.get_field_translations",
+      "kind": "rpc",
+      "method": "get_field_translations",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "24f016d8e2a430cf59d47b17206cb2e434bfbaac4046ef4d8a0ce4778d1af7f2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2927,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.service.sudo"
+      ],
+      "digest": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.get_formview_action",
+      "kind": "rpc",
+      "method": "get_formview_action",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f4edcfe3654b97ad72a319b821d294d1424decaa7390bc239027a6b78f9e970d",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3232,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.service.sudo"
+      ]
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.get_formview_id",
+      "kind": "rpc",
+      "method": "get_formview_id",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "95c1752af454541997c8ccf2725058469cf43a5fd4da850f3a10f7d5fd29fb27",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 3221,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.get_import_templates",
+      "kind": "rpc",
+      "method": "get_import_templates",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base_import"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d8392d1f12eba5b1791ef6af27e90a1fc627cacbc6da374ac0ea04942331091a",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 86,
+          "path": "addons/base_import/models/base_import.py"
+        },
+        {
+          "path": "odoo/addons/base_import/models/base_import.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.get_metadata",
+      "kind": "rpc",
+      "method": "get_metadata",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9478f042e1ad35efe156f1cebf773332d56b07c5d5a63ce07e245dea08083a64",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3217,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.get_property_definition",
+      "kind": "rpc",
+      "method": "get_property_definition",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1ac7b96c8c74abf184cdf2821627c7c899e14c965ece4dcc9af28468196b1217",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2303,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:ir.ui.view.sudo",
+        "rpc:usl.mattermost.service.browse"
+      ],
+      "digest": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.get_view",
+      "kind": "rpc",
+      "method": "get_view",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0acf8bd48cd6c0a934eab7561db739e01d8bf0281b9acfeb6c0d80b806025011",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 288,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "line": 3139,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:ir.ui.view.sudo",
+        "rpc:usl.mattermost.service.browse"
+      ]
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:ir.actions.actions.get_bindings",
+        "rpc:ir.filters.get_filters",
+        "rpc:usl.mattermost.service.get_view"
+      ],
+      "digest": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.get_views",
+      "kind": "rpc",
+      "method": "get_views",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "28821b46e4ace196e2c4841baa399fd93e3de113f7b8a23e02a6ac1ebb808bb3",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2906,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.has_access",
+      "kind": "rpc",
+      "method": "has_access",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7dde4c8c80708d5316a9b4ba890ccf506ecf99b81b508323688f41a5583a122a",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3395,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.has_field_access",
+      "kind": "rpc",
+      "method": "has_field_access",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "799cce23243afb3ae60b8c02627890f175177862620a93c73cdf96aba995336e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2638,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.service.search"
+      ],
+      "digest": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.hierarchy_read",
+      "kind": "rpc",
+      "method": "hierarchy_read",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "web_hierarchy"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e2aa251578d309d82ce2e4591076f9e17bd1687af9431cb2f477aea366bdc069",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 10,
+          "path": "addons/web_hierarchy/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web_hierarchy/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:project.project.with_user",
+        "rpc:usl.mattermost.channel.link.sudo",
+        "rpc:usl.oidc.identity.sudo"
+      ],
+      "digest": "736f66e3e83fdf51070159b38a476400185777840216017109cd561115dba049",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.link",
+      "kind": "rpc",
+      "method": "link",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "81f3b8cf0c5203c9afc1ed59705f9b5fa5564953582976a3173c822fb71d127d",
+      "sinks": [
+        "orm_create",
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 184,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        },
+        {
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.project.with_user",
+        "rpc:usl.mattermost.channel.link.sudo",
+        "rpc:usl.oidc.identity.sudo"
+      ]
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.channel.link.sudo",
+        "rpc:usl.oidc.identity.sudo"
+      ],
+      "digest": "9695e7a1ef7d5b978536f0e446af42005e490666e9878ae2f6bae3cc2dbb8130",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.links",
+      "kind": "rpc",
+      "method": "links",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a7659e4c7db82dd23c0db1e8efc87f381003e9e23ab2218b992476e44eb75ae6",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 227,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        },
+        {
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.channel.link.sudo",
+        "rpc:usl.oidc.identity.sudo"
+      ]
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.load",
+      "kind": "rpc",
+      "method": "load",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "aa42854816e20eef9f3bef4c8a7f7093ace251608e2835ac74c5b648ccdbb5a1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 922,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.mail_allowed_qweb_expressions",
+      "kind": "rpc",
+      "method": "mail_allowed_qweb_expressions",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "mail"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "db8fea907626f92f1ff6db9395f1e14164568b94e599a3998467f1cfebeb397c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 219,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.mail_get_partner_fields",
+      "kind": "rpc",
+      "method": "mail_get_partner_fields",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "mail"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a336a2519b3cd4da27cb4136737e46b9917505349b03486123f14e0c971a669e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 181,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.name_create",
+      "kind": "rpc",
+      "method": "name_create",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e6630daa1f607675b91db65c230d53ad6df4b76fe10f88b2f49eca774d4948ee",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 1543,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.name_search",
+      "kind": "rpc",
+      "method": "name_search",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f70bce1e80cfd78fda12b36edcf68116ce8fbc3d07b0eee6a5888480a03ed0dd",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 1564,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.service.check_access",
+        "rpc:usl.mattermost.service.default_get",
+        "rpc:usl.mattermost.service.fetch",
+        "rpc:usl.mattermost.service.new"
+      ],
+      "digest": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.onchange",
+      "kind": "rpc",
+      "method": "onchange",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base",
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "bb63b0e5f4471bbe579f6bd9d01af667898fd0484a0b5bf5e725470a019f8433",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 1908,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "line": 6452,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.service.check_access",
+        "rpc:usl.mattermost.service.fetch",
+        "rpc:usl.mattermost.service.new"
+      ]
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.service.onchange"
+      ],
+      "digest": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.onchange_batch",
+      "kind": "rpc",
+      "method": "onchange_batch",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ea23ff314cc0eb80f6694e2cde1c27ec9b0ea33af0df59d0eacc21b25d53ad30",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1896,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.read",
+      "kind": "rpc",
+      "method": "read",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0d6c99c6016f86318429152c1963ab593f5a5c240600946465a0ace17820f327",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2733,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.service.formatted_read_group"
+      ],
+      "digest": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.read_progress_bar",
+      "kind": "rpc",
+      "method": "read_progress_bar",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "de4401e52e0cc988131fc11f0c347e20a6b4711220c1152b1a161d892da174a4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1315,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:ir.actions.act_window.sudo",
+        "rpc:ir.config_parameter.sudo",
+        "rpc:project.task.sudo",
+        "rpc:usl.mattermost.channel.link.sudo",
+        "rpc:usl.oidc.identity.sudo"
+      ],
+      "digest": "ce243f502872eb65cf90ead868a4ea5fe6b1ac83533541350e613e044afd7c42",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.read_task",
+      "kind": "rpc",
+      "method": "read_task",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9fb8bdfb3bb1f057a93d6731c5427ccc89942d30c5eddb71a7f65733da741d6a",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 133,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        },
+        {
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:ir.actions.act_window.sudo",
+        "rpc:ir.config_parameter.sudo",
+        "rpc:project.task.sudo",
+        "rpc:usl.mattermost.channel.link.sudo",
+        "rpc:usl.oidc.identity.sudo"
+      ]
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.search",
+      "kind": "rpc",
+      "method": "search",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "471d7d3160921d01da2add1ddbec37ccea1d00f6e1d65854177a91687eb04403",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1403,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.search_count",
+      "kind": "rpc",
+      "method": "search_count",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "123617ed36078cbf6b54e9ac2229a2f8905d7189d3d85f5e9be5765bc082d666",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1387,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.service.fields_get",
+        "rpc:usl.mattermost.service.search_count",
+        "rpc:usl.mattermost.service.with_context"
+      ],
+      "digest": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.search_panel_select_multi_range",
+      "kind": "rpc",
+      "method": "search_panel_select_multi_range",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "8d1084cfaa7d7812902ea17cd937614b41c19556ff0370dff296111612ed17d2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1728,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.service.with_context"
+      ]
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.service.fields_get",
+        "rpc:usl.mattermost.service.with_context"
+      ],
+      "digest": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.search_panel_select_range",
+      "kind": "rpc",
+      "method": "search_panel_select_range",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f15fd0ab0ecc4f8a69aaba36f4bfc1948dc54f91dcd58f43abedfa92db7414ad",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1587,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.service.with_context"
+      ]
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.search_read",
+      "kind": "rpc",
+      "method": "search_read",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e24e0149cc13b22ffe7216068d9cc91d4ad8abd145bb39a15322f2f205593b19",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5155,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:mail.activity.with_context",
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "ae76d6d020d5f4215da9e3ba4f9cdbc4ff7bafbc880f701ba9619ecfbe42cf9d",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.unlink",
+      "kind": "rpc",
+      "method": "unlink",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base",
+        "mail",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a9f2e9e3ac9125c6b4b643a46516ecd15e6fd4da08c0110183e89f9b2dba3dd3",
+      "sinks": [
+        "orm_unlink",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3550,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 45,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "line": 588,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:mail.activity.with_context",
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.update_field_translations",
+      "kind": "rpc",
+      "method": "update_field_translations",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ebb8d3f11a6eb5272e7826ecf89c2299f4e381db6db738774fca6a44ece50361",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 2756,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "digest": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.view_header_get",
+      "kind": "rpc",
+      "method": "view_header_get",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "b14c94c41cfa171935e3cd3c93d8c9d8a732e022b83229ff98e6f8563f7dd110",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2770,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:ir.actions.act_window.sudo",
+        "rpc:project.task.sudo",
+        "rpc:usl.mattermost.card.sudo",
+        "rpc:usl.mattermost.channel.link.sudo",
+        "rpc:usl.oidc.identity.sudo"
+      ],
+      "digest": "1b103a6b5c5a0c75c375c58c53f688ecc8aa228cf532f77aa96fef4cea5226cd",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.watch",
+      "kind": "rpc",
+      "method": "watch",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "b2ac1a9950ae47d3088f12112d3707e46c665dcbb1999d2b9c5f84bc63531a76",
+      "sinks": [
+        "orm_create",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 144,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        },
+        {
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:ir.actions.act_window.sudo",
+        "rpc:project.task.sudo",
+        "rpc:usl.mattermost.card.sudo",
+        "rpc:usl.mattermost.channel.link.sudo",
+        "rpc:usl.oidc.identity.sudo"
+      ]
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.service.browse",
+        "rpc:usl.mattermost.service.name_search"
+      ],
+      "digest": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.web_name_search",
+      "kind": "rpc",
+      "method": "web_name_search",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "c432ba6a42dc18b2c8d36fc07d9fe66ab05e98d5bb4723f94b0e9a8cee8703a6",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 44,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.service.browse"
+      ]
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:res.lang.get_installed",
+        "rpc:usl.mattermost.service.ensure_one",
+        "rpc:usl.mattermost.service.update_field_translations"
+      ],
+      "digest": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.web_override_translations",
+      "kind": "rpc",
+      "method": "web_override_translations",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "65b2b80d23fbf97f4beb6aa63793a2192c87df69a6b13e5205874744728e18e7",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2127,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.service.ensure_one"
+      ]
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.service.read"
+      ],
+      "digest": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.web_read",
+      "kind": "rpc",
+      "method": "web_read",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0397df491af3e68dbf5a2c82620a77599e65baba4ec9661805e0dee10c669b41",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 98,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.service.browse",
+        "rpc:usl.mattermost.service.formatted_read_group",
+        "rpc:usl.mattermost.service.search",
+        "rpc:usl.mattermost.service.with_context"
+      ],
+      "digest": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.web_read_group",
+      "kind": "rpc",
+      "method": "web_read_group",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7cdc0dc7cd7348ca758ab89f1d40dd19c9157f3cd41788ad93bab7d62848bb5a",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 299,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.service.browse",
+        "rpc:usl.mattermost.service.with_context"
+      ]
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.service.web_read"
+      ],
+      "digest": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.web_resequence",
+      "kind": "rpc",
+      "method": "web_resequence",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9fb7342771181391f3c6bae96f4df108874f3ce018d05005ab2e137ae42dc48b",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 272,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.service.browse",
+        "rpc:usl.mattermost.service.create",
+        "rpc:usl.mattermost.service.with_context",
+        "rpc:usl.mattermost.service.write"
+      ],
+      "digest": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.web_save",
+      "kind": "rpc",
+      "method": "web_save",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "112c33674d0668e62e51bf2c39467d97d7134617b41020fc6ed35aabba1fd575",
+      "sinks": [
+        "orm_create",
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 79,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.service.browse",
+        "rpc:usl.mattermost.service.with_context"
+      ]
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.service.with_context"
+      ],
+      "digest": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.web_save_multi",
+      "kind": "rpc",
+      "method": "web_save_multi",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "dd52456050d0b84dceed94a869936592107bb741e770b55c9a4086276fab48bb",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 88,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.service.with_context"
+      ]
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.mattermost.service.search_count",
+        "rpc:usl.mattermost.service.search_fetch"
+      ],
+      "digest": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.web_search_read",
+      "kind": "rpc",
+      "method": "web_search_read",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "883780099f8b4e2da155770cd316e20a5df8d7684c348d772c1d3e594b840018",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 55,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.mattermost.service.search_fetch"
+      ]
+    },
+    {
+      "abstract": true,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "b0373b6633d99d657d81a9aca3ec6bb0ebad5e3e7b41420276488a6f1ce1c8f4",
+      "guards": [],
+      "key": "rpc:usl.mattermost.service.write",
+      "kind": "rpc",
+      "method": "write",
+      "model": "usl.mattermost.service",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7a5191605f427879f05c88a058a72d53a01df2395e223cd059b23b9cf71a4959",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3696,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 559,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+      "guards": [],
       "key": "rpc:usl.oidc.audit.event.action_archive",
       "kind": "rpc",
       "method": "action_archive",
@@ -1504415,6 +1509659,24 @@
         }
       ],
       "xmlid": "usl_feedback.ir_cron_feedback_agent_ir_actions_server"
+    },
+    {
+      "digest": "ef483ad5c7c97a7202f1dd4a54c086d1011750eeedcdfbf58fb01d14b887aed8",
+      "guards": [
+        "guard:automation.server_action.execute"
+      ],
+      "key": "server_action:usl_mattermost.ir_cron_push_cards_ir_actions_server",
+      "kind": "server_action",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "runtime_digest": "ef483ad5c7c97a7202f1dd4a54c086d1011750eeedcdfbf58fb01d14b887aed8",
+      "sources": [
+        {
+          "path": "database:ir.actions.server:usl_mattermost.ir_cron_push_cards_ir_actions_server"
+        }
+      ],
+      "xmlid": "usl_mattermost.ir_cron_push_cards_ir_actions_server"
     },
     {
       "digest": "875cd1258b28349ef70c4279f83ec97cb7206f9e69fc34e1af32bea3b81c694c",
@@ -1628139,6 +1633401,507 @@
       ]
     },
     {
+      "digest": "4fc985b29249739220298c1ca05bd36c8de10a2498102285ed41546743ec413d",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/controllers/main.py:UslMattermostApi._authenticated:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 72,
+          "path": "custom-addons/usl_mattermost/controllers/main.py"
+        }
+      ]
+    },
+    {
+      "digest": "c49c142c16c5d4f72b4e2fa9f72e568e06430632ef6db8767fd7fe925839cad6",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/controllers/main.py:UslMattermostApi.health:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 165,
+          "path": "custom-addons/usl_mattermost/controllers/main.py"
+        }
+      ]
+    },
+    {
+      "digest": "0f9d49c7fe8e484079ed9a442bbf848b1fe2d52e2e6554b065d27ca5a4faea58",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/controllers/main.py:UslMattermostApi.health:sudo:2",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 165,
+          "path": "custom-addons/usl_mattermost/controllers/main.py"
+        }
+      ]
+    },
+    {
+      "digest": "f3970bf43895b8589f973ef0ed538e69f9356af95730e96c70ce25957a1e9df1",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._cron_push:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 54,
+          "path": "custom-addons/usl_mattermost/models/card.py"
+        }
+      ]
+    },
+    {
+      "digest": "7cd3487fe1e0a91d08309a224a0df01ac09ef411f574a7cea452b9ee23becac0",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._cron_push:sudo:2",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 54,
+          "path": "custom-addons/usl_mattermost/models/card.py"
+        }
+      ]
+    },
+    {
+      "digest": "b0cd738f52324ab437c9bb89b7a79a34a9ddd8bd08cdc05dbaf828ea83dcfb6c",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_changed:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 47,
+          "path": "custom-addons/usl_mattermost/models/card.py"
+        }
+      ]
+    },
+    {
+      "digest": "aaddfc52a6a58890f40e33177286b187eb4113bc20f244668fcb36b28722a37a",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_changed:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 47,
+          "path": "custom-addons/usl_mattermost/models/card.py"
+        }
+      ]
+    },
+    {
+      "digest": "b3653323cec629b2cb3557e2bcc362a22ca7a552978c4174dddfa76f1acf6797",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_mark_changed:sudo:2",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 47,
+          "path": "custom-addons/usl_mattermost/models/card.py"
+        }
+      ]
+    },
+    {
+      "digest": "621b5cb27598f7b70075f991b0270f46f07592d03bf18914e3e3012c56d441ec",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_push_task:external_call:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "external_call",
+      "sources": [
+        {
+          "line": 69,
+          "path": "custom-addons/usl_mattermost/models/card.py"
+        }
+      ]
+    },
+    {
+      "digest": "61a38c0f05a741f6da08bf33fb34e14976232de2cffee501a8b973b60a045744",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_push_task:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 69,
+          "path": "custom-addons/usl_mattermost/models/card.py"
+        }
+      ]
+    },
+    {
+      "digest": "71a5d6fc6d7d0595ca1d32125ba15a2ecea7649f9501076a0c59805a76dd4988",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/card.py:usl.mattermost.card._usl_push_task:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 69,
+          "path": "custom-addons/usl_mattermost/models/card.py"
+        }
+      ]
+    },
+    {
+      "digest": "36beb1ea292df75453ea5914136026c708376538ab8438c3eccfdddf74800973",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/channel_link.py:usl.mattermost.channel.link._usl_post_note:message_send:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "message_send",
+      "sources": [
+        {
+          "line": 44,
+          "path": "custom-addons/usl_mattermost/models/channel_link.py"
+        }
+      ]
+    },
+    {
+      "digest": "9b5a2310cd39c15e80e3570de344aebcf59b408a1ea6ff37697d83cd1228138e",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/channel_link.py:usl.mattermost.channel.link._usl_post_note:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 44,
+          "path": "custom-addons/usl_mattermost/models/channel_link.py"
+        }
+      ]
+    },
+    {
+      "digest": "0cf2fa2f19be45fbe4c052295001968381d2ef09f39acd6306dc1e8073510023",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/channel_link.py:usl.mattermost.channel.link.unlink:orm_unlink:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "parents": [
+        "rpc:usl.mattermost.channel.link.unlink"
+      ],
+      "sink_kind": "orm_unlink",
+      "sources": [
+        {
+          "line": 54,
+          "path": "custom-addons/usl_mattermost/models/channel_link.py"
+        }
+      ]
+    },
+    {
+      "digest": "7f1e84b0c03b5a3811c5e3c3f524233e4786e799d4e514b6b1fe5cac34cc1a97",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/channel_link.py:usl.mattermost.channel.link.unlink:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "parents": [
+        "rpc:usl.mattermost.channel.link.unlink"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 54,
+          "path": "custom-addons/usl_mattermost/models/channel_link.py"
+        }
+      ]
+    },
+    {
+      "digest": "479b2dc05a1e7253e1f103e4e30455c4796c055ac972e9034a65c7dbdfd91e58",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/project.py:project.task.unlink:orm_unlink:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "parents": [
+        "rpc:project.task.unlink"
+      ],
+      "sink_kind": "orm_unlink",
+      "sources": [
+        {
+          "line": 38,
+          "path": "custom-addons/usl_mattermost/models/project.py"
+        }
+      ]
+    },
+    {
+      "digest": "c4e7edef37e92da353b969e10977d89084efbea26dcf429d28a8ca2619ae09d6",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/project.py:project.task.write:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "parents": [
+        "rpc:project.task.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 32,
+          "path": "custom-addons/usl_mattermost/models/project.py"
+        }
+      ]
+    },
+    {
+      "digest": "a4b7313afef0167988eef112fc7ca4f10c7c132627385301a0da228ac61eab28",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._is_linked:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 94,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ]
+    },
+    {
+      "digest": "d7f63a88fa0aa25a00307e7e076cbb11acc9a10038d9d2314c54c163f9938e7d",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._resolve_task:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 53,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ]
+    },
+    {
+      "digest": "018d19620d93b487e9fedc1ff94a81abf6acdc30bb1273a1e36becfb1851bc28",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._task_action:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 64,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ]
+    },
+    {
+      "digest": "093c6147341c4710a7d8e89a12afc713fec51d25eb80daae22239d86e5a4dff8",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._task_card:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 103,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ]
+    },
+    {
+      "digest": "1c09f4deeb7c649bc3ac56d414df8a34fbc54386bc0edfb67e5ce6929e6d30a5",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._task_card:sudo:2",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 103,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ]
+    },
+    {
+      "digest": "4952942f2cb8e0d3616f53de77bbf92e921dea26cf716b5f5f0b9b5b24d6576b",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service._user_for_subject:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 29,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ]
+    },
+    {
+      "digest": "b30e873c7ad9266eb7649aad931f7f13c2af4c1dc7a1ac0bc70ba740b9a80a42",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "parents": [
+        "rpc:usl.mattermost.service.link"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 184,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ]
+    },
+    {
+      "digest": "ce354d644aab555d19e95c0a02e888c08336450714bc51378def2addd6364279",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "parents": [
+        "rpc:usl.mattermost.service.link"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 184,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ]
+    },
+    {
+      "digest": "678577992a3f388607fb73d41a0cc4cf5308fb785751c84c55e3a171f89c999f",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "parents": [
+        "rpc:usl.mattermost.service.link"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 184,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ]
+    },
+    {
+      "digest": "fc923f28c352cb2f11b314fd70c4a195edfe1b7bfc138fa47654945c999ec5e5",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:sudo:2",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "parents": [
+        "rpc:usl.mattermost.service.link"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 184,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ]
+    },
+    {
+      "digest": "fdf7bbaa887f8039427be5d9d788d750990430309d9435ec52ee958297e9c220",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.link:sudo:3",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "parents": [
+        "rpc:usl.mattermost.service.link"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 184,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ]
+    },
+    {
+      "digest": "a69d61861c26957ce602c7e7ca72d87347bec9b9b47ced8248d6d160352128bb",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.links:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "parents": [
+        "rpc:usl.mattermost.service.links"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 227,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ]
+    },
+    {
+      "digest": "9f7f98c3baa6e3758006c76d6f489fb6d97b32c79283589bd153a7f2fc6699e9",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.watch:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "parents": [
+        "rpc:usl.mattermost.service.watch"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 144,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ]
+    },
+    {
+      "digest": "cc6fed93f681fbf9fb4b08ce1da22eb574fc2f515bba07824c97228648269fc4",
+      "key": "sink:usl_mattermost:custom-addons/usl_mattermost/models/service.py:usl.mattermost.service.watch:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "parents": [
+        "rpc:usl.mattermost.service.watch"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 144,
+          "path": "custom-addons/usl_mattermost/models/service.py"
+        }
+      ]
+    },
+    {
       "digest": "aee2b1b3876d096dafc32d23eec1d864198c9f02dafe6b2d7af6a2fb09ce3910",
       "key": "sink:usl_platform_billing:custom-addons/usl_platform_billing/models/account_move.py:account.move._platform_billing_sessions_to_refresh:sudo:1",
       "kind": "sink",
@@ -1693261,6 +1699024,25 @@
       "xmlid": "usl_locale.view_company_form_interface_theme"
     },
     {
+      "delegates": [
+        "server_action:usl_mattermost.ir_cron_push_cards_ir_actions_server"
+      ],
+      "digest": "c1776e4190a3512677d323f4f25520c006abe84b21ebed0c2cd42b2de2921c8b",
+      "key": "ui:usl_mattermost.ir_cron_push_cards_ir_actions_server",
+      "kind": "ui",
+      "modules": [
+        "usl_mattermost"
+      ],
+      "runtime_digest": "c1776e4190a3512677d323f4f25520c006abe84b21ebed0c2cd42b2de2921c8b",
+      "sources": [
+        {
+          "path": "database:ir.actions.server:usl_mattermost.ir_cron_push_cards_ir_actions_server"
+        }
+      ],
+      "ui_type": "ir.actions.server",
+      "xmlid": "usl_mattermost.ir_cron_push_cards_ir_actions_server"
+    },
+    {
       "digest": "75b2eb3cda20c9c76bbd82aa4e8f0235078c9009bc3849849c31377d7fd2d9cb",
       "guards": [],
       "key": "ui:usl_platform_billing.action_platform_billing_moves",
@@ -1698783,6 +1704565,13 @@
       "version": "saas~19.3.1.3.9"
     },
     {
+      "manifest_sha256": "a6015e08cd26922c576836d293b4a7a323341d745b3e602dde8dca917668549d",
+      "name": "usl_mattermost",
+      "origin": "custom",
+      "source_sha256": "23af65f549d634c3000b05ae9f695fc29b1e6dfb0b8d8d17a5a6a4c1110676b1",
+      "version": "saas~19.3.0.1.0"
+    },
+    {
       "manifest_sha256": "2ec0a9439281e80154dcb4f753929d5e37e73e721e300ebb9249cb5104cf4951",
       "name": "usl_platform_billing",
       "origin": "custom",
@@ -1698880,6 +1704669,7 @@
     "usl_feedback",
     "usl_home",
     "usl_locale",
+    "usl_mattermost",
     "usl_platform_billing",
     "usl_platform_billing_pocketid",
     "usl_pocketid",
