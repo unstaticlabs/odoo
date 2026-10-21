@@ -47,6 +47,26 @@ class ComponentBuildTests(unittest.TestCase):
         hook.write_text("def migrate(cr, version): raise RuntimeError('fixture')\n")
         self.assertNotEqual(component_digest(COMPONENTS["distribution"], root), before)
 
+    def test_mattermost_odoo_pin_changes_only_the_distribution_identity(self):
+        root = self.create_repository()
+        for component in COMPONENTS.values():
+            path = root / component.dockerfile
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(f"fixture for {component.dockerfile}\n", encoding="utf-8")
+        pin = root / "deploy/mattermost-odoo/release.json"
+        pin.parent.mkdir(parents=True)
+        pin.write_text('{"commit": "' + "a" * 40 + '"}\n', encoding="utf-8")
+        subprocess.run(("git", "add", "."), cwd=root, check=True)
+        before = resolve(root)["components"]
+        pin.write_text('{"commit": "' + "b" * 40 + '"}\n', encoding="utf-8")
+        after = resolve(root)["components"]
+        changed = {
+            name
+            for name in COMPONENTS
+            if before[name]["input_sha256"] != after[name]["input_sha256"]
+        }
+        self.assertEqual(changed, {"distribution"})
+
     def create_repository(self) -> Path:
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
