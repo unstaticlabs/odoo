@@ -17,3 +17,5 @@ from . import (
 )
 
 from . import test_vendor_bill_merge
+
+from . import test_taxed_payment_rate
