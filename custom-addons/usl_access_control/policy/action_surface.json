@@ -413699,12 +413699,14 @@
       "delegates": [
         "rpc:hr.employee.search",
         "rpc:hr.expense.with_company",
+        "rpc:hr.expense.with_context",
         "rpc:mail.mail.sudo",
         "rpc:mail.thread.create",
         "rpc:mail.thread.fields_get",
-        "rpc:product.product.search"
+        "rpc:product.product.search",
+        "rpc:res.company.browse"
       ],
-      "digest": "134fa784492f94f57aa740e4e61653a113a246305ae09f29be4dd9bc365b8e7e",
+      "digest": "49151b625e75050851d45b9da5f5dc3fd23ec9d0efcd2c9b2677cb26f7c4c5ca",
       "guards": [],
       "key": "rpc:hr.expense.message_new",
       "kind": "rpc",
@@ -413712,11 +413714,12 @@
       "model": "hr.expense",
       "modules": [
         "hr_expense",
-        "mail"
+        "mail",
+        "usl_accounting"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "3c6eb722c8ccbfa3862bfe55baf81213e2541ce55d8dae771df79e16962c4233",
+      "runtime_digest": "c848fe01c7aa222a931fb9e9f7ba601c0552b017fbbea293d7108602bc12991a",
       "sinks": [
         "message_send",
         "orm_create",
@@ -413733,6 +413736,13 @@
           "path": "addons/mail/models/mail_thread.py"
         },
         {
+          "line": 185,
+          "path": "custom-addons/usl_accounting/models/company_expense_alias.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/models/company_expense_alias.py"
+        },
+        {
           "path": "odoo/addons/hr_expense/models/hr_expense.py"
         },
         {
@@ -413742,7 +413752,9 @@
       "transient": false,
       "unresolved_delegates": [
         "rpc:hr.expense.with_company",
-        "rpc:mail.mail.sudo"
+        "rpc:hr.expense.with_context",
+        "rpc:mail.mail.sudo",
+        "rpc:res.company.browse"
       ]
     },
     {
@@ -1077185,13 +1077197,14 @@
       "archiveable": true,
       "delegates": [
         "rpc:mail.activity.with_context",
+        "rpc:mail.alias.sudo",
         "rpc:mail.followers.sudo",
         "rpc:mail.message.sudo",
         "rpc:mail.scheduled.message.sudo",
         "rpc:rating.rating.sudo",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "b4cdbe5dbefce58f71468befd2afd098737a40502f88f51db24a7474f9472370",
+      "digest": "8872131c1e276aa9b0b9b42aab48de4a580367c07407b61bdca76b3ea64085b1",
       "guards": [],
       "key": "rpc:res.company.unlink",
       "kind": "rpc",
@@ -1077201,11 +1077214,12 @@
         "base",
         "mail",
         "rating",
-        "usl_access_control"
+        "usl_access_control",
+        "usl_accounting"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "c4d45ea5b0ed45cf2d9ba1528290b84597a8455ae90aa15aeed4c02fe1ae1934",
+      "runtime_digest": "3329351a4e3700f7a439ff67d294ad2f3302908f9f0b8419c77e680328509f9d",
       "sinks": [
         "orm_unlink",
         "sudo"
@@ -1077232,7 +1077246,14 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
+          "line": 82,
+          "path": "custom-addons/usl_accounting/models/company_expense_alias.py"
+        },
+        {
           "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/models/company_expense_alias.py"
         },
         {
           "path": "odoo/addons/mail/models/mail_thread.py"
@@ -1077250,6 +1077271,7 @@
       "transient": false,
       "unresolved_delegates": [
         "rpc:mail.activity.with_context",
+        "rpc:mail.alias.sudo",
         "rpc:mail.followers.sudo",
         "rpc:mail.message.sudo",
         "rpc:mail.scheduled.message.sudo",
@@ -1077601,6 +1077623,7 @@
         "rpc:account.bank.statement.line.search",
         "rpc:account.lock_exception.search",
         "rpc:account.move.search",
+        "rpc:mail.alias.browse",
         "rpc:mail.thread.with_context",
         "rpc:res.company.browse",
         "rpc:res.company.filtered",
@@ -1077613,7 +1077636,7 @@
         "rpc:usl.agent.sudo",
         "rpc:usl.document.link.sudo"
       ],
-      "digest": "d3cd3106f063d7c542a9b81e9ea84a8f57d08d94933a1f1ce0f6cf4a21bf42e8",
+      "digest": "849b57ee8a7f235840c8a9fd626c6abdc168a292a74bf1362795c8c3e34e6f59",
       "guards": [
         "guard:accounting.lock.change"
       ],
@@ -1077636,7 +1077659,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "c97b9a5069b7bb5bc5c645ba6f52ed096ea697847c111bba77cc187d1e47d876",
+      "runtime_digest": "3cb040de5c9d510a4b324c0e75e5aa594b086577687e723a7ea7d2cc15a6991d",
       "sinks": [
         "orm_write",
         "sudo"
@@ -1077736,6 +1077759,7 @@
       ],
       "transient": false,
       "unresolved_delegates": [
+        "rpc:mail.alias.browse",
         "rpc:mail.thread.with_context",
         "rpc:res.company.browse",
         "rpc:res.company.filtered",
@@ -1638004,13 +1638028,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 441,
+          "line": 446,
           "path": "custom-addons/usl_pocketid/models/sender_alias.py"
         }
       ]
     },
     {
-      "digest": "cc6a130d8005af8cfc031c807e6dee8afd697e50a4243eaf91037a84eff9f0a8",
+      "digest": "497d4c1ebc31722de8d62edcc0a34f97d1e1669ec993cacb2548710c45897037",
       "key": "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:hr.expense._get_employee_from_email:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1638019,13 +1638043,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 416,
+          "line": 420,
           "path": "custom-addons/usl_pocketid/models/sender_alias.py"
         }
       ]
     },
     {
-      "digest": "a6e9a84c2e3e16bfe83ed3da55427d90af931e45a74addd27f87983717b15118",
+      "digest": "e5fc3eb2e42ee761c0385dea3e887bf4332cedb12ef337fac6adb843421772d6",
       "key": "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:hr.expense._get_employee_from_email:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1638034,7 +1638058,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 416,
+          "line": 420,
           "path": "custom-addons/usl_pocketid/models/sender_alias.py"
         }
       ]
@@ -1705272,6 +1705296,204 @@
       ],
       "ui_type": "ir.actions.server",
       "xmlid": "web_tour.tour_export_js_action"
+    },
+    {
+      "digest": "4d8a224ceda38624397e40959bd779c47aabacc63a717e44b70dd584282921dd",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:hr.expense._get_employee_from_email:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 159,
+          "path": "custom-addons/usl_accounting/models/company_expense_alias.py"
+        }
+      ]
+    },
+    {
+      "digest": "29990b1a153adb6a7e447d7f26191cd934421adfe093477c5aef4b407eb120bb",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:hr.expense.message_new:message_send:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:hr.expense.message_new"
+      ],
+      "sink_kind": "message_send",
+      "sources": [
+        {
+          "line": 185,
+          "path": "custom-addons/usl_accounting/models/company_expense_alias.py"
+        }
+      ]
+    },
+    {
+      "digest": "c518ded78e54060559d4b8ad63df8562cb1411d1ae11045a8dcc205e77574540",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:mail.alias._check_company_expense_alias_owner:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 225,
+          "path": "custom-addons/usl_accounting/models/company_expense_alias.py"
+        }
+      ]
+    },
+    {
+      "digest": "aadf42bd37c38aa4271b6529cde6f6f241bfc1d40482efc19af873641761c9ce",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:mail.thread._message_route_process:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 120,
+          "path": "custom-addons/usl_accounting/models/company_expense_alias.py"
+        }
+      ]
+    },
+    {
+      "digest": "5c1028ed7f1878b7093ab1e88216c974243bdf6359763024d9abfe1de8970184",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company._inverse_expense_alias_name:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 39,
+          "path": "custom-addons/usl_accounting/models/company_expense_alias.py"
+        }
+      ]
+    },
+    {
+      "digest": "4029ede2b0bfb9898e70a6c9bd61f5c81f0a1c31ac604083f8369fd8ec74039b",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company._inverse_expense_alias_name:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 39,
+          "path": "custom-addons/usl_accounting/models/company_expense_alias.py"
+        }
+      ]
+    },
+    {
+      "digest": "b0938c6ca4647a7553dea9dbde27476fb558b909a7b453fab1da5fc04f4e31f3",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.unlink:orm_unlink:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:res.company.unlink"
+      ],
+      "sink_kind": "orm_unlink",
+      "sources": [
+        {
+          "line": 82,
+          "path": "custom-addons/usl_accounting/models/company_expense_alias.py"
+        }
+      ]
+    },
+    {
+      "digest": "3688d40ae62f5b5bbac12762fb3fbce63ca85218686a20fe4afacab8e0c2a4fd",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.unlink:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:res.company.unlink"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 82,
+          "path": "custom-addons/usl_accounting/models/company_expense_alias.py"
+        }
+      ]
+    },
+    {
+      "digest": "a6ff427c7a9801d335049e4bf24515d89e921909b6911f5b2efb7d199a0a39f7",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.unlink:sudo:2",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:res.company.unlink"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 82,
+          "path": "custom-addons/usl_accounting/models/company_expense_alias.py"
+        }
+      ]
+    },
+    {
+      "digest": "93deac8d52d7feaef8e642f727844f220e15ab63fd4308afaa99404902c0b99f",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.write:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:res.company.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 55,
+          "path": "custom-addons/usl_accounting/models/company_expense_alias.py"
+        }
+      ]
+    },
+    {
+      "digest": "237fb81cc55425483b4dfe42cb732a2510c936c9980a716e764fbd68e29f1d97",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.write:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:res.company.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 55,
+          "path": "custom-addons/usl_accounting/models/company_expense_alias.py"
+        }
+      ]
+    },
+    {
+      "digest": "da34bee8777fed9033edea7acc9c1d87f7f7e63763df42705e167ded52dcbe82",
+      "key": "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:hr.expense._get_employee_from_email:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "usl_pocketid"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 420,
+          "path": "custom-addons/usl_pocketid/models/sender_alias.py"
+        }
+      ]
     }
   ],
   "country_codes": [
@@ -1706367,11 +1706589,11 @@
       "version": "saas~19.3.1.0.1"
     },
     {
-      "manifest_sha256": "e1ef240b40dbb9fdc1608ee85ebdfa7e814a5dcb7e9f9d64c8c5943c921e88bb",
+      "manifest_sha256": "924f0665fe1b3898ae928bfa1f2127719479b5e14b6ec5acfec3adc08c5f7e61",
       "name": "usl_pocketid",
       "origin": "custom",
-      "source_sha256": "51e054c687b43b149b76e4ed91de52c1d4c7ed3b59d0c081631189293a82873b",
-      "version": "saas~19.3.1.4.4"
+      "source_sha256": "424afa3bc0a6a5b0723402c136888b3f783d70519d9f04ce55fe656fa1289bfe",
+      "version": "saas~19.3.1.4.5"
     },
     {
       "manifest_sha256": "6c86320e9e572c577c42e44493da376107fc7d19eb722aac85652a3eeec71bee",
