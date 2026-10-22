@@ -1712,6 +1712,7 @@ msgstr "Meilleur rapprochement"
 #. module: usl_accounting
 #. odoo-python
 #: code:addons/usl_accounting/models/immediate_settlement.py:0
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__move_id
 msgid "Bill"
 msgstr "Facture"
 
@@ -1732,6 +1733,7 @@ msgstr "Peut se lettrer"
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_bank_statement_reopen_form
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_expense_bank_match_wizard_form
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_mail_pdf_candidate_wizard_form
+#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_review_form
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -2028,6 +2030,7 @@ msgstr "Contribution nette"
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__create_uid
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__create_uid
 #: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__create_uid model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__create_uid
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__create_uid
 msgid "Created by"
 msgstr "Créé par"
 
@@ -2046,6 +2049,7 @@ msgstr "Créé par"
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__create_date
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__create_date
 #: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__create_date model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__create_date
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__create_date
 msgid "Created on"
 msgstr "Créé le"
 
@@ -2157,6 +2161,7 @@ msgstr "Estimation Odoo rejetée :"
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__display_name
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__display_name
 #: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__display_name model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__display_name model:ir.model.fields,field_description:usl_accounting.field_queue_job__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__display_name model:ir.model.fields,field_description:usl_accounting.field_validate_account_move__display_name
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__display_name
 msgid "Display Name"
 msgstr "Nom d'affichage"
 
@@ -2629,6 +2634,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__id
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__id
 #: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__id model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__id model:ir.model.fields,field_description:usl_accounting.field_queue_job__id model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__id model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__id model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__id model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__id model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__id model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__id model:ir.model.fields,field_description:usl_accounting.field_validate_account_move__id
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__id
 msgid "ID"
 msgstr "ID"
 
@@ -2776,6 +2782,7 @@ msgstr "Paiement disponible plus important"
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__write_uid
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__write_uid
 #: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__write_uid model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__write_uid
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__write_uid
 msgid "Last Updated by"
 msgstr "Mis à jour par"
 
@@ -2794,6 +2801,7 @@ msgstr "Mis à jour par"
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__write_date
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__write_date
 #: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__write_date model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__write_date
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__write_date
 msgid "Last Updated on"
 msgstr "Mis à jour le"
 
@@ -7593,3 +7601,166 @@ msgstr "Utilisez un mois civil explicite pour la vérification."
 #: code:addons/usl_accounting/models/reconciliation_review.py:0
 msgid "Use an Account, Partner or Month group containing an account."
 msgstr "Utilisez un groupe Compte, Partenaire ou Mois contenant un compte."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
+msgid "%(filename)s — %(status)s"
+msgstr "%(filename)s — %(status)s"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_form
+msgid "<strong>Check the attachment grouping</strong>"
+msgstr "<strong>Vérifiez le regroupement des pièces jointes</strong>"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__fingerprint
+msgid "Attachment fingerprint"
+msgstr "Empreinte des pièces jointes"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__usl_mail_grouping_needs_review
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move__usl_mail_grouping_needs_review
+msgid "Attachment grouping to review"
+msgstr "Regroupement des pièces jointes à vérifier"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__usl_mail_grouping_move_ids
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move__usl_mail_grouping_move_ids
+#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_form
+msgid "Bills from this email"
+msgstr "Factures de ce courriel"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/purchase_mail_grouping_review.py:0
+msgid "Choose a readable attachment belonging to this bill."
+msgstr "Choisissez une pièce jointe lisible appartenant à cette facture."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
+msgid "Conflicting embedded invoice identities"
+msgstr "Factures intégrées contradictoires"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
+msgid "Conflicting invoice details"
+msgstr "Données de facture contradictoires"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__attachment_ids
+msgid "Current attachments"
+msgstr "Pièces jointes actuelles"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
+msgid "Document role could not be established"
+msgstr "Le rôle du document n’a pas pu être établi"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
+msgid "Encrypted document or page limit reached"
+msgstr "Document chiffré ou limite de pages atteinte"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
+msgid "Extraction limit reached"
+msgstr "Limite d’extraction atteinte"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__usl_mail_grouping_reviewed_by
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move__usl_mail_grouping_reviewed_by
+msgid "Grouping reviewed by"
+msgstr "Regroupement vérifié par"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__usl_mail_grouping_reviewed_at
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move__usl_mail_grouping_reviewed_at
+msgid "Grouping reviewed on"
+msgstr "Regroupement vérifié le"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
+msgid "Invoice evidence"
+msgstr "Document de facture identifié"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_review_form
+msgid "Keep these files together"
+msgstr "Conserver ces fichiers ensemble"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_review_form
+msgid "Keep these files together on this bill only if they describe the same invoice and its supporting evidence. You can choose its main document here. To separate other documents, create another draft bill with copies of the relevant files, keeping the originals here. This confirmation does not post a bill or record a payment."
+msgstr "Conservez ces fichiers ensemble uniquement s’ils correspondent à la même facture et à ses justificatifs. Vous pouvez choisir le document principal ici. Pour séparer d’autres documents, créez une autre facture en brouillon avec des copies des fichiers concernés, en conservant les originaux ici. Cette confirmation ne comptabilise aucune facture et n’enregistre aucun paiement."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__usl_mail_grouping
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move__usl_mail_grouping
+msgid "Mail attachment grouping"
+msgstr "Regroupement des pièces jointes du courriel"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_form
+msgid "Mail attachments"
+msgstr "Pièces jointes du courriel"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__main_attachment_id
+msgid "Main document"
+msgstr "Document principal"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__usl_mail_grouping_summary
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move__usl_mail_grouping_summary
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__summary
+msgid "Original attachment evidence"
+msgstr "Analyse des pièces jointes originales"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
+msgid "Payment document could not be matched to one invoice"
+msgstr "Le justificatif de paiement ne correspond pas à une facture unique"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
+msgid "Payment evidence"
+msgstr "Justificatif de paiement identifié"
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_usl_purchase_mail_grouping_review
+msgid "Review Purchase Mail Attachments"
+msgstr "Vérifier les pièces jointes du courriel fournisseur"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
+#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_form
+#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_review_form
+msgid "Review attachments"
+msgstr "Vérifier les pièces jointes"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_form
+msgid "Some documents could not be matched to an invoice with confidence. Their original files are kept on this bill. Review them before deciding how to proceed."
+msgstr "Certains documents n’ont pas pu être associés à une facture avec certitude. Les fichiers originaux sont conservés sur cette facture. Vérifiez-les avant de décider de la suite."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
+msgid "Text extraction limit reached"
+msgstr "Limite d’extraction du texte atteinte"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/purchase_mail_grouping_review.py:0
+msgid "The attachments changed. Close this review and open it again to review the current files."
+msgstr "Les pièces jointes ont changé. Fermez cette fenêtre et ouvrez-la à nouveau pour vérifier les fichiers actuels."

@@ -37,3 +37,5 @@ access_bank_ingestion_period,correct bank export period,model_account_bank_inges
 access_vendor_bill_merge_wizard,choose vendor bill to keep,model_usl_vendor_bill_merge_wizard,account.group_account_invoice,1,1,1,1
 access_reconciliation_review_reader,reconciliation review reader,model_account_reconciliation_review,account.group_account_readonly,1,0,0,0
 access_reconciliation_review_writer,reconciliation review writer,model_account_reconciliation_review,account.group_account_invoice,1,1,1,0
+access_purchase_mail_grouping_review,purchase mail grouping review,model_usl_purchase_mail_grouping_review,base.group_user,1,1,1,1
+access_purchase_mail_grouping_review_billing,purchase mail grouping billing review,model_usl_purchase_mail_grouping_review,account.group_account_invoice,1,1,1,1

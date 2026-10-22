@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="purchase_mail_grouping_form" model="ir.ui.view">
+        <field name="name">account.move.purchase.mail.grouping</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <field name="usl_mail_grouping_needs_review" invisible="1"/>
+                <div class="alert alert-warning d-flex flex-wrap align-items-center gap-2 mb-0" role="alert" invisible="not usl_mail_grouping_needs_review">
+                    <div class="flex-grow-1">
+                        <strong>Check the attachment grouping</strong>
+                        <div>Some documents could not be matched to an invoice with confidence. Their original files are kept on this bill. Review them before deciding how to proceed.</div>
+                    </div>
+                    <button name="action_review_mail_grouping" type="object" string="Review attachments" class="btn btn-secondary"/>
+                </div>
+            </xpath>
+            <xpath expr="//page[@name='other_info']" position="inside">
+                <group string="Mail attachments" invisible="not usl_mail_grouping">
+                    <field name="usl_mail_grouping" invisible="1"/>
+                    <field name="usl_mail_grouping_summary" nolabel="1" colspan="2"/>
+                    <field name="usl_mail_grouping_reviewed_by" invisible="not usl_mail_grouping_reviewed_by"/>
+                    <field name="usl_mail_grouping_reviewed_at" invisible="not usl_mail_grouping_reviewed_at"/>
+                </group>
+                <group string="Bills from this email" invisible="not usl_mail_grouping" col="1">
+                    <field name="usl_mail_grouping_move_ids" nolabel="1">
+                        <list create="0" delete="0">
+                            <field name="display_name"/>
+                            <field name="message_main_attachment_id"/>
+                            <field name="state"/>
+                        </list>
+                    </field>
+                </group>
+            </xpath>
+        </field>
+    </record>
+    <record id="purchase_mail_grouping_search" model="ir.ui.view">
+        <field name="name">account.move.purchase.mail.grouping.search</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_account_invoice_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='to_check']" position="attributes">
+                <attribute name="domain">['|', '&amp;', ('review_state', 'in', ('todo', 'anomaly')), ('state', '=', 'posted'), '&amp;', ('usl_mail_grouping_needs_review', '=', True), ('state', 'in', ('draft', 'posted'))]</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="purchase_mail_grouping_review_form" model="ir.ui.view">
+        <field name="name">usl.purchase.mail.grouping.review.form</field>
+        <field name="model">usl.purchase.mail.grouping.review</field>
+        <field name="arch" type="xml">
+            <form string="Review attachments">
+                <p>Keep these files together on this bill only if they describe the same invoice and its supporting evidence. You can choose its main document here. To separate other documents, create another draft bill with copies of the relevant files, keeping the originals here. This confirmation does not post a bill or record a payment.</p>
+                <group>
+                    <field name="move_id"/>
+                    <field name="fingerprint" invisible="1"/>
+                    <field name="summary" nolabel="1" colspan="2"/>
+                    <field name="attachment_ids" widget="many2many_binary" options="{'no_create': True, 'no_delete': True}"/>
+                    <field name="main_attachment_id" domain="[('res_model', '=', 'account.move'), ('res_id', '=', move_id), ('res_field', '=', False)]" options="{'no_create': True, 'no_create_edit': True}"/>
+                </group>
+                <footer>
+                    <button name="action_keep_together" type="object" string="Keep these files together" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

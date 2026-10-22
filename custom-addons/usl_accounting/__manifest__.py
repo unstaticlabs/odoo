@@ -7,6 +7,7 @@
     "license": "LGPL-3",
     "depends": [
         "account",
+        "account_edi_ubl_cii",
         "account_payment",
         "account_reconcile_oca",
         "account_statement_import_ofx",
@@ -47,6 +48,7 @@
         "views/queue_job_menu_views.xml",
         "wizard/linked_receipt_candidate_wizard_views.xml",
         "views/vendor_bill_merge_views.xml",
+        "views/purchase_mail_grouping_views.xml",
     ],
     "assets": {
         "web.assets_backend": [
@@ -54,6 +56,7 @@
             "usl_accounting/static/src/js/reconciliation_review.js",
             "usl_accounting/static/src/xml/reconciliation_review.xml",
             "usl_accounting/static/src/scss/reconciliation_review.scss",
+            "usl_accounting/static/src/js/purchase_mail_grouping_form.js",
             "usl_accounting/static/src/js/linked_receipt_handoff.js",
             "usl_accounting/static/src/js/linked_bill_receipt_form.js",
             "usl_accounting/static/src/scss/payment_suggestions.scss",
@@ -63,6 +66,7 @@
             "usl_accounting/static/tests/reconciliation_review.test.js",
             "usl_accounting/static/tests/linked_receipt_handoff.test.js",
             "usl_accounting/static/tests/linked_bill_receipt_form.test.js",
+            "usl_accounting/static/tests/purchase_mail_grouping_form.test.js",
             "usl_accounting/static/tests/payment_suggestions.test.js",
         ],
         "web.assets_tests": [
