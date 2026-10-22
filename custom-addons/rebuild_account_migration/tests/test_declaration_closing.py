@@ -263,6 +263,49 @@ class TestDeclarationAndClosing(TransactionCase):
         self.assertEqual(set(later_is_instalments.mapped("preparation_status")), {"missing_data"})
         self.assertFalse(later_is_instalments.filtered("is_overdue"))
 
+    def test_rollover_keeps_unlocked_fy2026_declarations_and_vat_transition(self):
+        company = self._company("September rollover preserves tax obligations")
+        company.fiscalyear_lock_date = fields.Date.from_string("2025-09-30")
+        Declaration = self.env["rebuild.account.declaration"]
+        codes = {"FR_2572", "FR_2065", "FR_3517_S"}
+
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 9, 29)):
+            Declaration.sync_for_company(company)
+        fy2026 = Declaration.search([
+            ("company_id", "=", company.id),
+            ("fiscalyear_end", "=", date(2026, 9, 30)),
+            ("rule_id.code", "in", list(codes)),
+        ])
+        self.assertEqual(set(fy2026.mapped("rule_id.code")), codes)
+        original_ids = set(fy2026.ids)
+        # Reproduce the data corruption that occurred in production when the
+        # FY2026 rows were incorrectly retired at the October rollover.
+        fy2026.write({"status": "not_applicable", "applicability": "not_applicable"})
+
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 10, 17)):
+            Declaration.sync_for_company(company)
+        fy2026.invalidate_recordset()
+        self.assertEqual(set(fy2026.ids), original_ids)
+        self.assertEqual(set(fy2026.mapped("applicability")), {"applicable"})
+        self.assertFalse(fy2026.filtered(lambda d: d.status == "not_applicable"))
+        self.assertTrue(Declaration.search([
+            ("company_id", "=", company.id),
+            ("rule_id.code", "=", "FR_3517_S"),
+            ("fiscalyear_end", "=", date(2027, 9, 30)),
+            ("applicability", "=", "applicable"),
+        ]))
+        self.assertTrue(Declaration.search([
+            ("company_id", "=", company.id),
+            ("rule_id.code", "=", "FR_CA3"),
+            ("period_start", "=", date(2027, 10, 1)),
+            ("applicability", "=", "applicable"),
+        ]))
+        self.assertFalse(Declaration.search([
+            ("company_id", "=", company.id),
+            ("rule_id.code", "=", "FR_CA3"),
+            ("period_start", "<", date(2027, 10, 1)),
+        ]))
+
     def test_long_first_year_and_vat_transition_schedule(self):
         company = self._company("USL MEDIA schedule")
         company.write({
