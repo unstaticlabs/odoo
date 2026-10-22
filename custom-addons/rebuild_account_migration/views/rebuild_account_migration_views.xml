@@ -491,6 +491,7 @@
         <field name="arch" type="xml">
             <list
                 string="General Reconciliation"
+                js_class="usl_reconciliation_review"
                 create="0"
                 edit="0"
                 delete="0"

@@ -51,12 +51,16 @@
     "assets": {
         "web.assets_backend": [
             "usl_accounting/static/src/js/immediate_settlement.js",
+            "usl_accounting/static/src/js/reconciliation_review.js",
+            "usl_accounting/static/src/xml/reconciliation_review.xml",
+            "usl_accounting/static/src/scss/reconciliation_review.scss",
             "usl_accounting/static/src/js/linked_receipt_handoff.js",
             "usl_accounting/static/src/js/linked_bill_receipt_form.js",
             "usl_accounting/static/src/scss/payment_suggestions.scss",
             "usl_accounting/static/src/xml/account_payment_suggestions.xml",
         ],
         "web.assets_unit_tests": [
+            "usl_accounting/static/tests/reconciliation_review.test.js",
             "usl_accounting/static/tests/linked_receipt_handoff.test.js",
             "usl_accounting/static/tests/linked_bill_receipt_form.test.js",
             "usl_accounting/static/tests/payment_suggestions.test.js",
