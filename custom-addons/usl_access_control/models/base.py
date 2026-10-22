@@ -156,6 +156,7 @@ class Base(models.AbstractModel):
             operation != "read"
             and not agent._allows_model_operation(self._name, operation)
             and not has_agent_collaboration_token(self.env.context)
+            and not self._usl_agent_ephemeral_effect_allowed(operation)
         ):
             return Domain.FALSE
         if operation == "read" and not agent._allows_model_operation(self._name, "read"):
@@ -212,6 +213,11 @@ class Base(models.AbstractModel):
         return self.with_env(owner_env)._has_field_access(field, operation)
 
     @api.model
+    def _usl_agent_ephemeral_effect_allowed(self, operation):
+        """Cooperative native technical effects; business models grant none."""
+        return False
+
+    @api.model
     def _usl_reject_readonly_agent_mutation(self, operation):
         operation_labels = {
             "create": self.env._("create"),
@@ -229,6 +235,7 @@ class Base(models.AbstractModel):
             )
             and not has_agent_collaboration_token(self.env.context)
             and not scoped_sudo
+            and not self._usl_agent_ephemeral_effect_allowed(operation)
         ):
             scope = self._usl_agent_operation_scope(agent)
             _logger.warning(

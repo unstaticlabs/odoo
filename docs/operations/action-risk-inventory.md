@@ -324,3 +324,30 @@ Native access, current owner/company ceilings and protected operations remain
 runtime responsibilities. Changing an action's reviewed classification still
 requires the normal evidence and digest review; method names alone neither
 approve a mutation nor veto an already reviewed read.
+
+
+### Accounting report session effects
+
+The native report client's load, group-toggle and PDF/XLSX export calls need
+recoverable temporary state. Their exact model/method keys use the existing
+collaboration projection; this does not admit other methods with the same name
+or change their reviewed risk classifications. Generic wizard writes, tax
+adjustments and official generation actions retain their existing delegation.
+
+For an Accounting delegation that cannot write, the report extension replaces
+the generic operation scope with private, identity-bound session provenance.
+The cooperative ORM effect check admits native report records, their generated
+preview children and the session's export-file attachment. Native ACLs, fields,
+owner authority and company checks continue. Native empty-recordset write/unlink
+cleanup can proceed only within this scope; guessed nonempty IDs are never
+shrunk into an authorized no-op. No other transient or business model acquires
+write authority. Existing writable delegations use the unchanged native engine
+and operation scope.
+
+The binary field stores its download in an attachment, so inspecting only the
+TransientModel would miss a real effect. Qualification must cover native PDF
+provenance, XLSX replacement, refresh and source-line identifiers, plus atomic
+rollback when a linked closing export reaches its ordinary business-write
+boundary. Preserve original business attachments and financial records through
+predecessor and repeated upgrades; do not treat temporary export files as a
+reason to weaken the release preservation gate.

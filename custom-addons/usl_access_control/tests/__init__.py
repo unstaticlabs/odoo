@@ -6,5 +6,6 @@ from . import (
     test_agent_expense_decisions,
     test_agents,
     test_orm_payload_contract,
+    test_readonly_accounting_report,
 )
 from . import test_native_agent_chatter

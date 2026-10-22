@@ -860,6 +860,23 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
         self.assertEqual(compiled["write_actions"], [])
         self.assertEqual(compiled["collaboration_actions"], [])
 
+    def test_ephemeral_report_dispatch_preserves_review_and_exact_model(self):
+        for method in ("report_client_load", "report_client_export", "report_client_toggle_group"):
+            for classification in ("read_only", "recoverable", "operational", "protected", "system_internal", "transport"):
+                for model in ("rebuild.account.report.export.wizard", "x.other.report"):
+                    action = self.action(f"rpc:{model}.{method}", "rpc")
+                    compiled = inventory.build_agent_readonly_runtime_policy(
+                        self.surface([action]),
+                        self.policy({action["key"]: self.entry(action, classification)}),
+                    )
+                    exposed = action["key"] in compiled["collaboration_actions"]
+                    with self.subTest(method=method, classification=classification, model=model):
+                        self.assertEqual(
+                            exposed,
+                            model == "rebuild.account.report.export.wizard"
+                            and classification in {"read_only", "recoverable", "operational"},
+                        )
+
     def test_reviewed_classification_survives_method_renaming_and_input_order(self):
         # A reviewed read-only action does not need a second name-based grant.
         # The other five existing classifications retain their meaning.
@@ -1025,6 +1042,7 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
             key for key, entry in reviewed.items()
             if key.startswith("rpc:") and entry["classification"] == "read_only"
             and key.rsplit(".", 1)[-1] not in inventory.AGENT_COLLABORATION_METHODS
+            and key not in inventory.AGENT_EPHEMERAL_REPORT_ACTIONS
         }
         self.assertEqual(set(runtime_policy["read_only_actions"]), expected)
         for name in ("collaboration_actions", "write_actions"):
