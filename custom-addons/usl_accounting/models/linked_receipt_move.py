@@ -175,7 +175,11 @@ class AccountMove(models.Model):
             raise UserError(_("Upload the downloaded document on this bill before attaching it."))
         self.env.cr.execute("SELECT id FROM account_move WHERE id = %s FOR UPDATE", [self.id])
         self.invalidate_recordset(["message_main_attachment_id"])
-        self._message_set_main_attachment_id(attachments)
+        # This explicit upload can select the original while a separate mail
+        # grouping review is pending. Keep any previously selected main file.
+        self._message_set_main_attachment_id(
+            attachments, force=not bool(self.message_main_attachment_id),
+        )
         self._supersede_linked_receipts()
         return True
 

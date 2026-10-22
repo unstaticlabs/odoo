@@ -363,6 +363,40 @@ class TestVendorLinkedReceipt(TestExpenseCommon):
         self.assertEqual(bill.message_main_attachment_id, attachment)
         self.assertTrue(later.exists())
 
+    def test_manual_original_does_not_require_completing_mail_grouping_review(self):
+        from odoo.addons.base.tests.files import PDF_RAW
+
+        bill = self._ingest("widget-pending-grouping")
+        bill.write({"usl_mail_grouping_needs_review": True})
+        retrieval = self._request(bill)
+        source_message = retrieval.source_message_id
+        supporting_file = self.env["ir.attachment"].create({
+            "name": "Synthetic supporting evidence.txt", "raw": b"Invented supporting evidence",
+            "res_model": "account.move", "res_id": bill.id,
+        })
+        original = self.env["ir.attachment"].create({
+            "name": "Synthetic manually downloaded original.pdf", "raw": PDF_RAW,
+            "res_model": "account.move", "res_id": bill.id,
+        })
+        financial_state = (bill.state, bill.amount_total, bill.amount_residual, bill.line_ids.ids)
+        self.assertFalse(bill.message_main_attachment_id)
+        self.assertTrue(bill.action_attach_linked_receipt(attachment_ids=original.ids))
+        self.assertEqual(bill.message_main_attachment_id, original)
+        self.assertTrue(bill.usl_mail_grouping_needs_review)
+        self.assertFalse(bill.usl_mail_grouping_reviewed_by)
+        self.assertEqual(retrieval.state, "superseded")
+        self.assertTrue(source_message.exists())
+        self.assertEqual(bytes(original.raw), PDF_RAW)
+        self.assertEqual(bytes(supporting_file.raw), b"Invented supporting evidence")
+        self.assertEqual((bill.state, bill.amount_total, bill.amount_residual, bill.line_ids.ids), financial_state)
+
+        later = original.copy({"name": "Synthetic later supporting receipt.pdf"})
+        bill.action_attach_linked_receipt(attachment_ids=later.ids)
+        self.assertEqual(bill.message_main_attachment_id, original)
+        self.assertTrue(bill.usl_mail_grouping_needs_review)
+        self.assertEqual(bytes(later.raw), PDF_RAW)
+        self.assertEqual((supporting_file | original | later).exists(), supporting_file | original | later)
+
     def test_selected_company_bill_does_not_have_to_be_current_company(self):
         from markupsafe import Markup
         from odoo import Command

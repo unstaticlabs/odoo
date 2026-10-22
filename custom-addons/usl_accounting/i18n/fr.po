@@ -7037,10 +7037,12 @@ msgstr "Annuler le règlement"
 msgid "Technical details"
 msgstr "Détails techniques"
 
+#. module: usl_accounting
 #: model:ir.model.fields,help:account.field_account_move__narration
 msgid "Contract terms printed on this invoice, bill or credit note. Put internal accounting commentary in an internal Chatter note. Use ref for the supplier document reference, invoice line name for the item description and payment_reference to identify payment."
 msgstr "Conditions contractuelles imprimées sur cette facture ou cet avoir. Placez les commentaires comptables internes dans une note interne du fil de discussion. Utilisez ref pour la référence du document fournisseur, le libellé de ligne pour la description de l’article et payment_reference pour identifier le paiement."
 
+#. module: usl_accounting
 #: model_terms:ir.ui.view,arch_db:usl_accounting.company_expense_alias_settings
 msgid "<span invisible=\"not company_expense_alias_domain\">@</span>"
 msgstr "<span invisible=\"not company_expense_alias_domain\">@</span>"
@@ -7257,6 +7259,7 @@ msgstr "Lien %(position)s dans l’e-mail source"
 msgid "%(label)s (link %(position)s in source email)"
 msgstr "%(label)s (lien %(position)s dans l’e-mail source)"
 
+#. module: usl_accounting
 #: code:addons/usl_accounting/models/company_change_context.py:0
 msgid "Company, offset and limit must be integers."
 msgstr "La société, le décalage et la limite doivent être des entiers."

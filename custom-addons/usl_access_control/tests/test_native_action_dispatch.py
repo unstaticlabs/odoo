@@ -77,28 +77,32 @@ class TestNativeActionDispatch(AccountTestInvoicingCommon, HttpCase):
         }), headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json",
                      "X-Odoo-Database": self.cr.dbname})
 
-    def _settlement(self, label, data=None):
+    def _settlement(self, label, data=None, taxed=False):
         data = data or self.company_data
         company = data["company"]
         bank = data["default_journal_bank"]
         bank.reconcile_mode = "edit"
         bank.suspense_account_id.reconcile = True
         local = self.env["account.move"].with_company(company).with_context(allowed_company_ids=company.ids).env
+        tax = local["account.tax"].create({
+            "name": "[QA action] Purchase VAT 20%", "amount": 20,
+            "type_tax_use": "purchase", "company_id": company.id,
+        }) if taxed else local["account.tax"]
         bill = local["account.move"].create({
             "move_type": "in_invoice", "partner_id": self.partner_a.id,
             "journal_id": data["default_journal_purchase"].id,
             "currency_id": self.currency.id, "invoice_date": self.day, "date": self.day,
             "invoice_currency_rate": 1.25, "ref": "[QA action] " + label,
             "invoice_line_ids": [Command.create({
-                "name": "[QA action] Untaxed service", "account_id": data["default_account_expense"].id,
-                "quantity": 1, "price_unit": 100, "tax_ids": [Command.clear()],
+                "name": "[QA action] Service", "account_id": data["default_account_expense"].id,
+                "quantity": 1, "price_unit": 100, "tax_ids": [Command.set(tax.ids)],
             })],
         })
         bill._post(soft=False)
         original = bill._payment_rate_document_snapshot()
         statement = local["account.bank.statement.line"].with_context(rebuild_skip_partner_inference=True).create({
             "journal_id": bank.id, "date": self.day + timedelta(days=1),
-            "payment_ref": "[QA action] Independent transfer " + str(bill.id), "amount": -90,
+            "payment_ref": "[QA action] Independent transfer " + str(bill.id), "amount": -108 if taxed else -90,
         })
         self.env.flush_all()
         source = statement.line_ids.filtered(lambda line: line.account_id != bank.default_account_id)
@@ -122,9 +126,9 @@ class TestNativeActionDispatch(AccountTestInvoicingCommon, HttpCase):
                 statement.active_immediate_settlement_id.id,
                 (bill.line_ids.matched_debit_ids | bill.line_ids.matched_credit_ids).ids)
 
-    def _assert_restored(self, bill, statement, audit, original):
+    def _assert_restored(self, bill, statement, audit, original, residual=100):
         actual = self._snapshot(bill, statement, audit)
-        self.assertEqual(actual[:5], (original, 1.25, 100, "not_paid", "reversed"))
+        self.assertEqual(actual[:5], (original, 1.25, residual, "not_paid", "reversed"))
         self.assertEqual(actual[5:], (False, 0, False, []))
 
     def test_actual_human_and_agent_reverse_with_readonly_carrier(self):
@@ -145,6 +149,21 @@ class TestNativeActionDispatch(AccountTestInvoicingCommon, HttpCase):
             repeated = self._http(key, path, {"ids": audit.ids})
             self.assertEqual(repeated.status_code, 200, repeated.text)
             self.assertEqual(before, self._snapshot(bill, statement, audit))
+
+    def test_agent_reverses_taxed_original_rate_correction_through_native_audit_action(self):
+        bill, statement, audit, original = self._settlement("Taxed correction", taxed=True)
+        self.assertAlmostEqual(bill.invoice_currency_rate, 100 / 90, places=6)
+        self.assertEqual(bill.line_ids.filtered("tax_line_id").balance, 18)
+        settled = self._snapshot(bill, statement, audit)
+        path = "/json/2/account.immediate.settlement/action_reverse"
+        refused = self._http(self._key(self.reader), path, {"ids": audit.ids})
+        self._assert_access_refusal(refused)
+        self.assertEqual(self._snapshot(bill, statement, audit), settled)
+        response = self._http(self._key(self.writer), path, {"ids": audit.ids})
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertIs(response.json(), True)
+        self._assert_restored(bill, statement, audit, original, residual=120)
+        self.assertEqual(bill.line_ids.filtered("tax_line_id").balance, 16)
 
     def test_actual_api_document_exposes_action_without_carrier_crud(self):
         key = self._key(self.writer)
