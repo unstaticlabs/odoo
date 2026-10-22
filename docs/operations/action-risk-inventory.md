@@ -338,9 +338,9 @@ For an Accounting delegation that cannot write, the report extension replaces
 the generic operation scope with private, identity-bound session provenance.
 The cooperative ORM effect check admits native report records, their generated
 preview children and the session's export-file attachment. Native ACLs, fields,
-owner authority and company checks continue. Native empty-recordset write/unlink
-cleanup can proceed only within this scope; guessed nonempty IDs are never
-shrunk into an authorized no-op. No other transient or business model acquires
+owner authority and company checks continue. Native empty create/write/unlink
+operations delegate to Odoo without a report-session requirement; guessed
+nonempty IDs are never shrunk into an authorized no-op. No other transient or business model acquires
 write authority. Existing writable delegations use the unchanged native engine
 and operation scope.
 

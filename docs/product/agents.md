@@ -74,6 +74,11 @@ empty recordset, keep Odoo’s no-op behavior, including internal calls reached 
 Accounting workflows. This does not permit changing an actual record or alter
 the access required for a public API method.
 
+Native actions may use a read-only audit or workflow record while checking
+authority on the underlying business records. Agents with writable application
+delegation can invoke these qualified actions without gaining permission to edit
+the carrier record. Read-only application delegation still refuses mutations.
+
 Agent keys work only with JSON-2 and the qualified API-document
 endpoints; legacy RPC transports are rejected. The exact read allowlist is
 generated directly from reviewed `read_only` RPC classifications, without a

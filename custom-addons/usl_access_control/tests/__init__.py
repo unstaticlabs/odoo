@@ -12,3 +12,5 @@ from . import (
     test_empty_write,
 )
 from . import test_native_agent_chatter
+
+from . import test_native_action_dispatch
