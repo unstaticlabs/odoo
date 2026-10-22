@@ -142289,7 +142289,7 @@
       ],
       "sources": [
         {
-          "line": 290,
+          "line": 297,
           "path": "custom-addons/usl_accounting/models/vendor_bill_configuration.py"
         },
         {
@@ -1619344,7 +1619344,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 290,
+          "line": 297,
           "path": "custom-addons/usl_accounting/models/vendor_bill_configuration.py"
         }
       ]
@@ -1619362,7 +1619362,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 290,
+          "line": 297,
           "path": "custom-addons/usl_accounting/models/vendor_bill_configuration.py"
         }
       ]
@@ -1619380,7 +1619380,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 290,
+          "line": 297,
           "path": "custom-addons/usl_accounting/models/vendor_bill_configuration.py"
         }
       ]
@@ -1619398,7 +1619398,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 290,
+          "line": 297,
           "path": "custom-addons/usl_accounting/models/vendor_bill_configuration.py"
         }
       ]
@@ -1619416,7 +1619416,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 290,
+          "line": 297,
           "path": "custom-addons/usl_accounting/models/vendor_bill_configuration.py"
         }
       ]

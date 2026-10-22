@@ -6922,3 +6922,7 @@ msgstr "Annuler le règlement"
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_account_immediate_settlement_form
 msgid "Technical details"
 msgstr "Détails techniques"
+
+#: model:ir.model.fields,help:account.field_account_move__narration
+msgid "Contract terms printed on this invoice, bill or credit note. Put internal accounting commentary in an internal Chatter note. Use ref for the supplier document reference, invoice line name for the item description and payment_reference to identify payment."
+msgstr "Conditions contractuelles imprimées sur cette facture ou cet avoir. Placez les commentaires comptables internes dans une note interne du fil de discussion. Utilisez ref pour la référence du document fournisseur, le libellé de ligne pour la description de l’article et payment_reference pour identifier le paiement."
