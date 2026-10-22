@@ -202765,8 +202765,8 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.unlink:orm_unlink:1": "b0938c6ca4647a7553dea9dbde27476fb558b909a7b453fab1da5fc04f4e31f3",
         "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.unlink:sudo:1": "3688d40ae62f5b5bbac12762fb3fbce63ca85218686a20fe4afacab8e0c2a4fd",
         "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.unlink:sudo:2": "a6ff427c7a9801d335049e4bf24515d89e921909b6911f5b2efb7d199a0a39f7",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.write:orm_write:1": "93deac8d52d7feaef8e642f727844f220e15ab63fd4308afaa99404902c0b99f",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.write:orm_write:2": "237fb81cc55425483b4dfe42cb732a2510c936c9980a716e764fbd68e29f1d97",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.write:orm_write:1": "5f25ac066eb36c74d3f181e379ff9e512dd95647036eabeeb36c8e213c20b2bb",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.write:orm_write:2": "04ccaf55f22ce437d3c6c1e9117b7637eb221aedafa4af3c25918f78bf48ff5a",
         "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:hr.expense._get_employee_from_email:orm_write:2": "da34bee8777fed9033edea7acc9c1d87f7f7e63763df42705e167ded52dcbe82"
       }
     },
@@ -203154,7 +203154,7 @@
       "id": "operational.company.settings.write",
       "rationale": "The public write gateway also serves ordinary native Settings changes such as names and phone numbers. Classifying every call protected prevents legitimate delegated Settings work. Retain guard:accounting.lock.change at the exact five lock fields, with server-only checked-closing provenance; no field allowlist or Agent-only dispatcher exception.",
       "reviewed_digests": {
-        "rpc:res.company.write": "0bde3d4258ac4f2ad62eada83397f509c70a95ab66236bad9d2c6213ca268c27"
+        "rpc:res.company.write": "3b61a51eef1fae47436db12cc1b63bfcc8e722eb7dec6d792ebf7666b56a7ace"
       }
     },
     {
@@ -204796,7 +204796,7 @@
       "rationale": "Native Odoo compiles security domains under sudo with active_test=False and the actual caller search_domain. Deferred native full optimization binds computed rule searches to the current owner while operation-specific owner predicates preserve record access and writes. Existing delegation, owner/company, field, readonly and protected controls remain authoritative.",
       "reachability_proof": "Private Base._access_domain is called by native ORM access checks, not an ordinary public RPC/controller/UI/scheduled action. Its sudo recordset is confined to native domain optimization and never used for returned Agent records.",
       "reviewed_digests": {
-        "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base._access_domain:sudo:1": "f8ca5a273b842a746e259a3fd99fce49c48aa1713cc7578317c695f42342e22f"
+        "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base._access_domain:sudo:1": "b6d720af30b1400ac91ffbc83f784dd8ad1fab18c070709895e637dbd6ab2de5"
       }
     },
     {

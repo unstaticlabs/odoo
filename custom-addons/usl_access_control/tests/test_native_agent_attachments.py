@@ -182,6 +182,21 @@ class TestNativeAgentAttachments(TransactionCase):
         self.assertEqual(human.name, "[QA] Human standalone")
         self.assertEqual(bytes(agent_file.raw), ORIGINAL)
 
+    def test_standalone_file_keeps_current_owner_company_limit(self):
+        agent = self.agents["rw"]
+        file = self._call("create", vals_list=[self._values(
+            self.env["ir.attachment"], company_id=self.other_company.id,
+        )])
+        self.assertTrue(self._call("write", ids=file.ids, vals={"name": "[QA] Allowed company B"}))
+        self.owner.company_ids = [Command.set(self.company.ids)]
+        with self.assertRaises(AccessError):
+            file.with_user(agent.user_id).with_context(
+                allowed_company_ids=self.company.ids,
+            ).write({"name": "[QA] Must not persist"})
+        stored = file.with_env(self.env)
+        self.assertEqual(stored.name, "[QA] Allowed company B")
+        self.assertEqual(bytes(stored.raw), ORIGINAL)
+
     def test_protected_unlink_remains_unchanged(self):
         file = self._call("create", vals_list=[self._values()])
         with self.assertRaises(AccessError):

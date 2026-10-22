@@ -140,7 +140,7 @@ class TestReadonlyAccountingReport(TransactionCase):
             scoped.env["ir.default"].sudo().browse(setting.id).unlink()
         self.assertTrue(setting.exists())
 
-    def test_zero_id_cleanup_is_native_noop_only_inside_session(self):
+    def test_zero_id_cleanup_is_native_noop_in_and_outside_session(self):
         scoped = self._reports()._usl_readonly_report_session()
         before = self.env["ir.default"].search_count([])
         self.assertTrue(scoped.env["ir.default"].sudo().browse().unlink())
@@ -148,8 +148,9 @@ class TestReadonlyAccountingReport(TransactionCase):
         self.assertEqual(self.env["ir.default"].search_count([]), before)
         for context in ({}, {_REPORT_SESSION_CONTEXT_KEY: True}):
             empty = self._reports().env["ir.default"].sudo().browse().with_context(context)
-            with self.subTest(context=context), self.assertRaises(AccessError):
-                empty.unlink()
+            with self.subTest(context=context):
+                self.assertTrue(empty.unlink())
+                self.assertEqual(self.env["ir.default"].search_count([]), before)
         with self.assertRaises(AccessError):
             scoped.env["ir.default"].sudo().browse(999999999).unlink()
 

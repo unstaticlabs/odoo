@@ -374,13 +374,12 @@ class TestDelegatedOwnerDomains(HttpCase):
         mail = self.env["mail.mail"].search([("mail_message_id", "=", stored.id)])
         self.assertTrue(mail)
         self.assertIn("Agent notification", mail.body_html)
-        # Rendering exact technical output does not expose it through ordinary
-        # reads: native user notifications exclude related-document authority.
+        # Native author/creator access includes the actor's own notification;
+        # document access alone does not expose another actor's notification.
         self.env._access_cache.clear()
         ordinary = self.env["mail.message"].with_user(user).browse(stored.id)
-        self.assertFalse(ordinary.has_access("read"))
-        with self.assertRaises(AccessError):
-            ordinary.read(["body"])
+        self.assertTrue(ordinary.has_access("read"))
+        self.assertIn("Agent notification", ordinary.read(["body"])[0]["body"])
         private = self.hidden_task.message_post(body="[QA owner domains] Unrelated private")
         with self.assertRaises(AccessError):
             self.env["mail.message"].with_user(user).browse(private.id).read(["body"])
@@ -391,6 +390,8 @@ class TestDelegatedOwnerDomains(HttpCase):
         self.assertEqual(human.create_uid, self.owner)
         self.assertIn("Human notification", human.body)
         self.assertEqual(human.partner_ids, recipient)
+        with self.assertRaises(AccessError):
+            human.with_user(user).read(["body"])
         self.assertIn("Human notification", self.env["mail.mail"].search([
             ("mail_message_id", "=", human.id),
         ]).body_html)

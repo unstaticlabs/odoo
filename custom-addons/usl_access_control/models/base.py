@@ -173,8 +173,16 @@ class Base(models.AbstractModel):
         owner_context["allowed_company_ids"] = list(allowed_companies)
         owner_env = self.env(user=agent.owner_id, context=owner_context)
         owner_model = self.with_env(owner_env)
-        owner_domain = owner_model._access_domain(operation)
-        if not owner_domain.is_true() and not owner_domain.is_false():
+        native_relationship = self._name in {"ir.attachment", "mail.message"}
+        if native_relationship:
+            # Creator/author/recipient rules use the acting identity. Linked
+            # business-record checks recurse through the owner's delegation.
+            if self._name not in owner_env["ir.model.access"]._get_allowed_models(operation):
+                return Domain.FALSE
+            owner_domain = super()._access_domain(operation)
+        else:
+            owner_domain = owner_model._access_domain(operation)
+        if not native_relationship and not owner_domain.is_true() and not owner_domain.is_false():
             # Match native rule evaluation: sudo compiles rules without changing
             # their actor UID. Field search methods must retain the owner's UID.
             owner_rule_model = owner_model.sudo().with_context(active_test=False)
@@ -204,10 +212,9 @@ class Base(models.AbstractModel):
             owner_domain = Domain.custom(
                 optimize=optimize_owner_rule, predicate=owner_has_access,
             )
-        # The owner is the record-rule authority ceiling. Applying the backing
-        # technical user's personal follower/assignment rules as well would
-        # incorrectly hide records that the owner can read. Company scope is
-        # still intersected explicitly here and in the owner context.
+        # Business records use the owner's personal follower/assignment rules;
+        # shared records retain their native acting-identity relationships.
+        # Both remain within the owner's current company and model access.
         if "company_id" in self._fields:
             company_domain = Domain(
                 [

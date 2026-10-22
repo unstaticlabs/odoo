@@ -52,17 +52,17 @@ class ResCompany(models.Model):
                     "alias_defaults": repr({"company_id": company.id}),
                 })
 
-    def write(self, values):
+    def write(self, vals):
         detached_aliases = self.env["mail.alias"]
-        if "expense_alias_id" in values:
+        if "expense_alias_id" in vals:
             # Configuring the pointer must retain the native alias ACL too.
-            aliases = self.expense_alias_id | self.env["mail.alias"].browse(values["expense_alias_id"] or [])
+            aliases = self.expense_alias_id | self.env["mail.alias"].browse(vals["expense_alias_id"] or [])
             aliases.check_access("write")
-            detached_aliases = self.expense_alias_id - self.env["mail.alias"].browse(values["expense_alias_id"] or [])
-        result = super().write(values)
+            detached_aliases = self.expense_alias_id - self.env["mail.alias"].browse(vals["expense_alias_id"] or [])
+        result = super().write(vals)
         if detached_aliases:
             detached_aliases.write({"alias_name": False})
-        if "alias_domain_id" in values:
+        if "alias_domain_id" in vals:
             for company in self.filtered("expense_alias_id"):
                 company.expense_alias_id.alias_domain_id = company.alias_domain_id
         return result

@@ -38,7 +38,7 @@ class IrAttachment(models.Model):
     @api.model
     def _usl_agent_shared_model_access(self, operation, groups, access_rows):
         """Resolve the native ACL; attachment checks still authorize each parent."""
-        if operation not in {"create", "write"}:
+        if operation not in {"read", "create", "write"}:
             return False
         internal = self.env.ref("base.group_user")
         return internal in groups and any(
@@ -52,7 +52,7 @@ class MailMessage(models.Model):
     @api.model
     def _usl_agent_shared_model_access(self, operation, groups, access_rows):
         """Reach native message author, recipient and parent access rules."""
-        if operation not in {"create", "write"}:
+        if operation not in {"read", "create", "write"}:
             return False
         internal = self.env.ref("base.group_user")
         return internal in groups and any(

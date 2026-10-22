@@ -359,10 +359,10 @@ class TestAutonomousAgents(TransactionCase):
         )
         partner.with_user(agent.user_id).write({"name": "Agent-updated contact"})
 
-        with self.assertRaises(AgentPolicyAccessError):
-            self.env["mail.message"].with_user(agent.user_id).create(
-                {"body": "Direct internal message creation remains denied."},
-            )
+        message = self.env["mail.message"].with_user(agent.user_id).create(
+            {"body": "Native message creation follows delegated human access."},
+        )
+        self.assertEqual(message.author_id, agent.user_id.partner_id)
 
         self.assertEqual(partner.name, "Agent-updated contact")
         audit_operations = self.env["usl.audit.event"].sudo().search(
@@ -1071,10 +1071,10 @@ class TestAutonomousAgents(TransactionCase):
         with self.assertRaises(AgentPolicyAccessError):
             task.with_user(agent.user_id).sudo().write({"name": "Forbidden"})
         self.assertEqual(task.name, "[QA] Guarded sudo target")
-        with self.assertRaises(AgentPolicyAccessError):
-            self.env["mail.message"].with_user(agent.user_id).with_context(
-                operation_context,
-            ).create({"body": "A non-sudo cross-application mutation remains denied."})
+        message = self.env["mail.message"].with_user(agent.user_id).with_context(
+            operation_context,
+        ).create({"body": "Native non-sudo message creation keeps its actor."})
+        self.assertEqual(message.author_id, agent.user_id.partner_id)
 
         notification_message = self.env["mail.message"].sudo().create(
             {"body": "Direct technical mutation probe"},
@@ -1759,6 +1759,9 @@ class TestAutonomousAgents(TransactionCase):
                 "message_post",
                 "message_subscribe",
                 "message_unsubscribe",
+                "report_client_load",
+                "report_client_toggle_group",
+                "report_client_export",
                 "submit_mcp_feedback",
             },
         )

@@ -1,6 +1,7 @@
 import { expect, test } from "@odoo/hoot";
 import { resize } from "@odoo/hoot-dom";
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
+import { unmockedOrm } from "@web/../tests/_framework/module_set.hoot";
 import { AttachDocumentWidget } from "@web/views/widgets/attach_document/attach_document";
 import { contains, defineModels, fields, models, mountView, onRpc, patchWithCleanup } from "@web/../tests/web_test_helpers";
 import "@account/services/account_move_service";
@@ -192,8 +193,12 @@ defineModels({ PickerRetrieval, PickerWizard, PickerLine });
 for (const width of [390, 1280]) {
     test(`native shared picker makes exact link selection reachable at ${width}px`, async () => {
         await resize({ width, height: 844 });
-        const arch = new URL(window.location.href).searchParams.get("qa_picker_arch");
-        expect(arch).not.toBe(null);
+        // Exercise the installed view in the ordinary HOOT runner too, without
+        // requiring a separate HttpCase to inject its architecture into the URL.
+        const { arch } = await unmockedOrm("usl.mail.pdf.candidate.wizard", "get_view", [], {
+            view_type: "form", context: { lang: "en_US" },
+        });
+        expect(arch).toBeOfType("string");
         onRpc("usl.mail.pdf.candidate.wizard.line", "action_choose", ({ args }) => {
             expect(args[0]).toEqual([42]);
             expect.step("exact second source link");
