@@ -1155,15 +1155,21 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
             "rpc:account.reconciliation.review.dismiss_variance",
         ]
         actions = [self.action(key, "rpc") for key in keys]
-        # Exact registration remains narrow even if a mutation is mislabeled.
-        policy = self.policy({action["key"]: self.entry(action, "read_only") for action in actions})
-        compiled = inventory.build_agent_readonly_runtime_policy(self.surface(actions), policy)
-        self.assertEqual(compiled["read_only_actions"], keys[:1])
+        # The reviewed classification governs access; a second method-name
+        # allowlist must not override native read-only capabilities.
         policy = self.policy({action["key"]: self.entry(action, "read_only" if index == 0 else "operational")
                               for index, action in enumerate(actions)})
         compiled = inventory.build_agent_readonly_runtime_policy(self.surface(actions), policy)
         self.assertEqual(compiled["read_only_actions"], keys[:1])
         self.assertEqual(compiled["write_actions"], sorted(keys[1:]))
+        failures = []
+        reviewed = inventory.normalize_policy_actions(
+            inventory.load_json(inventory.DEFAULT_POLICY), failures,
+        )
+        self.assertEqual(failures, [])
+        self.assertEqual(reviewed[keys[0]]["classification"], "read_only")
+        for key in keys[1:]:
+            self.assertEqual(reviewed[key]["classification"], "operational")
 
     def test_tracked_agent_readonly_runtime_policy_is_bounded(self):
         runtime_policy = inventory.load_json(
