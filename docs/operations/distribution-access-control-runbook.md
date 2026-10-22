@@ -195,3 +195,21 @@ separate in-process markers to avoid repeating a check already performed by
 the same action. Client context values cannot stand in for those markers.
 The public Agent API already refuses these protected actions before model
 execution; the markers preserve the same authority for direct native callers.
+
+### Conditional company Settings writes
+
+`res.company.write` is an operational gateway: native company and field access,
+owner authority and delegated application access still govern ordinary Settings
+writes. Its five accounting lock-date keys reach `guard:accounting.lock.change`
+before any write, including mixed metadata/date payloads and unchanged values.
+The native closing workflow checks that same authority before propagating an
+in-process marker to its company write. A client context value or ordinary Agent
+operation scope cannot substitute for lock authority. Keep this conditional
+guard when changing the public gateway classification; protecting the whole
+gateway prevents ordinary delegated Settings collaboration.
+
+Company configuration follows native ERP Manager’s global `res.company` record
+rule. Do not infer that a company-configuration target must be in the business
+company selection, or add an Agent-only target allowlist. Invalid selected-company
+context is still refused, and company-owned business models keep their existing
+company and owner ceilings. Test these distinct native input classes separately.

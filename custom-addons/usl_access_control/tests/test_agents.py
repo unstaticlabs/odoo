@@ -1067,8 +1067,10 @@ class TestAutonomousAgents(TransactionCase):
             self.env["bus.bus"].with_user(agent.user_id).with_context(
                 **{AGENT_OPERATION_SCOPE_CONTEXT_KEY: "forged"},
             ).sudo().create(bus_values)
+        task = self.env["project.task"].create({"name": "[QA] Guarded sudo target"})
         with self.assertRaises(AgentPolicyAccessError):
-            self.env["project.task"].with_user(agent.user_id).sudo().write({})
+            task.with_user(agent.user_id).sudo().write({"name": "Forbidden"})
+        self.assertEqual(task.name, "[QA] Guarded sudo target")
         with self.assertRaises(AgentPolicyAccessError):
             self.env["mail.message"].with_user(agent.user_id).with_context(
                 operation_context,

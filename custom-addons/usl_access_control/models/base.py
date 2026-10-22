@@ -35,11 +35,9 @@ _AGENT_AUDIT_EXCLUDED_MODELS = frozenset(
 _AGENT_GOVERNED_SIDE_EFFECT_MODELS = frozenset(
     {
         "bus.bus",
-        "ir.attachment",
         "mail.activity",
         "mail.followers",
         "mail.mail",
-        "mail.message",
         "mail.notification",
     },
 )
@@ -158,6 +156,7 @@ class Base(models.AbstractModel):
             operation != "read"
             and not agent._allows_model_operation(self._name, operation)
             and not has_agent_collaboration_token(self.env.context)
+            and not self._usl_agent_ephemeral_effect_allowed(operation)
         ):
             return Domain.FALSE
         if operation == "read" and not agent._allows_model_operation(self._name, "read"):
@@ -173,7 +172,38 @@ class Base(models.AbstractModel):
             return Domain.FALSE
         owner_context["allowed_company_ids"] = list(allowed_companies)
         owner_env = self.env(user=agent.owner_id, context=owner_context)
-        owner_domain = self.with_env(owner_env)._access_domain(operation)
+        owner_model = self.with_env(owner_env)
+        owner_domain = owner_model._access_domain(operation)
+        if not owner_domain.is_true() and not owner_domain.is_false():
+            # Match native rule evaluation: sudo compiles rules without changing
+            # their actor UID. Field search methods must retain the owner's UID.
+            owner_rule_model = owner_model.sudo().with_context(active_test=False)
+            # Native empty-record has_access resolves these dynamic operators
+            # before deciding model access. Preserve FALSE before wrapping.
+            owner_rule_domain = owner_domain.map_conditions(
+                lambda condition: condition.optimize_dynamic(owner_rule_model)
+                if condition.operator == "access" else condition,
+            )
+            if owner_rule_domain.is_false():
+                return Domain.FALSE
+
+            def optimize_owner_rule(_domain, evaluation_model):
+                # Defer full expansion: native mail rules need the actual caller
+                # search domain to bound their work. Caller predicates keep
+                # their original identity; only this owner rule is rebound.
+                return owner_rule_domain.optimize_full(
+                    owner_rule_model,
+                    search_domain=evaluation_model.env.context.get("search_domain"),
+                )
+
+            def owner_has_access(record):
+                # Filtering/write checks use native operation-specific owner
+                # access, rather than Domain.custom's default read query.
+                return record.with_env(owner_env).has_access(operation)
+
+            owner_domain = Domain.custom(
+                optimize=optimize_owner_rule, predicate=owner_has_access,
+            )
         # The owner is the record-rule authority ceiling. Applying the backing
         # technical user's personal follower/assignment rules as well would
         # incorrectly hide records that the owner can read. Company scope is
@@ -214,6 +244,11 @@ class Base(models.AbstractModel):
         return self.with_env(owner_env)._has_field_access(field, operation)
 
     @api.model
+    def _usl_agent_ephemeral_effect_allowed(self, operation):
+        """Cooperative native technical effects; business models grant none."""
+        return False
+
+    @api.model
     def _usl_reject_readonly_agent_mutation(self, operation):
         operation_labels = {
             "create": self.env._("create"),
@@ -231,6 +266,7 @@ class Base(models.AbstractModel):
             )
             and not has_agent_collaboration_token(self.env.context)
             and not scoped_sudo
+            and not self._usl_agent_ephemeral_effect_allowed(operation)
         ):
             scope = self._usl_agent_operation_scope(agent)
             _logger.warning(
@@ -530,6 +566,8 @@ class Base(models.AbstractModel):
 
     @api.model_create_multi
     def create(self, vals_list):
+        if not vals_list:
+            return super().create(vals_list)
         self._usl_reject_readonly_agent_mutation("create")
         self._usl_reject_agent_identity_mutation("create")
         # Guard only a call that stores something.  `create([])` returns
@@ -557,6 +595,8 @@ class Base(models.AbstractModel):
         return records
 
     def write(self, vals):
+        if not self:
+            return super().write(vals)
         self._usl_reject_readonly_agent_mutation("write")
         self._usl_reject_agent_identity_mutation("modify")
         # Likewise for a write that stores nothing.  Writing on the result of
@@ -586,6 +626,8 @@ class Base(models.AbstractModel):
         return result
 
     def unlink(self):
+        if not self:
+            return super().unlink()
         self._usl_reject_readonly_agent_mutation("unlink")
         self._usl_reject_agent_identity_mutation("delete")
         policy_entry = (

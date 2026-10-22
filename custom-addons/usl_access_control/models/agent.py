@@ -424,12 +424,15 @@ class UslAgent(models.Model):
         agent_group = self.env.ref("usl_access_control.group_ai_agent")
         return (delegated_groups | agent_group).all_implied_ids
 
-    def _allows_model_operation(self, model_name, operation):
+    def _allows_model_operation(
+        self, model_name, operation, *, require_write_delegation=False,
+    ):
+        """Check native ACLs within the requested delegated application roots."""
         self.ensure_one()
         if operation not in {"read", "create", "write", "unlink"}:
             return False
         roots = self.delegated_group_ids
-        if operation != "read":
+        if operation != "read" or require_write_delegation:
             roots -= self.read_only_group_ids
         if not roots:
             return False
@@ -445,11 +448,24 @@ class UslAgent(models.Model):
         generic_groups = self._groups_from_xmlids(
             ("base.group_public", "base.group_portal", "base.group_user"),
         )
-        return any(
+        if any(
             access.group_id
             and access.group_id in effective_groups
-            and (operation == "read" or access.group_id not in generic_groups)
+            and (
+                (operation == "read" and not require_write_delegation)
+                or access.group_id not in generic_groups
+            )
             for access in access_rows
+        ):
+            return True
+        # Shared technical models can resolve their native internal-user ACL
+        # without turning an unrelated writable app into a business-model grant.
+        shared_access = getattr(
+            self.env.get(model_name), "_usl_agent_shared_model_access", None,
+        )
+        return bool(
+            shared_access
+            and shared_access(operation, effective_groups, access_rows)
         )
 
     def _api_method_access(self, model_name, method_name):
@@ -461,10 +477,15 @@ class UslAgent(models.Model):
             access = load_agent_readonly_policy().access_for(model_name, method_name)
         except ActionPolicyConfigurationError:
             return None
-        operation = method_name if method_name in {"read", "create", "write", "unlink"} else "write"
+        # Native actions can use an immutable carrier and check business writes
+        # themselves. Their application delegation must still permit mutation.
+        is_crud = method_name in {"read", "create", "write", "unlink"}
+        operation = method_name if is_crud else "read"
         if access in {"read_only", "collaboration"}:
             return access if self._allows_model_operation(model_name, "read") else None
-        if access == "write" and self._allows_model_operation(model_name, operation):
+        if access == "write" and self._allows_model_operation(
+            model_name, operation, require_write_delegation=not is_crud,
+        ):
             return access
         return None
 

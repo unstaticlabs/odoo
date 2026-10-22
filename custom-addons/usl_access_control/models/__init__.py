@@ -9,4 +9,5 @@ from . import (
     protected_models,
     notification_delivery,
     res_users,
+    readonly_accounting_report,
 )
