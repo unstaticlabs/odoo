@@ -7,5 +7,7 @@ from . import (
     audit_event,
     base,
     protected_models,
+    notification_delivery,
     res_users,
+    readonly_accounting_report,
 )

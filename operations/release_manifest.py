@@ -362,19 +362,28 @@ def _parse_evidence(values: list[str]) -> dict[str, str]:
     return dict(sorted(evidence.items()))
 
 
-def _mcp_public_methods(identity_contract: dict[str, Any]) -> list[str]:
-    methods = sorted(MCP_PUBLIC_METHODS | {identity_contract["method"]})
+def _mcp_actions() -> list[str]:
+    """Advertise the qualified backend RPC surface, independent of client pins."""
     surface = _read_json(
         ROOT / "custom-addons/usl_access_control/policy/action_surface.json",
         "qualified Odoo action surface",
     )
-    available = {
-        item.get("key")
+    return sorted({
+        item["key"].removeprefix("rpc:")
         for item in surface.get("actions", [])
         if isinstance(item, dict)
-    }
+        and isinstance(item.get("key"), str)
+        and item["key"].startswith("rpc:")
+    })
+
+
+def _mcp_public_methods(
+    identity_contract: dict[str, Any], available_actions: list[str] | None = None,
+) -> list[str]:
+    methods = sorted(MCP_PUBLIC_METHODS | {identity_contract["method"]})
+    available = set(_mcp_actions() if available_actions is None else available_actions)
     missing = sorted(
-        method for method in methods if f"rpc:{method}" not in available
+        method for method in methods if method not in available
     )
     if missing:
         raise ReleaseManifestError(
@@ -420,19 +429,14 @@ def create(arguments: argparse.Namespace) -> int:
     }
     legacy_contract = mcp["contract"]
     identity_contract = legacy_contract["required_agent_identity"]
+    actions = _mcp_actions()
     mcp_contract_body = {
         "schema": "usl-odoo-mcp-support/v1",
         "odoo_series": arguments.odoo_series,
         "supported_mcp_major": 1,
         "required_modules": legacy_contract["required_modules"],
-        "public_methods": _mcp_public_methods(identity_contract),
-        "actions": sorted(
-            action.removeprefix("rpc:")
-            for action in (
-                set(legacy_contract["source_rpc_actions"])
-                | set(legacy_contract["dynamic_rpc_actions"])
-            )
-        ),
+        "public_methods": _mcp_public_methods(identity_contract, actions),
+        "actions": actions,
         "agent_identity": identity_contract,
     }
     payload: dict[str, Any] = {

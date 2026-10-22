@@ -1,0 +1,199 @@
+{
+  "capture_date": "2026-10-17",
+  "tested_product_revision": "0242a28f82362d2dbff41ab76e7cf81fcf9177a7",
+  "source_set_sha256": "18392708551ba2d94c9d9839346afd2a45fa1d077c1aadb82e744421b5448b6f",
+  "qa_context": "French; ordinary accountant; isolated disposable invented company, supplier, documents and amounts; desktop1280x720/mobile390x844. No real business or personal data.",
+  "meaning": "Still images illustrate the final UI. Functional results are independently backed by native journeys, protocol tests and read-only state fingerprints.",
+  "journey": "Desktop Cancel and mobile Keep on the same uncertain draft; fresh reopen verifies persisted reviewer/time. Settled mobile decision image uses a separate pending example that was cancelled, not confirmed. Matching, split and genuine embedded UBL examples are separately illustrated.",
+  "limitations": [
+    "No OCR/general-layout promise. Native decoders can commit partway through a message; whole-message atomicity is not claimed.",
+    "An old incomplete form can stay stale when native blank-date unload validation prevents reload; persisted result verified by fresh reopen.",
+    "The in-motion mobile capture is excluded; native entrance animation settles without overflow, with no styling/source change."
+  ],
+  "captures": [
+    {
+      "file": "01-v8-uncertain-draft.jpg",
+      "caption": "Uncertain documents remain on one visible draft for review.",
+      "sha256": "195a83ed4d05c4173420b61636c5d61b2f27c4babc3021ac53c4efaea864b538",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "metadata": "JFIF 1.01 only; no EXIF/XMP/comment/other application segments",
+      "pixel_inspected_by": [
+        "Root lead",
+        "Coding Agent delivery owner"
+      ]
+    },
+    {
+      "file": "02-v8-desktop-review-dialog.jpg",
+      "caption": "Desktop review shows evidence, originals and optional main selection.",
+      "sha256": "010515adc4f02859889106a08afae55c9aedb8d829b02a850239b4603d576cd7",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "metadata": "JFIF 1.01 only; no EXIF/XMP/comment/other application segments",
+      "pixel_inspected_by": [
+        "Root lead",
+        "Coding Agent delivery owner"
+      ]
+    },
+    {
+      "file": "03-v8-mobile-pending.jpg",
+      "caption": "The pending review remains visible on mobile.",
+      "sha256": "a43a2204cc23da993c4322cba79a4dd9d68c4324529bb2f49cb5d6c1ca6dd0b4",
+      "dimensions": [
+        390,
+        844
+      ],
+      "metadata": "JFIF 1.01 only; no EXIF/XMP/comment/other application segments",
+      "pixel_inspected_by": [
+        "Root lead",
+        "Coding Agent delivery owner"
+      ]
+    },
+    {
+      "file": "04-v8-mobile-decision-settled.jpg",
+      "caption": "Settled mobile dialog: complete text, files and controls inside the viewport.",
+      "sha256": "3c6ebd67f28c283ae6570f5e8d22ee7cd09288da9c4e2d500bd8b46cdd5938fa",
+      "dimensions": [
+        390,
+        844
+      ],
+      "metadata": "JFIF 1.01 only; no EXIF/XMP/comment/other application segments",
+      "pixel_inspected_by": [
+        "Root lead",
+        "Coding Agent delivery owner"
+      ]
+    },
+    {
+      "file": "05-v8-mobile-confirmed-draft.jpg",
+      "caption": "After Keep, the warning is removed and the bill remains a blank-date draft.",
+      "sha256": "7c1e3df35d8b7264460cbb715d579388cd2bcfdc82d1cc27b727ac797eaacc66",
+      "dimensions": [
+        390,
+        844
+      ],
+      "metadata": "JFIF 1.01 only; no EXIF/XMP/comment/other application segments",
+      "pixel_inspected_by": [
+        "Root lead",
+        "Coding Agent delivery owner"
+      ]
+    },
+    {
+      "file": "06-v8-mobile-attribution.jpg",
+      "caption": "Mobile Other Info shows the reviewer and time.",
+      "sha256": "820a69c588bca4bfbe51786c659517025b1821273d2360348e5a38fefc2668a4",
+      "dimensions": [
+        390,
+        844
+      ],
+      "metadata": "JFIF 1.01 only; no EXIF/XMP/comment/other application segments",
+      "pixel_inspected_by": [
+        "Root lead",
+        "Coding Agent delivery owner"
+      ]
+    },
+    {
+      "file": "07-v8-desktop-attribution.jpg",
+      "caption": "Desktop Other Info retains the same review attribution.",
+      "sha256": "7e79ffa057423118ae1c75a74b94ee71283c85cd80fc663ff5a7a6ab7f3eee12",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "metadata": "JFIF 1.01 only; no EXIF/XMP/comment/other application segments",
+      "pixel_inspected_by": [
+        "Root lead",
+        "Coding Agent delivery owner"
+      ]
+    },
+    {
+      "file": "08-v8-matched-invoice-receipt.jpg",
+      "caption": "A matching invoice and payment receipt remain together.",
+      "sha256": "7d1431a641a026bbf0fa4557c705938e0c58959a5c6ec8eb0f63e324a60f12cb",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "metadata": "JFIF 1.01 only; no EXIF/XMP/comment/other application segments",
+      "pixel_inspected_by": [
+        "Root lead",
+        "Coding Agent delivery owner"
+      ]
+    },
+    {
+      "file": "09-v8-separate-invoices.jpg",
+      "caption": "Two distinct invoices become linked draft bills.",
+      "sha256": "19d61814c79a2dfd4123437213bed96b1732dc53f1afd04d092ff0037cca001f",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "metadata": "JFIF 1.01 only; no EXIF/XMP/comment/other application segments",
+      "pixel_inspected_by": [
+        "Root lead",
+        "Coding Agent delivery owner"
+      ]
+    },
+    {
+      "file": "10-v8-second-invoice-context.jpg",
+      "caption": "Native navigation opens the other draft from the same email; no save was made.",
+      "sha256": "6eca4d25268bdaf90631c3c1b2b27caf00d10d36ce0944b6db7ab04fcc1e1c53",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "metadata": "JFIF 1.01 only; no EXIF/XMP/comment/other application segments",
+      "pixel_inspected_by": [
+        "Root lead",
+        "Coding Agent delivery owner"
+      ]
+    },
+    {
+      "file": "11-v8-native-embedded-invoice.jpg",
+      "caption": "Native UBL import creates the invented invoice line in a draft.",
+      "sha256": "459404f6d5e3739db6985f8aba7a2a5ff931acad11f7da228f41a9ca1642616e",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "metadata": "JFIF 1.01 only; no EXIF/XMP/comment/other application segments",
+      "pixel_inspected_by": [
+        "Root lead",
+        "Coding Agent delivery owner"
+      ]
+    },
+    {
+      "file": "12-v8-generated-main-original-retained.jpg",
+      "caption": "Native generated invoice PDF is main; original receipt PDF and embedded XML evidence remain.",
+      "sha256": "563fb11a43d3458e8ceb2978705c2c69c7ecd72dd773f6f3ce88d33c5b88cddb",
+      "dimensions": [
+        1280,
+        720
+      ],
+      "metadata": "JFIF 1.01 only; no EXIF/XMP/comment/other application segments",
+      "pixel_inspected_by": [
+        "Root lead",
+        "Coding Agent delivery owner"
+      ]
+    }
+  ],
+  "private_qualification_sha256": {
+    "dialog-layout-control.json": "e261a727f4682b9374c339461c8a3001e3589692dcd29a8a329bfd741e720329",
+    "recorded-layout-control.json": "fb97ca36afae512167bacf988491ae627fc39b01f4edbdc4abc4eeba252d26e0",
+    "hoot-control.json": "0ca8a1408192c709d8e3a21bae8966f62c4d397a79c4a7b7ad3bd245b70ece07",
+    "manual-flag-control.json": "79892fb7f8a10eb2824b8ebc7544a236b621835d915002e6cf0f6925b4a6cc14",
+    "related-access-control.json": "c7b8699e433a1d2be23a6f8036a50a8ab8fa57fac3e6df011e42994fda77bf04",
+    "review-fixes-control.json": "5a1c95bc3f90fc0344d2ef7220682d61a8a48dc6350009e88c283b27ae7355bc",
+    "edi-compat-control.json": "fd873a774de5da0bf19ab2c9221247a3233d726726e9773c96076c847c315a86",
+    "ui-v8-after.log": "640754fde4eb8c0811f7854420865edf0a2ca1fbdbe1d58e7408d7301a5019a6",
+    "ui-v8-financial-after.log": "2066ac4a0052c30e813d3606bfd404e90a9ba14baa0ca04ee6da1957d65f8da4",
+    "responsive-settled-receipt.json": "43cf012346d80b79ee357bc3f195ecc6f8403b4c3708d193229fdd897bce8191",
+    "runtime-check-v8.log": "3bf8bdc58af9ab9e892a28fca14c0ea4f7cc5a8e31e44115a03c3926cbdbd7a5",
+    "canonical-assets-v8.log": "76b2b4ed56baa606be2b190d7a9d17f943b53714cd40f093954ee8b290f35f62",
+    "french-v8.log": "63e20a456cf73e6bfe82d4e332f0fcb8617d4e8f1128f059c6af6d841db75f62",
+    "hosted-code-0242-latest.json": "031331badb1b2a141ab0d4beb1cb9c12f40cfd759d9500a7a16e9fcd6b33d060"
+  }
+}

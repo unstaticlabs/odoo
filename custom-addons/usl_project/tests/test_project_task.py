@@ -54,6 +54,29 @@ class TestProjectTask(TransactionCase):
         self.assertFalse(task.project_id)
         self.assertFalse(task.user_ids)
 
+    def test_todo_alias_does_not_assign_a_matching_service_recipient(self):
+        service = new_test_user(
+            self.env,
+            login="qa.todo.service@example.invalid",
+            email=self.todo_alias.alias_full_name,
+            groups="base.group_user,project.group_project_user",
+            context={"no_reset_password": True},
+        )
+        task = self._task_from_email(
+            self.todo_alias.alias_full_name,
+            f"Todo Sender <{self.todo_sender.email}>",
+        )
+        self.assertEqual(task.user_ids, self.todo_sender)
+        self.assertNotIn(service, task.user_ids)
+
+    def test_todo_alias_preserves_explicit_assignees(self):
+        task = self.env["project.task"].message_new({
+            "subject": "[QA] Explicit assignment",
+            "email_from": "External <outside@example.invalid>",
+            "to": self.todo_alias.alias_full_name,
+        }, custom_values={"user_ids": self.todo_sender.ids})
+        self.assertEqual(task.user_ids, self.todo_sender)
+
     def test_other_projectless_alias_does_not_assign_sender(self):
         task = self._task_from_email(
             self.other_alias.alias_full_name,

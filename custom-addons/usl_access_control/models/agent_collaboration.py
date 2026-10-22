@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from markupsafe import Markup, escape
 
-from odoo import fields, models
+from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
 from ..exceptions import AgentPolicyAccessError
@@ -15,12 +15,11 @@ from .agent_policy_tokens import (
 
 # A Chatter body is stored as HTML, so a caller that sends markup without
 # saying so stores escaped tags that readers see as characters.  The author
-# cannot repair that afterwards through the ordinary write path, because
-# mail.message is a governed side-effect model.  `mcp_revise_own_message`
-# below is that repair, and it is deliberately narrow: an identity may correct
+# can use native message writes, while `mcp_revise_own_message` below offers
+# a focused convenience method: an identity may correct
 # what it wrote itself, on a record it can still read, while the note is new.
-# A day covers a note noticed the next working morning and still stops an
-# identity rewording something people have long since read and acted on.
+# This helper covers a note noticed the next working morning. Generic native
+# message writes keep their own author, recipient and parent access rules.
 _MESSAGE_REVISION_WINDOW = timedelta(hours=24)
 _REVISABLE_SUBTYPE_XMLIDS = ("mail.mt_comment", "mail.mt_note")
 _MAX_MESSAGE_BODY = 50_000
@@ -31,6 +30,34 @@ def _plaintext_to_html(value):
     return Markup("<p>%s</p>") % Markup("<br>").join(
         escape(line) for line in value.split("\n")
     )
+
+
+class IrAttachment(models.Model):
+    _inherit = "ir.attachment"
+
+    @api.model
+    def _usl_agent_shared_model_access(self, operation, groups, access_rows):
+        """Resolve the native ACL; attachment checks still authorize each parent."""
+        if operation not in {"read", "create", "write"}:
+            return False
+        internal = self.env.ref("base.group_user")
+        return internal in groups and any(
+            access.group_id == internal for access in access_rows
+        )
+
+
+class MailMessage(models.Model):
+    _inherit = "mail.message"
+
+    @api.model
+    def _usl_agent_shared_model_access(self, operation, groups, access_rows):
+        """Reach native message author, recipient and parent access rules."""
+        if operation not in {"read", "create", "write"}:
+            return False
+        internal = self.env.ref("base.group_user")
+        return internal in groups and any(
+            access.group_id == internal for access in access_rows
+        )
 
 
 class MailThread(models.AbstractModel):
@@ -100,9 +127,9 @@ class MailThread(models.AbstractModel):
         """Correct the body of one Chatter message this identity posted itself.
 
         Editing a message is normally avoided, because notifications have
-        already gone out.  This exists for one case the ordinary path cannot
-        serve: the author stored a body that reads as garbage and no one else
-        can be asked to fix it.  Odoo marks the result edited, keeps the
+        already gone out. This convenience method lets the author repair
+        a body that reads as garbage. Native message writes remain available
+        under their ordinary rules. Odoo marks this result edited, keeps the
         original in the audit trail, and refuses everything that is not the
         caller's own recent note.
         """
@@ -163,6 +190,20 @@ class MailThread(models.AbstractModel):
     def message_notify(self, *args, **kwargs):
         records = self._usl_agent_collaboration(operation="write")
         return super(MailThread, records).message_notify(*args, **kwargs)
+
+    def _notify_by_email_render_layout(
+        self, message, recipients_group, msg_vals=False, render_values=None,
+    ):
+        if self._usl_managed_agent() and has_agent_collaboration_token(self.env.context):
+            # Native user notifications are readable by their technical author,
+            # not by everyone who can read the business record. Render only the
+            # exact message already passed by the authorized collaboration flow;
+            # keep the Agent UID, business record and recipients unchanged.
+            message = message.sudo()
+            render_values = {**(render_values or {}), "message": message}
+        return super()._notify_by_email_render_layout(
+            message, recipients_group, msg_vals=msg_vals, render_values=render_values,
+        )
 
     def _message_log_batch(self, *args, **kwargs):
         """Allow Odoo's private Chatter log created by an authorized business write."""

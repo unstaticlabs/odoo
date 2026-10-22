@@ -4,6 +4,7 @@ from . import (
     test_analytic_reporting,
     test_bank_statement_ingestion,
     test_bank_period_tour,
+    test_company_expense_alias,
     test_expense_bank_matching,
     test_expense_batch_reporting,
     test_immediate_settlement,
@@ -19,3 +20,16 @@ from . import (
 from . import test_vendor_bill_merge
 
 from . import test_taxed_payment_rate
+
+from . import test_bill_terms
+
+from . import test_vendor_linked_receipt
+
+from . import test_vendor_linked_receipt_ui
+
+from . import test_company_change_context
+
+from . import test_reconciliation_review
+from . import test_edi_line_compatibility
+from . import test_purchase_mail_grouping
+from . import test_purchase_mail_grouping_ui

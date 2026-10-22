@@ -4,6 +4,24 @@ Agents are non-human Odoo identities owned by one accountable human. They use
 Odoo through API credentials and remain visible as the actor in audit history.
 They are not shared human accounts and cannot sign in through the browser.
 
+## Notifications
+
+Agent accounts receive notifications in Odoo's Inbox. Internal colleagues also
+receive Agent-authored conversations in Inbox, even if their usual preference
+is email. External contacts and portal users retain normal email delivery.
+Conversations written by people follow each recipient's own preference.
+This delivery rule does not rewrite stored preferences or old queued email.
+
+Task and activity assignment notices no longer duplicate the same work in
+Inbox. The assigned task and Activities remain available, and ordinary comments,
+mentions and email assignment notices continue normally. People can change
+their own **By Emails / In Odoo** preference through native Preferences.
+
+Email sent to the personal `todo` alias assigns its internal sender and any
+explicit alias assignees. A service identity whose address happens to match
+the alias is not added implicitly; starting an AI pipeline remains an explicit
+assignment or separate action.
+
 ## Authority
 
 An Agent can use only the intersection of:
@@ -16,6 +34,15 @@ Owners may delegate Settings when they have it. This lets an Agent configure
 ordinary applications through the API. It never lets the Agent manage users,
 authentication, access-control groups, ACLs, record rules, other Agents, API
 credentials or its own lifecycle. Irreversible Actions are never delegable.
+
+Ordinary company settings, including the company name and phone number, use
+that same native delegated Settings access. Accounting lock dates retain their
+existing Irreversible Actions requirement, including when a date is cleared or
+submitted unchanged. Creating a company and installing its localization also
+retain their existing controls. Company configuration follows Odoo’s global
+ERP Manager record rule, so native Settings authority can cover company records
+outside the business-company selection. Company-owned business records still
+use the delegated companies and the owner’s native record rules.
 
 Each application can be set independently to **No access**, **Read-only**, or
 one of the owner's native Odoo access levels. The two shortcuts prefill every
@@ -37,6 +64,19 @@ does not silently restore the Agent's delegation. Deactivating an owner
 suspends all of their Agents; an owner or administrator must reactivate them
 explicitly.
 
+Computed record-rule searches resolve as the current owner, including personal
+employee and manager hierarchy rules. Rule compilation retains native Odoo's
+sudo evaluation and caller search bounds; it does not elevate the returned
+Agent records. Record filtering and writes use the owner's native rules for
+the requested operation. Explicit caller search predicates keep their native
+caller context.
+
+An already-authorized Chatter notification renders its exact technical message
+with native sudo while retaining the Agent's author identity and recipients.
+This internal rendering returns HTML to the native notification workflow;
+ordinary subsequent message reads still use the current owner's rule ceiling.
+It does not extend the Agent's personal-message authority globally.
+
 When owner authority contracts, Odoo removes the lost groups and companies
 immediately and records an authority-reduction warning. The warning is
 informational: the Agent may continue within its reduced authority while the
@@ -47,14 +87,23 @@ Read-only enforcement applies per application at both the ORM and JSON-2
 boundaries, including code that retains the Agent actor through `sudo()`.
 Create, write, delete, archive, workflow, import, module, server-action and
 unknown public methods are denied outside explicitly write-enabled scopes.
+Native ORM creation with an empty values list, and writes or deletions on an
+empty recordset, keep Odoo’s no-op behavior, including internal calls reached by
+Accounting workflows. This does not permit changing an actual record or alter
+the access required for a public API method.
+
+Native actions may use a read-only audit or workflow record while checking
+authority on the underlying business records. Agents with writable application
+delegation can invoke these qualified actions without gaining permission to edit
+the carrier record. Read-only application delegation still refuses mutations.
+
 Agent keys work only with JSON-2 and the qualified API-document
 endpoints; legacy RPC transports are rejected. The exact read allowlist is
-generated from the audited Agent-eligible subset of `read_only` action-risk
-entries and fails closed if code or policy identity drifts. A general low-risk
-classification is not sufficient: only standard data-query methods and
-individually named product helpers enter the Agent runtime allowlist. Specialized
-helpers that bypass ordinary record rules remain unavailable; Agents use the
-equivalent owner-scoped generic reads instead.
+generated directly from reviewed `read_only` RPC classifications, without a
+second method-name or explicit-helper selection. Existing collaboration methods
+keep their shared collaboration contract. Making a reviewed method callable
+does not change its native model, record, field, owner or company permissions;
+unknown and protected operations retain their existing controls.
 
 The only write exceptions are guarded collaboration methods on records the
 Agent can already read: Chatter notes and comments, activities, self-following,
@@ -166,3 +215,57 @@ Expense correction adds precise context for decisions: the same transaction
 returns the original and final financial values, with native tax totals and
 explicit document and company currencies. This context helps an Agent explain
 and check its work without adding Agent-specific restrictions.
+
+### Native attachments
+
+With writable application delegation, Agents can use native `ir.attachment`
+create, write and copy methods. Odoo checks the current attachment and each
+source or destination business record; another writable app does not grant
+write access to a read-only parent. Standalone files retain native creator
+ownership. Existing company, owner, accounting-evidence and permanent-deletion
+controls continue to apply. Globally read-only Agents keep their existing
+mutation limits.
+
+For this Odoo revision, send binary content in `raw` (base64 in JSON-2), then
+read back `raw` and `checksum` to verify the stored file. The obsolete `datas`
+input is ignored by upstream and is no longer a readable field. Supply the
+native `res_model` / `res_id` and the intended allowed-company context; use the
+model's current field metadata rather than copying an older upload example.
+
+### Native Chatter
+
+With writable application delegation, Agents can use native `mail.message`
+create, write and read methods. Odoo checks the message's native author,
+recipient or notification relationship and its parent-record fallback rules.
+This is not a parent-write-only operation: tasks and bills allow native posting
+through read access, and authors or recipients may edit messages under native
+rules even when the parent is read-only. Entirely read-only delegation retains
+its existing generic mutation limits and supported note/comment posting.
+
+Use `model` / `res_id` for a message's native parent and the intended company
+context. Native restrictions on changing that parent and on editing restricted
+Accounting audit messages still apply. Supply HTML to the native message body
+field; when using `message_post`, set `body_is_html=True` for intentional markup
+or let Odoo escape plain text. Read back the stored body, author, attachments
+and creator rather than assuming how a client rendered it.
+
+`mcp_revise_own_message` remains an optional convenience for correcting a recent
+own note with its existing audit and edited indication. Its time, size and
+subtype rules apply to that helper. Generic native message writes keep their
+ordinary rules without those additional limits. Owner/current-identity,
+company, read-only delegation and protected deletion controls remain unchanged.
+
+### Read-only Accounting reports
+
+Read-only Accounting Agents can use the ordinary report client to load reports,
+change supported filters, fold groups, open source entries and download PDF or
+XLSX files. The native engine keeps filter and preview state in temporary report
+records. Its generated download attachment belongs to that report session.
+Those technical effects do not grant permission to modify the ledger, settings,
+tax adjustments, unrelated assistants or business attachments.
+
+The same native company, report-definition and owner-access checks apply to
+humans and Agents. Report sessions follow the current native record rules;
+there is no extra Agent-only creator restriction. A closing export that also
+adds a package to a closing workspace still needs its existing business-write
+authority. Official FEC generation keeps its native workflow and lock controls.

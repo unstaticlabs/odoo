@@ -45,6 +45,9 @@ class ProjectTask(models.Model):
     usl_feedback_context_included = fields.Boolean(
         string="Page details shared", readonly=True, copy=False,
     )
+    usl_feedback_navigation_context = fields.Json(
+        string="Recent navigation", readonly=True, copy=False,
+    )
     usl_feedback_source_action_id = fields.Many2one(
         "ir.actions.actions", string="Source action", readonly=True, copy=False, ondelete="set null",
     )
@@ -167,6 +170,7 @@ class ProjectTask(models.Model):
         "usl_feedback_company_id",
         "usl_feedback_category",
         "usl_feedback_context_included",
+        "usl_feedback_navigation_context",
         "usl_feedback_source_action_id",
         "usl_feedback_source_model_id",
         "usl_feedback_source_res_id",
@@ -210,6 +214,7 @@ class ProjectTask(models.Model):
                 raise ValidationError(_("A page section requires the Settings source model."))
             if not task.usl_feedback_context_included and any(
                 (
+                    task.usl_feedback_navigation_context,
                     task.usl_feedback_source_action_id,
                     task.usl_feedback_source_model_id,
                     task.usl_feedback_source_res_id,
@@ -245,6 +250,7 @@ class ProjectTask(models.Model):
             "usl_feedback_release_sha": identity["release_commit"],
             # A card the product team writes carries no reporter page state.
             "usl_feedback_context_included": False,
+            "usl_feedback_navigation_context": False,
             "usl_feedback_source_action_id": False,
             "usl_feedback_source_model_id": False,
             "usl_feedback_source_res_id": False,
