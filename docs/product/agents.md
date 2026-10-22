@@ -58,12 +58,11 @@ Create, write, delete, archive, workflow, import, module, server-action and
 unknown public methods are denied outside explicitly write-enabled scopes.
 Agent keys work only with JSON-2 and the qualified API-document
 endpoints; legacy RPC transports are rejected. The exact read allowlist is
-generated from the audited Agent-eligible subset of `read_only` action-risk
-entries and fails closed if code or policy identity drifts. A general low-risk
-classification is not sufficient: only standard data-query methods and
-individually named product helpers enter the Agent runtime allowlist. Specialized
-helpers that bypass ordinary record rules remain unavailable; Agents use the
-equivalent owner-scoped generic reads instead.
+generated directly from reviewed `read_only` RPC classifications, without a
+second method-name or explicit-helper selection. Existing collaboration methods
+keep their shared collaboration contract. Making a reviewed method callable
+does not change its native model, record, field, owner or company permissions;
+unknown and protected operations retain their existing controls.
 
 The only write exceptions are guarded collaboration methods on records the
 Agent can already read: Chatter notes and comments, activities, self-following,

@@ -845,19 +845,65 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
         for field in inventory.RUNTIME_POLICY_DERIVED_FIELDS:
             self.assertNotIn(field, runtime_policy)
 
+    def test_reviewed_report_navigation_is_available_without_a_second_name_list(self):
+        action = self.action(
+            "rpc:rebuild.account.report.export.wizard.report_client_open_sources",
+            "rpc",
+        )
+        policy = self.policy({action["key"]: self.entry(action, "read_only")})
+
+        compiled = inventory.build_agent_readonly_runtime_policy(
+            self.surface([action]), policy,
+        )
+
+        self.assertIn(action["key"], compiled["read_only_actions"])
+        self.assertEqual(compiled["write_actions"], [])
+        self.assertEqual(compiled["collaboration_actions"], [])
+
+    def test_reviewed_classification_survives_method_renaming_and_input_order(self):
+        # A reviewed read-only action does not need a second name-based grant.
+        # The other five existing classifications retain their meaning.
+        expected = {
+            "read_only": "read_only_actions",
+            "operational": "write_actions",
+            "recoverable": "write_actions",
+            "protected": None,
+            "system_internal": None,
+            "transport": None,
+        }
+        for method in ("search_read", "report_client_open_sources", "action_open_source"):
+            actions = [
+                self.action(f"rpc:x.{classification}.{method}", "rpc")
+                for classification in expected
+            ]
+            for reverse in (False, True):
+                ordered = list(reversed(actions)) if reverse else actions
+                entries = {
+                    action["key"]: self.entry(action, action["key"].split(".")[1])
+                    for action in ordered
+                }
+                compiled = inventory.build_agent_readonly_runtime_policy(
+                    self.surface(ordered), self.policy(entries),
+                )
+                for classification, destination in expected.items():
+                    key = f"rpc:x.{classification}.{method}"
+                    with self.subTest(method=method, reverse=reverse, classification=classification):
+                        containing = [name for name, keys in compiled.items() if isinstance(keys, list) and key in keys]
+                        self.assertEqual(containing, [destination] if destination else [])
+
     def test_compiles_exact_agent_readonly_and_collaboration_allowlists(self):
         read_action = self.action("rpc:res.partner.search_read", "rpc")
-        misleading_read_action = self.action("rpc:res.partner.action_archive", "rpc")
+        navigation_read_action = self.action("rpc:res.partner.action_open_sources", "rpc")
         collaboration_action = self.action("rpc:project.task.message_post", "rpc")
         write_action = self.action("rpc:project.task.write", "rpc")
         surface = self.surface(
-            [read_action, misleading_read_action, collaboration_action, write_action],
+            [read_action, navigation_read_action, collaboration_action, write_action],
         )
         policy = self.policy(
             {
                 read_action["key"]: self.entry(read_action, "read_only"),
-                misleading_read_action["key"]: self.entry(
-                    misleading_read_action,
+                navigation_read_action["key"]: self.entry(
+                    navigation_read_action,
                     "read_only",
                 ),
                 collaboration_action["key"]: self.entry(
@@ -870,7 +916,7 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
 
         runtime_policy = inventory.build_agent_readonly_runtime_policy(surface, policy)
 
-        self.assertEqual(runtime_policy["read_only_actions"], [read_action["key"]])
+        self.assertEqual(runtime_policy["read_only_actions"], sorted([read_action["key"], navigation_read_action["key"]]))
         self.assertEqual(
             runtime_policy["collaboration_actions"],
             [collaboration_action["key"]],
@@ -899,29 +945,36 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
         errors = inventory.validate_agent_readonly_runtime_policy(surface, policy, stale)
         self.assertTrue(any("derived field" in error for error in errors), errors)
 
-    def test_agent_readonly_allowlist_rejects_mutating_method_names(self):
-        denied_names = (
-            "action_archive",
-            "action_unarchive",
-            "activity_feedback",
-            "activity_unlink",
-            "button_immediate_install",
-            "import_data",
-            "run",
-            "web_read",
-            "write",
-        )
-        actions = [self.action(f"rpc:x.thing.{name}", "rpc") for name in denied_names]
-        surface = self.surface(actions)
-        policy = self.policy(
-            {action["key"]: self.entry(action, "read_only") for action in actions},
-        )
+    def test_mutating_classifications_do_not_become_readonly_by_method_name(self):
+        classifications = {
+            "action_archive": "operational", "action_unarchive": "recoverable",
+            "activity_feedback": "operational", "activity_unlink": "recoverable",
+            "button_immediate_install": "protected", "import_data": "protected",
+            "run": "system_internal", "web_read": "operational", "write": "operational",
+        }
+        actions = [self.action(f"rpc:x.thing.{name}", "rpc") for name in classifications]
+        policy = self.policy({
+            action["key"]: self.entry(action, classifications[action["key"].rsplit(".", 1)[-1]])
+            for action in actions
+        })
+        compiled = inventory.build_agent_readonly_runtime_policy(self.surface(actions), policy)
+        self.assertEqual(compiled["read_only_actions"], [])
+        self.assertEqual(compiled["collaboration_actions"], [])
+        self.assertEqual(compiled["write_actions"], sorted(
+            f"rpc:x.thing.{name}" for name, classification in classifications.items()
+            if classification in {"operational", "recoverable"}
+        ))
 
-        runtime_policy = inventory.build_agent_readonly_runtime_policy(surface, policy)
+    def test_reviewed_readonly_collaboration_keeps_its_existing_precedence(self):
+        actions = [self.action("rpc:stock.landed.cost.message_subscribe", "rpc")]
+        action = actions[0]
+        policy = self.policy({action["key"]: self.entry(action, "read_only")})
+        compiled = inventory.build_agent_readonly_runtime_policy(self.surface(actions), policy)
+        self.assertEqual(compiled["read_only_actions"], [])
+        self.assertEqual(compiled["write_actions"], [])
+        self.assertEqual(compiled["collaboration_actions"], [action["key"]])
 
-        self.assertEqual(runtime_policy["read_only_actions"], [])
-
-    def test_agent_readonly_allowlist_accepts_only_reviewed_explicit_helpers(self):
+    def test_native_helper_access_follows_its_reviewed_classification(self):
         action = self.action("rpc:usl.agent.current_identity", "rpc")
         surface = self.surface([action])
 
@@ -945,9 +998,13 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
             "rpc:account.move.action_choose_vendor_bill_merge_winner",
         ]
         actions = [self.action(key, "rpc") for key in keys]
-        policy = self.policy({action["key"]: self.entry(action, "read_only") for action in actions})
+        policy = self.policy({
+            action["key"]: self.entry(action, "read_only" if index < 2 else "recoverable")
+            for index, action in enumerate(actions)
+        })
         compiled = inventory.build_agent_readonly_runtime_policy(self.surface(actions), policy)
         self.assertEqual(compiled["read_only_actions"], sorted(keys[:2]))
+        self.assertEqual(compiled["write_actions"], sorted(keys[2:]))
 
     def test_tracked_agent_readonly_runtime_policy_is_bounded(self):
         runtime_policy = inventory.load_json(
@@ -959,24 +1016,20 @@ class TestPolicyValidation(ActionRiskInventoryTestCase):
         )
         for field in inventory.RUNTIME_POLICY_DERIVED_FIELDS:
             self.assertNotIn(field, runtime_policy)
-        read_actions = set(runtime_policy["read_only_actions"])
-        for action_key in inventory.AGENT_READONLY_EXPLICIT_ACTIONS:
-            self.assertIn(action_key, read_actions)
-        self.assertNotIn("rpc:usl.expense.batch.get_review_summary", read_actions)
-        for forbidden_suffix in (
-            ".action_archive",
-            ".action_unarchive",
-            ".activity_feedback",
-            ".activity_unlink",
-            ".button_immediate_install",
-            ".import_data",
-            ".web_read",
-            ".write",
-        ):
-            self.assertFalse(
-                any(action_key.endswith(forbidden_suffix) for action_key in read_actions),
-                forbidden_suffix,
-            )
+        failures = []
+        reviewed = inventory.normalize_policy_actions(
+            inventory.load_json(inventory.DEFAULT_POLICY), failures,
+        )
+        self.assertEqual(failures, [])
+        expected = {
+            key for key, entry in reviewed.items()
+            if key.startswith("rpc:") and entry["classification"] == "read_only"
+            and key.rsplit(".", 1)[-1] not in inventory.AGENT_COLLABORATION_METHODS
+        }
+        self.assertEqual(set(runtime_policy["read_only_actions"]), expected)
+        for name in ("collaboration_actions", "write_actions"):
+            self.assertTrue(expected.isdisjoint(runtime_policy[name]))
+        self.assertTrue(all(reviewed[key]["classification"] == "read_only" for key in expected))
 
     def test_refresh_seals_policy_and_compiles_runtime_artifact(self):
         surface, policy = self._valid_inventory()
