@@ -7,5 +7,6 @@ from . import (
     test_agents,
     test_orm_payload_contract,
     test_readonly_accounting_report,
+    test_native_grouping_reads,
 )
 from . import test_native_agent_chatter
