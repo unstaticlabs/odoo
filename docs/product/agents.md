@@ -175,3 +175,19 @@ Expense correction adds precise context for decisions: the same transaction
 returns the original and final financial values, with native tax totals and
 explicit document and company currencies. This context helps an Agent explain
 and check its work without adding Agent-specific restrictions.
+
+### Native attachments
+
+With writable application delegation, Agents can use native `ir.attachment`
+create, write and copy methods. Odoo checks the current attachment and each
+source or destination business record; another writable app does not grant
+write access to a read-only parent. Standalone files retain native creator
+ownership. Existing company, owner, accounting-evidence and permanent-deletion
+controls continue to apply. Globally read-only Agents keep their existing
+mutation limits; Chatter permissions are unchanged.
+
+For this Odoo revision, send binary content in `raw` (base64 in JSON-2), then
+read back `raw` and `checksum` to verify the stored file. The obsolete `datas`
+input is ignored by upstream and is no longer a readable field. Supply the
+native `res_model` / `res_id` and the intended allowed-company context; use the
+model's current field metadata rather than copying an older upload example.

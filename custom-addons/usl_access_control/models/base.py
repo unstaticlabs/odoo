@@ -35,7 +35,6 @@ _AGENT_AUDIT_EXCLUDED_MODELS = frozenset(
 _AGENT_GOVERNED_SIDE_EFFECT_MODELS = frozenset(
     {
         "bus.bus",
-        "ir.attachment",
         "mail.activity",
         "mail.followers",
         "mail.mail",

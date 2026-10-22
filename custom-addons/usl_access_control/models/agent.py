@@ -445,11 +445,21 @@ class UslAgent(models.Model):
         generic_groups = self._groups_from_xmlids(
             ("base.group_public", "base.group_portal", "base.group_user"),
         )
-        return any(
+        if any(
             access.group_id
             and access.group_id in effective_groups
             and (operation == "read" or access.group_id not in generic_groups)
             for access in access_rows
+        ):
+            return True
+        # Shared technical models can resolve their native internal-user ACL
+        # without turning an unrelated writable app into a business-model grant.
+        shared_access = getattr(
+            self.env.get(model_name), "_usl_agent_shared_model_access", None,
+        )
+        return bool(
+            shared_access
+            and shared_access(operation, effective_groups, access_rows)
         )
 
     def _api_method_access(self, model_name, method_name):
