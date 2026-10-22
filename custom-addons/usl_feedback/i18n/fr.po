@@ -2465,3 +2465,28 @@ msgstr "Les vérifications externes de l’assistant sont désactivées sur une 
 #: code:addons/usl_feedback/models/res_config_settings.py:0
 msgid "The Projects MCP endpoint could not be reached. Check its URL and service status."
 msgstr "Le MCP Projets est inaccessible. Vérifiez son URL et l’état du service."
+
+#. module: usl_feedback
+#: code:addons/usl_feedback/static/src/js/feedback_chat_window.js:0
+msgid "Send product feedback"
+msgstr "Envoyer un retour produit"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_project_task__usl_feedback_navigation_context
+msgid "Recent navigation"
+msgstr "Navigation récente"
+
+#. module: usl_feedback
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Page details include up to five recent navigation steps."
+msgstr "Les détails de la page incluent jusqu’à cinq étapes de navigation récentes."
+
+#. module: usl_feedback
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Expand preview"
+msgstr "Agrandir l’aperçu"
+
+#. module: usl_feedback
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Collapse preview"
+msgstr "Réduire l’aperçu"
