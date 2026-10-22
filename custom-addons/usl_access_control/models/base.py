@@ -566,6 +566,8 @@ class Base(models.AbstractModel):
 
     @api.model_create_multi
     def create(self, vals_list):
+        if not vals_list:
+            return super().create(vals_list)
         self._usl_reject_readonly_agent_mutation("create")
         self._usl_reject_agent_identity_mutation("create")
         # Guard only a call that stores something.  `create([])` returns
@@ -593,6 +595,8 @@ class Base(models.AbstractModel):
         return records
 
     def write(self, vals):
+        if not self:
+            return super().write(vals)
         self._usl_reject_readonly_agent_mutation("write")
         self._usl_reject_agent_identity_mutation("modify")
         # Likewise for a write that stores nothing.  Writing on the result of
@@ -622,6 +626,8 @@ class Base(models.AbstractModel):
         return result
 
     def unlink(self):
+        if not self:
+            return super().unlink()
         self._usl_reject_readonly_agent_mutation("unlink")
         self._usl_reject_agent_identity_mutation("delete")
         policy_entry = (
