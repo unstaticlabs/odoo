@@ -1456,6 +1456,7 @@
     "rpc:account.move.check_field_access",
     "rpc:account.move.export_data",
     "rpc:account.move.formatted_read_group",
+    "rpc:account.move.get_company_change_context",
     "rpc:account.move.get_draft_post_match_preview",
     "rpc:account.move.get_external_id",
     "rpc:account.move.get_field_translations",

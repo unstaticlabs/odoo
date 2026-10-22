@@ -206730,6 +206730,20 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.write:orm_write:2": "237fb81cc55425483b4dfe42cb732a2510c936c9980a716e764fbd68e29f1d97",
         "sink:usl_pocketid:custom-addons/usl_pocketid/models/sender_alias.py:hr.expense._get_employee_from_email:orm_write:2": "da34bee8777fed9033edea7acc9c1d87f7f7e63763df42705e167ded52dcbe82"
       }
+    },
+    {
+      "action_keys": [
+        "rpc:account.move.get_company_change_context"
+      ],
+      "classification": "read_only",
+      "consequence": "Returns bounded native readable invoice, company, financial-link, origin and evidence facts without writing records or contacting providers.",
+      "domain": "accounting",
+      "evidence_id": "invoice-company-context-20261017",
+      "id": "read_only.accounting.invoice_company_context_20261017",
+      "rationale": "Native @api.readonly method uses one repeatable-read snapshot, bounded search/read and native company compatibility domains. Record and field authority apply before identifiers or values leave Odoo. Native currency computation remains unchanged; no new sudo, write, reconciliation, evidence mutation, provider or approval sink is introduced. Target choices remain unresolved operator choices.",
+      "reviewed_digests": {
+        "rpc:account.move.get_company_change_context": "5eadb0e5dabc898b4cc565304e3faa6ac037405eb88f2bde04233b15e738b462"
+      }
     }
   ],
   "evidence_families": {
@@ -206945,6 +206959,12 @@
         "scripts/tests/test_action_risk_inventory.py::TestDiscovery.test_runtime_facts_replace_approximate_rpc_and_routes",
         "custom-addons/rebuild_account_migration/tests/test_report_header_cards.py::TestReportHeaderCards.test_trial_balance_counts_posted_movements_once",
         "custom-addons/rebuild_account_migration/tests/test_report_header_cards.py::TestReportHeaderCards.test_old_partial_preview_recalculates_without_fabricating_zero"
+      ]
+    },
+    "invoice-company-context-20261017": {
+      "contract": "Human and delegated read/write or read-only Agents read optional native context under company and field authority; paged detail and actual ledger links remain explicit and no business or provider data changes.",
+      "tests": [
+        "custom-addons/usl_accounting/tests/test_company_change_context.py::TestCompanyChangeContext"
       ]
     },
     "live-content-search-20261014": {

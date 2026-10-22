@@ -7238,3 +7238,22 @@ msgstr "Lien %(position)s dans l’e-mail source"
 #: code:addons/usl_accounting/wizard/linked_receipt_candidate_wizard.py:0
 msgid "%(label)s (link %(position)s in source email)"
 msgstr "%(label)s (lien %(position)s dans l’e-mail source)"
+
+#: code:addons/usl_accounting/models/company_change_context.py:0
+msgid "Company, offset and limit must be integers."
+msgstr "La société, le décalage et la limite doivent être des entiers."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/company_change_context.py:0
+msgid "Use an offset from 0 to 1000000 and a limit from 1 to 100."
+msgstr "Utilisez un décalage de 0 à 1000000 et une limite de 1 à 100."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/company_change_context.py:0
+msgid "Select an authorized target company in the current company scope."
+msgstr "Sélectionnez une société cible autorisée parmi les sociétés actuellement sélectionnées."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/company_change_context.py:0
+msgid "The context header exceeds its response budget."
+msgstr "L’en-tête du contexte dépasse la taille de réponse autorisée."

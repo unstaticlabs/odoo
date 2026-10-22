@@ -1706252,6 +1706252,49 @@
         }
       ],
       "xmlid": "usl_accounting.view_usl_mail_pdf_candidate_wizard_form"
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:account.analytic.account.with_context",
+        "rpc:account.move.check_access",
+        "rpc:account.move.ensure_one",
+        "rpc:account.move.is_purchase_document",
+        "rpc:account.move.is_sale_document",
+        "rpc:account.move.with_company",
+        "rpc:res.company.browse"
+      ],
+      "digest": "5eadb0e5dabc898b4cc565304e3faa6ac037405eb88f2bde04233b15e738b462",
+      "guards": [],
+      "key": "rpc:account.move.get_company_change_context",
+      "kind": "rpc",
+      "method": "get_company_change_context",
+      "model": "account.move",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7087536a8dfcb777dff4fb1ba981c880c0c6e21389b00bc4acb2f6626dd41ffc",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 141,
+          "path": "custom-addons/usl_accounting/models/company_change_context.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/models/company_change_context.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:account.analytic.account.with_context",
+        "rpc:account.move.check_access",
+        "rpc:account.move.ensure_one",
+        "rpc:account.move.with_company",
+        "rpc:res.company.browse"
+      ]
     }
   ],
   "country_codes": [

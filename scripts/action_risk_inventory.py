@@ -120,6 +120,7 @@ AGENT_READONLY_GENERIC_METHODS = frozenset(
 )
 AGENT_READONLY_EXPLICIT_ACTIONS = frozenset(
     {
+        "rpc:account.move.get_company_change_context",
         "rpc:account.move.get_draft_post_match_preview",
         "rpc:account.move.action_open_vendor_bill_merge_originals",
         "rpc:account.move.action_open_vendor_bill_merge_target",
