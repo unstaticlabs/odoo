@@ -43,7 +43,7 @@ export function openLinkedReceipt(env, action) {
         form.submit();
     } catch {
         popup.close();
-        env.services.notification.add(_t("The receipt website could not be opened. Try again from the expense."), {
+        env.services.notification.add(_t("The receipt website could not be opened. Try again from the document."), {
             type: "warning", sticky: true,
         });
     } finally {

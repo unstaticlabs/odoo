@@ -11,6 +11,7 @@ from psycopg2 import IntegrityError
 from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools import config, html2plaintext
+from odoo.fields import Domain
 
 MAX_CANDIDATES = 10
 MAX_DISCOVERED_LINKS = 100
@@ -656,13 +657,18 @@ class UslMailPdfRetrieval(models.Model):
 
     expense_id = fields.Many2one(
         "hr.expense",
-        required=True,
         index=True,
         ondelete="cascade",
         check_company=True,
     )
+    move_id = fields.Many2one(
+        "account.move", string="Vendor bill", index=True, ondelete="cascade",
+        check_company=True,
+    )
+    bill_request_user_id = fields.Many2one("res.users", readonly=True, ondelete="restrict")
+    bill_request_snapshot = fields.Json(readonly=True)
     company_id = fields.Many2one(
-        related="expense_id.company_id",
+        "res.company", compute="_compute_target_company",
         store=True,
         index=True,
     )
@@ -716,6 +722,76 @@ class UslMailPdfRetrieval(models.Model):
         "UNIQUE(source_message_id)",
         "A source email can only create one linked receipt retrieval.",
     )
+
+    _one_target = models.Constraint(
+        "CHECK ((expense_id IS NOT NULL)::integer + (move_id IS NOT NULL)::integer = 1)",
+        "A linked receipt belongs to one expense or vendor bill.",
+    )
+
+    @api.depends("expense_id.company_id", "move_id.company_id")
+    def _compute_target_company(self):
+        for retrieval in self:
+            retrieval.company_id = retrieval._target_record().company_id
+
+    def _target_record(self):
+        self.ensure_one()
+        return self.move_id or self.expense_id
+
+    @api.model
+    def _access_domain(self, operation):
+        domain = super()._access_domain(operation)
+        if not self.env.su:
+            # A request must not expose bill metadata beyond native bill access.
+            moves = self.env["account.move"]
+            bill_domain = Domain.FALSE
+            if moves.has_access("read"):
+                bill_domain = Domain("move_id", "in", moves._search([]))
+            domain &= Domain("move_id", "=", False) | bill_domain
+        return domain
+
+    def _target_is_eligible(self):
+        self.ensure_one()
+        if self.move_id:
+            return bool(self.move_id.exists() and self.move_id.move_type in
+                        ("in_invoice", "in_refund", "in_receipt") and self.move_id.state != "cancel")
+        return self._expense_is_eligible(self.expense_id)
+
+    def _bill_request_is_authorized(self):
+        self.ensure_one()
+        if not self.move_id:
+            return True
+        if not self.bill_request_user_id or not self.bill_request_user_id.active:
+            return False
+        try:
+            target = self.move_id.with_user(self.bill_request_user_id).with_context(
+                allowed_company_ids=[self.company_id.id],
+            )
+            if target.company_id not in target.env.companies:
+                return False
+            managed = getattr(target, "_usl_managed_agent", lambda: False)()
+            if managed and managed.state != "active":
+                return False
+            target.check_access("write")
+        except AccessError:
+            return False
+        return True
+
+    def _bill_source_snapshot(self):
+        self.ensure_one()
+        return (self.move_id.id, self.company_id.id, self.source_message_id.id,
+                self.source_message_id.model, self.source_message_id.res_id,
+                self.selected_fingerprint, hashlib.sha256(
+                    (str(self.source_message_id.subject or "") + "\0"
+                     + str(self.source_message_id.email_from or "") + "\0"
+                     + str(self.source_message_id.body or "")).encode(),
+                ).hexdigest())
+
+    @api.model
+    def _discover_for_move(self, move, message):
+        if (not move or move.move_type not in ("in_invoice", "in_refund", "in_receipt")
+                or move.state == "cancel" or move.message_main_attachment_id):
+            return self.browse()
+        return self._discover_for_expense(move, message, _vendor_bill=True)
 
     @api.model
     def _feature_enabled(self):
@@ -944,8 +1020,8 @@ class UslMailPdfRetrieval(models.Model):
         )
 
     @api.model
-    def _discover_for_expense(self, expense, message):
-        if not self._feature_enabled() or not self._expense_is_eligible(expense):
+    def _discover_for_expense(self, expense, message, *, _vendor_bill=False):
+        if not self._feature_enabled() or (not _vendor_bill and not self._expense_is_eligible(expense)):
             return self.browse()
         if self.sudo().search_count([("source_message_id", "=", message.id)]):
             return self.browse()
@@ -975,7 +1051,7 @@ class UslMailPdfRetrieval(models.Model):
         )
         retrieval = self.sudo().create(
             {
-                "expense_id": expense.id,
+                ("move_id" if _vendor_bill else "expense_id"): expense.id,
                 "source_message_id": message.id,
                 "candidate_features": [self._safe_candidate_snapshot(item) for item in candidates],
             },
@@ -992,6 +1068,13 @@ class UslMailPdfRetrieval(models.Model):
 
     def _check_can_manage(self):
         self.ensure_one()
+        if self.move_id:
+            self.check_access("read")
+            target = self.move_id.with_user(self.env.user)
+            if target.company_id not in target.env.companies:
+                raise AccessError(_("Select this bill’s company before managing its linked receipt."))
+            target.check_access("write")
+            return
         self.expense_id.check_access("read")
         own_expense = self.expense_id.employee_id.user_id == self.env.user
         manager = self.env.user.has_group("account.group_account_manager")
@@ -1002,7 +1085,9 @@ class UslMailPdfRetrieval(models.Model):
         """Return the selected candidate when an employee may open it manually."""
         self.ensure_one()
         self.check_access("read")
-        if self.expense_id.employee_id.user_id != self.env.user:
+        if self.move_id:
+            self._check_can_manage()
+        elif self.expense_id.employee_id.user_id != self.env.user:
             raise AccessError(_("Only the expense owner can open its receipt website."))
         if not self._feature_enabled():
             raise UserError(_("Linked receipt retrieval is disabled in this environment."))
@@ -1015,10 +1100,12 @@ class UslMailPdfRetrieval(models.Model):
             )
         ):
             raise UserError(_("This receipt recovery request is no longer active."))
-        if not self._expense_is_eligible(self.expense_id):
-            raise UserError(_("This expense can no longer receive a linked receipt."))
+        if not self._target_is_eligible():
+            raise UserError(_("This bill can no longer receive a linked document.") if self.move_id
+                            else _("This expense can no longer receive a linked receipt."))
         if self._has_manual_receipt():
-            raise UserError(_("A receipt has already been attached to this expense."))
+            raise UserError(_("A document is already attached to this bill.") if self.move_id
+                            else _("A receipt has already been attached to this expense."))
         host = self.env["usl.mail.pdf.host"].sudo().search(
             [("hostname", "=", self.starting_host)],
             limit=1,
@@ -1044,7 +1131,7 @@ class UslMailPdfRetrieval(models.Model):
         if not self.env.cr.fetchone():
             raise UserError(_("This receipt recovery request is no longer active."))
         self.invalidate_recordset()
-        self.expense_id.invalidate_recordset()
+        self._target_record().invalidate_recordset()
         candidate = self._check_can_open_handoff(
             expected_generation=expected_generation,
         )
@@ -1169,8 +1256,16 @@ class UslMailPdfRetrieval(models.Model):
                 },
             )
             return
+        if self.move_id:
+            self._check_can_manage()
+            self.sudo().write({"bill_request_user_id": self.env.user.id,
+                               "bill_request_snapshot": list(self._bill_source_snapshot())})
         self.sudo().write({"state": "queued"})
-        self.with_delay(
+        # Queue provenance follows the target company while retaining all
+        # selected companies; a bill need not belong to the current company.
+        worker = (self.with_company(self.company_id).with_context(company_id=self.company_id.id)
+                  if self.move_id else self)
+        worker.with_delay(
             channel="root.receipt_fetch",
             max_retries=4,
             description=_("Fetch linked receipt %(retrieval)s", retrieval=self.id),
@@ -1231,7 +1326,7 @@ class UslMailPdfRetrieval(models.Model):
         if not self.env.cr.fetchone():
             raise UserError(_("This receipt recovery request is no longer active."))
         self.invalidate_recordset()
-        self.expense_id.invalidate_recordset()
+        self._target_record().invalidate_recordset()
         self._check_can_manage()
         if self.state != "needs_attention" and not self._queue_is_stale():
             raise UserError(_(
@@ -1283,12 +1378,18 @@ class UslMailPdfRetrieval(models.Model):
 
     def _has_manual_receipt(self):
         self.ensure_one()
+        if self.move_id and self.env["ir.attachment"].sudo().search_count([
+            ("res_model", "=", "account.move"), ("res_id", "=", self.move_id.id),
+            ("res_field", "=", False), ("id", "!=", self.attachment_id.id),
+            "|", ("mimetype", "=", "application/pdf"), ("mimetype", "=like", "image/%"),
+        ], limit=1):
+            return True
         if (
-            self.expense_id.message_main_attachment_id
-            and self.expense_id.message_main_attachment_id != self.attachment_id
+            self._target_record().message_main_attachment_id
+            and self._target_record().message_main_attachment_id != self.attachment_id
         ):
             return True
-        messages = self.expense_id.message_ids.filtered(
+        messages = self._target_record().message_ids.filtered(
             lambda item: item.id != self.source_message_id.id,
         )
         return any(self._message_has_receipt(message) for message in messages)

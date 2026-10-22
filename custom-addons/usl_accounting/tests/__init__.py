@@ -22,3 +22,7 @@ from . import test_vendor_bill_merge
 from . import test_taxed_payment_rate
 
 from . import test_bill_terms
+
+from . import test_vendor_linked_receipt
+
+from . import test_vendor_linked_receipt_ui

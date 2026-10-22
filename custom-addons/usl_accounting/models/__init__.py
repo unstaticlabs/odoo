@@ -25,6 +25,7 @@ from . import (
     invoice_document,
     linked_receipt,
     linked_receipt_expense,
+    linked_receipt_move,
     linked_receipt_job,
     queue_job,
     readonly_evidence,
