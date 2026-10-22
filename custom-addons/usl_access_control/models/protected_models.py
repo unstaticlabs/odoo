@@ -1,5 +1,10 @@
 from odoo import api, models
 
+from .agent_policy_tokens import (
+    DOCUMENT_DELETION_APPROVAL_GUARD_TOKEN,
+    DOCUMENT_PERMANENT_DELETE_GUARD_TOKEN,
+)
+
 
 class ResCompany(models.Model):
     _inherit = "res.company"
@@ -236,7 +241,9 @@ class UslDocument(models.Model):
         return result
 
     def approve_permanent_deletion(self, reason):
-        if not self.env.context.get("usl_document_deletion_approval_guarded"):
+        if self.env.context.get(
+            "usl_document_deletion_approval_guarded",
+        ) is not DOCUMENT_DELETION_APPROVAL_GUARD_TOKEN:
             self._usl_require_irreversible_action(
                 "documents.permanent_deletion.approve",
                 "approve permanent document deletion",
@@ -250,11 +257,15 @@ class UslDocument(models.Model):
         )
         return super(
             UslDocument,
-            self.with_context(usl_document_deletion_approval_guarded=True),
+            self.with_context(
+                usl_document_deletion_approval_guarded=DOCUMENT_DELETION_APPROVAL_GUARD_TOKEN,
+            ),
         ).action_approve_permanent_deletion()
 
     def permanently_delete_from_trash(self):
-        if not self.env.context.get("usl_document_permanent_delete_guarded"):
+        if self.env.context.get(
+            "usl_document_permanent_delete_guarded",
+        ) is not DOCUMENT_PERMANENT_DELETE_GUARD_TOKEN:
             self._usl_require_irreversible_action(
                 "documents.permanent_delete",
                 "permanently delete a document",
@@ -268,7 +279,9 @@ class UslDocument(models.Model):
         )
         return super(
             UslDocument,
-            self.with_context(usl_document_permanent_delete_guarded=True),
+            self.with_context(
+                usl_document_permanent_delete_guarded=DOCUMENT_PERMANENT_DELETE_GUARD_TOKEN,
+            ),
         ).action_permanently_delete_from_trash()
 
 

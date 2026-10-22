@@ -5377,7 +5377,7 @@
       ],
       "sources": [
         {
-          "line": 196,
+          "line": 201,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5395,11 +5395,11 @@
       ],
       "sources": [
         {
-          "line": 16,
+          "line": 21,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
-          "line": 218,
+          "line": 223,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5416,7 +5416,7 @@
       ],
       "sources": [
         {
-          "line": 8,
+          "line": 13,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5481,7 +5481,7 @@
       ],
       "sources": [
         {
-          "line": 56,
+          "line": 61,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5498,7 +5498,7 @@
       ],
       "sources": [
         {
-          "line": 292,
+          "line": 305,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5515,7 +5515,7 @@
       ],
       "sources": [
         {
-          "line": 278,
+          "line": 291,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5532,13 +5532,13 @@
       ],
       "sources": [
         {
-          "line": 285,
+          "line": 298,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
     },
     {
-      "digest": "cf51bb1a00246cc929d137830c61409f9ec7905a973c6b02f83a3c2f6c8c97fc",
+      "digest": "cd92bf92d8afe84c4442ac5f27f48b4c5f6ad8c888196bd4d51e3747908ea0a9",
       "key": "guard:documents.permanent_delete",
       "kind": "guard",
       "modules": [
@@ -5553,17 +5553,17 @@
       ],
       "sources": [
         {
-          "line": 256,
+          "line": 265,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
-          "line": 264,
+          "line": 275,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
     },
     {
-      "digest": "3fc1dea7d77a3e9abf192c8acfd7fd4fab45adf1d38e81ecd7eaaf6db6d33a2b",
+      "digest": "975d517d3016290989e33d62ae41e88c7ce5e918791e8bce0e8f364f81879985",
       "key": "guard:documents.permanent_deletion.approve",
       "kind": "guard",
       "modules": [
@@ -5578,11 +5578,11 @@
       ],
       "sources": [
         {
-          "line": 238,
+          "line": 243,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
-          "line": 246,
+          "line": 253,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5602,7 +5602,7 @@
       ],
       "sources": [
         {
-          "line": 311,
+          "line": 324,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5622,7 +5622,7 @@
       ],
       "sources": [
         {
-          "line": 304,
+          "line": 317,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5642,7 +5642,7 @@
       ],
       "sources": [
         {
-          "line": 340,
+          "line": 353,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5659,7 +5659,7 @@
       ],
       "sources": [
         {
-          "line": 379,
+          "line": 392,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5679,7 +5679,7 @@
       ],
       "sources": [
         {
-          "line": 354,
+          "line": 367,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5699,7 +5699,7 @@
       ],
       "sources": [
         {
-          "line": 347,
+          "line": 360,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5719,7 +5719,7 @@
       ],
       "sources": [
         {
-          "line": 361,
+          "line": 374,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5739,7 +5739,7 @@
       ],
       "sources": [
         {
-          "line": 322,
+          "line": 335,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5759,7 +5759,7 @@
       ],
       "sources": [
         {
-          "line": 368,
+          "line": 381,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5779,7 +5779,7 @@
       ],
       "sources": [
         {
-          "line": 386,
+          "line": 399,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5796,7 +5796,7 @@
       ],
       "sources": [
         {
-          "line": 98,
+          "line": 103,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5813,7 +5813,7 @@
       ],
       "sources": [
         {
-          "line": 207,
+          "line": 212,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5840,39 +5840,39 @@
       ],
       "sources": [
         {
-          "line": 33,
+          "line": 38,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
-          "line": 44,
+          "line": 49,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
-          "line": 119,
+          "line": 124,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
-          "line": 130,
+          "line": 135,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
-          "line": 134,
+          "line": 139,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
-          "line": 138,
+          "line": 143,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
-          "line": 169,
+          "line": 174,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
-          "line": 185,
+          "line": 190,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
-          "line": 333,
+          "line": 346,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5895,19 +5895,19 @@
       ],
       "sources": [
         {
-          "line": 153,
+          "line": 158,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
-          "line": 157,
+          "line": 162,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
-          "line": 161,
+          "line": 166,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
-          "line": 177,
+          "line": 182,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5928,11 +5928,11 @@
       ],
       "sources": [
         {
-          "line": 145,
+          "line": 150,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
-          "line": 149,
+          "line": 154,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -117180,7 +117180,7 @@
           "path": "addons/account/models/partner.py"
         },
         {
-          "line": 44,
+          "line": 49,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -234004,7 +234004,7 @@
       ],
       "sources": [
         {
-          "line": 196,
+          "line": 201,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -294107,7 +294107,7 @@
           "path": "addons/base_install_request/wizard/base_module_install_request.py"
         },
         {
-          "line": 169,
+          "line": 174,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -295825,7 +295825,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 177,
+          "line": 182,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -482055,7 +482055,7 @@
           "path": "odoo/addons/base/models/ir_actions.py"
         },
         {
-          "line": 79,
+          "line": 84,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -487996,6 +487996,10 @@
       ],
       "sources": [
         {
+          "line": 103,
+          "path": "custom-addons/usl_access_control/models/protected_models.py"
+        },
+        {
           "line": 196,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         },
@@ -488022,10 +488026,6 @@
         {
           "line": 82,
           "path": "custom-addons/usl_accounting/models/readonly_evidence.py"
-        },
-        {
-          "line": 98,
-          "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
@@ -495918,7 +495918,7 @@
       ],
       "sources": [
         {
-          "line": 111,
+          "line": 116,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -536560,7 +536560,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 134,
+          "line": 139,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -536606,7 +536606,7 @@
       ],
       "sources": [
         {
-          "line": 138,
+          "line": 143,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -536652,7 +536652,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 157,
+          "line": 162,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -536695,7 +536695,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 149,
+          "line": 154,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -536742,7 +536742,7 @@
       ],
       "sources": [
         {
-          "line": 130,
+          "line": 135,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -536817,7 +536817,7 @@
       ],
       "sources": [
         {
-          "line": 153,
+          "line": 158,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -536894,7 +536894,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 145,
+          "line": 150,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -541210,7 +541210,7 @@
           "path": "addons/account/models/ir_module.py"
         },
         {
-          "line": 161,
+          "line": 166,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -770916,7 +770916,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 185,
+          "line": 190,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -777931,7 +777931,7 @@
       ],
       "sources": [
         {
-          "line": 386,
+          "line": 399,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -777978,7 +777978,7 @@
           "path": "addons/l10n_fr_pdp/wizard/pdp_config_wizard.py"
         },
         {
-          "line": 379,
+          "line": 392,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -781415,7 +781415,7 @@
       ],
       "sources": [
         {
-          "line": 311,
+          "line": 324,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -781568,7 +781568,7 @@
       ],
       "sources": [
         {
-          "line": 304,
+          "line": 317,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -785064,7 +785064,7 @@
       ],
       "sources": [
         {
-          "line": 322,
+          "line": 335,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -938594,7 +938594,7 @@
       ],
       "sources": [
         {
-          "line": 218,
+          "line": 223,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1074437,6 +1074437,10 @@
           "path": "addons/product/models/res_company.py"
         },
         {
+          "line": 13,
+          "path": "custom-addons/usl_access_control/models/protected_models.py"
+        },
+        {
           "line": 196,
           "path": "addons/stock/models/res_company.py"
         },
@@ -1074491,10 +1074495,6 @@
         {
           "line": 532,
           "path": "custom-addons/usl_access_control/models/base.py"
-        },
-        {
-          "line": 8,
-          "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
           "path": "decorators.py"
@@ -1075601,7 +1075601,7 @@
           "path": "odoo/addons/base/models/res_company.py"
         },
         {
-          "line": 33,
+          "line": 38,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1077589,7 +1077589,7 @@
       ],
       "sources": [
         {
-          "line": 16,
+          "line": 21,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1079218,7 +1079218,7 @@
           "path": "addons/account/models/res_config_settings.py"
         },
         {
-          "line": 333,
+          "line": 346,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1079754,7 +1079754,7 @@
           "path": "addons/account_peppol/models/res_config_settings.py"
         },
         {
-          "line": 354,
+          "line": 367,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1079877,7 +1079877,7 @@
           "path": "addons/account_peppol/models/res_config_settings.py"
         },
         {
-          "line": 361,
+          "line": 374,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1079927,7 +1079927,7 @@
           "path": "addons/account_peppol/models/res_config_settings.py"
         },
         {
-          "line": 340,
+          "line": 353,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1079975,7 +1079975,7 @@
           "path": "addons/account_peppol/models/res_config_settings.py"
         },
         {
-          "line": 368,
+          "line": 381,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1080022,7 +1080022,7 @@
           "path": "addons/account_peppol/models/res_config_settings.py"
         },
         {
-          "line": 347,
+          "line": 360,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1233164,7 +1233164,7 @@
           "path": "addons/stock_landed_costs/models/stock_landed_cost.py"
         },
         {
-          "line": 207,
+          "line": 212,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1322390,7 +1322390,7 @@
       "delegates": [
         "rpc:usl.document.with_context"
       ],
-      "digest": "9386761f4efad9be3dbf26347f7a0ff9a9fad9fdea7b4197c0ce8c4943922e40",
+      "digest": "a8a3a952ed7e4bfb36b1a1b85d084ebf5533efa5a050e0175c2ef79882e53769",
       "guards": [
         "guard:documents.permanent_deletion.approve"
       ],
@@ -1322406,11 +1322406,11 @@
       "risk_flags": [
         "permanent_deletion"
       ],
-      "runtime_digest": "3b42525c23958d062bb647dd106d65ef35c0ce00a212f750446c7d6e02e4039b",
+      "runtime_digest": "03773699928bf87fb15d72909bd2a26110d891dc537f87c514d25ef4fdc215cc",
       "sinks": [],
       "sources": [
         {
-          "line": 246,
+          "line": 253,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1322723,7 +1322723,7 @@
       "delegates": [
         "rpc:usl.document.with_context"
       ],
-      "digest": "8c6ef61a3bddaa6c8f291434c3a855f83d7fb7e456483ddfdf0f394b0861fae1",
+      "digest": "d890a4617de4cde2506292ef570a746d271e15d1157280d7a821e5048b6dffa1",
       "guards": [
         "guard:documents.permanent_delete"
       ],
@@ -1322739,11 +1322739,11 @@
       "risk_flags": [
         "permanent_deletion"
       ],
-      "runtime_digest": "33a670e3c852d8f78da04e66c203f25e5ac82b92b46e412af5bb9a81aba2966d",
+      "runtime_digest": "a47f48eeaa1fd3942e428c15c9ad704e93a34f41473ff1549500ec4ad3b036f1",
       "sinks": [],
       "sources": [
         {
-          "line": 264,
+          "line": 275,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1323334,7 +1323334,7 @@
         "rpc:usl.document.ensure_one",
         "rpc:usl.document.sudo"
       ],
-      "digest": "5c46308d81a573bb9f4a58a81095b5bed8923075438fc9e21a8697c0e4d99666",
+      "digest": "98a2658b4dec4227c71bdbecea9c9815949b94cc1caa13ef8e772832b88a2bfb",
       "guards": [
         "guard:documents.permanent_deletion.approve"
       ],
@@ -1323350,14 +1323350,14 @@
       "risk_flags": [
         "permanent_deletion"
       ],
-      "runtime_digest": "ebb2e74fd7daad1c240f363fe4dd950ae8c658d7103d9fdcfc093e727da212cd",
+      "runtime_digest": "5efda1d94f15b44c56ec4e27d39a58080352f472ad305ce92437bfbf0aa30ecd",
       "sinks": [
         "orm_write",
         "sudo"
       ],
       "sources": [
         {
-          "line": 238,
+          "line": 243,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1325356,7 +1325356,7 @@
       ],
       "sources": [
         {
-          "line": 233,
+          "line": 238,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1332054,7 +1332054,7 @@
       ],
       "sources": [
         {
-          "line": 292,
+          "line": 305,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1332167,7 +1332167,7 @@
       ],
       "sources": [
         {
-          "line": 278,
+          "line": 291,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1332209,7 +1332209,7 @@
       ],
       "sources": [
         {
-          "line": 285,
+          "line": 298,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1342937,7 +1342937,7 @@
         "rpc:usl.document.message_post",
         "rpc:usl.document.sudo"
       ],
-      "digest": "a403a6b89434edbae1fb711d5cb2aa02876a676fd94b5f0de4abdf74e3cdb31e",
+      "digest": "fae5a35afb8db96f893e28f5d80e51a2ee96a088ab956ebe87874b0acdb8f4ff",
       "guards": [
         "guard:documents.permanent_delete"
       ],
@@ -1342953,7 +1342953,7 @@
       "risk_flags": [
         "permanent_deletion"
       ],
-      "runtime_digest": "fe753e81fcae7ad935799b13b7a04d75d4d9e1f5a4f3535568503280c2988118",
+      "runtime_digest": "f4a5baabfbc782bf8e890fa4049890bfe49d954ec938d884994bd5aa78d2aca0",
       "sinks": [
         "message_send",
         "orm_write",
@@ -1342961,7 +1342961,7 @@
       ],
       "sources": [
         {
-          "line": 256,
+          "line": 265,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1612651,7 +1612651,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 56,
+          "line": 61,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -1612672,7 +1612672,7 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 98,
+          "line": 103,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -1612693,7 +1612693,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 8,
+          "line": 13,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -1612714,7 +1612714,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 16,
+          "line": 21,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -1706148,11 +1706148,11 @@
       "version": ""
     },
     {
-      "manifest_sha256": "5697b43379473ef646c789828b1b656bf05122c2b43b56234e6654b251aaf00a",
+      "manifest_sha256": "d8448028fb5dfb0eefd197f4acfbc448cfc7616efda9c230e7d56418e86411fc",
       "name": "usl_access_control",
       "origin": "custom",
-      "source_sha256": "f17ba91d277dbc4d294553789e6f7bfd90320e77c555b46ef8ceaa8f3a3049f2",
-      "version": "saas~19.3.1.8.1"
+      "source_sha256": "28eee35136f418f49493b2e38c74472c19922d9e988deb594f6306a4197f042a",
+      "version": "saas~19.3.1.8.3"
     },
     {
       "manifest_sha256": "143d8d6c26c80091ed05872858fbacb83d9b47fe7ad165acbf5de811d7622ec6",

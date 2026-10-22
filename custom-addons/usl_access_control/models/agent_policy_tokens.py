@@ -2,6 +2,10 @@
 
 from dataclasses import dataclass, field
 
+# Issued only by the existing document actions after irreversible authority checks.
+DOCUMENT_DELETION_APPROVAL_GUARD_TOKEN = object()
+DOCUMENT_PERMANENT_DELETE_GUARD_TOKEN = object()
+
 AGENT_COLLABORATION_TOKEN = object()
 AGENT_COLLABORATION_CONTEXT_KEY = "usl_agent_collaboration_token"
 
