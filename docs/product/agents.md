@@ -17,6 +17,15 @@ ordinary applications through the API. It never lets the Agent manage users,
 authentication, access-control groups, ACLs, record rules, other Agents, API
 credentials or its own lifecycle. Irreversible Actions are never delegable.
 
+Ordinary company settings, including the company name and phone number, use
+that same native delegated Settings access. Accounting lock dates retain their
+existing Irreversible Actions requirement, including when a date is cleared or
+submitted unchanged. Creating a company and installing its localization also
+retain their existing controls. Company configuration follows Odoo’s global
+ERP Manager record rule, so native Settings authority can cover company records
+outside the business-company selection. Company-owned business records still
+use the delegated companies and the owner’s native record rules.
+
 Each application can be set independently to **No access**, **Read-only**, or
 one of the owner's native Odoo access levels. The two shortcuts prefill every
 row with read-only or the highest safe owner level; they do not save or lock a
