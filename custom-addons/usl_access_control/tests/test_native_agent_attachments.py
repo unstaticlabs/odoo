@@ -182,13 +182,8 @@ class TestNativeAgentAttachments(TransactionCase):
         self.assertEqual(human.name, "[QA] Human standalone")
         self.assertEqual(bytes(agent_file.raw), ORIGINAL)
 
-    def test_protected_unlink_and_chatter_mapping_remain_unchanged(self):
+    def test_protected_unlink_remains_unchanged(self):
         file = self._call("create", vals_list=[self._values()])
         with self.assertRaises(AccessError):
             self._call("unlink", ids=file.ids)
         self.assertTrue(file.exists())
-        for method in ("create", "write"):
-            with self.assertRaises(AccessError):
-                UslAgentJson2Controller._check_agent_call(
-                    agent=self.agents["rw"], model_name="mail.message", method_name=method, kwargs={},
-                )

@@ -184,10 +184,33 @@ source or destination business record; another writable app does not grant
 write access to a read-only parent. Standalone files retain native creator
 ownership. Existing company, owner, accounting-evidence and permanent-deletion
 controls continue to apply. Globally read-only Agents keep their existing
-mutation limits; Chatter permissions are unchanged.
+mutation limits.
 
 For this Odoo revision, send binary content in `raw` (base64 in JSON-2), then
 read back `raw` and `checksum` to verify the stored file. The obsolete `datas`
 input is ignored by upstream and is no longer a readable field. Supply the
 native `res_model` / `res_id` and the intended allowed-company context; use the
 model's current field metadata rather than copying an older upload example.
+
+### Native Chatter
+
+With writable application delegation, Agents can use native `mail.message`
+create, write and read methods. Odoo checks the message's native author,
+recipient or notification relationship and its parent-record fallback rules.
+This is not a parent-write-only operation: tasks and bills allow native posting
+through read access, and authors or recipients may edit messages under native
+rules even when the parent is read-only. Entirely read-only delegation retains
+its existing generic mutation limits and supported note/comment posting.
+
+Use `model` / `res_id` for a message's native parent and the intended company
+context. Native restrictions on changing that parent and on editing restricted
+Accounting audit messages still apply. Supply HTML to the native message body
+field; when using `message_post`, set `body_is_html=True` for intentional markup
+or let Odoo escape plain text. Read back the stored body, author, attachments
+and creator rather than assuming how a client rendered it.
+
+`mcp_revise_own_message` remains an optional convenience for correcting a recent
+own note with its existing audit and edited indication. Its time, size and
+subtype rules apply to that helper. Generic native message writes keep their
+ordinary rules without those additional limits. Owner/current-identity,
+company, read-only delegation and protected deletion controls remain unchanged.
