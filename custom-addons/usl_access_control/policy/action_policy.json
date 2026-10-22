@@ -206460,6 +206460,30 @@
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/project.py:project.project.write:orm_write:1": "2f989062dd69e1a444127e1353c9da9c56ae84e196326e091f9b3706c90bdec0",
         "sink:usl_mattermost:custom-addons/usl_mattermost/models/project.py:res.users.write:orm_write:1": "b51c8e2305ae6efc82e7365ff1b3deb21324d6c288c1a8d11a87dd58f46127f9"
       }
+    },
+    {
+      "action_keys": [
+        "rpc:account.move.attach_source_evidence",
+        "rpc:hr.expense.attach_source_evidence",
+        "sink:usl_documents:custom-addons/usl_documents/models/source_evidence.py:usl.document._attach_source_evidence:message_send:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/source_evidence.py:usl.document._attach_source_evidence:orm_create:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/source_evidence.py:usl.document._attach_source_evidence:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/source_evidence.py:usl.document._attach_source_evidence:orm_write:2"
+      ],
+      "classification": "operational",
+      "consequence": "Appends exact original evidence to one authorized expense or accounting entry, optionally selects the main attachment, and records attribution without moving originals or changing financial state.",
+      "domain": "documents_and_communications",
+      "evidence_id": "source-evidence-handoff-20261017",
+      "id": "operational.source-evidence-handoff",
+      "rationale": "The two business-model adapters delegate a private helper under the caller's native read/write and selected-company authority. Input is either bounded exact caller-provided bytes, a natively readable attachment, or an archived original authorized through the same version/binary descriptor as native download. Archived reads pin the native version and verify its stored checksum; provider access only reads the configured original. No source is moved, deleted, renamed or published. An authorized row lock and ordinary native main-field write serialize first creation through native transaction retry, with same-target/name/MIME/content reuse. Native attachment creation, post-persistence fingerprint/MIME verification, optional main selection and an attributed non-notifying internal note share one savepoint. Existing in-process Agent collaboration delegates only native side effects under the already-authorized business record without sudo or a generic attachment grant. Native human expense attachment boundaries remain unchanged and return accounting-entry recovery guidance. No new Agent-only business rule, approval, financial transition or provider mutation is introduced.",
+      "reviewed_digests": {
+        "rpc:account.move.attach_source_evidence": "8fc3fb4147c638aba76cda3d84b9878809bdfcc907bb0e9b8fd65061bf21ca7a",
+        "rpc:hr.expense.attach_source_evidence": "8fc3fb4147c638aba76cda3d84b9878809bdfcc907bb0e9b8fd65061bf21ca7a",
+        "sink:usl_documents:custom-addons/usl_documents/models/source_evidence.py:usl.document._attach_source_evidence:message_send:1": "d428c4dcc6a6f92dce4cd53a60449245e8c0680dc485ebb48be466d4dcbedb87",
+        "sink:usl_documents:custom-addons/usl_documents/models/source_evidence.py:usl.document._attach_source_evidence:orm_create:1": "d9bec8584134d278db7b1e38fb4da43bbafe02122b3babb98151632e5b0446a1",
+        "sink:usl_documents:custom-addons/usl_documents/models/source_evidence.py:usl.document._attach_source_evidence:orm_write:1": "95127e3e79a8b6067d35fae7b2a47ac4dd6c1797a9a35b8f20d03b72d33de76f",
+        "sink:usl_documents:custom-addons/usl_documents/models/source_evidence.py:usl.document._attach_source_evidence:orm_write:2": "321069975d7e61e2a41dda1a7d7d797328938b42e033e8c8f09872f239325bdb"
+      }
     }
   ],
   "evidence_families": {
@@ -206789,6 +206813,12 @@
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_readonly_scope_uses_owner_private_project_and_assignment_rules",
         "custom-addons/rebuild_account_migration/tests/test_report_header_cards.py::TestReportHeaderCards.test_trial_balance_counts_posted_movements_once",
         "custom-addons/rebuild_account_migration/tests/test_report_header_cards.py::TestReportHeaderCards.test_old_partial_preview_recalculates_without_fabricating_zero"
+      ]
+    },
+    "source-evidence-handoff-20261017": {
+      "contract": "Exact PDF/image bytes and original filename/MIME survive client handoff or copying from natively readable attachment/current authorized archived original. Same target/name/MIME/content reuses evidence without duplicate notes; separate targets retain separate owned rows and native binary deduplication. Source evidence stays unchanged. Company/user/read-only boundaries, forged serializable authority, malformed/transformed content, pending archive permissions, changed archived checksum and late audit rollback are exercised. Human and Agent native expense attachment rules remain; ordinary accountants can append supplementary evidence to posted accounting entries without financial transitions.",
+      "tests": [
+        "custom-addons/usl_documents/tests/test_source_evidence.py::TestSourceEvidence"
       ]
     },
     "task-github-reference-20261014": {

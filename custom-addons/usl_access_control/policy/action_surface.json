@@ -141830,6 +141830,33 @@
     {
       "abstract": false,
       "archiveable": false,
+      "digest": "8fc3fb4147c638aba76cda3d84b9878809bdfcc907bb0e9b8fd65061bf21ca7a",
+      "guards": [],
+      "key": "rpc:account.move.attach_source_evidence",
+      "kind": "rpc",
+      "method": "attach_source_evidence",
+      "model": "account.move",
+      "modules": [
+        "usl_documents"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "4f5706fdd3bb0723ed26eb1619dee3e1b316eea4ef9fcd7df3abd7507ce3171b",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 209,
+          "path": "custom-addons/usl_documents/models/source_evidence.py"
+        },
+        {
+          "path": "custom-addons/usl_documents/models/source_evidence.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
       "delegates": [
         "rpc:account.immediate.settlement.sudo",
         "rpc:account.move.action_pdp_open_response_wizard",
@@ -412386,6 +412413,33 @@
         "rpc:hr.expense.filtered",
         "rpc:ir.attachment.browse"
       ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8fc3fb4147c638aba76cda3d84b9878809bdfcc907bb0e9b8fd65061bf21ca7a",
+      "guards": [],
+      "key": "rpc:hr.expense.attach_source_evidence",
+      "kind": "rpc",
+      "method": "attach_source_evidence",
+      "model": "hr.expense",
+      "modules": [
+        "usl_documents"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "4f5706fdd3bb0723ed26eb1619dee3e1b316eea4ef9fcd7df3abd7507ce3171b",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 202,
+          "path": "custom-addons/usl_documents/models/source_evidence.py"
+        },
+        {
+          "path": "custom-addons/usl_documents/models/source_evidence.py"
+        }
+      ],
+      "transient": false
     },
     {
       "abstract": false,
@@ -1631107,6 +1631161,66 @@
       ]
     },
     {
+      "digest": "d428c4dcc6a6f92dce4cd53a60449245e8c0680dc485ebb48be466d4dcbedb87",
+      "key": "sink:usl_documents:custom-addons/usl_documents/models/source_evidence.py:usl.document._attach_source_evidence:message_send:1",
+      "kind": "sink",
+      "modules": [
+        "usl_documents"
+      ],
+      "sink_kind": "message_send",
+      "sources": [
+        {
+          "line": 20,
+          "path": "custom-addons/usl_documents/models/source_evidence.py"
+        }
+      ]
+    },
+    {
+      "digest": "d9bec8584134d278db7b1e38fb4da43bbafe02122b3babb98151632e5b0446a1",
+      "key": "sink:usl_documents:custom-addons/usl_documents/models/source_evidence.py:usl.document._attach_source_evidence:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_documents"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 20,
+          "path": "custom-addons/usl_documents/models/source_evidence.py"
+        }
+      ]
+    },
+    {
+      "digest": "95127e3e79a8b6067d35fae7b2a47ac4dd6c1797a9a35b8f20d03b72d33de76f",
+      "key": "sink:usl_documents:custom-addons/usl_documents/models/source_evidence.py:usl.document._attach_source_evidence:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_documents"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 20,
+          "path": "custom-addons/usl_documents/models/source_evidence.py"
+        }
+      ]
+    },
+    {
+      "digest": "321069975d7e61e2a41dda1a7d7d797328938b42e033e8c8f09872f239325bdb",
+      "key": "sink:usl_documents:custom-addons/usl_documents/models/source_evidence.py:usl.document._attach_source_evidence:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "usl_documents"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 20,
+          "path": "custom-addons/usl_documents/models/source_evidence.py"
+        }
+      ]
+    },
+    {
       "digest": "ecbf0d62cf0198ab6fe0c7de70c1c765f6691879da716e50ce82456346fb2033",
       "key": "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:message_send:1",
       "kind": "sink",
@@ -1706183,11 +1706297,11 @@
       "version": "saas~19.3.1.1.4"
     },
     {
-      "manifest_sha256": "5cc9416cf81cfe4ec2fe791631eda281a145ca4855aaf88eef073c898a0df049",
+      "manifest_sha256": "f1fd22d48bc333eea7533fd308f90ad13b1e6bfab7414ab2c6564b9821557857",
       "name": "usl_documents",
       "origin": "custom",
-      "source_sha256": "c63c622b1893c8e4d3dbcbff1a4b9f186e8ca21b1e6af0e91477a7d44045c557",
-      "version": "saas~19.3.1.10.1"
+      "source_sha256": "78948a34b3598c74c6985251a3fc64506d58fcf8f53b423e03b1dd3816fc3603",
+      "version": "saas~19.3.1.10.2"
     },
     {
       "manifest_sha256": "0495b37d3341543b11dcc1b05c4e4918fc9c11e0e1ad8dd0eb6b5cff3e7c1926",
