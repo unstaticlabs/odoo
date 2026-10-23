@@ -10,7 +10,7 @@ import { Dropdown } from "@web/core/dropdown/dropdown";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
 import { _t } from "@web/core/l10n/translation";
 import { patch } from "@web/core/utils/patch";
-import { useService } from "@web/core/utils/hooks";
+import { useAutofocus, useService } from "@web/core/utils/hooks";
 
 import {
     Component,
@@ -21,7 +21,7 @@ import {
     useState,
 } from "@odoo/owl";
 
-import { captureFeedbackPagePreview } from "./feedback_page_preview";
+import { trimEmptyBlocksAround } from "@mail/utils/common/format";
 
 
 function positiveInteger(value) {
@@ -77,9 +77,33 @@ function fileAsBase64(file) {
     });
 }
 
+// The native chat composer always refocuses after sending. Feedback on a
+// phone should return attention to the reply without reopening the keyboard.
+export class FeedbackComposer extends Composer {
+    async processMessage(callback) {
+        if (!this.ui.isSmall) {
+            return super.processMessage(callback);
+        }
+        if (this.props.composer.attachments.some(({ uploading }) => uploading)) {
+            this.env.services.notification.add(_t("Please wait while the file is uploading."), { type: "warning" });
+        } else if (this.canProcessMessage && this.state.active) {
+            this.ref.el?.blur();
+            this.state.active = false;
+            try {
+                await callback(trimEmptyBlocksAround(this.props.composer.composerHtml));
+                this.props.onPostCallback?.();
+                this.clear();
+                this.props.composer.autofocus = 0;
+            } finally {
+                this.state.active = true;
+            }
+        }
+    }
+}
+
 export class FeedbackChatter extends Chatter {
     static template = "usl_feedback.FeedbackChatter";
-    static components = { Composer, Thread };
+    static components = { Composer: FeedbackComposer, Thread };
     static props = [
         ...Chatter.props,
         "agentActivity",
@@ -118,6 +142,7 @@ export class FeedbackPanel extends Component {
         "isSmall?",
         "pageContext",
         "screenshot?",
+        "refreshContext?",
     ];
 
     setup() {
@@ -132,6 +157,7 @@ export class FeedbackPanel extends Component {
             includeContext: false,
             message: "",
             screenshotSelected: Boolean(this.props.screenshot),
+            previewExpanded: false,
             screenshotAttachmentId: false,
             attachments: [],
             recent: [],
@@ -141,6 +167,7 @@ export class FeedbackPanel extends Component {
             busy: false,
             progressStep: 0,
         });
+        this.messageRef = useAutofocus({ refName: "message", mobile: true });
         this.pollTimer = false;
         this.progressTimer = false;
         // A late draft response must not reopen the composer after the user
@@ -153,21 +180,21 @@ export class FeedbackPanel extends Component {
         });
         onWillUpdateProps((nextProps) => {
             if (nextProps.screenshot && nextProps.screenshot !== this.props.screenshot) {
-                this.state.screenshotSelected = true;
+                this.state.screenshotSelected = this.state.attachments.length < 10;
             } else if (!nextProps.screenshot && !this.state.screenshotAttachmentId) {
                 this.state.screenshotSelected = false;
             }
         });
     }
 
-    async startDraft() {
+    async startDraft(pageContext = this.props.pageContext) {
         const requestId = ++this.draftRequestId;
         this.state.error = false;
         try {
             const result = await this.orm.call(
                 "usl.feedback.submission",
                 "feedback_start",
-                [this.props.pageContext]
+                [pageContext]
             );
             if (requestId !== this.draftRequestId) {
                 return;
@@ -190,7 +217,6 @@ export class FeedbackPanel extends Component {
     }
 
     async retryStartDraft() {
-        this.state.phase = "loading";
         await this.startDraft();
     }
 
@@ -240,11 +266,31 @@ export class FeedbackPanel extends Component {
     }
 
     async onFilesSelected(event) {
-        const screenshotCount = this.props.screenshot && this.state.screenshotSelected ? 1 : 0;
-        const files = [...event.target.files].slice(
-            0,
-            10 - this.state.attachments.length - screenshotCount
-        );
+        await this.addFiles([...event.target.files]);
+        event.target.value = "";
+    }
+
+    async onInitialPaste(event) {
+        const files = [...(event.clipboardData?.items || [])]
+            .filter((item) => item.kind === "file" && item.type.startsWith("image/"))
+            .map((item) => item.getAsFile()).filter(Boolean);
+        if (!files.length || this.state.busy || !this.state.draftId) {
+            return;
+        }
+        event.preventDefault();
+        await this.addFiles(files);
+    }
+
+    async addFiles(selectedFiles) {
+        if (this.state.busy || !this.state.draftId) {
+            return;
+        }
+        const screenshotCount = this.props.captureState === "preparing" || (this.props.screenshot && this.state.screenshotSelected) ? 1 : 0;
+        const remaining = Math.max(0, 10 - this.state.attachments.length - screenshotCount);
+        const files = selectedFiles.slice(0, remaining);
+        if (selectedFiles.length > remaining) {
+            this.notification.add(_t("Attach at most 10 files to one feedback item."), { type: "warning" });
+        }
         this.state.busy = true;
         try {
             for (const file of files) {
@@ -265,7 +311,7 @@ export class FeedbackPanel extends Component {
             this.showError(error);
         } finally {
             this.state.busy = false;
-            event.target.value = "";
+
         }
     }
 
@@ -285,8 +331,11 @@ export class FeedbackPanel extends Component {
     }
 
     async submitInitial() {
-        if (!this.state.message.trim() || this.state.busy) {
+        if (!this.state.message.trim() || this.state.busy || !this.state.draftId) {
             return;
+        }
+        if (this.props.isSmall) {
+            this.messageRef.el?.blur();
         }
         this.state.busy = true;
         this.state.error = false;
@@ -371,6 +420,9 @@ export class FeedbackPanel extends Component {
         }
         browser.clearTimeout(this.pollTimer);
         this.stopAgentProgress();
+        this.state.draftId = false;
+        this.state.contextAvailable = false;
+        this.state.includeContext = false;
         this.state.phase = "loading";
         this.state.task = false;
         this.state.message = "";
@@ -378,7 +430,9 @@ export class FeedbackPanel extends Component {
         this.state.attachments = [];
         this.state.screenshotAttachmentId = false;
         this.state.screenshotSelected = Boolean(this.props.screenshot);
-        await this.startDraft();
+        this.state.previewExpanded = false;
+        const pageContext = this.props.refreshContext?.() || this.props.pageContext;
+        await this.startDraft(pageContext);
     }
 
     schedulePoll(delay = 2000) {
@@ -657,24 +711,7 @@ patch(MessagingMenu.prototype, {
             this.dropdown.close();
             return;
         }
-        const pageContext = feedbackPageContext(this.env.services.action.currentController);
-        const captureId = this.feedbackChatWindow.beginCapture(pageContext);
+        this.feedbackChatWindow.openFeedback();
         this.dropdown.close();
-        // Paint the native window first; page reproduction must not delay this interaction.
-        browser.requestAnimationFrame(() => {
-            browser.setTimeout(async () => {
-                try {
-                    const screenshot = await captureFeedbackPagePreview();
-                    this.feedbackChatWindow.completeCapture(captureId, screenshot);
-                } catch (error) {
-                    // Never log the exception, DOM, URLs or image data. These bounded
-                    // categories still distinguish browser failures from provider errors.
-                    const name = ["SecurityError", "EncodingError", "InvalidStateError", "TimeoutError"].includes(error?.name)
-                        ? error.name : "CaptureError";
-                    console.warn("Feedback page preview failed", name);
-                    this.feedbackChatWindow.failCapture(captureId);
-                }
-            }, 0);
-        });
     },
 });

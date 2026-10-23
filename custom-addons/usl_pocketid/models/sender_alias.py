@@ -412,6 +412,10 @@ class HrEmployee(models.Model):
 class HrExpense(models.Model):
     _inherit = "hr.expense"
 
+    def _usl_select_sender_employee_candidates(self, employees):
+        selector = getattr(super(), "_usl_select_sender_employee_candidates", None)
+        return selector(employees) if selector else employees
+
     @api.model
     def _get_employee_from_email(self, email_address):
         partner = self.env["res.partner"]._usl_verified_sender_partner(email_address)
@@ -424,6 +428,7 @@ class HrExpense(models.Model):
                 ("user_id.partner_id", "=", partner.id),
             ],
         )
+        employees = self._usl_select_sender_employee_candidates(employees)
         if len(employees) > 1:
             user = partner.main_user_id
             preferred_company = user.company_id if user else self.env.company

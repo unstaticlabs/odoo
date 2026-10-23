@@ -397,6 +397,8 @@ msgstr "<span class=\"o_stat_text\">Fichier original</span>"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "A learned host name cannot be changed."
 msgstr "Le nom d’hôte appris ne peut pas être modifié."
 
@@ -434,6 +436,9 @@ msgstr "Nombre de tentatives"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "Automatic linked-receipt download is disabled in this environment."
 msgstr ""
 "Le téléchargement automatique des justificatifs liés est désactivé dans cet "
@@ -466,10 +471,13 @@ msgstr "Choisir un justificatif PDF lié"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "Choose a receipt link before retrying."
 msgstr "Choisissez un lien de justificatif avant de réessayer."
 
 #. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_move_form_linked_receipt
 msgid "Choose another link"
 msgstr "Choisir un autre lien"
 
@@ -480,11 +488,17 @@ msgstr "Choisir le lien du justificatif"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_move.py:0
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
+#. odoo-python
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_mail_pdf_candidate_wizard_form
 msgid "Choose the PDF receipt link"
 msgstr "Choisir le lien du justificatif PDF"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
+#. odoo-python
 msgid "Choose the receipt link so Odoo can learn this email format."
 msgstr ""
 "Choisissez le lien du justificatif pour qu’Odoo apprenne ce format d’e-mail."
@@ -528,6 +542,8 @@ msgstr "Télécharger ce justificatif"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "Enter a valid host name."
 msgstr "Saisissez un nom d’hôte valide."
 
@@ -553,6 +569,8 @@ msgstr "Mode de récupération"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "Fetch linked receipt %(retrieval)s"
 msgstr "Récupérer le justificatif lié %(retrieval)s"
 
@@ -576,6 +594,7 @@ msgstr "Renvoi vers le site appris le"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__hostname
 msgid "Hostname"
 msgstr "Nom d’hôte"
 
@@ -590,11 +609,13 @@ msgstr "Fiabilité avec laquelle ce modèle désigne le lien du justificatif, in
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_move_form_linked_receipt
 msgid "Ignore"
 msgstr "Ignorer"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__label
 msgid "Label"
 msgstr "Libellé"
 
@@ -690,11 +711,16 @@ msgstr "Nombre d’exemples négatifs"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
+#. odoo-python
 msgid "Odoo is downloading the linked PDF receipt."
 msgstr "Odoo télécharge le justificatif PDF lié."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
+#. odoo-python
 msgid ""
 "Only the expense owner or an Accounting Manager can manage its linked "
 "receipt."
@@ -703,15 +729,20 @@ msgstr ""
 "gérer son justificatif lié."
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
+#. odoo-python
 msgid "Odoo picked %(label)s on %(host)s, the only receipt link in this email."
 msgstr "Odoo a retenu %(label)s sur %(host)s, le seul lien de justificatif de cet e-mail."
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
+#. odoo-python
 msgid "Odoo picked %(label)s on %(host)s. Download it, or choose another link from this email."
 msgstr "Odoo a retenu %(label)s sur %(host)s. Téléchargez-le ou choisissez un autre lien de cet e-mail."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__path_template
 msgid "Path Template"
 msgstr "Modèle de chemin"
 
@@ -874,6 +905,8 @@ msgid "Teach and download"
 msgstr "Apprendre et télécharger"
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "This email no longer offers a receipt link to download."
 msgstr "Cet e-mail ne propose plus de lien de justificatif à télécharger."
 
@@ -882,11 +915,13 @@ msgid "Unavailable Count"
 msgstr "Nombre d’indisponibilités"
 
 #. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_mail_pdf_candidate_wizard_form
 msgid "Use this link"
 msgstr "Utiliser ce lien"
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_move_form_linked_receipt
 msgid "Teach another link"
 msgstr "Apprendre un autre lien"
 
@@ -899,74 +934,104 @@ msgstr ""
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#. odoo-python
 msgid "The downloaded receipt failed its integrity check."
 msgstr "Le contrôle d’intégrité du justificatif téléchargé a échoué."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#. odoo-python
 msgid "The linked PDF receipt was downloaded safely."
 msgstr "Le justificatif PDF lié a été téléchargé en toute sécurité."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#. odoo-python
 msgid "The linked file is not a valid PDF receipt."
 msgstr "Le fichier lié n’est pas un justificatif PDF valide."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#. odoo-python
 msgid "The linked receipt is larger than 20 MB."
 msgstr "Le justificatif lié dépasse 20 Mo."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
+#. odoo-python
 msgid "The linked receipt needs attention."
 msgstr "Le justificatif lié nécessite votre attention."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#. odoo-python
 msgid "The receipt could not be downloaded."
 msgstr "Le justificatif n’a pas pu être téléchargé."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#. odoo-python
 msgid "The receipt download failed after four attempts."
 msgstr "Le téléchargement du justificatif a échoué après quatre tentatives."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#. odoo-python
 msgid "The receipt download service is unavailable."
 msgstr "Le service de téléchargement des justificatifs est indisponible."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
+#. odoo-python
 msgid "The receipt download will retry automatically."
 msgstr "Le téléchargement du justificatif sera réessayé automatiquement."
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#. odoo-python
 msgid "The receipt host is blocked for the Odoo instance."
 msgstr "L’hôte du justificatif est bloqué pour l’instance Odoo."
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#. odoo-python
 msgid "The learned receipt pattern is paused or blocked."
 msgstr "Le modèle appris pour ce justificatif est suspendu ou bloqué."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#. odoo-python
 msgid "The selected link is no longer present in the source email."
 msgstr "Le lien sélectionné n’est plus présent dans l’e-mail source."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "The selected receipt link is no longer present in the source email."
 msgstr ""
 "Le lien de justificatif sélectionné n’est plus présent dans l’e-mail source."
 
 #. module: usl_accounting
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "This receipt host is blocked for the Odoo instance."
 msgstr "Cet hôte de justificatif est bloqué pour l’instance Odoo."
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "This receipt pattern is blocked for the Odoo instance."
 msgstr "Ce modèle de justificatif est bloqué pour l’instance Odoo."
 
@@ -980,6 +1045,7 @@ msgstr ""
 "mails similaires. Les liens signés ne sont ni affichés ni stockés à nouveau."
 
 #. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_mail_pdf_candidate_wizard_form
 msgid ""
 "Choose the link that downloads the receipt. Odoo will remember the sender, "
 "host, and link pattern across this instance. Signed URLs stay only in the "
@@ -1097,6 +1163,7 @@ msgstr "Adresses d’expéditeur autorisées"
 #. module: usl_accounting
 #: model:ir.model,name:usl_accounting.model_account_account
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__account_id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__account_id
 msgid "Account"
 msgstr "Compte"
 
@@ -1645,6 +1712,7 @@ msgstr "Meilleur rapprochement"
 #. module: usl_accounting
 #. odoo-python
 #: code:addons/usl_accounting/models/immediate_settlement.py:0
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__move_id
 msgid "Bill"
 msgstr "Facture"
 
@@ -1664,6 +1732,8 @@ msgstr "Peut se lettrer"
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_bank_statement_exception_resolution_form
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_bank_statement_reopen_form
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_expense_bank_match_wizard_form
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_mail_pdf_candidate_wizard_form
+#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_review_form
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -1800,6 +1870,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__company_id
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__company_id
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__company_id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__company_ids model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__company_id model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__company_id
 msgid "Company"
 msgstr "Société"
 
@@ -1958,6 +2029,8 @@ msgstr "Contribution nette"
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__create_uid
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__create_uid
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__create_uid
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__create_uid model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__create_uid
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__create_uid
 msgid "Created by"
 msgstr "Créé par"
 
@@ -1975,6 +2048,8 @@ msgstr "Créé par"
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__create_date
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__create_date
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__create_date
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__create_date model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__create_date
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__create_date
 msgid "Created on"
 msgstr "Créé le"
 
@@ -1991,6 +2066,7 @@ msgstr "Note de crédit"
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__company_currency_id
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__currency_id
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__currency_id
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
 msgid "Currency"
 msgstr "Devise"
 
@@ -2084,6 +2160,8 @@ msgstr "Estimation Odoo rejetée :"
 #: model:ir.model.fields,field_description:usl_accounting.field_res_users__display_name
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__display_name
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__display_name
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__display_name model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__display_name model:ir.model.fields,field_description:usl_accounting.field_queue_job__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__display_name model:ir.model.fields,field_description:usl_accounting.field_validate_account_move__display_name
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__display_name
 msgid "Display Name"
 msgstr "Nom d'affichage"
 
@@ -2555,6 +2633,8 @@ msgstr ""
 #: model:ir.model.fields,field_description:usl_accounting.field_res_users__id
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__id
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__id model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__id model:ir.model.fields,field_description:usl_accounting.field_queue_job__id model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__id model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__id model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__id model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__id model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__id model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__id model:ir.model.fields,field_description:usl_accounting.field_validate_account_move__id
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__id
 msgid "ID"
 msgstr "ID"
 
@@ -2701,6 +2781,8 @@ msgstr "Paiement disponible plus important"
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__write_uid
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__write_uid
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__write_uid
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__write_uid model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__write_uid
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__write_uid
 msgid "Last Updated by"
 msgstr "Mis à jour par"
 
@@ -2718,6 +2800,8 @@ msgstr "Mis à jour par"
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement_allocation__write_date
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__write_date
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__write_date
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__write_date model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__write_date
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__write_date
 msgid "Last Updated on"
 msgstr "Mis à jour le"
 
@@ -3536,6 +3620,7 @@ msgstr "Partiellement apparié – il reste un résidu"
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__partner_id
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__partner_id
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__partner_id
 msgid "Partner"
 msgstr "Partenaire"
 
@@ -4180,6 +4265,7 @@ msgstr "L’identité du fichier source conservé est immuable."
 
 #. module: usl_accounting
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_bank_ingestion_form
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_move_form_linked_receipt
 msgid "Retry"
 msgstr "Réessayer"
 
@@ -4318,6 +4404,7 @@ msgstr "Exports planifiés"
 
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__score
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__score
 msgid "Score"
 msgstr "Note"
 
@@ -6305,6 +6392,7 @@ msgstr ""
 "source restent disponibles."
 
 #. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_mail_pdf_candidate_wizard_form
 msgid "Teach this choice instance-wide and queue its safe PDF retrieval."
 msgstr ""
 "Mémoriser ce choix pour toute l’instance et mettre en file sa récupération "
@@ -6312,6 +6400,7 @@ msgstr ""
 
 #. module: usl_accounting
 #. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
 msgid "A host in the receipt download chain was blocked."
 msgstr "Un hôte de la chaîne de téléchargement du justificatif a été bloqué."
 
@@ -6336,30 +6425,42 @@ msgid "Restore"
 msgstr "Restaurer"
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
+#. odoo-python
 msgid "This expense has no linked receipt to manage."
 msgstr "Cette dépense ne comporte aucun justificatif lié à gérer."
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "This linked receipt is already complete."
 msgstr "Le traitement de ce justificatif lié est déjà terminé."
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "This linked receipt no longer needs a link selection."
 msgstr "Ce justificatif lié ne nécessite plus de sélection de lien."
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "Use the linked-receipt governance actions to change a host."
 msgstr ""
 "Utilisez les actions de gouvernance des justificatifs liés pour modifier un "
 "hôte."
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "Use the linked-receipt governance actions to change a pattern."
 msgstr ""
 "Utilisez les actions de gouvernance des justificatifs liés pour modifier un "
 "modèle."
 
 #. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
 msgid "A receipt has already been attached to this expense."
 msgstr "Un justificatif a déjà été joint à cette dépense."
 
@@ -6408,12 +6509,16 @@ msgstr "Dernier utilisateur ayant ouvert le site"
 
 #. module: usl_accounting
 #. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt_move.py:0
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
 msgid "Linked receipt retrieval is disabled in this environment."
 msgstr ""
 "La récupération des justificatifs liés est désactivée dans cet environnement."
 
 #. module: usl_accounting
 #. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt.py:0
 msgid "Only the expense owner can open its receipt website."
 msgstr ""
 "Seul le propriétaire de la dépense peut ouvrir le site de son justificatif."
@@ -6432,6 +6537,7 @@ msgstr "Site du justificatif indisponible"
 
 #. module: usl_accounting
 #. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
 msgid ""
 "Sign in on the receipt website, download the PDF, then attach it here. Your "
 "credentials stay with the provider."
@@ -6441,21 +6547,25 @@ msgstr ""
 
 #. module: usl_accounting
 #. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt.py:0
 msgid "The receipt link is no longer available in the source email."
 msgstr "Le lien du justificatif n’est plus disponible dans l’e-mail source."
 
 #. module: usl_accounting
 #. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt.py:0
 msgid "This expense can no longer receive a linked receipt."
 msgstr "Cette dépense ne peut plus recevoir de justificatif lié."
 
 #. module: usl_accounting
 #. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt.py:0
 msgid "This receipt recovery request is no longer active."
 msgstr "Cette demande de récupération de justificatif n’est plus active."
 
 #. module: usl_accounting
 #. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt.py:0
 msgid "The receipt link no longer matches this recovery request."
 msgstr ""
 "Le lien du justificatif ne correspond plus à cette demande de récupération."
@@ -6467,6 +6577,7 @@ msgstr "Le site du justificatif est indisponible."
 
 #. module: usl_accounting
 #. odoo-python
+#: code:addons/usl_accounting/models/linked_receipt.py:0
 msgid "This receipt website is unavailable for the Odoo instance."
 msgstr "Ce site de justificatif est indisponible pour l’instance Odoo."
 
@@ -6506,12 +6617,15 @@ msgstr "Rechercher des justificatifs dans les e-mails existants"
 #. module: usl_accounting
 #. odoo-python
 #: code:addons/usl_accounting/models/linked_receipt.py:0
+#: code:addons/usl_accounting/models/linked_receipt_move.py:0
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
 msgid "Receipt email scan complete"
 msgstr "Recherche de justificatifs terminée"
 
 #. module: usl_accounting
 #. odoo-python
 #: code:addons/usl_accounting/models/linked_receipt.py:0
+#: code:addons/usl_accounting/models/linked_receipt_expense.py:0
 msgid "Found receipt links for %(count)s expenses. Existing requests and expenses with receipts were skipped."
 msgstr "Des liens vers des justificatifs ont été trouvés pour %(count)s notes de frais. Les demandes existantes et les notes de frais avec justificatif ont été ignorées."
 
@@ -6878,3 +6992,778 @@ msgstr "Fichiers d’origine"
 #: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_inspection_form
 msgid "History"
 msgstr "Historique"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
+msgid "Correct original rate"
+msgstr "Corriger le taux initial"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement_foreign.py:0
+#, python-format
+msgid "Native tax rounding does not produce the exact bank amount at this rate. Use Settle without changing the original valuation."
+msgstr "L’arrondi fiscal natif ne produit pas le montant bancaire exact à ce taux. Utilisez Solder sans modifier la valorisation initiale."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement_foreign.py:0
+#, python-format
+msgid "Correct an erroneous original valuation: rate %(original)s → %(corrected)s %(currency)s per %(company_currency)s; payable %(before)s → %(after)s. For ordinary payment-day FX, keep the original rate and reconcile the payment."
+msgstr "Corriger une valorisation initiale erronée : taux %(original)s → %(corrected)s %(currency)s par %(company_currency)s ; solde %(before)s → %(after)s. Pour un simple écart de change au paiement, conservez le taux initial et rapprochez le paiement."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement_foreign.py:0
+#, python-format
+msgid "%(tax)s: base %(base_before)s → %(base_after)s; tax %(tax_before)s → %(tax_after)s"
+msgstr "%(tax)s : base %(base_before)s → %(base_after)s ; taxe %(tax_before)s → %(tax_after)s"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/immediate_settlement_foreign.py:0
+#, python-format
+msgid "Original valuation corrected at the payment rate for %(foreign)s against %(company)s. Its company-currency value changed from %(original)s to %(repriced)s; no FX was recorded."
+msgstr "Valorisation initiale corrigée au taux du paiement pour %(foreign)s contre %(company)s. Sa valeur dans la devise de la société passe de %(original)s à %(repriced)s ; aucun écart de change n’a été comptabilisé."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_account_immediate_settlement_form
+msgid "Undo settlement"
+msgstr "Annuler le règlement"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_account_immediate_settlement_form
+msgid "Technical details"
+msgstr "Détails techniques"
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:account.field_account_move__narration
+msgid "Contract terms printed on this invoice, bill or credit note. Put internal accounting commentary in an internal Chatter note. Use ref for the supplier document reference, invoice line name for the item description and payment_reference to identify payment."
+msgstr "Conditions contractuelles imprimées sur cette facture ou cet avoir. Placez les commentaires comptables internes dans une note interne du fil de discussion. Utilisez ref pour la référence du document fournisseur, le libellé de ligne pour la description de l’article et payment_reference pour identifier le paiement."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.company_expense_alias_settings
+msgid "<span invisible=\"not company_expense_alias_domain\">@</span>"
+msgstr "<span invisible=\"not company_expense_alias_domain\">@</span>"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.company_expense_alias_settings
+msgid "Company Expense Inbox"
+msgstr "Boîte de réception des notes de frais de la société"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_res_company__expense_alias_name
+#: model:ir.model.fields,field_description:usl_accounting.field_res_config_settings__company_expense_alias_name
+msgid "Company expense alias"
+msgstr "Alias des notes de frais de la société"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/company_expense_alias.py:0
+msgid "Created through the expense inbox for %(destination)s. The sender's default employee company is %(sender)s; the addressed company's existing employee profile was used."
+msgstr "Créée via la boîte de réception des notes de frais de %(destination)s. La société par défaut de l’employé de l’expéditeur est %(sender)s ; le profil d’employé existant dans la société destinataire a été utilisé."
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_res_config_settings__company_expense_alias_domain
+msgid "Email domain e.g. 'example.com' in 'odoo@example.com'"
+msgstr "Domaine de messagerie, par exemple « example.com » dans « odoo@example.com »"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_res_company__expense_alias_id
+msgid "Expense Alias"
+msgstr "Alias des notes de frais"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.company_expense_alias_settings
+msgid "Leave empty to use the global address"
+msgstr "Laisser vide pour utiliser l’adresse globale"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/company_expense_alias.py:0
+msgid "More than one employee in %(company)s is linked to this sender. Ask your HR administrator to check the existing employee records, or use the global expense address."
+msgstr "Plusieurs employés de %(company)s sont liés à cet expéditeur. Demandez à votre responsable RH de vérifier les fiches d’employé existantes, ou utilisez l’adresse globale des notes de frais."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/company_expense_alias.py:0
+msgid "No employee linked to this sender exists in %(company)s. Ask your HR administrator to check the existing employee record, or use the global expense address."
+msgstr "Aucun employé lié à cet expéditeur n’existe dans %(company)s. Demandez à votre responsable RH de vérifier la fiche d’employé existante, ou utilisez l’adresse globale des notes de frais."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/company_expense_alias.py:0
+msgid "No employee linked to this sender exists in %(company)s. Ask your HR administrator to check the existing employee's company and email address, or use the global expense address."
+msgstr "Aucun employé lié à cet expéditeur n’existe dans %(company)s. Demandez à votre responsable RH de vérifier la société et l’adresse e-mail de la fiche d’employé existante, ou utilisez l’adresse globale des notes de frais."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.company_expense_alias_settings
+msgid "Optional address for the active company. The global expense address remains available. Senders need an existing employee profile in this company."
+msgstr "Adresse facultative pour la société active. L’adresse globale des notes de frais reste disponible. Les expéditeurs doivent disposer d’un profil d’employé existant dans cette société."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.company_expense_alias_settings
+msgid "Set up your alias domain"
+msgstr "Configurer le domaine des alias"
+
+#. module: usl_accounting
+#: model:ir.model.constraint,message:usl_accounting.constraint_res_company_expense_alias_unique
+msgid "A company expense inbox can only belong to one company."
+msgstr "Une boîte de réception des notes de frais ne peut appartenir qu’à une seule société."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/company_expense_alias.py:0
+msgid "The company expense inbox must use an expense alias owned by this company. Configure its address in Expenses settings; keep the global alias unchanged."
+msgstr "La boîte de réception des notes de frais doit utiliser un alias de notes de frais appartenant à cette société. Configurez son adresse dans les paramètres des Notes de frais ; conservez l’alias global."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/company_expense_alias.py:0
+msgid "The sender has employee profiles in several companies. The expense inbox selected the existing employee profile in %(company)s."
+msgstr "L’expéditeur possède des profils d’employé dans plusieurs sociétés. La boîte de réception des notes de frais a sélectionné le profil d’employé existant dans %(company)s."
+
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_move.py:0
+#. odoo-python
+msgid ""
+"The bill or source email changed after this download was requested. Check "
+"the latest supplier email and attach its original PDF."
+msgstr ""
+"La facture ou le courriel source a changé depuis la demande de "
+"téléchargement. Vérifiez le dernier courriel du fournisseur et joignez son "
+"PDF original."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_move.py:0
+#. odoo-python
+msgid "This bill has no linked receipt to manage."
+msgstr "Cette facture ne comporte aucun document lié à gérer."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_move.py:0
+#. odoo-python
+msgid ""
+"Found receipt links for %(count)s vendor bills. Bills with files or existing"
+" requests were skipped."
+msgstr ""
+"Liens trouvés pour %(count)s factures fournisseurs. Les factures comportant "
+"des fichiers ou des demandes existantes ont été ignorées."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_move.py:0
+#. odoo-python
+msgid "Choose a vendor bill for this downloaded document."
+msgstr "Choisissez une facture fournisseur pour ce document téléchargé."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_move.py:0
+#. odoo-python
+msgid "Upload the downloaded document on this bill before attaching it."
+msgstr ""
+"Téléversez le document téléchargé sur cette facture avant de le joindre."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_move.py:0
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
+msgid "Select this bill’s company before managing its linked receipt."
+msgstr ""
+"Sélectionnez la société de cette facture avant de gérer son document lié."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt_job.py:0
+#. odoo-python
+msgid ""
+"The bill can no longer be edited by the person who requested this download. "
+"Ask an authorized collaborator to retry."
+msgstr ""
+"La personne ayant demandé ce téléchargement ne peut plus modifier la "
+"facture. Demandez à un collaborateur disposant des droits nécessaires de "
+"réessayer."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_move_form_linked_receipt
+msgid "Find document links in emails"
+msgstr "Rechercher les liens de documents dans les courriels"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_move_form_linked_receipt
+msgid "Download this document"
+msgstr "Télécharger ce document"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_move_form_linked_receipt
+msgid ""
+"Download the suggested link from the supplier email and keep its original "
+"PDF on this bill."
+msgstr ""
+"Téléchargez le lien suggéré dans le courriel du fournisseur et conservez son"
+" PDF original sur cette facture."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_move_form_linked_receipt
+msgid "Open document website"
+msgstr "Ouvrir le site du document"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_move_form_linked_receipt
+msgid "Attach downloaded document"
+msgstr "Joindre le document téléchargé"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_move_form_linked_receipt
+msgid ""
+"Stop automatic retrieval for this email. The bill and source email remain "
+"available."
+msgstr ""
+"Arrêter la récupération automatique pour ce courriel. La facture et le "
+"courriel source restent disponibles."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
+msgid "This bill can no longer receive a linked document."
+msgstr "Cette facture ne peut plus recevoir de document lié."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/linked_receipt.py:0
+#. odoo-python
+msgid "A document is already attached to this bill."
+msgstr "Un document est déjà joint à cette facture."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/static/src/js/linked_receipt_handoff.js:0
+#. odoo-javascript
+msgid "The receipt website could not be opened. Try again from the document."
+msgstr ""
+"Le site du justificatif n'a pas pu être ouvert. Réessayez depuis le "
+"document."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__move_id
+msgid "Vendor bill"
+msgstr "Facture fournisseur"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/linked_receipt_candidate_wizard.py:0
+msgid "Link %(position)s in source email"
+msgstr "Lien %(position)s dans l’e-mail source"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/linked_receipt_candidate_wizard.py:0
+msgid "%(label)s (link %(position)s in source email)"
+msgstr "%(label)s (lien %(position)s dans l’e-mail source)"
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/company_change_context.py:0
+msgid "Company, offset and limit must be integers."
+msgstr "La société, le décalage et la limite doivent être des entiers."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/company_change_context.py:0
+msgid "Use an offset from 0 to 1000000 and a limit from 1 to 100."
+msgstr "Utilisez un décalage de 0 à 1000000 et une limite de 1 à 100."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/company_change_context.py:0
+msgid "Select an authorized target company in the current company scope."
+msgstr "Sélectionnez une société cible autorisée parmi les sociétés actuellement sélectionnées."
+
+#. module: usl_accounting
+#: code:addons/usl_accounting/models/company_change_context.py:0
+msgid "The context header exceeds its response budget."
+msgstr "L’en-tête du contexte dépasse la taille de réponse autorisée."
+
+
+# Shared Remaining-balance review marks.
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid ". The reviewed balance has not been replaced."
+msgstr ". Le solde vérifié n’a pas été remplacé."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/reconciliation_review.py:0
+msgid "A colleague changed this review. Reload the group before continuing."
+msgstr ""
+"Un collègue a modifié cette vérification. Rechargez le groupe avant de "
+"continuer."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/reconciliation_review.py:0
+msgid "A review must identify an account group."
+msgstr "La vérification doit identifier un groupe de comptes."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__access_key
+msgid "Access Key"
+msgstr "Clé d’accès"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Acknowledge change"
+msgstr "Prendre acte de l’écart"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__acknowledged
+msgid "Acknowledged"
+msgstr "Écart pris en compte"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__acknowledged_at
+msgid "Acknowledged At"
+msgstr "Date de prise en compte"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__acknowledged_by_id
+msgid "Acknowledged By"
+msgstr "Pris en compte par"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__baseline
+msgid "Baseline"
+msgstr "Solde vérifié"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__baseline_context
+msgid "Baseline Context"
+msgstr "Contexte du solde vérifié"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Change"
+msgstr "Écart"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Change acknowledged by"
+msgstr "Écart pris en compte par"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Current"
+msgstr "Actuel"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__domain
+msgid "Domain"
+msgstr "Domaine"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/reconciliation_review.js:0
+msgid "Loading shared review"
+msgstr "Chargement de la vérification partagée"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Mark reviewed"
+msgstr "Marquer comme vérifié"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Mixed currencies use Odoo’s native rates on"
+msgstr "Les devises mixtes utilisent les taux natifs d’Odoo au"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__path
+msgid "Path"
+msgstr "Chemin"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Remaining balance review"
+msgstr "Vérification du solde restant"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/reconciliation_review.js:0
+msgid "Remaining change acknowledged"
+msgstr "Écart du solde restant pris en compte"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/reconciliation_review.js:0
+msgid "Remaining changed since review"
+msgstr "Solde restant modifié depuis la vérification"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Remaining differs from the reviewed balance."
+msgstr "Le solde restant diffère du solde vérifié."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/reconciliation_review.js:0
+msgid "Remaining not reviewed"
+msgstr "Solde restant non vérifié"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/reconciliation_review.js:0
+msgid "Remaining reviewed"
+msgstr "Solde restant vérifié"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid ""
+"Remaining uses the same currency and aggregation as the native group header."
+msgstr ""
+"Le solde restant utilise la même devise et le même calcul que l’en-tête "
+"natif du groupe."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/reconciliation_review.py:0
+msgid "Request between 1 and 200 reconciliation groups."
+msgstr "Demandez entre 1 et 200 groupes de lettrage."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Review current balance"
+msgstr "Vérifier le solde actuel"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/reconciliation_review.py:0
+msgid "Review the Remaining balance before acknowledging a change."
+msgstr "Vérifiez le solde restant avant de prendre acte d’un écart."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid ""
+"Review this group for the current filters. The mark is shared with your "
+"accounting team."
+msgstr ""
+"Vérifiez ce groupe pour les filtres actuels. La marque est partagée avec "
+"votre équipe comptable."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/reconciliation_review.js:0
+msgid "Review unavailable. Retry"
+msgstr "Vérification indisponible. Réessayer"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Reviewed"
+msgstr "Vérifié"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__reviewed_at
+msgid "Reviewed At"
+msgstr "Date de vérification"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Reviewed by"
+msgstr "Vérifié par"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Reviewed filters and group"
+msgstr "Filtres et groupe vérifiés"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/reconciliation_review.js:0
+msgid ""
+"Reviewed: %(baseline)s; current: %(current)s; change: %(delta)s %(currency)s"
+msgstr ""
+"Vérifié : %(baseline)s ; actuel : %(current)s ; écart : %(delta)s "
+"%(currency)s"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__reviewer_id
+msgid "Reviewer"
+msgstr "Responsable de vérification"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__revision
+msgid "Revision"
+msgstr "Révision"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__scope_key
+msgid "Scope Key"
+msgstr "Clé de périmètre"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Selected companies:"
+msgstr "Sociétés sélectionnées :"
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "Shared Remaining review"
+msgstr "Vérification partagée du solde restant"
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_account_reconciliation_review
+msgid "Shared reconciliation Remaining review"
+msgstr "Vérification partagée du solde restant à lettrer"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/reconciliation_review.py:0
+msgid "The Remaining balance changed. Reload the group before continuing."
+msgstr "Le solde restant a changé. Rechargez le groupe avant de continuer."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid ""
+"The displayed currency changed. Review the current balance; amounts in "
+"different currencies are not subtracted."
+msgstr ""
+"La devise affichée a changé. Vérifiez le solde actuel ; les montants en "
+"devises différentes ne sont pas soustraits."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/reconciliation_review.py:0
+msgid "The reconciliation group is invalid. Reload the list."
+msgstr "Le groupe de lettrage est invalide. Rechargez la liste."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/reconciliation_review.js:0
+msgid "The review could not be saved. Reload the group and try again."
+msgstr ""
+"La vérification n’a pas pu être enregistrée. Rechargez le groupe et "
+"réessayez."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/reconciliation_review.py:0
+msgid "The review filters are too large. Narrow the search and try again."
+msgstr ""
+"Les filtres de vérification sont trop volumineux. Précisez la recherche et "
+"réessayez."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/xml/reconciliation_review.xml:0
+msgid "The reviewed balance used native rates on"
+msgstr "Le solde vérifié utilisait les taux natifs du"
+
+#. module: usl_accounting
+#: model:ir.model.constraint,message:usl_accounting.constraint_account_reconciliation_review_scope_unique
+msgid "This reconciliation scope already has a shared review."
+msgstr "Ce périmètre de lettrage possède déjà une vérification partagée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/reconciliation_review.py:0
+msgid "Use Mark reviewed or Acknowledge change to update a shared review."
+msgstr ""
+"Utilisez Marquer comme vérifié ou Prendre acte de l’écart pour actualiser "
+"une vérification partagée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/reconciliation_review.py:0
+msgid ""
+"Use Mark reviewed to record the current Remaining balance and reviewer."
+msgstr ""
+"Utilisez Marquer comme vérifié pour enregistrer le solde restant actuel et "
+"son responsable de vérification."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/reconciliation_review.py:0
+msgid "Use a resolved calendar month for the review."
+msgstr "Utilisez un mois civil explicite pour la vérification."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/reconciliation_review.py:0
+msgid "Use an Account, Partner or Month group containing an account."
+msgstr "Utilisez un groupe Compte, Partenaire ou Mois contenant un compte."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
+msgid "%(filename)s — %(status)s"
+msgstr "%(filename)s — %(status)s"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_form
+msgid "<strong>Check the attachment grouping</strong>"
+msgstr "<strong>Vérifiez le regroupement des pièces jointes</strong>"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__fingerprint
+msgid "Attachment fingerprint"
+msgstr "Empreinte des pièces jointes"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__usl_mail_grouping_needs_review
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move__usl_mail_grouping_needs_review
+msgid "Attachment grouping to review"
+msgstr "Regroupement des pièces jointes à vérifier"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__usl_mail_grouping_move_ids
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move__usl_mail_grouping_move_ids
+#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_form
+msgid "Bills from this email"
+msgstr "Factures de ce courriel"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/purchase_mail_grouping_review.py:0
+msgid "Choose a readable attachment belonging to this bill."
+msgstr "Choisissez une pièce jointe lisible appartenant à cette facture."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
+msgid "Conflicting embedded invoice identities"
+msgstr "Factures intégrées contradictoires"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
+msgid "Conflicting invoice details"
+msgstr "Données de facture contradictoires"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__attachment_ids
+msgid "Current attachments"
+msgstr "Pièces jointes actuelles"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
+msgid "Document role could not be established"
+msgstr "Le rôle du document n’a pas pu être établi"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
+msgid "Encrypted document or page limit reached"
+msgstr "Document chiffré ou limite de pages atteinte"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
+msgid "Extraction limit reached"
+msgstr "Limite d’extraction atteinte"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__usl_mail_grouping_reviewed_by
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move__usl_mail_grouping_reviewed_by
+msgid "Grouping reviewed by"
+msgstr "Regroupement vérifié par"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__usl_mail_grouping_reviewed_at
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move__usl_mail_grouping_reviewed_at
+msgid "Grouping reviewed on"
+msgstr "Regroupement vérifié le"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
+msgid "Invoice evidence"
+msgstr "Document de facture identifié"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_review_form
+msgid "Keep these files together"
+msgstr "Conserver ces fichiers ensemble"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_review_form
+msgid "Keep these files together on this bill only if they describe the same invoice and its supporting evidence. You can choose its main document here. To separate other documents, create another draft bill with copies of the relevant files, keeping the originals here. This confirmation does not post a bill or record a payment."
+msgstr "Conservez ces fichiers ensemble uniquement s’ils correspondent à la même facture et à ses justificatifs. Vous pouvez choisir le document principal ici. Pour séparer d’autres documents, créez une autre facture en brouillon avec des copies des fichiers concernés, en conservant les originaux ici. Cette confirmation ne comptabilise aucune facture et n’enregistre aucun paiement."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__usl_mail_grouping
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move__usl_mail_grouping
+msgid "Mail attachment grouping"
+msgstr "Regroupement des pièces jointes du courriel"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_form
+msgid "Mail attachments"
+msgstr "Pièces jointes du courriel"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__main_attachment_id
+msgid "Main document"
+msgstr "Document principal"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__usl_mail_grouping_summary
+#: model:ir.model.fields,field_description:usl_accounting.field_account_move__usl_mail_grouping_summary
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__summary
+msgid "Original attachment evidence"
+msgstr "Analyse des pièces jointes originales"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
+msgid "Payment document could not be matched to one invoice"
+msgstr "Le justificatif de paiement ne correspond pas à une facture unique"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
+msgid "Payment evidence"
+msgstr "Justificatif de paiement identifié"
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_usl_purchase_mail_grouping_review
+msgid "Review Purchase Mail Attachments"
+msgstr "Vérifier les pièces jointes du courriel fournisseur"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
+#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_form
+#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_review_form
+msgid "Review attachments"
+msgstr "Vérifier les pièces jointes"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_form
+msgid "Some documents could not be matched to an invoice with confidence. Their original files are kept on this bill. Review them before deciding how to proceed."
+msgstr "Certains documents n’ont pas pu être associés à une facture avec certitude. Les fichiers originaux sont conservés sur cette facture. Vérifiez-les avant de décider de la suite."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
+msgid "Text extraction limit reached"
+msgstr "Limite d’extraction du texte atteinte"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/purchase_mail_grouping_review.py:0
+msgid "The attachments changed. Close this review and open it again to review the current files."
+msgstr "Les pièces jointes ont changé. Fermez cette fenêtre et ouvrez-la à nouveau pour vérifier les fichiers actuels."

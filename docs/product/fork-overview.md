@@ -43,7 +43,7 @@ Only `custom-addons/` is part of the normal USL add-ons path.
 | --- | --- |
 | `rebuild_account_migration` | Accounting cockpit, Hygiene, configurable controls, reports, declarations, closing and electronic-invoice readiness. The historical technical name is retained to preserve installed model and XML-ID ownership; the module is delivered product code. |
 | `usl_access_control` | Named roles, owned autonomous identities, delegated-authority enforcement, governed API credentials, irreversible-action enforcement and security audit evidence. |
-| `usl_accounting` | Native/OCA Accounting extensions, expense and bank matching, foreign-currency settlement, fiscal-year behavior, scheduled statements, analytics and evidence security. |
+| `usl_accounting` | Native/OCA Accounting extensions, expense and bank matching, foreign-currency settlement, [shared Remaining-balance reviews](shared-reconciliation-reviews.md), fiscal-year behavior, scheduled statements, analytics and evidence security. |
 | `usl_b2c` | Commerce channels, orders, events, SKU aliases, accounting sessions, controls and analytics. |
 | `usl_b2c_ingest` | Etsy, Medusa and Printful ingestion: format detection, deduplication, product mapping, supplier cost, readiness checks, native sales and deliveries, invoicing, commission billing and the OSS return. |
 | `usl_document_templates` | Governed report bindings, renderer integration, immutable correspondence and PDF provenance. |

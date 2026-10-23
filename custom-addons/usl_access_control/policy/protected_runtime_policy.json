@@ -1490,11 +1490,6 @@
       }
     },
     {
-      "action_key": "rpc:res.company.write",
-      "action_name": "change accounting lock dates",
-      "classification": "protected"
-    },
-    {
       "action_key": "rpc:res.config.settings.action_eu_oss_tax_mapping",
       "action_name": "install or import module code",
       "classification": "protected"
@@ -2102,6 +2097,11 @@
     },
     {
       "action_key": "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.write:orm_write:1",
+      "action_name": "change user identity or authorization",
+      "classification": "protected"
+    },
+    {
+      "action_key": "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users.write:orm_write:2",
       "action_name": "change user identity or authorization",
       "classification": "protected"
     }
