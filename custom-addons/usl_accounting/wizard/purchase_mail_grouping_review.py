@@ -24,19 +24,19 @@ class PurchaseMailGroupingReview(models.TransientModel):
     summary = fields.Text(related="move_id.usl_mail_grouping_summary", readonly=True, compute_sudo=False)
 
     @api.model_create_multi
-    def create(self, values_list):
+    def create(self, vals_list):
         prepared = []
-        for values in values_list:
+        for values in vals_list:
             values = dict(values)
             if "main_attachment_id" in values and "line_ids" not in values:
                 values["legacy_main_explicit"] = True
             prepared.append(values)
         return super().create(prepared)
 
-    def write(self, values):
-        if "main_attachment_id" in values:
-            values = dict(values, legacy_main_explicit=True)
-        return super().write(values)
+    def write(self, vals):
+        if "main_attachment_id" in vals:
+            vals = dict(vals, legacy_main_explicit=True)
+        return super().write(vals)
 
     @api.depends("line_ids.use")
     def _compute_has_separate_files(self):
