@@ -203062,7 +203062,7 @@
         "rpc:usl.purchase.mail.grouping.review.action_keep_together": "3c195dcac4748f2aaf27a150113f13df61f4ee589e0ec34d0790e94556551485",
         "rpc:usl.purchase.mail.grouping.review.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:usl.purchase.mail.grouping.review.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
-        "rpc:usl.purchase.mail.grouping.review.create": "560bb1bc3dc5a69f1426f30a4d4bf108ef98afc0f3d701043848d29be1542709",
+        "rpc:usl.purchase.mail.grouping.review.create": "5a2fd97797298d08a86e7396e7ff7d36f09d250db6c9df6ab35cfdb36ad2e6d9",
         "rpc:usl.purchase.mail.grouping.review.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:usl.purchase.mail.grouping.review.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
         "rpc:usl.purchase.mail.grouping.review.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
@@ -203077,7 +203077,7 @@
         "rpc:usl.purchase.mail.grouping.review.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:usl.purchase.mail.grouping.review.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:usl.purchase.mail.grouping.review.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:usl.purchase.mail.grouping.review.write": "de8696817631eaf5905bd78758f184ae7509f547dc482d43490480680aec14d7",
+        "rpc:usl.purchase.mail.grouping.review.write": "d0d21ede13e054d854646bc0484364bc340974ae7b0aa09be52e3bf1a6636b0d",
         "sink:usl_accounting:custom-addons/usl_accounting/models/purchase_mail_grouping.py:account.move._fix_attachments_on_record_from_files_data:orm_write:1": "f8092c8e04d7abfc09befea3736768368b1ba2b2f99fa915c36707647ef0d664",
         "sink:usl_accounting:custom-addons/usl_accounting/models/purchase_mail_grouping.py:account.move._fix_attachments_on_record_from_files_data:orm_write:2": "7041aaeed4c7fd10a47aeddbb11cf92ad3a8e78dc0deba1179f4531979b934f9",
         "sink:usl_accounting:custom-addons/usl_accounting/models/purchase_mail_grouping.py:account.move._fix_attachments_on_record_from_files_data:orm_write:3": "cb4ebc8a1fe7db83b4dc81d42b6bc3abac26ea09c13ad9530ba94cec8d1242ca",
@@ -204981,8 +204981,8 @@
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py:usl.purchase.mail.grouping.review.action_create_draft_bill:orm_write:1": "e399a23bc54d91add2302216a349bf01f53b34594f81b5041b373522bbf84b9d",
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py:usl.purchase.mail.grouping.review.action_create_draft_bill:orm_write:2": "ee8ded715896d5e38f0d17c59b5896c40a307f9d59fdfbfa1e48a00b4458bba6",
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py:usl.purchase.mail.grouping.review.action_create_draft_bill:orm_write:3": "a1827092ee64a883c5a56d5a183e451c032a00e489a8d8bbba91c370e5f4bb98",
-        "sink:usl_accounting:custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py:usl.purchase.mail.grouping.review.create:orm_create:1": "19cea5c774a8b816b6c94562aef369e8f0b5ed1e74d8e1247df2f1f24e7cdb47",
-        "sink:usl_accounting:custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py:usl.purchase.mail.grouping.review.write:orm_write:1": "b7d27a0e35e0fec2095ac0630f998d074b21ae53c47f1d98a3c5d49011d0049e",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py:usl.purchase.mail.grouping.review.create:orm_create:1": "64778eff2fb3557ccafc966859a41064c817bb23d1b2ea2ce9eb93f43cecd1e0",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py:usl.purchase.mail.grouping.review.write:orm_write:1": "e96e6abd1e74b11383ec397ff71a9569f60639e89aca9ac3f7b1b5484f74d9b2",
         "ui:usl_accounting.purchase_mail_grouping_form:button:object:action_review_mail_grouping:2": "7b5cb192fb907e3421a7de2a65cc02544046799696e4ea8d2ad88b4b0be3706f",
         "ui:usl_accounting.purchase_mail_grouping_review_form:button:object:action_create_draft_bill:1": "ce9d6e7940b3aa8e2eb4b341ac1c2161d729b0b27c45365f3f1cee880aedc617"
       }

@@ -1428546,7 +1428546,7 @@
       "delegates": [
         "rpc:usl.agent.sudo"
       ],
-      "digest": "560bb1bc3dc5a69f1426f30a4d4bf108ef98afc0f3d701043848d29be1542709",
+      "digest": "5a2fd97797298d08a86e7396e7ff7d36f09d250db6c9df6ab35cfdb36ad2e6d9",
       "guards": [],
       "key": "rpc:usl.purchase.mail.grouping.review.create",
       "kind": "rpc",
@@ -1428559,7 +1428559,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "fab36a2ac700e1ada973015d982bee639d48da382ae1b101157296eedc8373ef",
+      "runtime_digest": "34d95f095c418547597f3295e3ee8f2fa5cdbd0cfe100ce2a7b34149d66b0f61",
       "sinks": [
         "orm_create",
         "orm_write",
@@ -1431653,7 +1431653,7 @@
       "delegates": [
         "rpc:usl.agent.sudo"
       ],
-      "digest": "de8696817631eaf5905bd78758f184ae7509f547dc482d43490480680aec14d7",
+      "digest": "d0d21ede13e054d854646bc0484364bc340974ae7b0aa09be52e3bf1a6636b0d",
       "guards": [],
       "key": "rpc:usl.purchase.mail.grouping.review.write",
       "kind": "rpc",
@@ -1431666,7 +1431666,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "148efbd5d3da5bdb90744f413aa33d6b3bbcdaed325adf56d89a06dbabb0e20b",
+      "runtime_digest": "1eced00b6546de47395bc314c59685de72373f2d9cf86b8eb31d289504c562b7",
       "sinks": [
         "orm_write",
         "sudo"
@@ -1630003,7 +1630003,7 @@
       ]
     },
     {
-      "digest": "19cea5c774a8b816b6c94562aef369e8f0b5ed1e74d8e1247df2f1f24e7cdb47",
+      "digest": "64778eff2fb3557ccafc966859a41064c817bb23d1b2ea2ce9eb93f43cecd1e0",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py:usl.purchase.mail.grouping.review.create:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1630021,7 +1630021,7 @@
       ]
     },
     {
-      "digest": "b7d27a0e35e0fec2095ac0630f998d074b21ae53c47f1d98a3c5d49011d0049e",
+      "digest": "e96e6abd1e74b11383ec397ff71a9569f60639e89aca9ac3f7b1b5484f74d9b2",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py:usl.purchase.mail.grouping.review.write:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1716520,7 +1716520,7 @@
       "manifest_sha256": "0329aba461408e9639e173d431a9847b7c2f68d5647cada3c3ab2cb8099d316e",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "f22d6d2a4d16ec54dd8416495fb9dd67166cf5ee13ad655451d666391678aac1",
+      "source_sha256": "b5a6baa446e4b1d2302a3a4c6a55c18bd7f549e7929996da9559d46ccfe5d613",
       "version": "saas~19.3.2.2.19"
     },
     {

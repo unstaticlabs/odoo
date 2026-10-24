@@ -1,4 +1,5 @@
 import hashlib
+import inspect
 import base64
 import io
 import re
@@ -13,6 +14,7 @@ from reportlab.pdfgen import canvas
 
 from odoo import Command
 from odoo.exceptions import AccessError, UserError
+from odoo.models import get_public_method
 from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 from odoo.tools import BinaryBytes, file_open
@@ -852,6 +854,41 @@ class TestPurchaseMailGrouping(AccountTestInvoicingCommon):
         review.action_keep_together()
         self.assertEqual(bill.message_main_attachment_id, xml_line.attachment_id)
         self.assertFalse(bill.usl_mail_grouping_needs_review)
+
+    def test_review_create_accepts_native_json2_vals_list(self):
+        bill = self._uncertain_bill()
+        fingerprint, attachments = bill._mail_grouping_fingerprint()
+        model = self.env["usl.purchase.mail.grouping.review"]
+        payload = {"vals_list": [{
+            "move_id": bill.id, "fingerprint": fingerprint,
+            "attachment_ids": [Command.set(attachments.ids)],
+            "main_attachment_id": attachments[0].id,
+        }]}
+        method = get_public_method(model, "create")
+        # Match native JSON-2: bind the published signature, then invoke its
+        # actual callable with the canonical payload keyword.
+        inspect.signature(method).bind(model, **payload)
+        review = method(model, **payload)
+        self.assertEqual(review.move_id, bill)
+        self.assertEqual(review.main_attachment_id, attachments[0])
+        self.assertTrue(review.legacy_main_explicit)
+        self.assertEqual(bill.state, "draft")
+        self.assertTrue(bill.usl_mail_grouping_needs_review)
+
+    def test_review_write_accepts_native_json2_vals(self):
+        bill = self._uncertain_bill()
+        action = bill.action_review_mail_grouping()
+        review = self.env[action["res_model"]].browse(action["res_id"])
+        self.assertFalse(review.legacy_main_explicit)
+        attachment = bill.attachment_ids[0]
+        payload = {"vals": {"main_attachment_id": attachment.id}}
+        method = get_public_method(review, "write")
+        inspect.signature(method).bind(review, **payload)
+        self.assertTrue(method(review, **payload))
+        self.assertEqual(review.main_attachment_id, attachment)
+        self.assertTrue(review.legacy_main_explicit)
+        self.assertEqual(bill.state, "draft")
+        self.assertTrue(bill.usl_mail_grouping_needs_review)
 
     def test_new_draft_discards_inherited_contact_and_financial_defaults(self):
         bill = self._uncertain_bill().with_context(
