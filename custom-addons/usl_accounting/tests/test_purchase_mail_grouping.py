@@ -1,4 +1,5 @@
 import hashlib
+import inspect
 import base64
 import io
 import re
@@ -13,6 +14,7 @@ from reportlab.pdfgen import canvas
 
 from odoo import Command
 from odoo.exceptions import AccessError, UserError
+from odoo.models import get_public_method
 from odoo.tests import tagged
 from odoo.tests.common import TransactionCase
 from odoo.tools import BinaryBytes, file_open
@@ -196,12 +198,8 @@ class TestPurchaseMailGrouping(AccountTestInvoicingCommon):
         view = self.env["usl.purchase.mail.grouping.review"].get_view(
             self.env.ref("usl_accounting.purchase_mail_grouping_review_form").id, "form")
         arch = etree.fromstring(view["arch"])
-        summary = arch.xpath("//group/field[@name='summary']")[0]
-        with self.subTest("summary full row"):
-            self.assertEqual(summary.get("colspan"), "2")
-        self.assertEqual(summary.get("nolabel"), "1")
-        self.assertEqual([field.get("name") for field in summary.itersiblings()],
-                         ["attachment_ids", "main_attachment_id"])
+        self.assertEqual(arch.xpath("//field[@name='line_ids']/list/field[not(@column_invisible='1')]/@name"), ["raw", "use"])
+        self.assertFalse(arch.xpath("//field[@name='attachment_ids' or @name='main_attachment_id']"))
         bill_view = self.env["account.move"].get_view(
             self.env.ref("account.view_move_form").id, "form")
         bill_arch = etree.fromstring(bill_view["arch"])
@@ -408,6 +406,8 @@ class TestPurchaseMailGrouping(AccountTestInvoicingCommon):
         self.assertEqual({item["role"] for item in bill.usl_mail_grouping["files"]}, {"receipt", "invoice"})
 
     def test_delegated_billing_agent_uses_same_review_and_readonly_cannot_confirm(self):
+        if "usl.agent" not in self.env:
+            self.skipTest("Managed Agent is qualified in the full Distribution registry, not this standalone module registry.")
         owner = self.env["res.users"].with_context(no_reset_password=True, usl_governed_identity_provisioning=True).create({
             "name": "Invented QA Agent Owner", "login": f"qa.owner.{uuid.uuid4().hex}@example.invalid",
             "company_id": self.env.company.id, "company_ids": [Command.set(self.env.company.ids)],
@@ -436,6 +436,24 @@ class TestPurchaseMailGrouping(AccountTestInvoicingCommon):
                 self.env[action["res_model"]].with_user(agent.user_id).browse(action["res_id"]).action_keep_together()
                 self.assertFalse(bill.usl_mail_grouping_needs_review)
                 self.assertEqual(bill.usl_mail_grouping_reviewed_by, agent.user_id)
+                snapshot = actor_bill.get_purchase_attachment_context()
+                self.assertIn("separate", snapshot["actions"])
+                separate_action = actor_bill.action_review_mail_grouping()
+                review = self.env[separate_action["res_model"]].with_user(agent.user_id).browse(separate_action["res_id"])
+                review.line_ids.use = "separate"
+                from odoo.addons.usl_access_control.controllers.json2 import UslAgentJson2Controller
+                # Native computes use the same authenticated operation scope as
+                # the JSON-2 entry point; this is test setup, never serialized.
+                review = review.with_context(UslAgentJson2Controller._agent_call_context(
+                    context=review.env.context, agent=agent, model_name=review._name,
+                    method_name="action_create_draft_bill", access="write",
+                ))
+                created_id = review.action_create_draft_bill()["res_id"]
+                created = self.env["account.move"].with_user(agent.user_id).browse(created_id)
+                self.assertEqual(created.state, "draft")
+                self.assertEqual(created.company_id, bill.company_id)
+                self.assertEqual(created.attachment_ids.raw.content, bill.attachment_ids.raw.content)
+                self.assertEqual(review.action_create_draft_bill()["res_id"], created_id)
             self.assertEqual(bill.state, "draft")
             self.assertEqual(bill.is_manually_modified, before_manual)
 
@@ -619,6 +637,275 @@ class TestPurchaseMailGrouping(AccountTestInvoicingCommon):
         self.assertEqual(bill.message_main_attachment_id.raw.content, original)
         self.assertFalse(bill.usl_mail_grouping_needs_review)
         self.assertIn(hashlib.sha256(xml).hexdigest(), [item["sha256"] for item in bill.usl_mail_grouping["files"]])
+
+    def test_manual_separation_creates_one_native_draft_and_preserves_source(self):
+        bill = self._receive([
+            ("invoice.pdf", invoice_pdf(), "application/pdf"),
+            ("other.pdf", text_pdf(["Invented second invoice to review"]), "application/pdf"),
+        ])
+        before = bill.read(["state", "line_ids", "amount_total", "company_id", "journal_id", "ref"])
+        originals = {a.id: (a.raw.content, a.res_id) for a in bill.attachment_ids}
+        action = bill.action_review_mail_grouping()
+        wizard = self.env[action["res_model"]].browse(action["res_id"])
+        chosen = wizard.line_ids.filtered(lambda line: line.attachment_id.name == "other.pdf")
+        chosen.use = "separate"
+        with patch.object(type(bill), "_autopost_bill", side_effect=AssertionError("manual separation must remain draft")), \
+             patch.object(type(bill), "_extend_with_attachments", side_effect=AssertionError("manual separation must not decode")):
+            result = wizard.action_create_draft_bill()
+        created = self.env["account.move"].browse(result["res_id"])
+        self.assertNotEqual(created, bill)
+        self.assertEqual(created.state, "draft")
+        self.assertEqual(created.company_id, bill.company_id)
+        self.assertEqual(created.journal_id, bill.journal_id)
+        self.assertEqual(created.move_type, bill.move_type)
+        self.assertFalse(created.invoice_line_ids)
+        self.assertEqual(created.attachment_ids.raw.content, chosen.attachment_id.raw.content)
+        self.assertNotEqual(created.attachment_ids, chosen.attachment_id)
+        self.assertIn(created, bill.usl_mail_grouping_move_ids)
+        self.assertIn(bill, created.usl_mail_grouping_move_ids)
+        self.assertEqual(bill.read(["state", "line_ids", "amount_total", "company_id", "journal_id", "ref"]), before)
+        self.assertEqual({a.id: (a.raw.content, a.res_id) for a in bill.attachment_ids}, originals)
+        self.assertFalse(bill.usl_mail_grouping_needs_review)
+        self.assertTrue(created.usl_mail_grouping_needs_review)
+        self.assertEqual(wizard.action_create_draft_bill()["res_id"], created.id)
+        again = bill.action_review_mail_grouping()
+        retry = self.env[again["res_model"]].browse(again["res_id"])
+        retry.line_ids.filtered(lambda line: line.attachment_id == chosen.attachment_id).use = "separate"
+        self.assertEqual(retry.action_create_draft_bill()["res_id"], created.id)
+
+    def test_manual_separation_checks_stale_bytes_and_empty_selection(self):
+        bill = self._uncertain_bill()
+        action = bill.action_review_mail_grouping()
+        wizard = self.env[action["res_model"]].browse(action["res_id"])
+        with self.assertRaisesRegex(UserError, "Choose.*another invoice"):
+            wizard.action_create_draft_bill()
+        wizard.line_ids.use = "separate"
+        bill.attachment_ids.raw = BinaryBytes(text_pdf(["Changed invented document"]))
+        before = self.env["account.move"].search_count([])
+        with self.assertRaisesRegex(UserError, "attachments changed"):
+            wizard.action_create_draft_bill()
+        self.assertEqual(self.env["account.move"].search_count([]), before)
+
+    def test_single_choice_review_confirms_main_without_changing_financials(self):
+        bill = self._uncertain_bill()
+        before = bill.read(["state", "line_ids", "amount_total", "company_id"])
+        action = bill.action_review_mail_grouping()
+        wizard = self.env[action["res_model"]].browse(action["res_id"])
+        wizard.line_ids.use = "main"
+        wizard.action_keep_together()
+        self.assertEqual(bill.message_main_attachment_id, bill.attachment_ids)
+        self.assertFalse(bill.usl_mail_grouping_needs_review)
+        self.assertEqual(bill.read(["state", "line_ids", "amount_total", "company_id"]), before)
+
+    def test_attachment_context_is_relevant_paginated_and_does_not_read_bytes(self):
+        bill = self._receive([
+            ("invoice.pdf", invoice_pdf(), "application/pdf"),
+            ("unknown.pdf", text_pdf(["Invented unknown support"]), "application/pdf"),
+        ])
+        before = bill.read(["usl_mail_grouping", "usl_mail_grouping_reviewed_at"])
+        bill.attachment_ids.invalidate_recordset(["raw"])
+        with patch.object(type(bill), "_mail_grouping_fingerprint", side_effect=AssertionError("context must not hash attachment bytes")), \
+             patch.object(type(self.env["ir.attachment"]), "_compute_raw", side_effect=AssertionError("context must not read attachment bytes")):
+            first = bill.get_purchase_attachment_context(limit=1)
+            second = bill.get_purchase_attachment_context(offset=1, limit=1)
+        self.assertEqual(first["count"], 2)
+        self.assertTrue(first["truncated"])
+        self.assertEqual(first["next_offset"], 1)
+        self.assertTrue(second["complete"])
+        self.assertFalse(second["next_offset"])
+        self.assertNotEqual(first["documents"][0]["id"], second["documents"][0]["id"])
+        self.assertEqual(first["bill_id"], bill.id)
+        self.assertIn("review", first["actions"])
+        self.assertEqual(first["actions"]["review"]["ids"], bill.ids)
+        self.assertNotIn("args", first["actions"]["review"])
+        self.assertEqual(bill.read(["usl_mail_grouping", "usl_mail_grouping_reviewed_at"]), before)
+        ordinary = self.env["account.move"].create({"move_type": "in_invoice"})
+        self.assertEqual(ordinary.get_purchase_attachment_context(), {})
+        bill.move_type = "out_invoice"
+        self.assertEqual(bill.get_purchase_attachment_context(), {})
+
+
+
+    def test_separation_of_posted_source_keeps_posted_lines_and_evidence(self):
+        self.env.ref("base.EUR").active = True
+        with file_open("usl_accounting/tests/fixtures/mail_invoice.xml", "rb") as source:
+            xml = source.read()
+        bill = self._receive([("invoice.xml", xml, "application/xml"),
+                              ("other.pdf", text_pdf(["Invented separate invoice"]), "application/pdf")])
+        bill.partner_id = self.partner_a
+        bill.action_post()
+        before = bill.line_ids.read(["debit", "credit", "balance", "amount_currency", "currency_id", "account_id", "tax_ids", "analytic_distribution", "amount_residual"])
+        originals = {a.id: a.raw.content for a in bill.attachment_ids}
+        action = bill.action_review_mail_grouping()
+        wizard = self.env[action["res_model"]].browse(action["res_id"])
+        wizard.line_ids.filtered(lambda line: line.attachment_id.name == "other.pdf").use = "separate"
+        created = self.env["account.move"].browse(wizard.action_create_draft_bill()["res_id"])
+        self.assertEqual(created.state, "draft")
+        self.assertEqual(bill.state, "posted")
+        self.assertEqual(bill.line_ids.read(["debit", "credit", "balance", "amount_currency", "currency_id", "account_id", "tax_ids", "analytic_distribution", "amount_residual"]), before)
+        self.assertEqual({a.id: a.raw.content for a in bill.attachment_ids}, originals)
+
+    def test_missing_or_inaccessible_separation_receipt_never_duplicates(self):
+        bill = self._uncertain_bill()
+        action = bill.action_review_mail_grouping()
+        wizard = self.env[action["res_model"]].browse(action["res_id"])
+        wizard.line_ids.use = "separate"
+        created = self.env["account.move"].browse(wizard.action_create_draft_bill()["res_id"])
+        before = self.env["account.move"].sudo().search_count([])
+        writer = self.env["res.users"].with_context(no_reset_password=True).create({
+            "name": "Invented QA Receipt Reviewer", "login": f"qa.receipt.{uuid.uuid4().hex}@example.invalid",
+            "company_id": self.env.company.id, "company_ids": [Command.set(self.env.company.ids)],
+            "group_ids": [Command.set((self.env.ref("base.group_user") | self.env.ref("account.group_account_invoice")).ids)],
+        })
+        retry_action = bill.with_user(writer).action_review_mail_grouping()
+        restricted_retry = self.env[retry_action["res_model"]].with_user(writer).browse(retry_action["res_id"])
+        restricted_retry.line_ids.use = "separate"
+        self.env["ir.rule"].create({
+            "name": "QA hide the previously created bill", "model_id": self.env["ir.model"]._get_id("account.move"),
+            "domain_force": repr([("id", "!=", created.id)]),
+            "perm_read": True, "perm_write": False, "perm_create": False, "perm_unlink": False,
+        })
+        with self.assertRaisesRegex(UserError, "no longer available"):
+            restricted_retry.action_create_draft_bill()
+        self.assertEqual(self.env["account.move"].sudo().search_count([]), before)
+        created.sudo().unlink()
+        another = bill.action_review_mail_grouping()
+        retry = self.env[another["res_model"]].browse(another["res_id"])
+        retry.line_ids.use = "separate"
+        before = self.env["account.move"].sudo().search_count([])
+        with self.assertRaisesRegex(UserError, "no longer available"):
+            retry.action_create_draft_bill()
+        self.assertEqual(self.env["account.move"].sudo().search_count([]), before)
+
+    def test_crafted_foreign_file_and_company_cannot_be_separated(self):
+        bill, other = self._uncertain_bill(), self._uncertain_bill()
+        action = bill.action_review_mail_grouping()
+        wizard = self.env[action["res_model"]].browse(action["res_id"])
+        wizard.line_ids.write({"attachment_id": other.attachment_ids.id, "use": "separate"})
+        with self.assertRaisesRegex(UserError, "belonging to this bill"):
+            wizard.action_create_draft_bill()
+        company_b = self.setup_other_company()["company"]
+        writer = self.env["res.users"].with_context(no_reset_password=True).create({
+            "name": "Invented QA Other Company", "login": f"qa.other.{uuid.uuid4().hex}@example.invalid",
+            "company_id": company_b.id, "company_ids": [Command.set(company_b.ids)],
+            "group_ids": [Command.set((self.env.ref("base.group_user") | self.env.ref("account.group_account_invoice")).ids)],
+        })
+        with self.assertRaises(AccessError):
+            bill.with_user(writer).with_context(allowed_company_ids=company_b.ids).get_purchase_attachment_context()
+        with self.assertRaises(AccessError):
+            bill.with_user(writer).with_context(allowed_company_ids=company_b.ids).action_review_mail_grouping()
+
+    def test_context_rejects_invalid_pagination_and_readonly_has_no_write_actions(self):
+        bill = self._uncertain_bill()
+        for values in ({"offset": -1}, {"offset": True}, {"limit": 0}, {"limit": 101}):
+            with self.assertRaises(UserError):
+                bill.get_purchase_attachment_context(**values)
+        reader = self.env["res.users"].with_context(no_reset_password=True).create({
+            "name": "Invented QA Context Reader", "login": f"qa.context.{uuid.uuid4().hex}@example.invalid",
+            "company_id": self.env.company.id, "company_ids": [Command.set(self.env.company.ids)],
+            "group_ids": [Command.set((self.env.ref("base.group_user") | self.env.ref("account.group_account_readonly")).ids)],
+        })
+        snapshot = bill.with_user(reader).get_purchase_attachment_context()
+        self.assertTrue(snapshot["documents"])
+        self.assertEqual(snapshot["actions"], {})
+
+
+    def test_context_marks_truncated_metadata_without_losing_pagination(self):
+        bill = self._uncertain_bill()
+        bill.attachment_ids.name = "long-" + "x" * 4096 + ".pdf"
+        metadata = dict(bill.usl_mail_grouping)
+        metadata["files"][0]["reason"] = "e" * 4096
+        bill.usl_mail_grouping = metadata
+        snapshot = bill.get_purchase_attachment_context(limit=1)
+        document = snapshot["documents"][0]
+        self.assertEqual(len(document["name"]), 512)
+        self.assertEqual(document["name_status"], "truncated")
+        self.assertEqual(len(document["reason"]), 1024)
+        self.assertEqual(document["reason_status"], "truncated")
+        self.assertTrue(snapshot["complete"])
+        self.assertEqual(snapshot["count"], 1)
+        self.assertNotIn("usl_mail_grouping", snapshot)
+
+    def test_second_review_honors_current_explicit_main_choice(self):
+        bill = self._receive([(f"{name}.pdf", text_pdf([f"Invented unknown document {name}"]), "application/pdf")
+                              for name in ("a", "b", "c")])
+        files = bill.attachment_ids.sorted("name")
+        bill._message_set_main_attachment_id(files[0], force=True, filter_xml=False)
+        first = bill.action_review_mail_grouping()
+        second = bill.action_review_mail_grouping()
+        first_review = self.env[first["res_model"]].browse(first["res_id"])
+        second_review = self.env[second["res_model"]].browse(second["res_id"])
+        for review, main in ((first_review, files[1]), (second_review, files[2])):
+            review.line_ids.use = "supporting"
+            review.line_ids.filtered(lambda line: line.attachment_id == main).use = "main"
+            review.action_keep_together()
+            self.assertEqual(bill.message_main_attachment_id, main)
+
+    def test_explicit_xml_main_selection_is_respected(self):
+        with file_open("usl_accounting/tests/fixtures/mail_invoice.xml", "rb") as source:
+            xml = source.read()
+        bill = self._receive([("invoice.xml", xml, "application/xml")])
+        action = bill.action_review_mail_grouping()
+        review = self.env[action["res_model"]].browse(action["res_id"])
+        xml_line = review.line_ids.filtered(lambda line: line.attachment_id.raw.content == xml)
+        self.assertEqual(len(xml_line), 1)
+        review.line_ids.use = "supporting"
+        xml_line.use = "main"
+        review.action_keep_together()
+        self.assertEqual(bill.message_main_attachment_id, xml_line.attachment_id)
+        self.assertFalse(bill.usl_mail_grouping_needs_review)
+
+    def test_review_create_accepts_native_json2_vals_list(self):
+        bill = self._uncertain_bill()
+        fingerprint, attachments = bill._mail_grouping_fingerprint()
+        model = self.env["usl.purchase.mail.grouping.review"]
+        payload = {"vals_list": [{
+            "move_id": bill.id, "fingerprint": fingerprint,
+            "attachment_ids": [Command.set(attachments.ids)],
+            "main_attachment_id": attachments[0].id,
+        }]}
+        method = get_public_method(model, "create")
+        # Match native JSON-2: bind the published signature, then invoke its
+        # actual callable with the canonical payload keyword.
+        inspect.signature(method).bind(model, **payload)
+        review = method(model, **payload)
+        self.assertEqual(review.move_id, bill)
+        self.assertEqual(review.main_attachment_id, attachments[0])
+        self.assertTrue(review.legacy_main_explicit)
+        self.assertEqual(bill.state, "draft")
+        self.assertTrue(bill.usl_mail_grouping_needs_review)
+
+    def test_review_write_accepts_native_json2_vals(self):
+        bill = self._uncertain_bill()
+        action = bill.action_review_mail_grouping()
+        review = self.env[action["res_model"]].browse(action["res_id"])
+        self.assertFalse(review.legacy_main_explicit)
+        attachment = bill.attachment_ids[0]
+        payload = {"vals": {"main_attachment_id": attachment.id}}
+        method = get_public_method(review, "write")
+        inspect.signature(method).bind(review, **payload)
+        self.assertTrue(method(review, **payload))
+        self.assertEqual(review.main_attachment_id, attachment)
+        self.assertTrue(review.legacy_main_explicit)
+        self.assertEqual(bill.state, "draft")
+        self.assertTrue(bill.usl_mail_grouping_needs_review)
+
+    def test_new_draft_discards_inherited_contact_and_financial_defaults(self):
+        bill = self._uncertain_bill().with_context(
+            default_partner_id=self.partner_a.id,
+            default_invoice_line_ids=[Command.create({"name": "Unwanted inherited line", "quantity": 1, "price_unit": 900,
+                                                     "account_id": self.company_data["default_account_expense"].id})],
+            default_line_ids=[Command.create({"name": "Unwanted inherited accounting line", "debit": 300,
+                                             "account_id": self.company_data["default_account_expense"].id})],
+        )
+        action = bill.action_review_mail_grouping()
+        review = self.env[action["res_model"]].with_context(bill.env.context).browse(action["res_id"])
+        review.line_ids.use = "separate"
+        draft = self.env["account.move"].browse(review.action_create_draft_bill()["res_id"])
+        self.assertFalse(draft.partner_id)
+        self.assertFalse(draft.invoice_line_ids)
+        self.assertFalse(draft.line_ids)
+        self.assertEqual(draft.state, "draft")
 
 
 @tagged("post_install", "-at_install", "usl_purchase_mail_grouping")

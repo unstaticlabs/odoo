@@ -56,10 +56,11 @@ class TestMaterialise(TestImportBatch):
 
     @classmethod
     def _account(cls, name, account_type):
-        return cls.env["account.account"].create(
+        accounts = cls.env["account.account"].with_company(cls.company)
+        return accounts.create(
             {
                 "name": name,
-                "code": f"INV{abs(hash(name)) % 10000:04d}",
+                "code": accounts._search_new_account_code("INV0000"),
                 "account_type": account_type,
                 "company_ids": [(6, 0, cls.company.ids)],
             },
@@ -139,6 +140,37 @@ class TestMaterialise(TestImportBatch):
         return batch.applied_sale_ids.filtered(
             lambda sale: sale.client_order_ref == external_order_id,
         )
+
+    def test_fixture_accounts_skip_occupied_and_archived_codes(self):
+        accounts = self.env["account.account"].with_company(self.company)
+        name = "Invented fixture collision"
+        legacy_code = f"INV{abs(hash(name)) % 10000:04d}"
+        if not accounts.with_context(active_test=False).search_count([
+            ("company_ids", "in", self.company.id), ("code", "=", legacy_code),
+        ]):
+            accounts.create({
+                "name": "Invented occupied hash code", "code": legacy_code,
+                "account_type": "asset_current", "company_ids": [(6, 0, self.company.ids)],
+            })
+        # Archived accounts still reserve their codes under native uniqueness.
+        reserved = accounts.create({
+            "name": "Invented archived fixture account",
+            "code": accounts._search_new_account_code("INV0000"),
+            "account_type": "asset_current", "company_ids": [(6, 0, self.company.ids)],
+        })
+        reserved.active = False
+        occupied = set(accounts.with_context(active_test=False).search([
+            ("company_ids", "in", self.company.id),
+        ]).mapped("code"))
+        first = self._account(name, "asset_current")
+        second = self._account(name, "asset_cash")
+        self.assertNotEqual(first, second)
+        self.assertNotEqual(first.code, second.code)
+        self.assertNotIn(first.code, occupied)
+        self.assertNotIn(second.code, occupied)
+        self.assertEqual(first.company_ids, self.company)
+        self.assertEqual(second.company_ids, self.company)
+        self.assertEqual((first.name, second.name), (name, name))
 
     def test_a_sale_totals_exactly_what_the_customer_paid(self):
         batch, _jersey, _cap = self._etsy_drop()

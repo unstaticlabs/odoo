@@ -1,7 +1,7 @@
 {
     "name": "USL Accounting Foundation",
     "summary": "Shared operational extensions for the USL Accounting product",
-    "version": "saas~19.3.2.2.18",
+    "version": "saas~19.3.2.2.19",
     "category": "Accounting/Accounting",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -57,6 +57,7 @@
             "usl_accounting/static/src/xml/reconciliation_review.xml",
             "usl_accounting/static/src/scss/reconciliation_review.scss",
             "usl_accounting/static/src/js/purchase_mail_grouping_form.js",
+            "usl_accounting/static/src/scss/purchase_mail_grouping.scss",
             "usl_accounting/static/src/js/linked_receipt_handoff.js",
             "usl_accounting/static/src/js/linked_bill_receipt_form.js",
             "usl_accounting/static/src/scss/payment_suggestions.scss",
