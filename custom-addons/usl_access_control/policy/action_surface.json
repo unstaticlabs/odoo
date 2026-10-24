@@ -141634,7 +141634,7 @@
         "rpc:ir.attachment.search",
         "rpc:usl.purchase.mail.grouping.review.create"
       ],
-      "digest": "906ee6e009077efb6c5f2fd5fe910b1be731d01ef50c8ed7bc8a30a0864debc1",
+      "digest": "79f441b177da840bc76fc5594e4eb508ce66570942d1701313a01dd5da579a44",
       "guards": [],
       "key": "rpc:account.move.action_review_mail_grouping",
       "kind": "rpc",
@@ -141645,13 +141645,13 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "83bbf9067af8088cefb721eed049cf7b5a7920cd463f531f37436225f21e8501",
+      "runtime_digest": "d451fbfc5dad413f6b7389e76492d2347f2377b7438086fd0eb25c2d8f34e324",
       "sinks": [
         "orm_create"
       ],
       "sources": [
         {
-          "line": 206,
+          "line": 207,
           "path": "custom-addons/usl_accounting/models/purchase_mail_grouping.py"
         },
         {
@@ -143888,6 +143888,42 @@
         }
       ],
       "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:account.move.check_access",
+        "rpc:account.move.ensure_one",
+        "rpc:account.move.has_access"
+      ],
+      "digest": "bf5e2b3d1f6abe38a8fb3e5ac0cffb588b5f8a8db671ad4bc8127075f939c9dc",
+      "guards": [],
+      "key": "rpc:account.move.get_purchase_attachment_context",
+      "kind": "rpc",
+      "method": "get_purchase_attachment_context",
+      "model": "account.move",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "71e0560d96684e57b1f18b65cec5a4da913e9c2c4be0763b0e366e6bd445b885",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 223,
+          "path": "custom-addons/usl_accounting/models/purchase_mail_grouping.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/models/purchase_mail_grouping.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:account.move.check_access",
+        "rpc:account.move.ensure_one"
+      ]
     },
     {
       "abstract": false,
@@ -147232,7 +147268,7 @@
           "path": "addons/mail/models/mail_thread.py"
         },
         {
-          "line": 40,
+          "line": 41,
           "path": "custom-addons/usl_accounting/models/purchase_mail_grouping.py"
         },
         {
@@ -1428293,9 +1428329,50 @@
       "abstract": false,
       "archiveable": false,
       "delegates": [
+        "rpc:account.move.browse",
+        "rpc:account.move.with_context",
         "rpc:usl.purchase.mail.grouping.review.ensure_one"
       ],
-      "digest": "704f5aacc6392089663bcb99b4715070783476496e085de36e932549be3493f7",
+      "digest": "b925361d4898dd2d60092b0aae06a964935cc7e68f0fecb37067e1b81ee945cd",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.action_create_draft_bill",
+      "kind": "rpc",
+      "method": "action_create_draft_bill",
+      "model": "usl.purchase.mail.grouping.review",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1da8e37a4f87f367e709355af500a5a13c006890398d328a35286173d0e81ef2",
+      "sinks": [
+        "message_send",
+        "orm_create",
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 100,
+          "path": "custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:account.move.browse",
+        "rpc:account.move.with_context",
+        "rpc:usl.purchase.mail.grouping.review.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.purchase.mail.grouping.review.ensure_one"
+      ],
+      "digest": "3c195dcac4748f2aaf27a150113f13df61f4ee589e0ec34d0790e94556551485",
       "guards": [],
       "key": "rpc:usl.purchase.mail.grouping.review.action_keep_together",
       "kind": "rpc",
@@ -1428306,13 +1428383,13 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "8dcae323624c4fd49c1ef2cc8cdfe70d66cb21131b185646c28b2dcc3eb6962d",
+      "runtime_digest": "f21c5903b5c60f985492008f3d36bcf2fb952107a4575157befaebfe3c259a5a",
       "sinks": [
         "orm_write"
       ],
       "sources": [
         {
-          "line": 16,
+          "line": 73,
           "path": "custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py"
         },
         {
@@ -1428469,7 +1428546,7 @@
       "delegates": [
         "rpc:usl.agent.sudo"
       ],
-      "digest": "e0af2e9e805515eb65154fe51da8db6f0344c2d3e9c9cf6436343f92e2bfaa66",
+      "digest": "5a2fd97797298d08a86e7396e7ff7d36f09d250db6c9df6ab35cfdb36ad2e6d9",
       "guards": [],
       "key": "rpc:usl.purchase.mail.grouping.review.create",
       "kind": "rpc",
@@ -1428477,17 +1428554,22 @@
       "model": "usl.purchase.mail.grouping.review",
       "modules": [
         "base",
-        "usl_access_control"
+        "usl_access_control",
+        "usl_accounting"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "5a79380d40b5dff61e79107f94d350cf0315d5a53fe951768b0def1f53b725a0",
+      "runtime_digest": "34d95f095c418547597f3295e3ee8f2fa5cdbd0cfe100ce2a7b34149d66b0f61",
       "sinks": [
         "orm_create",
         "orm_write",
         "sudo"
       ],
       "sources": [
+        {
+          "line": 27,
+          "path": "custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py"
+        },
         {
           "line": 3980,
           "path": "odoo/orm/models.py"
@@ -1429093,6 +1429175,1662 @@
         }
       ],
       "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.action_archive",
+      "kind": "rpc",
+      "method": "action_archive",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "235abd6cb4038dd6a2c42caf9de8eae77f16c7778621633c9823beb3bd840539",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5196,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.action_unarchive",
+      "kind": "rpc",
+      "method": "action_unarchive",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e7c3c156fbd16e6d970313b9bb9b3394d43b56dfb1627dd220be3a47a71c75e8",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5207,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.check_field_access",
+      "kind": "rpc",
+      "method": "check_field_access",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "6ea1f9fac0c6643412d04dd4d3c9c9ad70723c75a4fbf7d4aae0a10636bfeff1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2672,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.copy",
+      "kind": "rpc",
+      "method": "copy",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e2701f4de378a2041241c55d30da98574d537a17c9ced308c1a1aaa37d3704ff",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 4945,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.copy_data",
+      "kind": "rpc",
+      "method": "copy_data",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1bcb637275cc868763d196999ce5a96ed738f7a52b0206f6fc826561249f3d13",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 4823,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.copy_translations",
+      "kind": "rpc",
+      "method": "copy_translations",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5675fce11d83c7502d5bcd12d8de06759f5cbccea4f69e7e4cac81fb5c2d6915",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 4880,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "e0af2e9e805515eb65154fe51da8db6f0344c2d3e9c9cf6436343f92e2bfaa66",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.create",
+      "kind": "rpc",
+      "method": "create",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5a79380d40b5dff61e79107f94d350cf0315d5a53fe951768b0def1f53b725a0",
+      "sinks": [
+        "orm_create",
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3980,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 575,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "decorators.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.default_get",
+      "kind": "rpc",
+      "method": "default_get",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5a254545bb7959b0d3f555c147fe3f5e60d3c5889fa39b3ab58165013561b62c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1298,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.export_data",
+      "kind": "rpc",
+      "method": "export_data",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "80bce7a82aa05b027a1d03304c15854a49afda0463cb1b81b1090b46ec7616ec",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 907,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo",
+        "rpc:usl.purchase.mail.grouping.review.line.env",
+        "rpc:usl.purchase.mail.grouping.review.line.with_env"
+      ],
+      "digest": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.fields_get",
+      "kind": "rpc",
+      "method": "fields_get",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "baa7a932d91057120b35e7a5c3e4b7e1e61836083fb2f0ffd1bdf6f6efd537db",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 2612,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 311,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo",
+        "rpc:usl.purchase.mail.grouping.review.line.env",
+        "rpc:usl.purchase.mail.grouping.review.line.with_env"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.get_property_definition"
+      ],
+      "digest": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.formatted_read_group",
+      "kind": "rpc",
+      "method": "formatted_read_group",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ad861b317e2d9b39640847bf88826fd861f2ecea91d0bb0b48322bc4c7a3a344",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 752,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.get_property_definition"
+      ],
+      "digest": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.formatted_read_grouping_sets",
+      "kind": "rpc",
+      "method": "formatted_read_grouping_sets",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base",
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a1a777e1dea172173a503fe308b5b857a127e825dc9152494d1614819d68834a",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 1648,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 652,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.get_base_url",
+      "kind": "rpc",
+      "method": "get_base_url",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "67d503784e6d6f7548d55a2cfdf3bdd45f8195b37ec1b1c9d0251a8dd98aaf30",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3258,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.get_empty_list_help",
+      "kind": "rpc",
+      "method": "get_empty_list_help",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "71d9d7f85cddd3babee74d68b9bf1373cea9a671db1deb8a5b5a71f7cc68dae4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2755,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.get_external_id",
+      "kind": "rpc",
+      "method": "get_external_id",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d8ba5b2f03d09295cc21145c82fd52737b78a38b697ea7cdd704e2cedc9ae2ba",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5123,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.get_field_translations",
+      "kind": "rpc",
+      "method": "get_field_translations",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "24f016d8e2a430cf59d47b17206cb2e434bfbaac4046ef4d8a0ce4778d1af7f2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2927,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.sudo"
+      ],
+      "digest": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.get_formview_action",
+      "kind": "rpc",
+      "method": "get_formview_action",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f4edcfe3654b97ad72a319b821d294d1424decaa7390bc239027a6b78f9e970d",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3232,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.get_formview_id",
+      "kind": "rpc",
+      "method": "get_formview_id",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "95c1752af454541997c8ccf2725058469cf43a5fd4da850f3a10f7d5fd29fb27",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 3221,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.get_import_templates",
+      "kind": "rpc",
+      "method": "get_import_templates",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base_import"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d8392d1f12eba5b1791ef6af27e90a1fc627cacbc6da374ac0ea04942331091a",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 86,
+          "path": "addons/base_import/models/base_import.py"
+        },
+        {
+          "path": "odoo/addons/base_import/models/base_import.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.get_metadata",
+      "kind": "rpc",
+      "method": "get_metadata",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9478f042e1ad35efe156f1cebf773332d56b07c5d5a63ce07e245dea08083a64",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3217,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.get_property_definition",
+      "kind": "rpc",
+      "method": "get_property_definition",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1ac7b96c8c74abf184cdf2821627c7c899e14c965ece4dcc9af28468196b1217",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2303,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:ir.ui.view.sudo",
+        "rpc:usl.purchase.mail.grouping.review.line.browse"
+      ],
+      "digest": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.get_view",
+      "kind": "rpc",
+      "method": "get_view",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0acf8bd48cd6c0a934eab7561db739e01d8bf0281b9acfeb6c0d80b806025011",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3139,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "line": 331,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:ir.ui.view.sudo",
+        "rpc:usl.purchase.mail.grouping.review.line.browse"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:ir.actions.actions.get_bindings",
+        "rpc:ir.filters.get_filters",
+        "rpc:usl.purchase.mail.grouping.review.line.get_view"
+      ],
+      "digest": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.get_views",
+      "kind": "rpc",
+      "method": "get_views",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "28821b46e4ace196e2c4841baa399fd93e3de113f7b8a23e02a6ac1ebb808bb3",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2906,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.has_access",
+      "kind": "rpc",
+      "method": "has_access",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7dde4c8c80708d5316a9b4ba890ccf506ecf99b81b508323688f41a5583a122a",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3395,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.has_field_access",
+      "kind": "rpc",
+      "method": "has_field_access",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "799cce23243afb3ae60b8c02627890f175177862620a93c73cdf96aba995336e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2638,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.search"
+      ],
+      "digest": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.hierarchy_read",
+      "kind": "rpc",
+      "method": "hierarchy_read",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "web_hierarchy"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e2aa251578d309d82ce2e4591076f9e17bd1687af9431cb2f477aea366bdc069",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 10,
+          "path": "addons/web_hierarchy/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web_hierarchy/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.load",
+      "kind": "rpc",
+      "method": "load",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "aa42854816e20eef9f3bef4c8a7f7093ace251608e2835ac74c5b648ccdbb5a1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 922,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.mail_allowed_qweb_expressions",
+      "kind": "rpc",
+      "method": "mail_allowed_qweb_expressions",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "mail"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "db8fea907626f92f1ff6db9395f1e14164568b94e599a3998467f1cfebeb397c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 219,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.mail_get_partner_fields",
+      "kind": "rpc",
+      "method": "mail_get_partner_fields",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "mail"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a336a2519b3cd4da27cb4136737e46b9917505349b03486123f14e0c971a669e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 181,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.name_create",
+      "kind": "rpc",
+      "method": "name_create",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e6630daa1f607675b91db65c230d53ad6df4b76fe10f88b2f49eca774d4948ee",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 1543,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.name_search",
+      "kind": "rpc",
+      "method": "name_search",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f70bce1e80cfd78fda12b36edcf68116ce8fbc3d07b0eee6a5888480a03ed0dd",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 1564,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.check_access",
+        "rpc:usl.purchase.mail.grouping.review.line.default_get",
+        "rpc:usl.purchase.mail.grouping.review.line.fetch",
+        "rpc:usl.purchase.mail.grouping.review.line.new"
+      ],
+      "digest": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.onchange",
+      "kind": "rpc",
+      "method": "onchange",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base",
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "bb63b0e5f4471bbe579f6bd9d01af667898fd0484a0b5bf5e725470a019f8433",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 1908,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "line": 6452,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.check_access",
+        "rpc:usl.purchase.mail.grouping.review.line.fetch",
+        "rpc:usl.purchase.mail.grouping.review.line.new"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.onchange"
+      ],
+      "digest": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.onchange_batch",
+      "kind": "rpc",
+      "method": "onchange_batch",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ea23ff314cc0eb80f6694e2cde1c27ec9b0ea33af0df59d0eacc21b25d53ad30",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1896,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.read",
+      "kind": "rpc",
+      "method": "read",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0d6c99c6016f86318429152c1963ab593f5a5c240600946465a0ace17820f327",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2733,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.formatted_read_group"
+      ],
+      "digest": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.read_progress_bar",
+      "kind": "rpc",
+      "method": "read_progress_bar",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "de4401e52e0cc988131fc11f0c347e20a6b4711220c1152b1a161d892da174a4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1315,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.search",
+      "kind": "rpc",
+      "method": "search",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "471d7d3160921d01da2add1ddbec37ccea1d00f6e1d65854177a91687eb04403",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1403,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.search_count",
+      "kind": "rpc",
+      "method": "search_count",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "123617ed36078cbf6b54e9ac2229a2f8905d7189d3d85f5e9be5765bc082d666",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1387,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.fields_get",
+        "rpc:usl.purchase.mail.grouping.review.line.search_count",
+        "rpc:usl.purchase.mail.grouping.review.line.with_context"
+      ],
+      "digest": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.search_panel_select_multi_range",
+      "kind": "rpc",
+      "method": "search_panel_select_multi_range",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "8d1084cfaa7d7812902ea17cd937614b41c19556ff0370dff296111612ed17d2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1728,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.fields_get",
+        "rpc:usl.purchase.mail.grouping.review.line.with_context"
+      ],
+      "digest": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.search_panel_select_range",
+      "kind": "rpc",
+      "method": "search_panel_select_range",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f15fd0ab0ecc4f8a69aaba36f4bfc1948dc54f91dcd58f43abedfa92db7414ad",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1587,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.search_read",
+      "kind": "rpc",
+      "method": "search_read",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e24e0149cc13b22ffe7216068d9cc91d4ad8abd145bb39a15322f2f205593b19",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5155,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:mail.activity.with_context",
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "b53c929f6dce639c6653ab0f6695968fa56a1bcf1ed7f4d9702731a242fd1cfb",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.unlink",
+      "kind": "rpc",
+      "method": "unlink",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base",
+        "mail",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7cb3a90a9ca4752d4aa8a98534ed1ffc659568c64c592a90eda2f67a36f67edd",
+      "sinks": [
+        "orm_unlink",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3550,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 45,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "line": 635,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:mail.activity.with_context",
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.update_field_translations",
+      "kind": "rpc",
+      "method": "update_field_translations",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ebb8d3f11a6eb5272e7826ecf89c2299f4e381db6db738774fca6a44ece50361",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 2756,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.view_header_get",
+      "kind": "rpc",
+      "method": "view_header_get",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "b14c94c41cfa171935e3cd3c93d8c9d8a732e022b83229ff98e6f8563f7dd110",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2770,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.browse",
+        "rpc:usl.purchase.mail.grouping.review.line.name_search"
+      ],
+      "digest": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.web_name_search",
+      "kind": "rpc",
+      "method": "web_name_search",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "c432ba6a42dc18b2c8d36fc07d9fe66ab05e98d5bb4723f94b0e9a8cee8703a6",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 44,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.browse"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:res.lang.get_installed",
+        "rpc:usl.purchase.mail.grouping.review.line.ensure_one",
+        "rpc:usl.purchase.mail.grouping.review.line.update_field_translations"
+      ],
+      "digest": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.web_override_translations",
+      "kind": "rpc",
+      "method": "web_override_translations",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "65b2b80d23fbf97f4beb6aa63793a2192c87df69a6b13e5205874744728e18e7",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2127,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.read"
+      ],
+      "digest": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.web_read",
+      "kind": "rpc",
+      "method": "web_read",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0397df491af3e68dbf5a2c82620a77599e65baba4ec9661805e0dee10c669b41",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 98,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.browse",
+        "rpc:usl.purchase.mail.grouping.review.line.formatted_read_group",
+        "rpc:usl.purchase.mail.grouping.review.line.search",
+        "rpc:usl.purchase.mail.grouping.review.line.with_context"
+      ],
+      "digest": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.web_read_group",
+      "kind": "rpc",
+      "method": "web_read_group",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7cdc0dc7cd7348ca758ab89f1d40dd19c9157f3cd41788ad93bab7d62848bb5a",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 299,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.browse",
+        "rpc:usl.purchase.mail.grouping.review.line.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.web_read"
+      ],
+      "digest": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.web_resequence",
+      "kind": "rpc",
+      "method": "web_resequence",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9fb7342771181391f3c6bae96f4df108874f3ce018d05005ab2e137ae42dc48b",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 272,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.browse",
+        "rpc:usl.purchase.mail.grouping.review.line.create",
+        "rpc:usl.purchase.mail.grouping.review.line.with_context",
+        "rpc:usl.purchase.mail.grouping.review.line.write"
+      ],
+      "digest": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.web_save",
+      "kind": "rpc",
+      "method": "web_save",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "112c33674d0668e62e51bf2c39467d97d7134617b41020fc6ed35aabba1fd575",
+      "sinks": [
+        "orm_create",
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 79,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.browse",
+        "rpc:usl.purchase.mail.grouping.review.line.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.with_context"
+      ],
+      "digest": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.web_save_multi",
+      "kind": "rpc",
+      "method": "web_save_multi",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "dd52456050d0b84dceed94a869936592107bb741e770b55c9a4086276fab48bb",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 88,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.search_count",
+        "rpc:usl.purchase.mail.grouping.review.line.search_fetch"
+      ],
+      "digest": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.web_search_read",
+      "kind": "rpc",
+      "method": "web_search_read",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "883780099f8b4e2da155770cd316e20a5df8d7684c348d772c1d3e594b840018",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 55,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.purchase.mail.grouping.review.line.search_fetch"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "fb1c84eaabed5992e8be1eba8dc96b7b28d3c68bc87fecd3e116abf35e25dd2a",
+      "guards": [],
+      "key": "rpc:usl.purchase.mail.grouping.review.line.write",
+      "kind": "rpc",
+      "method": "write",
+      "model": "usl.purchase.mail.grouping.review.line",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "8023729d4ec15a34439ea54d89d3e037ea6897df9039b6ead204c787e60e7a1f",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3696,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 604,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo"
+      ]
     },
     {
       "abstract": false,
@@ -1429915,7 +1431653,7 @@
       "delegates": [
         "rpc:usl.agent.sudo"
       ],
-      "digest": "fb1c84eaabed5992e8be1eba8dc96b7b28d3c68bc87fecd3e116abf35e25dd2a",
+      "digest": "d0d21ede13e054d854646bc0484364bc340974ae7b0aa09be52e3bf1a6636b0d",
       "guards": [],
       "key": "rpc:usl.purchase.mail.grouping.review.write",
       "kind": "rpc",
@@ -1429923,16 +1431661,21 @@
       "model": "usl.purchase.mail.grouping.review",
       "modules": [
         "base",
-        "usl_access_control"
+        "usl_access_control",
+        "usl_accounting"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "8023729d4ec15a34439ea54d89d3e037ea6897df9039b6ead204c787e60e7a1f",
+      "runtime_digest": "1eced00b6546de47395bc314c59685de72373f2d9cf86b8eb31d289504c562b7",
       "sinks": [
         "orm_write",
         "sudo"
       ],
       "sources": [
+        {
+          "line": 36,
+          "path": "custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py"
+        },
         {
           "line": 3696,
           "path": "odoo/orm/models.py"
@@ -1429943,6 +1431686,9 @@
         },
         {
           "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py"
         },
         {
           "path": "odoo/orm/models.py"
@@ -1627090,7 +1628836,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 135,
+          "line": 136,
           "path": "custom-addons/usl_accounting/models/purchase_mail_grouping.py"
         }
       ]
@@ -1627105,7 +1628851,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 135,
+          "line": 136,
           "path": "custom-addons/usl_accounting/models/purchase_mail_grouping.py"
         }
       ]
@@ -1627120,7 +1628866,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 135,
+          "line": 136,
           "path": "custom-addons/usl_accounting/models/purchase_mail_grouping.py"
         }
       ]
@@ -1627135,7 +1628881,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 46,
+          "line": 47,
           "path": "custom-addons/usl_accounting/models/purchase_mail_grouping.py"
         }
       ]
@@ -1627150,7 +1628896,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 46,
+          "line": 47,
           "path": "custom-addons/usl_accounting/models/purchase_mail_grouping.py"
         }
       ]
@@ -1627165,13 +1628911,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 168,
+          "line": 169,
           "path": "custom-addons/usl_accounting/models/purchase_mail_grouping.py"
         }
       ]
     },
     {
-      "digest": "4e42eaa52c1476117e7d4dbaad45ba132c608844a4a116580df658c022fb41d4",
+      "digest": "6116e35b94d0026f69191bd58046c5a166ce4a8a14ec85eae233f4e805dcca8f",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/purchase_mail_grouping.py:account.move.action_review_mail_grouping:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1627183,7 +1628929,25 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 206,
+          "line": 207,
+          "path": "custom-addons/usl_accounting/models/purchase_mail_grouping.py"
+        }
+      ]
+    },
+    {
+      "digest": "a17c4e617f1083c232f569a7f8ecb84f6039ef840ed5be05254ccf94c133dfb5",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/purchase_mail_grouping.py:account.move.action_review_mail_grouping:orm_create:2",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:account.move.action_review_mail_grouping"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 207,
           "path": "custom-addons/usl_accounting/models/purchase_mail_grouping.py"
         }
       ]
@@ -1628119,19 +1629883,157 @@
       ]
     },
     {
-      "digest": "f26da5e892d66470f1c55557cdd3f8da06fe71da2667fa32d371e72ba43b1ae8",
-      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py:usl.purchase.mail.grouping.review.action_keep_together:orm_write:1",
+      "digest": "cad7125b23e728e439fe7c9a46bd383aa1aff5528f60d7e55d3dd88c4e07001d",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py:usl.purchase.mail.grouping.review._confirm_source:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 81,
+          "path": "custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py"
+        }
+      ]
+    },
+    {
+      "digest": "c20cffa7ce2a698f6c8dc504870cd0c72c91b6d3e1e2456b45230ba5e93b97d2",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py:usl.purchase.mail.grouping.review._confirm_source:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 81,
+          "path": "custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py"
+        }
+      ]
+    },
+    {
+      "digest": "4dd04799095e045f1b928b7cb0f3b487b8b231683ee8cc4c48486f523c27d821",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py:usl.purchase.mail.grouping.review.action_create_draft_bill:message_send:1",
       "kind": "sink",
       "modules": [
         "usl_accounting"
       ],
       "parents": [
-        "rpc:usl.purchase.mail.grouping.review.action_keep_together"
+        "rpc:usl.purchase.mail.grouping.review.action_create_draft_bill"
+      ],
+      "sink_kind": "message_send",
+      "sources": [
+        {
+          "line": 100,
+          "path": "custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py"
+        }
+      ]
+    },
+    {
+      "digest": "1f3b4497f6042a6772bc20c2f9edfe8bb14ce6abbc279175e385812d6c49f30d",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py:usl.purchase.mail.grouping.review.action_create_draft_bill:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:usl.purchase.mail.grouping.review.action_create_draft_bill"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 100,
+          "path": "custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py"
+        }
+      ]
+    },
+    {
+      "digest": "e399a23bc54d91add2302216a349bf01f53b34594f81b5041b373522bbf84b9d",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py:usl.purchase.mail.grouping.review.action_create_draft_bill:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:usl.purchase.mail.grouping.review.action_create_draft_bill"
       ],
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 16,
+          "line": 100,
+          "path": "custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py"
+        }
+      ]
+    },
+    {
+      "digest": "ee8ded715896d5e38f0d17c59b5896c40a307f9d59fdfbfa1e48a00b4458bba6",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py:usl.purchase.mail.grouping.review.action_create_draft_bill:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:usl.purchase.mail.grouping.review.action_create_draft_bill"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 100,
+          "path": "custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py"
+        }
+      ]
+    },
+    {
+      "digest": "a1827092ee64a883c5a56d5a183e451c032a00e489a8d8bbba91c370e5f4bb98",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py:usl.purchase.mail.grouping.review.action_create_draft_bill:orm_write:3",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:usl.purchase.mail.grouping.review.action_create_draft_bill"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 100,
+          "path": "custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py"
+        }
+      ]
+    },
+    {
+      "digest": "64778eff2fb3557ccafc966859a41064c817bb23d1b2ea2ce9eb93f43cecd1e0",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py:usl.purchase.mail.grouping.review.create:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:usl.purchase.mail.grouping.review.create"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 27,
+          "path": "custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py"
+        }
+      ]
+    },
+    {
+      "digest": "e96e6abd1e74b11383ec397ff71a9569f60639e89aca9ac3f7b1b5484f74d9b2",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py:usl.purchase.mail.grouping.review.write:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:usl.purchase.mail.grouping.review.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 36,
           "path": "custom-addons/usl_accounting/wizard/purchase_mail_grouping_review.py"
         }
       ]
@@ -1703873,9 +1705775,59 @@
     },
     {
       "delegates": [
+        "rpc:account.move.action_review_mail_grouping"
+      ],
+      "digest": "7b5cb192fb907e3421a7de2a65cc02544046799696e4ea8d2ad88b4b0be3706f",
+      "guards": [],
+      "key": "ui:usl_accounting.purchase_mail_grouping_form:button:object:action_review_mail_grouping:2",
+      "kind": "ui",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "82a3371f6ccb236777195529fe69a1ab9fbc50b3bfeaf6d23441e3c4098d2a43",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_accounting/views/purchase_mail_grouping_views.xml"
+        },
+        {
+          "path": "database:ir.ui.view:usl_accounting.purchase_mail_grouping_form"
+        }
+      ],
+      "xmlid": "usl_accounting.purchase_mail_grouping_form"
+    },
+    {
+      "delegates": [
+        "rpc:usl.purchase.mail.grouping.review.action_create_draft_bill"
+      ],
+      "digest": "ce9d6e7940b3aa8e2eb4b341ac1c2161d729b0b27c45365f3f1cee880aedc617",
+      "guards": [],
+      "key": "ui:usl_accounting.purchase_mail_grouping_review_form:button:object:action_create_draft_bill:1",
+      "kind": "ui",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "3dc13bc1d53973600530630c0c256618a47ce0d9e5eb658962385b4b9504538f",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_accounting/views/purchase_mail_grouping_views.xml"
+        },
+        {
+          "path": "database:ir.ui.view:usl_accounting.purchase_mail_grouping_review_form"
+        }
+      ],
+      "xmlid": "usl_accounting.purchase_mail_grouping_review_form"
+    },
+    {
+      "delegates": [
         "rpc:usl.purchase.mail.grouping.review.action_keep_together"
       ],
-      "digest": "49d8f1b807673cfdd86304d085be71cde6d230d150d35dc5791dced74d8103b0",
+      "digest": "96203392c13e06794ff35ef5e7419aa95d7bc6885895dd2161559483bccd8522",
       "guards": [],
       "key": "ui:usl_accounting.purchase_mail_grouping_review_form:button:object:action_keep_together:1",
       "kind": "ui",
@@ -1703884,7 +1705836,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "5e57d97411d6e71fa6465dd6fe1189552dc06cc2752827772e614746368b4bab",
+      "runtime_digest": "04b0d8d0d077c296547013cb529d24f92808f415b3de8389a144ae18f2070310",
       "sinks": [],
       "sources": [
         {
@@ -1713571,6 +1715523,7 @@
     }
   ],
   "country_codes": [
+    "fr",
     "us"
   ],
   "diagnostics": [],
@@ -1714564,11 +1716517,11 @@
       "version": "saas~19.3.1.8.12"
     },
     {
-      "manifest_sha256": "a13454f87800f7e36f6fd3637b07f6d6741ceb5e9d907a2fcf4c48e35954f6c0",
+      "manifest_sha256": "0329aba461408e9639e173d431a9847b7c2f68d5647cada3c3ab2cb8099d316e",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "6e71d6f4139b990be5afce0ccf08986f5f8a2ebd515b3d8cdf65a64e5bfb9387",
-      "version": "saas~19.3.2.2.18"
+      "source_sha256": "b5a6baa446e4b1d2302a3a4c6a55c18bd7f549e7929996da9559d46ccfe5d613",
+      "version": "saas~19.3.2.2.19"
     },
     {
       "manifest_sha256": "d3991a85f02eca8b6b43179b39270cc15cfaf68325f4ff2181e354ccb01c4cf0",
