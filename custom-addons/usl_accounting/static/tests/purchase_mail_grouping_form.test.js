@@ -1,7 +1,8 @@
 import { expect, test } from "@odoo/hoot";
 import { resize } from "@odoo/hoot-dom";
+import { Deferred } from "@odoo/hoot-mock";
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
-import { contains, defineModels, fields, models, mountView, onRpc } from "@web/../tests/web_test_helpers";
+import { clickSave, contains, defineModels, fields, models, mountView, onRpc } from "@web/../tests/web_test_helpers";
 import "@account/services/account_move_service";
 import "../src/js/purchase_mail_grouping_form";
 
@@ -14,7 +15,23 @@ class AccountMove extends models.Model {
     get_extra_print_items() { return []; }
 }
 defineMailModels();
-defineModels({ AccountMove });
+class PurchaseReview extends models.Model {
+    _name = "usl.purchase.mail.grouping.review";
+    line_ids = fields.One2many({ relation: "usl.purchase.mail.grouping.review.line", relation_field: "review_id" });
+    _records = [{ id: 1, line_ids: [1, 2, 3] }];
+}
+class PurchaseLine extends models.Model {
+    _name = "usl.purchase.mail.grouping.review.line";
+    review_id = fields.Many2one({ relation: "usl.purchase.mail.grouping.review" });
+    name = fields.Char();
+    use = fields.Selection({ selection: [["supporting", "Supporting file"], ["main", "Main document"], ["separate", "Another invoice"]] });
+    _records = [
+        { id: 1, review_id: 1, name: "First.pdf", use: "main" },
+        { id: 2, review_id: 1, name: "Second.pdf", use: "supporting" },
+        { id: 3, review_id: 1, name: "Other.pdf", use: "separate" },
+    ];
+}
+defineModels({ AccountMove, PurchaseReview, PurchaseLine });
 
 async function billForm({ action = "action_review_mail_grouping", resId = 1 } = {}) {
     return mountView({
@@ -73,3 +90,66 @@ for (const state of ["dirty", "unblurred", "new", "financial", "sales", "other_a
         expect.verifySteps([]);
     });
 }
+
+for (const width of [390, 1280]) {
+    test(`choosing a new main file clears the previous main and preserves separate choices at ${width}px`, async () => {
+        await resize({ width, height: 844 });
+        await mountView({
+            type: "form", resModel: "usl.purchase.mail.grouping.review", resId: 1,
+            arch: `<form><field name="line_ids"><list editable="bottom" create="0" delete="0">
+                <field name="name"/><field name="use" widget="usl_purchase_attachment_use"/>
+            </list></field></form>`,
+        });
+        await contains(".o_data_row:nth-child(2) [name='use']").click();
+        await contains(".o_data_row:nth-child(2) [name='use'] .o_select_menu_toggler").click();
+        await contains(".o_select_menu_item:contains(Main document)").click();
+        await contains(".o_form_view").click();
+        expect(".o_data_row:nth-child(1) [name='use']").toHaveText("Supporting file");
+        expect(".o_data_row:nth-child(2) [name='use']").toHaveText("Main document");
+        expect(".o_data_row:nth-child(3) [name='use']").toHaveText("Another invoice");
+        onRpc("usl.purchase.mail.grouping.review", "web_save", ({ args }) => {
+            const updates = args[1].line_ids.filter(([command]) => command === 1);
+            expect(updates).toEqual([[1, 1, { use: "supporting" }], [1, 2, { use: "main" }]]);
+            expect.step("exclusive choices saved");
+        });
+        await clickSave();
+        expect.verifySteps(["exclusive choices saved"]);
+    });
+}
+
+
+test("immediate Confirm flushes the selected main after a delayed parent onchange", async () => {
+    PurchaseReview._onChanges = { line_ids() {} };
+    const delayed = new Deferred();
+    let calls = 0;
+    onRpc("usl.purchase.mail.grouping.review", "onchange", async () => {
+        if (++calls === 1) {
+            expect.step("old main update pending");
+            await delayed;
+        }
+    });
+    onRpc("usl.purchase.mail.grouping.review", "web_save", ({ args }) => {
+        expect(args[1].line_ids.filter(([command]) => command === 1)).toEqual([
+            [1, 1, { use: "supporting" }], [1, 2, { use: "main" }],
+        ]);
+        expect.step("both choices saved");
+    });
+    onRpc("usl.purchase.mail.grouping.review", "action_keep_together", () => {
+        expect.step("confirm");
+        return false;
+    });
+    await mountView({
+        type: "form", resModel: "usl.purchase.mail.grouping.review", resId: 1,
+        arch: `<form><header><button name="action_keep_together" type="object" string="Confirm"/></header>
+            <field name="line_ids"><list editable="bottom" create="0" delete="0">
+                <field name="name"/><field name="use" widget="usl_purchase_attachment_use"/>
+            </list></field></form>`,
+    });
+    await contains(".o_data_row:nth-child(2) [name='use']").click();
+    await contains(".o_data_row:nth-child(2) [name='use'] .o_select_menu_toggler").click();
+    await contains(".o_select_menu_item:contains(Main document)").click();
+    await expect.waitForSteps(["old main update pending"]);
+    await contains("button[name='action_keep_together']").click();
+    delayed.resolve();
+    await expect.waitForSteps(["both choices saved", "confirm"]);
+});
