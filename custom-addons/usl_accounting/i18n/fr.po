@@ -2169,7 +2169,6 @@ msgstr "Nom d'affichage"
 #. odoo-python
 #: code:addons/usl_accounting/models/immediate_settlement.py:0
 #: model:ir.model.fields,field_description:usl_accounting.field_account_immediate_settlement__document_id
-#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review_line__raw
 msgid "Document"
 msgstr "Document"
 
@@ -7717,7 +7716,6 @@ msgstr "Pièces jointes du courriel"
 
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__main_attachment_id
-#: model:ir.model.fields.selection,name:usl_accounting.selection__usl_purchase_mail_grouping_review_line__use__main
 msgid "Main document"
 msgstr "Document principal"
 
@@ -7725,7 +7723,6 @@ msgstr "Document principal"
 #: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_line__usl_mail_grouping_summary
 #: model:ir.model.fields,field_description:usl_accounting.field_account_move__usl_mail_grouping_summary
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__summary
-#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_review_form
 msgid "Original attachment evidence"
 msgstr "Analyse des pièces jointes originales"
 
@@ -7770,197 +7767,3 @@ msgstr "Limite d’extraction du texte atteinte"
 #: code:addons/usl_accounting/wizard/purchase_mail_grouping_review.py:0
 msgid "The attachments changed. Close this review and open it again to review the current files."
 msgstr "Les pièces jointes ont changé. Fermez cette fenêtre et ouvrez-la à nouveau pour vérifier les fichiers actuels."
-
-
-#. module: usl_accounting
-#: model:ir.model.fields.selection,name:usl_accounting.selection__usl_purchase_mail_grouping_review_line__use__separate
-msgid "Another invoice"
-msgstr "Autre facture"
-
-#. module: usl_accounting
-#. odoo-python
-#: code:addons/usl_accounting/wizard/purchase_mail_grouping_review.py:0
-msgid "Bill from selected files"
-msgstr "Facture issue des fichiers sélectionnés"
-
-#. module: usl_accounting
-#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_review_form
-msgid ""
-"Choose how to use each file. Keep supporting files here, choose the main "
-"document, or copy files for another invoice to a new draft bill."
-msgstr ""
-"Choisissez le rôle de chaque fichier : pièce justificative, document "
-"principal ou autre facture à copier dans un nouveau brouillon."
-
-#. module: usl_accounting
-#. odoo-python
-#: code:addons/usl_accounting/wizard/purchase_mail_grouping_review.py:0
-msgid "Choose only one main document."
-msgstr "Choisissez un seul document principal."
-
-#. module: usl_accounting
-#. odoo-python
-#: code:addons/usl_accounting/wizard/purchase_mail_grouping_review.py:0
-msgid "Choose readable attachments belonging to this bill, once each."
-msgstr ""
-"Choisissez des pièces jointes accessibles de cette facture, une seule fois "
-"chacune."
-
-#. module: usl_accounting
-#. odoo-python
-#: code:addons/usl_accounting/wizard/purchase_mail_grouping_review.py:0
-msgid "Choose the files that belong to another invoice."
-msgstr "Choisissez les fichiers qui concernent une autre facture."
-
-#. module: usl_accounting
-#. odoo-python
-#: code:addons/usl_accounting/wizard/purchase_mail_grouping_review.py:0
-msgid "Create a draft bill from a vendor bill or credit note."
-msgstr ""
-"Créez un brouillon à partir d’une facture fournisseur ou d’un avoir "
-"fournisseur."
-
-#. module: usl_accounting
-#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_review_form
-msgid "Create draft bill"
-msgstr "Créer une facture en brouillon"
-
-#. module: usl_accounting
-#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__result_move_id
-msgid "Created draft bill"
-msgstr "Facture en brouillon créée"
-
-#. module: usl_accounting
-#. odoo-python
-#: code:addons/usl_accounting/wizard/purchase_mail_grouping_review.py:0
-msgid "Files copied from"
-msgstr "Fichiers copiés depuis"
-
-#. module: usl_accounting
-#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_review_form
-msgid ""
-"Files marked Another invoice will be copied together to one new draft. "
-"Originals stay here. Complete the new bill's invoice details before posting."
-msgstr ""
-"Les fichiers marqués Autre facture seront copiés ensemble dans un nouveau "
-"brouillon. Les originaux restent ici. Complétez les informations de la "
-"nouvelle facture avant de la comptabiliser."
-
-#. module: usl_accounting
-#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__has_separate_files
-msgid "Has Separate Files"
-msgstr "Contient des fichiers d’une autre facture"
-
-#. module: usl_accounting
-#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__legacy_main_explicit
-msgid "Legacy Main Explicit"
-msgstr "Document principal choisi par l’ancienne API"
-
-#. module: usl_accounting
-#. odoo-python
-#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
-msgid ""
-"Open review and mark selected lines as separate. Create one new draft with "
-"copies of those files, then complete its invoice details. Originals remain "
-"on this bill. Retrying opens the previously created bill."
-msgstr ""
-"Ouvrez la vérification et indiquez separate pour les fichiers d’une autre "
-"facture. Créez un brouillon avec leurs copies, puis complétez ses "
-"informations. Les originaux restent sur cette facture. Une nouvelle "
-"tentative ouvre la facture déjà créée."
-
-#. module: usl_accounting
-#. odoo-python
-#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
-msgid ""
-"Open review, set each line's use to supporting or main, then confirm. This "
-"does not post the bill or record a payment."
-msgstr ""
-"Ouvrez la vérification, définissez use sur supporting ou main pour chaque "
-"ligne, puis confirmez. Cela ne comptabilise pas la facture et n’enregistre "
-"aucun paiement."
-
-#. module: usl_accounting
-#. odoo-python
-#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
-msgid "Open the current files and choose how each is used."
-msgstr "Ouvrez les fichiers actuels et choisissez le rôle de chacun."
-
-#. module: usl_accounting
-#: model:ir.model,name:usl_accounting.model_usl_purchase_mail_grouping_review_line
-msgid "Purchase Mail Document Choice"
-msgstr "Affectation d’un document reçu par e-mail"
-
-#. module: usl_accounting
-#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review_line__attachment_id
-msgid "Source attachment"
-msgstr "Pièce jointe source"
-
-#. module: usl_accounting
-#: model:ir.model.fields.selection,name:usl_accounting.selection__usl_purchase_mail_grouping_review_line__use__supporting
-msgid "Supporting file"
-msgstr "Pièce justificative"
-
-#. module: usl_accounting
-#. odoo-python
-#: code:addons/usl_accounting/wizard/purchase_mail_grouping_review.py:0
-msgid ""
-"The draft created from these files is no longer available. Ask a colleague "
-"to check its history before creating another bill."
-msgstr ""
-"Le brouillon créé à partir de ces fichiers n’est plus accessible. Demandez à"
-" un collègue de vérifier son historique avant de créer une autre facture."
-
-#. module: usl_accounting
-#. odoo-python
-#: code:addons/usl_accounting/wizard/purchase_mail_grouping_review.py:0
-msgid ""
-"The originals remain on the source bill. Complete and review this draft's "
-"invoice details before posting."
-msgstr ""
-"Les originaux restent sur la facture source. Complétez et vérifiez les "
-"informations de ce brouillon avant de le comptabiliser."
-
-#. module: usl_accounting
-#. odoo-python
-#: code:addons/usl_accounting/wizard/purchase_mail_grouping_review.py:0
-msgid "Use Create draft bill for the files marked Another invoice."
-msgstr ""
-"Utilisez Créer une facture en brouillon pour les fichiers marqués Autre "
-"facture."
-
-#. module: usl_accounting
-#. odoo-python
-#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
-msgid "Use an offset of zero or more and a limit between 1 and 100."
-msgstr "Utilisez un décalage positif ou nul et une limite entre 1 et 100."
-
-#. module: usl_accounting
-#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review_line__use
-msgid "Use as"
-msgstr "Utiliser comme"
-
-#. module: usl_accounting
-#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_review_form
-msgid "Confirm"
-msgstr "Confirmer"
-
-#. module: usl_accounting
-#: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__line_ids
-msgid "Documents"
-msgstr "Documents"
-
-#. module: usl_accounting
-#: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_review_form
-msgid "Copy the selected files to one empty draft bill. Keep the source originals and complete the new bill before posting."
-msgstr "Copiez les fichiers sélectionnés dans une facture en brouillon vide. Conservez les originaux et complétez la nouvelle facture avant de la comptabiliser."
-
-#. module: usl_accounting
-#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
-msgid "Open review, set each line's use to supporting or main, then call this method with ids containing the opened review's res_id. This does not post the bill or record a payment."
-msgstr "Ouvrez la vérification, définissez use sur supporting ou main pour chaque ligne, puis appelez cette méthode avec le res_id de la vérification dans ids. Cela ne comptabilise pas la facture et n’enregistre aucun paiement."
-
-#. module: usl_accounting
-#: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
-msgid "Open review and mark selected lines as separate. Call this method with ids containing the opened review's res_id to create one draft from copies. Complete its invoice details. Originals remain here; retrying opens the previously created bill."
-msgstr "Ouvrez la vérification et indiquez separate pour les fichiers d’une autre facture. Appelez cette méthode avec le res_id de la vérification dans ids pour créer un brouillon avec leurs copies. Complétez ses informations. Les originaux restent ici ; une nouvelle tentative ouvre la facture déjà créée."

@@ -19,7 +19,6 @@
                 <group string="Mail attachments" invisible="not usl_mail_grouping">
                     <field name="usl_mail_grouping" invisible="1"/>
                     <field name="usl_mail_grouping_summary" nolabel="1" colspan="2"/>
-                    <button name="action_review_mail_grouping" type="object" string="Review attachments" class="btn-link" invisible="usl_mail_grouping_needs_review"/>
                     <field name="usl_mail_grouping_reviewed_by" invisible="not usl_mail_grouping_reviewed_by"/>
                     <field name="usl_mail_grouping_reviewed_at" invisible="not usl_mail_grouping_reviewed_at"/>
                 </group>
@@ -50,26 +49,16 @@
         <field name="model">usl.purchase.mail.grouping.review</field>
         <field name="arch" type="xml">
             <form string="Review attachments">
-                <p>Choose how to use each file. Keep supporting files here, choose the main document, or copy files for another invoice to a new draft bill.</p>
-                <field name="move_id" invisible="1"/>
-                <field name="fingerprint" invisible="1"/>
-                <field name="has_separate_files" invisible="1"/>
-                <field name="line_ids" nolabel="1" class="o_purchase_attachment_choices" context="{'bin_size': True}">
-                    <list editable="bottom" create="0" delete="0">
-                        <field name="attachment_id" column_invisible="1"/>
-                        <field name="name" column_invisible="1"/>
-                        <field name="raw" widget="binary" filename="name" readonly="1"/>
-                        <field name="use" widget="usl_purchase_attachment_use" width="180px"/>
-                    </list>
-                </field>
-                <div class="text-muted mt-2" invisible="not has_separate_files">Files marked Another invoice will be copied together to one new draft. Originals stay here. Complete the new bill's invoice details before posting.</div>
-                <details class="mt-3">
-                    <summary>Original attachment evidence</summary>
-                    <field name="summary" nolabel="1" class="mt-2"/>
-                </details>
+                <p>Keep these files together on this bill only if they describe the same invoice and its supporting evidence. You can choose its main document here. To separate other documents, create another draft bill with copies of the relevant files, keeping the originals here. This confirmation does not post a bill or record a payment.</p>
+                <group>
+                    <field name="move_id"/>
+                    <field name="fingerprint" invisible="1"/>
+                    <field name="summary" nolabel="1" colspan="2"/>
+                    <field name="attachment_ids" widget="many2many_binary" options="{'no_create': True, 'no_delete': True}"/>
+                    <field name="main_attachment_id" domain="[('res_model', '=', 'account.move'), ('res_id', '=', move_id), ('res_field', '=', False)]" options="{'no_create': True, 'no_create_edit': True}"/>
+                </group>
                 <footer>
-                    <button name="action_keep_together" type="object" string="Confirm" class="btn-primary" invisible="has_separate_files"/>
-                    <button name="action_create_draft_bill" type="object" string="Create draft bill" help="Copy the selected files to one empty draft bill. Keep the source originals and complete the new bill before posting." class="btn-primary" invisible="not has_separate_files"/>
+                    <button name="action_keep_together" type="object" string="Keep these files together" class="btn-primary"/>
                     <button string="Cancel" special="cancel" class="btn-secondary"/>
                 </footer>
             </form>
