@@ -3394,6 +3394,7 @@ class CohortContractTests(unittest.TestCase):
             "source": {"commit": "b" * 40},
             "components": {"backup-tool": {"digest_reference": "backup@sha256:" + "c" * 64}},
         }
+        release_raw = json.dumps(release) + " " * (2 * 1024 * 1024)
         cohort_results = {
             "capture": {"status": "captured"},
             "push": {"durable_snapshot_id": "d" * 64},
@@ -3401,6 +3402,11 @@ class CohortContractTests(unittest.TestCase):
         }
 
         def run_cohort(_target, _runner, _image, action, *_args, **_kwargs):
+            if action == "capture":
+                self.assertEqual(_kwargs["input_text"], release_raw)
+                environment = _args[1]
+                self.assertIn("USL_RELEASE_MANIFEST_STDIN=1", environment)
+                self.assertFalse(any(value.startswith("USL_RELEASE_MANIFEST_JSON=") for value in environment))
             return cohort_results[action]
 
         arguments = argparse.Namespace(
@@ -3411,7 +3417,7 @@ class CohortContractTests(unittest.TestCase):
         with (
             mock.patch("operations.stack.load_target", return_value=target),
             mock.patch("operations.stack.inspect_runtime", return_value=runtime),
-            mock.patch("operations.stack._release", return_value=(release, "d" * 64, "{}")),
+            mock.patch("operations.stack._release", return_value=(release, "d" * 64, release_raw)),
             mock.patch("operations.stack._secret_file"),
             mock.patch("operations.stack._ensure_image"),
             mock.patch("operations.stack._validate_runtime_release_images", return_value={"odoo": "image@sha256:" + "e" * 64}),
