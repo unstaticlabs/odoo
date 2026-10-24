@@ -58,27 +58,78 @@ or on its single draft when no invoice is proved. No extra holding bill is
 created for uncertainty. Bills from the same email are linked. Byte equality
 never suppresses a separate later email's business event.
 
-## Reviewing uncertainty
+## Reviewing attachments
 
 Uncertain drafts appear in the existing **To Review** search alongside native
-posted accounting reviews. The bill banner opens the current attachment list,
-original classification reasons and optional native main-document selection.
-An already saved, unchanged purchase draft can open this review before its
-invoice date is known. Pending edits and new records retain native save
-validation, as do posting and unrelated actions.
-**Keep these files together** records the operator and time. It does not
-complete the separate accounting review, create financial lines, post, pay or
-reconcile. Cancel leaves the bill untouched. An attachment change while the
-dialog is open requires a fresh review. A later manual upload/reply keeps the
-ordinary native existing-bill behavior and does not silently regroup history.
+posted accounting reviews. The bill banner opens **Review attachments**. After
+confirmation the same action remains under **Other Info → Mail attachments**, so
+an operator can separate another invoice discovered later.
 
-When another invoice is identified later, create a separate draft with copies
-of its readable files and keep the source originals. The native journal import
-helper reparents attachments and may auto-post, so it is not used as a recovery
-shortcut here. Ordinary native main selection, editing, posting and other
-generic tools retain their existing access rules. The same workflow and
-native bill/attachment rights apply to people and delegated Agents; a
-read-only actor cannot confirm a grouping.
+Each file has one **Use as** choice: **Supporting file**, **Main document**, or
+**Another invoice**. Download the original directly from its row. Original
+classification reasons remain available in the expandable evidence section.
+An already saved, unchanged purchase draft can open review before its invoice
+date is known. Pending edits and new records retain native save validation, as
+do posting and unrelated actions.
+
+**Confirm** records the chosen main document, operator and time. Selecting
+**Another invoice** changes the primary action to **Create draft bill**. All files
+with that choice are copied together to one new empty draft, in the source
+company, purchase journal and document type. The original files remain on the
+source bill, whose grouping choices are recorded as reviewed. The new draft
+links back to its source, is marked for review, and opens for the operator to
+complete its invoice details. Its attachment preview is evidence, not imported
+invoice lines. Supplier, amounts, lines and payment state are not copied or
+inferred. A posted source bill can supply copies without changing its posted
+entries. Separating further invoices uses another selection and another draft.
+
+Source-row locking and an exact selected-file-byte receipt make repeated
+submission open the previously created bill rather than create a duplicate.
+If that bill disappeared or is no longer readable, review reports the unresolved
+history instead of silently replacing it. Changed source files require a fresh
+review. Cancel changes neither the source bill nor its files. Native posting,
+payment, reconciliation and the separate Accounting review keep their existing
+rules; attachment review creates no additional mandatory approval step.
+
+The journal upload helper reparents files and may auto-post. Its decoder can
+commit the cursor. Manual separation therefore uses native draft creation and
+attachment copying, with attachment import disabled on its internal provenance
+note. The operation remains one transaction, and the source accounting values
+and original mail history are preserved. A later upload/reply keeps ordinary
+native existing-bill behavior and does not silently regroup history.
+
+## Agent context and shared actions
+
+People and delegated Agents use the same bill and attachment rights and the
+same review workflow. `account.move.get_purchase_attachment_context(offset=0,
+limit=50)` returns metadata only for vendor bills/credit notes with mail-grouping
+context; other moves return `{}`. It does not read file bytes or compute the
+review fingerprint. The current-rights document page has a maximum of 100 rows,
+with `count`, `complete`, `truncated` and `next_offset`. Names, reasons and MIME
+types are bounded to 512, 1024 and 128 characters; a corresponding `*_status`
+reports `truncated` when needed. Related readable bill references are capped at
+100 and expose their count and truncation flag. Full originals remain available
+through normal native attachment reads.
+
+The response advertises the relevant native action and transient line schema:
+open `action_review_mail_grouping`, set each line's `use` to `supporting`, `main`
+or `separate`, then call `action_keep_together` or `action_create_draft_bill` on
+that review. Choose at most one main file. The review fingerprints current bytes
+and rechecks permissions and file ownership before changing anything. Native
+readonly actors receive evidence without write actions. Existing generic API
+callers can still use the original review fields; the form presents only the
+single per-document choice.
+
+## Disposable qualification data
+
+Seed attachments with native `raw` bytes and an explicit company matching the
+bill. Odoo `saas~19.3` ignores the deprecated `datas` input, and a file's default
+company follows the creating environment rather than its target bill. Checking
+as an administrator can therefore hide an empty-file or company-boundary fixture
+mistake. Verify nonempty bytes and the intended non-admin or Agent's document
+context before exercising the workflow. Use separate databases for backend
+suites and interactive review, and seed a new visual QA generation after backend
+qualification rather than overwriting a scenario already exercised.
 
 ## Native import and transaction limits
 

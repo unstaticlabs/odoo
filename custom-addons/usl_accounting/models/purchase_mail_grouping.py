@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from datetime import date
 
 from odoo import _, Command, api, fields, models
+from odoo.exceptions import UserError
 
 from ..tools import purchase_mail_evidence as evidence
 
@@ -211,6 +212,81 @@ class AccountMove(models.Model):
             "move_id": self.id, "fingerprint": fingerprint,
             "attachment_ids": [Command.set(attachments.ids)],
             "main_attachment_id": self.message_main_attachment_id.id,
+            "line_ids": [Command.create({"attachment_id": attachment.id,
+                                         "use": "main" if attachment == self.message_main_attachment_id else "supporting"})
+                         for attachment in attachments],
         })
         return {"name": _("Review attachments"), "type": "ir.actions.act_window", "res_model": wizard._name,
                 "res_id": wizard.id, "view_mode": "form", "target": "new"}
+
+    @api.readonly
+    def get_purchase_attachment_context(self, offset=0, limit=50):
+        """Relevant bill evidence and native review actions, without file contents.
+
+        Metadata pagination uses current record rules; opening review obtains and
+        later rechecks the exact byte fingerprint separately. Generic clients use
+        the same transient choices and native methods as the form.
+        """
+        self.ensure_one()
+        self.check_access("read")
+        if self.move_type not in {"in_invoice", "in_refund"} or not self.usl_mail_grouping:
+            return {}
+        if type(offset) is not int or offset < 0 or type(limit) is not int or not 1 <= limit <= 100:
+            raise UserError(self.env._("Use an offset of zero or more and a limit between 1 and 100."))
+        domain = [("res_model", "=", self._name), ("res_id", "=", self.id),
+                  "|", ("res_field", "=", False), ("res_field", "=", "ubl_cii_xml_file")]
+        attachments = self.env["ir.attachment"]
+        count = attachments.search_count(domain)
+        page = attachments.search(domain, order="id", offset=offset, limit=limit)
+        metadata = self.usl_mail_grouping
+        evidence_by_id = {file["id"]: file for file in metadata.get("files", [])}
+        related_domain = [("id", "in", self.usl_mail_grouping_move_ids.ids)]
+        related_model = self.env["account.move"]
+        related_count = related_model.search_count(related_domain)
+        related = related_model.search(related_domain, order="id", limit=100)
+        readable_ids = set(related.ids)
+        documents = []
+        for attachment in page:
+            evidence = evidence_by_id.get(attachment.id, {})
+            name = attachment.name or ""
+            reason = evidence.get("reason", "not_classified")
+            reason = reason if isinstance(reason, str) else "not_classified"
+            mimetype = attachment.mimetype or ""
+            role = evidence.get("role", "unknown")
+            document = {
+                "id": attachment.id, "name": name[:512], "mimetype": mimetype[:128],
+                "role": role if role in {"invoice", "receipt", "unknown"} else "unknown", "reason": reason[:1024],
+                "is_main": attachment == self.message_main_attachment_id,
+                "separated_bill_ids": [receipt["move_id"] for receipt in metadata.get("manual_separations", [])
+                                       if attachment.id in receipt["source_attachment_ids"] and receipt["move_id"] in readable_ids],
+            }
+            for field, value, bound in (("name", name, 512), ("reason", reason, 1024), ("mimetype", mimetype, 128)):
+                if len(value) > bound:
+                    document[f"{field}_status"] = "truncated"
+            documents.append(document)
+        actions = {}
+        effective_access = self._api_doc_access()
+        if self.has_access("write") and effective_access.get("write"):
+            actions["review"] = {"model": self._name, "method": "action_review_mail_grouping", "ids": [self.id], "kwargs": {},
+                                 "description": self.env._("Open the current files and choose how each is used.")}
+            actions["confirm"] = {"model": "usl.purchase.mail.grouping.review", "method": "action_keep_together",
+                                  "description": self.env._("Open review, set each line's use to supporting or main, then call this method with ids containing the opened review's res_id. This does not post the bill or record a payment.")}
+            if effective_access.get("create") and self.env["account.move"].has_access("create"):
+                actions["separate"] = {"model": "usl.purchase.mail.grouping.review", "method": "action_create_draft_bill",
+                                       "description": self.env._("Open review and mark selected lines as separate. Call this method with ids containing the opened review's res_id to create one draft from copies. Complete its invoice details. Originals remain here; retrying opens the previously created bill.")}
+        next_offset = offset + len(page) if offset + len(page) < count else False
+        return {
+            "version": 1, "bill_id": self.id, "company_id": self.company_id.id, "state": self.state,
+            "needs_review": self.usl_mail_grouping_needs_review,
+            "main_attachment_id": self.message_main_attachment_id.id,
+            "documents": documents, "related_bill_ids": related.ids,
+            "related_bill_count": related_count, "related_bills_truncated": related_count > len(related),
+            "reviewed_by": self.usl_mail_grouping_reviewed_by.id,
+            "reviewed_at": fields.Datetime.to_string(self.usl_mail_grouping_reviewed_at) or False,
+            "offset": offset, "limit": limit, "count": count,
+            "complete": next_offset is False, "truncated": next_offset is not False, "next_offset": next_offset,
+            "review_lines": {"model": "usl.purchase.mail.grouping.review.line", "relation": "line_ids",
+                             "attachment_field": "attachment_id", "choice_field": "use",
+                             "choices": ["supporting", "main", "separate"]},
+            "actions": actions,
+        }
