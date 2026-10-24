@@ -195,6 +195,14 @@ are `date_deadline`, `summary`, `note` and `user_id`. The activity keeps its id
 and remains unfinished; the method cannot move it to another business record.
 Use `activity_reschedule` when changing matching activity types together.
 
+Native activity completion (`mail.activity.action_done` or `action_feedback`)
+uses the Agent's write authority on each linked business record, not whether
+the activity is assigned to the Agent or its owner. Existing native access and
+company checks still apply. A batch may include several activities on the same
+record, including mixed assignees: the parent is checked once, while every
+activity is completed with the actual Agent's authorship in Chatter. A missing
+or inaccessible parent still prevents completion.
+
 Writable Agents can use native project/task `action_archive` and
 `action_unarchive`. Archiving hides records from active lists while retaining
 their chatter, attachments and identity. Native child-task archive behavior
