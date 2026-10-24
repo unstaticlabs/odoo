@@ -24,6 +24,7 @@ class PurchaseLine extends models.Model {
     _name = "usl.purchase.mail.grouping.review.line";
     review_id = fields.Many2one({ relation: "usl.purchase.mail.grouping.review" });
     name = fields.Char();
+    raw = fields.Binary();
     use = fields.Selection({ selection: [["supporting", "Supporting file"], ["main", "Main document"], ["separate", "Another invoice"]] });
     _records = [
         { id: 1, review_id: 1, name: "First.pdf", use: "main" },
@@ -153,3 +154,41 @@ test("immediate Confirm flushes the selected main after a delayed parent onchang
     delayed.resolve();
     await expect.waitForSteps(["both choices saved", "confirm"]);
 });
+
+
+for (const width of [320, 390]) {
+    test(`phone file choices stay fully visible after editing without horizontal scroll at ${width}px`, async () => {
+        await resize({ width, height: 844 });
+        PurchaseLine._records.forEach((record, index) => {
+            record.raw = "4";
+            record.name = ["justificatif.pdf", "autre-facture.pdf", "document-principal.pdf"][index];
+        });
+        await mountView({
+            type: "form", resModel: "usl.purchase.mail.grouping.review", resId: 1,
+            arch: `<form><div style="width:${width - 32}px"><field name="line_ids" class="o_purchase_attachment_choices" nolabel="1">
+                <list editable="bottom" create="0" delete="0">
+                    <field name="name" column_invisible="1"/>
+                    <field name="raw" widget="binary" filename="name" readonly="1"/>
+                    <field name="use" widget="usl_purchase_attachment_use" width="180px"/>
+                </list></field></div></form>`,
+        });
+        await contains(".o_data_row:nth-child(3) [name='use']").click();
+        await contains(".o_data_row:nth-child(3) [name='use'] .o_select_menu_toggler").click();
+        await contains(".o_select_menu_item:contains(Main document)").click();
+        await contains(".o_data_row:nth-child(2) [name='use']").click();
+        await contains(".o_data_row:nth-child(2) [name='use'] .o_select_menu_toggler").click();
+        await contains(".o_select_menu_item:contains(Another invoice)").click();
+        await contains(".o_form_view").click();
+        const renderer = document.querySelector(".o_purchase_attachment_choices .o_list_renderer");
+        expect(renderer.scrollWidth).toBeLessThan(renderer.clientWidth + 2);
+        expect(renderer.scrollLeft).toBe(0);
+        const bounds = renderer.getBoundingClientRect();
+        for (const cell of renderer.querySelectorAll("th[data-name], .o_data_cell[name]")) {
+            expect(cell.getBoundingClientRect().left).toBeGreaterThan(bounds.left - 2);
+            expect(cell.getBoundingClientRect().right).toBeLessThan(bounds.right + 2);
+            expect(cell.scrollWidth).toBeLessThan(cell.clientWidth + 2);
+        }
+        expect(".o_data_row:nth-child(3) [name='raw']").toHaveText("document-principal.pdf");
+        expect(".o_data_row:nth-child(3) [name='use']").toHaveText("Main document");
+    });
+}

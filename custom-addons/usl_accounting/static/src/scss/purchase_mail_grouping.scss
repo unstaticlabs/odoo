@@ -1,5 +1,6 @@
 // Keep filenames readable beside the native selector, including narrow dialogs.
 .o_purchase_attachment_choices {
+    container: usl-purchase-files / inline-size;
     .o_list_table {
         table-layout: fixed;
         width: 100%;
@@ -14,5 +15,15 @@
     [name="use"] {
         min-width: 0;
         .o_field_widget, .o_select_menu { width: 100%; }
+    }
+}
+
+@container usl-purchase-files (max-width: 575.98px) {
+    .o_purchase_attachment_choices .o_list_table {
+        // Native mobile sizing keeps each measured column too wide to shrink.
+        // This two-column review must fit together, including after focus moves.
+        width: 100% !important;
+        th[data-name="raw"] { width: 44% !important; }
+        th[data-name="use"] { width: 56% !important; }
     }
 }
