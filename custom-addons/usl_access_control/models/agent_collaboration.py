@@ -349,8 +349,9 @@ class MailActivity(models.Model):
                     ),
                     "agent_read_only_action_denied",
                 )
-            records = self.env[model_name].browse(activities.mapped("res_id")).exists()
-            if len(records) != len(set(activities.mapped("res_id"))):
+            record_ids = set(activities.mapped("res_id"))
+            records = self.env[model_name].browse(record_ids).exists()
+            if len(records) != len(record_ids):
                 raise AccessError(self.env._("An activity business record is unavailable."))
             records.check_access("write")
         return self.with_context(

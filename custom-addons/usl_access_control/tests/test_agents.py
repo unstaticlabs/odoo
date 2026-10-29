@@ -1389,6 +1389,83 @@ class TestAutonomousAgents(TransactionCase):
             ),
         )
 
+    def test_project_agent_completes_owner_activity(self):
+        agent = self._create_agent()
+        group = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write({
+            "delegated_group_ids": [Command.set(group.ids)],
+            "read_only_group_ids": [Command.clear()],
+        })
+        project = self.env["project.project"].create({"name": "[QA] Delegated activities"})
+        task = self.env["project.task"].create({"name": "[QA] Owner follow-up", "project_id": project.id})
+        activity = task.activity_schedule("mail.mail_activity_data_todo", user_id=self.owner.id)
+        activity.with_user(agent.user_id).action_done()
+        self.assertFalse(activity.active)
+        self.assertTrue(activity.date_done)
+        completed = task.message_ids.filtered(lambda message: message.mail_activity_type_id)
+        self.assertEqual(completed.author_id, agent.user_id.partner_id)
+
+    def test_project_agent_completes_owner_and_own_activities_on_same_task(self):
+        agent = self._create_agent()
+        group = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write({
+            "delegated_group_ids": [Command.set(group.ids)],
+            "read_only_group_ids": [Command.clear()],
+        })
+        project = self.env["project.project"].create({"name": "[QA] Shared activity target"})
+        task = self.env["project.task"].create({"name": "[QA] Two owner follow-ups", "project_id": project.id})
+        activities = task.activity_schedule("mail.mail_activity_data_todo", user_id=self.owner.id)
+        activities |= task.activity_schedule("mail.mail_activity_data_todo", user_id=agent.user_id.id)
+        activities.with_user(agent.user_id).action_done()
+        self.assertFalse(any(activities.mapped("active")))
+        self.assertTrue(all(activities.mapped("date_done")))
+        completed = task.message_ids.filtered(lambda message: message.mail_activity_type_id)
+        self.assertEqual(len(completed), 2)
+        self.assertEqual(completed.author_id, agent.user_id.partner_id)
+
+    def test_project_agent_activity_batch_checks_every_parent_before_completion(self):
+        agent = self._create_agent()
+        group = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write({
+            "delegated_group_ids": [Command.set(group.ids)],
+            "read_only_group_ids": [Command.clear()],
+            "company_ids": [Command.set(self.company.ids)],
+        })
+        project = self.env["project.project"].create({"name": "[QA] Activity boundaries", "company_id": self.company.id})
+        other_project = self.env["project.project"].create({"name": "[QA] Other company activities", "company_id": self.other_company.id})
+        task = self.env["project.task"].create({"name": "[QA] Allowed follow-up", "project_id": project.id})
+        other_task = self.env["project.task"].create({"name": "[QA] Outside delegation", "project_id": other_project.id})
+        allowed = task.activity_schedule("mail.mail_activity_data_todo", user_id=self.owner.id)
+        denied = other_task.activity_schedule("mail.mail_activity_data_todo", user_id=self.owner.id)
+        original_messages = task.message_ids | other_task.message_ids
+        with self.assertRaises(AccessError), self.cr.savepoint():
+            (allowed | denied).with_user(agent.user_id).with_context(allowed_company_ids=self.company.ids).action_done()
+        self.assertTrue(allowed.active and denied.active)
+        self.assertEqual(task.message_ids | other_task.message_ids, original_messages)
+        agent.with_user(self.owner).write({"read_only_group_ids": [Command.set(group.ids)]})
+        with self.assertRaises(AgentPolicyAccessError), self.cr.savepoint():
+            allowed.with_user(agent.user_id).action_done()
+        self.assertTrue(allowed.active)
+
+    def test_project_agent_activity_completion_rejects_missing_parent(self):
+        agent = self._create_agent()
+        group = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write({
+            "delegated_group_ids": [Command.set(group.ids)],
+            "read_only_group_ids": [Command.clear()],
+        })
+        project = self.env["project.project"].create({"name": "[QA] Missing activity target"})
+        task = self.env["project.task"].create({"name": "[QA] Stale follow-up", "project_id": project.id})
+        activity = task.activity_schedule("mail.mail_activity_data_todo", user_id=self.owner.id)
+        # Deliberately seed a dangling pseudo-reference in this disposable fixture.
+        # Native writes would recompute the missing parent's display name first.
+        self.env.flush_all()
+        self.cr.execute("UPDATE mail_activity SET res_id = %s WHERE id = %s", [2147483647, activity.id])
+        activity.invalidate_recordset(["res_id"])
+        with self.assertRaisesRegex(AccessError, "business record is unavailable"), self.cr.savepoint():
+            activity.with_user(agent.user_id).action_done()
+        self.assertTrue(activity.active)
+
     def test_project_agent_edits_one_activity_without_completing_it(self):
         agent = self._create_agent()
         group = self.env.ref("project.group_project_manager")

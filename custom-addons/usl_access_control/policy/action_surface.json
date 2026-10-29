@@ -613077,7 +613077,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 368,
+          "line": 369,
           "path": "custom-addons/usl_access_control/models/agent_collaboration.py"
         },
         {
@@ -613120,7 +613120,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 360,
+          "line": 361,
           "path": "custom-addons/usl_access_control/models/agent_collaboration.py"
         },
         {
@@ -613169,7 +613169,7 @@
       ],
       "sources": [
         {
-          "line": 364,
+          "line": 365,
           "path": "custom-addons/usl_access_control/models/agent_collaboration.py"
         },
         {
@@ -1344858,7 +1344858,7 @@
           "path": "custom-addons/usl_documents/models/download_grant.py"
         },
         {
-          "line": 393,
+          "line": 394,
           "path": "custom-addons/usl_access_control/models/agent_collaboration.py"
         },
         {
@@ -1345237,7 +1345237,7 @@
       ],
       "sources": [
         {
-          "line": 397,
+          "line": 398,
           "path": "custom-addons/usl_access_control/models/agent_collaboration.py"
         },
         {
@@ -1621144,7 +1621144,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 397,
+          "line": 398,
           "path": "custom-addons/usl_access_control/models/agent_collaboration.py"
         }
       ]
@@ -1716513,7 +1716513,7 @@
       "manifest_sha256": "1972ad743a39d8be2ce0d6b12988b7d5b722aae347629a964e44ef963735012c",
       "name": "usl_access_control",
       "origin": "custom",
-      "source_sha256": "3e04952f7083a87676b50f539310a06cf7c61a7938f945cea6ab2ccd8e425ef4",
+      "source_sha256": "8a8399d3f9582d464bcf799a945b966aba3ca8cde43591f5416aafc9a5055539",
       "version": "saas~19.3.1.8.12"
     },
     {
