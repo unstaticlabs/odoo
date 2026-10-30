@@ -1,6 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 import random
+from unittest.mock import patch
 
 import odoo.tests
 from odoo.addons.pos_self_order.tests.self_order_common_test import SelfOrderCommonTest
@@ -372,3 +373,34 @@ class TestSelfOrderKiosk(SelfOrderCommonTest):
         })
         html = order.order_receipt_generate_html()
         self.assertTrue("Service at Table" in html)
+
+    def test_kiosk_reloads_on_config_change(self):
+        self.pos_config.write({'self_ordering_mode': 'kiosk'})
+        self.pos_config.with_user(self.pos_user).open_ui()
+
+        with patch.object(self.env.registry["pos.config"], "_notify") as notify:
+            self.pos_config.write({'has_paper': False})
+            notify.assert_not_called()
+            self.pos_config.write({'limit_categories': True})
+            notify.assert_called_once_with('CONFIG_UPDATED', {'write_date': self.pos_config.write_date})
+
+    def test_kiosk_paid_order_visible_in_other_pos(self):
+        classic_config = self.pos_config.copy()
+        self.pos_config.write({'self_ordering_mode': 'kiosk'})
+        self.pos_config.with_user(self.pos_user).open_ui()
+        order = self.env['pos.order'].create({
+            'session_id': self.pos_config.current_session_id.id,
+            'state': 'paid',
+            'amount_total': 0,
+            'amount_paid': 0,
+            'amount_tax': 0,
+            'amount_return': 0,
+            'lines': [Command.create({
+                'product_id': self.cola.id,
+                'price_subtotal': 0,
+                'price_subtotal_incl': 0,
+            })],
+        })
+
+        result = self.env['pos.order'].search_paid_order_ids(classic_config.id, [], 80, 0)
+        self.assertIn(order.id, [order_id for order_id, _ in result['ordersInfo']])

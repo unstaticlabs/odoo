@@ -185,6 +185,17 @@ class BaseModuleUninstall(models.TransientModel):
         return super().action_uninstall()
 
 
+class IapAccount(models.Model):
+    _inherit = "iap.account"
+
+    def action_rotate_token(self):
+        self._usl_require_irreversible_action(
+            "external.iap.token.rotate",
+            "rotate an IAP account credential",
+        )
+        return super().action_rotate_token()
+
+
 class PaymentProvider(models.Model):
     _inherit = "payment.provider"
 
