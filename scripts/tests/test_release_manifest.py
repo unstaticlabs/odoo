@@ -1,14 +1,22 @@
 from __future__ import annotations
 
 import copy
+import contextlib
 import hashlib
+import io
 import json
+from pathlib import Path
+import tempfile
+from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 
 from operations.release_manifest import (
     MCP_PUBLIC_METHODS,
+    ROOT,
     ReleaseManifestError,
     _mcp_public_methods,
+    create,
     validate,
 )
 
@@ -142,6 +150,40 @@ def manifest() -> dict[str, object]:
 
 
 class ReleaseManifestTests(unittest.TestCase):
+    def create_release(self):
+        """Build a real manifest using the tracked backend and pinned MCP contract."""
+        value = manifest()
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            renderer = root / "renderer.json"
+            renderer.write_text(json.dumps({
+                "schema": "usl-external-oci-image/v2",
+                **{key: value["renderer"][key] for key in ("repository", "commit")},
+                "image_digest": value["renderer"]["image"],
+            }))
+            notes = root / "notes.json"
+            notes.write_text(json.dumps(value["release_notes"]))
+            output = root / "release.json"
+            arguments = SimpleNamespace(
+                repository=value["source"]["repository"],
+                source_ref=value["source"]["ref"], commit=COMMIT,
+                component=[",".join((name, item["input_sha256"], item["image"],
+                                     item["tag"], item["digest"]))
+                           for name, item in value["components"].items()],
+                renderer_release=renderer, release_notes=notes, output=output,
+                evidence=["unit-tests=" + "4" * 64],
+                ollama_model=value["ollama"]["model"],
+                ollama_manifest=value["ollama"]["manifest_sha256"],
+                ollama_dimension=value["ollama"]["dimension"],
+                **{key: item for key, item in value["foundation"].items() if key != "digest"},
+                **value["build"],
+            )
+            # Module inventory is a separate release input. Exercise the actual
+            # MCP support publication path without requiring OCA checkouts here.
+            with patch("operations.release_manifest.build_inventory", return_value=inventory()), contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(create(arguments), 0)
+            return json.loads(output.read_text())
+
     def operator_manifest(self):
         value = manifest()
         value["source"]["ref"] = "refs/tags/recovery-local-validation"
@@ -188,6 +230,36 @@ class ReleaseManifestTests(unittest.TestCase):
     def test_publishes_every_qualified_mcp_public_method(self) -> None:
         identity = manifest()["mcp_contract"]["agent_identity"]
         self.assertEqual(_mcp_public_methods(identity), sorted(MCP_PUBLIC_METHODS))
+
+    def test_created_release_advertises_backend_actions_beyond_pinned_client_requirements(self):
+        value = self.create_release()
+        contract = value["mcp_contract"]
+        actions = contract["actions"]
+        surface = json.loads((ROOT / "custom-addons/usl_access_control/policy/action_surface.json").read_text())
+        self.assertEqual(set(actions), {
+            entry["key"][4:] for entry in surface["actions"]
+            if entry["key"].startswith("rpc:")
+        })
+        self.assertTrue({
+            "account.move.attach_source_evidence",
+            "account.move.get_company_change_context",
+            "account.move.line.search_count",
+            "hr.expense.attach_source_evidence",
+            "hr.expense.configure_draft_expense_family",
+            "hr.expense.split_draft_expense",
+            "project.task.search_read",
+            "account.immediate.settlement.action_reverse",
+            "account.move.action_post",
+            "project.task.message_post",
+        } <= set(actions))
+        self.assertEqual(actions, sorted(set(actions)))
+        self.assertFalse(any(action.startswith(("rpc:", "sink:", "route:", "cron:", "report:")) for action in actions))
+        self.assertEqual(contract["supported_mcp_major"], 1)
+        self.assertEqual(contract["public_methods"], sorted(MCP_PUBLIC_METHODS))
+        self.assertEqual(validate(value)["identity"], value["identity"])
+        contract["actions"] = sorted([*actions, "account.move.synthetic_unpublished_method"])
+        with self.assertRaisesRegex(ReleaseManifestError, "MCP support contract digest differs"):
+            validate(_sign(value))
 
     def test_accepts_complete_content_addressed_release(self) -> None:
         self.assertEqual(validate(manifest(), commit=COMMIT)["schema"], "usl-release/v3")

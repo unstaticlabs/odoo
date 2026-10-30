@@ -1,7 +1,7 @@
 import math
 from collections.abc import Mapping, Sequence
 
-from odoo import Command, _, api, models
+from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
 HEADER_FIELDS = {
@@ -49,6 +49,13 @@ def _finite_number(value, label):
 
 class AccountMove(models.Model):
     _inherit = "account.move"
+
+    narration = fields.Html(
+        help="Contract terms printed on this invoice, bill or credit note. "
+        "Put internal accounting commentary in an internal Chatter note. "
+        "Use ref for the supplier document reference, invoice line name for "
+        "the item description and payment_reference to identify payment.",
+    )
 
     @api.private
     def _validate_draft_vendor_bill_header(self, values):

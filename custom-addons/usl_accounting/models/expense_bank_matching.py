@@ -145,6 +145,7 @@ class UslExpenseBankMatchCandidate(models.Model):
         return {
             "type": "ir.actions.act_window",
             "name": _("Use bank transaction"),
+            "context": dict(self.env.context),
             "res_model": "usl.expense.bank.match.wizard",
             "res_id": wizard.id,
             "view_mode": "form",
@@ -288,7 +289,7 @@ class UslExpenseBankMatchCandidate(models.Model):
         if expense.state == "approved":
             post_action = expense.with_context(
                 validate_analytic=True,
-                usl_bank_match_posting_confirmation=_POSTING_REVIEW_CONFIRMED,
+                usl_bank_match_transition=_POSTING_REVIEW_CONFIRMED,
             ).action_post()
             if post_action:
                 raise UserError(_(
@@ -447,70 +448,47 @@ class HrExpense(models.Model):
                 else expense._usl_bank_match_ineligible_reason()
             )
 
-    def _usl_bank_match_posting_snapshot(self):
-        """Read current matching evidence without creating a candidate cache."""
+    def _usl_employee_payment_review(self, stage, *, wizard=None):
+        """Refresh the incumbent suggestions within the operator's bank authority."""
+        if not (self.env.su or self.env.user.has_group("account.group_account_manager")):
+            return False
         self.check_access("write")
-        facts, messages, details = [], [], []
-        # Reuse one bounded bank query for a bulk post, including all matching
-        # lines in the fingerprint even though the dialog displays only five.
-        dated = self.filtered(lambda expense: expense.date and expense._usl_bank_match_is_eligible())
-        bank_lines = self.env["account.bank.statement.line"]
-        if dated:
-            bank_lines = bank_lines.search([
-                ("company_id", "in", dated.company_id.ids),
-                ("date", ">=", min(dated.mapped("date")) - timedelta(days=_CANDIDATE_DATE_WINDOW_DAYS)),
-                ("date", "<=", max(dated.mapped("date")) + timedelta(days=_CANDIDATE_DATE_WINDOW_DAYS)),
-                ("amount", "<", 0),
-                ("is_reconciled", "=", False),
-            ])
-        by_company = bank_lines.grouped("company_id")
-        for expense in self.sorted("id"):
-            matches = []
-            if expense in dated:
-                for bank_line in by_company.get(expense.company_id, self.env["account.bank.statement.line"]):
-                    values = expense._usl_bank_match_candidate_values(bank_line)
-                    if values:
-                        matches.append((bank_line.id, values))
-            facts.append({
-                "expense": expense.id,
-                "updated": expense.write_date,
-                "state": expense.state,
-                "payment_mode": expense.payment_mode,
-                "matches": sorted(
-                    (line_id, values["fingerprint"], values["name"],
-                     values["journal_id"], values["evidence_summary"])
-                    for line_id, values in matches
-                ),
-            })
-            if matches:
-                messages.append(_(
-                    "%(expense)s — %(amount)s — Paid by: %(paid_by)s",
-                    expense=expense.display_name,
-                    amount=expense.currency_id.format(expense.total_amount_currency),
-                    paid_by=dict(expense._fields["payment_mode"]._description_selection(self.env))[expense.payment_mode],
-                ))
-                ranked = sorted(matches, key=lambda item: (-item[1]["score"], item[0]))
-                for line_id, values in ranked:
-                    details.append({
-                        "expense_id": expense.id,
-                        "bank_statement_line_id": line_id,
-                        "amount_is_exact": values["amount_is_exact"],
-                        "evidence": values["evidence_summary"],
-                    })
-                for _line_id, values in ranked[:_CANDIDATE_LIMIT]:
-                    messages.append("• " + values["name"] + " — " + values["evidence_summary"])
-                if len(matches) > _CANDIDATE_LIMIT:
-                    messages.append(_("%(count)s more possible matches.", count=len(matches) - _CANDIDATE_LIMIT))
-        fingerprint = hashlib.sha256(json.dumps(facts, sort_keys=True, default=str).encode()).hexdigest()
-        return fingerprint, "\n".join(messages), details
+        eligible = self.filtered(lambda expense: expense.payment_mode == "own_account" and expense._usl_bank_match_is_eligible())
+        if eligible:
+            eligible._usl_refresh_bank_match_candidates()
+        candidates = eligible.usl_bank_match_candidate_ids.filtered(lambda candidate: candidate.state == "available")
+        facts = [(expense.id, expense.write_date, expense.state, expense.payment_mode) for expense in eligible.sorted("id")]
+        evidence = [(candidate.id, candidate.fingerprint, candidate.name, candidate.journal_id.id,
+                     candidate.evidence_summary, candidate.competing_expense_count) for candidate in candidates.sorted("id")]
+        fingerprint = hashlib.sha256(json.dumps([facts, evidence], default=str).encode()).hexdigest()
+        if not candidates:
+            return False
+        if wizard and wizard.usl_review_fingerprint == fingerprint:
+            return False
+        wizard = wizard or self.env["hr.expense.post.wizard"].with_context(active_ids=self.ids).create({})
+        return wizard._usl_open_employee_payment_review(self, candidates, stage, fingerprint)
+
+    def action_submit(self):
+        if self.env.context.get("usl_bank_match_transition") is not _POSTING_REVIEW_CONFIRMED:
+            action = self._usl_employee_payment_review("submit")
+            if action:
+                return action
+        return super().action_submit()
+
+    def action_approve(self):
+        self._check_can_approve()
+        if self.env.context.get("usl_bank_match_transition") is not _POSTING_REVIEW_CONFIRMED:
+            action = self._usl_employee_payment_review("approve")
+            if action:
+                return action
+        return super().action_approve()
 
     def action_post(self):
         self._check_can_create_move()
-        if self.env.context.get("usl_bank_match_posting_confirmation") is not _POSTING_REVIEW_CONFIRMED:
-            fingerprint, evidence, details = self._usl_bank_match_posting_snapshot()
-            if evidence:
-                wizard = self.env["hr.expense.post.wizard"].with_context(active_ids=self.ids).create({})
-                return wizard._usl_open_bank_match_review(self, fingerprint, evidence, details, from_entry=False)
+        if self.env.context.get("usl_bank_match_transition") is not _POSTING_REVIEW_CONFIRMED:
+            action = self._usl_employee_payment_review("post")
+            if action:
+                return action
         return super().action_post()
 
     def _usl_bank_match_is_eligible(self):

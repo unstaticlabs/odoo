@@ -463,89 +463,60 @@ class TestExpenseBankMatching(TestExpenseCommon):
             expense._usl_bank_match_ineligible_reason(),
         )
 
-    def test_post_requires_review_before_company_payment_creation(self):
-        expense = self._expense(name="[QA] Posting requires payment review")
-        expense.write({
-            "payment_mode": "company_account",
-            "payment_method_line_id": self.outbound_method.id,
-        })
-        expense.action_submit()
-        expense._do_approve()
-        self._bank_line(partner=self.vendor)
-
-        action = expense.action_post()
-
-        self.assertFalse(
-            expense.account_move_id,
-            "Posting must show the company-payment review before creating a payment entry",
-        )
-        self.assertEqual(action["res_model"], "hr.expense.post.wizard")
-
-    def _approved_for_posting(self, name, *, company_paid=True, amount=100):
-        expense = self._expense(name=name, amount=amount)
-        if company_paid:
-            expense.write({"payment_mode": "company_account", "payment_method_line_id": self.outbound_method.id})
-        expense.action_submit()
-        expense._do_approve()
-        return expense
+    def test_company_payer_never_opens_employee_payment_review(self):
+        expense = self._approved_for_posting(company_paid=True)
+        bank = self._bank_line()
+        self.assertFalse(expense.action_post())
+        self.assertTrue(expense.account_move_id.origin_payment_id)
+        self.assertFalse(bank.is_reconciled)
 
     def _posting_review(self, expenses):
-        action = expenses.action_post()
-        self.assertEqual(action["res_model"], "hr.expense.post.wizard")
-        wizard = self.env[action["res_model"]].browse(action["res_id"])
-        self.assertTrue(wizard.usl_review_evidence)
-        return wizard.with_context(action["context"])
+        return self._review(expenses, "post")
 
-    def test_post_confirmation_keeps_native_company_payment_and_bank_unmatched(self):
-        expense = self._approved_for_posting("[QA] Explicit company payment")
-        bank = self._bank_line(partner=self.vendor)
+    def test_post_continuation_keeps_employee_payment_and_bank_unmatched(self):
+        expense = self._approved_for_posting()
+        bank = self._bank_line()
         wizard = self._posting_review(expense)
-        self.assertIn(bank.payment_ref, wizard.usl_review_evidence)
+        self.assertEqual(wizard.usl_review_candidate_ids.bank_statement_line_id, bank)
         self.assertFalse(expense.account_move_id)
-        self.assertFalse(expense.usl_bank_match_candidate_ids)
-
-        action = wizard.action_confirm_bank_match_posting()
-
-        self.assertEqual(action["res_model"], "hr.expense")
+        self._continue_review(wizard)
         self.assertEqual(expense.account_move_id.state, "posted")
-        self.assertTrue(expense.account_move_id.origin_payment_id)
-        self.assertEqual(expense.payment_mode, "company_account")
+        self.assertEqual(expense.account_move_id.move_type, "in_receipt")
+        self.assertEqual(expense.payment_mode, "own_account")
         self.assertFalse(bank.is_reconciled)
-        with self.assertRaisesRegex(UserError, "approved expense"):
-            wizard.action_confirm_bank_match_posting()
+        with self.assertRaisesRegex(UserError, "already complete"):
+            wizard.action_continue_employee_payment()
 
     def test_no_match_posts_without_additional_confirmation(self):
-        expense = self._approved_for_posting("[QA] No company payment match")
+        expense = self._approved_for_posting()
         self._bank_line(amount=-400)
-        expense.action_post()
+        self._post_native_dialog(expense.action_post())
         self.assertEqual(expense.account_move_id.state, "posted")
 
     def test_near_match_requires_review_without_becoming_reconcilable(self):
-        expense = self._approved_for_posting("[QA] Near amount")
+        expense = self._approved_for_posting()
         self._bank_line(amount=-101)
         wizard = self._posting_review(expense)
-        self.assertIn("amount difference", wizard.usl_review_evidence)
-        wizard.action_confirm_bank_match_posting()
+        self.assertFalse(wizard.usl_review_candidate_ids.amount_is_exact)
+        self._continue_review(wizard)
         self.assertTrue(expense.account_move_id)
 
     def test_changed_or_new_matches_require_fresh_confirmation(self):
-        expense = self._approved_for_posting("[QA] Changed payment evidence")
+        expense = self._approved_for_posting()
         bank = self._bank_line()
         wizard = self._posting_review(expense)
         original = wizard.usl_review_fingerprint
         bank.amount = -101
-
-        action = wizard.action_confirm_bank_match_posting()
-
+        action = wizard.action_continue_employee_payment()
         self.assertEqual(action["res_id"], wizard.id)
         self.assertTrue(wizard.usl_review_changed)
         self.assertNotEqual(wizard.usl_review_fingerprint, original)
         self.assertFalse(expense.account_move_id)
         second = self._bank_line(label="[QA] Newly received debit")
-        wizard.action_confirm_bank_match_posting()
-        self.assertIn(second.payment_ref, wizard.usl_review_evidence)
+        wizard.action_continue_employee_payment()
+        self.assertIn(second, wizard.usl_review_candidate_ids.bank_statement_line_id)
         self.assertFalse(expense.account_move_id)
-        wizard.action_confirm_bank_match_posting()
+        self._continue_review(wizard)
         self.assertTrue(expense.account_move_id)
 
     def test_bulk_confirmation_is_before_any_member_posts(self):
@@ -555,15 +526,20 @@ class TestExpenseBankMatching(TestExpenseCommon):
         wizard = self._posting_review(first | second)
         self.assertFalse((first | second).account_move_id)
         self.assertEqual(wizard.usl_review_expense_ids, first | second)
-        wizard.action_confirm_bank_match_posting()
-        self.assertEqual(len((first | second).account_move_id), 2)
+        self._continue_review(wizard)
+        # Native employee receipts group these two expenses by employee
+        # (hr_expense._prepare_receipts_vals); both expense lines must survive.
+        self.assertEqual(first.account_move_id.state, "posted")
+        self.assertEqual(second.account_move_id.state, "posted")
+        self.assertEqual((first | second).account_move_id.line_ids.expense_id, first | second)
+        self.assertEqual(sum((first | second).account_move_id.mapped("amount_total")), 400)
 
     def test_employee_confirmation_posts_native_receipt_once(self):
         expense = self._approved_for_posting("[QA] Employee payment decision", company_paid=False)
         bank = self._bank_line()
         wizard = self._posting_review(expense)
         wizard.write({"employee_journal_id": self.company_data["default_journal_purchase"].id})
-        wizard.action_confirm_bank_match_posting()
+        self._continue_review(wizard)
         self.assertEqual(expense.account_move_id.state, "posted")
         self.assertEqual(expense.account_move_id.move_type, "in_receipt")
         self.assertFalse(expense.account_move_id.origin_payment_id)
@@ -571,72 +547,65 @@ class TestExpenseBankMatching(TestExpenseCommon):
         self.assertFalse(bank.is_reconciled)
 
     def test_employee_final_post_rechecks_new_bank_data(self):
-        expense = self._approved_for_posting("[QA] Bank data arrives after opening", company_paid=False)
+        expense = self._approved_for_posting()
         action = expense.action_post()
         wizard = self.env[action["res_model"]].browse(action["res_id"]).with_context(action["context"])
         wizard.employee_journal_id = self.company_data["default_journal_purchase"]
         bank = self._bank_line()
-
         action = wizard.action_post_entry()
-
         self.assertEqual(action["res_id"], wizard.id)
-        self.assertTrue(wizard.usl_review_from_entry)
-        self.assertIn(bank.payment_ref, wizard.usl_review_evidence)
+        self.assertEqual(wizard.usl_review_stage, "post_entry")
+        self.assertIn(bank, wizard.usl_review_candidate_ids.bank_statement_line_id)
         self.assertFalse(expense.account_move_id)
-        wizard.action_confirm_bank_match_posting()
+        wizard.action_continue_employee_payment()
         self.assertEqual(expense.account_move_id.state, "posted")
 
     def test_boolean_context_cannot_accidentally_skip_confirmation(self):
         expense = self._approved_for_posting("[QA] RPC confirmation is explicit")
         self._bank_line()
-        action = expense.with_context(usl_bank_match_posting_confirmation=True).action_post()
+        action = expense.with_context(usl_bank_match_transition=True).action_post()
         self.assertFalse(expense.account_move_id)
         self.assertEqual(action["res_model"], "hr.expense.post.wizard")
 
     def test_post_review_does_not_elevate_readonly_accountant(self):
-        expense = self._approved_for_posting("[QA] Read-only posting denial")
+        expense = self._approved_for_posting()
         self._bank_line()
         with self.assertRaises(AccessError):
-            expense.with_user(self.readonly_user).action_post()
+            action = expense.with_user(self.readonly_user).action_post()
+            wizard = self.env[action["res_model"]].with_user(self.readonly_user).browse(action["res_id"]).with_context(action["context"])
+            wizard.action_post_entry()
         self.assertFalse(expense.account_move_id)
 
     def test_review_evidence_uses_only_the_expense_company(self):
-        expense = self._approved_for_posting("[QA] Company isolation")
+        expense = self._approved_for_posting()
         other = self.company_data_2
         statement = self.env["account.bank.statement"].with_company(other["company"]).create({
-            "journal_id": other["default_journal_bank"].id,
-            "date": self.match_date,
-            "name": "[QA] Other-company statement",
-        })
+            "journal_id": other["default_journal_bank"].id, "date": self.match_date,
+            "name": "[QA] Other-company statement"})
         self.env["account.bank.statement.line"].with_company(other["company"]).create({
             "journal_id": other["default_journal_bank"].id, "statement_id": statement.id,
-            "date": self.match_date, "amount": -100, "payment_ref": "[QA] Hidden other-company match",
-        })
-        fingerprint, evidence, details = expense._usl_bank_match_posting_snapshot()
-        self.assertTrue(fingerprint)
-        self.assertFalse(evidence)
-        self.assertFalse(details)
-        expense.action_post()
+            "date": self.match_date, "amount": -100, "payment_ref": "[QA] Hidden other-company match"})
+        self.assertFalse(expense._usl_employee_payment_review("post"))
+        self.assertFalse(expense.usl_bank_match_candidate_ids)
+        self._post_native_dialog(expense.action_post())
         self.assertEqual(expense.account_move_id.company_id, self.env.company)
 
     def test_foreign_currency_suggestion_requires_posting_review(self):
         expense = self._expense(name="[QA] Foreign payment", amount=1000, currency=self.other_currency)
-        expense.write({"payment_mode": "company_account", "payment_method_line_id": self.outbound_method.id})
-        expense.action_submit()
         expense._do_approve()
         bank = self._bank_line(amount=-40, foreign_currency=self.other_currency, amount_currency=-1000)
         wizard = self._posting_review(expense)
-        self.assertEqual(wizard.usl_review_matches[0]["bank_statement_line_id"], bank.id)
-        self.assertTrue(wizard.usl_review_matches[0]["amount_is_exact"])
+        self.assertEqual(wizard.usl_review_candidate_ids.bank_statement_line_id, bank)
+        self.assertTrue(wizard.usl_review_candidate_ids.amount_is_exact)
         self.assertFalse(expense.account_move_id)
 
     def test_mixed_bulk_posts_company_payment_and_employee_receipt_after_one_review(self):
-        company = self._approved_for_posting("[QA] Mixed company member")
-        employee = self._approved_for_posting("[QA] Mixed employee member", company_paid=False, amount=300)
-        bank = self._bank_line()
+        company = self._approved_for_posting(company_paid=True)
+        employee = self._approved_for_posting(amount=300)
+        bank = self._bank_line(amount=-300)
         wizard = self._posting_review(company | employee)
-        wizard.employee_journal_id = self.company_data["default_journal_purchase"]
-        wizard.action_confirm_bank_match_posting()
+        self.assertFalse((company | employee).account_move_id)
+        self._continue_review(wizard)
         self.assertEqual(len((company | employee).account_move_id), 2)
         self.assertTrue(company.account_move_id.origin_payment_id)
         self.assertEqual(employee.account_move_id.move_type, "in_receipt")
@@ -651,27 +620,24 @@ class TestExpenseBankMatching(TestExpenseCommon):
         action = wizard.action_post_entry()
         self.assertEqual(action["res_id"], wizard.id)
         self.assertFalse(expense.account_move_id)
-        wizard.action_confirm_bank_match_posting()
+        self._continue_review(wizard)
         with self.assertRaisesRegex(UserError, "approved expense"):
             wizard.action_post_entry()
 
-    def test_disappearing_matches_refresh_review_without_posting(self):
-        expense = self._approved_for_posting("[QA] Match no longer exists")
+    def test_disappearing_matches_post_without_empty_review(self):
+        expense = self._approved_for_posting()
         bank = self._bank_line()
         wizard = self._posting_review(expense)
         bank.amount = -400
-        wizard.action_confirm_bank_match_posting()
-        self.assertTrue(wizard.usl_review_changed)
-        self.assertFalse(wizard.usl_review_has_matches)
-        self.assertFalse(wizard.usl_review_evidence)
-        self.assertFalse(expense.account_move_id)
-        wizard.action_confirm_bank_match_posting()
+        self._continue_review(wizard)
         self.assertEqual(expense.account_move_id.state, "posted")
+        self.assertFalse(bank.is_reconciled)
+        self.assertFalse(expense.usl_bank_match_available_count)
 
-    def test_open_and_cancel_review_preserves_financial_state_and_candidate_cache(self):
+    def test_open_and_cancel_review_preserves_financial_state(self):
         expense = self._approved_for_posting("[QA] Cancel payment review")
         bank = self._bank_line()
-        models = ("account.move", "account.move.line", "account.payment", "account.partial.reconcile", "account.full.reconcile", "usl.expense.bank.match.candidate")
+        models = ("account.move", "account.move.line", "account.payment", "account.partial.reconcile", "account.full.reconcile")
         before = {model: self.env[model].search_count([]) for model in models}
         expense_before = expense.read(["state", "payment_mode", "total_amount_currency", "account_id", "tax_ids", "analytic_distribution", "vendor_id", "account_move_id", "write_date"])
         bank_before = bank.read(["amount", "amount_currency", "is_reconciled", "reconcile_data", "write_date"])
@@ -686,9 +652,9 @@ class TestExpenseBankMatching(TestExpenseCommon):
         bank = self._bank_line()
         wizard = self._posting_review(expense)
         bank.payment_ref = "[QA] Corrected bank transaction label"
-        wizard.action_confirm_bank_match_posting()
+        self._continue_review(wizard)
         self.assertTrue(wizard.usl_review_changed)
-        self.assertIn(bank.payment_ref, wizard.usl_review_evidence)
+        self.assertIn(bank, wizard.usl_review_candidate_ids.bank_statement_line_id)
         self.assertFalse(expense.account_move_id)
 
     def test_final_review_redispatches_current_company_payment_mode(self):
@@ -698,11 +664,7 @@ class TestExpenseBankMatching(TestExpenseCommon):
         self._bank_line()
         wizard.action_post_entry()
         expense.write({"payment_mode": "company_account", "payment_method_line_id": self.outbound_method.id})
-        wizard.action_confirm_bank_match_posting()
-        self.assertFalse(expense.account_move_id)
-
-        wizard.action_confirm_bank_match_posting()
-
+        self._continue_review(wizard)
         self.assertTrue(expense.account_move_id.origin_payment_id)
         self.assertEqual(expense.account_move_id.move_type, "entry")
 
@@ -716,13 +678,294 @@ class TestExpenseBankMatching(TestExpenseCommon):
         self._bank_line()
         wizard.action_post_entry()
         first.write({"payment_mode": "company_account", "payment_method_line_id": self.outbound_method.id})
-        wizard.action_confirm_bank_match_posting()
-        self.assertFalse((first | second).account_move_id)
-
-        wizard.action_confirm_bank_match_posting()
-
+        self._continue_review(wizard)
         self.assertTrue(first.account_move_id.origin_payment_id)
         self.assertEqual(second.account_move_id.move_type, "in_receipt")
         self.assertNotEqual(first.account_move_id, second.account_move_id)
         self.assertEqual(second.account_move_id.journal_id, journal)
         self.assertEqual(second.account_move_id.invoice_date, self.match_date + timedelta(days=1))
+
+    def _approved_for_posting(self, name="[QA] Employee expense", *, company_paid=False, amount=100):
+        expense = self._expense(name=name, amount=amount)
+        if company_paid:
+            expense.write({"payment_mode": "company_account", "payment_method_line_id": self.outbound_method.id})
+        expense._do_approve()
+        return expense
+
+    def _review(self, expenses, stage):
+        action = getattr(expenses, "action_" + stage)()
+        self.assertEqual(action["res_model"], "hr.expense.post.wizard")
+        wizard = self.env[action["res_model"]].browse(action["res_id"]).with_context(action["context"])
+        self.assertTrue(wizard.usl_review_candidate_ids)
+        self.assertEqual(wizard.usl_review_stage, stage)
+        return wizard
+
+    def _post_native_dialog(self, action, *, accounting_date=None):
+        wizard = self.env[action["res_model"]].browse(action["res_id"]).with_context(action["context"])
+        wizard.write({"employee_journal_id": self.company_data["default_journal_purchase"].id,
+                      "accounting_date": accounting_date or self.match_date})
+        return wizard, wizard.action_post_entry()
+
+    def _continue_review(self, wizard):
+        action = wizard.action_continue_employee_payment()
+        if action.get("res_model") == "hr.expense.post.wizard" and action["res_id"] != wizard.id:
+            native = self.env[action["res_model"]].browse(action["res_id"]).with_context(action["context"])
+            native.write({"employee_journal_id": wizard.employee_journal_id.id,
+                          "accounting_date": wizard.accounting_date})
+            return native.action_post_entry()
+        return action
+
+    def test_employee_submit_opens_existing_candidates_before_transition(self):
+        expense = self._expense(name="[QA] Employee submit candidates")
+        bank = self._bank_line()
+        action = expense.action_submit()
+        self.assertIsInstance(action, dict, "Submit must offer existing bank candidates before advancing")
+        self.assertEqual(expense.state, "draft")
+        wizard = self.env[action["res_model"]].browse(action["res_id"])
+        self.assertEqual(wizard.usl_review_candidate_ids.bank_statement_line_id, bank)
+        self.assertEqual(wizard.usl_review_stage, "submit")
+        candidate_ids = expense.usl_bank_match_candidate_ids.ids
+        wizard.action_continue_employee_payment()
+        self.assertEqual(expense.state, "submitted")
+        self.assertEqual(expense.usl_bank_match_candidate_ids.ids, candidate_ids)
+        self.assertFalse(expense.account_move_id)
+        self.assertFalse(bank.is_reconciled)
+        with self.assertRaisesRegex(UserError, "already complete"):
+            wizard.action_continue_employee_payment()
+
+    def test_approve_continues_only_original_transition(self):
+        expense = self._expense()
+        expense.action_submit()
+        self._bank_line()
+        wizard = self._review(expense, "approve")
+        self.assertEqual(expense.state, "submitted")
+        wizard.action_continue_employee_payment()
+        self.assertEqual(expense.state, "approved")
+        self.assertFalse(expense.account_move_id)
+
+    def test_post_continue_retains_native_controls_and_does_not_prompt_twice(self):
+        expense = self._approved_for_posting()
+        bank = self._bank_line()
+        review = self._review(expense, "post")
+        action = review.action_continue_employee_payment()
+        native, result = self._post_native_dialog(action, accounting_date=self.match_date + timedelta(days=1))
+        self.assertEqual(result["res_model"], "account.move")
+        self.assertEqual(expense.account_move_id.state, "posted")
+        self.assertEqual(expense.account_move_id.move_type, "in_receipt")
+        self.assertEqual(expense.account_move_id.journal_id, native.employee_journal_id)
+        self.assertEqual(expense.account_move_id.invoice_date, native.accounting_date)
+        self.assertFalse(bank.is_reconciled)
+        with self.assertRaisesRegex(UserError, "approved expense"):
+            native.action_post_entry()
+
+    def test_no_candidates_uses_native_submit_approve_and_post(self):
+        expense = self._expense()
+        self._bank_line(amount=-400)
+        self.assertFalse(expense.action_submit())
+        self.assertEqual(expense.state, "submitted")
+        self.assertFalse(expense.action_approve())
+        self.assertEqual(expense.state, "approved")
+        action = expense.action_post()
+        native, result = self._post_native_dialog(action)
+        self.assertFalse(native.usl_review_candidate_ids)
+        self.assertEqual(result["res_model"], "account.move")
+
+    def test_company_paid_continues_without_employee_prompt(self):
+        expense = self._approved_for_posting(company_paid=True)
+        self._bank_line()
+        self.assertFalse(expense.action_post())
+        self.assertEqual(expense.account_move_id.state, "posted")
+        self.assertFalse(expense.usl_bank_match_candidate_ids)
+
+    def test_near_match_reuses_existing_unusable_candidate(self):
+        expense = self._expense()
+        self._bank_line(amount=-101)
+        wizard = self._review(expense, "submit")
+        self.assertFalse(wizard.usl_review_candidate_ids.amount_is_exact)
+        with self.assertRaisesRegex(UserError, "close but not equal"):
+            wizard.usl_review_candidate_ids.action_open_confirmation()
+        wizard.action_continue_employee_payment()
+        self.assertEqual(expense.state, "submitted")
+
+    def test_changed_matches_refresh_once_before_continuation(self):
+        expense = self._expense()
+        bank = self._bank_line()
+        wizard = self._review(expense, "submit")
+        bank.payment_ref = "[QA] Revised company debit"
+        action = wizard.action_continue_employee_payment()
+        self.assertEqual(action["res_id"], wizard.id)
+        self.assertTrue(wizard.usl_review_changed)
+        self.assertEqual(wizard.usl_review_candidate_ids.bank_label, bank.payment_ref)
+        self.assertEqual(expense.state, "draft")
+        wizard.action_continue_employee_payment()
+        self.assertEqual(expense.state, "submitted")
+
+    def test_disappearing_matches_continue_without_empty_prompt(self):
+        expense = self._expense()
+        bank = self._bank_line()
+        wizard = self._review(expense, "submit")
+        bank.amount = -400
+        result = wizard.action_continue_employee_payment()
+        self.assertNotEqual(result.get("res_model"), "hr.expense.post.wizard")
+        self.assertEqual(expense.state, "submitted")
+
+    def test_cancel_only_refreshes_candidate_cache(self):
+        expense = self._expense()
+        bank = self._bank_line()
+        models = ("account.move", "account.move.line", "account.payment", "account.partial.reconcile", "account.full.reconcile")
+        before = {model: self.env[model].search_count([]) for model in models}
+        wizard = self._review(expense, "submit")
+        wizard.unlink()
+        self.assertEqual(expense.state, "draft")
+        self.assertEqual(expense.payment_mode, "own_account")
+        self.assertFalse(bank.is_reconciled)
+        self.assertEqual({model: self.env[model].search_count([]) for model in models}, before)
+
+    def test_new_bank_data_at_native_final_post_preserves_date(self):
+        expense = self._approved_for_posting()
+        action = expense.action_post()
+        native = self.env[action["res_model"]].browse(action["res_id"]).with_context(action["context"])
+        native.write({"employee_journal_id": self.company_data["default_journal_purchase"].id, "accounting_date": self.match_date})
+        self._bank_line()
+        review = native.action_post_entry()
+        self.assertEqual(review["res_id"], native.id)
+        self.assertEqual(native.usl_review_stage, "post_entry")
+        native.action_continue_employee_payment()
+        self.assertEqual(expense.account_move_id.invoice_date, self.match_date)
+        self.assertEqual(expense.account_move_id.move_type, "in_receipt")
+
+    def test_batch_checks_before_company_payment_and_retains_selection(self):
+        company = self._approved_for_posting(company_paid=True, amount=300)
+        employee = self._approved_for_posting()
+        bank = self._bank_line()
+        wizard = self._review(company | employee, "post")
+        self.assertEqual(wizard.usl_review_expense_ids, company | employee)
+        self.assertFalse((company | employee).account_move_id)
+        action = wizard.action_continue_employee_payment()
+        self._post_native_dialog(action)
+        self.assertTrue(company.account_move_id.origin_payment_id)
+        self.assertEqual(employee.account_move_id.move_type, "in_receipt")
+        self.assertFalse(bank.is_reconciled)
+
+    def test_existing_use_completes_match_and_continues_pending_batch(self):
+        first = self._expense()
+        second = self._expense(name="[QA] Other expense", amount=300)
+        bank = self._bank_line()
+        review = self._review(first | second, "submit")
+        action = review.usl_review_candidate_ids.with_context(review.env.context).action_open_confirmation()
+        match = self.env[action["res_model"]].browse(action["res_id"]).with_context(review.env.context)
+        match.action_confirm()
+        self.assertEqual(first.payment_mode, "company_account")
+        self.assertEqual(first.account_move_id.state, "posted")
+        self.assertTrue(bank.is_reconciled)
+        self.assertEqual(second.state, "submitted")
+        self.assertFalse(second.account_move_id)
+
+    def test_mixed_same_amount_rechecks_changed_competition_after_company_post(self):
+        company = self._approved_for_posting(company_paid=True)
+        employee = self._approved_for_posting()
+        self._bank_line()
+        review = self._review(company | employee, "post")
+        self.assertEqual(review.usl_review_candidate_ids.competing_expense_count, 1)
+        action = review.action_continue_employee_payment()
+        native = self.env[action["res_model"]].browse(action["res_id"]).with_context(action["context"])
+        native.employee_journal_id = self.company_data["default_journal_purchase"]
+        self.assertEqual(company.account_move_id.state, "posted")
+        self.assertFalse(employee.account_move_id)
+        refreshed = native.action_post_entry()
+        self.assertEqual(refreshed["res_model"], "hr.expense.post.wizard")
+        self.assertEqual(refreshed["res_id"], native.id)
+        self.assertTrue(native.usl_review_changed)
+        self.assertEqual(native.usl_review_candidate_ids.competing_expense_count, 0)
+        self.assertFalse(employee.account_move_id)
+        native.action_continue_employee_payment()
+        self.assertEqual(employee.account_move_id.state, "posted")
+
+    def test_users_without_bank_authority_keep_native_submit_approve(self):
+        expense = self._expense()
+        self._bank_line()
+        expense.with_user(self.expense_user_employee).action_submit()
+        self.assertEqual(expense.state, "submitted")
+        expense.with_user(self.expense_user_manager).action_approve()
+        self.assertEqual(expense.state, "approved")
+        self.assertFalse(expense.usl_bank_match_candidate_ids)
+        with self.assertRaises(AccessError):
+            expense.with_user(self.expense_user_employee).action_refresh_bank_match_candidates()
+
+    def test_final_entry_payer_change_rechecks_competition_and_keeps_controls(self):
+        first = self._approved_for_posting()
+        second = self._approved_for_posting()
+        action = (first | second).action_post()
+        native = self.env[action["res_model"]].browse(action["res_id"]).with_context(action["context"])
+        journal = self.company_data["default_journal_purchase"]
+        native.write({"employee_journal_id": journal.id, "accounting_date": self.match_date})
+        self._bank_line()
+        native.action_post_entry()
+        first.write({"payment_mode": "company_account", "payment_method_line_id": self.outbound_method.id})
+        native.action_continue_employee_payment()  # Show the changed payer set.
+        action = native.action_continue_employee_payment()
+        current = self.env[action["res_model"]].browse(action["res_id"]).with_context(action["context"])
+        self.assertEqual(first.account_move_id.state, "posted")
+        self.assertFalse(second.account_move_id)
+        self.assertTrue(current.usl_review_changed)
+        self.assertEqual(current.usl_review_candidate_ids.competing_expense_count, 0)
+        self.assertEqual(current.employee_journal_id, journal)
+        self.assertEqual(current.accounting_date, self.match_date)
+        current.action_continue_employee_payment()
+        self.assertEqual(second.account_move_id.state, "posted")
+        self.assertEqual(second.account_move_id.invoice_date, self.match_date)
+
+    def test_posting_user_without_matching_rights_keeps_native_receipt(self):
+        expense = self._approved_for_posting()
+        bank = self._bank_line()
+        user = self.expense_user_manager
+        user.group_ids |= self.env.ref("account.group_account_invoice")
+        self.assertFalse(user.has_group("account.group_account_manager"))
+        action = expense.with_user(user).action_post()
+        wizard = self.env[action["res_model"]].with_user(user).browse(action["res_id"]).with_context(action["context"])
+        self.assertFalse(wizard.usl_review_candidate_ids)
+        wizard.employee_journal_id = self.company_data["default_journal_purchase"]
+        wizard.action_post_entry()
+        self.assertEqual(expense.account_move_id.state, "posted")
+        self.assertEqual(expense.account_move_id.create_uid, user)
+        self.assertFalse(expense.usl_bank_match_candidate_ids)
+        self.assertFalse(bank.is_reconciled)
+
+    def test_boolean_context_cannot_skip_candidates(self):
+        expense = self._expense()
+        self._bank_line()
+        action = expense.with_context(usl_bank_match_transition=True).action_submit()
+        self.assertEqual(action["res_model"], "hr.expense.post.wizard")
+        self.assertEqual(expense.state, "draft")
+
+    def test_state_changes_refuse_stale_continuation(self):
+        expense = self._expense()
+        self._bank_line()
+        wizard = self._review(expense, "submit")
+        expense._do_approve()
+        with self.assertRaisesRegex(UserError, "state changed"):
+            wizard.action_continue_employee_payment()
+        self.assertFalse(expense.account_move_id)
+
+    def test_changed_payer_at_final_entry_uses_current_native_dispatch(self):
+        expense = self._approved_for_posting()
+        action = expense.action_post()
+        native = self.env[action["res_model"]].browse(action["res_id"]).with_context(action["context"])
+        self._bank_line()
+        native.action_post_entry()
+        expense.write({"payment_mode": "company_account", "payment_method_line_id": self.outbound_method.id})
+        native.action_continue_employee_payment()
+        self.assertTrue(expense.account_move_id.origin_payment_id)
+        self.assertEqual(expense.account_move_id.move_type, "entry")
+
+    def test_other_company_bank_evidence_stays_hidden(self):
+        expense = self._expense()
+        other = self.company_data_2
+        statement = self.env["account.bank.statement"].with_company(other["company"]).create({
+            "journal_id": other["default_journal_bank"].id, "date": self.match_date, "name": "[QA] Other-company statement"})
+        self.env["account.bank.statement.line"].with_company(other["company"]).create({
+            "journal_id": other["default_journal_bank"].id, "statement_id": statement.id,
+            "date": self.match_date, "amount": -100, "payment_ref": "[QA] Other-company debit"})
+        self.assertFalse(expense.action_submit())
+        self.assertEqual(expense.state, "submitted")
+        self.assertFalse(expense.usl_bank_match_candidate_ids)

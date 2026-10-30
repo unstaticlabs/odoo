@@ -41,7 +41,7 @@ ACTION_RISK_RUNTIME_CANDIDATE ?= artifacts/action-risk/runtime.candidate.json
 
 .PHONY: help doctor status dev deploy rebuild logs stop login-link
 .PHONY: configure-pocket-id repair-pocket-id paperless-users disable-tours
-.PHONY: oca-addons-sync document-renderer-certs document-renderer-check
+.PHONY: oca-addons-sync external-addons-sync document-renderer-certs document-renderer-check
 .PHONY: product-migration-source-boundary product-migration-boundary sign-product-validate
 .PHONY: accounting-addon-tests accounting-multicompany-acceptance addon-tests
 .PHONY: user-docs-deps user-docs-serve user-docs-build
@@ -75,6 +75,7 @@ help:
 	  '  make health TARGET=production       Run fast read-only runtime checks' \
 	  '  make smoke TARGET=staging           Run read-only business controls' \
 	  '  make product-migration-boundary     Check the product and private-data boundary' \
+	  '  make oca-addons-sync                Fetch the pinned OCA and external add-ons' \
 	  '  make addon-tests MODULE=usl_documents  Run one add-on'"'"'s test suite' \
 	  '  make accounting-addon-tests         Run focused Accounting module tests' \
 	  '  make user-docs-build                Render user documentation' \
@@ -173,6 +174,11 @@ tese-qa-bootstrap:
 oca-addons-sync:
 	@scripts/sync-oca-addons
 
+# oca-addons-sync also runs this; use it alone after a pin change in
+# deploy/mattermost-odoo/release.json.
+external-addons-sync:
+	@scripts/sync-external-addons
+
 document-renderer-certs:
 	@scripts/generate-document-renderer-certs
 
@@ -250,6 +256,7 @@ action-risk-refresh:
 
 action-risk-compile-policy:
 	@python3 scripts/action_risk_inventory.py compile-runtime-policy
+	@python3 scripts/action_risk_inventory.py compile-agent-readonly-runtime-policy
 
 action-risk-inventory: action-helpers
 	@python3 scripts/action_risk_inventory.py check-source

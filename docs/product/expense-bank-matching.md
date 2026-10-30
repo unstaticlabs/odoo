@@ -43,38 +43,42 @@ Draft, Submitted and Approved expenses are eligible. An already posted
 employee-paid expense is not silently converted; the user must correct it
 through Odoo's normal accounting workflow.
 
-## Review when posting
+## Continue an employee-paid expense
 
-Posting an approved expense now checks the same current company-bank evidence,
-even if **Find bank transactions** has never been selected. When a possible
-match exists, the posting operator must explicitly choose what to do:
+When an Accounting Manager submits, approves or posts an employee-paid expense,
+Odoo refreshes the existing **Find bank transactions** suggestions. If none are
+available, the native action continues immediately. Company-paid expenses and
+users without existing bank-matching authority keep their native workflow;
+no bank evidence or additional rights are granted to those users.
 
-- **Review expenses** returns to the selected expenses. Use the existing
-  **Company payment match** panel to select and confirm an exact transaction.
-- **Post without matching** keeps the existing **Paid by** setting and uses
-  native Odoo posting. It neither selects nor reconciles a bank transaction.
-- **Cancel** leaves the expenses and accounting unchanged.
+When suggestions exist, one dialog displays the same candidates table as the
+expense detail. **Use** opens the existing confirmation and completes native
+company payment and reconciliation. **Continue with employee payment** keeps
+the payer and resumes the requested Submit, Approve or Post action. **Cancel**
+leaves the expense and ledger unchanged. Refreshing suggestions only updates
+the recomputable candidate cache.
 
-The same confirmation applies to people and delegated Agents. It is a decision
-by the current authorized operator, not a request for another approver. Existing
-native permissions, delegation and irreversible-action controls still apply.
-Agents can read `usl_review_expense_ids`, `usl_review_matches` (readable expense
-and bank transaction IDs, exactness and evidence) and `usl_review_evidence` on
-the returned native posting wizard, then call
-`action_confirm_bank_match_posting` to make the same explicit decision.
+Near amounts remain visible but cannot be used. Changed evidence refreshes the
+table before continuation; disappearing matches continue without an empty
+prompt. Native duplicate review, analytic validation and posting controls stay
+authoritative. Posting retains the native journal and accounting-date dialog,
+and checks for new bank evidence again at its final step without repeating an
+unchanged decision. Completed continuations cannot post a second entry.
 
-Near amounts remain possible matches for review, although only an exact amount
-can use the existing reconciliation action. A bulk post reviews all selected
-expenses before posting any of them. If the expense or matching bank evidence
-changes while the dialog is open, the dialog refreshes and asks for confirmation
-again. Repeating a completed posting cannot create another expense entry.
-The final employee-paid posting step also checks newly arrived bank data.
+A batch is checked before any selected expense advances. Each candidate names
+its expense. After **Use** completes one expense, the remaining selection resumes
+the original action and shows any remaining candidates.
 
-Opening a review only creates a temporary native wizard. It does not create
-candidate-cache records, change the expense, create a payment, post an entry or
-reconcile a transaction. No-match posting retains the normal Odoo journey.
-No existing business records are migrated by the module upgrade; the new fields
-belong only to Odoo's temporary posting wizard.
+People and delegated Agents use the same permissions and actions. The returned
+native wizard exposes `usl_review_expense_ids`, `usl_review_stage` and
+`usl_review_candidate_ids`; candidates carry readable bank-transaction IDs,
+exactness and supporting evidence. Call `action_continue_employee_payment` to
+continue, or the candidate's existing `action_open_confirmation` and returned
+wizard's `action_confirm` to use the company payment. Preserve the returned
+action context when continuing a batch.
+
+No business records are backfilled by the module upgrade. Continuation fields
+belong to the native temporary posting wizard.
 
 ## Access and history
 

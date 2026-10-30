@@ -178,6 +178,14 @@ scripts/usl-stack --target production storage plan \
 scripts/usl-stack --target production storage status
 ```
 
+Backup capture streams the complete canonical release manifest through Docker
+stdin (`docker run -i`, `USL_RELEASE_MANIFEST_STDIN=1`). This avoids Linux argument
+limits as MCP context grows. The backup tool still accepts the legacy
+`USL_RELEASE_MANIFEST_JSON` environment input; both paths verify the exact bytes,
+digest, source commit and release identity. The immutable `USL_OPERATIONS_IMAGE`
+override lets a corrected tool capture an older deployed release without changing
+the release being backed up.
+
 The first upgrade from the historical `usl-release/v2` staging runtime is the
 one exception to the generic preflight commands above. Candidate `health` and
 `smoke` require the new MCP readiness and Agent tables, so they cannot describe

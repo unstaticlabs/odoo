@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+# Export the pinned external USL add-ons into custom-addons/.
+#
+# usl_mattermost lives in the public repository unstaticlabs/mattermost-odoo,
+# next to the Mattermost plugin it serves. deploy/mattermost-odoo/release.json
+# pins one commit of that repository. This script exports the module tree of
+# exactly that commit to custom-addons/usl_mattermost/, so the product image,
+# Compose (/mnt/custom-addons) and every custom-addons check see an ordinary
+# add-on. The exported tree is ignored by Git; change the pin, not the tree.
+#
+# Set USL_MATTERMOST_ODOO_SOURCE to an existing checkout of the pinned commit
+# (the release workflow checks it out by name and commit) to skip the fetch.
+# Without it the script keeps a fetch cache under external-src/, seeded from
+# the main checkout when that already holds the commit.
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PIN_FILE="${ROOT_DIR}/deploy/mattermost-odoo/release.json"
+COMMON_GIT_DIR="$(git -C "${ROOT_DIR}" rev-parse --path-format=absolute --git-common-dir)"
+MAIN_CHECKOUT="$(cd "$(dirname "${COMMON_GIT_DIR}")" && pwd -P)"
+
+read_pin() {
+    python3 - "${PIN_FILE}" <<'PY'
+import json
+import re
+import sys
+
+pin = json.load(open(sys.argv[1], encoding="utf-8"))
+if pin.get("schema") != "usl-mattermost-odoo-release-v1":
+    raise SystemExit("Unsupported Mattermost Odoo pin schema")
+if not re.fullmatch(r"https://github\.com/unstaticlabs/[A-Za-z0-9._-]+\.git", pin["repository"]):
+    raise SystemExit("The Mattermost Odoo repository must be a public unstaticlabs URL")
+if not re.fullmatch(r"[0-9a-f]{40}", pin["commit"]):
+    raise SystemExit("The Mattermost Odoo commit must be a full SHA-1")
+if not re.fullmatch(r"usl_[a-z0-9_]+", pin["module"]):
+    raise SystemExit("The Mattermost Odoo module name is invalid")
+if not re.fullmatch(r"[A-Za-z0-9._/-]+", pin["path"]) or ".." in pin["path"].split("/"):
+    raise SystemExit("The Mattermost Odoo module path is invalid")
+print(pin["repository"], pin["commit"], pin["module"], pin["path"])
+PY
+}
+
+read -r REPOSITORY COMMIT MODULE MODULE_PATH < <(read_pin)
+TARGET="${ROOT_DIR}/custom-addons/${MODULE}"
+
+if git -C "${ROOT_DIR}" ls-files --error-unmatch "custom-addons/${MODULE}" >/dev/null 2>&1; then
+    echo "custom-addons/${MODULE} is tracked; refusing to replace it with the pinned export." >&2
+    exit 1
+fi
+
+has_commit() {
+    [[ "$(git -C "$1" cat-file -t "${COMMIT}" 2>/dev/null || true)" == commit ]]
+}
+
+if [[ -n "${USL_MATTERMOST_ODOO_SOURCE:-}" ]]; then
+    SOURCE="${USL_MATTERMOST_ODOO_SOURCE}"
+    actual="$(git -C "${SOURCE}" rev-parse HEAD)"
+    if [[ "${actual}" != "${COMMIT}" ]]; then
+        echo "${SOURCE} is at ${actual}, expected ${COMMIT}." >&2
+        exit 1
+    fi
+else
+    SOURCE="${ROOT_DIR}/external-src/mattermost-odoo"
+    SHARED="${MAIN_CHECKOUT}/external-src/mattermost-odoo"
+    if [[ ! -d "${SOURCE}/.git" ]]; then
+        mkdir -p "$(dirname "${SOURCE}")"
+        if [[ "${SHARED}" != "${SOURCE}" && -d "${SHARED}/.git" ]] && has_commit "${SHARED}"; then
+            git clone --quiet --no-local --no-checkout "${SHARED}" "${SOURCE}"
+        else
+            git init --quiet "${SOURCE}"
+        fi
+    fi
+    git -C "${SOURCE}" remote remove origin 2>/dev/null || true
+    git -C "${SOURCE}" remote add origin "${REPOSITORY}"
+    if ! has_commit "${SOURCE}"; then
+        git -C "${SOURCE}" fetch --quiet --depth 1 origin "${COMMIT}"
+    fi
+fi
+
+if ! has_commit "${SOURCE}"; then
+    echo "Commit ${COMMIT} is not available in ${SOURCE}." >&2
+    exit 1
+fi
+
+staging="$(mktemp -d "${ROOT_DIR}/custom-addons/.${MODULE}.XXXXXX")"
+trap 'rm -rf "${staging}"' EXIT
+git -C "${SOURCE}" archive --format=tar "${COMMIT}:${MODULE_PATH}" | tar -x -C "${staging}"
+if [[ ! -f "${staging}/__manifest__.py" ]]; then
+    echo "The pinned ${MODULE_PATH} has no __manifest__.py." >&2
+    exit 1
+fi
+chmod 755 "${staging}"
+rm -rf "${TARGET}"
+mv "${staging}" "${TARGET}"
+trap - EXIT
+
+echo "${MODULE} ${COMMIT} is available under ${TARGET}"

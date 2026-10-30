@@ -27,6 +27,7 @@ PRODUCT_MODULES = {
     "usl_feedback",
     "usl_home",
     "usl_locale",
+    "usl_mattermost",
     "usl_platform_billing",
     "usl_platform_billing_pocketid",
     "usl_pocketid",

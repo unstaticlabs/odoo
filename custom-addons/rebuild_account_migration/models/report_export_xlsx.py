@@ -396,6 +396,16 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "text_wrap": True,
                 "valign": "vcenter",
             }),
+            "provisional": workbook.add_format({
+                "bold": True,
+                "font_size": 11,
+                "font_color": "#7A2E0E",
+                "bg_color": "#FEF0C7",
+                "border": 1,
+                "border_color": "#B54708",
+                "text_wrap": True,
+                "valign": "vcenter",
+            }),
             "metadata_key": workbook.add_format({"bold": True, "bg_color": "#E8EDF2", "border": 1}),
             "metadata_value": workbook.add_format({
                 "border": 1,
@@ -491,13 +501,28 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         metadata_sheet.hide_gridlines(2)
         metadata_sheet.write(0, 0, self._report_type_label(), formats["title"])
         metadata_sheet.merge_range(0, 0, 0, 1, self._report_type_label(), formats["title"])
-        for row_idx, (key, value) in enumerate(metadata.items(), start=2):
-            metadata_sheet.write(row_idx, 0, key.replace("_", " ").title(), formats["metadata_key"])
-            display_value = self._export_metadata_display_value(
-                key,
-                value,
-            )
-            metadata_sheet.write(row_idx, 1, "" if display_value is None else str(display_value), formats["metadata_value"])
+        provisional = metadata["provisional"]
+        metadata_rows = []
+        for key, value in metadata.items():
+            if key == "provisional":
+                # A readable status, not the raw JSON the CSV carries.
+                metadata_rows.append((
+                    "Statut",
+                    "Provisoire" if provisional["required"] else "Définitif",
+                ))
+                if provisional["required"]:
+                    metadata_rows.append(
+                        ("Motifs", "\n".join(provisional["reasons"])),
+                    )
+                continue
+            display_value = self._export_metadata_display_value(key, value)
+            metadata_rows.append((
+                key.replace("_", " ").title(),
+                "" if display_value is None else str(display_value),
+            ))
+        for row_idx, (label, text) in enumerate(metadata_rows, start=2):
+            metadata_sheet.write(row_idx, 0, label, formats["metadata_key"])
+            metadata_sheet.write(row_idx, 1, text, formats["metadata_value"])
         metadata_sheet.set_column(0, 0, 28)
         metadata_sheet.set_column(1, 1, 88)
         metadata_sheet.set_landscape()
@@ -526,15 +551,29 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             f"{metadata['amount_rounding_label']}"
             f"{zero_accounts_label}"
         )
+        # A provisional document carries one more bold row above the subtitle;
+        # a final one is laid out exactly as before.
+        provisional_banner = (
+            "DOCUMENT PROVISOIRE — " + " ".join(provisional["reasons"])
+            if provisional["required"]
+            else ""
+        )
+        subtitle_row = 2 if provisional_banner else 1
         if last_column:
             report_sheet.merge_range(0, 0, 0, last_column, self._report_type_label(), formats["title"])
-            report_sheet.merge_range(1, 0, 1, last_column, subtitle, formats["subtitle"])
+            if provisional_banner:
+                report_sheet.merge_range(1, 0, 1, last_column, provisional_banner, formats["provisional"])
+            report_sheet.merge_range(subtitle_row, 0, subtitle_row, last_column, subtitle, formats["subtitle"])
         else:
             report_sheet.write(0, 0, self._report_type_label(), formats["title"])
-            report_sheet.write(1, 0, subtitle, formats["subtitle"])
+            if provisional_banner:
+                report_sheet.write_string(1, 0, provisional_banner, formats["provisional"])
+            report_sheet.write(subtitle_row, 0, subtitle, formats["subtitle"])
         report_sheet.set_row(0, 26)
-        report_sheet.set_row(1, 30)
-        header_row = 3
+        if provisional_banner:
+            report_sheet.set_row(1, 34)
+        report_sheet.set_row(subtitle_row, 30)
+        header_row = subtitle_row + 2
         for column_idx, (fieldname, label) in enumerate(columns):
             report_sheet.write(header_row, column_idx, label, formats["header"])
             width = 15
@@ -576,13 +615,19 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         report_sheet.set_landscape()
         report_sheet.fit_to_pages(1, 0)
         report_sheet.repeat_rows(header_row, header_row)
+        provisional_header = (
+            " - Document provisoire" if provisional["required"] else ""
+        )
+        provisional_footer = (
+            "Document provisoire - " if provisional["required"] else ""
+        )
         report_sheet.set_header(
             f"&L{self.company_id.display_name}"
-            f"&C{self._report_type_label()}"
+            f"&C{self._report_type_label()}{provisional_header}"
             f"&RArrêté au {date_to_display}",
         )
         report_sheet.set_footer(
-            "&LExport comptable Odoo Community"
+            f"&L{provisional_footer}Export comptable Odoo Community"
             "&CPage &P sur &N"
             f"&RGénéré le "
             f"{self._display_export_datetime(metadata['generated_at'])}",

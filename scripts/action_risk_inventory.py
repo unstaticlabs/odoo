@@ -80,6 +80,13 @@ ACTION_PREFIXES = (
     "sink:",
     "guard:",
 )
+AGENT_EPHEMERAL_REPORT_ACTIONS = frozenset(
+    {
+        "rpc:rebuild.account.report.export.wizard.report_client_load",
+        "rpc:rebuild.account.report.export.wizard.report_client_export",
+        "rpc:rebuild.account.report.export.wizard.report_client_toggle_group",
+    },
+)
 AGENT_COLLABORATION_METHODS = frozenset(
     {
         "action_done_schedule_next",
@@ -93,49 +100,6 @@ AGENT_COLLABORATION_METHODS = frozenset(
         "message_subscribe",
         "message_unsubscribe",
         "submit_mcp_feedback",
-    },
-)
-AGENT_READONLY_GENERIC_METHODS = frozenset(
-    {
-        "check_field_access",
-        "context_get",
-        "export_data",
-        "fields_get",
-        "formatted_read_group",
-        "formatted_read_grouping_sets",
-        "get_external_id",
-        "get_field_translations",
-        "get_metadata",
-        "has_access",
-        "has_field_access",
-        "hierarchy_read",
-        "name_search",
-        "read",
-        "read_group",
-        "read_progress_bar",
-        "search",
-        "search_count",
-        "search_read",
-    },
-)
-AGENT_READONLY_EXPLICIT_ACTIONS = frozenset(
-    {
-        "rpc:account.move.get_draft_post_match_preview",
-        "rpc:account.move.action_open_vendor_bill_merge_originals",
-        "rpc:account.move.action_open_vendor_bill_merge_target",
-        "rpc:project.task.get_kanban_property_definition",
-        "rpc:usl.agent.current_identity",
-        "rpc:usl.document.mcp_find_similar",
-        "rpc:usl.document.mcp_get",
-        "rpc:usl.document.mcp_get_content",
-        "rpc:usl.document.mcp_get_links",
-        "rpc:usl.document.mcp_get_versions",
-        "rpc:usl.document.mcp_list_correspondents",
-        "rpc:usl.document.mcp_list_saved_views",
-        "rpc:usl.document.mcp_list_tags",
-        "rpc:usl.document.mcp_list_types",
-        "rpc:usl.document.mcp_search",
-        "rpc:usl.home.service.get_ai_attention",
     },
 )
 PRODUCT_MODULES = frozenset(
@@ -152,6 +116,7 @@ PRODUCT_MODULES = frozenset(
         "usl_feedback",
         "usl_home",
         "usl_locale",
+        "usl_mattermost",
         "usl_platform_billing",
         "usl_platform_billing_pocketid",
         "usl_pocketid",
@@ -270,6 +235,7 @@ class MethodContribution:
     sinks: tuple[str, ...]
     guards: tuple[str, ...]
     risk_flags: tuple[str, ...]
+    grouping_calls: bool = False
 
 
 def canonical_json(value: object) -> str:
@@ -382,14 +348,17 @@ def build_agent_readonly_runtime_policy(
         if not action_key.startswith("rpc:"):
             continue
         method_name = action_key.rsplit(".", 1)[-1]
-        if entry.get("classification") == "read_only" and (
-            method_name in AGENT_READONLY_GENERIC_METHODS
-            or action_key in AGENT_READONLY_EXPLICIT_ACTIONS
+        if (
+            method_name in AGENT_COLLABORATION_METHODS
+            or (
+                action_key in AGENT_EPHEMERAL_REPORT_ACTIONS
+                and entry.get("classification") in {"read_only", "operational", "recoverable"}
+            )
         ):
-            read_only_actions.append(action_key)
-            continue
-        if method_name in AGENT_COLLABORATION_METHODS:
             collaboration_actions.append(action_key)
+            continue
+        if entry.get("classification") == "read_only":
+            read_only_actions.append(action_key)
             continue
         if entry.get("classification") in {"operational", "recoverable"}:
             write_actions.append(action_key)
@@ -788,6 +757,7 @@ class _MethodAnalysis(ast.NodeVisitor):
         self.private_calls: set[str] = set()
         self.risk_flags: set[str] = set()
         self.nonliteral_guards = 0
+        self.grouping_calls = False
 
     def _add_sink(self, kind: str) -> None:
         self.sinks.append(kind)
@@ -897,7 +867,17 @@ class _MethodAnalysis(ast.NodeVisitor):
             if sql and SQL_MUTATION.search(sql):
                 self._add_sink("raw_sql_mutation")
 
-        if name.startswith("_") and any(
+        # Native grouping sets are an inherited effect edge, not an ORM setter.
+        # Resolve the exact self/super helper below; foreign receivers keep the
+        # existing conservative name heuristic. Actual write sinks are retained.
+        grouping_call = (
+            self.model is not None
+            and name == "_read_grouping_sets"
+            and receiver in {"self", "super"}
+        )
+        if grouping_call:
+            self.grouping_calls = True
+        if not grouping_call and name.startswith("_") and any(
             marker in name.lower()
             for marker in (
                 "_add",
@@ -999,6 +979,7 @@ def _expanded_method_analysis(
     expanded.private_calls.update(direct.private_calls)
     expanded.risk_flags.update(direct.risk_flags)
     expanded.nonliteral_guards = direct.nonliteral_guards
+    expanded.grouping_calls = direct.grouping_calls
     for private_name in sorted(direct.private_calls):
         if private_name in seen or private_name not in analyses:
             continue
@@ -1012,6 +993,7 @@ def _expanded_method_analysis(
         expanded.guards.update(nested.guards)
         expanded.risk_flags.update(nested.risk_flags)
         expanded.nonliteral_guards += nested.nonliteral_guards
+        expanded.grouping_calls |= nested.grouping_calls
     return expanded
 
 
@@ -1201,7 +1183,10 @@ def _python_contributions(
                     direct_analysis = analyses[method_node.name]
                     analysis = (
                         direct_analysis
-                        if method_node.name.startswith("_")
+                        if (
+                            method_node.name.startswith("_")
+                            and method_node.name != "_read_grouping_sets"
+                        )
                         else _expanded_method_analysis(method_node.name, analyses)
                     )
                     if analysis.nonliteral_guards:
@@ -1217,7 +1202,10 @@ def _python_contributions(
                         model,
                         direct_analysis,
                     )
-                    if not method_node.name.startswith("_"):
+                    if (
+                        not method_node.name.startswith("_")
+                        or method_node.name == "_read_grouping_sets"
+                    ):
                         contributions.append(
                             MethodContribution(
                                 module=info.name,
@@ -1232,6 +1220,7 @@ def _python_contributions(
                                 sinks=tuple(sorted(set(analysis.sinks))),
                                 guards=tuple(sorted(analysis.guards)),
                                 risk_flags=tuple(sorted(analysis.risk_flags)),
+                                grouping_calls=analysis.grouping_calls,
                             ),
                         )
 
@@ -1348,7 +1337,7 @@ def _framework_methods(
                 "base",
                 analysis,
             )
-            if method_node.name.startswith("_"):
+            if method_node.name.startswith("_") and method_node.name != "_read_grouping_sets":
                 continue
             result.append(
                 MethodContribution(
@@ -1360,10 +1349,14 @@ def _framework_methods(
                     source="odoo/orm/models.py",
                     line=method_node.lineno,
                     fragment=stable_ast_dump(method_node),
-                    delegates=(),
+                    delegates=(
+                        tuple(sorted(analysis.delegates))
+                        if method_node.name == "_read_grouping_sets" else ()
+                    ),
                     sinks=tuple(sorted(set(analysis.sinks))),
                     guards=(),
                     risk_flags=tuple(sorted(analysis.risk_flags)),
+                    grouping_calls=analysis.grouping_calls,
                 ),
             )
     return result
@@ -1406,10 +1399,18 @@ def _effective_rpc_actions(
         for contribution in effective:
             by_method[contribution.method].append(contribution)
         for method, implementations in sorted(by_method.items()):
+            if method.startswith("_"):
+                continue
             if any(item.private for item in implementations):
                 continue
             key = f"rpc:{model}.{method}"
-            for implementation in implementations:
+            effects = list(implementations)
+            grouping_helpers = by_method.get("_read_grouping_sets", [])
+            if any(item.grouping_calls for item in implementations):
+                # Union source effects conservatively across installed model
+                # extensions. Runtime discovery binds the exact registry MRO.
+                effects.extend(grouping_helpers)
+            for implementation in effects:
                 delegates = [
                     value.replace("rpc:base.", f"rpc:{model}.", 1)
                     if value.startswith("rpc:base.")
@@ -1430,7 +1431,11 @@ def _effective_rpc_actions(
                             },
                         ],
                         "delegates": delegates,
-                        "sinks": list(implementation.sinks),
+                        "sinks": sorted(set(implementation.sinks) | (
+                            {"orm_write"}
+                            if implementation.grouping_calls and not grouping_helpers
+                            else set()
+                        )),
                         "guards": list(implementation.guards),
                         "risk_flags": list(implementation.risk_flags),
                     },

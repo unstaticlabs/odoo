@@ -36,7 +36,8 @@ registry.category("web_tour.tours").add("usl_linked_receipt_teach_and_recover", 
         {
             content: "The dialog explains instance-wide learning without exposing the signed URL",
             trigger:
-                ".o_dialog:contains('Odoo will remember the sender, host, and link pattern across this instance') tr:has(td[name='hostname']:contains('receipts.example.com')) button[name='action_choose']",
+                ".o_dialog:contains('Odoo will remember the sender, host, and link pattern across this instance') tr:has(td[name='hostname']:contains('receipts.example.com')) button[name='action_choose'], " +
+                ".o_dialog:contains('Odoo will remember the sender, host, and link pattern across this instance') .o_kanban_record:contains('receipts.example.com') button[name='action_choose']",
         },
         {
             content: "Close the alternatives dialog without changing the choice",

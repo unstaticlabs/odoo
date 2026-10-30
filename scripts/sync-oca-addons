@@ -174,3 +174,8 @@ adapt_saas_manifest "queue" "queue_job"
 rm -f "${ADDONS_DIR}/mis_builder"
 
 echo "OCA add-ons are available under ${ADDONS_DIR}"
+
+# Every caller of this script prepares the add-ons path for a build, a test or
+# a check, so it also exports the pinned external USL add-ons into
+# custom-addons/. See scripts/sync-external-addons.
+"${ROOT_DIR}/scripts/sync-external-addons"

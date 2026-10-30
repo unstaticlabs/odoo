@@ -61,6 +61,12 @@
                           t-out="evidence"/>
                 </td>
             </tr>
+            <tr t-if="info.outstanding and line.can_use_payment_rate"
+                class="o_rebuild_payment_suggestion_detail">
+                <td/>
+                <td colspan="3" class="o_rebuild_payment_suggestion_context o_payment_rate_context"
+                    t-out="line.payment_rate_settlement_reason"/>
+            </tr>
         </xpath>
         <xpath expr="//td[a[hasclass('open_account_move')]]" position="attributes">
             <attribute name="style">max-width: 20rem;</attribute>
@@ -131,7 +137,7 @@
                     <span t-if="this.isSettlementActionPending(line.id, 'payment_rate')"
                           class="spinner-border spinner-border-sm me-1"
                           aria-hidden="true"/>
-                    Use payment rate
+                    Correct original rate
                 </button>
             </div>
             <button t-elif="line.can_post_match"

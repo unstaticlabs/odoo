@@ -44,6 +44,7 @@ jobs:
     outputs:
       matrix: ${{ steps.inputs.outputs.matrix }}
       mcp_commit: ${{ steps.inputs.outputs.mcp_commit }}
+      mattermost_odoo_commit: ${{ steps.inputs.outputs.mattermost_odoo_commit }}
       evidence_sha256: ${{ steps.admit.outputs.evidence_sha256 }}
     steps:
       - name: Checkout
@@ -78,6 +79,11 @@ jobs:
               evidence_sha256="$(sha256sum recovery-evidence.json | cut -d' ' -f1)"
           fi
           echo "evidence_sha256=$evidence_sha256" >> "$GITHUB_OUTPUT"
+      - name: Verify the Mattermost Odoo pin is on main
+        # GitHub serves a fork-only commit through the parent repository URL,
+        # so the checkout by SHA in the component job accepts one. Refuse the
+        # pin before any job uses it unless main of the repository holds it.
+        run: scripts/mattermost-odoo verify
       - name: Resolve deterministic component identities
         id: inputs
         run: |
@@ -87,6 +93,7 @@ jobs:
           jq -c '{include: [.components | to_entries[] | .value + {name: .key}]}' \
             component-inputs.json | sed 's/^/matrix=/' >> "$GITHUB_OUTPUT"
           echo "mcp_commit=$(jq -r .commit deploy/odoo-mcp/release.json)" >> "$GITHUB_OUTPUT"
+          echo "mattermost_odoo_commit=$(jq -r .commit deploy/mattermost-odoo/release.json)" >> "$GITHUB_OUTPUT"
           cat component-inputs.json
 
   external:
@@ -144,8 +151,21 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: false
+      - name: Checkout pinned Mattermost Odoo add-on
+        if: matrix.name == 'distribution'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: unstaticlabs/mattermost-odoo
+          ref: ${{ needs.resolve.outputs.mattermost_odoo_commit }}
+          path: .release/mattermost-odoo
+          persist-credentials: false
+          submodules: false
       - name: Resolve OCA inputs only for Odoo
         if: matrix.name == 'distribution'
+        env:
+          # sync-oca-addons exports usl_mattermost from this checkout into
+          # custom-addons/, so the image ships it at /opt/odoo/custom-addons.
+          USL_MATTERMOST_ODOO_SOURCE: ${{ github.workspace }}/.release/mattermost-odoo
         run: scripts/sync-oca-addons
       - name: Resolve Odoo policy identities
         id: policy
