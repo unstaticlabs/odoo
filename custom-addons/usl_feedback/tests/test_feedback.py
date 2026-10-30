@@ -4,7 +4,9 @@ import json
 from pathlib import Path
 from unittest.mock import MagicMock, call, patch
 
-from odoo import Command
+from datetime import timedelta
+
+from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.modules.module import get_module_path
 from odoo.tests import TransactionCase, new_test_user, tagged
@@ -119,6 +121,60 @@ class TestProductFeedback(TransactionCase):
         draft = self._start(user=user, company=company, context=context)
         payload = draft.feedback_submit_initial(message, bool(context))
         return self.env["project.task"].sudo().browse(payload["id"]), payload
+
+    def test_quick_provider_completion_has_two_second_product_wait(self):
+        task, _payload = self._submit(message="[QA] Quick provider completion")
+        run = self.env["usl.feedback.agent.run"].sudo().search([("task_id", "=", task.id)], limit=1)
+        now = fields.Datetime.now()
+        with patch("odoo.addons.usl_feedback.models.feedback_agent_run.fields.Datetime.now", return_value=now):
+            run.submitted_at = now
+            self.assertEqual((run._next_provider_poll_at() - now).total_seconds(), 2)
+            run.submitted_at = now - timedelta(seconds=30)
+            self.assertEqual((run._next_provider_poll_at() - now).total_seconds(), 10)
+            self.assertEqual((run._next_provider_poll_at(first=True) - now).total_seconds(), 2)
+
+    def test_completed_provider_phase_advances_after_two_seconds(self):
+        task, _payload = self._submit(message="[QA] Fast completion advances promptly")
+        run = self.env["usl.feedback.agent.run"].sudo().search([("task_id", "=", task.id)], limit=1)
+        configuration = {"api_key": "offline-fixture", "model": "gemini-3.7-flash"}
+        now = fields.Datetime.now()
+        with (
+            patch.object(type(run), "_configuration", return_value=configuration),
+            patch.object(GeminiClient, "create_interaction", side_effect=[
+                {"id": "qa-source", "status": "in_progress"},
+                {"id": "qa-draft", "status": "in_progress"},
+            ]),
+            patch.object(GeminiClient, "get_interaction", return_value={
+                "id": "qa-source", "status": "completed", "output_text": "[QA] Source facts",
+            }) as poll,
+            patch("odoo.addons.usl_feedback.models.feedback_agent_run.fields.Datetime.now", return_value=now) as clock,
+        ):
+            run._submit()
+            clock.return_value = now + timedelta(seconds=1)
+            self.env["usl.feedback.agent.run"].sudo()._process_task(task)
+            poll.assert_not_called()
+            clock.return_value = now + timedelta(seconds=2)
+            self.env["usl.feedback.agent.run"].sudo()._process_task(task)
+            poll.assert_called_once_with("qa-source")
+            self.assertEqual(run.provider_phase, "draft")
+            self.assertEqual(run.external_interaction_id, "qa-draft")
+
+    def test_navigation_candidates_are_bounded_sanitized_and_opt_out(self):
+        action = self.env.ref("project.action_view_my_task")
+        candidates = [{"action_id": action.id, "model": "project.task", "query": "private"}] * 8
+        candidates += [{"model": "ir.config_parameter", "token": "private"}, {"model": "missing.model"}]
+        draft = self._start(context={"navigation": candidates})
+        payload = draft.feedback_submit_initial("[QA] Navigation context", True)
+        task = self.env["project.task"].sudo().browse(payload["id"])
+        self.assertEqual(task.usl_feedback_navigation_context, [{"model": "project.task"}])
+        summary = self.env["usl.feedback.agent.run"]._context_summary(task)
+        self.assertIn("Recent navigation", summary)
+        self.assertNotIn("private", summary)
+        self.assertNotIn("ir.config_parameter", summary)
+        draft = self._start(context={"navigation": candidates})
+        payload = draft.feedback_submit_initial("[QA] No navigation sharing", False)
+        task = self.env["project.task"].sudo().browse(payload["id"])
+        self.assertFalse(task.usl_feedback_navigation_context)
 
     def test_first_message_creates_partial_native_inbox_before_provider(self):
         with patch.dict("os.environ", {"USL_DEPLOYMENT_ENV": ""}):

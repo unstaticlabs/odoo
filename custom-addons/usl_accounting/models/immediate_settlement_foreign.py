@@ -1,5 +1,7 @@
 """Foreign-currency and payment-rate settlement: context, eligibility, snapshots, locking and execution."""
 
+import json
+
 from odoo import (
     Command,
     _,
@@ -7,6 +9,7 @@ from odoo import (
     models,
 )
 from odoo.exceptions import AccessError, UserError
+from odoo.tools import formatLang
 
 from .immediate_settlement import (
     _ECONOMIC_DISPLAY_TYPES,
@@ -430,6 +433,22 @@ class AccountMove(models.Model):
         self.ensure_one()
         return abs(sum(self._payment_rate_term_lines().mapped("balance")))
 
+    def _payment_rate_tax_configuration(self, line):
+        """Freeze native tax meaning, including grouped taxes and CABA settings."""
+        roots = line.tax_ids | line.tax_line_id
+        taxes = (roots | roots.flatten_taxes_hierarchy()).sorted('id')
+        return [
+            [tax.id, tax.sequence, tax.amount, tax.amount_type, tax.price_include,
+             tax.analytic, tax.tax_group_id.id,
+             tax.children_tax_ids.sorted(lambda child: (child.sequence, child.id)).ids,
+             tax.include_base_amount, tax.is_base_affected, tax.tax_exigibility,
+             tax.cash_basis_transition_account_id.id,
+             [[rep.id, rep.sequence, rep.factor_percent, rep.repartition_type, rep.document_type,
+               rep.account_id.id, sorted(rep.tag_ids.ids)]
+              for rep in tax.repartition_line_ids.sorted('id')]]
+            for tax in taxes
+        ]
+
     def _payment_rate_document_snapshot(self):
         self.ensure_one()
         return [
@@ -448,13 +467,15 @@ class AccountMove(models.Model):
                 "tax_tag_ids": sorted(line.tax_tag_ids.ids),
                 "tax_repartition_line_id": line.tax_repartition_line_id.id,
                 "tax_base_amount": line.tax_base_amount,
+                "tax_exigible": bool(line.filtered_domain(line._get_tax_exigible_domain())),
+                "tax_configuration": self._payment_rate_tax_configuration(line),
             }
             for line in self.line_ids.sorted("id")
         ]
 
     @api.model
     def _payment_rate_snapshot_structure(self, snapshot):
-        ignored = {"line_id", "balance", "amount_currency"}
+        ignored = {"line_id", "balance", "amount_currency", "tax_base_amount"}
         structure = [
             {key: value for key, value in line.items() if key not in ignored}
             for line in snapshot
@@ -469,8 +490,15 @@ class AccountMove(models.Model):
             ),
         )
 
-    def _payment_rate_snapshot_accounting_values(self, snapshot):
+    def _payment_rate_snapshot_accounting_values(self, snapshot, *, reference=None):
         self.ensure_one()
+        # Historical snapshots do not contain the newer tax/exigibility keys.
+        # Compare every field actually recorded; never manufacture missing history.
+        reference = snapshot if reference is None else reference
+        tax_keys = [key for key in (
+            'tax_line_id', 'tax_ids', 'tax_tag_ids', 'tax_repartition_line_id',
+            'tax_base_amount', 'tax_exigible', 'tax_configuration',
+        ) if reference and all(key in line for line in reference)]
         return sorted(
             (
                 line["account_id"],
@@ -480,6 +508,7 @@ class AccountMove(models.Model):
                 self.company_currency_id.round(line["balance"]),
                 self.currency_id.round(line["amount_currency"]),
                 repr(line["analytic_distribution"]),
+                json.dumps({key: line.get(key) for key in tax_keys}, sort_keys=True),
             )
             for line in snapshot
         )
@@ -540,13 +569,6 @@ class AccountMove(models.Model):
                 _(
                     "Use payment rate requires one bank transaction for the "
                     "complete, never-paid document.",
-                ),
-            )
-        if self._payment_rate_document_tax_metadata():
-            return blocked(
-                _(
-                    "Use payment rate is not available when the document "
-                    "contains taxes. Use Settle to preserve its tax valuation.",
                 ),
             )
         if (
@@ -645,30 +667,33 @@ class AccountMove(models.Model):
         applied_invoice_currency_rate = (
             context["foreign_amount"] / context["company_amount"]
         )
-        expected_company_amount = abs(
-            sum(
-                self.company_currency_id.round(
-                    line.amount_currency / applied_invoice_currency_rate,
-                )
-                for line in economic_lines
-            ),
-        )
-        if self.company_currency_id.compare_amounts(
-            expected_company_amount,
-            context["company_amount"],
-        ):
-            return blocked(
-                _(
-                    "Document-line rounding does not produce the exact bank "
-                    "amount at this payment rate. Use Settle instead.",
-                ),
-            )
+        native_preview = self._payment_rate_native_tax_preview(applied_invoice_currency_rate)
+        expected_company_amount = abs(native_preview['total_amount'])
+        if self.company_currency_id.compare_amounts(expected_company_amount, context['company_amount']):
+            return blocked(_(
+                "Native tax rounding does not produce the exact bank amount at this rate. "
+                "Use Settle without changing the original valuation.",
+            ))
         reason = _(
-            "Value the document at the bank's %(company)s rate and match "
-            "%(foreign)s. No FX.",
-            foreign=context["foreign_label"],
-            company=context["company_label"],
+            "Correct an erroneous original valuation: rate %(original)s → %(corrected)s "
+            "%(currency)s per %(company_currency)s; payable %(before)s → %(after)s. "
+            "For ordinary payment-day FX, keep the original rate and reconcile the payment.",
+            original=formatLang(self.env, self.invoice_currency_rate, digits=6),
+            corrected=formatLang(self.env, applied_invoice_currency_rate, digits=6),
+            currency=self.currency_id.name, company_currency=self.company_currency_id.name,
+            before=self.company_currency_id.format(self._payment_rate_document_company_amount()),
+            after=self.company_currency_id.format(expected_company_amount),
         )
+        tax_impacts = self._payment_rate_tax_impacts(native_preview['tax_lines'])
+        if tax_impacts:
+            reason += " " + "; ".join(_(
+                "%(tax)s: base %(base_before)s → %(base_after)s; tax %(tax_before)s → %(tax_after)s",
+                tax=impact['name'],
+                base_before=self.company_currency_id.format(impact['base_before']),
+                base_after=self.company_currency_id.format(impact['base_after']),
+                tax_before=self.company_currency_id.format(impact['tax_before']),
+                tax_after=self.company_currency_id.format(impact['tax_after']),
+            ) for impact in tax_impacts)
         return {
             **context,
             "eligible": True,
@@ -680,7 +705,55 @@ class AccountMove(models.Model):
                 self._payment_rate_document_company_amount()
             ),
             "repriced_document_company_amount": expected_company_amount,
+            "tax_impacts": tax_impacts,
         }
+
+    def _payment_rate_tax_impacts(self, prepared_tax_lines):
+        """Aggregate native analytic/account grouping splits by tax repartition.
+
+        The displayed total must include every native line on both sides, not
+        compare each preview grouping with an arbitrary existing split line.
+        """
+        impacts = {}
+        for line in self.line_ids.filtered('tax_line_id'):
+            key = line.tax_repartition_line_id.id
+            impact = impacts.setdefault(key, {
+                'repartition_id': key, 'name': line.tax_line_id.display_name,
+                'base_before': 0, 'base_after': 0, 'tax_before': 0, 'tax_after': 0,
+            })
+            impact['base_before'] += line.tax_base_amount
+            impact['tax_before'] += line.balance
+        for values in prepared_tax_lines:
+            key = values['tax_repartition_line_id']
+            impact = impacts.setdefault(key, {
+                'repartition_id': key, 'name': values['name'],
+                'base_before': 0, 'base_after': 0, 'tax_before': 0, 'tax_after': 0,
+            })
+            impact['base_after'] += values['tax_base_amount']
+            impact['tax_after'] += values['balance']
+        return [impacts[key] for key in sorted(impacts)]
+
+    def _payment_rate_native_tax_preview(self, rate):
+        """Use native tax/rounding preparation, without writing or resetting the bill.
+
+        This is informative preflight. The actual native reposted gross remains
+        authoritative inside the same transaction as settlement.
+        """
+        self.ensure_one()
+        Tax = self.env['account.tax']
+        base_lines, _tax_lines = self._get_rounded_base_and_tax_lines(round_from_tax_lines=False)
+        for base_line in base_lines:
+            base_line['rate'] = rate
+        Tax._add_tax_details_in_base_lines(base_lines, self.company_id)
+        Tax._round_base_lines_tax_details(base_lines, self.company_id)
+        totals = Tax._get_tax_totals_summary(
+            base_lines=base_lines, currency=self.currency_id, company=self.company_id,
+            cash_rounding=self.invoice_cash_rounding_id,
+        )
+        Tax._add_accounting_data_in_base_lines_tax_details(
+            base_lines, self.company_id, include_caba_tags=self.always_tax_exigible,
+        )
+        return {**totals, 'tax_lines': Tax._prepare_tax_lines(base_lines, self.company_id)['tax_lines_to_add']}
 
     def _prepare_exact_settlement_reconcile_data(self, statement_line, eligibility):
         data = []
@@ -791,13 +864,6 @@ class AccountMove(models.Model):
                 _(
                     "The payment rate did not produce the exact bank amount on "
                     "the document. No accounting changes were saved.",
-                ),
-            )
-        if self._payment_rate_document_tax_metadata():
-            raise UserError(
-                _(
-                    "Reposting introduced tax metadata. No accounting changes "
-                    "were saved.",
                 ),
             )
         return {
@@ -1326,7 +1392,7 @@ class AccountMove(models.Model):
         if mechanism == "payment_rate":
             self.message_post(
                 body=_(
-                    "Payment rate applied to the document for %(foreign)s "
+                    "Original valuation corrected at the payment rate for %(foreign)s "
                     "against %(company)s. Its company-currency value changed "
                     "from %(original)s to %(repriced)s; no FX was recorded.",
                     foreign=self.currency_id.format(settlement.foreign_amount),

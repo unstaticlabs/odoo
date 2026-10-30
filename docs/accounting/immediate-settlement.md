@@ -12,7 +12,7 @@ This feature separates three accounting decisions:
 | --- | --- | --- |
 | **Add** | Existing Odoo candidate | Existing native behavior |
 | **Settle** | Exact selected document residual | Native Odoo FX |
-| **Use payment rate** | Exact full document residual | Reprice the document through draft/post; no FX |
+| **Correct original rate** | Exact full document residual | Reprice the document through draft/post; no FX |
 
 Add is not renamed, removed, or intercepted. Facturations Plateformes remains
 out of scope.
@@ -25,7 +25,7 @@ Three credible mechanisms were evaluated:
 2. create a dedicated adjustment journal and move;
 3. add balancing economic-account lines to the editable OCA bank move.
 
-The first mechanism is used for **Use payment rate**, but only when Odoo itself
+The first mechanism is used for **Correct original rate**, but only when Odoo itself
 allows the native reset/repost workflow and the document is simple enough to
 reprice safely. It expresses the chosen accounting policy directly on the
 source document and avoids technical bank or adjustment lines. The operation
@@ -33,15 +33,17 @@ does not edit a posted journal item in place: it uses `button_draft()`, changes
 `invoice_currency_rate`, and calls `_post(soft=False)` as the current user.
 
 The imported liquidity line and global currency rates remain unchanged. No
-IMST journal and no payment-rate adjustment line are created. Tax-bearing or
-legally protected documents are not eligible.
+IMST journal and no payment-rate adjustment line are created. Native ordinary, reverse-charge and on-payment taxes are recomputed by Odoo.
+Legally protected documents remain subject to native draft/post controls.
 
 Odoo's standard delayed-settlement FX remains the Settle policy, consistent
 with [Odoo's multi-currency model](https://www.odoo.com/documentation/19.0/applications/finance/accounting/get_started/multi_currency.html).
-Payment-rate treatment is limited to immediate economic events. It never
-copies VAT metadata because foreign-currency VAT valuation follows its own
-tax-exigibility rules; see the
-[BOFiP foreign-currency VAT guidance](https://bofip.impots.gouv.fr/bofip/1475-PGP.html/identifiant=BOI-TVA-BASE-10-20-40-20-20120912).
+Original-rate correction is for a valuation the operator knows was erroneous,
+including its tax valuation. A later bank conversion cost alone does not establish
+that the original tax euros were wrong. The existing date/deviation policy remains
+a product condition, not fiscal evidence. No upload, additional approver or
+Agent-only rule is required. Native VAT follows tax exigibility; see the
+[BOFiP foreign-currency VAT guidance](https://bofip.impots.gouv.fr/bofip/140-PGP.html/identifiant=BOI-TVA-DECLA-30-20-20-10-20131018).
 
 ## Shared validation
 
@@ -84,7 +86,7 @@ For a bill carried as `€4.38 / $5.00` and a `€4.40` bank debit:
 Date distance and reference-rate deviation are warnings, not Settle blockers.
 Settle is hidden when Add already uses an authoritative exact foreign amount.
 
-## Use payment rate: immediate-event valuation
+## Correct original rate: erroneous original valuation
 
 `account.move.js_use_payment_rate_outstanding_line(line_id)` adds these stricter
 conditions:
@@ -95,7 +97,7 @@ conditions:
   calendar days, unless a trusted integration supplies the date;
 - the bank/document executed rate is within the effective reference-rate
   policy, default 3%;
-- the document has no tax, fee, withholding, stock valuation, fixed-asset,
+- the document has no fee, withholding, stock valuation, fixed-asset,
   deferred-accounting, mixed-sign, or unsupported subledger complexity;
 - the current user can reset and post the document;
 - Odoo's native draftability checks, lock dates, secure hash, restrictive audit
@@ -107,12 +109,13 @@ The service then performs one atomic transaction:
 1. lock and revalidate the document, bank statement, bank move, source line,
    and all selected payment terms;
 2. snapshot the original rate, company value, identity, accounts, analytics,
-   foreign amounts, and complete journal-line structure;
+   foreign amounts, native tax configuration/order/exigibility, and complete journal-line structure;
 3. call native `button_draft()` as the current user;
 4. set `invoice_currency_rate` to exact foreign total divided by actual bank
    amount;
 5. repost with `_post(soft=False)`;
-6. verify the identity and structure are unchanged and the document now carries
+6. verify commercial/foreign/tax configuration is unchanged while native company
+   balances and tax bases are legitimately recomputed, and the document now carries
    the exact bank company-currency amount;
 7. mark the statement foreign amount as document-derived and run the same exact
    OCA reconciliation path used by Settle.
@@ -140,6 +143,21 @@ Postconditions are checked in the same transaction:
 
 Any failed assertion rolls back the request.
 
+
+The read-only widget uses native tax base preparation, native rounding and tax
+totals to show the original/corrected rate and payable plus each tax repartition's
+signed base/tax change. Native analytic split lines are aggregated on both sides.
+It never persistently reprices a bill merely to draw a candidate. Actual gross
+after native repost is authoritative and must equal the bank amount atomically.
+No second tax calculator or manual tax-line writes are used.
+
+For a synthetic100USD net bill at an erroneous0.80EUR/USD corrected to0.90:
+ordinary20% VAT changes80/16/−96EUR to90/18/−108EUR. French CA3 deductible
+box20 changes16→18; ordinary purchase has no CA3 base tag/cell, but native
+tax_base_amount changes80→90. Reverse charge changes both±16→±18, its
+reported bases80→90 and payable80→90. On-payment VAT stays non-exigible
+until settlement creates native CABA; undo reverses it before restoring the bill.
+
 ## Audit and security
 
 `account.immediate.settlement` records the exact/native-FX, `payment_rate`, or
@@ -163,13 +181,17 @@ drafted, cancelled, or deleted; users must reverse the settlement.
 
 ## Reversal and migration
 
-Unreconciling a linked partial or choosing **Reverse Settlement** routes through
+Unreconciling a linked partial or choosing **Undo settlement** routes through
 OCA's native `unreconcile_bank_line()` path. It removes reconciliation and
 generated bank counterpart lines, restores suspense and the statement's
 original foreign currency, amount, and source state, then resets the document
 to draft, restores its original `invoice_currency_rate`, and reposts it.
-Snapshot verification confirms the original company and foreign balances were
-restored. A lock applied after settlement blocks reversal through normal Odoo
+Snapshot verification confirms the original company and foreign balances, tax
+base, tags, repartitions and exigibility semantics were restored. Stored snapshots
+from earlier versions compare the fields actually recorded; missing history is
+not invented. Native CABA and its posted reversal remain as audit history;
+exigible VAT nets to zero after undo. Native OCA undo can recreate bank liquidity
+row IDs while preserving the imported financial values. A lock applied after settlement blocks reversal through normal Odoo
 controls. Audit snapshots remain immutable.
 
 The `saas~19.2.1.2.0` migration preserves preview-era adjustment records as

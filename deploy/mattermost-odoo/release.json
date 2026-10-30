@@ -1,0 +1,7 @@
+{
+  "schema": "usl-mattermost-odoo-release-v1",
+  "repository": "https://github.com/unstaticlabs/mattermost-odoo.git",
+  "commit": "d539d0ee95e1d09c03f0eb334ad2f35a503e8878",
+  "module": "usl_mattermost",
+  "path": "odoo/usl_mattermost"
+}

@@ -279,8 +279,12 @@ class TestTaskSwimlane(TransactionCase):
         self.assertTrue(all(events.mapped('correlation_id')))
         readonly_task = self.task().with_user(agents['read_only'].user_id)
         self.project.task_properties_definition = [{'name': 'qa_lane', 'string': 'Lane', 'type': 'char'}]
-        with self.assertRaises(AccessError):
-            UslAgentJson2Controller._check_agent_call(agent=agents['read_only'], model_name='project.task', method_name='get_property_definition', kwargs={})
+        native_schema_access = UslAgentJson2Controller._check_agent_call(
+            agent=agents['read_only'], model_name='project.task',
+            method_name='get_property_definition', kwargs={},
+        )
+        self.assertEqual(native_schema_access, 'read_only')
+        self.assertEqual(readonly_task.get_property_definition('task_properties.qa_lane')['string'], 'Lane')
         self.assertEqual(readonly_task.read(['name'])[0]['name'], '[QA] Swimlane Task')
         schema_access = UslAgentJson2Controller._check_agent_call(agent=agents['read_only'], model_name='project.task', method_name='get_kanban_property_definition', kwargs={})
         schema_context = UslAgentJson2Controller._agent_call_context(context={}, agent=agents['read_only'], model_name='project.task', method_name='get_kanban_property_definition', access=schema_access)

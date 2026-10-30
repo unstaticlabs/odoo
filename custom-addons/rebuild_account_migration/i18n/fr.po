@@ -3577,7 +3577,17 @@ msgid "Current closing workspace"
 msgstr "Espace de clôture en cours"
 
 #. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_bank_reconciliation_line_search
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_eu_tax_report_line_search
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_french_statement_line_search
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_general_ledger_line_search
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_journal_report_line_search
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_management_summary_line_search
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_move_line_reconciliation_search
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_open_item_line_search
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_partner_ledger_line_search
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_tax_report_line_search
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_trial_balance_line_search
 msgid "Current fiscal year"
 msgstr "Exercice en cours"
 
@@ -5020,10 +5030,11 @@ msgid "Filed By"
 msgstr "Classé par"
 
 #. module: rebuild_account_migration
+#: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration__filing_status__filed
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration__status__filed
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_overview__next_declaration_status__filed
 msgid "Filed Externally"
-msgstr "Classé en externe"
+msgstr "Déposée en externe"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_rule__filing_guidance
@@ -6489,7 +6500,7 @@ msgstr "Tarifs manuels"
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
 msgid "Mark Filed Externally"
-msgstr "Marque déposée en externe"
+msgstr "Marquer comme déposée en externe"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_assurance_decision_form
@@ -7956,6 +7967,12 @@ msgid "PDP Registration"
 msgstr "Inscription PDP"
 
 #. module: rebuild_account_migration
+#. odoo-javascript
+#: code:addons/rebuild_account_migration/static/src/xml/accounting_report_action.xml:0
+msgid "PROVISOIRE"
+msgstr "PROVISOIRE"
+
+#. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_closing_period__package_reference
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_closing_snapshot__package_reference
 msgid "Package Reference"
@@ -8233,6 +8250,44 @@ msgid "Period Containing"
 msgstr "Période contenant"
 
 #. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_aged_partner_balance_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_analytic_distribution_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_bank_reconciliation_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_currency_report_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_eu_tax_report_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_financial_statement_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_french_statement_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_french_tax_package_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_general_ledger_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_journal_report_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_management_summary_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_open_item_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_partner_ledger_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_tax_report_line__period_date_from
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_trial_balance_line__period_date_from
+msgid "Period Date From"
+msgstr "Début de la période"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_aged_partner_balance_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_analytic_distribution_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_bank_reconciliation_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_currency_report_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_eu_tax_report_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_financial_statement_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_french_statement_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_french_tax_package_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_general_ledger_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_journal_report_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_management_summary_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_open_item_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_partner_ledger_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_tax_report_line__period_date_to
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_trial_balance_line__period_date_to
+msgid "Period Date To"
+msgstr "Fin de la période"
+
+#. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration__period_end
 msgid "Period End"
 msgstr "Fin de période"
@@ -8257,6 +8312,11 @@ msgstr "Fin de période"
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_trial_balance_line__period_key
 msgid "Period Key"
 msgstr "Clé d'époque"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_eu_tax_report_line__period_month
+msgid "Period Month"
+msgstr "Mois de la période"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_report_export_wizard__period_preset
@@ -8869,6 +8929,12 @@ msgid "Rapport"
 msgstr "Rapport"
 
 #. module: rebuild_account_migration
+#. odoo-javascript
+#: code:addons/rebuild_account_migration/static/src/xml/accounting_report_action.xml:0
+msgid "Rapport provisoire."
+msgstr "Rapport provisoire."
+
+#. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_currency_form_rate_trace
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_currency_rate_form_trace
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_currency_rate_list_trace
@@ -8980,6 +9046,7 @@ msgid "Ready for Internal Review"
 msgstr "Prêt pour vérification interne"
 
 #. module: rebuild_account_migration
+#: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration__preparation_status__ready_for_review
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__account_move__rebuild_einvoice_reception_status__bill_created
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_einvoice_reception__status__bill_created
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_einvoice_reception_search
@@ -11995,20 +12062,6 @@ msgid "USL Currency Gain, Loss and Exposure Line"
 msgstr "Ligne de gain, de perte et d'exposition en devise USL"
 
 #. module: rebuild_account_migration
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_bank_reconciliation_line_search
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_eu_tax_report_line_search
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_french_statement_line_search
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_general_ledger_line_search
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_journal_report_line_search
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_management_summary_line_search
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_open_item_line_search
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_partner_ledger_line_search
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_tax_report_line_search
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_trial_balance_line_search
-msgid "USL Current"
-msgstr "Courant USL"
-
-#. module: rebuild_account_migration
 #: model:ir.model,name:rebuild_account_migration.model_rebuild_account_report_preview_line
 msgid "USL Dynamic Accounting Report Preview Line"
 msgstr "Ligne d'aperçu du rapport de comptabilité dynamique USL"
@@ -13178,3 +13231,54 @@ msgstr "La décision de revue enregistrée est conservée ; les contrôles autom
 #: code:addons/rebuild_account_migration/models/declaration_sync.py:0
 msgid "Recorded reviewer decision preserved. The current declaration schedule no longer includes this obligation; review the schedule change before superseding the decision."
 msgstr "La décision de revue enregistrée est conservée. Le calendrier actuel des déclarations ne prévoit plus cette obligation ; examinez ce changement avant de remplacer la décision."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
+msgid "Data Checks"
+msgstr "Contrôles des données"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
+msgid "Preparation Checks"
+msgstr "Contrôles de préparation"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_list
+msgid "Unresolved Preparation Inputs"
+msgstr "Données de préparation à compléter"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
+msgid "External filing was rejected. Review the recorded response and filing evidence."
+msgstr "Le dépôt externe a été rejeté. Consultez la réponse enregistrée et les justificatifs de dépôt."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
+msgid "These checks describe current data and may be recalculated. They do not reverse a recorded filing or payment."
+msgstr "Ces contrôles portent sur les données actuelles et peuvent être recalculés. Ils ne remettent pas en cause le dépôt ou le paiement enregistré."
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration__preparation_status__missing_data
+msgid "Missing Data"
+msgstr "Données manquantes"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration__preparation_status__reviewed
+msgid "Reviewed"
+msgstr "Vérifié"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration__preparation_status__not_required
+msgid "Not Required"
+msgstr "Non requis"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration__filing_status__not_open
+msgid "Not Open"
+msgstr "Non ouvert"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_search
+msgid "Current Data Issues"
+msgstr "Anomalies des données actuelles"

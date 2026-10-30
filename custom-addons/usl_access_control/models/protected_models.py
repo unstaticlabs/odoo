@@ -1,8 +1,9 @@
 from odoo import api, models
 
 from .agent_policy_tokens import (
-    AGENT_COLLABORATION_CONTEXT_KEY,
-    AGENT_COLLABORATION_TOKEN,
+    ACCOUNTING_LOCK_GUARD_TOKEN,
+    DOCUMENT_DELETION_APPROVAL_GUARD_TOKEN,
+    DOCUMENT_PERMANENT_DELETE_GUARD_TOKEN,
 )
 
 
@@ -26,9 +27,9 @@ class ResCompany(models.Model):
             "sale_lock_date",
             "tax_lock_date",
         }
-        if self and protected & set(vals) and not self.env.context.get(
+        if self and protected & set(vals) and self.env.context.get(
             "usl_accounting_lock_guarded",
-        ):
+        ) is not ACCOUNTING_LOCK_GUARD_TOKEN:
             self._usl_require_irreversible_action(
                 "accounting.lock.change",
                 "change accounting lock dates",
@@ -88,19 +89,6 @@ class IrActionsServer(models.Model):
 
 class IrAttachment(models.Model):
     _inherit = "ir.attachment"
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        records = self
-        scope = self._usl_agent_operation_scope()
-        if scope and scope.access == "write":
-            # Native actions copy receipts without sudo. Keep their ordinary
-            # attachment and linked-record checks, just as Chatter does for
-            # its own attachments, within the authenticated operation scope.
-            records = self.with_context(
-                **{AGENT_COLLABORATION_CONTEXT_KEY: AGENT_COLLABORATION_TOKEN},
-            )
-        return super(IrAttachment, records).create(vals_list)
 
     def _usl_governed_attachments(self):
         governed = self.browse()
@@ -240,7 +228,7 @@ class RebuildAccountClosingPeriod(models.Model):
         )
         return super(
             RebuildAccountClosingPeriod,
-            self.with_context(usl_accounting_lock_guarded=True),
+            self.with_context(usl_accounting_lock_guarded=ACCOUNTING_LOCK_GUARD_TOKEN),
         ).action_close_and_apply_lock_dates()
 
 
@@ -254,7 +242,9 @@ class UslDocument(models.Model):
         return result
 
     def approve_permanent_deletion(self, reason):
-        if not self.env.context.get("usl_document_deletion_approval_guarded"):
+        if self.env.context.get(
+            "usl_document_deletion_approval_guarded",
+        ) is not DOCUMENT_DELETION_APPROVAL_GUARD_TOKEN:
             self._usl_require_irreversible_action(
                 "documents.permanent_deletion.approve",
                 "approve permanent document deletion",
@@ -268,11 +258,15 @@ class UslDocument(models.Model):
         )
         return super(
             UslDocument,
-            self.with_context(usl_document_deletion_approval_guarded=True),
+            self.with_context(
+                usl_document_deletion_approval_guarded=DOCUMENT_DELETION_APPROVAL_GUARD_TOKEN,
+            ),
         ).action_approve_permanent_deletion()
 
     def permanently_delete_from_trash(self):
-        if not self.env.context.get("usl_document_permanent_delete_guarded"):
+        if self.env.context.get(
+            "usl_document_permanent_delete_guarded",
+        ) is not DOCUMENT_PERMANENT_DELETE_GUARD_TOKEN:
             self._usl_require_irreversible_action(
                 "documents.permanent_delete",
                 "permanently delete a document",
@@ -286,7 +280,9 @@ class UslDocument(models.Model):
         )
         return super(
             UslDocument,
-            self.with_context(usl_document_permanent_delete_guarded=True),
+            self.with_context(
+                usl_document_permanent_delete_guarded=DOCUMENT_PERMANENT_DELETE_GUARD_TOKEN,
+            ),
         ).action_permanently_delete_from_trash()
 
 

@@ -195,6 +195,22 @@ class UslAgentJson2Controller(WebJson2Controller):
             value = kwargs.get(parameter_name)
             if isinstance(value, (list, tuple)):
                 requested_fields.extend(value)
+        if method_name in {"formatted_read_group", "formatted_read_grouping_sets"}:
+            # Native grouping specs carry field identities outside ``fields``.
+            # Apply the existing secret boundary to those same identities.
+            for parameter_name in ("groupby", "aggregates"):
+                value = kwargs.get(parameter_name)
+                if isinstance(value, (list, tuple)):
+                    requested_fields.extend(
+                        spec.split(":", 1)[0] for spec in value if isinstance(spec, str)
+                    )
+            grouping_sets = kwargs.get("grouping_sets")
+            if isinstance(grouping_sets, (list, tuple)):
+                for groupby in grouping_sets:
+                    if isinstance(groupby, (list, tuple)):
+                        requested_fields.extend(
+                            spec.split(":", 1)[0] for spec in groupby if isinstance(spec, str)
+                        )
         if any(
             is_agent_secret_field(field_name, model_name=model_name)
             for field_name in requested_fields
