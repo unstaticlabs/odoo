@@ -17,7 +17,7 @@ services:
       ALLOW_USER_SIGNUPS: disabled
       EMAIL_ONE_TIME_ACCESS_AS_ADMIN_ENABLED: "false"
       EMAIL_ONE_TIME_ACCESS_AS_UNAUTHENTICATED_ENABLED: "false"
-      EMAIL_LOGIN_NOTIFICATION_ENABLED: "false"
+      EMAIL_LOGIN_NOTIFICATION_MODE: disabled
     ports:
       - "127.0.0.1:${POCKET_ID_HTTP_PORT:-1411}:1411"
     healthcheck:
