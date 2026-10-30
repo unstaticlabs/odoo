@@ -18,10 +18,7 @@
     ],
     'assets': {
         'web.assets_tests': [
-            'l10n_test_pos_qr_payment/static/tests/tours/*',
-        ],
-        'web.assets_unit_tests': [
-            'l10n_test_pos_qr_payment/static/tests/unit/**/*'
+            'l10n_test_pos_qr_payment/static/tests/**/*',
         ],
     },
     'author': 'Odoo S.A.',

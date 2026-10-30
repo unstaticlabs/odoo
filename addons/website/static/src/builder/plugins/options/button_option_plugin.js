@@ -154,9 +154,6 @@ export class ButtonOptionPlugin extends Plugin {
                 // existing buttons) + custom ?
                 const styleClass = styleClasses.find((c) => siblingButtonEl.classList.contains(c));
                 const sizeClass = sizeClasses.find((c) => siblingButtonEl.classList.contains(c));
-                const roundedClass = ["rounded-circle", "rounded-pill"].find((c) =>
-                    siblingButtonEl.classList.contains(c)
-                );
 
                 if (styleClass) {
                     editingElement.classList.remove("btn-primary");
@@ -165,8 +162,8 @@ export class ButtonOptionPlugin extends Plugin {
                 if (sizeClass) {
                     editingElement.classList.add(sizeClass);
                 }
-                if (roundedClass) {
-                    editingElement.classList.add(roundedClass);
+                if (siblingButtonEl.classList.contains("rounded-circle")) {
+                    editingElement.classList.add("rounded-circle");
                 }
             } else if (!siblingButtonEl) {
                 // To align with the editor's behavior, we need to enclose the

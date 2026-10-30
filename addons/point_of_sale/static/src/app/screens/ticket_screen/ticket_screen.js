@@ -261,7 +261,10 @@ export class TicketScreen extends Component {
         });
     }
     async onClickReprintAll(order) {
-        await this.pos.ticketPrinter.printOrderChanges({ order, opts: { explicitReprint: true } });
+        const printingChanges = order.lastPrints;
+        if (printingChanges.length) {
+            await this.pos.ticketPrinter.printOrderChanges({ order, opts: printingChanges });
+        }
     }
     async onNextPage() {
         if (this.state.page < this.getNbrPages()) {
@@ -488,10 +491,8 @@ export class TicketScreen extends Component {
     }
 
     async onDeleteOrder(order) {
-        const isDeleted = await this.pos.onDeleteOrder(order);
-        if (isDeleted && !this.getSelectedOrder()) {
-            this.setSelectedOrder(this.pos.getOrder());
-        }
+        await this.pos.onDeleteOrder(order);
+        this.setSelectedOrder(this.pos.getOrder());
     }
 
     postRefund(destinationOrder) {}

@@ -8,7 +8,6 @@ patch(PosPayment.prototype, {
             ...(this.uiState ?? {}),
             stripePaymentIdToRefund: null,
             stripeCardPresentNetwork: null,
-            stripeOvercaptureSupported: null,
         };
     },
 

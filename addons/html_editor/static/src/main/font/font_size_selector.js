@@ -21,8 +21,6 @@ export class FontSizeSelector extends Component {
         onSelected: Function,
         onBlur: { type: Function, optional: true },
         document: { validate: (p) => p.nodeType === Node.DOCUMENT_NODE },
-        isSelectionInEditable: Function,
-        focusEditable: Function,
         ...toolbarButtonProps,
     };
     static components = { Dropdown, DropdownItem };
@@ -30,13 +28,7 @@ export class FontSizeSelector extends Component {
     setup() {
         this.items = this.props.getItems();
         this.state = useState(this.props.getDisplay());
-        this.dropdown = useDropdownState({
-            onClose: () => {
-                if (!this.props.isSelectionInEditable()) {
-                    this.props.focusEditable();
-                }
-            },
-        });
+        this.dropdown = useDropdownState();
         this.menuRef = useChildRef();
         useDropdownAutoVisibility(this.env.overlayState, this.menuRef);
         this.iframeContentRef = useRef("iframeContent");

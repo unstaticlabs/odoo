@@ -1697,26 +1697,12 @@ class MailThread(models.AbstractModel):
 
                 filename = part.get_filename()  # I may not properly handle all charsets
 
-                content_type = part.get('Content-Type')
-                if not content_type:
-                    _logger.warning(
-                        "Message %r has no Content-Type, assuming 'application/octet-stream'",
-                        message.get('Message-ID'),
-                    )
-                    content_type = 'application/octet-stream'
-                    part['Content-Type'] = content_type
-                mimetype, _, content_type_params = content_type.partition(';')
+                mimetype, _, content_type_params = part.get('Content-Type').partition(';')
                 if not all(mimetype.partition('/')) or mimetype in BAD_CONTENT_TYPES:
-                    _logger.warning(
-                        "Message %r containing an unexpected Content-Type %r, assuming 'application/octet-stream'",
-                        message.get('Message-ID'), mimetype,
-                    )
+                    _logger.warning("Message containing an unexpected Content-Type %r, assuming 'application/octet-stream'", mimetype)
                     part.replace_header('Content-Type', f'application/octet-stream;{content_type_params}')
                 elif mimetype.startswith('pdf'):
-                    _logger.warning(
-                        "Message %r containing an unexpected Content-Type %r, assuming 'application/pdf'",
-                        message.get('Message-ID'), mimetype,
-                    )
+                    _logger.warning("Message containing an unexpected Content-Type %r, assuming 'application/pdf'", mimetype)
                     part.replace_header('Content-Type', f'application/pdf;{content_type_params}')
 
                 if part.get_content_type().startswith('text/') and not part.get_param('charset'):
@@ -4199,7 +4185,6 @@ class MailThread(models.AbstractModel):
                 'body': html2plaintext(body, include_references=False),
                 'icon': icon,
                 'data': {
-                    "message_id": message.id,
                     'model': model if model else '',
                     'res_id': res_id if res_id else '',
                 }

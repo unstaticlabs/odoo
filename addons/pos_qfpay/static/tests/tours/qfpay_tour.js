@@ -74,7 +74,6 @@ registry.category("web_tour.tours").add("qfpay_order_and_refund", {
                 },
             },
             FeedbackScreen.isShown(),
-            FeedbackScreen.clickNextOrder(),
 
             // REFUND
             Chrome.clickOrders(),

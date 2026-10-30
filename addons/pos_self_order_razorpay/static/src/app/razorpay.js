@@ -27,19 +27,15 @@ export class Razorpay {
             this.payment_stopped
                 ? this.errorCallback(new RazorpayError("Transaction canceled due to inactivity"))
                 : this.errorCallback(new RazorpayError(response.error));
-            this.removePaymentHandler(["p2pRequestId", "razorpaySignature"]);
+            this.removePaymentHandler(["p2pRequestId"]);
             return false;
         }
         localStorage.setItem("p2pRequestId", response?.p2pRequestId);
-        localStorage.setItem("razorpaySignature", response.razorpay_signature);
         return true;
     }
 
     async cancelPayment(order) {
-        const data = {
-            p2pRequestId: localStorage.getItem("p2pRequestId"),
-            order_token: order.access_token,
-        };
+        const data = { p2pRequestId: localStorage.getItem("p2pRequestId") };
         try {
             const cancel_response = await rpc("/pos-self-order/razorpay-cancel-transaction/", {
                 access_token: this.access_token,
@@ -90,11 +86,7 @@ export class Razorpay {
      * calls every 10 sec until payment status not found.
      */
     async paymentPolling(order) {
-        const data = {
-            p2pRequestId: localStorage.getItem("p2pRequestId"),
-            order_token: order.access_token,
-            razorpay_signature: localStorage.getItem("razorpaySignature"),
-        };
+        const data = { p2pRequestId: localStorage.getItem("p2pRequestId") };
         this.stopInactivePayment().then(() => (this.payment_stopped = true));
         const fetchPaymentStatus = async () => {
             try {
@@ -125,7 +117,7 @@ export class Razorpay {
                     await this.startPayment(order);
                 }
                 if (result_code === "AUTHORIZED") {
-                    this.removePaymentHandler(["p2pRequestId", "razorpaySignature"]);
+                    this.removePaymentHandler(["p2pRequestId"]);
                     return true;
                 } else {
                     // clearing previous timeout before setting a new one

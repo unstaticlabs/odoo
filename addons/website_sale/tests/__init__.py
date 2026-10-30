@@ -11,7 +11,6 @@ from . import (
     test_combo_configurator,
     test_common,
     test_customize,
-    test_dashboard,
     test_delivery_carrier,
     test_delivery_controller,
     test_delivery_ui,

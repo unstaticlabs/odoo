@@ -1,10 +1,10 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
-import binascii
 
 from urllib.parse import quote
 
 from odoo import api, models, fields
-from PIL import Image
+from odoo.tools.image import binary_to_image
+from odoo.exceptions import UserError
 
 SUPPORTED_IMAGE_MIMETYPES = {
     'image/gif': '.gif',
@@ -68,19 +68,16 @@ class IrAttachment(models.Model):
                     name = quote(attachment.name)
                     attachment.image_src = '/web/image/%s-%s/%s' % (attachment.id, unique, name)
 
-    @api.depends('mimetype', 'raw')
+    @api.depends('raw')
     def _compute_image_size(self):
         for attachment in self:
-            width = height = 0
-            if (attachment.mimetype or '').startswith('image/'):
-                try:
-                    with attachment.raw.open() as stream, Image.open(stream) as image:
-                        width, height = image.size
-                except (OSError, binascii.Error):
-                    pass
-
-            attachment.image_width = width
-            attachment.image_height = height
+            try:
+                image = binary_to_image(attachment.raw or b'')
+                attachment.image_width = image.width
+                attachment.image_height = image.height
+            except UserError:
+                attachment.image_width = 0
+                attachment.image_height = 0
 
     def _get_media_info(self):
         """Return a dict with the values that we need on the media dialog."""

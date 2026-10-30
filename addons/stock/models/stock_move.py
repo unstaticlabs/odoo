@@ -250,15 +250,8 @@ class StockMove(models.Model):
             elif move.picking_type_id:
                 location_dest = move.picking_type_id.default_location_dest_id
             is_move_to_interco_transit = False
-            if location_dest and move.location_final_id and inter_comp_location:
-                location_final = move.location_final_id
-                # The inter-company transit or a sublocation set up like it (transit, no company)
-                is_move_to_interco_transit = (
-                    location_dest._child_of(customer_loc)
-                    and location_final._child_of(inter_comp_location)
-                    and location_final.usage == 'transit'
-                    and not location_final.company_id
-                )
+            if location_dest:
+                is_move_to_interco_transit = location_dest._child_of(customer_loc) and move.location_final_id == inter_comp_location
             if location_dest and move.location_final_id and (move.location_final_id._child_of(location_dest) or is_move_to_interco_transit):
                 # Force the location_final as dest in the following cases:
                 # - The location_final is a sublocation of destination -> Means we reached the end
@@ -853,9 +846,6 @@ Please change the quantity done or the rounding precision in your settings.""",
         for vals in vals_list:
             if vals.get('move_line_ids') and 'lot_ids' in vals:
                 vals.pop('lot_ids')
-            if 'lot_ids' in vals and 'quantity' in vals:
-                # To make sure that the lot_ids is processed before the quantity.
-                vals['quantity'] = vals.pop('quantity')
             picking_id = self.env['stock.picking'].browse(vals.get('picking_id'))
             if picking_id.state == 'done' and vals.get('state') != 'done':
                 vals['state'] = 'done'
@@ -2208,8 +2198,7 @@ Please change the quantity done or the rounding precision in your settings.""",
                     all_move_line_vals = []
                     for (location_id, lot_id, package_id, owner_id), quantity in available_move_lines.items():
                         need = move.product_qty - sum(move.move_line_ids.mapped('quantity_product_uom')) - sum(taken_quantities.values())
-                        effective_need = move._get_quantity_to_assign() - sum(move.move_line_ids.mapped('quantity_product_uom')) - sum(taken_quantities.values())
-                        move_line_vals, taken_quantity = move._update_reserved_quantity_vals(min(quantity, effective_need), location_id, lot_id, package_id, owner_id, strict=True)
+                        move_line_vals, taken_quantity = move._update_reserved_quantity_vals(min(quantity, need), location_id, lot_id, package_id, owner_id, strict=True)
                         all_move_line_vals += move_line_vals
                         if move_line_vals:  # Only subtract for new lines (updates are already reflected in sum(move_line_ids))
                             taken_quantities[need, location_id, lot_id, package_id, owner_id] = taken_quantity
@@ -2507,10 +2496,6 @@ Please change the quantity done or the rounding precision in your settings.""",
         from_wh = self.location_id.warehouse_id
         to_wh = self.location_dest_id.warehouse_id
         return self.picking_type_id.code in ('internal', 'outgoing') or (from_wh and to_wh and from_wh != to_wh)
-
-    def _get_quantity_to_assign(self):
-        self.ensure_one()
-        return self.product_qty
 
     def _get_lang(self):
         """Determine language to use for translated description"""

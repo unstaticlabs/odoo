@@ -504,25 +504,18 @@ class MrpWorkorder(models.Model):
                     elif date_start and date_finished:
                         computed_duration = workorder._calculate_duration_expected(date_start=date_start, date_finished=date_finished)
                         values['duration_expected'] = computed_duration
-            # Update the MO's date_start/date_finished as the min/max of its workorders' dates.
-            written_ids = set(self.ids)
-            new_date_start = fields.Datetime.to_datetime(values.get('date_start'))
-            new_date_finished = fields.Datetime.to_datetime(values.get('date_finished'))
-            for production in self.production_id:
-                production_values = {}
-                if new_date_start:
-                    production_values['date_start'] = min(filter(None, (
-                        new_date_start if wo.id in written_ids else wo.date_start
-                        for wo in production.workorder_ids
-                    )))
-                if new_date_finished:
-                    production_values['date_finished'] = max(filter(None, (
-                        new_date_finished if wo.id in written_ids else wo.date_finished
-                        for wo in production.workorder_ids
-                    )))
-                production_values = {field: date for field, date in production_values.items() if date != production[field]}
-                if production_values:
-                    production.with_context(force_date=True).write(production_values)
+                # Update MO dates if the start date of the first WO or the
+                # finished date of the last WO is update.
+                if workorder == workorder.production_id.workorder_ids[0] and 'date_start' in values:
+                    if values['date_start']:
+                        workorder.production_id.with_context(force_date=True).write({
+                            'date_start': fields.Datetime.to_datetime(values['date_start'])
+                        })
+                if workorder == workorder.production_id.workorder_ids[-1] and 'date_finished' in values:
+                    if values['date_finished']:
+                        workorder.production_id.with_context(force_date=True).write({
+                            'date_finished': fields.Datetime.to_datetime(values['date_finished'])
+                        })
 
         res = super().write(values)
         productions = self.production_id.filtered(
@@ -537,7 +530,7 @@ class MrpWorkorder(models.Model):
         for workorder in workorders_with_new_wc:
             workorder.duration_expected = workorder._get_duration_expected()
             if workorder.date_start:
-                workorder.with_context(bypass_duration_calculation=True).date_finished = workorder._calculate_date_finished(new_workcenter=new_workcenter)
+                workorder.date_finished = workorder._calculate_date_finished(new_workcenter=new_workcenter)
 
         return res
 
@@ -591,9 +584,8 @@ class MrpWorkorder(models.Model):
             if consider_blocked_by:
                 wo.blocked_by_workorder_ids.filtered(lambda wo: wo.id not in done_wo and not wo.is_planned)._action_plan(from_date=from_date, alternative=alternative)
             done_wo.update(wo.blocked_by_workorder_ids.ids)
-            max_date_finished = max([blocker.date_finished for blocker in wo.blocked_by_workorder_ids if blocker.date_finished], default=None)
-            if max_date_finished:
-                date_start = max_date_finished
+            if wo.blocked_by_workorder_ids and wo.blocked_by_workorder_ids[-1].date_finished:
+                date_start = wo.blocked_by_workorder_ids[-1].date_finished
             # Consider workcenter and alternatives
             if self.env.context.get('workcenter_to_plan_on'):
                 alternative = False
@@ -611,14 +603,14 @@ class MrpWorkorder(models.Model):
                     duration_expected = wo.duration_expected
                 else:
                     duration_expected = wo._get_duration_expected(alternative_workcenter=workcenter)
-                slot_start, slot_stop = workcenter._get_first_available_slot(date_start, duration_expected)
+                from_date, to_date = workcenter._get_first_available_slot(date_start, duration_expected)
                 # If the workcenter is unavailable, try planning on the next one
-                if not slot_start:
+                if not from_date:
                     continue
                 # Check if this workcenter is better than the previous ones
-                if slot_stop and slot_stop < best_date_finished:
-                    best_date_start = slot_start
-                    best_date_finished = slot_stop
+                if to_date and to_date < best_date_finished:
+                    best_date_start = from_date
+                    best_date_finished = to_date
                     best_workcenter = workcenter
                     best_duration = duration_expected
             # If none of the workcenter are available, raise
@@ -642,17 +634,6 @@ class MrpWorkorder(models.Model):
                 })],
             })
 
-    def _get_actual_duration(self, date=False):
-        """Return the actual worked duration in hours, merging overlapping intervals.
-
-        :param datetime date: Only account for time_ids that ended before this date
-        """
-        self.ensure_one()
-        return sum_intervals(Intervals([
-            [t.date_start, t.date_end, t]
-            for t in self.time_ids if t.date_end and (not date or t.date_end < date)
-        ]))
-
     def _cal_cost(self, date=False):
         """Returns total cost of time spent on workorder.
 
@@ -663,7 +644,11 @@ class MrpWorkorder(models.Model):
             if workorder._should_estimate_cost():
                 duration = workorder.duration_expected / 60
             else:
-                duration = workorder._get_actual_duration(date)
+                intervals = Intervals([
+                    [t.date_start, t.date_end, t]
+                    for t in workorder.time_ids if t.date_end and (not date or t.date_end < date)
+                ])
+                duration = sum_intervals(intervals)
             total += duration * (workorder.costs_hour or workorder.workcenter_id.costs_hour)
         return total
 
@@ -787,15 +772,6 @@ class MrpWorkorder(models.Model):
             ])
         date = max(min([wo.date_start for wo in workorders if wo.date_start], default=datetime.min), datetime.now())
         workorders._action_plan(from_date=date, alternative=False)
-
-        # since date_start changes, we need to resequence
-        for mo in workorders.production_id:
-            sorted_wos = mo.workorder_ids.sorted(
-                key=lambda w: (w.date_start or datetime.max, w.sequence, w.id)
-            )
-            for ind, wo in enumerate(sorted_wos):
-                wo.sequence = ind + 1
-
         return True
 
     def action_select_mo_to_plan(self):
@@ -828,6 +804,8 @@ class MrpWorkorder(models.Model):
                     'date_start': dec_workorders[idx - 1].date_start,
                     'sequence': max_seq - idx,
                 }
+                if wo.workcenter_id:
+                    vals['date_finished'] = datetime.max
                 wo.with_context(bypass_duration_calculation=True).write(vals)
                 dec_workorders[idx - 1].sequence = max_seq - idx + 1
         self.production_id.workorder_ids.action_replan()
@@ -998,7 +976,7 @@ class MrpWorkorder(models.Model):
         return (self.duration_expected / 60.0) * (self.costs_hour or self.workcenter_id.costs_hour)
 
     def _compute_current_operation_cost(self):
-        return self._get_actual_duration() * (self.costs_hour or self.workcenter_id.costs_hour)
+        return (self.get_duration() / 60.0) * (self.costs_hour or self.workcenter_id.costs_hour)
 
     def _compute_decoration_dates(self):
         self.decoration_dates = ''

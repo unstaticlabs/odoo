@@ -1,5 +1,5 @@
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
-import { advanceTime, expect, freezeTime, test, waitFor, waitForNone } from "@odoo/hoot";
+import { animationFrame, expect, test } from "@odoo/hoot";
 import {
     defineModels,
     fieldInput,
@@ -22,11 +22,13 @@ defineModels([Product]);
 defineMailModels();
 
 test("PageUrlField in form view", async () => {
-    freezeTime();
     Product._records = [{ id: 1, url: "/test", old_url: "/test" }];
     onRpc("onchange", ({ args }) => {
         expect.step(`onchange ${args[1].url}`);
+        def.resolve();
     });
+
+    let def = Promise.withResolvers();
     await mountView({
         type: "form",
         resModel: "product",
@@ -44,14 +46,16 @@ test("PageUrlField in form view", async () => {
     await fieldInput("url").press("a");
     await fieldInput("url").press("b");
     expect(`#changed`).toHaveCount(0);
-    await advanceTime(100); // debounce
-    await waitFor(`#changed`); // onchange + render
-    expect.verifySteps(["onchange /testab"]);
+    await def.promise; // onchange
+    await animationFrame(); // render
+    expect(`#changed`).toHaveCount(1);
 
+    def = Promise.withResolvers();
     await fieldInput("url").press("Backspace");
     await fieldInput("url").press("Backspace");
     expect(`#changed`).toHaveCount(1);
-    await advanceTime(100); // debounce
-    await waitForNone(`#changed`); // onchange + render
-    expect.verifySteps(["onchange /test"]);
+    await def.promise; // onchange
+    await animationFrame(); // render
+    expect(`#changed`).toHaveCount(0);
+    expect.verifySteps(["onchange /testab", "onchange /test"]);
 });

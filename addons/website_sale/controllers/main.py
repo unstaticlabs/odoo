@@ -382,9 +382,7 @@ class WebsiteSale(payment_portal.PaymentPortal):
             display_currency=website.currency_id,
             extra_domain=Domain.OR([
                 Domain("public_categ_ids", "=", False),
-                # Use "any!" to bypass `empty_public_categories_rule` which is
-                # redundant in this context and costly with a lot of products.
-                Domain("public_categ_ids", "any!", Domain("not_in_shop", "=", False)),
+                Domain("public_categ_ids.not_in_shop", "=", False),
             ])
             if not (category or search)
             else None,
@@ -1819,7 +1817,6 @@ class WebsiteSale(payment_portal.PaymentPortal):
         if (
             request.env["res.users"]._get_signup_invitation_scope() == "b2c"
             and request.website.is_public_user()
-            and not order.partner_id.user_ids
         ):
             order.partner_id.signup_prepare()
             signup_url = urlparse(

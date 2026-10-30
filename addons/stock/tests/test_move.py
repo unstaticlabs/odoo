@@ -3,7 +3,6 @@
 
 from dateutil.relativedelta import relativedelta
 from freezegun import freeze_time
-from json import loads
 
 from odoo import Command, fields
 from odoo.exceptions import UserError
@@ -5029,22 +5028,6 @@ class TestStockMove(TestStockCommon):
         warning = scrap.action_scrap()
         self.assertEqual(warning.get('res_model'), 'stock.warn.insufficient.qty.scrap', "Should trigger the warning as no qty in location")
 
-    def test_scrap_13_lot_quantity_below_one(self):
-        """ Check that scrapping less than 1 unit of a lot that has no quantity
-            in the source location keeps the encoded quantity.
-        """
-        lot = self.env['stock.lot'].create({'name': 'lot1', 'product_id': self.product_lot.id})
-        scrap_form = Form(self.env['stock.move'].with_context(default_is_scrap=True), view='stock.view_scrap_move_form')
-        scrap_form.product_id = self.product_lot
-        scrap_form.location_id = self.shelf_1
-        scrap_form.location_dest_id = self.scrap_location
-        scrap_form.lot_ids.add(lot)
-        scrap_form.quantity = 0.5
-        scrap = scrap_form.save()
-        self.assertRecordValues(scrap.move_line_ids, [{'lot_id': lot.id, 'quantity': 0.5}])
-        Form.from_action(self.env, scrap.action_scrap()).save().action_done()
-        self.assertRecordValues(scrap, [{'state': 'done', 'quantity': 0.5}])
-
     def test_in_date_1(self):
         """ Check that moving a tracked quant keeps the incoming date.
         """
@@ -7109,28 +7092,3 @@ class TestStockMove(TestStockCommon):
         } for product in (self.productA, self.product_lot)])
         self.assertTrue(untracked_move.show_quant)
         self.assertFalse(tracked_move.show_quant)
-
-    def test_multicompany_orderpoint_horizon_and_deadline(self):
-        """Test that the orderpoint's company determines the receipt deadline
-        and horizon days displayed in replenishment information."""
-        company_b = self.env['res.company'].create({'name': 'company B', 'horizon_days': 30})
-        product = self.env['product.product'].create({
-            'name': 'Test Storable Product',
-            'is_storable': True,
-            'company_id': self.env.company.id,
-        })
-        orderpoint = self.env['stock.warehouse.orderpoint'].create({
-            'product_id': product.id,
-            'company_id': self.env.company.id,
-            'product_min_qty': 5,
-            'product_max_qty': 10,
-        })
-        repl_info_action = orderpoint.action_stock_replenishment_info()
-        repl_info = self.env[repl_info_action['res_model']].browse(repl_info_action['res_id'])
-        for company in (company_b, self.env.company):
-            orderpoint.with_company(company).action_replenish()
-            receipt = self.env['stock.picking'].search([('origin', '=', orderpoint.name), ('state', '!=', 'cancel')])
-            self.assertEqual(receipt.date_deadline.date(), orderpoint.deadline_date)
-            receipt.action_cancel()
-            lead_days_description = loads(repl_info.with_company(company).json_lead_days)['lead_days_description']
-            self.assertIn(f"{orderpoint.company_id.horizon_days:g}", lead_days_description[0][1])

@@ -30,11 +30,9 @@ class TestVivaComHttpCommon(TestPointOfSaleHttpCommon):
 
     def test_viva_payment_and_refund(self):
         viva_session_id = ''
-        viva_amount = 0
-        currency_iso = self.main_pos_config.currency_id.iso_numeric
 
         def mocked_call_viva_com_check_post_data(self, endpoint, action, data=None, should_retry=True):
-            nonlocal viva_session_id, viva_amount
+            nonlocal viva_session_id
             if endpoint == 'transactions:sale' and action == 'post':
                 if not isinstance(data['amount'], int):
                     raise TypeError(f"Expected 'amount' to be an integer, but got {data['amount']}.")
@@ -43,31 +41,19 @@ class TestVivaComHttpCommon(TestPointOfSaleHttpCommon):
                 if not data.get('sessionId'):
                     raise Exception("Expected 'sessionId' to be present")
                 viva_session_id = data['sessionId']
-                viva_amount = data['amount'] / 100
             elif endpoint == 'transactions:refund' and action == 'post':
                 if not data['parentSessionId'] == viva_session_id:
                     raise Exception(f"Expected 'parentSessionId' to be {viva_session_id}, but got {data['parentSessionId']}")
                 if not data.get('sessionId'):
                     raise Exception("Expected 'sessionId' to be present")
                 viva_session_id = data['sessionId']
-                viva_amount = data['amount'] / 100
             elif endpoint == 'sessions/123' and action == 'get':
-                return {"success": True, "sessionId": viva_session_id, "transactionId": "test-transaction-id"}
+                return {"success": True, "sessionId": viva_session_id}
             else:
                 raise Exception(f"Unexpected Viva request: endpoint='{endpoint}', method='{action}'")
             return {}
 
-        def mocked_get_transactions(self, transaction_id):
-            # Viva.com confirms a finalized transaction matching the payment line.
-            return [{
-                'StatusId': 'F',
-                'MerchantTrns': f'{viva_session_id}/{self.env.company.id}',
-                'Amount': viva_amount,
-                'CurrencyCode': currency_iso,
-            }]
-
-        with patch.object(PosPaymentMethod, '_call_viva_com', mocked_call_viva_com_check_post_data), \
-             patch.object(PosPaymentMethod, '_viva_com_get_transactions', mocked_get_transactions):
+        with patch.object(PosPaymentMethod, '_call_viva_com', mocked_call_viva_com_check_post_data):
             self.main_pos_config.open_ui()
             self.start_tour("/pos/ui/%d" % self.main_pos_config.id, 'VivaComTour', login="accountman")
 

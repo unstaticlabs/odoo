@@ -575,7 +575,7 @@ registerWebsitePreviewTour(
             run: "click",
         },
         {
-            trigger: ".o_popover [data-action-value='rounded-pill']",
+            trigger: ".o_popover [data-action-value='rounded-circle']",
             run: "click",
         },
         {
@@ -588,7 +588,7 @@ registerWebsitePreviewTour(
         },
         {
             content: "Check the resulting button",
-            trigger: ":iframe .s_website_form_send.btn.btn-sm.btn-custom.rounded-pill",
+            trigger: ":iframe .s_website_form_send.btn.btn-sm.btn-custom.rounded-circle",
         },
         // Add a default value to a auto-fillable field.
         ...selectFieldByLabel("Your Name"),

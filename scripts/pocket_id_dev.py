@@ -361,8 +361,8 @@ def _write_new_env(path: Path) -> None:
         "POCKET_ID_HOSTNAME": pocket_hostname,
         "POCKET_ID_HTTP_PORT": pocket_port,
         "POCKET_ID_IMAGE": (
-            "ghcr.io/pocket-id/pocket-id:v2.19.1@"
-            "sha256:f085157f0b6ea4b2e8aa5ecfd99eada0d83a4960f3a3dcfd46014097d0ef7ab5"
+            "ghcr.io/pocket-id/pocket-id:v2.14.0@"
+            "sha256:01540977dcf4c7b41b1159f34d68e4632f2658d62790e460ca65a42722b13c4a"
         ),
         "POCKET_ID_PROSPER_EMAIL": "prosper@preproduction.invalid",
         "POCKET_ID_PROSPER_ODOO_EMAIL": prosper_odoo_email,
@@ -744,6 +744,7 @@ def _ensure_client(
         client_id,
         secret,
         existing=bool(matches),
+        client=client,
     )
     api.request(
         "PUT",
@@ -761,12 +762,18 @@ def _ensure_client_secret(
     secret: str,
     *,
     existing: bool,
+    client: dict[str, object],
 ) -> None:
     """Keep the environment-owned secret present without rotating it on deploy."""
-    # Pocket ID creates a random secret with a new confidential client. Its
-    # presence does not mean the environment-owned secret is installed. Read
-    # the dedicated secret metadata and add our configured value only when
-    # absent; leave every existing credential in place.
+    credentials = client.get("credentials")
+    embedded_secrets = (
+        credentials.get("secrets", []) if isinstance(credentials, dict) else []
+    )
+    if isinstance(embedded_secrets, list) and any(
+        isinstance(item, dict) and item.get("isActive", True)
+        for item in embedded_secrets
+    ):
+        return
     try:
         secrets = api.request("GET", f"/api/oidc/clients/{client_id}/secrets")
     except PocketIDError as error:

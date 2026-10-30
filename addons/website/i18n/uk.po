@@ -6,26 +6,26 @@
 # Martin Trigaux, 2023
 # Alina Lisnenko <alina.lisnenko@erp.co.ua>, 2023
 # "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 17:42+0000\n"
-"PO-Revision-Date: 2026-10-28 15:35+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"POT-Creation-Date: 2026-07-17 17:38+0000\n"
+"PO-Revision-Date: 2026-07-01 05:46+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Ukrainian <https://translate.odoo.com/projects/odoo-s19-3/"
 "website/uk/>\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 "
-"? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > "
-"14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % "
-"100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
-"X-Generator: Weblate 2026.8.1\n"
+"Plural-Forms: nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != "
+"11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % "
+"100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || "
+"(n % 100 >=11 && n % 100 <=14 )) ? 2: 3);\n"
+"X-Generator: Weblate 2026.6.1\n"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_quotes_carousel_compact
@@ -34,8 +34,6 @@ msgid ""
 "\" A trusted partner for growth. <br/>Professional, efficient, and always "
 "ahead of the curve. \""
 msgstr ""
-"\" Надійний партнер для розвитку. <br/>Професійність, ефективність і завжди "
-"на крок попереду. \""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_quotes_carousel_compact
@@ -44,8 +42,6 @@ msgid ""
 "\" Outstanding service and results! <br/>They exceeded our expectations in "
 "every project. \""
 msgstr ""
-"\" Відмінний сервіс і результати! <br/>Вони перевершили наші очікування в "
-"кожному проєкті. \""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_quotes_carousel_compact
@@ -302,22 +298,18 @@ msgid ""
 "'Alt tag' specifies an alternate text for an image, if the image cannot be "
 "displayed (slow connection, missing image, screen reader ...)."
 msgstr ""
-"\"Alt tag\" вказує альтернативний текст для зображення, якщо зображення не "
-"може бути відображене (повільне з'єднання, відсутнє зображення, перегляд "
-"екрану ...)."
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/attribute_translation_plugin.js:0
 msgid "'Title tag' is shown as a tooltip when you hover the picture."
 msgstr ""
-"'Тег заголовку' відображається як підказка під час наведення на зображення."
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "+ Field"
-msgstr "+ Поле"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -470,7 +462,7 @@ msgstr "2000 км"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_features_wave
 msgid "24/7 Customer Support"
-msgstr "24/7 Підтримка клієнтів"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_key_benefits
@@ -2410,7 +2402,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_opening_hours
 msgid "<u>Monday</u><br/>8.00am-6.00pm"
-msgstr "<u>Понеділок</u><br/>8:00-18:00"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_opening_hours
@@ -2430,7 +2422,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_opening_hours
 msgid "<u>Tuesday</u><br/>8.00am-6.00pm"
-msgstr "<u>Вівторок</u><br/>8:00-18:00"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_opening_hours
@@ -2446,7 +2438,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid "A"
-msgstr "A"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
@@ -2765,8 +2757,8 @@ msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
-msgid "Accounts created on this website are usable across all other websites"
-msgstr ""
+msgid "Accounts are usable across all your multiple websites"
+msgstr "Облікові записи можна використовувати на всіх ваших веб-сайтах"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_2_s_three_columns
@@ -2913,25 +2905,25 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/media_list_option.xml:0
 msgid "Add Media"
-msgstr "Додати медіа"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Add Mega Menu Item"
-msgstr "Додайте елемент мега-меню"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Add Menu Item"
-msgstr "Додайте елемент меню"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/timeline_list_option.xml:0
 msgid "Add Milestone"
-msgstr "Додати віху"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -2968,7 +2960,7 @@ msgstr "Додати рядок"
 #: code:addons/website/static/src/builder/plugins/options/faq_horizontal_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/table_of_content_option.xml:0
 msgid "Add Section"
-msgstr "Додати розділ"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3058,7 +3050,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/media_list_item_option.xml:0
 msgid "Add an image"
-msgstr "Додати зображення"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3477,7 +3469,6 @@ msgstr ""
 #: code:addons/website/static/src/xml/website.cookies_bar.xml:0
 msgid "Allow the use of cookies from this website on this browser?"
 msgstr ""
-"Дозволити використання файлів cookie з цього веб-сайту в цьому браузері?"
 
 #. module: website
 #: model:ir.model.fields,help:website.field_ir_ui_view__track
@@ -3506,7 +3497,7 @@ msgstr "Вже встановлено"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/attribute_translation_plugin.js:0
 msgid "Alt tag"
-msgstr "Alt tag"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
@@ -3918,7 +3909,7 @@ msgstr "Доступно на сайті"
 #: model_terms:ir.ui.view,arch_db:website.s_bento_grid_avatars
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Avatars"
-msgstr "Аватари"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3984,7 +3975,7 @@ msgstr "Фоновий колір"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "Background Position"
-msgstr "Розташування фонового зображення"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4020,7 +4011,7 @@ msgstr "Сумки"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_product_list
 msgid "Balanced"
-msgstr "Збалансований"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -4252,7 +4243,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_shadow_option.xml:0
 msgid "Blur"
-msgstr "Замилювання"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4541,7 +4532,7 @@ msgstr "Придбати зараз"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_banner
 msgid "Buy now"
-msgstr "Придбати зараз"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_1_s_banner
@@ -4561,7 +4552,7 @@ msgstr ""
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid "C"
-msgstr "C"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_config_settings__cdn_url
@@ -4884,7 +4875,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/dynamic_svg_option.js:0
 msgid "Change color"
-msgstr "Змінити колір"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4961,7 +4952,7 @@ msgstr "Спілкуйтеся з відвідувачами, щоб покра�
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Check"
-msgstr "Перевірка"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_popup
@@ -5110,7 +5101,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Choose your favorite"
-msgstr "Оберіть ваш улюблений"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_product_catalog
@@ -5173,7 +5164,7 @@ msgstr "Натисніть тут, щоби перейти назад до вк�
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/website_builder_action.xml:0
 msgid "Click on"
-msgstr "Натисніть"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -5544,7 +5535,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Contact Info"
-msgstr "Контактна інформація"
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -5684,7 +5675,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/carousel_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/image_gallery_option.xml:0
 msgid "Control"
-msgstr "Контроль"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_ir_ui_view__controller_page_ids
@@ -5908,13 +5899,13 @@ msgstr "Створити"
 #. module: website
 #: model:ir.model,website_form_label:website.model_res_partner
 msgid "Create a Customer"
-msgstr "Створити клієнта"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Create a Google Project and Get a Key"
-msgstr "Створіть проект Google і отримайте ключ"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6060,7 +6051,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Custom Url"
-msgstr "Кастомна Url"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website__custom_code_footer
@@ -6129,7 +6120,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/countdown_option.xml:0
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "D"
-msgstr "D"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6158,7 +6149,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/countdown_option.xml:0
 msgid "Dark"
-msgstr "Темний"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6338,7 +6329,7 @@ msgstr "Затримка"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "Delete"
-msgstr "Видалити"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_features_grid
@@ -6549,7 +6540,7 @@ msgstr ""
 #. module: website
 #: model:ir.model,name:website.model_digest_digest
 msgid "Digest"
-msgstr "Огляд"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_services_s_image_text_2nd
@@ -6645,7 +6636,7 @@ msgstr "Відкрийте"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_splash_intro
 msgid "Discover More"
-msgstr "Дізнайтеся більше"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_image_text
@@ -6764,7 +6755,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/cookies_bar_option.xml:0
 msgid "Discrete"
-msgstr "Дискретний"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.external_snippets
@@ -7012,7 +7003,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/resource_editor/resource_editor_warning.xml:0
 msgid "Don't show again"
-msgstr "Більше не показувати"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -7062,12 +7053,6 @@ msgstr "Пончик"
 
 #. module: website
 #. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/popup_option_plugin.js:0
-msgid "Drag blocks here"
-msgstr ""
-
-#. module: website
-#. odoo-javascript
 #: code:addons/website/static/src/js/tours/tour_utils.js:0
 msgid "Drag the <b>%s</b> block and drop it at the bottom of the page."
 msgstr ""
@@ -7076,7 +7061,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Drag to the right to get a submenu"
-msgstr "Перетягніть вправо, щоб отримати підменю"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_banner_categories
@@ -7307,7 +7292,7 @@ msgstr "Редагувати стилі"
 #. odoo-javascript
 #: code:addons/website/static/src/components/resource_editor/resource_editor_warning.xml:0
 msgid "Edit code"
-msgstr "Редагувати код"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -7484,7 +7469,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Enable billing on your Google Project"
-msgstr "Увімкніть виставлення рахунків у вашому Google Проекті"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_ir_model__website_form_access
@@ -7495,7 +7480,7 @@ msgstr "Увімкніть функцію розробника форми для
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Enable the right google map APIs in your google account"
-msgstr "Увімкніть потрібні API карт Google у своєму обліковому записі Google"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -7732,7 +7717,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/searchbar_option.xml:0
 msgid "Everything"
-msgstr "Усе"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_features
@@ -7942,7 +7927,7 @@ msgstr "Зовнішній ID"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "Extra Content"
-msgstr "Додатковий контент"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8097,7 +8082,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/form/utils.js:0
 #: model:ir.model,name:website.model_ir_model_fields
 msgid "Field"
-msgstr "Поле"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__field_names
@@ -8165,7 +8150,7 @@ msgstr "Заповнити"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_colors_option.xml:0
 msgid "Fill Color"
-msgstr "Колір заповнення"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8311,21 +8296,21 @@ msgstr "Фіксований"
 #: code:addons/website/static/src/builder/plugins/options/footer_copyright_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/language_selector_option.xml:0
 msgid "Flag"
-msgstr "Позначка"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/footer_copyright_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/language_selector_option.xml:0
 msgid "Flag and Code"
-msgstr "Позначка та код"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/footer_copyright_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/language_selector_option.xml:0
 msgid "Flag and Text"
-msgstr "Позначка та текст"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8822,12 +8807,6 @@ msgstr "Повернутися"
 
 #. module: website
 #. odoo-javascript
-#: code:addons/website/static/src/interactions/website_auth_form.js:0
-msgid "Go back to the homepage"
-msgstr ""
-
-#. module: website
-#. odoo-javascript
 #: code:addons/website/static/src/components/fields/redirect_field.xml:0
 msgid "Go to"
 msgstr "Перейти до"
@@ -8914,15 +8893,6 @@ msgstr "Google Map"
 #: model:ir.model.fields,field_description:website.field_website__google_maps_api_key
 msgid "Google Maps API Key"
 msgstr "Ключ API Google Maps"
-
-#. module: website
-#. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_service.js:0
-#: code:addons/website/static/src/core/website_map_service.js:0
-msgid ""
-"Google Maps configuration has changed. Please reload the page for changes to "
-"take effect."
-msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9372,8 +9342,6 @@ msgid ""
 "Hint: How to use Google Map on your website (Contact Us page and as a "
 "snippet)"
 msgstr ""
-"Підказка: як використовувати карту Google на своєму веб-сайті (сторінка "
-"\"Зв'яжіться з нами\" та як сніпет)"
 
 #. module: website
 #. odoo-javascript
@@ -9541,7 +9509,7 @@ msgstr "Я впевнений щодо цього."
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "I want"
-msgstr "Я хочу"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_personal_s_image_text
@@ -9739,8 +9707,6 @@ msgid ""
 "If you need to add analytics or marketing tags, inject code in your <head> "
 "or <body> instead."
 msgstr ""
-"Якщо вам потрібно додати теги аналітики чи маркетингу, вставте код у свій "
-"<head> або <body>."
 
 #. module: website
 #. odoo-javascript
@@ -9952,7 +9918,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website_form_editor.xml:0
 msgid "In the meantime we invite you to visit our"
-msgstr "А поки запрошуємо вас відвідати наш"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9963,10 +9929,6 @@ msgid ""
 "            Each modification on the master page is automatically applied to "
 "all translated versions."
 msgstr ""
-"У цьому режимі ви можете лише перекладати текст. Щоби змінити структуру "
-"сторінки, необхідно редагувати основну сторінку.\n"
-"            Кожна зміна основної сторінки автоматично застосовується до всіх "
-"перекладених версій."
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
@@ -10360,7 +10322,7 @@ msgstr "Недійсна URL"
 #. odoo-python
 #: code:addons/website/models/ir_ui_view.py:0
 msgid "Invalid field value for %(field_name)s: %(value)s"
-msgstr "Недійсне значення поля для %(field_name)s: %(value)s"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -10721,7 +10683,7 @@ msgstr "Вакансії"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
 msgid "John Doe"
-msgstr "John Doe"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
@@ -11233,7 +11195,7 @@ msgstr "Давайте зробимо це"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Let's go!"
-msgstr "Поїхали!"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_kickoff
@@ -11322,7 +11284,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_product_list
 msgid "Link to product"
-msgstr "Прив’язати до товару"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11411,7 +11373,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.list_hybrid
 msgid "Load More"
-msgstr "Завантажити більше"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11498,7 +11460,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Make sure billing is enabled"
-msgstr "Переконайтеся, що виставлення рахунків увімкнено"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11507,15 +11469,12 @@ msgid ""
 "Make sure to wait if errors keep being shown: sometimes enabling an API "
 "allows to use it immediately but Google keeps triggering errors for a while"
 msgstr ""
-"Обов’язково зачекайте, якщо помилки продовжують відображатися: іноді "
-"ввімкнення API дозволяє використовувати його негайно, але Google продовжує "
-"ініціювати помилки деякий час"
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Make sure your settings are properly configured:"
-msgstr "Переконайтеся, що ваші параметри налаштовано правильно:"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_masonry_block_default_template
@@ -12110,7 +12069,7 @@ msgstr "Монітори"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "More"
-msgstr "Більше"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_color_blocks_2
@@ -12229,7 +12188,7 @@ msgstr "Кілька позначень"
 #. odoo-javascript
 #: code:addons/website/static/src/js/backend/view_hierarchy/view_hierarchy.xml:0
 msgid "Multiple tree exists for this view"
-msgstr "Для цього перегляду існує кілька дерев"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_s_features
@@ -12461,7 +12420,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 #: model_terms:ir.ui.view,arch_db:website.s_age_verification_popup
 msgid "No"
-msgstr "Ні"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12562,7 +12521,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "No, keep it"
-msgstr "Ні, залишити"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12589,7 +12548,7 @@ msgstr "Немає"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_shadow_option.xml:0
 msgid "Normal"
-msgstr "Звичайний"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_pages_kanban_view
@@ -12849,7 +12808,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
 msgid "One"
-msgstr "Один"
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -13029,7 +12988,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "Order"
-msgstr "Замовлення"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -13049,7 +13008,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 #: code:addons/website/static/src/snippets/s_website_form/add_other_option.js:0
 msgid "Other"
-msgstr "Інше"
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -13776,8 +13735,8 @@ msgstr "Заповнювач"
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
-msgid "Places API (NEW)"
-msgstr ""
+msgid "Places API"
+msgstr "API місць"
 
 #. module: website
 #. odoo-javascript
@@ -13853,7 +13812,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/image/image_popup_option.xml:0
 msgid "Pop-up on Click"
-msgstr "Спливаюче вікно при натисканні"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -13958,13 +13917,13 @@ msgstr "Переглянути зображення"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Preview of"
-msgstr "Попередній перегляд"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/builder_urlpicker.xml:0
 msgid "Preview this URL in a new tab"
-msgstr "Переглянути цю URL в новій вкладці"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14075,7 +14034,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_image_frame
 msgid "Product highlight"
-msgstr "Виділення товару"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.footer_custom
@@ -14255,7 +14214,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_page_properties__published_date
 #: model:ir.model.fields,field_description:website.field_website_page_properties_base__published_date
 msgid "Published Date"
-msgstr "Опублікована дата"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_partner__published_date
@@ -14266,7 +14225,7 @@ msgstr "Опублікована дата"
 #: model:ir.model.fields,field_description:website.field_website_published_multi_mixin__published_date
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__published_date
 msgid "Published date"
-msgstr "Опублікована дата"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14445,7 +14404,7 @@ msgstr "Готові втілити вашу цифрову мрію у житт
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Ready to build the"
-msgstr "Готовий до створення"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_call_to_action_digital
@@ -14637,7 +14596,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/card_image_option.xml:0
 msgid "Remove Cover"
-msgstr "Вилучити обкладинку"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14667,7 +14626,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/image_gallery_option.xml:0
 msgid "Remove all"
-msgstr "Вилучити все"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14714,7 +14673,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "Repeat pattern"
-msgstr "Повторіть візерунок"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14823,7 +14782,7 @@ msgstr "Кадри"
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website.cookies_bar.xml:0
 msgid "Respecting your privacy is our priority."
-msgstr "Повага до вашої конфіденційності є нашим пріоритетом."
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega
@@ -15034,7 +14993,7 @@ msgstr "Маршрут"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "Row"
-msgstr "Рядок"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15119,7 +15078,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Save and Reload"
-msgstr "Зберегти та перезавантажити"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15157,7 +15116,7 @@ msgstr "Шкала"
 #: model_terms:ir.ui.view,arch_db:website.website_pages_kanban_view
 #: model_terms:ir.ui.view,arch_db:website.website_pages_tree_view
 msgid "Scheduled"
-msgstr "Заплановано"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_thumbnails
@@ -15246,7 +15205,7 @@ msgstr "Пошукова панель"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.js:0
 msgid "Search Engine Optimization"
-msgstr "Пошукова оптимізація"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_2_s_text_block_h2
@@ -15293,11 +15252,6 @@ msgstr "Пошук на нашому веб-сайті"
 #: code:addons/website/static/src/builder/plugins/options/searchbar_option.xml:0
 msgid "Search within"
 msgstr "Пошук всередині"
-
-#. module: website
-#: model_terms:ir.ui.view,arch_db:website.website_search_box_input
-msgid "Search..."
-msgstr "Пошук..."
 
 #. module: website
 #. odoo-javascript
@@ -15493,7 +15447,7 @@ msgstr "Надіслати ел. листа"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
 msgid "Send Message"
-msgstr "Відправити повідомлення"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_website_form_cover
@@ -15548,7 +15502,7 @@ msgstr "Послідовність"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Serve font from Google servers"
-msgstr "Подавати шрифт із серверів Google"
+msgstr ""
 
 #. module: website
 #: model:ir.model,name:website.model_ir_actions_server
@@ -15619,7 +15573,7 @@ msgstr "На цій сторінці будуть застосовані нал�
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab_plugin.js:0
 msgid "Shadow"
-msgstr "Тінь"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -15641,7 +15595,7 @@ msgstr "Маленька тінь"
 #: code:addons/website/static/src/builder/plugins/floating_blocks/floating_blocks_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/ecomm_categories_showcase_option.xml:0
 msgid "Shadows"
-msgstr "Тіні"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -15988,7 +15942,7 @@ msgstr "Слайд"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/footer_option.xml:0
 msgid "Slide Hover"
-msgstr "Наведення курсором"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -16231,7 +16185,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_shadow_option.xml:0
 msgid "Spread"
-msgstr "Поширення"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_menus_logos
@@ -16281,7 +16235,7 @@ msgstr "Почати зараз"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_banner
 msgid "Start Now <span class=\"fa fa-angle-right ms-2\"/>"
-msgstr "Розпочніть зараз <span class=\"fa fa-angle-right ms-2\"/>"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_grid_avatars
@@ -16531,7 +16485,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "T"
-msgstr "T"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_menus_logos
@@ -16563,7 +16517,7 @@ msgstr "Зміст"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Table of Contents"
-msgstr "Панель змісту"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_odoo_menu
@@ -16946,7 +16900,13 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website_form.xml:0
 msgid "The form has been sent successfully."
-msgstr "Форму успішно надіслано."
+msgstr ""
+
+#. module: website
+#. odoo-python
+#: code:addons/website/controllers/form.py:0
+msgid "The form's specified model does not exist"
+msgstr "Вказана модель форми не існує"
 
 #. module: website
 #: model:ir.model.fields,help:website.field_ir_actions_server__website_url
@@ -16964,7 +16924,7 @@ msgstr "URL-адреса повністю, для доступу до серве
 #: model:ir.model.fields,help:website.field_website_published_multi_mixin__website_absolute_url
 #: model:ir.model.fields,help:website.field_website_snippet_filter__website_absolute_url
 msgid "The full absolute URL to access the document through the website."
-msgstr "Повна абсолютна URL-адреса для доступу до документа через вебсайт."
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_res_partner__website_url
@@ -17303,13 +17263,6 @@ msgstr ""
 "заміни серверної версії."
 
 #. module: website
-#. odoo-python
-#: code:addons/website/controllers/form.py:0
-msgid ""
-"This form cannot be submitted. Please contact the website administrator."
-msgstr ""
-
-#. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
 msgid "This is a \""
 msgstr "Це \""
@@ -17458,7 +17411,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/social_media_option_plugin.js:0
 msgid "Threads"
-msgstr "Теми"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -17493,7 +17446,7 @@ msgstr "Час, коли востаннє переглянули сторінк�
 #. odoo-javascript
 #: code:addons/website/static/src/snippets/s_countdown/000.xml:0
 msgid "Time's up! You can now visit"
-msgstr "Час вийшов! Тепер ви можете відвідати"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_grid
@@ -17606,7 +17559,7 @@ msgstr "Розташування заголовка"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/attribute_translation_plugin.js:0
 msgid "Title tag"
-msgstr "Тег заголовку"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_three_columns
@@ -17898,7 +17851,7 @@ msgstr "Перекладений контент"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/translate_webpage_option.xml:0
 msgid "Translating..."
-msgstr "Переклад..."
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -17948,7 +17901,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
 msgid "Two"
-msgstr "Два"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18127,7 +18080,7 @@ msgstr "Незареєстровано"
 #: model_terms:ir.ui.view,arch_db:website.website_page_properties_base_view_form
 #: model_terms:ir.ui.view,arch_db:website.website_pages_form_view
 msgid "Unschedule"
-msgstr "Зняти планування"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -18168,7 +18121,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Upload"
-msgstr "Завантажити"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18193,7 +18146,7 @@ msgstr "Url статичного зображення прапора"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Url or Email"
-msgstr "Url або Email"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_page_view_search
@@ -18429,7 +18382,7 @@ msgstr "Овочевий салат, бургер з яловичиною та �
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 msgid "Verify"
-msgstr "Перевірити"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -19013,9 +18966,6 @@ msgid ""
 "We use cookies to provide improved experience on this website. You can learn "
 "more about our cookies and how we use them in our"
 msgstr ""
-"Ми використовуємо файли cookie, щоб покращити роботу на цьому веб-сайті. Ви "
-"можете дізнатися більше про наші файли cookie та про те, як ми їх "
-"використовуємо"
 
 #. module: website
 #. odoo-javascript
@@ -19047,7 +18997,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "We'll set you up and running in"
-msgstr "Ми налаштуємо вас і запрацюємо"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_full_s_text_image
@@ -19107,7 +19057,7 @@ msgstr "Веб-сайт"
 #: model:ir.model.fields,field_description:website.field_website_published_multi_mixin__website_absolute_url
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__website_absolute_url
 msgid "Website Absolute URL"
-msgstr "Повна URL-адреса вебсайту"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_config_settings__website_company_id
@@ -19429,7 +19379,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/website_builder_action.xml:0
 msgid "Welcome to your"
-msgstr "Ласкаво просимо до вашого"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_services_0_s_three_columns
@@ -19577,7 +19527,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "Wrap"
-msgstr "Обгортка"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -19663,14 +19613,14 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.template_footer_headline
 #: model_terms:ir.ui.view,arch_db:website.template_footer_links
 msgid "X"
-msgstr "X"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 #: model_terms:ir.ui.view,arch_db:website.s_age_verification_popup
 msgid "Yes"
-msgstr "Так"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -19776,12 +19726,6 @@ msgstr "Ви не можете дублювати це поле."
 
 #. module: website
 #. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/card_image_option_plugin.js:0
-msgid "You cannot duplicate this image."
-msgstr ""
-
-#. module: website
-#. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/facebook_option_plugin.js:0
 msgid "You didn't provide a valid Facebook link"
 msgstr "Ви не надали дійсне Facebook посилання"
@@ -19802,7 +19746,7 @@ msgstr "У вас немає прав для публікації/відміни
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "You don't have permissions to edit this record."
-msgstr "Ви не маєте прав на редагування цього запису."
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -20095,13 +20039,13 @@ msgstr "веб-сайт події"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "and"
-msgstr "та"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "auto"
-msgstr "автоматично"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -20158,7 +20102,7 @@ msgstr "btn-secondary"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "business"
-msgstr "бізнес"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -20214,7 +20158,7 @@ msgstr "закрити"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/highlight/highlight_configurator.xml:0
 msgid "color"
-msgstr "колір"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -20477,7 +20421,7 @@ msgstr "fonts.google.com"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "for my"
-msgstr "для мого"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -20489,7 +20433,7 @@ msgstr "forum"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "found(s)"
-msgstr "знайдено(і)"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -20509,7 +20453,7 @@ msgstr "безкоштовний веб-сайт"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "from Logo"
-msgstr "з Лого"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.cookie_policy
@@ -20780,7 +20724,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/website_builder_action.xml:0
 msgid "in the top right corner to start designing."
-msgstr "у верхньому правому куті для початку створення."
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_links
@@ -20926,7 +20870,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/edit_website_systray_item.xml:0
 msgid "page"
-msgstr "page"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -21185,7 +21129,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/fields/redirect_field.xml:0
 msgid "text-danger"
-msgstr "текстове попередження"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -21232,7 +21176,7 @@ msgstr "веб-сайт"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "with the main objective to"
-msgstr "з основною метою"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -21281,12 +21225,3 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.s_key_benefits
 msgid "✽  What We Offer"
 msgstr ""
-
-#~ msgid "Accounts are usable across all your multiple websites"
-#~ msgstr "Облікові записи можна використовувати на всіх ваших веб-сайтах"
-
-#~ msgid "Places API"
-#~ msgstr "API місць"
-
-#~ msgid "The form's specified model does not exist"
-#~ msgstr "Вказана модель форми не існує"

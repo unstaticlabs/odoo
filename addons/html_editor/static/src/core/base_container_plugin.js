@@ -14,7 +14,6 @@ import {
     BASE_CONTAINER_CLASS,
     baseContainerGlobalSelector,
     createBaseContainer,
-    SUPPORTED_BASE_CONTAINER_NAMES,
 } from "../utils/base_container";
 import { withSequence } from "@html_editor/utils/resource";
 import { selectElements } from "@html_editor/utils/dom_traversal";
@@ -55,8 +54,7 @@ export class BaseContainerPlugin extends Plugin {
         is_node_splittable_predicates: (node) => {
             if (
                 node.nodeName === "DIV" &&
-                (!this.config.baseContainers.includes(node.tagName) ||
-                    !this.isCandidateForBaseContainerAllowUnsplittable(node))
+                !this.isCandidateForBaseContainerAllowUnsplittable(node)
             ) {
                 return false;
             }
@@ -66,7 +64,7 @@ export class BaseContainerPlugin extends Plugin {
                 if (
                     !node ||
                     node.nodeType !== Node.ELEMENT_NODE ||
-                    !SUPPORTED_BASE_CONTAINER_NAMES.includes(node.tagName) ||
+                    !this.config.baseContainers.includes(node.tagName) ||
                     isProtected(node) ||
                     isProtecting(node) ||
                     isMediaElement(node)
@@ -93,7 +91,6 @@ export class BaseContainerPlugin extends Plugin {
             },
         ],
         system_classes: [BASE_CONTAINER_CLASS],
-        paste_odoo_editor_html_processors: this.convertBaseContainers.bind(this),
     };
 
     createBaseContainer({ nodeName = this.getDefaultNodeName(), children } = {}) {
@@ -249,29 +246,5 @@ export class BaseContainerPlugin extends Plugin {
                 }
             }
         }
-    }
-
-    convertBaseContainers(fragment) {
-        if (this.config.baseContainers && !this.config.baseContainers.includes("DIV")) {
-            for (const div of fragment.querySelectorAll("div")) {
-                if (this.isCandidateForBaseContainerAllowUnsplittable(div)) {
-                    const paragraph = this.document.createElement("p");
-                    paragraph.append(...div.childNodes);
-                    div.replaceWith(paragraph);
-                    // Duplicated from DomPlugin because it depends on BaseContainerPlugin.
-                    const ignoredClasses = new Set(this.getResource("system_classes"));
-                    const ignoredAttrs = new Set(this.getResource("system_attributes"));
-                    for (const attr of div.attributes) {
-                        if (attr.name === "class") {
-                            const classes = new Set(div.classList).difference(ignoredClasses);
-                            paragraph.classList.add(...classes);
-                        } else if (!ignoredAttrs.has(attr.name)) {
-                            paragraph.setAttribute(attr.name, attr.value);
-                        }
-                    }
-                }
-            }
-        }
-        return fragment;
     }
 }

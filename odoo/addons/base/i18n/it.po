@@ -19,7 +19,7 @@ msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-04-24 11:01+0000\n"
-"PO-Revision-Date: 2026-10-23 15:44+0000\n"
+"PO-Revision-Date: 2026-09-10 11:51+0000\n"
 "Last-Translator: \"Marianna Ciofani (cima)\" <cima@odoo.com>\n"
 "Language-Team: Italian <https://translate.odoo.com/projects/odoo-s19-3/base/"
 "it/>\n"
@@ -3448,9 +3448,9 @@ msgid ""
 "\n"
 msgstr ""
 "\n"
-"Gestione degli attivi\n"
+"Gestione degli asset\n"
 "=================\n"
-"Gestione degli attivi di un'azienda o di una persona.\n"
+"Gestione degli asset di un'azienda o di una persona.\n"
 "Tiene traccia degli ammortamenti e crea le corrispondenti registrazioni "
 "contabili.\n"
 "\n"
@@ -6195,7 +6195,7 @@ msgid ""
 "Enterprise digest data\n"
 msgstr ""
 "\n"
-"Dati di riepilogo dell'azienda\n"
+"Dati di riepilogo per Enterprise\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_l10n_cl_edi_exports
@@ -11654,8 +11654,8 @@ msgid ""
 "Subcontracting\n"
 msgstr ""
 "\n"
-"Questo modulo monte aggiunge alcuni pulsanti intelligenti tra acquisti e "
-"subappalti\n"
+"Questo modulo bridge aggiunge alcuni pulsanti intelligenti tra Acquisto e "
+"Subappalto\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_l10n_tw_edi_ecpay_sale
@@ -14872,7 +14872,7 @@ msgid ""
 "This module provides management of your IoT Boxes inside Odoo.\n"
 msgstr ""
 "\n"
-"Questo modulo permette di gestire le box IoT Odoo.\n"
+"Questo modulo fornisce la gestione delle vostre scatole IoT Odoo.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_iap
@@ -17690,7 +17690,7 @@ msgstr "Conto - Punto vendita liquidazione dovuta"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_account_bank_statement_extract
 msgid "Account Bank Statement Extract"
-msgstr "Estratto conto bancario"
+msgstr "Estrazione estratti conto bancari"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_account_bank_statement_import
@@ -17722,7 +17722,7 @@ msgstr "Estratto fattura contabile"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_account_invoice_extract_purchase
 msgid "Account Invoice Extract Purchase"
-msgstr "Estratto della fattura relativa all'acquisto"
+msgstr "Acquisti estrazione fattura contabile"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_account_loans_extract
@@ -17757,7 +17757,7 @@ msgstr "Account Winbooks Import"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_account_accountant_check_printing
 msgid "Account accountant check printing"
-msgstr "Stampa assegni contabili"
+msgstr "Stampa assegni contabile"
 
 #. module: base
 #: model:ir.model.fields,help:base.field_res_partner_bank__holder_name
@@ -18135,8 +18135,8 @@ msgstr ""
 #: model:ir.module.module,summary:base.module_data_merge_project
 msgid "Add Merge action in contextual menu of project task and tag models."
 msgstr ""
-"Aggiungi l'azione di unione nel menu contestuale dei modelli di attività e "
-"tag del progetto."
+"Aggiungere l'azione Merge nel menu contestuale dei modelli di attività e tag "
+"del progetto."
 
 #. module: base
 #: model:ir.module.module,summary:base.module_mail_bot
@@ -18146,7 +18146,7 @@ msgstr "Aggiunta di OdooBoot nelle discussioni"
 #. module: base
 #: model:ir.module.module,summary:base.module_crm_sms
 msgid "Add SMS capabilities to CRM"
-msgstr "Aggiungi le funzioni SMS al CRM"
+msgstr "Aggiungi le capacità SMS al CRM"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_mrp_subcontracting_account_enterprise
@@ -21232,7 +21232,7 @@ msgstr "Attività"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_account_asset
 msgid "Assets Management"
-msgstr "Gestione degli attivi"
+msgstr "Gestione immobilizzazioni"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_account_asset_fleet
@@ -21375,7 +21375,7 @@ msgstr "Allegati"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_attachment_indexation
 msgid "Attachments List and Document Indexation"
-msgstr "Elenco allegati e indicizzazione documenti"
+msgstr "Elenco di Allegati e Repertoriazione di Documento"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_hr_attendance_gantt
@@ -23233,7 +23233,7 @@ msgstr "CRM Livechat"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_crm_mail_plugin
 msgid "CRM Mail Plugin"
-msgstr "Componente aggiuntivo e-mail CRM"
+msgstr "CRM Mail Plugin"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_crm_sale_subscription
@@ -23612,7 +23612,7 @@ msgstr "Repubblica centrafricana - Rendiconti contabili"
 #: model:ir.module.module,summary:base.module_hr
 #: model:ir.module.module,summary:base.module_hr_address_extended
 msgid "Centralize employee information"
-msgstr "Centralizza le informazioni dei dipendenti"
+msgstr "Informazioni centralizzate sui dipendenti"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_contacts
@@ -24920,7 +24920,7 @@ msgstr "Converti i Ticket da/in Leads"
 #. module: base
 #: model:ir.module.module,summary:base.module_helpdesk_mail_plugin
 msgid "Convert emails to Helpdesk Tickets."
-msgstr "Converti le e-mail in ticket dell'Helpdesk."
+msgstr "Converti le email in ticket dell'helpdesk."
 
 #. module: base
 #: model:res.country,name:base.ck
@@ -26511,7 +26511,7 @@ msgstr "Dispositivi"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_digest_enterprise
 msgid "Digest Enterprise"
-msgstr "Riepilogo azienda"
+msgstr "Riepiloghi per Enterprise"
 
 #. module: base
 #. odoo-python
@@ -30181,7 +30181,7 @@ msgstr "Gambia"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_gamification
 msgid "Gamification"
-msgstr "Gamification"
+msgstr "Competizione con gli altri"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_attendance_gantt
@@ -31037,7 +31037,7 @@ msgstr "Helpdesk - SMS"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_helpdesk_account
 msgid "Helpdesk Account"
-msgstr "Helpdesk e Contabilità"
+msgstr "Helpdesk Account"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_helpdesk_sale
@@ -31082,7 +31082,7 @@ msgstr "Scorte Helpdesk"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_helpdesk_stock_account
 msgid "Helpdesk Stock Account"
-msgstr "Helpdesk, Magazzino, Contabilità"
+msgstr "Helpdesk Stock Account"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_helpdesk_holidays
@@ -31097,7 +31097,7 @@ msgstr "Helpdesk Fogli ore"
 #. module: base
 #: model:ir.module.module,summary:base.module_helpdesk_holidays
 msgid "Helpdesk integration with holidays"
-msgstr "Integrazione Helpdesk con ferie"
+msgstr "Helpdesk integrazione con permessi"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_website_helpdesk_knowledge
@@ -31976,12 +31976,12 @@ msgstr "Importazione ordini Amazon e sincronizzazione consegne"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_account_bank_statement_import_camt
 msgid "Import CAMT Bank Statement"
-msgstr "Importazione estratto conto CAMT"
+msgstr "Importa Estratto Conto CAMT"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_account_bank_statement_import_csv
 msgid "Import CSV Bank Statement"
-msgstr "Importazione estratto conto CSV"
+msgstr "Importa Estratto Conto CSV"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_account_winbooks_import
@@ -35181,7 +35181,7 @@ msgstr "Gestione della contabilità con le funzionalità del parco veicoli"
 #. module: base
 #: model:ir.module.module,summary:base.module_account_fleet
 msgid "Manage accounting with fleets"
-msgstr "Gestisci la contabilità con Parco veicoli"
+msgstr "Gestione della contabilità con i parchi veicoli"
 
 #. module: base
 #: model_terms:ir.actions.act_window,help:base.grant_menu_access
@@ -35206,7 +35206,7 @@ msgstr "Gestisci e pubblica una piattaforma eLearning"
 #. module: base
 #: model:ir.module.module,summary:base.module_account_asset_fleet
 msgid "Manage assets with fleets"
-msgstr "Gestisci gli attivi con il modulo Parco veicoli"
+msgstr "Gestire le risorse con le flotte"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_certificate
@@ -42630,7 +42630,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_data_merge_project
 msgid "Project Merge action"
-msgstr "Azione di unione per Progetti"
+msgstr "Progetto, azione unisci"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_project_hr_payroll_account
@@ -42727,12 +42727,12 @@ msgstr "Competenze progetto"
 #. module: base
 #: model:ir.module.module,summary:base.module_helpdesk_planning_field_service_sale_timesheet
 msgid "Project, Helpdesk, FSM, Timesheet and Sale Orders"
-msgstr "Progetti, Helpdesk, FSM, Fogli ore e ordini di vendita"
+msgstr "Progetti, assistenza, FSM, fogli ore e ordini di vendita"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_helpdesk_sale_timesheet
 msgid "Project, Helpdesk, Timesheet and Sale Orders"
-msgstr "Progetti, Helpdesk, Fogli ore e ordini di vendita"
+msgstr "Progetto, assistenza, fogli ore e ordini di vendita"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_helpdesk_account
@@ -42762,7 +42762,7 @@ msgstr "Progetti, lavori, magazzino"
 #. module: base
 #: model:ir.module.module,summary:base.module_helpdesk_timesheet
 msgid "Project, Tasks, Timesheet"
-msgstr "Progetti, lavori, fogli ore"
+msgstr "Progetti, lavori, buoni sconto"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_properties_base_definition_mixin__properties
@@ -44629,8 +44629,7 @@ msgstr "Cambiamenti relativi alla vendita per il Brasile"
 #. module: base
 #: model:ir.module.module,description:base.module_l10n_it_edi_sale
 msgid "Sale modifications for Italy E-invoicing"
-msgstr ""
-"Modifiche relative alle vendite per la fatturazione elettronica in Italia"
+msgstr "Modifiche relative alle vendite per la e-fatturazione in Italia"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_spreadsheet_sale_management
@@ -45128,7 +45127,7 @@ msgstr "Vendi Corsi"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_helpdesk_sale_timesheet
 msgid "Sell Helpdesk Timesheet"
-msgstr "Vendite, Helpdesk e Fogli ore"
+msgstr "Vendere un servizio di assistenza da registrare nei fogli ore"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_sale_timesheet
@@ -47140,7 +47139,7 @@ msgstr "Svizzera - Libro paga e contabilità"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_l10n_ch_hr_payroll
 msgid "Switzerland - Swissdec Certified ELM 5.0 - Payroll"
-msgstr "Svizzera – Libro paga conforme Swissdec ELM 5.0"
+msgstr "Svizzera – Payroll conforme Swissdec ELM 5.0"
 
 #. module: base
 #: model:res.country.group,name:base.ch_and_li
@@ -51473,7 +51472,7 @@ msgstr "Fornitore"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_account_3way_match
 msgid "Vendor Bill: Release to Pay"
-msgstr "Fattura fornitore: autorizzazione al pagamento"
+msgstr "Fattura Fornitore: Consegna da Pagare"
 
 #. module: base
 #: model:ir.actions.act_window,name:base.action_partner_supplier_form

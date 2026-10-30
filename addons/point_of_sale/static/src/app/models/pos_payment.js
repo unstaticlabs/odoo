@@ -101,10 +101,6 @@ export class PosPayment extends Base {
             : false;
     }
 
-    isForceDoneAllowed() {
-        return true;
-    }
-
     setCashierReceipt(value) {
         this.cashier_receipt = value;
     }

@@ -97,26 +97,29 @@ export class Many2ManyTaxTagsField extends Many2ManyTagsField {
             ? taxData.description.replace(/<[^>]+>/g, "").trim()
             : "";
 
-        const formatLines = (lines) =>
-            lines.map((line) => ({
-                type: line.repartition_type,
-                factor_percent: Math.abs(line.factor_percent) !== 100 ? line.factor_percent : null,
-                tag_names: (line.tag_ids || []).map((tag) => tag.name),
-            }));
+        const groupByType = (lines) => {
+            const groups = {};
+            for (const line of lines) {
+                if (!groups[line.repartition_type]) {
+                    groups[line.repartition_type] = {
+                        type: line.repartition_type,
+                        lines: [],
+                    };
+                }
 
-        const invoiceLines = formatLines(taxData.invoice_repartition_line_ids);
-        const refundLines = formatLines(taxData.refund_repartition_line_ids);
-        const hasTags = [...invoiceLines, ...refundLines].some((line) => line.tag_names.length);
-        if (!hasTags) {
-            // The popup is there to explain the tax distribution; without one it
-            // has nothing to show, the description being available elsewhere.
-            return;
-        }
+                groups[line.repartition_type].lines.push({
+                    factor_percent:
+                        Math.abs(line.factor_percent) !== 100 ? line.factor_percent : null,
+                    tag_names: (line.tag_ids || []).map((tag) => tag.name),
+                });
+            }
+            return Object.values(groups);
+        };
 
         this.taxPopover.open(ev.target, {
             description: taxData.description,
-            invoiceLines,
-            refundLines,
+            invoiceLines: groupByType(taxData.invoice_repartition_line_ids),
+            refundLines: groupByType(taxData.refund_repartition_line_ids),
             close: () => this.taxPopover.close(),
         });
     }

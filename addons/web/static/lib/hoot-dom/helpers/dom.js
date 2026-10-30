@@ -332,7 +332,7 @@ function getFiltersDescription(modifierInfo) {
  * @param {Node} node
  */
 function getInlineNodeText(node) {
-    return _getNodeText(node, { inline: true });
+    return getNodeText(node, { inline: true });
 }
 
 /**
@@ -344,11 +344,11 @@ function getNodeContent(node) {
         case "input":
         case "option":
         case "textarea":
-            return _getNodeValue(node);
+            return getNodeValue(node);
         case "select":
-            return [...node.selectedOptions].map((node) => _getNodeValue(node)).join(",");
+            return [...node.selectedOptions].map((node) => getNodeValue(node)).join(",");
     }
-    return _getNodeText(node);
+    return getNodeText(node);
 }
 
 /** @type {NodeFilter} */
@@ -444,22 +444,6 @@ function isElement(object) {
 }
 
 /**
- * @param {Node} node
- */
-function isNodeCssVisible(node) {
-    const element = ensureElement(node);
-    if (element === getDefaultRoot() || isRootElement(element)) {
-        return true;
-    }
-    const style = _getStyle(element);
-    if (style?.visibility === "hidden" || style?.opacity === "0") {
-        return false;
-    }
-    const parent = element.parentNode;
-    return !parent || isNodeCssVisible(isShadowRoot(parent) ? parent.host : parent);
-}
-
-/**
  * @param {string} selector
  * @param {Node} node
  */
@@ -469,26 +453,16 @@ function isNodeHaving(selector, node) {
 
 /** @type {NodeFilter} */
 function isNodeHidden(node) {
-    return !_isNodeVisible(node);
+    return !isNodeVisible(node);
 }
 
 /** @type {NodeFilter} */
 function isNodeInteractive(node) {
     return (
-        _getStyle(node).pointerEvents !== "none" &&
+        getStyle(node).pointerEvents !== "none" &&
         !node.closest?.("[inert]") &&
         !getParentFrame(node)?.inert
     );
-}
-
-/**
- * @param {Window | Node} node
- */
-function isNodeInViewPort(node) {
-    const element = ensureElement(node);
-    const { x, y } = _getNodeRect(element);
-
-    return y > 0 && y < currentDimensions.height && x > 0 && x < currentDimensions.width;
 }
 
 /**
@@ -497,49 +471,6 @@ function isNodeInViewPort(node) {
  */
 function isNodeNotMatching(selector, node) {
     return !matches(node, selector);
-}
-
-/**
- * @param {ScrollAxis} axis
- * @param {Window | Node} node
- */
-function isNodeScrollable(axis, node) {
-    if (!isElement(node)) {
-        return false;
-    }
-    const isScrollableX = node.clientWidth < node.scrollWidth;
-    const isScrollableY = node.clientHeight < node.scrollHeight;
-    switch (axis) {
-        case "both": {
-            if (!isScrollableX || !isScrollableY) {
-                return false;
-            }
-            break;
-        }
-        case "x": {
-            if (!isScrollableX) {
-                return false;
-            }
-            break;
-        }
-        case "y": {
-            if (!isScrollableY) {
-                return false;
-            }
-            break;
-        }
-        default: {
-            // Check for any scrollable axis
-            if (!isScrollableX && !isScrollableY) {
-                return false;
-            }
-        }
-    }
-    const overflow = _getStyle(node).getPropertyValue("overflow");
-    if (R_SCROLLABLE_OVERFLOW.test(overflow)) {
-        return true;
-    }
-    return false;
 }
 
 /** @type {NodeFilter} */
@@ -648,7 +579,7 @@ function nodeFlatMap(nodes, flatMapFn) {
     const result = [];
     for (const node of nodes) {
         const nodeList = flatMapFn(node);
-        if (_isNode(nodeList)) {
+        if (isNode(nodeList)) {
             result.push(nodeList);
         } else if (isIterable(nodeList)) {
             result.push(...nodeList);
@@ -856,7 +787,7 @@ function parseXml(xmlString, type) {
     if (doc.getElementsByTagName("parsererror").length) {
         const trimmed = xmlString.length > 80 ? xmlString.slice(0, 80) + "…" : xmlString;
         throw new HootDomError(
-            `error while parsing ${trimmed}: ${_getNodeText(
+            `error while parsing ${trimmed}: ${getNodeText(
                 doc.getElementsByTagName("parsererror")[0]
             )}`
         );
@@ -989,7 +920,6 @@ function registerQueryMessage(filteredNodes, expectedCount) {
  *
  * @param {Target} target
  * @param {QueryOptions} options
- * @returns {Node[] | null} `null` if the given 'count' option is not matched
  */
 function _guardedQueryAll(target, options) {
     try {
@@ -1006,7 +936,6 @@ function _guardedQueryAll(target, options) {
 /**
  * @param {Target} target
  * @param {QueryOptions} options
- * @returns {Node[] | null} `null` if the given 'count' option is not matched
  */
 function _queryAll(target, options) {
     queryAllLevel++;
@@ -1026,7 +955,7 @@ function _queryAll(target, options) {
         }
         selector = target.trim();
         // HTMLSelectElement is iterable ¯\_(ツ)_/¯
-    } else if (isIterable(target) && !_isNode(target)) {
+    } else if (isIterable(target) && !isNode(target)) {
         nodes = filterUniqueNodes(target);
     } else if (target) {
         nodes = filterUniqueNodes([target]);
@@ -1060,11 +989,15 @@ function _queryAll(target, options) {
     }
     const filteredNodes = applyFilters(modifierFilters, nodes);
 
+    // Register query message (if needed), and/or throw an error accordingly
     const message = registerQueryMessage(filteredNodes, count);
+    if (message) {
+        throw new HootDomError(message);
+    }
 
     queryAllLevel--;
 
-    return message ? null : filteredNodes;
+    return filteredNodes;
 }
 
 /**
@@ -1072,22 +1005,7 @@ function _queryAll(target, options) {
  * @param {QueryOptions} options
  */
 function _queryOne(target, options) {
-    return _strictQueryAll(target, { ...options, count: 1 })[0];
-}
-
-/**
- * Same as {@link _guardedQueryAll}, but throws if the given 'count' option is not
- * matched.
- *
- * @param {Target} target
- * @param {QueryOptions} options
- */
-function _strictQueryAll(target, options) {
-    const nodes = _guardedQueryAll(target, options);
-    if (!nodes) {
-        throw new HootDomError(lastQueryMessage);
-    }
-    return nodes;
+    return _guardedQueryAll(target, { ...options, count: 1 })[0];
 }
 
 /**
@@ -1097,7 +1015,7 @@ function _strictQueryAll(target, options) {
  */
 function _waitForFirst(target, options, isLast) {
     shouldRegisterQueryMessage = isLast;
-    const result = _guardedQueryAll(target, options)?.[0];
+    const result = _guardedQueryAll(target, options)[0];
     shouldRegisterQueryMessage = false;
     return result;
 }
@@ -1109,7 +1027,7 @@ function _waitForFirst(target, options, isLast) {
  */
 function _waitForNone(target, options, isLast) {
     shouldRegisterQueryMessage = isLast;
-    const result = _guardedQueryAll(target, options)?.length === 0;
+    const result = _guardedQueryAll(target, options).length === 0;
     shouldRegisterQueryMessage = false;
     return result;
 }
@@ -1127,21 +1045,6 @@ const R_LINEBREAK = /\s*\n+\s*/g;
 const R_QUOTE_CONTENT = /^\s*(['"])?([^]*?)\1\s*$/;
 const R_ROOT_ELEMENT = /^(HTML|HEAD|BODY)$/;
 const R_SCROLLABLE_OVERFLOW = /\bauto\b|\bscroll\b/;
-
-// Following selector is based on this spec:
-// https://html.spec.whatwg.org/multipage/interaction.html#dom-tabindex
-const FOCUSABLE_SELECTOR = [
-    "a[href]",
-    "area[href]",
-    "button:enabled",
-    "details > summary:first-of-type",
-    "iframe",
-    "input:enabled",
-    "select:enabled",
-    "textarea:enabled",
-    "[tabindex]",
-    "[contenteditable=true]",
-].join(",");
 
 const MODIFIER_SUFFIX_LABELS = {
     contains: (content) => `with text "${content}"`,
@@ -1222,8 +1125,8 @@ customPseudoClasses
         }
         return hasNodeCount.bind(null, count);
     })
-    .set("displayed", () => _isNodeDisplayed)
-    .set("empty", () => _isEmpty)
+    .set("displayed", () => isNodeDisplayed)
+    .set("empty", () => isEmpty)
     .set("eq", (strIndex) => {
         const index = $parseInt(strIndex);
         if (!$isInteger(index)) {
@@ -1232,7 +1135,7 @@ customPseudoClasses
         return index;
     })
     .set("first", () => 0)
-    .set("focusable", () => _isNodeFocusable)
+    .set("focusable", () => isNodeFocusable)
     .set("has", (selector) => isNodeHaving.bind(null, selector))
     .set("hidden", () => isNodeHidden)
     .set("iframe", () => getNodeIframe)
@@ -1246,7 +1149,7 @@ customPseudoClasses
     .set("text", makePseudoClassMatcher(getInlineNodeText, true))
     .set("value", makePseudoClassMatcher(getRawValue, false))
     .set("viewPort", () => isNodeInViewPort)
-    .set("visible", () => _isNodeVisible);
+    .set("visible", () => isNodeVisible);
 
 const rCustomPseudoClass = compilePseudoClassRegex();
 
@@ -1254,7 +1157,7 @@ const rCustomPseudoClass = compilePseudoClassRegex();
 // Internal exports (inside Hoot/Hoot-DOM)
 //-----------------------------------------------------------------------------
 
-export function _cleanupDOM() {
+export function cleanupDOM() {
     // Dimensions
     currentDimensions.width = innerWidth;
     currentDimensions.height = innerHeight;
@@ -1272,7 +1175,7 @@ export function _cleanupDOM() {
 /**
  * @param {Node | () => Node} node
  */
-export function _defineRootNode(node) {
+export function defineRootNode(node) {
     if (typeof node === "function") {
         getDefaultRoot = node;
     } else if (node) {
@@ -1282,7 +1185,7 @@ export function _defineRootNode(node) {
     }
 }
 
-export function _getCurrentDimensions() {
+export function getCurrentDimensions() {
     return currentDimensions;
 }
 
@@ -1290,7 +1193,7 @@ export function _getCurrentDimensions() {
  * @param {Node} [node]
  * @returns {Document}
  */
-export function _getDocument(node) {
+export function getDocument(node) {
     if (!node) {
         return document;
     }
@@ -1302,7 +1205,7 @@ export function _getDocument(node) {
  * @param {string} attribute
  * @returns {string | null}
  */
-export function _getNodeAttribute(node, attribute) {
+export function getNodeAttribute(node, attribute) {
     return node.getAttribute?.(attribute) ?? null;
 }
 
@@ -1311,7 +1214,7 @@ export function _getNodeAttribute(node, attribute) {
  * @param {QueryValueOptions} [options]
  * @returns {NodeValue}
  */
-export function _getNodeValue(node, options) {
+export function getNodeValue(node, options) {
     if (options?.raw) {
         return getRawValue(node);
     }
@@ -1339,7 +1242,7 @@ export function _getNodeValue(node, options) {
  * @param {Node} node
  * @param {QueryRectOptions} [options]
  */
-export function _getNodeRect(node, options) {
+export function getNodeRect(node, options) {
     if (!isElement(node)) {
         return new DOMRect();
     }
@@ -1348,7 +1251,7 @@ export function _getNodeRect(node, options) {
     const rect = node.getBoundingClientRect();
     const parentFrame = getParentFrame(node);
     if (parentFrame) {
-        const parentRect = _getNodeRect(parentFrame);
+        const parentRect = getNodeRect(parentFrame);
         rect.x -= parentRect.x;
         rect.y -= parentRect.y;
     }
@@ -1357,7 +1260,7 @@ export function _getNodeRect(node, options) {
         return rect;
     }
 
-    const style = _getStyle(node);
+    const style = getStyle(node);
     const { x, y, width, height } = rect;
     const [pl, pr, pt, pb] = ["left", "right", "top", "bottom"].map((side) =>
         pixelValueToNumber(style.getPropertyValue(`padding-${side}`))
@@ -1371,7 +1274,7 @@ export function _getNodeRect(node, options) {
  * @param {QueryTextOptions} [options]
  * @returns {string}
  */
-export function _getNodeText(node, options) {
+export function getNodeText(node, options) {
     let content;
     if (typeof node.innerText === "string") {
         content = node.innerText;
@@ -1391,7 +1294,7 @@ export function _getNodeText(node, options) {
  * @param {Node} node
  * @returns {Node | null}
  */
-export function _getInteractiveNode(node) {
+export function getInteractiveNode(node) {
     let currentEl = ensureElement(node);
     if (!currentEl) {
         return null;
@@ -1407,7 +1310,7 @@ export function _getInteractiveNode(node) {
  * @param {T} node
  * @returns {T extends Element ? CSSStyleDeclaration : null}
  */
-export function _getStyle(node) {
+export function getStyle(node) {
     return isElement(node) ? getComputedStyle(node) : null;
 }
 
@@ -1415,23 +1318,23 @@ export function _getStyle(node) {
  * @param {Node} [node]
  * @returns {Window}
  */
-export function _getWindow(node) {
+export function getWindow(node) {
     if (!node) {
         return window;
     }
-    return isWindow(node) ? node : _getDocument(node).defaultView;
+    return isWindow(node) ? node : getDocument(node).defaultView;
 }
 
 /**
  * @param {Node} node
  * @returns {boolean}
  */
-export function _isCheckable(node) {
+export function isCheckable(node) {
     switch (getTag(node)) {
         case "input":
             return node.type === "checkbox" || node.type === "radio";
         case "label":
-            return _isCheckable(node.control);
+            return isCheckable(node.control);
         default:
             return false;
     }
@@ -1441,13 +1344,13 @@ export function _isCheckable(node) {
  * @param {unknown} value
  * @returns {boolean}
  */
-export function _isEmpty(value) {
+export function isEmpty(value) {
     if (!value) {
         return true;
     }
     if (typeof value === "object") {
-        if (_isNode(value)) {
-            return _isEmpty(getNodeContent(value));
+        if (isNode(value)) {
+            return isEmpty(getNodeContent(value));
         }
         if (!isIterable(value)) {
             value = $keys(value);
@@ -1464,11 +1367,11 @@ export function _isEmpty(value) {
  * @param {T} object
  * @returns {T extends EventTarget ? true : false}
  * @example
- *  _isEventTarget(window); // true
+ *  isEventTarget(window); // true
  * @example
- *  _isEventTarget(new App()); // false
+ *  isEventTarget(new App()); // false
  */
-export function _isEventTarget(object) {
+export function isEventTarget(object) {
     return object && typeof object.addEventListener === "function";
 }
 
@@ -1481,14 +1384,30 @@ export function _isEventTarget(object) {
  * @param {T} object
  * @returns {T extends Node ? true : false}
  */
-export function _isNode(object) {
+export function isNode(object) {
     return object && typeof object.nodeType === "number" && typeof object.nodeName === "string";
+}
+
+/**
+ * @param {Node} node
+ */
+export function isNodeCssVisible(node) {
+    const element = ensureElement(node);
+    if (element === getDefaultRoot() || isRootElement(element)) {
+        return true;
+    }
+    const style = getStyle(element);
+    if (style?.visibility === "hidden" || style?.opacity === "0") {
+        return false;
+    }
+    const parent = element.parentNode;
+    return !parent || isNodeCssVisible(isShadowRoot(parent) ? parent.host : parent);
 }
 
 /**
  * @param {Window | Node} node
  */
-export function _isNodeDisplayed(node) {
+export function isNodeDisplayed(node) {
     const element = ensureElement(node);
     if (!isInDOM(element)) {
         return false;
@@ -1497,16 +1416,16 @@ export function _isNodeDisplayed(node) {
         return true;
     }
     // `position=fixed` elements in Chrome do not have an `offsetParent`
-    return !isFirefox() && _getStyle(element)?.position === "fixed";
+    return !isFirefox() && getStyle(element)?.position === "fixed";
 }
 
 /**
  * @param {Node} node
  * @param {FocusableOptions} [options]
  */
-export function _isNodeFocusable(node, options) {
+export function isNodeFocusable(node, options) {
     return (
-        _isNodeDisplayed(node) &&
+        isNodeDisplayed(node) &&
         node.matches?.(FOCUSABLE_SELECTOR) &&
         (!options?.tabbable || node.tabIndex >= 0)
     );
@@ -1515,24 +1434,77 @@ export function _isNodeFocusable(node, options) {
 /**
  * @param {Window | Node} node
  */
-export function _isNodeVisible(node) {
+export function isNodeInViewPort(node) {
+    const element = ensureElement(node);
+    const { x, y } = getNodeRect(element);
+
+    return y > 0 && y < currentDimensions.height && x > 0 && x < currentDimensions.width;
+}
+
+/**
+ * @param {ScrollAxis} axis
+ * @param {Window | Node} node
+ */
+export function isNodeScrollable(axis, node) {
+    if (!isElement(node)) {
+        return false;
+    }
+    const isScrollableX = node.clientWidth < node.scrollWidth;
+    const isScrollableY = node.clientHeight < node.scrollHeight;
+    switch (axis) {
+        case "both": {
+            if (!isScrollableX || !isScrollableY) {
+                return false;
+            }
+            break;
+        }
+        case "x": {
+            if (!isScrollableX) {
+                return false;
+            }
+            break;
+        }
+        case "y": {
+            if (!isScrollableY) {
+                return false;
+            }
+            break;
+        }
+        default: {
+            // Check for any scrollable axis
+            if (!isScrollableX && !isScrollableY) {
+                return false;
+            }
+        }
+    }
+    const overflow = getStyle(node).getPropertyValue("overflow");
+    if (R_SCROLLABLE_OVERFLOW.test(overflow)) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * @param {Window | Node} node
+ */
+export function isNodeVisible(node) {
     const element = ensureElement(node);
 
     // Must be displayed and not hidden by CSS
-    if (!_isNodeDisplayed(element) || !isNodeCssVisible(element)) {
+    if (!isNodeDisplayed(element) || !isNodeCssVisible(element)) {
         return false;
     }
 
     let visible = false;
 
     // Check size (width & height)
-    const { width, height } = _getNodeRect(element);
+    const { width, height } = getNodeRect(element);
     visible = width > 0 && height > 0;
 
     // Check content (if display=contents)
-    if (!visible && _getStyle(element)?.display === "contents") {
+    if (!visible && getStyle(element)?.display === "contents") {
         for (const child of element.childNodes) {
-            if (_isNodeVisible(child)) {
+            if (isNodeVisible(child)) {
                 return true;
             }
         }
@@ -1545,7 +1517,7 @@ export function _isNodeVisible(node) {
  * @param {Dimensions} dimensions
  * @returns {[number, number]}
  */
-export function _parseDimensions(dimensions) {
+export function parseDimensions(dimensions) {
     return parseNumberTuple(dimensions, ["width", "w"], ["height", "h"]);
 }
 
@@ -1553,7 +1525,7 @@ export function _parseDimensions(dimensions) {
  * @param {Position} position
  * @returns {[number, number]}
  */
-export function _parsePosition(position) {
+export function parsePosition(position) {
     return parseNumberTuple(
         position,
         ["x", "left", "clientX", "pageX", "screenX"],
@@ -1565,7 +1537,7 @@ export function _parsePosition(position) {
  * @param {number} width
  * @param {number} height
  */
-export function _setDimensions(width, height) {
+export function setDimensions(width, height) {
     const defaultRoot = getDefaultRoot();
     if (!$isNaN(width)) {
         currentDimensions.width = width;
@@ -1582,7 +1554,7 @@ export function _setDimensions(width, height) {
  * @param {{ object?: boolean }} [options]
  * @returns {string | string[]}
  */
-export function _toSelector(node, options) {
+export function toSelector(node, options) {
     const parts = {
         tag: node.nodeName.toLowerCase(),
     };
@@ -1594,6 +1566,21 @@ export function _toSelector(node, options) {
     }
     return options?.object ? parts : $values(parts).join("");
 }
+
+// Following selector is based on this spec:
+// https://html.spec.whatwg.org/multipage/interaction.html#dom-tabindex
+export const FOCUSABLE_SELECTOR = [
+    "a[href]",
+    "area[href]",
+    "button:enabled",
+    "details > summary:first-of-type",
+    "iframe",
+    "input:enabled",
+    "select:enabled",
+    "textarea:enabled",
+    "[tabindex]",
+    "[contenteditable=true]",
+].join(",");
 
 //-----------------------------------------------------------------------------
 // Exports
@@ -1623,7 +1610,7 @@ export function formatXml(value, options) {
  * @param {Node} [node]
  */
 export function getActiveElement(node) {
-    const doc = _getDocument(node);
+    const doc = getDocument(node);
     const view = doc.defaultView;
     const { activeElement } = doc;
     const { contentDocument, shadowRoot } = activeElement;
@@ -1674,7 +1661,7 @@ export function getFocusableElements(options) {
     const byTabIndex = {};
     for (const element of parent.querySelectorAll(FOCUSABLE_SELECTOR)) {
         const { tabIndex } = element;
-        if ((options?.tabbable && tabIndex < 0) || !_isNodeDisplayed(element)) {
+        if ((options?.tabbable && tabIndex < 0) || !isNodeDisplayed(element)) {
             continue;
         }
         if (!byTabIndex[tabIndex]) {
@@ -1711,7 +1698,7 @@ export function getNextFocusableElement(options) {
  * @returns {HTMLIFrameElement | null}
  */
 export function getParentFrame(node) {
-    const doc = _getDocument(node);
+    const doc = getDocument(node);
     if (!doc) {
         return null;
     }
@@ -1942,7 +1929,7 @@ export function matches(target, selector) {
  */
 export function queryAll(target, options) {
     [target, options] = parseRawArgs(arguments);
-    return _strictQueryAll(target, options);
+    return _guardedQueryAll(target, options);
 }
 
 /**
@@ -1955,7 +1942,7 @@ export function queryAll(target, options) {
  * @returns {string[]}
  */
 export function queryAllAttributes(target, attribute, options) {
-    return _strictQueryAll(target, options).map((node) => _getNodeAttribute(node, attribute));
+    return _guardedQueryAll(target, options).map((node) => getNodeAttribute(node, attribute));
 }
 
 /**
@@ -1968,7 +1955,7 @@ export function queryAllAttributes(target, attribute, options) {
  * @returns {any[]}
  */
 export function queryAllProperties(target, property, options) {
-    return _strictQueryAll(target, options).map((node) => node[property]);
+    return _guardedQueryAll(target, options).map((node) => node[property]);
 }
 
 /**
@@ -1986,7 +1973,7 @@ export function queryAllProperties(target, property, options) {
  */
 export function queryAllRects(target, options) {
     [target, options] = parseRawArgs(arguments);
-    return _strictQueryAll(target, options).map(_getNodeRect);
+    return _guardedQueryAll(target, options).map(getNodeRect);
 }
 
 /**
@@ -1999,7 +1986,7 @@ export function queryAllRects(target, options) {
  */
 export function queryAllTexts(target, options) {
     [target, options] = parseRawArgs(arguments);
-    return _strictQueryAll(target, options).map((node) => _getNodeText(node, options));
+    return _guardedQueryAll(target, options).map((node) => getNodeText(node, options));
 }
 
 /**
@@ -2012,7 +1999,7 @@ export function queryAllTexts(target, options) {
  */
 export function queryAllValues(target, options) {
     [target, options] = parseRawArgs(arguments);
-    return _strictQueryAll(target, options).map((node) => _getNodeValue(node, options));
+    return _guardedQueryAll(target, options).map((node) => getNodeValue(node, options));
 }
 
 /**
@@ -2040,7 +2027,7 @@ export function queryAny(target, options) {
  * @returns {string | null}
  */
 export function queryAttribute(target, attribute, options) {
-    return _getNodeAttribute(_queryOne(target, options), attribute);
+    return getNodeAttribute(_queryOne(target, options), attribute);
 }
 
 /**
@@ -2053,7 +2040,7 @@ export function queryAttribute(target, attribute, options) {
  */
 export function queryFirst(target, options) {
     [target, options] = parseRawArgs(arguments);
-    return _strictQueryAll(target, options)[0] || null;
+    return _guardedQueryAll(target, options)[0] || null;
 }
 
 /**
@@ -2091,7 +2078,7 @@ export function queryOne(target, options) {
  */
 export function queryRect(target, options) {
     [target, options] = parseRawArgs(arguments);
-    return _getNodeRect(_queryOne(target, options), options);
+    return getNodeRect(_queryOne(target, options), options);
 }
 
 /**
@@ -2104,7 +2091,7 @@ export function queryRect(target, options) {
  */
 export function queryText(target, options) {
     [target, options] = parseRawArgs(arguments);
-    return _getNodeText(_queryOne(target, options), options);
+    return getNodeText(_queryOne(target, options), options);
 }
 
 /**
@@ -2117,7 +2104,7 @@ export function queryText(target, options) {
  */
 export function queryValue(target, options) {
     [target, options] = parseRawArgs(arguments);
-    return _getNodeValue(_queryOne(target, options), options);
+    return getNodeValue(_queryOne(target, options), options);
 }
 
 /**

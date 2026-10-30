@@ -2,27 +2,27 @@
 
 import { getColorHex, getTag, isFirefox, isInstanceOf, isIterable } from "../hoot_dom_utils";
 import {
-    _getDocument,
-    _getInteractiveNode,
-    _getNodeRect,
-    _getNodeValue,
-    _getStyle,
-    _getWindow,
-    _isCheckable,
-    _isEventTarget,
-    _isNode,
-    _isNodeFocusable,
-    _parseDimensions,
-    _parsePosition,
-    _setDimensions,
-    _toSelector,
     getActiveElement,
+    getDocument,
+    getInteractiveNode,
     getNextFocusableElement,
+    getNodeRect,
+    getNodeValue,
     getParentFrame,
     getPreviousFocusableElement,
+    getStyle,
+    getWindow,
+    isCheckable,
     isEditable,
+    isEventTarget,
+    isNode,
+    isNodeFocusable,
+    parseDimensions,
+    parsePosition,
     queryAll,
     queryAny,
+    setDimensions,
+    toSelector,
 } from "./dom";
 
 /**
@@ -221,7 +221,7 @@ async function changeSelection(target, start, end) {
  */
 function constrainScrollX(target, x) {
     let { offsetWidth, scrollWidth } = target;
-    const document = _getDocument(target);
+    const document = getDocument(target);
     if (target === document || target === document.documentElement) {
         // <html> elements in iframes consider the width of the <iframe> element
         const iframe = getParentFrame(target);
@@ -230,7 +230,7 @@ function constrainScrollX(target, x) {
         }
     }
     const maxScrollLeft = scrollWidth - offsetWidth;
-    const { direction } = _getStyle(target);
+    const { direction } = getStyle(target);
     const [min, max] = direction === "rtl" ? [-maxScrollLeft, 0] : [0, maxScrollLeft];
     return $min($max(x, min), max);
 }
@@ -241,7 +241,7 @@ function constrainScrollX(target, x) {
  */
 function constrainScrollY(target, y) {
     let { offsetHeight, scrollHeight } = target;
-    const document = _getDocument(target);
+    const document = getDocument(target);
     if (target === document || target === document.documentElement) {
         // <html> elements in iframes consider the height of the <iframe> element
         const iframe = getParentFrame(target);
@@ -603,7 +603,7 @@ function getPointerTarget(element, options, originalTarget) {
     if (!element || options?.interactive === false) {
         return element;
     }
-    const interactiveElement = _getInteractiveNode(element);
+    const interactiveElement = getInteractiveNode(element);
     if (!interactiveElement && originalTarget) {
         queryAny(originalTarget, { ...options, interactive: true }); // Will throw if no elements are found
     }
@@ -617,14 +617,14 @@ function getPointerTarget(element, options, originalTarget) {
 function getPosition(element, options) {
     const { position, relative } = options || {};
     const isString = typeof position === "string";
-    const [posX, posY] = _parsePosition(position);
+    const [posX, posY] = parsePosition(position);
 
     if (!isString && !relative && !$isNaN(posX) && !$isNaN(posY)) {
         // Absolute position
         return toEventPosition(posX, posY, position);
     }
 
-    const { x, y, width, height } = _getNodeRect(element);
+    const { x, y, width, height } = getNodeRect(element);
     let clientX = x;
     let clientY = y;
 
@@ -833,7 +833,7 @@ async function registerForChange(target, confirmAction) {
         confirmAction = getTag(target) === "input" ? "enter" : "blur";
     }
 
-    const parentDocument = _getDocument(target);
+    const parentDocument = getDocument(target);
     const parentView = parentDocument.defaultView;
     if (confirmAction === "enter" && getTag(target) !== "input") {
         throw new HootInteractionError(
@@ -968,8 +968,8 @@ function setupEvents(type, options) {
                 message += ` (${event.__bubbleCount})`;
             }
             const target = event.__originalTarget || event.target;
-            if (_isNode(target)) {
-                const targetParts = _toSelector(target, { object: true });
+            if (isNode(target)) {
+                const targetParts = toSelector(target, { object: true });
                 colors.push(getColorHex("text-report-html-tag"));
                 if (targetParts.id) {
                     colors.push(getColorHex("text-report-html-id"));
@@ -1102,7 +1102,7 @@ async function triggerFocus(target) {
             options: { relatedTarget: target },
         });
     }
-    if (_isNodeFocusable(target)) {
+    if (isNodeFocusable(target)) {
         const previousSelection = getStringSelection(target);
         await dispatchAndIgnore({
             target,
@@ -1171,7 +1171,7 @@ async function _dispatch(target, type, eventInit) {
         params.cancelable = true;
     }
     if (flags & VIEW) {
-        params.view ||= _getWindow(target);
+        params.view ||= getWindow(target);
     }
     const event = new Constructor(type, params);
 
@@ -2053,60 +2053,6 @@ function mapKeyboardEvent(eventInit) {
 }
 
 //-----------------------------------------------------------------------------
-// Internal exports (inside Hoot/Hoot-DOM)
-//-----------------------------------------------------------------------------
-
-export function _cleanupEvents() {
-    if (runTime.pointerDownTimeout) {
-        globalThis.clearTimeout(runTime.pointerDownTimeout);
-    }
-
-    removeChangeTargetListeners();
-
-    // Runtime global variables
-    $assign(runTime, getDefaultRunTimeValue());
-}
-
-/**
- * @param {boolean} toggle
- */
-export function _enableEventLogs(toggle) {
-    allowLogs = toggle ?? true;
-}
-
-/**
- * @param {HTMLElement} target
- * @param {{
- *  allowSubmit?: boolean;
- *  allowTrustedEvents?: boolean;
- *  noFileInputRegistration?: boolean;
- * }} [options]
- */
-export function _setupEventActions(target, options) {
-    const eventHandlers = [];
-    if (!options?.allowTrustedEvents) {
-        eventHandlers.push(...GLOBAL_TRUSTED_EVENTS_CANCELERS);
-    }
-    if (!options?.noFileInputRegistration) {
-        eventHandlers.push(...GLOBAL_FILE_INPUT_REGISTERERS);
-    }
-    if (!options?.allowSubmit) {
-        eventHandlers.push(...GLOBAL_SUBMIT_FORWARDERS);
-    }
-
-    const view = _getWindow(target);
-    for (const [eventType, handler, options] of eventHandlers) {
-        view.addEventListener(eventType, handler, options);
-    }
-
-    return function cleanupEventActions() {
-        for (const [eventType, handler, options] of eventHandlers) {
-            view.removeEventListener(eventType, handler, options);
-        }
-    };
-}
-
-//-----------------------------------------------------------------------------
 // Exports
 //-----------------------------------------------------------------------------
 
@@ -2126,7 +2072,7 @@ export function _setupEventActions(target, options) {
 export async function check(target, options) {
     const finalizeEvents = setupEvents("check", options);
     const element = queryAny(await target, options);
-    if (!_isCheckable(element)) {
+    if (!isCheckable(element)) {
         throw new HootInteractionError(
             `cannot call \`check()\`: target should be a checkbox or radio input`
         );
@@ -2145,6 +2091,17 @@ export async function check(target, options) {
     }
 
     return finalizeEvents();
+}
+
+export function cleanupEvents() {
+    if (runTime.pointerDownTimeout) {
+        globalThis.clearTimeout(runTime.pointerDownTimeout);
+    }
+
+    removeChangeTargetListeners();
+
+    // Runtime global variables
+    $assign(runTime, getDefaultRunTimeValue());
 }
 
 /**
@@ -2257,7 +2214,7 @@ export async function dblclick(target, options) {
 export async function dispatch(target, type, eventInit) {
     const finalizeEvents = setupEvents("dispatch");
 
-    if (!_isEventTarget(target)) {
+    if (!isEventTarget(target)) {
         throw new HootInteractionError(
             `cannot dispatch "${type}" event: expected target to be an 'EventTarget', got: ${target}`
         );
@@ -2326,7 +2283,7 @@ export async function drag(target, options) {
         /** @type {DragHelpers["cancel"]} */
         async function cancel(options) {
             const finalizeEvents = setupEvents("drag & drop: cancel", options);
-            const bodyElement = _getDocument(runTime.pointerTarget).body;
+            const bodyElement = getDocument(runTime.pointerTarget).body;
 
             // Reset buttons
             runTime.buttons = 0;
@@ -2415,12 +2372,19 @@ export async function edit(value, options) {
         throw new HootInteractionError(`cannot call \`edit()\`: target should be editable`);
     }
 
-    if (_getNodeValue(activeElement)) {
+    if (getNodeValue(activeElement)) {
         await _clear(getActiveElement);
     }
     await _fill(getActiveElement, value, options);
 
     return finalizeEvents();
+}
+
+/**
+ * @param {boolean} toggle
+ */
+export function enableEventLogs(toggle) {
+    allowLogs = toggle ?? true;
 }
 
 /**
@@ -2602,7 +2566,7 @@ export async function middleClick(target, options) {
  *  after(off);
  */
 export function on(target, type, listener, options) {
-    const targets = _isEventTarget(target) ? [target] : queryAll(target);
+    const targets = isEventTarget(target) ? [target] : queryAll(target);
     if (!targets.length) {
         throw new HootInteractionError(`expected at least 1 event target, got none`);
     }
@@ -2716,11 +2680,11 @@ export async function press(keyStrokes, options) {
  */
 export async function resize(dimensions, options) {
     const finalizeEvents = setupEvents("resize", options);
-    const [width, height] = _parseDimensions(dimensions);
+    const [width, height] = parseDimensions(dimensions);
 
-    _setDimensions(width, height);
+    setDimensions(width, height);
 
-    await _dispatch(_getWindow(), "resize");
+    await _dispatch(getWindow(), "resize");
 
     return finalizeEvents();
 }
@@ -2764,7 +2728,7 @@ export async function scroll(target, position, options) {
     const finalizeEvents = setupEvents("scroll", options);
 
     // Parse position and assign default options
-    let [x, y] = _parsePosition(position);
+    let [x, y] = parsePosition(position);
     options = {
         initiator: "wheel",
         scrollable: x && y ? "both" : x ? "x" : y ? "y" : true,
@@ -2917,6 +2881,38 @@ export async function setInputRange(target, value, options) {
 }
 
 /**
+ * @param {HTMLElement} target
+ * @param {{
+ *  allowSubmit?: boolean;
+ *  allowTrustedEvents?: boolean;
+ *  noFileInputRegistration?: boolean;
+ * }} [options]
+ */
+export function setupEventActions(target, options) {
+    const eventHandlers = [];
+    if (!options?.allowTrustedEvents) {
+        eventHandlers.push(...GLOBAL_TRUSTED_EVENTS_CANCELERS);
+    }
+    if (!options?.noFileInputRegistration) {
+        eventHandlers.push(...GLOBAL_FILE_INPUT_REGISTERERS);
+    }
+    if (!options?.allowSubmit) {
+        eventHandlers.push(...GLOBAL_SUBMIT_FORWARDERS);
+    }
+
+    const view = getWindow(target);
+    for (const [eventType, handler, options] of eventHandlers) {
+        view.addEventListener(eventType, handler, options);
+    }
+
+    return function cleanupEventActions() {
+        for (const [eventType, handler, options] of eventHandlers) {
+            view.removeEventListener(eventType, handler, options);
+        }
+    };
+}
+
+/**
  * Ensures that the given {@link AsyncTarget} is unchecked.
  *
  * If it is checked, a click is triggered on the input.
@@ -2932,7 +2928,7 @@ export async function setInputRange(target, value, options) {
 export async function uncheck(target, options) {
     const finalizeEvents = setupEvents("uncheck", options);
     const element = queryAny(await target, options);
-    if (!_isCheckable(element)) {
+    if (!isCheckable(element)) {
         throw new HootInteractionError(
             `cannot call \`uncheck()\`: target should be a checkbox or radio input`
         );
@@ -2962,7 +2958,7 @@ export async function uncheck(target, options) {
 export async function unload(options) {
     const finalizeEvents = setupEvents("unload", options);
 
-    await _dispatch(_getWindow(), "beforeunload");
+    await _dispatch(getWindow(), "beforeunload");
 
     return finalizeEvents();
 }

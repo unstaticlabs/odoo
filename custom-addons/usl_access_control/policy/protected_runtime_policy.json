@@ -116,11 +116,6 @@
       "classification": "protected"
     },
     {
-      "action_key": "guard:external.iap.token.rotate",
-      "action_name": "rotate an IAP account credential",
-      "classification": "protected"
-    },
-    {
       "action_key": "guard:inventory.landed_cost.validate",
       "action_name": "post a landed cost and its inventory valuation",
       "classification": "protected"
@@ -678,11 +673,6 @@
         "model": "hr.work.location",
         "operation": "unlink"
       }
-    },
-    {
-      "action_key": "rpc:iap.account.action_rotate_token",
-      "action_name": "rotate an IAP account credential",
-      "classification": "protected"
     },
     {
       "action_key": "rpc:ir.actions.server.create",

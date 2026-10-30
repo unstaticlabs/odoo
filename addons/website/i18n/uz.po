@@ -1,6 +1,6 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# * website
+# 	* website
 #
 #
 # Translated by:
@@ -10,14 +10,13 @@
 # Mirzohidkhon Ulugkhujaev ulugkhujayevmirzohidxon@gmail.com
 #
 #
-# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 17:42+0000\n"
-"PO-Revision-Date: 2026-10-28 16:41+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"POT-Creation-Date: 2026-07-17 17:38+0000\n"
+"PO-Revision-Date: 2026-06-29 22:00+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-s19-3/website/"
 "uz/>\n"
 "Language: uz\n"
@@ -25,7 +24,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.8.1\n"
+"X-Generator: Weblate 2026.6.1\n"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_quotes_carousel_compact
@@ -3363,8 +3362,9 @@ msgstr "Akkordeon rasmi"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
-msgid "Accounts created on this website are usable across all other websites"
-msgstr ""
+#, fuzzy
+msgid "Accounts are usable across all your multiple websites"
+msgstr "Hisoblar barcha ko‘p saytlaringizda foydalanish mumkin"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_2_s_three_columns
@@ -4863,6 +4863,7 @@ msgstr "Asosiy ko‘rinish"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/add_page_dialog.js:0
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_groups
+#, fuzzy
 msgid "Basic"
 msgstr "Asosiy"
 
@@ -6395,6 +6396,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website__company_id
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_cards
+#, fuzzy
 msgid "Company"
 msgstr "Kompaniya"
 
@@ -6486,8 +6488,9 @@ msgstr "Shartlar"
 
 #. module: website
 #: model:ir.model,name:website.model_res_config_settings
+#, fuzzy
 msgid "Config Settings"
-msgstr "Konfiguratsiya sozlamalari"
+msgstr "Sozlamalarni moslashtirish"
 
 #. module: website
 #: model:ir.ui.menu,name:website.menu_website_global_configuration
@@ -7027,8 +7030,9 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__create_uid
 #: model:ir.model.fields,field_description:website.field_website_visitor__create_uid
 #: model_terms:ir.ui.view,arch_db:website.view_rewrite_search
+#, fuzzy
 msgid "Created by"
-msgstr "Yaratuvchi"
+msgstr "Muallif"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_cards
@@ -7060,6 +7064,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_robots__create_date
 #: model:ir.model.fields,field_description:website.field_website_route__create_date
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__create_date
+#, fuzzy
 msgid "Created on"
 msgstr "Yaratilgan sana"
 
@@ -8110,8 +8115,9 @@ msgstr "Ichida ko‘rsatish"
 #: model:ir.model.fields,field_description:website.field_website_technical_page__display_name
 #: model:ir.model.fields,field_description:website.field_website_track__display_name
 #: model:ir.model.fields,field_description:website.field_website_visitor__display_name
+#, fuzzy
 msgid "Display Name"
-msgstr "Ko'rsatiladigan nomi"
+msgstr "Ko‘rsatish nomi"
 
 #. module: website
 #: model:ir.model.fields,help:website.field_res_config_settings__website_cookies_bar
@@ -8303,12 +8309,6 @@ msgstr ""
 #, fuzzy
 msgid "Doughnut"
 msgstr "Halqasimon diagramma"
-
-#. module: website
-#. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/popup_option_plugin.js:0
-msgid "Drag blocks here"
-msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -10360,12 +10360,6 @@ msgstr "Orqaga"
 
 #. module: website
 #. odoo-javascript
-#: code:addons/website/static/src/interactions/website_auth_form.js:0
-msgid "Go back to the homepage"
-msgstr ""
-
-#. module: website
-#. odoo-javascript
 #: code:addons/website/static/src/components/fields/redirect_field.xml:0
 #, fuzzy
 msgid "Go to"
@@ -10468,15 +10462,6 @@ msgstr "Google Xarita"
 #, fuzzy
 msgid "Google Maps API Key"
 msgstr "Google Xaritalar API kaliti"
-
-#. module: website
-#. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_service.js:0
-#: code:addons/website/static/src/core/website_map_service.js:0
-msgid ""
-"Google Maps configuration has changed. Please reload the page for changes to "
-"take effect."
-msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11261,6 +11246,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_technical_page__id
 #: model:ir.model.fields,field_description:website.field_website_track__id
 #: model:ir.model.fields,field_description:website.field_website_visitor__id
+#, fuzzy
 msgid "ID"
 msgstr "ID"
 
@@ -12868,8 +12854,9 @@ msgstr "Oxirgi sahifa"
 #: model:ir.model.fields,field_description:website.field_website_route__write_uid
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__write_uid
 #: model:ir.model.fields,field_description:website.field_website_visitor__write_uid
+#, fuzzy
 msgid "Last Updated by"
-msgstr "Oxirgi yangilagan"
+msgstr "So‘nggi yangilangan shaxs"
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_theme_ir_asset__write_date
@@ -12890,8 +12877,9 @@ msgstr "Oxirgi yangilagan"
 #: model:ir.model.fields,field_description:website.field_website_route__write_date
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__write_date
 #: model:ir.model.fields,field_description:website.field_website_visitor__write_date
+#, fuzzy
 msgid "Last Updated on"
-msgstr "Oxirgi yangilangan sana"
+msgstr "So‘nggi yangilangan sana"
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_visitor__last_visited_page_id
@@ -16090,8 +16078,9 @@ msgstr "Joytutqich"
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
-msgid "Places API (NEW)"
-msgstr ""
+#, fuzzy
+msgid "Places API"
+msgstr "Joylar API"
 
 #. module: website
 #. odoo-javascript
@@ -17826,11 +17815,6 @@ msgstr "Veb-saytimizda qidirish"
 #, fuzzy
 msgid "Search within"
 msgstr "Ichida qidirish"
-
-#. module: website
-#: model_terms:ir.ui.view,arch_db:website.website_search_box_input
-msgid "Search..."
-msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -19746,6 +19730,13 @@ msgid "The form has been sent successfully."
 msgstr ""
 
 #. module: website
+#. odoo-python
+#: code:addons/website/controllers/form.py:0
+#, fuzzy
+msgid "The form's specified model does not exist"
+msgstr "Shaklning ko‘rsatilgan modeli mavjud emas"
+
+#. module: website
 #: model:ir.model.fields,help:website.field_ir_actions_server__website_url
 #: model:ir.model.fields,help:website.field_ir_cron__website_url
 #, fuzzy
@@ -20149,13 +20140,6 @@ msgid ""
 msgstr ""
 "Bu shrift allaqachon mavjud, uni faqat server versiyasini almashtirish uchun "
 "mahalliy shrift sifatida qo‘shishingiz mumkin."
-
-#. module: website
-#. odoo-python
-#: code:addons/website/controllers/form.py:0
-msgid ""
-"This form cannot be submitted. Please contact the website administrator."
-msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -23035,12 +23019,6 @@ msgstr "Bu maydonni nusxalash mumkin emas."
 
 #. module: website
 #. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/card_image_option_plugin.js:0
-msgid "You cannot duplicate this image."
-msgstr ""
-
-#. module: website
-#. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/facebook_option_plugin.js:0
 #, fuzzy
 msgid "You didn't provide a valid Facebook link"
@@ -24969,18 +24947,6 @@ msgstr "✽ Pitsalar"
 #, fuzzy
 msgid "✽  What We Offer"
 msgstr "✽ Biz nimalarni taklif etamiz"
-
-#, fuzzy
-#~ msgid "Accounts are usable across all your multiple websites"
-#~ msgstr "Hisoblar barcha ko‘p saytlaringizda foydalanish mumkin"
-
-#, fuzzy
-#~ msgid "Places API"
-#~ msgstr "Joylar API"
-
-#, fuzzy
-#~ msgid "The form's specified model does not exist"
-#~ msgstr "Shaklning ko‘rsatilgan modeli mavjud emas"
 
 #, fuzzy
 #~ msgid "Translate the whole content with AI"

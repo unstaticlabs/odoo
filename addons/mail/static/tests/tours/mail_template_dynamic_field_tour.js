@@ -136,18 +136,14 @@ registry.category("web_tour.tours").add("mail_template_dynamic_field_tour", {
             trigger: `.note-editable.odoo-editor-editable t[t-out="object.parent_name"]:contains("defValue")`,
         },
         {
-            content: 'Search "Push Notification" models',
+            content: 'Type "Push Notification Device" model',
             trigger: 'div[name="model_id"] input[type="text"]',
-            run: "edit Push Notification",
+            run: "edit Push Notification Device",
         },
         {
             content: 'Select "Push Notification Device" model',
             trigger: 'a.dropdown-item:contains("Push Notification Device")',
             run: "click",
-        },
-        {
-            content: "Wait for the onchange of the model",
-            trigger: 'div[name="model_id"] input:value(Push Notification Device)',
         },
         {
             content: "Insert text inside editable",

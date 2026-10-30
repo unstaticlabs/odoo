@@ -25,7 +25,7 @@ msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-04-24 11:01+0000\n"
-"PO-Revision-Date: 2026-10-29 15:34+0000\n"
+"PO-Revision-Date: 2026-10-01 18:37+0000\n"
 "Last-Translator: \"Noemi Pla Garcia (nopl)\" <nopl@odoo.com>\n"
 "Language-Team: Spanish <https://translate.odoo.com/projects/odoo-s19-3/base/"
 "es/>\n"
@@ -2618,14 +2618,14 @@ msgid ""
 "will automatically be sent to your customers.'\n"
 msgstr ""
 "\n"
-"Añade plantillas de correo electrónico a los productos que se enviarán al "
+"Añada plantillas de correo electrónico a los productos que se enviarán al "
 "confirmar la factura\n"
 "======================================================================\n"
 "\n"
-"Este módulo te permite vincular tus productos a una plantilla para enviar "
-"información detallada o herramientas completas a tus clientes.\n"
-"Por ejemplo, al facturar una formación, la agenda y los materiales de la "
-"formación se enviarán automáticamente a tus clientes.\n"
+"Este módulo le permite vincular sus productos a plantillas para que pueda "
+"enviarle información detallada o herramientas a sus clientes.\n"
+"Por ejemplo, al facturar una capacitación, la agenda de la capacitación y "
+"los materiales se enviarán automáticamente a su cliente.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_helpdesk_planning_field_service
@@ -6963,29 +6963,30 @@ msgid ""
 "\n"
 msgstr ""
 "\n"
-"Aplicación Servicio de asistencia - Gestión de tickets\n"
+"Servicio de asistencia - Aplicación de gestión de tickets\n"
 "================================\n"
 "\n"
-"Funcionalidades:\n"
+"Características:\n"
 "\n"
-"    - Gestiona los tickets a través de diferentes etapas para resolverlos.\n"
-"    - Añade prioridades, tipos, descripciones y etiquetas para definir tus "
+"    - Procese tickets por diferentes etapas para resolverlos.\n"
+"    - Añada prioridades, tipos, descripciones y etiquetas para definir sus "
 "tickets.\n"
-"    - Utiliza el chatter para comunicar información adicional y etiquetar a "
+"    - Utilice el chatter para comunicar información adicional y etiquetar a "
 "los compañeros de trabajo en los tickets.\n"
-"    - Disfruta del uso de un tablero adaptado y una vista kanban fácil de "
-"usar para gestionar tus tickets.\n"
-"    - Realiza un análisis exhaustivo de los tickets a través de la vista "
+"    - Disfrute del uso de un tablero adaptado y una vista kanban fácil de "
+"usar para gestionar sus tickets.\n"
+"    - Realice un análisis en profundidad de sus tickets a través de la vista "
 "dinámica en el menú de informes.\n"
-"    - Crea un equipo y define a sus miembros; utiliza un método de "
-"asignación automática, si quieres.\n"
-"    - Utiliza un alias de correo para crear tickets automáticamente y "
-"comunicarte con tus clientes.\n"
-"    - Añade fechas límite del Acuerdo de nivel de servicio automáticamente a "
-"los tickets.\n"
-"    - Obtén feedback de los clientes mediante el uso de valoraciones.\n"
-"    - Instala funcionalidades adicionales con facilidad desde la vista de "
-"formulario de tu equipo.\n"
+"    - Cree un equipo y define sus miembros, use un método de asignación "
+"automática si lo desea.\n"
+"    - Utilice un alias de correo para crear tickets automáticamente y "
+"comunicarse con sus clientes.\n"
+"    - Añada fechas límite del Acuerdo de nivel de servicio automáticamente a "
+"sus tickets.\n"
+"    - Obtenga comentarios de los clientes mediante el uso de "
+"calificaciones.\n"
+"    - Instale funciones adicionales fácilmente usando la vista de formulario "
+"de su equipo.\n"
 "\n"
 
 #. module: base
@@ -7507,15 +7508,16 @@ msgstr ""
 "\n"
 "Facturación y pagos\n"
 "=====================================================\n"
-"El sistema de facturación específico y fácil de usar de Odoo te permite "
-"llevar el control de tu contabilidad, incluso sin ser contable. Ofrece una "
-"forma sencilla de realizar el seguimiento de las operaciones con tus "
+"El sistema de facturación en Odoo, específico y fácil de usar, le permite "
+"llevar el control de su contabilidad, aún cuando usted no sea asesor fiscal. "
+"Le proporciona una manera fácil de seguir las operaciones con sus "
 "proveedores y clientes.\n"
 "\n"
-"Puedes utilizar esta contabilidad simplificada si trabajas con una asesoría "
-"externa que lleve tus libros contables, aunque desees hacer el seguimiento "
-"de los pagos tú mismo. Este módulo también te ofrece un método sencillo para "
-"registrar pagos, sin tener que codificar resúmenes de cuenta completos.\n"
+"Usted podría utilizar esta contabilidad simplificada en el caso de que "
+"trabaje con un asesor fiscal externo que lleve sus libros contables, pero "
+"desee hacer el seguimiento de los pagos usted mismo. Este módulo también le "
+"ofrece un método fácil de registrar los pagos, sin tener que codificar "
+"resúmenes de cuenta completos.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_account_accountant
@@ -8685,33 +8687,6 @@ msgid ""
 "reminders\n"
 "        to multiple customers at once using the 'Send Reminders' action.\n"
 msgstr ""
-"\n"
-"Módulo para automatizar la gestión de cobros y cartas de reclamación de "
-"facturas sin pagar, con diferentes niveles de recordatorios.\n"
-"=========================================================================\n"
-"\n"
-"Puedes definir varios niveles de aviso o recordatorio a través de los "
-"ajustes de facturación:\n"
-"-----------------------------------------------------------------------------"
-"\n"
-"    Configuración / Ajustes / Facturas de clientes / Recordatorios "
-"automáticos de facturas\n"
-"\n"
-"Funcionalidades:\n"
-"---------\n"
-"    - Recordatorios automáticos de varios niveles según la duración del "
-"vencimiento.\n"
-"    - Integración con «Enviar e imprimir»:\n"
-"        Si se vuelve a ejecutar «Enviar e imprimir» en una factura vencida, "
-"el sistema\n"
-"        cambia automáticamente a la plantilla de recordatorio adecuada y "
-"adjunta\n"
-"        el informe de seguimiento.\n"
-"    - Recordatorios masivos:\n"
-"       Los usuarios pueden seleccionar varias facturas de la vista de lista "
-"y enviar recordatorios\n"
-"        a varios clientes a la vez mediante la acción «Enviar recordatorios"
-"».\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_account_bank_statement_import_camt
@@ -9772,7 +9747,7 @@ msgid ""
 "Repair Products from helpdesk tickets\n"
 msgstr ""
 "\n"
-"Productos a reparar desde tickets de servicio de asistencia\n"
+"Reparación de productos de tickets del servicio de asistencia\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_l10n_bg_ledger
@@ -12107,8 +12082,8 @@ msgid ""
 "pos_restaurant are installed.\n"
 msgstr ""
 "\n"
-"Este módulo adapta el comportamiento del punto de venta cuando pos_hr y "
-"pos_restaurant están instalados.\n"
+"Este módulo adapta el comportamiento del punto de venta cuando se instalan "
+"pos_hr y pos_restaurant.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_website_sale_dashboard
@@ -16560,7 +16535,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_ai_account
 msgid "AI Text Draft - Accounting"
-msgstr "Borrador de texto con IA - Contabilidad"
+msgstr "Borrador de texto de AI - Contabilidad"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_ai_knowledge
@@ -17327,8 +17302,8 @@ msgstr "Añada certificaciones a los currículums de sus empleados"
 #: model:ir.module.module,description:base.module_pos_account_tax_python
 msgid "Add code to manage custom taxes to the POS assets bundle"
 msgstr ""
-"Añade un código al paquete de recursos del TPV para gestionar los impuestos "
-"personalizados"
+"Añada un código para gestionar los impuestos personalizados para los activos "
+"del TPV"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_skills_slides
@@ -18277,7 +18252,7 @@ msgstr "Asigne permisos y siga las solicitudes de permisos"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_pos_account_tax_python
 msgid "Allow custom taxes in POS"
-msgstr "Permitir impuestos personalizados en el TPV"
+msgstr "Permitir impuestos en el TPV"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_helpdesk_planning_field_service
@@ -18325,15 +18300,11 @@ msgstr ""
 #: model:ir.module.module,summary:base.module_planning_field_service_repair
 msgid "Allow user without repair right to access field serivce stock.picking"
 msgstr ""
-"Permitir que los usuarios sin permisos de reparación accedan a stock.picking "
-"de servicio de campo"
 
 #. module: base
 #: model:ir.module.module,description:base.module_planning_field_service_repair
 msgid "Allow user without repair right to access field service stock.picking"
 msgstr ""
-"Permitir que los usuarios sin permisos de reparación accedan a stock.picking "
-"de servicio de campo"
 
 #. module: base
 #: model:ir.module.module,description:base.module_website_livechat
@@ -22017,8 +21988,8 @@ msgstr "Módulo de enlace para RR. HH. y mailbot"
 msgid ""
 "Bridge module between point_of_sale and account_reports, for tax reporting."
 msgstr ""
-"Módulo de enlace entre point_of_sale y account_reports para la declaración "
-"de impuestos."
+"Módulo de enlace para point_of_sale y account_reports para la declaración de "
+"impuestos."
 
 #. module: base
 #: model:ir.module.module,summary:base.module_l10n_es_sale_amazon
@@ -28334,7 +28305,7 @@ msgstr "Servicio de campo - Suscripción de ventas"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_planning_field_service_repair
 msgid "Field Service Repair"
-msgstr "Reparación - Servicio de campo"
+msgstr "Reparación Servicio de campo"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_planning_field_service_worksheet
@@ -30111,7 +30082,7 @@ msgstr "Acción de fusión del Servicio de asistencia"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_helpdesk_repair
 msgid "Helpdesk Repair"
-msgstr "Servicio de asistencia - Reparación"
+msgstr "Servicio de asistencia Reparación"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_helpdesk_sale_loyalty
@@ -31442,7 +31413,7 @@ msgstr "Seguimiento de pila inicial"
 #. module: base
 #: model:ir.module.module,summary:base.module_account_online_payment
 msgid "Initiate online payments"
-msgstr "Inicia pagos en línea"
+msgstr "Inicie pagos en línea"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_res_country__address_view_id
@@ -31597,12 +31568,12 @@ msgstr "Integre su TPV con un terminal de pago Stripe"
 #. module: base
 #: model:ir.module.module,summary:base.module_pos_tyro
 msgid "Integrate your POS with a Tyro payment terminal (AU)"
-msgstr "Integra tu TPV con el terminal de pago Tyro (AU)"
+msgstr "Integre su TPV con el terminal de pago Tyro (AU)"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_pos_adyen
 msgid "Integrate your POS with an Adyen payment terminal"
-msgstr "Integra tu TPV con un terminal de pago de Adyen"
+msgstr "Integre su TPV con un terminal de pago Adyen"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_pos_iot_worldline
@@ -32523,7 +32494,8 @@ msgstr ""
 #: model:ir.module.module,summary:base.module_purchase_repair
 msgid "Keep track of linked purchase and repair orders"
 msgstr ""
-"Realiza un seguimiento de las compras y las órdenes de reparación vinculadas"
+"Lleve seguimiento de los pedidos de compra y las órdenes de reparación "
+"vinculados"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_appointment_hr_recruitment
@@ -33466,7 +33438,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,summary:base.module_pos_hr_restaurant
 msgid "Link module between pos_hr and pos_restaurant"
-msgstr "Módulo de enlace entre pos_hr y pos_restaurant"
+msgstr "Módulo de enlace entre pos_sale y pos_loyalty"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_pos_restaurant_loyalty
@@ -35567,7 +35539,7 @@ msgstr "Contabilidad del MRP"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_mrp_repair
 msgid "Mrp Repairs"
-msgstr "Reparaciones - MRP"
+msgstr "Reparaciones MRP"
 
 #. module: base
 #: model:ir.model.fields.selection,name:base.selection__ir_actions_server__state__multi
@@ -39220,7 +39192,7 @@ msgstr "POEdit"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_pos_barcodelookup
 msgid "POS - Barcode Lookup"
-msgstr "PdV - Búsqueda por código de barras"
+msgstr "TPV - Barcode Lookup"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_pos_event
@@ -39235,7 +39207,7 @@ msgstr "TPV - RR. HH."
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_pos_repair
 msgid "POS - Repair"
-msgstr "Punto de venta - Reparaciones"
+msgstr "TPV - Reparación"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_pos_restaurant_loyalty
@@ -39315,7 +39287,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_pos_hr_restaurant
 msgid "POS HR Restaurant"
-msgstr "PdV - RR. HH. - Restaurante"
+msgstr "RR. HH. de TPV para restaurante"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_pos_iot_six
@@ -39405,7 +39377,7 @@ msgstr "Autopedido en TPV - Razorpay"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_pos_self_order_sale
 msgid "POS Self Order Sale"
-msgstr "Autopedido en PdV - Venta"
+msgstr "Autopedido del TPV Venta"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_pos_online_payment_self_order
@@ -39951,7 +39923,7 @@ msgstr "Política de contraseñas"
 #: model:ir.module.module,shortdesc:base.module_auth_password_policy_portal
 #: model:ir.module.module,shortdesc:base.module_auth_password_policy_signup
 msgid "Password Policy support for Signup"
-msgstr "Compatibilidad con la directiva de contraseñas en el registro"
+msgstr "Soporte de la política de contraseñas para el registro"
 
 #. module: base
 #: model:res.currency,currency_unit_label:base.MOP
@@ -40676,7 +40648,7 @@ msgstr "Punto de venta - UrbanPiper"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_pos_appointment
 msgid "Point of Sale Appointment"
-msgstr "Punto de venta y Citas"
+msgstr "Punto de venta y Cita"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_pos_discount
@@ -42641,7 +42613,7 @@ msgstr "Restaurante"
 #. module: base
 #: model:ir.module.module,summary:base.module_pos_restaurant
 msgid "Restaurant extensions for the Point of Sale "
-msgstr "Extensión de restaurante para la aplicación Punto de venta "
+msgstr "Extensión para restarurantes para el Punto de Venta "
 
 #. module: base
 #: model_terms:ir.ui.view,arch_db:base.server_action_history_wizard_view
@@ -46582,11 +46554,6 @@ msgid ""
 "including weekends or holidays in the duration of the employee leave's "
 "request."
 msgstr ""
-"El módulo Ausencias para India añade funcionalidades adicionales a la "
-"aplicación. Estas permiten configurar la regla de permisos consecutivos "
-"(sandwich leaves) en cada tipo de ausencia, incluyendo automáticamente los "
-"fines de semana o días festivos en el cómputo total de días solicitados por "
-"el empleado."
 
 #. module: base
 #: model:ir.model.fields,help:base.field_res_lang__grouping
@@ -47679,7 +47646,7 @@ msgstr "Este módulo integra Contabilidad con WhatsApp."
 #. module: base
 #: model:ir.module.module,description:base.module_whatsapp_payment
 msgid "This module Integrates Payment with WhatsApp"
-msgstr "Este módulo integra los pagos con WhatsApp"
+msgstr "Este módulo integra Pago con WhatsApp."
 
 #. module: base
 #: model:ir.module.module,description:base.module_pos_avatax
@@ -48116,12 +48083,12 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,description:base.module_whatsapp_pos
 msgid "This module integrates POS with WhatsApp"
-msgstr "Este módulo integra el PdV con WhatsApp"
+msgstr "Este módulo integra el TPV con WhatsApp"
 
 #. module: base
 #: model:ir.module.module,description:base.module_whatsapp_sale
 msgid "This module integrates sale with WhatsApp"
-msgstr "Este módulo integra Ventas con WhatsApp"
+msgstr "Este módulo integra las ventas con WhatsApp."
 
 #. module: base
 #: model:ir.module.module,description:base.module_pos_sms
@@ -48176,13 +48143,13 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,summary:base.module_pos_appointment
 msgid "This module lets you manage online reservations for PoS"
-msgstr "Este módulo te permite gestionar reservas online para el punto de venta"
+msgstr "Este módulo le permite gestionar reservas para el Punto de venta"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_pos_restaurant_appointment
 msgid "This module lets you manage online reservations for restaurant tables"
 msgstr ""
-"Este módulo te permite gestionar reservas online de mesas de restaurante"
+"Este módulo le permite gestionar reservas para las mesas de restaurantes."
 
 #. module: base
 #: model:ir.module.module,description:base.module_website_slides_survey
@@ -48575,7 +48542,7 @@ msgstr "Seguimiento al flujo de reclutamiento"
 #. module: base
 #: model:ir.module.module,summary:base.module_helpdesk
 msgid "Track, prioritize, and solve customer tickets"
-msgstr "Haz seguimiento, prioriza y resuelve tickets de clientes"
+msgstr "Dé seguimiento, priorice y resuelva los tickets de clientes"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_event
@@ -50268,7 +50235,7 @@ msgstr "Tipo de vista"
 #. module: base
 #: model:ir.module.module,summary:base.module_account_reports
 msgid "View and create reports"
-msgstr "Consulta y crea informes"
+msgstr "Vea y cree informes"
 
 #. module: base
 #: model_terms:ir.ui.view,arch_db:base.view_server_action_form
@@ -50798,7 +50765,7 @@ msgstr "WhatsApp - Envío"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_whatsapp_pos
 msgid "WhatsApp-POS"
-msgstr "WhatsApp - PdV"
+msgstr "WhatsApp - TPV"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_whatsapp_sale

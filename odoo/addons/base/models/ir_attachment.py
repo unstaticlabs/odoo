@@ -414,6 +414,10 @@ class IrAttachment(models.Model):
 
     @api.model
     def _check_contents(self, values):
+        # get raw and remove db_datas
+        if 'datas' in values:
+            warnings.warn("Use raw, datas has beeen removed")
+            values.pop('datas')  # ignoring
         raw = values.pop('db_datas', None)
         raw = values.get('raw', raw) or b''
         # make sure we have a BinaryValue in raw (if we have data)
@@ -656,7 +660,7 @@ class IrAttachment(models.Model):
         records = self.sudo().with_context(active_test=False).search_fetch(
             domain & Domain('res_model', '!=', False) & ~sec_domain, SECURITY_FIELDS, order='id', limit=MAX_SEARCH_LIMIT).sudo(False)
         if len(records) == MAX_SEARCH_LIMIT:  # avoid out of memory
-            raise UserError(self.env._("Cannot search, too many attachments"))
+            raise ValueError(self.env._("Cannot search, too many attachments"))
         records = records._filtered_access(operation)
         # [('id', 'any!', query_with_ids)] is optimized in sec_domain
         return sec_domain | Domain('id', 'any!', records._as_query(ordered=False))
@@ -786,10 +790,10 @@ class IrAttachment(models.Model):
         if self.env.context.get('ir_attachment_from_stream') is not CREATE_FROM_STREAM_FLAG:
             # remove computed field depending of raw
             vals_list = [{
-                **vals,
-                'file_size': 0,
-                'checksum': False,
-                'store_fname': False,
+                key: value
+                for key, value
+                in vals.items()
+                if key not in ('file_size', 'checksum', 'store_fname')
             } for vals in vals_list]
         checksum_raw_map = {}
 

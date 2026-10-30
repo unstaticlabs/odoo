@@ -9,14 +9,14 @@
 #
 # "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Tony Ng (ngto)" <ngto@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server saas~18.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 17:42+0000\n"
-"PO-Revision-Date: 2026-10-28 16:41+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"POT-Creation-Date: 2026-07-17 17:38+0000\n"
+"PO-Revision-Date: 2026-09-25 11:44+0000\n"
+"Last-Translator: \"Tony Ng (ngto)\" <ngto@odoo.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.odoo.com/"
 "projects/odoo-s19-3/website/zh_Hant/>\n"
 "Language: zh_TW\n"
@@ -298,20 +298,18 @@ msgid ""
 "'Alt tag' specifies an alternate text for an image, if the image cannot be "
 "displayed (slow connection, missing image, screen reader ...)."
 msgstr ""
-"如果無法顯示圖像，則「Alt tag」指定圖像的替代文本（連接速度慢，圖像遺失，螢幕"
-"閱讀器......）。"
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/attribute_translation_plugin.js:0
 msgid "'Title tag' is shown as a tooltip when you hover the picture."
-msgstr "'標題標籤' 當您移動鼠標到圖片上面懸停的時候顯示標記說明."
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "+ Field"
-msgstr "新增欄位"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -696,7 +694,7 @@ msgstr "8000 Marina Blvd, Suite 300 • Brisbane CA 94005 • United States"
 #. odoo-javascript
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid ": Once loaded, follow the"
-msgstr "：完成載入後，依照"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -2733,7 +2731,7 @@ msgstr "<u>info@yourcompany.example.com</u>"
 #. odoo-javascript
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid "A"
-msgstr "A"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
@@ -3048,8 +3046,8 @@ msgstr "手風琴圖片"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
-msgid "Accounts created on this website are usable across all other websites"
-msgstr ""
+msgid "Accounts are usable across all your multiple websites"
+msgstr "帳戶可在你所有網站上使用"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_2_s_three_columns
@@ -3152,7 +3150,7 @@ msgstr "加入頭像"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/floating_blocks/floating_blocks_option.xml:0
 msgid "Add Card"
-msgstr "加入卡片"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3171,7 +3169,7 @@ msgstr "加入資料集"
 #: code:addons/website/static/src/builder/plugins/options/timeline_option.xml:0
 #: code:addons/website/static/src/builder/plugins/timeline_images_option.xml:0
 msgid "Add Date"
-msgstr "加入日期"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3189,37 +3187,37 @@ msgstr "加入圖片"
 #. odoo-javascript
 #: code:addons/website/static/src/interactions/image_gallery.edit.xml:0
 msgid "Add Images"
-msgstr "加入圖片"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/media_list_option.xml:0
 msgid "Add Media"
-msgstr "新增媒體"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Add Mega Menu Item"
-msgstr "新增巨型功能表項目"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Add Menu Item"
-msgstr "新增功能選單"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/timeline_list_option.xml:0
 msgid "Add Milestone"
-msgstr "增加里程碑"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/accordion_option.xml:0
 msgid "Add New"
-msgstr "新增"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3250,7 +3248,7 @@ msgstr "新增一行"
 #: code:addons/website/static/src/builder/plugins/options/faq_horizontal_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/table_of_content_option.xml:0
 msgid "Add Section"
-msgstr "添加章節"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3340,7 +3338,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/media_list_item_option.xml:0
 msgid "Add an image"
-msgstr "加入圖片"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3758,7 +3756,7 @@ msgstr "允許使用者自行加入選項"
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website.cookies_bar.xml:0
 msgid "Allow the use of cookies from this website on this browser?"
-msgstr "允許本網站在此瀏覽器上使用 cookie 嗎？"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_ir_ui_view__track
@@ -3787,7 +3785,7 @@ msgstr "已經安裝"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/attribute_translation_plugin.js:0
 msgid "Alt tag"
-msgstr "Alt 標籤"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
@@ -4201,13 +4199,13 @@ msgstr "可用於網站"
 #: model_terms:ir.ui.view,arch_db:website.s_bento_grid_avatars
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Avatars"
-msgstr "頭像"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid "B"
-msgstr "B"
+msgstr ""
 
 #. module: website
 #: model:website.page,name:website.bs_debug_page
@@ -4267,7 +4265,7 @@ msgstr "背景顏色"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "Background Position"
-msgstr "背景位置"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4499,7 +4497,7 @@ msgstr "區塊引用"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/ecomm_categories_showcase_option.xml:0
 msgid "Blocks Design"
-msgstr "區塊設計"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_big_icons_subtitles
@@ -4535,7 +4533,7 @@ msgstr "Bluesky"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_shadow_option.xml:0
 msgid "Blur"
-msgstr "模糊"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4592,7 +4590,7 @@ msgstr "下邊框"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_colors_option.xml:0
 msgid "Border Color"
-msgstr "邊框顏色"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4828,7 +4826,7 @@ msgstr "購買"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_banner
 msgid "Buy now"
-msgstr "立即購買"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_1_s_banner
@@ -4847,7 +4845,7 @@ msgstr "預設情況下，以下服務的網域已被封鎖："
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid "C"
-msgstr "C"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_config_settings__cdn_url
@@ -5254,7 +5252,7 @@ msgstr "與網站訪客實時聊天，增加互動"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Check"
-msgstr "檢查"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_popup
@@ -5405,7 +5403,7 @@ msgstr "從清單中選擇"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Choose your favorite"
-msgstr "選擇你喜愛的"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_product_catalog
@@ -5473,7 +5471,7 @@ msgstr "按此返回區塊分頁。"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/website_builder_action.xml:0
 msgid "Click on"
-msgstr "點選"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -5978,7 +5976,7 @@ msgstr "繼續閱讀 <i class=\"fa fa-long-arrow-right align-middle ms-1\"/>"
 #: code:addons/website/static/src/builder/plugins/carousel_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/image_gallery_option.xml:0
 msgid "Control"
-msgstr "成本控制，有數得計"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_ir_ui_view__controller_page_ids
@@ -6082,7 +6080,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "Could be used in many places, see here:"
-msgstr "可以用在很多地方，看看這裏："
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6204,7 +6202,7 @@ msgstr "建立客戶"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Create a Google Project and Get a Key"
-msgstr "建立 Google 專案並獲取密鑰"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6351,7 +6349,7 @@ msgstr "自訂文字"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Custom Url"
-msgstr "自訂網址"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website__custom_code_footer
@@ -6427,7 +6425,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/countdown_option.xml:0
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "D"
-msgstr "D 類"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6636,7 +6634,7 @@ msgstr "載入頁面後"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "Delete"
-msgstr "刪除"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_features_grid
@@ -6849,7 +6847,7 @@ msgstr "Diavola"
 #. module: website
 #: model:ir.model,name:website.model_digest_digest
 msgid "Digest"
-msgstr "摘要"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_services_s_image_text_2nd
@@ -6945,7 +6943,7 @@ msgstr "發現"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_splash_intro
 msgid "Discover More"
-msgstr "了解更多"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_image_text
@@ -7061,7 +7059,7 @@ msgstr "發現"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/cookies_bar_option.xml:0
 msgid "Discrete"
-msgstr "離散型"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.external_snippets
@@ -7307,7 +7305,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/resource_editor/resource_editor_warning.xml:0
 msgid "Don't show again"
-msgstr "不要再顯示"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -7357,12 +7355,6 @@ msgstr "環形"
 
 #. module: website
 #. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/popup_option_plugin.js:0
-msgid "Drag blocks here"
-msgstr ""
-
-#. module: website
-#. odoo-javascript
 #: code:addons/website/static/src/js/tours/tour_utils.js:0
 msgid "Drag the <b>%s</b> block and drop it at the bottom of the page."
 msgstr "拖曳 <b>%s</b> 內容區塊，放置在頁面底部。"
@@ -7371,7 +7363,7 @@ msgstr "拖曳 <b>%s</b> 內容區塊，放置在頁面底部。"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Drag to the right to get a submenu"
-msgstr "向右拖動以獲取子功能表"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_banner_categories
@@ -7563,7 +7555,7 @@ msgstr "編輯 %s"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/edit_website_systray_item.xml:0
 msgid "Edit 404 page"
-msgstr "編輯 404 頁面"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -7602,7 +7594,7 @@ msgstr "編輯樣式"
 #. odoo-javascript
 #: code:addons/website/static/src/components/resource_editor/resource_editor_warning.xml:0
 msgid "Edit code"
-msgstr "編輯代碼"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -7777,7 +7769,7 @@ msgstr "「%s」有欄位名稱留空"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Enable billing on your Google Project"
-msgstr "在你的 Google 專案啟用賬單功能"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_ir_model__website_form_access
@@ -7788,7 +7780,7 @@ msgstr "啟動此模型的表單生成器特性."
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Enable the right google map APIs in your google account"
-msgstr "請在你的 Google 帳戶啟用正確的 Google 地圖 API"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8024,7 +8016,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/searchbar_option.xml:0
 msgid "Everything"
-msgstr "一切"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_features
@@ -8179,7 +8171,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Explore on"
-msgstr "探索在"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_gallery_s_text_block_2nd
@@ -8233,7 +8225,7 @@ msgstr "外部識別碼"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "Extra Content"
-msgstr "額外內容"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8458,7 +8450,7 @@ msgstr "實色"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_colors_option.xml:0
 msgid "Fill Color"
-msgstr "填充顏色"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8603,21 +8595,21 @@ msgstr "固定"
 #: code:addons/website/static/src/builder/plugins/options/footer_copyright_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/language_selector_option.xml:0
 msgid "Flag"
-msgstr "標記"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/footer_copyright_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/language_selector_option.xml:0
 msgid "Flag and Code"
-msgstr "標幟及代碼"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/footer_copyright_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/language_selector_option.xml:0
 msgid "Flag and Text"
-msgstr "國旗及文字"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8977,7 +8969,7 @@ msgstr "全寬"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/content_width_option.xml:0
 msgid "Full-width"
-msgstr "全寬"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
@@ -9010,7 +9002,7 @@ msgstr "一般"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Generate keywords"
-msgstr "產生關鍵字"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9032,7 +9024,7 @@ msgstr "享用送貨"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_intro_pill
 msgid "Get Started"
-msgstr "開始使用"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_descriptive
@@ -9102,26 +9094,20 @@ msgstr "眼鏡"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/ecomm_categories_showcase_option.xml:0
 msgid "Global options for all inner blocks."
-msgstr "所有內部區塊適用的全域選項。"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/floating_blocks/floating_blocks_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/portal_option.xml:0
 msgid "Global options for all inner cards."
-msgstr "全域選項，適用於所有內部卡片。"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/components/views/theme_preview.xml:0
 msgid "Go Back"
 msgstr "返回"
-
-#. module: website
-#. odoo-javascript
-#: code:addons/website/static/src/interactions/website_auth_form.js:0
-msgid "Go back to the homepage"
-msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9211,15 +9197,6 @@ msgstr "Google 地圖"
 #: model:ir.model.fields,field_description:website.field_website__google_maps_api_key
 msgid "Google Maps API Key"
 msgstr "Google 地圖 API 密鑰"
-
-#. module: website
-#. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_service.js:0
-#: code:addons/website/static/src/core/website_map_service.js:0
-msgid ""
-"Google Maps configuration has changed. Please reload the page for changes to "
-"take effect."
-msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9666,7 +9643,7 @@ msgstr "突出關鍵屬性"
 msgid ""
 "Hint: How to use Google Map on your website (Contact Us page and as a "
 "snippet)"
-msgstr "提示：如何在你的網站上使用 Google 地圖（「聯絡我們」頁面、用作小資料等）"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9833,7 +9810,7 @@ msgstr "我確信這一點。"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "I want"
-msgstr "我想建立一個"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_personal_s_image_text
@@ -10023,7 +10000,7 @@ msgstr ""
 msgid ""
 "If you need to add analytics or marketing tags, inject code in your <head> "
 "or <body> instead."
-msgstr "如需要加入分析或行銷標籤，請在 <head> 或 <body> 注入程式碼。"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -10235,7 +10212,7 @@ msgstr "在選單中"
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website_form_editor.xml:0
 msgid "In the meantime we invite you to visit our"
-msgstr "與此同時，誠邀你繼續瀏覽我們的"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -10246,8 +10223,6 @@ msgid ""
 "            Each modification on the master page is automatically applied to "
 "all translated versions."
 msgstr ""
-"在這種模式下，您只能翻譯文本。若要更改頁的結構，必須編輯母版頁。\n"
-"            母版頁上的每一項修改都會自動套用至所有已翻譯的版本。"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
@@ -10644,7 +10619,7 @@ msgstr "網址無效"
 #. odoo-python
 #: code:addons/website/models/ir_ui_view.py:0
 msgid "Invalid field value for %(field_name)s: %(value)s"
-msgstr "欄位值無效。%(field_name)s：%(value)s"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11517,7 +11492,7 @@ msgstr "立即開始"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Let's go!"
-msgstr "開始吧！"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_kickoff
@@ -11694,7 +11669,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.list_hybrid
 msgid "Load More"
-msgstr "載入更多"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11783,7 +11758,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Make sure billing is enabled"
-msgstr "請確保賬單功能已啟用"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11792,14 +11767,12 @@ msgid ""
 "Make sure to wait if errors keep being shown: sometimes enabling an API "
 "allows to use it immediately but Google keeps triggering errors for a while"
 msgstr ""
-"若繼續顯示錯誤，請務必等待：有時啟用 API 後可以立即使用，但 Google 會持續觸發"
-"錯誤一段時間"
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Make sure your settings are properly configured:"
-msgstr "請確保設定已正確配置："
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_masonry_block_default_template
@@ -11854,7 +11827,7 @@ msgstr "邊界"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Mark as decorative"
-msgstr "標記為裝飾"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_masonry_block_mosaic_template
@@ -12389,7 +12362,7 @@ msgstr "顯示器"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "More"
-msgstr "更多"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_color_blocks_2
@@ -12505,7 +12478,7 @@ msgstr "多項剔選方格"
 #. odoo-javascript
 #: code:addons/website/static/src/js/backend/view_hierarchy/view_hierarchy.xml:0
 msgid "Multiple tree exists for this view"
-msgstr "此檢視畫面有多個分支"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_s_features
@@ -12737,7 +12710,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 #: model_terms:ir.ui.view,arch_db:website.s_age_verification_popup
 msgid "No"
-msgstr "否"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12838,7 +12811,7 @@ msgstr "沒有圖片警告"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "No, keep it"
-msgstr "不，保留它"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12865,7 +12838,7 @@ msgstr "無"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_shadow_option.xml:0
 msgid "Normal"
-msgstr "正常（沒有底線）"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_pages_kanban_view
@@ -13121,7 +13094,7 @@ msgstr "用戶關閉彈出方塊後，等待多久才會重新再顯示。"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
 msgid "One"
-msgstr "一個"
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -13295,7 +13268,7 @@ msgstr "可選填的幫助文字，描述如何使用篩選器，及/或其用�
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "Order"
-msgstr "訂單"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14055,8 +14028,8 @@ msgstr "提示文字"
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
-msgid "Places API (NEW)"
-msgstr ""
+msgid "Places API"
+msgstr "地點 API"
 
 #. module: website
 #. odoo-javascript
@@ -14132,7 +14105,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/image/image_popup_option.xml:0
 msgid "Pop-up on Click"
-msgstr "按下時彈出"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14237,13 +14210,13 @@ msgstr "預覽圖片"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Preview of"
-msgstr "預覽"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/builder_urlpicker.xml:0
 msgid "Preview this URL in a new tab"
-msgstr "以新分頁預覽此網址"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14489,7 +14462,7 @@ msgstr "公開"
 #: model:ir.model.fields,field_description:website.field_website_page_properties__publish_on
 #: model:ir.model.fields,field_description:website.field_website_page_properties_base__publish_on
 msgid "Publish On"
-msgstr "發佈於"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14506,7 +14479,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.website_page_properties_base_view_form
 #: model_terms:ir.ui.view,arch_db:website.website_pages_form_view
 msgid "Publish on"
-msgstr "發佈於"
+msgstr ""
 
 #. module: website
 #: model:website.configurator.feature,description:website.feature_module_event
@@ -14536,7 +14509,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_page_properties__published_date
 #: model:ir.model.fields,field_description:website.field_website_page_properties_base__published_date
 msgid "Published Date"
-msgstr "發佈日期"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_partner__published_date
@@ -14726,7 +14699,7 @@ msgstr "準備好實現您的數碼化願景嗎？"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Ready to build the"
-msgstr "準備好建立你的"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_call_to_action_digital
@@ -14945,7 +14918,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/image_gallery_option.xml:0
 msgid "Remove all"
-msgstr "移除全部"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14992,7 +14965,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "Repeat pattern"
-msgstr "圖案重複"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15012,7 +14985,7 @@ msgstr "替換檔案"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/accordion_option.xml:0
 msgid "Replace Icon"
-msgstr "替換圖示"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15024,7 +14997,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "Replace Image"
-msgstr "更換圖片"
+msgstr ""
 
 #. module: website
 #: model:ir.ui.menu,name:website.menu_reporting
@@ -15101,7 +15074,7 @@ msgstr "資源"
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website.cookies_bar.xml:0
 msgid "Respecting your privacy is our priority."
-msgstr "尊重你的私隱權是我們的首要任務。"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega
@@ -15314,7 +15287,7 @@ msgstr "路線"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "Row"
-msgstr "橫行"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15399,7 +15372,7 @@ msgstr "儲存並重新導向"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Save and Reload"
-msgstr "儲存並重新載入"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15438,7 +15411,7 @@ msgstr "比例"
 #: model_terms:ir.ui.view,arch_db:website.website_pages_kanban_view
 #: model_terms:ir.ui.view,arch_db:website.website_pages_tree_view
 msgid "Scheduled"
-msgstr "已排定"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_thumbnails
@@ -15527,7 +15500,7 @@ msgstr "搜尋欄"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.js:0
 msgid "Search Engine Optimization"
-msgstr "搜尋引擎最佳化"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_2_s_text_block_h2
@@ -15572,11 +15545,6 @@ msgstr "在我們的網站上搜尋"
 #: code:addons/website/static/src/builder/plugins/options/searchbar_option.xml:0
 msgid "Search within"
 msgstr "搜尋範圍"
-
-#. module: website
-#: model_terms:ir.ui.view,arch_db:website.website_search_box_input
-msgid "Search..."
-msgstr "搜尋..."
 
 #. module: website
 #. odoo-javascript
@@ -15830,7 +15798,7 @@ msgstr "序列號"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Serve font from Google servers"
-msgstr "使用 Google 伺服器提供字型"
+msgstr ""
 
 #. module: website
 #: model:ir.model,name:website.model_ir_actions_server
@@ -15902,7 +15870,7 @@ msgstr "此頁的設定會套用到此網站"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab_plugin.js:0
 msgid "Shadow"
-msgstr "陰影"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -15982,7 +15950,7 @@ msgstr "選購辦公桌"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_grid
 msgid "Shop Now"
-msgstr "立即購物"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_floating_blocks
@@ -16274,7 +16242,7 @@ msgstr "投影片"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/footer_option.xml:0
 msgid "Slide Hover"
-msgstr "滑動懸停"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -16514,7 +16482,7 @@ msgstr "分割引文"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_shadow_option.xml:0
 msgid "Spread"
-msgstr "向外擴散"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_menus_logos
@@ -16843,7 +16811,7 @@ msgstr "內容目錄"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Table of Contents"
-msgstr "內容目錄"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_odoo_menu
@@ -17231,7 +17199,13 @@ msgstr "以下域名無效："
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website_form.xml:0
 msgid "The form has been sent successfully."
-msgstr "表單已經被成功發送."
+msgstr ""
+
+#. module: website
+#. odoo-python
+#: code:addons/website/controllers/form.py:0
+msgid "The form's specified model does not exist"
+msgstr "表單的指定模型不存在"
 
 #. module: website
 #: model:ir.model.fields,help:website.field_ir_actions_server__website_url
@@ -17426,7 +17400,7 @@ msgstr "主題"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/add_page_dialog.xml:0
 msgid "Then enable the \"Is a Template\" option."
-msgstr "之後，啟用「是範本」選項。"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.list_website_public_pages
@@ -17575,13 +17549,6 @@ msgid ""
 "This font already exists, you can only add it as a local font to replace the "
 "server version."
 msgstr "該字型已存在，只能加入為本地字體以取代伺服器版本。"
-
-#. module: website
-#. odoo-python
-#: code:addons/website/controllers/form.py:0
-msgid ""
-"This form cannot be submitted. Please contact the website administrator."
-msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -17878,7 +17845,7 @@ msgstr "標題位置"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/attribute_translation_plugin.js:0
 msgid "Title tag"
-msgstr "標題標籤"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_three_columns
@@ -17896,7 +17863,7 @@ msgstr ""
 msgid ""
 "To add your page to this category, open the page properties: \"Site -> "
 "Properties\"."
-msgstr "若要將你的頁面新增至此類別，請開啟頁面屬性：\"網站 -> 屬性\"。"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_tabs
@@ -17925,7 +17892,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website.cookies_warning.xml:0
 msgid "To see the interactive content, you need to accept optional cookies."
-msgstr "若要檢視互動式內容，你需要接受使用可選 cookie。"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
@@ -18133,7 +18100,7 @@ msgstr "翻譯"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/edit_website_systray_item.xml:0
 msgid "Translate 404 page"
-msgstr "翻譯 404 頁面"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18169,7 +18136,7 @@ msgstr "已翻譯的內容"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/translate_webpage_option.xml:0
 msgid "Translating..."
-msgstr "翻譯中⋯"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18219,7 +18186,7 @@ msgstr "實現願景"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
 msgid "Two"
-msgstr "兩個"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18396,7 +18363,7 @@ msgstr "未註冊"
 #: model_terms:ir.ui.view,arch_db:website.website_page_properties_base_view_form
 #: model_terms:ir.ui.view,arch_db:website.website_pages_form_view
 msgid "Unschedule"
-msgstr "取消排定"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -18437,7 +18404,7 @@ msgstr "更新及改進"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Upload"
-msgstr "上載圖片"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18462,7 +18429,7 @@ msgstr "靜態標識圖像網址"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Url or Email"
-msgstr "網址或電郵"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_page_view_search
@@ -18687,7 +18654,7 @@ msgstr "蔬菜沙律、牛肉漢堡，以及芒果雪糕"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 msgid "Verify"
-msgstr "驗證"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18896,12 +18863,12 @@ msgstr "訪問我們的 Facebook 頁面，了解您是否是幸運的獲獎者�
 msgid ""
 "Visit us: Our office is located in the northeast of Brussels. TEL (555) 432 "
 "2365"
-msgstr "歡迎到訪：我們的辦公室位於布魯塞爾東北部。電話：(555) 432 2365"
+msgstr ""
 
 #. module: website
 #: model:ir.model,name:website.model_website_track
 msgid "Visited Page"
-msgstr "已瀏覽過的頁面"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_visitor__page_ids
@@ -19281,8 +19248,6 @@ msgid ""
 "We use cookies to provide improved experience on this website. You can learn "
 "more about our cookies and how we use them in our"
 msgstr ""
-"我們使用 cookie 為本網站提供較佳體驗。你可更深入了解我們所使用的 cookie 以及"
-"我們如何使用它們，有關資料詳見："
 
 #. module: website
 #. odoo-javascript
@@ -19317,7 +19282,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "We'll set you up and running in"
-msgstr "網站即開即用，只需簡單"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_full_s_text_image
@@ -19697,7 +19662,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/website_builder_action.xml:0
 msgid "Welcome to your"
-msgstr "歡迎進入您的"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_services_0_s_three_columns
@@ -19846,7 +19811,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "Wrap"
-msgstr "自動換行"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -19931,14 +19896,14 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.template_footer_headline
 #: model_terms:ir.ui.view,arch_db:website.template_footer_links
 msgid "X"
-msgstr "X"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 #: model_terms:ir.ui.view,arch_db:website.s_age_verification_popup
 msgid "Yes"
-msgstr "是"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -20043,12 +20008,6 @@ msgstr "不可複製此欄位。"
 
 #. module: website
 #. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/card_image_option_plugin.js:0
-msgid "You cannot duplicate this image."
-msgstr ""
-
-#. module: website
-#. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/facebook_option_plugin.js:0
 msgid "You didn't provide a valid Facebook link"
 msgstr "你未有提供有效的 Facebook 連結"
@@ -20069,7 +20028,7 @@ msgstr "您沒有發佈/取消發佈的權利"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "You don't have permissions to edit this record."
-msgstr "你沒有權限編輯此記錄。"
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -20324,7 +20283,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "a Color Palette"
-msgstr "色彩組合"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -20366,13 +20325,13 @@ msgstr "活動網站"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "and"
-msgstr "及"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "auto"
-msgstr "自動"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -20431,7 +20390,7 @@ msgstr "btn-secondary"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "business"
-msgstr "商業"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -20801,7 +20760,7 @@ msgstr "fonts.google.com"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "for my"
-msgstr "給我的"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -20813,7 +20772,7 @@ msgstr "討論區"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "found(s)"
-msgstr "搜尋結果數"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -20836,7 +20795,7 @@ msgstr "免費的網站"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "from Logo"
-msgstr "商標 / 標誌用色"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.cookie_policy
@@ -21159,7 +21118,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/website_builder_action.xml:0
 msgid "in the top right corner to start designing."
-msgstr "於右上角點選並開始設計."
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_links
@@ -21323,7 +21282,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/edit_website_systray_item.xml:0
 msgid "page"
-msgstr "網頁"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -21356,7 +21315,7 @@ msgstr "提示文字"
 #. odoo-javascript
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid "pointer to discover features."
-msgstr "指標以發現特色功能。"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -21624,7 +21583,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/fields/redirect_field.xml:0
 msgid "text-danger"
-msgstr "text-danger"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -21671,13 +21630,13 @@ msgstr "網站"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "with the main objective to"
-msgstr "主要目標是"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 msgid "years"
-msgstr "年"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.qweb_500
@@ -21720,15 +21679,6 @@ msgstr "✽ 披薩/薄餅"
 #: model_terms:ir.ui.view,arch_db:website.s_key_benefits
 msgid "✽  What We Offer"
 msgstr "✽ 我們提供的服務"
-
-#~ msgid "Accounts are usable across all your multiple websites"
-#~ msgstr "帳戶可在你所有網站上使用"
-
-#~ msgid "Places API"
-#~ msgstr "地點 API"
-
-#~ msgid "The form's specified model does not exist"
-#~ msgstr "表單的指定模型不存在"
 
 #~ msgid "<u>Wednesday</u><br/>8.00am-12.00am"
 #~ msgstr "<u>星期三</u><br/>上午 8:00 至中午 12:00"

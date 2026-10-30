@@ -12,6 +12,7 @@ from odoo.exceptions import UserError
 from odoo.fields import Domain, Command
 from odoo.tools import format_datetime, format_date, groupby, OrderedSet, SQL
 from odoo.tools.float_utils import float_compare, float_is_zero
+from odoo.tools.misc import clean_context
 
 
 class StockPickingType(models.Model):
@@ -906,37 +907,16 @@ class StockPicking(models.Model):
         'move_line_ids.result_package_id.outermost_package_id', 'move_line_ids.result_package_id.outermost_package_id.package_type_id', 'move_line_ids.result_package_id.outermost_package_id.shipping_weight',
         'weight_bulk')
     def _compute_shipping_weight(self):
-        all_packages = self.move_line_ids.result_package_id.outermost_package_id.sudo()
-        if all_packages:
-            # Batched over all pickings in self instead of one _get_weight() call per picking,
-            # which turned this compute into an N+1 (2 extra queries per picking).
-            children_by_dest_pack, all_pack_ids = all_packages._get_all_children_package_dest_ids()
-            base_weight_per_package = {p.id: p.package_type_id.base_weight for p in self.env['stock.package'].sudo().browse(all_pack_ids)}
-            move_line_groups = self.env['stock.move.line'].sudo()._read_group(
-                [('result_package_id', 'in', all_pack_ids), ('product_id', '!=', False), ('picking_id', 'in', self.ids)],
-                ['picking_id', 'result_package_id', 'product_id', 'uom_id', 'quantity'],
-                ['__count'],
-            )
-            product_weight_by_picking_package = defaultdict(float)
-            for picking_g, result_package, product, product_uom, quantity, count in move_line_groups:
-                product_weight_by_picking_package[picking_g.id, result_package.id] += (
-                    count
-                    * product_uom._compute_quantity(quantity, product.uom_id)
-                    * product.weight
-                )
-
         for picking in self:
             # if shipping weight is not assigned => default to calculated product weight
             shipping_weight = picking.weight_bulk
             relevant_packages = picking.move_line_ids.result_package_id.outermost_package_id
+            packages_weight = relevant_packages.sudo()._get_weight(picking.id)
             for package in relevant_packages:
                 if package.shipping_weight:
                     shipping_weight += package.shipping_weight
-                    continue
-                weight = base_weight_per_package.get(package.id, 0) + product_weight_by_picking_package.get((picking.id, package.id), 0)
-                for child_id in children_by_dest_pack.get(package, []):
-                    weight += base_weight_per_package.get(child_id, 0) + product_weight_by_picking_package.get((picking.id, child_id), 0)
-                shipping_weight += weight
+                else:
+                    shipping_weight += packages_weight.get(package, 0)
             picking.shipping_weight = shipping_weight
 
     def _compute_shipping_volume(self):
@@ -1354,11 +1334,8 @@ class StockPicking(models.Model):
         # |              ↓                                | return_line.move_id              ↓
         # |       return pick(Add as dest)          return toLink                    return ship(Add as orig)
         # +--------------------------------------------------------------------------------------------------------+
-        location_id = self.location_id or move_id.location_dest_id
         origin_move = move_id.origin_returned_move_id or move_id
-        # Only keep the returns that deliver back where this return picks from, so that the
-        # chain never sources the new move from an unrelated location
-        move_orig_to_link = origin_move.move_dest_ids.returned_move_ids.filtered(lambda m: m.location_dest_id._child_of(location_id))
+        move_orig_to_link = origin_move.move_dest_ids.returned_move_ids
         if not move_id.origin_returned_move_id:
             # link to original move
             move_orig_to_link |= origin_move
@@ -1383,7 +1360,7 @@ class StockPicking(models.Model):
             'picking_id': self.id,
             'state': 'draft',
             'date': fields.Datetime.now(),
-            'location_id': location_id.id,
+            'location_id': self.location_id.id or move_id.location_dest_id.id,
             'location_dest_id': self.location_dest_id.id or move_id.location_id.id,
             'location_final_id': False,
             'picking_type_id': self.picking_type_id.id,
@@ -1992,6 +1969,8 @@ class StockPicking(models.Model):
 
     def action_put_in_pack(self, *, package_id=False, package_type_id=False, package_name=False):
         self.ensure_one()
+        if self.env.context.get('sml_specific_default'):
+            self = self.with_context(clean_context(self.env.context))
         if self.state not in ('done', 'cancel'):
             return self.move_line_ids.action_put_in_pack(package_id=package_id, package_type_id=package_type_id, package_name=package_name)
 

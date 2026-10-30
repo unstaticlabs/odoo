@@ -219,7 +219,7 @@
         transition: opacity .3s ease-in-out, filter .3s ease-in-out;
     }
 
-    &.o-hasMessageHighlighted > :not(.o-highlighted) {
+    &:has(.o-highlighted) > *:not(.o-highlighted) {
         opacity: .4;
     }
 }

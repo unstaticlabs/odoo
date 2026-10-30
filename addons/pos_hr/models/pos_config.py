@@ -26,15 +26,17 @@ class PosConfig(models.Model):
         res = True
 
         preserve_current_advanced = 'advanced_employee_ids' not in vals
+        if preserve_current_advanced:
+            vals['advanced_employee_ids'] = []
         pos_manager_group = self.sudo()._get_group_pos_manager()
         for config in self:
-            config_vals = dict(vals, advanced_employee_ids=list(vals.get('advanced_employee_ids', [])))
+            config_vals = dict(vals)
             group_users = pos_manager_group.with_company(config.company_id).user_ids.filtered(
                 lambda u: config.company_id in u.company_ids
             )
             allowed_employees = group_users.employee_id
             if not allowed_employees and group_users:
-                target_user = group_users.with_company(config.company_id).filtered(lambda user: not user.employee_id).sorted()[0]
+                target_user = group_users.with_company(config.company_id).filtered(lambda user: not user.employee_id)[0]
                 target_user.action_create_employee()
                 allowed_employees = target_user.employee_id
 
@@ -48,7 +50,7 @@ class PosConfig(models.Model):
                 if isinstance(config_vals.get(field_name), list)
                 if all(isinstance(cmd, (list, tuple)) for cmd in config_vals[field_name])
             }
-            res &= super(PosConfig, config).write(config_vals)
+            res &= super().write(config_vals)
             if sudo_vals:
                 super(PosConfig, config.sudo()).write(sudo_vals)
         return res

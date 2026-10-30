@@ -264,7 +264,6 @@ class StockQuant(models.Model):
         quants = self.env['stock.quant']
         is_inventory_mode = self._is_inventory_mode()
         allowed_fields = self._get_inventory_fields_create()
-        quants_to_apply = self.env['stock.quant']
         for vals in vals_list:
             if is_inventory_mode and any(f in vals for f in ['inventory_quantity', 'inventory_quantity_auto_apply']):
                 if any(field for field in vals if not field.startswith('x_') and field not in allowed_fields):
@@ -279,7 +278,7 @@ class StockQuant(models.Model):
                 package_id = self.env['stock.package'].browse(vals.get('package_id'))
                 owner_id = self.env['res.partner'].browse(vals.get('owner_id'))
                 quant = self.env['stock.quant']
-                if not self.env.context.get('import_quant_lines'):
+                if not self.env.context.get('import_file'):
                     # Merge quants later, to make sure one line = one record during batch import
                     quant = self._gather(product, location, lot_id=lot_id, package_id=package_id, owner_id=owner_id, strict=True)
                 if lot_id:
@@ -296,10 +295,8 @@ class StockQuant(models.Model):
                 else:
                     quant = self.sudo().create(vals)
                     _add_to_cache(quant)
-                # mimicking the behavior in `_set_inventory_quantity` to prevent empty moves from being generated
-                if auto_apply and quant.quantity != inventory_quantity:
-                    quant.inventory_quantity = inventory_quantity
-                    quants_to_apply |= quant
+                if auto_apply:
+                    quant.write({'inventory_quantity_auto_apply': inventory_quantity})
                 else:
                     # Set the `inventory_quantity` field to create the necessary move.
                     quant.inventory_quantity = inventory_quantity
@@ -314,21 +311,16 @@ class StockQuant(models.Model):
                 quants |= quant
                 if self._is_inventory_mode() and quant.company_id:
                     quant._check_company()
-        if quants_to_apply:
-            quants_to_apply.filtered(lambda q: not q.is_outdated).action_apply_inventory()
         return quants
 
     def _load_records_create(self, values):
-        """ Add default location if import file did not fill it, and keep one quant
-        per line only when importing quants directly"""
+        """ Add default location if import file did not fill it"""
         company_user = self.env.company
         warehouse = self.env['stock.warehouse'].search([('company_id', '=', company_user.id)], limit=1)
         for value in values:
             if 'location_id' not in value:
                 value['location_id'] = warehouse.lot_stock_id.id
-        return super(StockQuant, self.with_context(
-            inventory_mode=True, import_quant_lines=self.env.context.get('import_file'),
-        ))._load_records_create(values)
+        return super(StockQuant, self.with_context(inventory_mode=True))._load_records_create(values)
 
     def _load_records_write(self, values):
         """ Only allowed fields should be modified """

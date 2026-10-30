@@ -128,10 +128,8 @@ def derive_upgrade_plan(
     active_release: dict[str, Any],
     candidate_release: dict[str, Any],
     installed_modules: set[str],
-    *,
-    installed_foundation_modules: set[str] | None = None,
 ) -> dict[str, Any]:
-    """Plan managed changes and installed native/OCA data updates from content."""
+    """Derive the exact closed module plan; never infer database state."""
     active = validate_inventory(active_release["modules"])["modules"]
     candidate_inventory = validate_inventory(candidate_release["modules"])
     candidate = candidate_inventory["modules"]
@@ -139,8 +137,6 @@ def derive_upgrade_plan(
     if unknown:
         raise ModuleReleaseError("installed module ownership is ambiguous: " + ", ".join(unknown))
 
-    foundation_modules = installed_foundation_modules or set()
-    all_installed_modules = installed_modules | foundation_modules
     foundation_changed = active_release["foundation"]["digest"] != candidate_release["foundation"]["digest"]
     changed: set[str] = set()
     reasons: dict[str, list[str]] = defaultdict(list)
@@ -162,7 +158,7 @@ def derive_upgrade_plan(
             reasons[name].append("stored-model-changed")
     # New product modules must be installed; existing optional modules that an
     # environment deliberately left uninstalled remain untouched.
-    new_modules = set(candidate) - set(active) - all_installed_modules
+    new_modules = set(candidate) - set(active) - installed_modules
     changed.update(new_modules)
     for name in new_modules:
         reasons[name].append("new-product-module")
@@ -170,18 +166,6 @@ def derive_upgrade_plan(
         changed.update(installed_modules)
         for name in installed_modules:
             reasons[name].append("foundation-changed")
-
-    # Native and OCA views/data live outside the managed custom inventory.
-    # A changed foundation digest alone is insufficient: policy and Python
-    # constraint edits also move it but do not require reloading native data.
-    for field, reason in (
-        ("odoo_core_sha256", "odoo-core-changed"),
-        ("oca_sha256", "oca-content-changed"),
-    ):
-        if active_release["foundation"].get(field) != candidate_release["foundation"].get(field):
-            changed.update(foundation_modules)
-            for name in foundation_modules:
-                reasons[name].append(reason)
 
     reverse: dict[str, set[str]] = defaultdict(set)
     for name, module in candidate.items():
@@ -202,7 +186,7 @@ def derive_upgrade_plan(
         "active_release": active_release["identity"],
         "candidate_release": candidate_release["identity"],
         "candidate_module_inventory_sha256": candidate_inventory["sha256"],
-        "installed_modules": sorted(all_installed_modules),
+        "installed_modules": sorted(installed_modules),
         "upgrade_modules": modules,
         "reasons": {name: sorted(set(reasons[name])) for name in modules},
     }
@@ -216,14 +200,13 @@ def derive_legacy_upgrade_plan(
     installed_modules: set[str],
     *,
     active_identity: str,
-    installed_foundation_modules: set[str] | None = None,
 ) -> dict[str, Any]:
     """Create the one-time fail-safe plan from a v2 release without inventory."""
     candidate = validate_inventory(candidate_release["modules"])
     unknown = sorted(installed_modules - set(candidate["modules"]))
     if unknown:
         raise ModuleReleaseError("installed module ownership is ambiguous: " + ", ".join(unknown))
-    modules = sorted(installed_modules | (installed_foundation_modules or set()))
+    modules = sorted(installed_modules)
     payload = {
         "schema": PLAN_SCHEMA,
         "active_release": active_identity,

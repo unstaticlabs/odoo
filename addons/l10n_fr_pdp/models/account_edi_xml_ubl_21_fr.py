@@ -195,18 +195,18 @@ class AccountEdiXmlUbl21Fr(models.AbstractModel):
             },
         }
 
-    def _ubl_add_accounting_supplier_party_tax_scheme_nodes(self, vals):
-        # EXTENDS account.edi.xml.ubl_bis3
-        super()._ubl_add_accounting_supplier_party_tax_scheme_nodes(vals)
-        partner = vals['party_vals']['partner']
-        commercial_partner = partner.commercial_partner_id
-        siret = commercial_partner._l10n_fr_get_siret()
+        # B2G
+        customer = vals['customer'].commercial_partner_id
+        if not self._pdp_needs_b2g_fields(customer):
+            return
 
-        if (not commercial_partner.vat or commercial_partner.vat == '/') and siret:
-            vals['party_node']['cac:PartyTaxScheme'] = [{
-                'cbc:CompanyID': {'_text': siret},
-                'cac:TaxScheme': {
-                    'cbc:ID': {'_text': 'TAX'},
+        id_type, party_id = commercial_partner._l10n_fr_pdp_get_base_identifier()
+        if id_type == 'siret':
+            vals['party_node']['cac:PartyLegalEntity'] = [{
+                'cbc:RegistrationName': {'_text': commercial_partner.name},
+                'cbc:CompanyID': {
+                    '_text': party_id,
+                    'schemeID': '0009',
                 },
             }]
 
@@ -239,19 +239,6 @@ class AccountEdiXmlUbl21Fr(models.AbstractModel):
                 },
             }
         }
-
-    def _import_ubl_invoice_add_customer_values(self, collected_values):
-        super()._import_ubl_invoice_add_customer_values(collected_values)
-        party_tag = "AccountingCustomerParty" if collected_values['odoo_document_type'] == 'sale' else "AccountingSupplierParty"
-        collected_values['customer_values']['siret'] = collected_values['tree'].findtext(
-            f"./{{*}}{party_tag}/{{*}}Party/{{*}}PartyIdentification/{{*}}ID[@schemeID='0009']"
-        )
-
-    def _import_ubl_retrieve_customer_search_plan(self, collected_values):
-        return [
-            self.env['res.partner']._import_retrieve_customer_from_siret,
-            *super()._import_ubl_retrieve_customer_search_plan(collected_values),
-        ]
 
     def _import_ubl_invoice_add_prepaid_amount(self, collected_values):
         # imported invoice is a final invoice following downpayments.

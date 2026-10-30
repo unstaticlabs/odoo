@@ -106,7 +106,6 @@ export class PaymentScreenPaymentLines extends Component {
                 label: _t("Force done"),
                 action: () => this.props.sendForceDone(line),
                 severity: "warning",
-                show: line.isForceDoneAllowed(),
             },
 
             cancel: {
@@ -123,7 +122,6 @@ export class PaymentScreenPaymentLines extends Component {
                 label: _t("Force Cancel"),
                 action: () => this.props.sendForceCancel(line),
                 severity: "danger",
-                show: line.isForceDoneAllowed(),
             },
         };
         const state = { id: "unknown", title: "", actions: [] };
@@ -146,7 +144,7 @@ export class PaymentScreenPaymentLines extends Component {
         else if (status === "force_done") {
             state.id = "force_done";
             state.title = _t("Connection error");
-            state.actions = [{ ...ACTIONS.forceDone, show: true }];
+            state.actions = [ACTIONS.forceDone];
         }
 
         // --- Waiting customer action
@@ -168,11 +166,8 @@ export class PaymentScreenPaymentLines extends Component {
             state.title = _t("Request sent");
             state.icon = SPINNER_ICON;
             state.actions = [
-                { ...ACTIONS.forceDone, show: ACTIONS.forceDone.show && status === "waiting" },
-                {
-                    ...ACTIONS.forceCancel,
-                    show: ACTIONS.forceCancel.show && status === "waitingCancel",
-                },
+                { ...ACTIONS.forceDone, show: status === "waiting" },
+                { ...ACTIONS.forceCancel, show: status === "waitingCancel" },
             ];
         }
 

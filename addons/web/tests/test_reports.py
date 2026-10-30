@@ -101,11 +101,9 @@ class TestReports(odoo.tests.HttpCase):
             'key': 'base.test_report',
             'arch': '''
                 <main>
-                    <div class="header">HEADER</div>
                     <div>
                         <p>TEST</p>
                     </div>
-                    <div class="footer">FOOTER</div>
                 </main>
             '''
         })

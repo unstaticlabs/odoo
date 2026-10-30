@@ -64,6 +64,4 @@ tailscale
 vim
 wlr-randr
 wtype
-x11-xkb-utils
 xdotool
-xwayland

@@ -1,8 +1,5 @@
 import { registry } from "@web/core/registry";
 
-// Skip the toolbar of the chatter composer, as it can stay open behind the dialog.
-const fullComposerToolbar = ".o-overlay-item:has(.modal) ~ .o-overlay-item .o-we-toolbar";
-
 /**
  * This tour depends on data created by python test in charge of launching it.
  * It is not intended to work when launched from interface. It is needed to test
@@ -69,16 +66,16 @@ registry.category("web_tour.tours").add("mail/static/tests/tours/mail_html_compo
             run: "dblclick",
         },
         {
-            trigger: fullComposerToolbar,
+            trigger: ".o-we-toolbar",
         },
         {
             content: "Remove the Bold",
-            trigger: `${fullComposerToolbar} button[title='Bold (Ctrl + B)']`,
+            trigger: ".o-we-toolbar button[title='Bold (Ctrl + B)']",
             run: "click",
         },
         {
             content: "Italicize the text",
-            trigger: `${fullComposerToolbar} button[title='Italic (Ctrl + I)']`,
+            trigger: ".o-we-toolbar button[title='Italic (Ctrl + I)']",
             run: "click",
         },
         {

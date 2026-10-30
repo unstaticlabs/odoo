@@ -309,13 +309,7 @@ export class PaymentScreen extends Component {
         const status = line.getPaymentStatus();
         const cancelableStatuses = ["waiting", "waitingCard", "waitingScan", "timeout"];
         if (cancelableStatuses.includes(status)) {
-            line.cancelPayment(this.currentOrder).then((success) => {
-                if (success) {
-                    finalizeDeletion();
-                } else {
-                    line.setPaymentStatus(status);
-                }
-            });
+            line.cancelPayment(this.currentOrder).then((success) => success && finalizeDeletion());
         } else if (status !== "waitingCancel") {
             finalizeDeletion();
         }

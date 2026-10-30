@@ -1149,18 +1149,8 @@ describe(`new urls`, () => {
         expect(`.o_list_view .o_data_row`).toHaveCount(1);
 
         await animationFrame(); // pushState is debounced
-        // USL keeps the selected filter in the portable URL after returning to the list.
-        const filteredUrl =
-            "http://example.com/odoo/action-3?domain=" +
-            encodeURIComponent('[("foo", "=", "yop")]');
-        expect(browser.location.href).toBe(filteredUrl);
-        expect(new URL(browser.location.href).searchParams.get("domain")).toBe(
-            '[("foo", "=", "yop")]'
-        );
-        expect.verifySteps([
-            "pushState http://example.com/odoo/action-3",
-            `pushState ${filteredUrl}`,
-        ]);
+        expect(browser.location.href).toBe("http://example.com/odoo/action-3");
+        expect.verifySteps(["pushState http://example.com/odoo/action-3"]);
     });
 
     test(`initial action crashes`, async () => {

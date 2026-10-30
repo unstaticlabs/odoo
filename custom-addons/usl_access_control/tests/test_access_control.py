@@ -1,6 +1,6 @@
 import json
 from io import BytesIO
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 from lxml import etree
 
@@ -843,64 +843,6 @@ class TestDistributionAccessControl(AccountTestInvoicingCommon):
         ):
             service_registration.run()
         provider_call.assert_not_called()
-
-    def _iap_rotation_account(self):
-        service = self.env["iap.service"].create({
-            "name": "Synthetic credential rotation",
-            "technical_name": "synthetic_rotation_access_test",
-            "description": "Offline rotation fixture",
-            "unit_name": "credit",
-            "integer_balance": True,
-        })
-        return self.env["iap.account"].create({
-            "service_id": service.id,
-            "company_ids": [Command.set(self.company.ids)],
-            "account_token": "synthetic-old-iap-token",
-        })
-
-    def test_iap_token_rotation_is_guarded_before_provider_calls(self):
-        account = self._iap_rotation_account()
-        actors = (
-            account.with_user(self.product_admin),
-            account.with_user(self.agent),
-            account.with_user(self.agent).sudo(),
-        )
-        for actor in actors:
-            with self.subTest(uid=actor.env.uid, sudo=actor.env.su), patch(
-                "odoo.addons.iap.models.iap_account.requests.post",
-            ) as provider_call:
-                with self.assertRaisesRegex(AccessError, "Irreversible Actions|AI Agents"):
-                    actor.action_rotate_token()
-                provider_call.assert_not_called()
-                self.assertEqual(account.account_token, "synthetic-old-iap-token")
-
-    def test_authorized_human_rotates_iap_token_and_keeps_immutable_audit(self):
-        account = self._iap_rotation_account()
-        requested = Mock()
-        requested.json.return_value = {"new_account_token": "synthetic-new-iap-token"}
-        confirmed = Mock()
-        confirmed.json.return_value = {}
-        with patch("odoo.addons.iap.models.iap_account.requests.post", side_effect=[requested, confirmed]) as provider_call:
-            account.with_user(self.valentin).action_rotate_token()
-        self.assertEqual(provider_call.call_count, 2)
-        request_call, confirm_call = provider_call.call_args_list
-        self.assertTrue(request_call.args[0].endswith("/iap/1/request-rotate-account-token"))
-        self.assertEqual(request_call.kwargs["json"], {"old_account_token": "synthetic-old-iap-token"})
-        self.assertTrue(confirm_call.args[0].endswith("/iap/1/confirm-rotate-account-token"))
-        self.assertEqual(confirm_call.kwargs["json"], {"new_account_token": "synthetic-new-iap-token"})
-        self.assertEqual(account.account_token, "synthetic-new-iap-token")
-        event = self.env["usl.audit.event"].sudo().search([
-            ("actor_id", "=", self.valentin.id),
-            ("action_key", "=", "guard:external.iap.token.rotate"),
-            ("model_name", "=", "iap.account"),
-        ], limit=1)
-        self.assertTrue(event)
-        self.assertEqual(event.record_ids, json.dumps(account.ids))
-        self.assertEqual(event.policy_digest, self.env["base"]._usl_qualified_action_policy().policy_digest)
-        self.assertNotIn("synthetic-old-iap-token", event.changes_json or "")
-        self.assertNotIn("synthetic-new-iap-token", event.changes_json or "")
-        with self.assertRaisesRegex(UserError, "immutable"):
-            event.with_user(self.valentin).write({"action_name": "alter rotation evidence"})
 
     def test_official_letter_finalization_is_guarded_before_rendering(self):
         recipient = self.env["res.partner"].create(

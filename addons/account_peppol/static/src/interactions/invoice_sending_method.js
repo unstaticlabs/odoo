@@ -14,11 +14,8 @@ export class InvoiceSendingMethod extends Interaction {
     showPeppolConfig() {
         const method = this.el.value;
         const peppolToggleEls = document.querySelectorAll(".portal_peppol_toggle");
-        const isPeppol = method === "peppol";
-
         for (const peppolToggleEl of peppolToggleEls) {
-            peppolToggleEl.classList.toggle("d-none", !isPeppol);
-            peppolToggleEl.disabled = !isPeppol;
+            peppolToggleEl.classList.toggle("d-none", method !== "peppol");
         }
     }
 }

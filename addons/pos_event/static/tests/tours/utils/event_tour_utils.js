@@ -9,10 +9,6 @@ export function increaseQuantityOfTicket(ticket) {
     ];
 }
 
-export function increaseQuantityOfTicketBy(ticket, number) {
-    return Array.from({ length: number }, () => increaseQuantityOfTicket(ticket)).flat();
-}
-
 export function decreaseQuantityOfTicket(ticket) {
     return [
         {

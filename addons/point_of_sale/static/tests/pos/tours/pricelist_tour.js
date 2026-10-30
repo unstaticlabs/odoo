@@ -23,11 +23,10 @@ registry.category("web_tour.tours").add("pos_pricelist", {
             OfflineUtil.setOfflineMode(),
             ProductScreen.clickPriceList("Fixed", true, "Public Pricelist"),
             ProductScreen.clickPartnerButton(),
-            // Offline: no server search, the partners are already loaded locally.
-            ProductScreen.clickCustomer("Acme Corporation", false),
+            ProductScreen.clickCustomer("Acme Corporation"),
             ProductScreen.clickPriceList("Public Pricelist", true),
             ProductScreen.clickPartnerButton(),
-            ProductScreen.clickCustomer("Lumber Inc", false),
+            ProductScreen.clickCustomer("Lumber Inc"),
             ProductScreen.clickPriceList("Public Pricelist", true),
             ProductScreen.clickDisplayedProduct("Wall Shelf", true, "1"),
             ProductScreen.clickPriceList("min_quantity ordering"),

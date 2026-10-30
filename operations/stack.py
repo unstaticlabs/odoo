@@ -10575,27 +10575,15 @@ def release_command(arguments: argparse.Namespace) -> int:
             "SELECT coalesce(json_agg(name ORDER BY name), '[]'::json) FROM ir_module_module WHERE state = 'installed' AND name LIKE 'usl_%' OR state = 'installed' AND name = 'rebuild_account_migration';",
         )
         installed = set(json.loads(installed_raw))
-        all_installed_raw = _psql(
-            target,
-            runner,
-            runtime["compose"],
-            "odoo",
-            "SELECT coalesce(json_agg(name ORDER BY name), '[]'::json) FROM ir_module_module WHERE state = 'installed';",
-        )
-        installed_foundation = set(json.loads(all_installed_raw)) - installed
         try:
             if current.get("schema") == "usl-release/v2":
                 plan = derive_legacy_upgrade_plan(
                     candidate,
                     installed,
                     active_identity=hashlib.sha256(_current_raw.encode()).hexdigest(),
-                    installed_foundation_modules=installed_foundation,
                 )
             elif current.get("schema") == "usl-release/v3":
-                plan = derive_upgrade_plan(
-                    current, candidate, installed,
-                    installed_foundation_modules=installed_foundation,
-                )
+                plan = derive_upgrade_plan(current, candidate, installed)
             else:
                 raise RuntimeError("active release schema cannot be upgraded")
         except ModuleReleaseError as error:

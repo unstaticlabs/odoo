@@ -8,15 +8,13 @@
 # Bole <bole@dajmi5.com>, 2018
 # Bojan Vrućinić <bojan.vrucinic@gmail.com>, 2018
 # Odoo Translation Bot <c3p@odoo.com>, 2026.
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 12.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 17:42+0000\n"
-"PO-Revision-Date: 2026-10-28 10:50+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"POT-Creation-Date: 2026-07-17 17:38+0000\n"
+"PO-Revision-Date: 2026-06-30 07:46+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Bosnian <https://translate.odoo.com/projects/odoo-s19-3/"
 "website/bs/>\n"
 "Language: bs\n"
@@ -25,7 +23,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 2026.8.1\n"
+"X-Generator: Weblate 2026.6.1\n"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_quotes_carousel_compact
@@ -283,7 +281,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.list_website_public_pages
 msgid "'. Showing results for '"
-msgstr "'. Prikazivanje rezultata za '"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -1180,7 +1178,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_pages_kanban_view
 msgid "<i class=\"fa fa-globe me-1\" title=\"Website\"/>"
-msgstr "<i class=\"fa fa-globe me-1\" title=\"Website\"/>"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.protected_403
@@ -2353,7 +2351,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid "A"
-msgstr "A"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
@@ -2620,12 +2618,12 @@ msgstr ""
 #. odoo-python
 #: code:addons/website/models/website.py:0
 msgid "Access Denied"
-msgstr "Pristup Odbijen"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_visitor__access_token
 msgid "Access Token"
-msgstr "Pristupni token"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.protected_403
@@ -2641,7 +2639,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_menus_logos
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_odoo_menu
 msgid "Accessories"
-msgstr "Pribor"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -2655,7 +2653,7 @@ msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
-msgid "Accounts created on this website are usable across all other websites"
+msgid "Accounts are usable across all your multiple websites"
 msgstr ""
 
 #. module: website
@@ -2677,7 +2675,7 @@ msgstr "Akcija"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/header/header_elements_option.xml:0
 msgid "Actions"
-msgstr "Akcije"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -2798,7 +2796,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/media_list_option.xml:0
 msgid "Add Media"
-msgstr "Dodaj medije"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3019,12 +3017,12 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.external_snippets
 msgid "Add to Cart Button"
-msgstr "Gumb Dodaj u košaricu"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_process_steps
 msgid "Add to cart"
-msgstr "Dodaj u košaricu"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3074,7 +3072,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/map_option.xml:0
 msgid "Address"
-msgstr "Adresa"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3124,7 +3122,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/theme/theme_colors_option.xml:0
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab_plugin.js:0
 msgid "Advanced"
-msgstr "Napredno"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_masonry_block_alternation_text_image_template
@@ -3152,7 +3150,7 @@ msgstr ""
 #. module: website
 #: model:ir.model.fields.selection,name:website.selection__theme_ir_asset__directive__after
 msgid "After"
-msgstr "Nakon"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3176,7 +3174,7 @@ msgstr "Upozorenje"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
 msgid "Alerts"
-msgstr "Upozorenja"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_company_team_detail
@@ -3240,7 +3238,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/navtabs_style_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/timeline_list_option.xml:0
 msgid "Alignment"
-msgstr "Poravnanje"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_company_team
@@ -3274,7 +3272,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/dynamic_snippet_carousel_option.xml:0
 msgid "All"
-msgstr "Sve"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3396,7 +3394,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/carousel_option.xml:0
 msgid "Always"
-msgstr "Uvijek"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3516,7 +3514,7 @@ msgstr ""
 #. module: website
 #: model:ir.model.fields.selection,name:website.selection__theme_ir_asset__directive__append
 msgid "Append"
-msgstr "Dodati"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3540,7 +3538,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/translate_announcement_scroll_plugin.js:0
 msgid "Apply"
-msgstr "Primjeni"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3612,13 +3610,13 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_controller_page__arch_db
 #: model:ir.model.fields,field_description:website.field_website_page__arch_db
 msgid "Arch Blob"
-msgstr "Arch Blob"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_controller_page__arch_fs
 #: model:ir.model.fields,field_description:website.field_website_page__arch_fs
 msgid "Arch Filename"
-msgstr "Naziv arch datoteke"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_theme_ir_ui_view__arch_fs
@@ -3628,7 +3626,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.view_rewrite_search
 msgid "Archived"
-msgstr "Arhivirano"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_age_verification_popup
@@ -3654,7 +3652,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/carousel_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/image_gallery_option.xml:0
 msgid "Arrows"
-msgstr "Strelice"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_pricelist_cafe
@@ -3672,7 +3670,7 @@ msgstr ""
 #. module: website
 #: model:ir.model,name:website.model_ir_asset
 msgid "Asset"
-msgstr "Osnovna sredstva"
+msgstr ""
 
 #. module: website
 #: model:ir.model,name:website.model_website_assets
@@ -3712,7 +3710,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.theme_view_search
 msgid "Author"
-msgstr "Autor"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3723,13 +3721,13 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_page_properties_view_form
 msgid "Authorized Groups"
-msgstr "Autorizirane grupe"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/scroll_button_option.xml:0
 msgid "Auto"
-msgstr "Auto"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_partner__publish_on
@@ -3793,7 +3791,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid "B"
-msgstr "B"
+msgstr ""
 
 #. module: website
 #: model:website.page,name:website.bs_debug_page
@@ -3847,7 +3845,7 @@ msgstr "Pozadina"
 #: code:addons/website/static/src/builder/plugins/options/portal_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/social_media_option.xml:0
 msgid "Background Color"
-msgstr "Boja pozadine"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3879,7 +3877,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Badge"
-msgstr "Značka"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_menus_logos
@@ -3928,25 +3926,25 @@ msgstr ""
 #. module: website
 #: model:ir.model,name:website.model_base
 msgid "Base"
-msgstr "Osnova"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_controller_page__arch_base
 #: model:ir.model.fields,field_description:website.field_website_page__arch_base
 msgid "Base View Architecture"
-msgstr "Base View Architecture"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields.selection,name:website.selection__theme_ir_ui_view__mode__primary
 msgid "Base view"
-msgstr "Osnovni pogled"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/add_page_dialog.js:0
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_groups
 msgid "Basic"
-msgstr "Osnovno"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -3961,7 +3959,7 @@ msgstr ""
 #. module: website
 #: model:ir.model.fields.selection,name:website.selection__theme_ir_asset__directive__before
 msgid "Before"
-msgstr "Prije"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_comparisons
@@ -4054,7 +4052,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/header/header_navigation_option.xml:0
 msgid "Block"
-msgstr "Blokiraj"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_config_settings__website_block_third_party_domains
@@ -4085,7 +4083,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/ecomm_categories_showcase_option.xml:0
 msgid "Blocks Design"
-msgstr "Dizajn blokova"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_big_icons_subtitles
@@ -4093,7 +4091,7 @@ msgstr "Dizajn blokova"
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_images_subtitles
 #: model_terms:ir.ui.view,arch_db:website.template_footer_links
 msgid "Blog"
-msgstr "Blog"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4128,7 +4126,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 #: code:addons/website/static/src/builder/plugins/options/header/header_navigation_option.xml:0
 msgid "Bold"
-msgstr "Podebljano"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_call_to_action_menu
@@ -4260,13 +4258,13 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/image_gallery_option.xml:0
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "Boxed"
-msgstr "U okviru"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/countdown_option.xml:0
 msgid "Boxes"
-msgstr "Kutije"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -4398,14 +4396,14 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/navtabs_style_option.xml:0
 msgid "Buttons"
-msgstr "Gumbi"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_banner_categories
 #: model_terms:ir.ui.view,arch_db:website.s_banner_product
 #: model_terms:ir.ui.view,arch_db:website.s_bento_block
 msgid "Buy Now"
-msgstr "Kupi odmah"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_banner
@@ -4429,7 +4427,7 @@ msgstr ""
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid "C"
-msgstr "C"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_config_settings__cdn_url
@@ -4516,7 +4514,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_odoo_menu
 msgid "Camera"
-msgstr "Kamera"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_partner__can_publish
@@ -4529,7 +4527,7 @@ msgstr "Kamera"
 #: model:ir.model.fields,field_description:website.field_website_published_multi_mixin__can_publish
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__can_publish
 msgid "Can Publish"
-msgstr "Može objavljivati"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4608,14 +4606,14 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/floating_blocks/floating_blocks_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/mega_menu_option.xml:0
 msgid "Cards"
-msgstr "Kartice"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/floating_blocks/floating_blocks_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/portal_option.xml:0
 msgid "Cards Design"
-msgstr "Dizajn kartica"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -4637,7 +4635,7 @@ msgstr ""
 #: code:addons/website/static/src/snippets/s_dynamic_snippet_carousel/000.xml:0
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Carousel"
-msgstr "Karusel"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -4680,12 +4678,12 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Catalog"
-msgstr "Katalog"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Categories"
-msgstr "Kategorije"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -4695,7 +4693,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.theme_view_search
 msgid "Category"
-msgstr "Kategorija"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.cookie_policy
@@ -4714,7 +4712,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/header/header_navigation_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/navtabs_style_option.xml:0
 msgid "Center"
-msgstr "Centar"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4822,7 +4820,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Check"
-msgstr "Ček"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_popup
@@ -4852,7 +4850,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "Checkbox"
-msgstr "Potvrdni okvir"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4882,7 +4880,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.s_company_team_grid
 #: model_terms:ir.ui.view,arch_db:website.s_company_team_spotlight
 msgid "Chief Executive Officer"
-msgstr "Izvršni direktor"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_company_team_card
@@ -4930,7 +4928,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.s_company_team_basic
 #: model_terms:ir.ui.view,arch_db:website.s_company_team_detail
 msgid "Chief Technical Officer"
-msgstr "Tehnički direktor"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_company_team_card
@@ -4946,7 +4944,7 @@ msgstr "Podmeniji"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_menus_logos
 msgid "Children"
-msgstr "Potomci"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4971,7 +4969,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Choose your favorite"
-msgstr "Odaberite svoju omiljenu"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_product_catalog
@@ -4990,7 +4988,7 @@ msgstr "Krug"
 #: code:addons/website/static/src/builder/plugins/options/cookies_bar_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/image_gallery_option.xml:0
 msgid "Classic"
-msgstr "Klasični"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_product_catalog
@@ -5076,7 +5074,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Click to select"
-msgstr "Kliknite da odaberete"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_personal_s_numbers
@@ -5123,7 +5121,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/language_selector_option.xml:0
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
 msgid "Code"
-msgstr "Šifra"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -5158,7 +5156,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/social_media_option.xml:0
 #: code:addons/website/static/src/builder/plugins/theme/theme_shadow_option.xml:0
 msgid "Color"
-msgstr "Boja"
+msgstr ""
 
 #. module: website
 #: model:website.page,name:website.color_combinations_debug_page
@@ -5194,7 +5192,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/scroll_button_option.xml:0
 #: code:addons/website/static/src/builder/plugins/theme/theme_colors_option.xml:0
 msgid "Colors"
-msgstr "Boje"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -5208,7 +5206,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/image_gallery_option.xml:0
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Columns"
-msgstr "Kolone"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
@@ -5253,7 +5251,7 @@ msgstr "Kompanija"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/header/header_elements_option.xml:0
 msgid "Company Logo"
-msgstr "Logo kompanije"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -5302,7 +5300,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_odoo_menu
 msgid "Computers"
-msgstr "Računari"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_odoo_menu
@@ -5319,12 +5317,12 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "Conditions"
-msgstr "Uslovi"
+msgstr ""
 
 #. module: website
 #: model:ir.model,name:website.model_res_config_settings
 msgid "Config Settings"
-msgstr "Postavke"
+msgstr ""
 
 #. module: website
 #: model:ir.ui.menu,name:website.menu_website_global_configuration
@@ -5376,7 +5374,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_s_features
 msgid "Consulting"
-msgstr "Savjetovanje"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -5461,7 +5459,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_view_search
 msgid "Contacts"
-msgstr "Kontakti"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -5473,7 +5471,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "Contains"
-msgstr "Sadrži"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -5483,7 +5481,7 @@ msgstr "Sadrži"
 #: model:ir.ui.menu,name:website.menu_content
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Content"
-msgstr "Sadržaj"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_config_settings__cdn_activated
@@ -5496,7 +5494,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/content_width_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/header/header_template_option.xml:0
 msgid "Content Width"
-msgstr "Širina sadržaja"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -5521,7 +5519,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/website_builder.js:0
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Continue"
-msgstr "Nastavi"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_media_list
@@ -5534,7 +5532,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/carousel_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/image_gallery_option.xml:0
 msgid "Control"
-msgstr "Kontrola"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_ir_ui_view__controller_page_ids
@@ -5648,7 +5646,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_visitor__country_id
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_view_search
 msgid "Country"
-msgstr "Država"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_visitor__country_flag
@@ -5676,7 +5674,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/dynamic_snippet_option.xml:0
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Cover Image"
-msgstr "Naslovna slika"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -5716,13 +5714,13 @@ msgstr ""
 #: code:addons/website/static/src/components/dialog/add_page_dialog.xml:0
 #: model_terms:ir.ui.view,arch_db:website.view_website_form_view_themes_modal
 msgid "Create"
-msgstr "Kreiraj"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "Create New"
-msgstr "Kreiraj novi"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -5739,7 +5737,7 @@ msgstr ""
 #. module: website
 #: model:ir.model,website_form_label:website.model_res_partner
 msgid "Create a Customer"
-msgstr "Kreirajte klijenta"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -5793,8 +5791,6 @@ msgid ""
 "Created in 2021, the company is young and dynamic. Discover the composition "
 "of the team and their skills."
 msgstr ""
-"Osnovana 2021. godine, kompanija je mlada i dinamična. Otkrijte sastav tima "
-"i njihove vještine."
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_theme_ir_asset__create_date
@@ -5856,7 +5852,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "Custom Field"
-msgstr "Prilagođeno polje"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -5902,7 +5898,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_res_config_settings__auth_signup_uninvited
 #: model:ir.model.fields,field_description:website.field_website__auth_signup_uninvited
 msgid "Customer Account"
-msgstr "Korisnički račun"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_numbers_grid
@@ -5925,7 +5921,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_cards
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_images_subtitles
 msgid "Customers"
-msgstr "Kupci"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_reviews_wall
@@ -5960,7 +5956,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/countdown_option.xml:0
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "D"
-msgstr "D"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6030,20 +6026,20 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/timeline_images_option.xml:0
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_page_view_search
 msgid "Date"
-msgstr "Datum"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "Date & Time"
-msgstr "Datum i vrijeme"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/snippets/s_countdown/countdown.js:0
 #: model_terms:ir.ui.view,arch_db:website.s_countdown
 msgid "Days"
-msgstr "Dani"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -6132,7 +6128,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "Default Value"
-msgstr "Zadana vrijednost"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -6163,13 +6159,13 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/popup_option.xml:0
 msgid "Delay"
-msgstr "Kašnjenje"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "Delete"
-msgstr "Izbriši"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_features_grid
@@ -6205,7 +6201,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_cards
 msgid "Deliveries"
-msgstr "Dostave"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_empowerment
@@ -6223,7 +6219,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_cards
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_links
 msgid "Departments"
-msgstr "Odjeljenja"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6297,7 +6293,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_columns
 msgid "Design"
-msgstr "Dizajn"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_table_of_content
@@ -6339,7 +6335,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.s_banner_categories
 #: model_terms:ir.ui.view,arch_db:website.s_ecomm_categories_showcase
 msgid "Desks"
-msgstr "Stolovi"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6377,7 +6373,7 @@ msgstr ""
 #. module: website
 #: model:ir.model,name:website.model_digest_digest
 msgid "Digest"
-msgstr "Sažetak"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_services_s_image_text_2nd
@@ -6391,12 +6387,12 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/navtabs_style_option.xml:0
 msgid "Direction"
-msgstr "Smjer"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_theme_ir_asset__directive
 msgid "Directive"
-msgstr "Direktiva"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6413,7 +6409,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
 #: model_terms:ir.ui.view,arch_db:website.color_combinations_debug_view
 msgid "Disabled"
-msgstr "Onemogućeno"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6451,7 +6447,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/website_builder.js:0
 msgid "Discard changes"
-msgstr "Odbaci promjene"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6558,7 +6554,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_images_subtitles
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_little_icons
 msgid "Discover our team"
-msgstr "Otkrijte naš tim"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_key_benefits
@@ -6609,7 +6605,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/popup_option.xml:0
 #: code:addons/website/static/src/builder/plugins/theme/theme_headings_option.xml:0
 msgid "Display"
-msgstr "Prikaz"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -6798,7 +6794,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_columns
 msgid "Documentation"
-msgstr "Dokumentacija"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6883,12 +6879,6 @@ msgstr ""
 
 #. module: website
 #. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/popup_option_plugin.js:0
-msgid "Drag blocks here"
-msgstr ""
-
-#. module: website
-#. odoo-javascript
 #: code:addons/website/static/src/js/tours/tour_utils.js:0
 msgid "Drag the <b>%s</b> block and drop it at the bottom of the page."
 msgstr ""
@@ -6903,7 +6893,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.s_banner_categories
 #: model_terms:ir.ui.view,arch_db:website.s_ecomm_categories_showcase
 msgid "Drawers"
-msgstr "Ladice"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_menus_logos
@@ -6933,13 +6923,13 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Dropdown menu"
-msgstr "Padajući meni"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/countdown_option.xml:0
 msgid "Due Date"
-msgstr "Datum dospijeća"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_features_grid
@@ -6967,7 +6957,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/carousel_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/animate_option.xml:0
 msgid "Duration"
-msgstr "Trajanje"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -7235,7 +7225,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_view_kanban
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_view_tree
 msgid "Email"
-msgstr "E-Mail"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -7253,7 +7243,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Embed Code"
-msgstr "Ugrađeni kod"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_company_team_detail
@@ -7489,7 +7479,7 @@ msgstr "Greška"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "Error Message"
-msgstr "Poruka greške"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_pricelist_cafe
@@ -7505,7 +7495,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/new_content_systray_item.js:0
 msgid "Event"
-msgstr "Dogadaj"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_media_list
@@ -7545,7 +7535,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/searchbar_option.xml:0
 msgid "Everything"
-msgstr "Sve"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_features
@@ -7566,7 +7556,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.cookie_policy
 msgid "Examples"
-msgstr "Primjeri"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -7728,7 +7718,7 @@ msgstr ""
 #. module: website
 #: model:ir.model.fields.selection,name:website.selection__theme_ir_ui_view__mode__extension
 msgid "Extension View"
-msgstr "Prošireni pogled"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_ir_actions_server__xml_id
@@ -7742,7 +7732,7 @@ msgstr "Externi ID"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "Extra Content"
-msgstr "Extra Content"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -7897,7 +7887,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/form/utils.js:0
 #: model:ir.model,name:website.model_ir_model_fields
 msgid "Field"
-msgstr "Polje"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__field_names
@@ -7944,14 +7934,11 @@ msgid ""
 "                                                          Useful to (hard) "
 "reset broken views or to read arch from file in dev-xml mode."
 msgstr ""
-"Datoteka odakle potječe prikaz.\n"
-"Korisno za (tvrdi) reset slomljenih prikaza na izvorno ili za čitanje luka "
-"iz datoteke u dev-xml načinu rada."
 
 #. module: website
 #: model:ir.model,name:website.model_ir_binary
 msgid "File streaming helper model for controllers"
-msgstr "Model pomoćnika za strimovanje datoteka za kontrolere"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -7984,7 +7971,7 @@ msgstr ""
 #: code:addons/website/static/src/components/resource_editor/resource_editor.xml:0
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__filter_id
 msgid "Filter"
-msgstr "Filter"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8106,7 +8093,7 @@ msgstr "Fiksno"
 #: code:addons/website/static/src/builder/plugins/options/footer_copyright_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/language_selector_option.xml:0
 msgid "Flag"
-msgstr "Zastava"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8175,13 +8162,13 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_links
 #: model_terms:ir.ui.view,arch_db:website.template_footer_minimalist
 msgid "Follow us"
-msgstr "Pratite nas"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/header/header_font_option.xml:0
 msgid "Font"
-msgstr "Font"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8205,7 +8192,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/theme/theme_headings_option.xml:0
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "Font Size"
-msgstr "Veličina fonta"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8273,13 +8260,13 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/header/header_font_option.xml:0
 #: code:addons/website/static/src/components/resource_editor/resource_editor.xml:0
 msgid "Format"
-msgstr "Format"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/new_content_systray_item.js:0
 msgid "Forum"
-msgstr "Forum"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_features_grid
@@ -8421,13 +8408,13 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/popup_option.xml:0
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "Full"
-msgstr "Puno"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/cover_properties_option.js:0
 msgid "Full Screen"
-msgstr "Cijeli ekran"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8457,7 +8444,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/content_width_option.xml:0
 msgid "Full-width"
-msgstr "Puna širina"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
@@ -8474,7 +8461,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_groups
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Gallery"
-msgstr "Galerija"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_thumbnails
@@ -8484,7 +8471,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
 msgid "General"
-msgstr "Opšte"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8578,7 +8565,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/ecomm_categories_showcase_option.xml:0
 msgid "Global options for all inner blocks."
-msgstr "Globalne opcije za sve unutrašnje blokove."
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8591,12 +8578,6 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/views/theme_preview.xml:0
 msgid "Go Back"
-msgstr "Nazad"
-
-#. module: website
-#. odoo-javascript
-#: code:addons/website/static/src/interactions/website_auth_form.js:0
-msgid "Go back to the homepage"
 msgstr ""
 
 #. module: website
@@ -8688,15 +8669,6 @@ msgstr ""
 
 #. module: website
 #. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_service.js:0
-#: code:addons/website/static/src/core/website_map_service.js:0
-msgid ""
-"Google Maps configuration has changed. Please reload the page for changes to "
-"take effect."
-msgstr ""
-
-#. module: website
-#. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/social_media_option_plugin.js:0
 #: model_terms:ir.ui.view,arch_db:website.s_cta_mobile
 msgid "Google Play"
@@ -8773,7 +8745,7 @@ msgstr "Meža"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
 msgid "Group"
-msgstr "Grupa"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_controller_page__group_ids
@@ -8830,7 +8802,7 @@ msgstr ""
 #. module: website
 #: model:ir.model,name:website.model_ir_http
 msgid "HTTP Routing"
-msgstr "HTTP rutiranje"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8986,7 +8958,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/scroll_button_option.xml:0
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "Height"
-msgstr "Visina"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9004,7 +8976,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_cards
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_links
 msgid "Help"
-msgstr "Pomoć"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_images_subtitles
@@ -9045,7 +9017,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/image_gallery_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/navtabs_images_style_option.xml:0
 msgid "Hidden"
-msgstr "Skriveno"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9058,7 +9030,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/progress_bar_option.xml:0
 msgid "Hide"
-msgstr "Sakrij"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9093,7 +9065,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/cover_properties_option.xml:0
 msgid "High"
-msgstr "Visoki"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9143,7 +9115,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_cards
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_links
 msgid "History"
-msgstr "Istorija"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9225,7 +9197,7 @@ msgstr ""
 #: code:addons/website/static/src/snippets/s_countdown/countdown.js:0
 #: model_terms:ir.ui.view,arch_db:website.s_countdown
 msgid "Hours"
-msgstr "Sati"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9268,12 +9240,12 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_colors_option.xml:0
 msgid "Hue"
-msgstr "Hue"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_company_team_detail
 msgid "Human Resources Manager"
-msgstr "Upravitelj ljudskim resursima"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9292,7 +9264,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "I am sure about this."
-msgstr "Nisam siguran u vezi ovoga."
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9372,7 +9344,7 @@ msgstr "ID"
 #: model:ir.model.fields,help:website.field_ir_actions_server__xml_id
 #: model:ir.model.fields,help:website.field_ir_cron__xml_id
 msgid "ID of the action if defined in a XML file"
-msgstr "ID akcije je definiran u XML datoteci"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_website_controller_page__xml_id
@@ -9464,11 +9436,6 @@ msgid ""
 "enabled\n"
 "         "
 msgstr ""
-"Ako je ovaj pogled naslijeđen,\n"
-"* ako je Tačno, pogled uvijek proširuje svog nadređenog\n"
-"* ako je False, pogled trenutno ne proširuje svog nadređenog, ali se može "
-"omogućiti\n"
-"         "
 
 #. module: website
 #. odoo-javascript
@@ -9506,7 +9473,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_visitor__partner_image
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Image"
-msgstr "Slika"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -9628,7 +9595,7 @@ msgstr ""
 #: code:addons/website/static/src/components/fields/fields.js:0
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Images"
-msgstr "Slike"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -9719,12 +9686,12 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/accordion_option.xml:0
 msgid "Inactive"
-msgstr "Neaktivan"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields.selection,name:website.selection__theme_ir_asset__directive__include
 msgid "Include"
-msgstr "Uključi"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_masonry_block_alternation_text_image_template
@@ -9772,7 +9739,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/countdown_option.xml:0
 #: code:addons/website/static/src/builder/plugins/theme/theme_colors_option.xml:0
 msgid "Info"
-msgstr "Informacija"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9793,7 +9760,7 @@ msgstr ""
 #. module: website
 #: model:ir.model.fields,field_description:website.field_theme_ir_ui_view__inherit_id
 msgid "Inherit"
-msgstr "Nasljedi"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_controller_page__inherit_id
@@ -9812,7 +9779,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/footer_copyright_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/language_selector_option.xml:0
 msgid "Inline"
-msgstr "U liniji"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9970,7 +9937,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.template_footer_headline
 #: model_terms:ir.ui.view,arch_db:website.template_footer_links
 msgid "Instagram"
-msgstr "Instagram"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -10088,7 +10055,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_controller_page__invalid_locators
 #: model:ir.model.fields,field_description:website.field_website_page__invalid_locators
 msgid "Invalid Locators"
-msgstr "Nevažeći lokatori"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -10208,7 +10175,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_published_multi_mixin__is_published
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__is_published
 msgid "Is Published"
-msgstr "je objavljeno"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_rewrite__is_url_from_exist
@@ -10313,7 +10280,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "Is greater than or equal to"
-msgstr "Je veće ili jednako"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -10444,18 +10411,18 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/new_content_systray_item.js:0
 msgid "Job Position"
-msgstr "Radno mjesto"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_cards
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_links
 msgid "Jobs"
-msgstr "Poslovi"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
 msgid "John Doe"
-msgstr "John Doe"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
@@ -10590,7 +10557,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/progress_bar_option.xml:0
 #: model_terms:ir.ui.view,arch_db:website.color_combinations_debug_view
 msgid "Label"
-msgstr "Naljepnica"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_ir_model__website_form_label
@@ -10618,7 +10585,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_ecomm_categories_showcase
 msgid "Lamps"
-msgstr "Lampe"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_groups
@@ -10638,7 +10605,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_visitor__lang_id
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_view_search
 msgid "Language"
-msgstr "Jezik"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -10696,7 +10663,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_view_kanban
 msgid "Last Action"
-msgstr "Posljednja akcija"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_visitor__last_connection_datetime
@@ -10835,13 +10802,13 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/media_list_item_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/social_media_option.xml:0
 msgid "Layout"
-msgstr "Izgled"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/countdown_option.xml:0
 msgid "Layout Background"
-msgstr "Izgled pozadine"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -10916,7 +10883,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.footer_custom
 msgid "Legal"
-msgstr "Pravno"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_big_icons_subtitles
@@ -10927,12 +10894,12 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/chart_option.xml:0
 msgid "Legend"
-msgstr "Legenda"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
 msgid "Let your customers log in to see their documents"
-msgstr "Omogućite kupcima da se prijave i vide svoje dokumente"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_process_steps
@@ -10985,7 +10952,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
 #: model_terms:ir.ui.view,arch_db:website.color_combinations_debug_view
 msgid "Library"
-msgstr "Biblioteka"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11004,13 +10971,13 @@ msgstr ""
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__limit
 msgid "Limit"
-msgstr "Limit"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/chart_option.xml:0
 msgid "Line"
-msgstr "Stavka"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11087,7 +11054,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/controller_page_listing_layout_option.xml:0
 #: model:ir.model.fields.selection,name:website.selection__website_controller_page__default_layout__list
 msgid "List"
-msgstr "Lista"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_features
@@ -11127,7 +11094,7 @@ msgstr ""
 #: model:website.configurator.feature,name:website.feature_module_live_chat
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
 msgid "Live Chat"
-msgstr "Razgovor u živo"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11138,13 +11105,13 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.list_hybrid
 msgid "Load More"
-msgstr "Učitaj više"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/edit_website_systray_item.xml:0
 msgid "Loading"
-msgstr "Učitavanje"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11161,7 +11128,7 @@ msgstr "Učitavam..."
 #: code:addons/website/static/src/builder/plugins/options/navbar_logo_option.xml:0
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Logo"
-msgstr "Logo"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_centered
@@ -11195,7 +11162,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/cover_properties_option.xml:0
 msgid "Low"
-msgstr "Nizak"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_grid_avatars
@@ -11255,7 +11222,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_s_features
 msgid "Management"
-msgstr "Upravljanje"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11288,7 +11255,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/theme/theme_headings_option.xml:0
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "Margins"
-msgstr "Marže"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11322,7 +11289,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_s_features
 msgid "Marketing"
-msgstr "Marketing"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_company_team_detail
@@ -11377,7 +11344,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/media_list_option.xml:0
 msgid "Media"
-msgstr "Medij"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -11464,7 +11431,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_menu_image_menu
 msgid "Mega menu default image"
-msgstr "Zadana slika mega menija"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11578,7 +11545,7 @@ msgstr ""
 #. module: website
 #: model:ir.model,name:website.model_base_partner_merge_automatic_wizard
 msgid "Merge Partner Wizard"
-msgstr "Čarobnjak za spajanje partnera"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11602,7 +11569,7 @@ msgstr "Poruke"
 #. odoo-python
 #: code:addons/website/controllers/form.py:0
 msgid "Metadata"
-msgstr "Metapodaci"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_company_team
@@ -11651,7 +11618,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/timeline_list_option.xml:0
 msgid "Milestones"
-msgstr "Miljokazi"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11688,7 +11655,7 @@ msgstr ""
 #: code:addons/website/static/src/snippets/s_countdown/countdown.js:0
 #: model_terms:ir.ui.view,arch_db:website.s_countdown
 msgid "Minutes"
-msgstr "Minute"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11701,7 +11668,7 @@ msgstr ""
 #: code:addons/website/static/src/components/views/theme_preview.xml:0
 #: model:ir.model.fields,field_description:website.field_website_visitor__mobile
 msgid "Mobile"
-msgstr "Mobitel"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11735,7 +11702,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/image_gallery_option.xml:0
 #: model:ir.model.fields,field_description:website.field_theme_ir_ui_view__mode
 msgid "Mode"
-msgstr "Mod"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11767,13 +11734,13 @@ msgstr ""
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__model_name
 msgid "Model name"
-msgstr "Model"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_controller_page__model_id
 #: model:ir.model.fields,field_description:website.field_website_page__model_id
 msgid "Model of the view"
-msgstr "Model pogleda"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_product_list
@@ -11784,13 +11751,13 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_controller_page__arch_updated
 #: model:ir.model.fields,field_description:website.field_website_page__arch_updated
 msgid "Modified Architecture"
-msgstr "Izmijenjena arhitektura"
+msgstr ""
 
 #. module: website
 #: model:ir.model,name:website.model_ir_module_module
 #: model:ir.model.fields,field_description:website.field_website_configurator_feature__module_id
 msgid "Module"
-msgstr "Modul"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_config_settings__module_website_livechat
@@ -11814,13 +11781,13 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_odoo_menu
 msgid "Monitors"
-msgstr "Monitori"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "More"
-msgstr "Više"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_color_blocks_2
@@ -11976,7 +11943,7 @@ msgstr "Naziv:"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/searchbar_option_plugin.js:0
 msgid "Name (A-Z)"
-msgstr "Naziv (A-Z)"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11988,7 +11955,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/mega_menu_option.xml:0
 msgid "Narrow"
-msgstr "Uzak"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -12047,13 +12014,13 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/carousel_option.xml:0
 msgid "Never"
-msgstr "Nikada"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/new_content_systray_item.xml:0
 msgid "New"
-msgstr "Novi"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12166,7 +12133,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 #: model_terms:ir.ui.view,arch_db:website.s_age_verification_popup
 msgid "No"
-msgstr "Ne"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12237,7 +12204,7 @@ msgstr ""
 #: code:addons/website/static/src/snippets/s_searchbar/000.xml:0
 #: model_terms:ir.ui.view,arch_db:website.list_website_public_pages
 msgid "No results found for '"
-msgstr "Nisu pronađeni rezultati za '"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12267,7 +12234,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "No, keep it"
-msgstr "Ne, zadržite to"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12294,12 +12261,12 @@ msgstr "Ništa"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_shadow_option.xml:0
 msgid "Normal"
-msgstr "Normalan"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_pages_kanban_view
 msgid "Not Published"
-msgstr "Nije objavljeno"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_pages_view_search
@@ -12355,13 +12322,13 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/countdown_option.xml:0
 msgid "Nothing"
-msgstr "Ništa"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "Number"
-msgstr "Broj"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_config_settings__website_language_count
@@ -12448,14 +12415,14 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_view_kanban
 msgid "Offline"
-msgstr "Van mreže"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/translation_components/translatorInfoDialog.js:0
 #: code:addons/website/static/src/components/dialog/dialog.js:0
 msgid "Ok"
-msgstr "U redu"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12508,7 +12475,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/animate_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/header/header_navigation_option.xml:0
 msgid "On Hover"
-msgstr "Pri prelasku"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12561,7 +12528,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_view_kanban
 msgid "Online"
-msgstr "Na mreži"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_numbers_grid
@@ -12610,19 +12577,6 @@ msgid ""
 "(<xpath/>) are applied, and the result is used as if it were this view's\n"
 "actual arch.\n"
 msgstr ""
-"Primjenjuje se samo ako je ovaj pogled naslijeđen od drugog (inherit_id nije "
-"False/Null).\n"
-"\n"
-"* ako je proširenje (podrazumevano), ako je zatražen ovaj pogled, najbliži "
-"primarni pogled\n"
-"i je potražen (preko inherit_id), onda se svi pogledi koji naslijede od "
-"njega s\n"
-"modelom ovog\n"
-"viewa primjenjuju\n"
-"* ako je primarni, najbliži primarni pogled koristi se\n"
-"* ako je primarni od potpunog resolventnog modela ovaj), onda se primjenjuju "
-"specifikacije nasljeđivanja ovog pogleda\n"
-"(<xpath/>), a rezultat se koristi kao da jestvarni luk ovog pogleda.\n"
 
 #. module: website
 #. odoo-javascript
@@ -12715,7 +12669,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "Optional"
-msgstr "Opcionalno"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_website_snippet_filter__help
@@ -12726,7 +12680,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "Order"
-msgstr "Nalog"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12746,7 +12700,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 #: code:addons/website/static/src/snippets/s_website_form/add_other_option.js:0
 msgid "Other"
-msgstr "Drugo"
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -13075,7 +13029,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/animate_option.xml:0
 msgid "Overlay"
-msgstr "Prekrivač"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -13292,7 +13246,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_theme_website_menu__parent_id
 #: model:ir.model.fields,field_description:website.field_website_page__parent_ids
 msgid "Parent"
-msgstr "Nasljeđeni"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_menu__parent_id
@@ -13308,7 +13262,7 @@ msgstr ""
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_menu__parent_path
 msgid "Parent Path"
-msgstr "Putanja nadređenih"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_website_visitor__partner_id
@@ -13323,7 +13277,7 @@ msgstr "Podatci vezani za partnera na korisniku"
 #. module: website
 #: model:ir.actions.act_window,name:website.visitor_partner_action
 msgid "Partners"
-msgstr "Partneri"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_references
@@ -13333,7 +13287,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_page_properties_view_form
 msgid "Password"
-msgstr "Šifra"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_product_catalog
@@ -13343,18 +13297,18 @@ msgstr ""
 #. module: website
 #: model:ir.model.fields,field_description:website.field_theme_ir_asset__path
 msgid "Path"
-msgstr "Putanja"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/announcement_scroll_option.xml:0
 msgid "Pause"
-msgstr "Pauziraj"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_process_steps
 msgid "Pay"
-msgstr "Plati"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_pricelist_boxed
@@ -13377,7 +13331,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.s_features
 #: model_terms:ir.ui.view,arch_db:website.s_features_wave
 msgid "Performance"
-msgstr "Performanse"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_2_s_cover
@@ -13399,12 +13353,12 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/js/send_mail_form.js:0
 msgid "Phone Number"
-msgstr "Broj telefona"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_thumbnails
 msgid "Phones"
-msgstr "Telefoni"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -13429,7 +13383,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/navtabs_style_option.xml:0
 msgid "Pills"
-msgstr "Pilule"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -13444,12 +13398,12 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 #: code:addons/website/static/src/builder/plugins/translation/options/attribute_translation_plugin.js:0
 msgid "Placeholder"
-msgstr "Rezervirano"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
-msgid "Places API (NEW)"
+msgid "Places API"
 msgstr ""
 
 #. module: website
@@ -13539,7 +13493,7 @@ msgstr ""
 #. module: website
 #: model:ir.model,name:website.model_portal_wizard_user
 msgid "Portal User Config"
-msgstr "Konfiguracija korisnika portala"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_big_icons_subtitles
@@ -13556,7 +13510,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/table_of_content_option.xml:0
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "Position"
-msgstr "Pozicija"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -13583,12 +13537,12 @@ msgstr ""
 #. module: website
 #: model:ir.model.fields.selection,name:website.selection__theme_ir_asset__directive__prepend
 msgid "Prepend"
-msgstr "Prepend"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.color_combinations_debug_view
 msgid "Preset"
-msgstr "Predefinisano"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_cards
@@ -13625,13 +13579,13 @@ msgstr "Pregled"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Preview image"
-msgstr "Pregled slike"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Preview of"
-msgstr "Pregled"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -13653,18 +13607,18 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.s_quotes_carousel_compact
 #: model_terms:ir.ui.view,arch_db:website.s_quotes_carousel_minimal
 msgid "Previous"
-msgstr "Prethodni"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_controller_page__arch_prev
 #: model:ir.model.fields,field_description:website.field_website_page__arch_prev
 msgid "Previous View Architecture"
-msgstr "Previous View Architecture"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Pricelist"
-msgstr "Cijenovnik"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -13679,7 +13633,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.pricing
 msgid "Pricing"
-msgstr "Cijene"
+msgstr ""
 
 #. module: website
 #: model:website.configurator.feature,name:website.feature_page_pricing
@@ -13715,12 +13669,12 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_thumbnails
 msgid "Printers"
-msgstr "Štampači"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_theme_ir_ui_view__priority
 msgid "Priority"
-msgstr "Prioritet"
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -13732,13 +13686,13 @@ msgstr "Prioritet"
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_columns
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_links
 msgid "Privacy Policy"
-msgstr "Politika privatnosti"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/new_content_systray_item.js:0
 msgid "Product"
-msgstr "Proizvod"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_company_team_detail
@@ -13756,7 +13710,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.template_footer_contact
 #: model_terms:ir.ui.view,arch_db:website.template_footer_minimalist
 msgid "Products"
-msgstr "Proizvodi"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.external_snippets
@@ -13786,7 +13740,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/snippets_powerbox_plugin.js:0
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Progress Bar"
-msgstr "Traka napstavke"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -13817,7 +13771,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.s_numbers_charts
 #: model_terms:ir.ui.view,arch_db:website.s_progress_bar
 msgid "Progress bar"
-msgstr "Traka napstavke"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_odoo_menu
@@ -13846,12 +13800,12 @@ msgstr ""
 #. module: website
 #: model:ir.ui.menu,name:website.menu_page_properties
 msgid "Properties"
-msgstr "Svojstva"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields.selection,name:website.selection__ir_ui_view__visibility__public
 msgid "Public"
-msgstr "Javni"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website__partner_id
@@ -14029,17 +13983,17 @@ msgstr ""
 #. module: website
 #: model:ir.model,name:website.model_ir_qweb
 msgid "Qweb"
-msgstr "Qweb"
+msgstr ""
 
 #. module: website
 #: model:ir.model,name:website.model_ir_qweb_field_contact
 msgid "Qweb Field Contact"
-msgstr "Qweb kontakt na terenu"
+msgstr ""
 
 #. module: website
 #: model:ir.model,name:website.model_ir_qweb_field_html
 msgid "Qweb Field HTML"
-msgstr "Qweb polje HTML"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14051,7 +14005,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "Radio"
-msgstr "Radio"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14070,19 +14024,19 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/snippets_powerbox_plugin.js:0
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Rating"
-msgstr "Ocijena"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/card_image_option.xml:0
 msgid "Ratio"
-msgstr "Omjer"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/gallery_element_option.xml:0
 msgid "Re-order"
-msgstr "Ponovna narudžba"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_masonry_block_default_template
@@ -14100,7 +14054,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_carousel_cards
 msgid "Read More"
-msgstr "Pročitaj više"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_2_s_call_to_action
@@ -14157,7 +14111,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/dynamic_snippet_option.xml:0
 msgid "Record"
-msgstr "Zapis"
+msgstr ""
 
 #. module: website
 #: model:ir.model,name:website.model_ir_rule
@@ -14238,7 +14192,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/image_gallery_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/navtabs_style_option.xml:0
 msgid "Regular"
-msgstr "Regularni"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_controller_pages_form_view
@@ -14280,7 +14234,7 @@ msgstr ""
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 #: model:ir.model.fields.selection,name:website.selection__theme_ir_asset__directive__remove
 msgid "Remove"
-msgstr "Ukloni"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14389,7 +14343,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 #: model:ir.model.fields.selection,name:website.selection__theme_ir_asset__directive__replace
 msgid "Replace"
-msgstr "Zamijeni"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14418,13 +14372,13 @@ msgstr ""
 #. module: website
 #: model:ir.ui.menu,name:website.menu_reporting
 msgid "Reporting"
-msgstr "Izvještavanje"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "Required"
-msgstr "Zahtijevano"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14439,7 +14393,7 @@ msgstr ""
 #: code:addons/website/static/src/components/resource_editor/resource_editor.js:0
 #: code:addons/website/static/src/components/resource_editor/resource_editor.xml:0
 msgid "Reset"
-msgstr "Resetuj"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.qweb_500
@@ -14484,7 +14438,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_links
 msgid "Resources"
-msgstr "Resursi"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14508,7 +14462,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.qweb_500
 msgid "Restore previous version (soft reset)."
-msgstr "Vratite prethodnu verziju (soft reset)."
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_res_partner__website_id
@@ -14519,7 +14473,7 @@ msgstr "Vratite prethodnu verziju (soft reset)."
 #: model:ir.model.fields,help:website.field_website_published_multi_mixin__website_id
 #: model:ir.model.fields,help:website.field_website_snippet_filter__website_id
 msgid "Restrict to a specific website."
-msgstr "Ograniči na konkretan website."
+msgstr ""
 
 #. module: website
 #: model:res.groups,name:website.group_website_restricted_editor
@@ -14534,7 +14488,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_links
 msgid "Returns"
-msgstr "Povrati"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_cards
@@ -14552,7 +14506,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/carousel_bottom_controllers_option.xml:0
 msgid "Reversed"
-msgstr "Stornirano"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -14687,13 +14641,13 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/ecomm_categories_showcase_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/map_option.xml:0
 msgid "Roundness"
-msgstr "Zaobljenost"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_rewrite__route_id
 #: model:ir.model.fields,field_description:website.field_website_route__path
 msgid "Route"
-msgstr "Ruta"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14723,7 +14677,7 @@ msgstr "SEO metapodatci"
 #: model:ir.model.fields,field_description:website.field_website_page__is_seo_optimized
 #: model:ir.model.fields,field_description:website.field_website_seo_metadata__is_seo_optimized
 msgid "SEO optimized"
-msgstr "SEO optimizirana"
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -14814,7 +14768,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/accordion_option.xml:0
 msgid "Scale"
-msgstr "Vaga"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14822,7 +14776,7 @@ msgstr "Vaga"
 #: model_terms:ir.ui.view,arch_db:website.website_pages_kanban_view
 #: model_terms:ir.ui.view,arch_db:website.website_pages_tree_view
 msgid "Scheduled"
-msgstr "Zakazano"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_thumbnails
@@ -14905,7 +14859,7 @@ msgstr "Pretraži"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/header/header_elements_option.xml:0
 msgid "Search Bar"
-msgstr "Traka za pretraživanje"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14954,11 +14908,6 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/searchbar_option.xml:0
 msgid "Search within"
 msgstr ""
-
-#. module: website
-#: model_terms:ir.ui.view,arch_db:website.website_search_box_input
-msgid "Search..."
-msgstr "Pretraži..."
 
 #. module: website
 #. odoo-javascript
@@ -15122,7 +15071,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "Selection"
-msgstr "Odabir"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15149,7 +15098,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_view_form
 msgid "Send Email"
-msgstr "Pošalji e-mail"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
@@ -15169,7 +15118,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_page__seo_name
 #: model:ir.model.fields,field_description:website.field_website_seo_metadata__seo_name
 msgid "Seo name"
-msgstr "SEO naziv"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15191,7 +15140,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_s_text_cover
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Separator"
-msgstr "Separator"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_theme_ir_asset__sequence
@@ -15231,7 +15180,7 @@ msgstr "Serverska akcija"
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_links
 #: model_terms:ir.ui.view,arch_db:website.template_footer_minimalist
 msgid "Services"
-msgstr "Usluge"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_image_text_overlap
@@ -15335,7 +15284,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_links
 msgid "Shipping"
-msgstr "Prevoznik"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_cards
@@ -15350,7 +15299,7 @@ msgstr ""
 #. module: website
 #: model:website.configurator.feature,name:website.feature_module_shop
 msgid "Shop"
-msgstr "Prodavnica"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_floating_blocks
@@ -15376,7 +15325,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/ecomm_categories_showcase_option.xml:0
 msgid "Short"
-msgstr "Kratko"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_website__auto_redirect_lang
@@ -15487,7 +15436,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Showcase"
-msgstr "Vitrina"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15512,7 +15461,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/header/header_option_plugin.js:0
 msgid "Sidebar"
-msgstr "Bočna traka"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15523,7 +15472,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_process_steps
 msgid "Sign in"
-msgstr "Prijava"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_columns
@@ -15564,7 +15513,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/dynamic_snippet_carousel_option.xml:0
 msgid "Single"
-msgstr "Samac"
+msgstr ""
 
 #. module: website
 #: model:ir.ui.menu,name:website.menu_site
@@ -15748,7 +15697,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_s_text_cover
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Social"
-msgstr "Društveno"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15768,7 +15717,7 @@ msgstr "Socijalni Mediji"
 #: model_terms:ir.ui.view,arch_db:website.s_banner_categories
 #: model_terms:ir.ui.view,arch_db:website.s_ecomm_categories_showcase
 msgid "Sofas"
-msgstr "Sofe"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_floating_blocks
@@ -15826,7 +15775,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/layout_option/spacing_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/scroll_button_option.xml:0
 msgid "Spacing"
-msgstr "Razmak"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_pricelist_boxed
@@ -15890,7 +15839,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_menus_logos
 msgid "Spring collection has arrived!"
-msgstr "Stigla je proljetna kolekcija!"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15910,13 +15859,13 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/chart_option.xml:0
 msgid "Stacked"
-msgstr "Složeni"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/header/header_template_option.xml:0
 msgid "Standard"
-msgstr "Standardno"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -16002,7 +15951,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_thumbnails
 msgid "Storage"
-msgstr "Pohrana"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_carousel
@@ -16061,7 +16010,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Structure"
-msgstr "Struktura"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -16074,7 +16023,7 @@ msgstr "Struktura"
 #: code:addons/website/static/src/builder/plugins/options/navtabs_style_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/searchbar_option.xml:0
 msgid "Style"
-msgstr "Stil"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -16097,17 +16046,17 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/js/send_mail_form.js:0
 msgid "Subject"
-msgstr "Tema"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_website_form
 msgid "Submit"
-msgstr "Podnesi"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_product_list
 msgid "Subtle"
-msgstr "Suptilno"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -16139,7 +16088,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_cards
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_links
 msgid "Support"
-msgstr "Podrška"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_faq_horizontal
@@ -16191,7 +16140,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid "TIP"
-msgstr "SAVJET"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -16202,7 +16151,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Tab"
-msgstr "Tab"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -16226,7 +16175,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Tabs"
-msgstr "Kartice"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -16269,13 +16218,13 @@ msgstr ""
 #. module: website
 #: model:ir.model.fields,field_description:website.field_theme_ir_asset__target
 msgid "Target"
-msgstr "Cilj"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_page_properties__target_model_id
 #: model:ir.model.fields,field_description:website.field_website_page_properties_base__target_model_id
 msgid "Target Model"
-msgstr "Ciljani model"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_key_benefits
@@ -16292,7 +16241,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_groups
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Team"
-msgstr "Tim"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -16360,7 +16309,7 @@ msgstr "Prijedlog"
 #. odoo-javascript
 #: code:addons/website/static/src/components/resource_editor/resource_editor.js:0
 msgid "Template ID: %s"
-msgstr "Predložak ID: %s"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.qweb_500
@@ -16371,7 +16320,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_columns
 msgid "Terms and Conditions"
-msgstr "Pravila i Uslovi"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega_cards
@@ -16409,7 +16358,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.s_inline_text
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Text"
-msgstr "Tekst"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -16428,7 +16377,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/countdown_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/map_option.xml:0
 msgid "Text Color"
-msgstr "Boja teksta"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -16469,7 +16418,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus_thanks_ir_ui_view
 msgid "Thank You!"
-msgstr "Hvala Vam!"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -16593,6 +16542,12 @@ msgid "The form has been sent successfully."
 msgstr ""
 
 #. module: website
+#. odoo-python
+#: code:addons/website/controllers/form.py:0
+msgid "The form's specified model does not exist"
+msgstr ""
+
+#. module: website
 #: model:ir.model.fields,help:website.field_ir_actions_server__website_url
 #: model:ir.model.fields,help:website.field_ir_cron__website_url
 msgid "The full URL to access the server action through the website."
@@ -16608,7 +16563,7 @@ msgstr "Kompletan URL za pristup serverskoj akciji putem website-a."
 #: model:ir.model.fields,help:website.field_website_published_multi_mixin__website_absolute_url
 #: model:ir.model.fields,help:website.field_website_snippet_filter__website_absolute_url
 msgid "The full absolute URL to access the document through the website."
-msgstr "Potpuni apsolutni URL za pristup dokumentu putem web stranice."
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_res_partner__website_url
@@ -16620,7 +16575,7 @@ msgstr "Potpuni apsolutni URL za pristup dokumentu putem web stranice."
 #: model:ir.model.fields,help:website.field_website_published_multi_mixin__website_url
 #: model:ir.model.fields,help:website.field_website_snippet_filter__website_url
 msgid "The full relative URL to access the document through the website."
-msgstr "Puni relativni URL za pristup dokumentu putem web stranice."
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -16723,7 +16678,7 @@ msgstr "Odabrani predlošci će biti resetovane na fabričke postavke."
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_images_subtitles
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_little_icons
 msgid "The team"
-msgstr "Tim"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.cookie_policy
@@ -16779,7 +16734,7 @@ msgstr ""
 #. module: website
 #: model:ir.model,name:website.model_theme_utils
 msgid "Theme Utils"
-msgstr "Alati teme"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -16872,7 +16827,7 @@ msgstr ""
 #: model:ir.model.fields,help:website.field_website_controller_page__arch_base
 #: model:ir.model.fields,help:website.field_website_page__arch_base
 msgid "This field is the same as `arch` field without translations"
-msgstr "Ovo je polje isto kao i polje \"luk\" bez prijevoda"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_res_config_settings__website_default_lang_code
@@ -16901,15 +16856,12 @@ msgid ""
 "                               Note that it will read `arch_db` or `arch_fs` "
 "if in dev-xml mode."
 msgstr ""
-"Ovo polje treba koristiti kada se pristupa luku pogleda. Koristit će "
-"prijevod.\n"
-" Imajte na umu da će čitati `arch_db` ili `arch_fs` ako je u dev-xml modu."
 
 #. module: website
 #: model:ir.model.fields,help:website.field_website_controller_page__arch_db
 #: model:ir.model.fields,help:website.field_website_page__arch_db
 msgid "This field stores the view arch."
-msgstr "Ovo polje pohranjuje luk pogleda."
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_website_controller_page__arch_prev
@@ -16919,8 +16871,6 @@ msgid ""
 "                                                                         Useful "
 "to (soft) reset a broken view."
 msgstr ""
-"Ovo će polje spremiti trenutnu 'arch_db' prije pisanja na njega.\n"
-"Korisno za (meko) resetiranje slomljenog prikaza."
 
 #. module: website
 #. odoo-javascript
@@ -16928,13 +16878,6 @@ msgstr ""
 msgid ""
 "This font already exists, you can only add it as a local font to replace the "
 "server version."
-msgstr ""
-
-#. module: website
-#. odoo-python
-#: code:addons/website/controllers/form.py:0
-msgid ""
-"This form cannot be submitted. Please contact the website administrator."
 msgstr ""
 
 #. module: website
@@ -17075,7 +17018,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/social_media_option_plugin.js:0
 msgid "Threads"
-msgstr "Teme"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -17099,7 +17042,7 @@ msgstr "Sličice"
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_odoo_menu
 #: model_terms:ir.ui.view,arch_db:website.s_social_media
 msgid "TikTok"
-msgstr "TikTok"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_website_visitor__time_since_last_action
@@ -17150,7 +17093,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_visitor__timezone
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_view_search
 msgid "Timezone"
-msgstr "Vremenska zona"
+msgstr ""
 
 #. module: website
 #: model:digest.tip,name:website.digest_tip_website_4
@@ -17272,9 +17215,6 @@ msgid ""
 "list view and click on 'Portal Access Management' option in the dropdown "
 "menu *Action*."
 msgstr ""
-"Za slanje pozivnica u B2B načinu rada, otvorite kontakt ili odaberite "
-"nekoliko njih u prikazu popisa i kliknite na opciju 'Upravljanje pristupom "
-"portalu' u padajućem meniu *Akcija*."
 
 #. module: website
 #. odoo-javascript
@@ -17285,7 +17225,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
 msgid "Toggle"
-msgstr "Uključi / isključi"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -17327,7 +17267,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/chart_option.xml:0
 #: code:addons/website/static/src/builder/plugins/translation/options/attribute_translation_plugin.js:0
 msgid "Tooltip"
-msgstr "Objašnjenje"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -17346,7 +17286,7 @@ msgstr "Objašnjenje"
 #: model_terms:ir.ui.view,arch_db:website.template_header_sales_two
 #: model_terms:ir.ui.view,arch_db:website.template_header_search
 msgid "Top"
-msgstr "Vrh"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -17462,7 +17402,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/accordion_option.xml:0
 #: code:addons/website/static/src/client_actions/website_preview/edit_website_systray_item.xml:0
 msgid "Translate"
-msgstr "Prevedi"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -17529,7 +17469,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/animate_option.xml:0
 msgid "Trigger"
-msgstr "Okidač"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_website__configurator_done
@@ -17598,7 +17538,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_controller_page__name_slugified
 #: model_terms:ir.ui.view,arch_db:website.website_controller_pages_form_view
 msgid "URL"
-msgstr "URL"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_rewrite__url_from
@@ -17627,7 +17567,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/visibility_option.xml:0
 msgid "UTM Campaign"
-msgstr "UTM kampanja"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -17707,7 +17647,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.publish_management
 #: model_terms:ir.ui.view,arch_db:website.unpublished_badge
 msgid "Unpublished"
-msgstr "Neobjavljeno"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_view_search
@@ -17759,7 +17699,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Upload"
-msgstr "Upload"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -17778,7 +17718,7 @@ msgstr "URL"
 #. module: website
 #: model:ir.model.fields,help:website.field_website_visitor__country_flag
 msgid "Url of static flag image"
-msgstr "URL slike statičke zastavice"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -17942,7 +17882,7 @@ msgstr ""
 #. module: website
 #: model:ir.model,name:website.model_res_users
 msgid "User"
-msgstr "Korisnik"
+msgstr ""
 
 #. module: website
 #: model:ir.model,name:website.model_website_custom_blocked_third_party_domains
@@ -18045,7 +17985,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/background_video_option.xml:0
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Video"
-msgstr "Video"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18111,7 +18051,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_controller_page__inherit_children_ids
 #: model:ir.model.fields,field_description:website.field_website_page__inherit_children_ids
 msgid "Views which inherit from this one"
-msgstr "Prikazi koji nasljeđuju od ovog"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18121,7 +18061,7 @@ msgstr "Prikazi koji nasljeđuju od ovog"
 #: model:ir.model.fields,field_description:website.field_website_page__visibility
 #: model:ir.model.fields,field_description:website.field_website_page_properties__visibility
 msgid "Visibility"
-msgstr "Vidljivost"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_ir_ui_view__visibility_password
@@ -18183,7 +18123,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_published_multi_mixin__website_published
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__website_published
 msgid "Visible on current website"
-msgstr "Vidljivo na trenutnom websiteu"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18219,7 +18159,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_visitor__page_ids
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_view_kanban
 msgid "Visited Pages"
-msgstr "Posjećene stranice"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_visitor__website_track_ids
@@ -18231,7 +18171,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_page_view_search
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_view_kanban
 msgid "Visitor"
-msgstr "Posjetilac"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_page_view_graph
@@ -18304,7 +18244,7 @@ msgstr "Upozorenje"
 #: model:ir.model.fields,field_description:website.field_website_controller_page__warning_info
 #: model:ir.model.fields,field_description:website.field_website_page__warning_info
 msgid "Warning information"
-msgstr "Informacije o upozorenju"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18645,7 +18585,7 @@ msgstr "Web stranica"
 #: model:ir.model.fields,field_description:website.field_website_published_multi_mixin__website_absolute_url
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__website_absolute_url
 msgid "Website Absolute URL"
-msgstr "Apsolutni URL web stranice"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_config_settings__website_company_id
@@ -18801,7 +18741,7 @@ msgstr "Website Postavke"
 #. module: website
 #: model:ir.model,name:website.model_website_snippet_filter
 msgid "Website Snippet Filter"
-msgstr "Filter snippet-a websitea"
+msgstr ""
 
 #. module: website
 #: model:ir.model,name:website.model_website_technical_page
@@ -18840,7 +18780,7 @@ msgstr ""
 #: model:ir.model,name:website.model_website_visitor
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_view_form
 msgid "Website Visitor"
-msgstr "Posjetilac websitea"
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -18888,7 +18828,7 @@ msgstr "Website meta naslov"
 #: model:ir.model.fields,field_description:website.field_website_page__website_meta_og_img
 #: model:ir.model.fields,field_description:website.field_website_seo_metadata__website_meta_og_img
 msgid "Website opengraph image"
-msgstr "OpenGraph slika web stranice"
+msgstr ""
 
 #. module: website
 #: model:ir.model,name:website.model_website_page_options_mixin
@@ -19021,7 +18961,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_share
 msgid "WhatsApp"
-msgstr "WhatsApp"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -19061,7 +19001,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/header/header_template_option.xml:0
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "Width"
-msgstr "Širina"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_popup
@@ -19196,7 +19136,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 #: model_terms:ir.ui.view,arch_db:website.s_age_verification_popup
 msgid "Yes"
-msgstr "Da"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -19252,7 +19192,7 @@ msgstr ""
 #: code:addons/website/models/res_users.py:0
 #: model:ir.model.constraint,message:website.constraint_res_users_login_key
 msgid "You can not have two users with the same login!"
-msgstr "Ne možete imati dva korisnika sa istom prijavom!"
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -19288,12 +19228,6 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option_plugin.js:0
 msgid "You cannot duplicate this field."
-msgstr ""
-
-#. module: website
-#. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/card_image_option_plugin.js:0
-msgid "You cannot duplicate this image."
 msgstr ""
 
 #. module: website
@@ -19373,7 +19307,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_odoo_menu
 #: model_terms:ir.ui.view,arch_db:website.s_social_media
 msgid "YouTube"
-msgstr "YouTube"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -19392,7 +19326,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/js/send_mail_form.js:0
 msgid "Your Email"
-msgstr "Vaš e-mail"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -19429,7 +19363,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/js/send_mail_form.js:0
 msgid "Your Name"
-msgstr "Vaše ime"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_floating_blocks
@@ -19596,7 +19530,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "and"
-msgstr "i"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -19659,7 +19593,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "business"
-msgstr "posao"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -19709,7 +19643,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/views/theme_preview.xml:0
 msgid "close"
-msgstr "zatvori"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -19887,7 +19821,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/popup_option.xml:0
 msgid "days"
-msgstr "Dani"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -19950,18 +19884,18 @@ msgstr ""
 #. module: website
 #: model:ir.ui.menu,name:website.menu_website_dashboard
 msgid "eCommerce"
-msgstr "eProdaja"
+msgstr ""
 
 #. module: website
 #: model:website.configurator.feature,name:website.feature_module_elearning
 msgid "eLearning"
-msgstr "eUčenje"
+msgstr ""
 
 #. module: website
 #. odoo-python
 #: code:addons/website/controllers/form.py:0
 msgid "email"
-msgstr "email"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
@@ -20332,7 +20266,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
 msgid "link"
-msgstr "link"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -20427,7 +20361,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/edit_website_systray_item.xml:0
 msgid "page"
-msgstr "stranica"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -20440,7 +20374,7 @@ msgstr ""
 #: code:addons/website/static/src/client_actions/website_preview/website_builder_action.xml:0
 #: code:addons/website/static/src/components/fields/widget_iframe.xml:0
 msgid "phone"
-msgstr "telefon"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -20715,7 +20649,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/animate_option.xml:0
 msgid "to"
-msgstr "za"
+msgstr ""
 
 #. module: website
 #: model:ir.model.constraint,message:website.constraint_website_controller_page_unique_name_slugified
