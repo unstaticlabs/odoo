@@ -470,6 +470,28 @@ class ResPartner(models.Model):
     _inherit = "res.partner"
 
     @api.model
+    def _fetch_active_annuaire_lines(self, siren):
+        company = self.env.company
+        if (
+            company.account_fiscal_country_id.code == "FR"
+            and company._get_peppol_edi_mode() != "demo"
+            and not company._rebuild_einvoice_live_call_allowed()
+        ):
+            return {}
+        return super()._fetch_active_annuaire_lines(siren)
+
+    @api.model
+    def _peppol_lookup_participant_formats_accepted(self, edi_identification, formats):
+        company = self.env.company
+        if (
+            company.account_fiscal_country_id.code == "FR"
+            and company._get_peppol_edi_mode() != "demo"
+            and not company._rebuild_einvoice_live_call_allowed()
+        ):
+            return None
+        return super()._peppol_lookup_participant_formats_accepted(edi_identification, formats)
+
+    @api.model
     def _pdp_annuaire_lookup_participant(self, edi_identification):
         company = self.env.company
         if (
