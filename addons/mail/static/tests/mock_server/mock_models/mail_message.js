@@ -59,13 +59,23 @@ export class MailMessage extends models.ServerModel {
     }
 
     /** @param {number[]} ids */
-    _to_store(store, fields, for_current_user, inbox_fields) {
-        const kwargs = getKwArgs(arguments, "store", "fields", "for_current_user", "inbox_fields");
+    _to_store(store, fields, for_current_user, inbox_fields, format_reply) {
+        const kwargs = getKwArgs(
+            arguments,
+            "store",
+            "fields",
+            "for_current_user",
+            "inbox_fields",
+            "format_reply"
+        );
         store = kwargs.store;
         fields = kwargs.fields;
         for_current_user = kwargs.for_current_user ?? false;
         inbox_fields = kwargs.inbox_fields ?? false;
+        format_reply = kwargs.format_reply ?? true;
 
+        /** @type {import("mock_models").DiscussChannel} */
+        const DiscussChannel = this.env["discuss.channel"];
         /** @type {import("mock_models").MailFollowers} */
         const MailFollowers = this.env["mail.followers"];
         /** @type {import("mock_models").MailMessageLinkPreview} */
@@ -135,6 +145,19 @@ export class MailMessage extends models.ServerModel {
                     makeKwArgs({ as_thread: true, only_id: true })
                 ),
             };
+            if (
+                format_reply &&
+                message.model === "discuss.channel" &&
+                thread?.channel_type === "channel" &&
+                !thread.parent_channel_id
+            ) {
+                data.linkedSubChannel = mailDataHelpers.Store.one(
+                    DiscussChannel.browse(
+                        DiscussChannel.search([["from_message_id", "=", message.id]])
+                    ),
+                    makeKwArgs({ only_id: true })
+                );
+            }
             if (fields.includes("message_link_preview_ids")) {
                 data.message_link_preview_ids = mailDataHelpers.Store.many(
                     MailMessageLinkPreview.browse(message.message_link_preview_ids).filter(
@@ -169,6 +192,7 @@ export class MailMessage extends models.ServerModel {
     }
 
     get _to_store_defaults() {
+        const hasPoll = (m) => m.started_poll_ids.length || m.ended_poll_ids.length;
         return [
             mailDataHelpers.Store.many(
                 "attachment_ids",
@@ -190,6 +214,14 @@ export class MailMessage extends models.ServerModel {
                 mailDataHelpers.Store.many(this.env["mail.message.reaction"].browse(m.reaction_ids))
             ),
             "res_id",
+            mailDataHelpers.Store.many(
+                "started_poll_ids",
+                makeKwArgs({
+                    fields: this.env["mail.poll"]._store_poll_fields(false),
+                    predicate: hasPoll,
+                })
+            ),
+            mailDataHelpers.Store.many("ended_poll_ids", makeKwArgs({ predicate: hasPoll })),
             "subject",
             "write_date",
             mailDataHelpers.Store.one(
