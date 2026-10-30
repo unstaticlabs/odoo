@@ -1582,9 +1582,15 @@
       "domain": "people_and_payroll",
       "evidence_id": "receipt-batch-handoff-20261014",
       "id": "operational.people_and_payroll.receipt_batch_submission_20261014",
+      "overrides": {
+        "rpc:hr.expense.action_submit": {
+          "evidence_id": "employee-payment-candidates-20261030",
+          "rationale": "The employee-paid continuation reuses existing bank candidate discovery, existing Use and native lifecycle permissions. Company-paid and non-matching-authority users retain native behavior. The declared native reversal and audit controls remain unchanged; transient continuation does not grant authority."
+        }
+      },
       "rationale": "Native expense submission changes approval state and therefore is not read-only. The exact batch-only private delegate adds restrictions without granting access or replacing native accounting and audit behavior. Standalone expenses retain native submission.",
       "reviewed_digests": {
-        "rpc:hr.expense.action_submit": "9f267cf08fba1aba893097a8983cc5f600944864a931fa3506b3525e5ed7438e"
+        "rpc:hr.expense.action_submit": "231c3dafd697a184dbccf160af4297c2e4dcfb4eff38131cff70da6088678ba2"
       }
     },
     {
@@ -11832,7 +11838,6 @@
         "rpc:trial.balance.report.wizard.onchange_grouped_by",
         "rpc:trial.balance.report.wizard.onchange_show_partner_details",
         "rpc:trial.balance.report.wizard.onchange_type_accounts_only",
-        "rpc:usl.expense.bank.match.wizard.action_confirm",
         "rpc:usl.sign.enrollment.rating_send_request",
         "rpc:usl.sign.external.journey.rating_send_request",
         "rpc:validate.account.move.action_archive",
@@ -18264,7 +18269,6 @@
         "rpc:trial.balance.report.wizard.onchange_grouped_by": "6f27ce2cc63c4e66c6a3cc2aa49000496ee3315dde7ed7aea01e11981c08bd64",
         "rpc:trial.balance.report.wizard.onchange_show_partner_details": "fcb03868b877f5505dc3f9134084d98561d1065a9864d16ec941373ddaffed84",
         "rpc:trial.balance.report.wizard.onchange_type_accounts_only": "8796be8f9f420aa7f13d4a72bdd681d6598c6dd0d6b9da1508796f7002ccd970",
-        "rpc:usl.expense.bank.match.wizard.action_confirm": "f096e52aac5a95b599314cd0e76dbd17e4d188058a910739564bdd4422655b01",
         "rpc:usl.sign.enrollment.rating_send_request": "fff4486fcff746e1174ad48c341e87325cbfad003de78d24b8ea0101b7ce2486",
         "rpc:usl.sign.external.journey.rating_send_request": "fff4486fcff746e1174ad48c341e87325cbfad003de78d24b8ea0101b7ce2486",
         "rpc:validate.account.move.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
@@ -77739,9 +77743,13 @@
           "reversal_action": "rpc:hr.employee.write"
         },
         "rpc:hr.expense.action_approve": {
+          "evidence_id": "employee-payment-candidates-20261030",
+          "rationale": "The employee-paid continuation reuses existing bank candidate discovery, existing Use and native lifecycle permissions. Company-paid and non-matching-authority users retain native behavior. The declared native reversal and audit controls remain unchanged; transient continuation does not grant authority.",
           "reversal_action": "rpc:hr.expense.write"
         },
         "rpc:hr.expense.action_post": {
+          "evidence_id": "employee-payment-candidates-20261030",
+          "rationale": "The employee-paid continuation reuses existing bank candidate discovery, existing Use and native lifecycle permissions. Company-paid and non-matching-authority users retain native behavior. The declared native reversal and audit controls remain unchanged; transient continuation does not grant authority.",
           "reversal_action": "rpc:hr.expense.write"
         },
         "rpc:hr.expense.action_rebuild_waive_receipt": {
@@ -81333,6 +81341,8 @@
           "reversal_action": "rpc:usl.document.write"
         },
         "rpc:usl.expense.bank.match.candidate.action_open_confirmation": {
+          "evidence_id": "employee-payment-candidates-20261030",
+          "rationale": "The employee-paid continuation reuses existing bank candidate discovery, existing Use and native lifecycle permissions. Company-paid and non-matching-authority users retain native behavior. The declared native reversal and audit controls remain unchanged; transient continuation does not grant authority.",
           "reversal_action": "rpc:usl.expense.bank.match.candidate.write"
         },
         "rpc:usl.expense.batch.mcp_revise_own_message": {
@@ -83675,8 +83685,8 @@
         "rpc:hr.department.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:hr.employee.mcp_revise_own_message": "7ad1a612a46aad9c2814e60fb446e6d89f1d8f5d0c81921d55dbea5b6786334d",
         "rpc:hr.employee.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
-        "rpc:hr.expense.action_approve": "1c5ac92f4e60de5d22469b23fbadc8bf0d27d8d1d48a2e6e9af434993b0205ed",
-        "rpc:hr.expense.action_post": "966aac07eb839e4dd47962cfdaac11f44154e4fdabd630e9a0ada9037004bcde",
+        "rpc:hr.expense.action_approve": "76d911164f430ad9ea85d05093c13f4a38958a04d8e95add356bc59d2e8608e0",
+        "rpc:hr.expense.action_post": "35539067e97f5623434e075dba52728dc33f3128d2baaed2fdab21783633307f",
         "rpc:hr.expense.action_rebuild_waive_receipt": "46b4cd9ad2696afc1844b16977c1ea16f5f511d86ed8c0392d2be95cf48c0de4",
         "rpc:hr.expense.action_refresh_bank_match_candidates": "52ba6d0bd98f5a482ae99e7e69a58fd06866a8019c2a075b22ed369f8075bbab",
         "rpc:hr.expense.create": "99b4cadf522da5df71317dedadcb698add08738f022305c5ce7e3c463f00aac3",
@@ -84841,7 +84851,7 @@
         "rpc:usl.document.link.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:usl.document.mcp_revise_own_message": "7ad1a612a46aad9c2814e60fb446e6d89f1d8f5d0c81921d55dbea5b6786334d",
         "rpc:usl.document.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
-        "rpc:usl.expense.bank.match.candidate.action_open_confirmation": "6f43d41e77760eaba08843f84dadca77e3ca8942e6523cf5cab166b7e8d80674",
+        "rpc:usl.expense.bank.match.candidate.action_open_confirmation": "a1b1ecee6a4516a056d1ecc75a9fdcdad8eef1e696fbf98810570a05f1aedf80",
         "rpc:usl.expense.batch.mcp_revise_own_message": "7ad1a612a46aad9c2814e60fb446e6d89f1d8f5d0c81921d55dbea5b6786334d",
         "rpc:usl.expense.batch.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
         "rpc:usl.oidc.identity.mcp_revise_own_message": "7ad1a612a46aad9c2814e60fb446e6d89f1d8f5d0c81921d55dbea5b6786334d",
@@ -107855,8 +107865,8 @@
           "reversal_action": "rpc:hr.expense.write"
         },
         "rpc:hr.expense.post.wizard.action_post_entry": {
-          "evidence_id": "upstream-sync-20261015",
-          "rationale": "Native public posting now explicitly checks expenses.has_access(write) and account.move create before existing fixed accounting sudo. Existing native self.company configuration write only selected expense journal. Retain recoverable current policy; no authority widening. New return list fixes tuple/list combination.",
+          "evidence_id": "employee-payment-candidates-20261030",
+          "rationale": "The employee-paid continuation reuses existing bank candidate discovery, existing Use and native lifecycle permissions. Company-paid and non-matching-authority users retain native behavior. The declared native reversal and audit controls remain unchanged; transient continuation does not grant authority.",
           "reversal_action": "rpc:hr.expense.post.wizard.write"
         },
         "rpc:hr.expense.post.wizard.copy": {
@@ -109202,7 +109212,7 @@
         "rpc:hr.expense.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
         "rpc:hr.expense.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
         "rpc:hr.expense.onchange_batch": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
-        "rpc:hr.expense.post.wizard.action_post_entry": "8b4774440c69688baa6ea7fe5bd22b8eb2dd2144d5bb2cc1f324227d61ffd8ac",
+        "rpc:hr.expense.post.wizard.action_post_entry": "c88e82b77f100616ee83f28d4f88525f3b31d44c75b615997d7158202a020d2c",
         "rpc:hr.expense.post.wizard.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:hr.expense.post.wizard.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
         "rpc:hr.expense.post.wizard.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
@@ -146587,9 +146597,11 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.line.write:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.unlink:orm_unlink:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.write:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_employee_payment_review:orm_create:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_refresh_bank_match_candidates:orm_create:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_refresh_bank_match_candidates:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_refresh_bank_match_candidates:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense.action_post:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:message_send:1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:message_send:2",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:1",
@@ -146730,6 +146742,9 @@
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_statement_review_wizard.py:account.bank.statement.reopen.action_reopen:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_statement_review_wizard.py:account.bank.statement.reopen.action_reopen:sudo:1",
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_statement_review_wizard.py:account.bank.statement.reopen.action_reopen:sudo:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard._usl_dispatch:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard._usl_open_employee_payment_review:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard.action_post_entry:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.action_reject:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.action_verify:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.create:orm_create:1",
@@ -152869,6 +152884,10 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.write:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_employee_payment_review:orm_create:1": {
+          "evidence_id": "employee-payment-candidates-20261030",
+          "reachability_proof": "This exact AST mutation sink is not an RPC method; private helpers are reached only by the reviewed expense transitions and transient continuation. Public parent entries remain classified separately."
+        },
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_refresh_bank_match_candidates:orm_create:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -152878,25 +152897,43 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_refresh_bank_match_candidates:orm_write:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense.action_post:orm_write:1": {
+          "evidence_id": "employee-payment-candidates-20261030",
+          "reachability_proof": "This exact AST mutation sink is not an RPC method; private helpers are reached only by the reviewed expense transitions and transient continuation. Public parent entries remain classified separately."
+        },
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:message_send:1": {
+          "evidence_id": "employee-payment-candidates-20261030",
+          "rationale": "The employee-paid continuation reuses existing bank candidate discovery, existing Use and native lifecycle permissions. Company-paid and non-matching-authority users retain native behavior. The declared native reversal and audit controls remain unchanged; transient continuation does not grant authority.",
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:message_send:2": {
+          "evidence_id": "employee-payment-candidates-20261030",
+          "rationale": "The employee-paid continuation reuses existing bank candidate discovery, existing Use and native lifecycle permissions. Company-paid and non-matching-authority users retain native behavior. The declared native reversal and audit controls remain unchanged; transient continuation does not grant authority.",
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:1": {
+          "evidence_id": "employee-payment-candidates-20261030",
+          "rationale": "The employee-paid continuation reuses existing bank candidate discovery, existing Use and native lifecycle permissions. Company-paid and non-matching-authority users retain native behavior. The declared native reversal and audit controls remain unchanged; transient continuation does not grant authority.",
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:2": {
+          "evidence_id": "employee-payment-candidates-20261030",
+          "rationale": "The employee-paid continuation reuses existing bank candidate discovery, existing Use and native lifecycle permissions. Company-paid and non-matching-authority users retain native behavior. The declared native reversal and audit controls remain unchanged; transient continuation does not grant authority.",
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:3": {
+          "evidence_id": "employee-payment-candidates-20261030",
+          "rationale": "The employee-paid continuation reuses existing bank candidate discovery, existing Use and native lifecycle permissions. Company-paid and non-matching-authority users retain native behavior. The declared native reversal and audit controls remain unchanged; transient continuation does not grant authority.",
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:4": {
+          "evidence_id": "employee-payment-candidates-20261030",
+          "rationale": "The employee-paid continuation reuses existing bank candidate discovery, existing Use and native lifecycle permissions. Company-paid and non-matching-authority users retain native behavior. The declared native reversal and audit controls remain unchanged; transient continuation does not grant authority.",
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate.action_open_confirmation:orm_create:1": {
+          "evidence_id": "employee-payment-candidates-20261030",
+          "rationale": "The employee-paid continuation reuses existing bank candidate discovery, existing Use and native lifecycle permissions. Company-paid and non-matching-authority users retain native behavior. The declared native reversal and audit controls remain unchanged; transient continuation does not grant authority.",
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.expense.bank.match.candidate.action_open_confirmation"
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:_as_settlement_service:sudo:1": {
@@ -153297,6 +153334,18 @@
         },
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_statement_review_wizard.py:account.bank.statement.reopen.action_reopen:sudo:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard._usl_dispatch:orm_write:1": {
+          "evidence_id": "employee-payment-candidates-20261030",
+          "reachability_proof": "This exact AST mutation sink is not an RPC method; private helpers are reached only by the reviewed expense transitions and transient continuation. Public parent entries remain classified separately."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard._usl_open_employee_payment_review:orm_write:1": {
+          "evidence_id": "employee-payment-candidates-20261030",
+          "reachability_proof": "This exact AST mutation sink is not an RPC method; private helpers are reached only by the reviewed expense transitions and transient continuation. Public parent entries remain classified separately."
+        },
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard.action_post_entry:orm_write:1": {
+          "evidence_id": "employee-payment-candidates-20261030",
+          "reachability_proof": "This exact AST mutation sink is not an RPC method; private helpers are reached only by the reviewed expense transitions and transient continuation. Public parent entries remain classified separately."
         },
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.action_reject:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:b2c.accounting.link.action_reject"
@@ -155526,16 +155575,18 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.line.write:orm_write:1": "def13d3e10ce5c96cd5b7a22cd5a75926646f128bddf9dd7e843f494ca46af58",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.unlink:orm_unlink:1": "28690d1852b7a48584d62d923fc9f1c9520b65366a274dbde6eb32fea72456a9",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.write:orm_write:1": "7305b7be90d30bdba01c313ee93fa6e65c73bed0e862cd9c91e3e9668df08f23",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_employee_payment_review:orm_create:1": "d375e5d80237e1a6cf070dbd53a1329e37751795503ede870e932bd139b8efc1",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_refresh_bank_match_candidates:orm_create:1": "f23ced9433def45ad1622d23f83db37de0c0096696d7af6c9fbffc00ddf6a081",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_refresh_bank_match_candidates:orm_write:1": "961f7e997c4ca190aaa2f2d6aedba86b3b2cbba32e59cb1b23afbb46b37d24a4",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_refresh_bank_match_candidates:orm_write:2": "cf4cbd218d95d70da7708c7cd6919320b28917f2a17fa878d9ab36209d5d7534",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:message_send:1": "15412a1f67701c744a586f1c0ddaed221372363108ae58b5b5c60cec2e0b641e",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:message_send:2": "0a545ca5ebdb4562d0b7105fdce4d3857db8f4073da7cd3e0bf4799078133b95",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:1": "1c6360adbfeb458092af861fecd79643c95de9e10596ab88a532111ac929db26",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:2": "c483a605ae432017c0197c955385f60611bacfa50c42e960235b44811a48c79d",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:3": "abcfe94ccb5884c83986ac786f7820852c34c0d1230a8fc08dc55587cc5bba35",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:4": "436363acc6c30888a940241824a1d163c6e5fec14b3f8d17952acf2f289d97fe",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate.action_open_confirmation:orm_create:1": "67062504254f638db41d8a9a718463ebfdd96155ef4cbec247e3d84b5bc502e0",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense.action_post:orm_write:1": "5f0e56fd49206a07af22d85bbb38210866aa3ff4cd69b9e8f02dd5a955f09981",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:message_send:1": "c59da01990ee546263bf8dd7b08b27e60847ff8ce2bf7650355f6595fe575639",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:message_send:2": "20eaa11a601a6575dcf5fef46df947e82b88f844574d24f55df771a3ba0109ca",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:1": "f83be48d2e73303498d45487e2830e8f4e049ab7144e8f7d2c919d5cb57f37cb",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:2": "d8c4c4bdcbaa11fb03f969b2ffe5d0fbafdeeb1978f8c7fb157359c69cc3e9b7",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:3": "466cc0f35ba2b09d0fcae0a8b1b31f341760a9434784161f4686f2ae14564f88",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:4": "ea2f81b96813ab012db62527fc8e6156928b0e464838b390e1f663fa85862e39",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate.action_open_confirmation:orm_create:1": "8c018b115f85b5c586ed235d2559d2ba868d4e8c42fc758428abc8a2df9291c7",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:_as_settlement_service:sudo:1": "c046d4cf41402742f11b795c47fcaaf65026f0c7e4237cb5a63484f3207e12f6",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._restore_payment_rate_document:orm_write:1": "2edf1302550b9c5889f195ba370523b1a03a91e7604a3b78ef2ecd1f11b9b886",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._restore_payment_rate_document:orm_write:2": "7ba969f872839e5d627b1383b870a98f647a9ed1e85c46ba59082cc1d51fda7a",
@@ -155669,6 +155720,9 @@
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_statement_review_wizard.py:account.bank.statement.reopen.action_reopen:orm_write:1": "ce59a1f422bab3a649a2c213f1bf567204001e8cbc147f7c8c2530c08e13d824",
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_statement_review_wizard.py:account.bank.statement.reopen.action_reopen:sudo:1": "3b6e3e2c048a509d443bf3fc3a6bc4bc0f947c5166109c0fcedd8e9595fa8382",
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_statement_review_wizard.py:account.bank.statement.reopen.action_reopen:sudo:2": "e8bd9819300d080b1978381f23285e4b5b272673883614712a98de8b38197a2f",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard._usl_dispatch:orm_write:1": "d41a4fa290d5a8781cb58e520829b238a1c61145578d261ba978d8dd4a789418",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard._usl_open_employee_payment_review:orm_write:1": "c53c7c38fba79efa167cbbed64eaeeab1e02cca94cd5230cde91e6ebda867638",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard.action_post_entry:orm_write:1": "487b757045e414e9392b4d1b805987f29a108949e3e2d971b8b595d94bdbd3c2",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.action_reject:orm_write:1": "088e2b7067dfc292f421df41837dabc7e421c60a3f38fa327a7a846b3b431d3e",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.action_verify:orm_write:1": "2c90c33250e6f61d6e891a87880192a0d6deb0aaed928673f0e6b2287c0076b5",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.create:orm_create:1": "5e1da5bb6b40afa5fb237e45b49a59ca0750895c335a35526d57572fbf734afd",
@@ -187627,7 +187681,8 @@
         "ui:usl_accounting.view_bank_statement_form_review:button:object:action_open_statement_pdf_upload:1",
         "ui:usl_accounting.view_bank_statement_form_review:button:object:action_open_transactions:1",
         "ui:usl_accounting.view_bank_statement_reopen_form:button:object:action_reopen:1",
-        "ui:usl_accounting.view_hr_expense_form_bank_matching:button:object:action_open_confirmation:1",
+        "ui:usl_accounting.view_expense_bank_match_candidate_list:button:object:action_open_confirmation:1",
+        "ui:usl_accounting.view_expense_post_bank_match_review:button:object:action_continue_employee_payment:1",
         "ui:usl_accounting.view_hr_expense_form_bank_matching:button:object:action_refresh_bank_match_candidates:1",
         "ui:usl_accounting.view_move_form_immediate_settlement:button:object:action_open_immediate_settlement:1",
         "ui:usl_accounting.view_users_form_multi_company_expenses:button:object:action_usl_sync_expense_company_profiles:1",
@@ -190214,9 +190269,16 @@
             "rpc:account.bank.statement.reopen.action_reopen"
           ]
         },
-        "ui:usl_accounting.view_hr_expense_form_bank_matching:button:object:action_open_confirmation:1": {
+        "ui:usl_accounting.view_expense_bank_match_candidate_list:button:object:action_open_confirmation:1": {
+          "evidence_id": "employee-payment-candidates-20261030",
           "targets": [
             "rpc:usl.expense.bank.match.candidate.action_open_confirmation"
+          ]
+        },
+        "ui:usl_accounting.view_expense_post_bank_match_review:button:object:action_continue_employee_payment:1": {
+          "evidence_id": "employee-payment-candidates-20261030",
+          "targets": [
+            "rpc:hr.expense.post.wizard.action_continue_employee_payment"
           ]
         },
         "ui:usl_accounting.view_hr_expense_form_bank_matching:button:object:action_refresh_bank_match_candidates:1": {
@@ -190860,7 +190922,8 @@
         "ui:usl_accounting.view_bank_statement_form_review:button:object:action_open_statement_pdf_upload:1": "694ab0ac014a2aaff6634e5bdbac7312ebae53045b290536252242f70ced6c59",
         "ui:usl_accounting.view_bank_statement_form_review:button:object:action_open_transactions:1": "b8840346d248a1f6c529ba73aed44ec1b21d2cdf3bac1f6c895382af8feb83f4",
         "ui:usl_accounting.view_bank_statement_reopen_form:button:object:action_reopen:1": "f69e40686b209f814b0ae1a486af944a28a38d7325a1ae991d3a0444d6fb02ee",
-        "ui:usl_accounting.view_hr_expense_form_bank_matching:button:object:action_open_confirmation:1": "9d99b687efe8cddf4ab1f73f4a6738fc14a85139d323e06922966fe13823d28d",
+        "ui:usl_accounting.view_expense_bank_match_candidate_list:button:object:action_open_confirmation:1": "c8869d541d7cd366203e877f2f32c0dc024591cf07522ff0294167746b14dfe8",
+        "ui:usl_accounting.view_expense_post_bank_match_review:button:object:action_continue_employee_payment:1": "b3b62e5568000644c59641fe3654d8a54d195fcd7c903ca74fe4628d0e8213d6",
         "ui:usl_accounting.view_hr_expense_form_bank_matching:button:object:action_refresh_bank_match_candidates:1": "e3e384a535f10ea8f1b9ccdd0acd05546a14ce48278a1ac87253eefa98f3d038",
         "ui:usl_accounting.view_move_form_immediate_settlement:button:object:action_open_immediate_settlement:1": "8f2fc5ebb66b853eda188be530a098fe67865b15881522a1224ffb94de2672a6",
         "ui:usl_accounting.view_users_form_multi_company_expenses:button:object:action_usl_sync_expense_company_profiles:1": "637fa9782374ce1e55c96a1ff11fb8957e32b4044cc2135c4936ade889385fdd",
@@ -205234,6 +205297,34 @@
       "targets": [
         "rpc:account.reconcile.model.action_rebuild_recheck_evidence"
       ]
+    },
+    {
+      "action_keys": [
+        "rpc:hr.expense.post.wizard.action_continue_employee_payment"
+      ],
+      "classification": "operational",
+      "consequence": "Continues the selected native employee expense Submit, Approve or Post after reviewing current company-bank suggestions; preserves native accounting entries, receipt evidence, company scope and attribution.",
+      "domain": "accounting",
+      "evidence_id": "employee-payment-candidates-20261030",
+      "id": "operational.accounting.employee_payment_continuation_20261030",
+      "rationale": "The same authorized operator continues the existing native lifecycle. Server-side stage/state validation and current evidence prevent stale or repeated continuation; native permissions, duplicate review and accounting controls remain authoritative. No Agent-specific restriction or additional approver is introduced.",
+      "reviewed_digests": {
+        "rpc:hr.expense.post.wizard.action_continue_employee_payment": "edba8c5051eab7ec4350a4cefe4a776e31d3edf7fbd68a5717772abc0ced1bb3"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:usl.expense.bank.match.wizard.action_confirm"
+      ],
+      "classification": "operational",
+      "consequence": "Uses the selected company bank payment through native expense conversion, posting and reconciliation, then continues the remaining selected expenses through their original native transition.",
+      "domain": "accounting",
+      "evidence_id": "employee-payment-candidates-20261030",
+      "id": "operational.accounting.expense_bank_match_confirmation_20261030",
+      "rationale": "This fixed, operator-selected workflow retains native access, company and accounting checks, fresh candidate validation and acting-user attribution. People and delegated Agents use the same effective permissions; no separate approval is introduced.",
+      "reviewed_digests": {
+        "rpc:usl.expense.bank.match.wizard.action_confirm": "a9f8553fe54de0873c53711c1741121d7a77afc14116bcb74ccc1bc63e4f4098"
+      }
     }
   ],
   "evidence_families": {
@@ -205402,6 +205493,12 @@
         "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_reviewed_match_rejects_same_amount_line_edit_after_native_confirmation",
         "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_reviewed_match_rejects_changed_bank_reference_after_native_confirmation",
         "custom-addons/usl_accounting/tests/test_immediate_settlement.py::TestImmediateSettlement.test_native_after_post_autopost_action_is_retained_after_matching"
+      ]
+    },
+    "employee-payment-candidates-20261030": {
+      "contract": "Employee-paid Submit, Approve and Post reuse existing bank suggestions under native authority; no matches or no matching rights keep native continuation. Existing Use reconciles. Stage, batch, journal/date, unchanged decisions, changed evidence and completed replay preserve native expense and ledger meaning.",
+      "tests": [
+        "custom-addons/usl_accounting/tests/test_expense_bank_matching.py::TestExpenseBankMatching"
       ]
     },
     "feedback-capture-20261013": {

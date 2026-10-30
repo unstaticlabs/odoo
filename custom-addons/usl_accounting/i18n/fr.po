@@ -1344,6 +1344,7 @@ msgstr "Alternative"
 
 #. module: usl_accounting
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_bank_match_candidate_list
 msgid "Amount"
 msgstr "Montant"
 
@@ -1633,6 +1634,7 @@ msgstr "Identifiant bancaire"
 
 #. module: usl_accounting
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_bank_match_candidate_list
 msgid "Bank label"
 msgstr "Libellé bancaire"
 
@@ -1734,6 +1736,7 @@ msgstr "Peut se lettrer"
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_expense_bank_match_wizard_form
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_mail_pdf_candidate_wizard_form
 #: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_review_form
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_post_bank_match_review
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -1892,8 +1895,38 @@ msgstr "Rapprochements de paiements de la société"
 
 #. module: usl_accounting
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+#. odoo-python
+#: code:addons/usl_accounting/wizard/expense_post_confirmation.py:0
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_post_bank_match_review
 msgid "Company payment match"
 msgstr "Rapprochement avec un paiement de la société"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_post_bank_match_review
+msgid "Continue with employee payment"
+msgstr "Continuer avec le paiement par l’employé"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_post_bank_match_review
+msgid "A company bank transaction may cover this expense."
+msgstr "Une transaction bancaire de la société peut correspondre à cette dépense."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_post_bank_match_review
+msgid "Suggestions changed. Review the current transactions."
+msgstr "Les suggestions ont changé. Vérifiez les transactions actuelles."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/expense_post_confirmation.py:0
+msgid "This expense action is already complete. Refresh the expenses."
+msgstr "Cette action est déjà terminée. Actualisez les dépenses."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/expense_post_confirmation.py:0
+msgid "The expense state changed. Refresh the expenses before continuing."
+msgstr "L’état de la dépense a changé. Actualisez les dépenses avant de continuer."
 
 #. module: usl_accounting
 #: model:ir.model.fields,help:usl_accounting.field_account_immediate_settlement__preview_settlement_difference
@@ -2089,6 +2122,7 @@ msgstr "Solde d’ouverture de reprise accepté par le responsable comptable."
 
 #. module: usl_accounting
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_bank_match_candidate_list
 msgid "Date"
 msgstr "Date"
 
@@ -2748,6 +2782,7 @@ msgstr "Points à vérifier"
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__journal_id
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__journal_id
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_bank_match_candidate_list
 msgid "Journal"
 msgstr "Journal"
 
@@ -2913,6 +2948,7 @@ msgstr ""
 
 #. module: usl_accounting
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_bank_match_candidate_list
 msgid "Match"
 msgstr "Rapprocher"
 
@@ -3622,6 +3658,7 @@ msgstr "Partiellement apparié – il reste un résidu"
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__partner_id
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
 #: model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__partner_id
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_bank_match_candidate_list
 msgid "Partner"
 msgstr "Partenaire"
 
@@ -5889,6 +5926,7 @@ msgstr "Modifier les soldes bancaires"
 
 #. module: usl_accounting
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_bank_match_candidate_list
 msgid "Use"
 msgstr "Utiliser"
 
@@ -6119,6 +6157,7 @@ msgstr "Pourquoi cette correction est-elle nécessaire ?"
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_candidate__evidence_summary
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__evidence_summary
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_hr_expense_form_bank_matching
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_bank_match_candidate_list
 msgid "Why suggested"
 msgstr "Pourquoi suggéré"
 

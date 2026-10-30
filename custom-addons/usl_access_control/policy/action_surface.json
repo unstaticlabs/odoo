@@ -412536,11 +412536,13 @@
       "archiveable": false,
       "delegates": [
         "rpc:hr.employee.sudo",
+        "rpc:hr.expense.check_access",
         "rpc:hr.expense.filtered",
         "rpc:hr.expense.mapped",
+        "rpc:hr.expense.post.wizard.with_context",
         "rpc:hr.expense.update_activities_and_mails"
       ],
-      "digest": "1c5ac92f4e60de5d22469b23fbadc8bf0d27d8d1d48a2e6e9af434993b0205ed",
+      "digest": "76d911164f430ad9ea85d05093c13f4a38958a04d8e95add356bc59d2e8608e0",
       "guards": [],
       "key": "rpc:hr.expense.action_approve",
       "kind": "rpc",
@@ -412548,12 +412550,14 @@
       "model": "hr.expense",
       "modules": [
         "hr_expense",
-        "rebuild_account_migration"
+        "rebuild_account_migration",
+        "usl_accounting"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "b7efd160e1b0a31eadd5d54007a5e8d6d631fbbc09bf3d9e818149fb2fa76b2c",
+      "runtime_digest": "2ec02ed58be7da2de08ce47433bab8b8f1791a9c29ea2974594d2dec79c435ce",
       "sinks": [
+        "orm_create",
         "orm_write",
         "sudo"
       ],
@@ -412567,7 +412571,14 @@
           "path": "custom-addons/rebuild_account_migration/models/operational_extensions.py"
         },
         {
+          "line": 478,
+          "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
+        },
+        {
           "path": "custom-addons/rebuild_account_migration/models/operational_extensions.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         },
         {
           "path": "odoo/addons/hr_expense/models/hr_expense.py"
@@ -412576,8 +412587,10 @@
       "transient": false,
       "unresolved_delegates": [
         "rpc:hr.employee.sudo",
+        "rpc:hr.expense.check_access",
         "rpc:hr.expense.filtered",
-        "rpc:hr.expense.mapped"
+        "rpc:hr.expense.mapped",
+        "rpc:hr.expense.post.wizard.with_context"
       ]
     },
     {
@@ -412987,10 +413000,12 @@
       "archiveable": false,
       "delegates": [
         "rpc:account.analytic.account.create",
+        "rpc:hr.expense.check_access",
         "rpc:hr.expense.filtered",
-        "rpc:hr.expense.mapped"
+        "rpc:hr.expense.mapped",
+        "rpc:hr.expense.post.wizard.with_context"
       ],
-      "digest": "966aac07eb839e4dd47962cfdaac11f44154e4fdabd630e9a0ada9037004bcde",
+      "digest": "35539067e97f5623434e075dba52728dc33f3128d2baaed2fdab21783633307f",
       "guards": [],
       "key": "rpc:hr.expense.action_post",
       "kind": "rpc",
@@ -413000,11 +413015,12 @@
         "hr_expense",
         "project_sale_expense",
         "rebuild_account_migration",
-        "sale_expense"
+        "sale_expense",
+        "usl_accounting"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "0731084533bf92effe9641761b6ec734bff1aceb07860015ff01eeaf94faf838",
+      "runtime_digest": "e3c88140514e6c39f3d8d7ea801384acb45d603334f645e65653b97e3bac8296",
       "sinks": [
         "orm_create",
         "orm_write"
@@ -413023,11 +413039,18 @@
           "path": "addons/project_sale_expense/models/hr_expense.py"
         },
         {
+          "line": 486,
+          "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
+        },
+        {
           "line": 70,
           "path": "addons/sale_expense/models/hr_expense.py"
         },
         {
           "path": "custom-addons/rebuild_account_migration/models/operational_extensions.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         },
         {
           "path": "odoo/addons/hr_expense/models/hr_expense.py"
@@ -413041,8 +413064,10 @@
       ],
       "transient": false,
       "unresolved_delegates": [
+        "rpc:hr.expense.check_access",
         "rpc:hr.expense.filtered",
-        "rpc:hr.expense.mapped"
+        "rpc:hr.expense.mapped",
+        "rpc:hr.expense.post.wizard.with_context"
       ]
     },
     {
@@ -413118,7 +413143,7 @@
       ],
       "sources": [
         {
-          "line": 817,
+          "line": 865,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         },
         {
@@ -413531,9 +413556,10 @@
       "delegates": [
         "rpc:hr.expense.check_access",
         "rpc:hr.expense.filtered",
+        "rpc:hr.expense.post.wizard.with_context",
         "rpc:hr.expense.sudo"
       ],
-      "digest": "9f267cf08fba1aba893097a8983cc5f600944864a931fa3506b3525e5ed7438e",
+      "digest": "231c3dafd697a184dbccf160af4297c2e4dcfb4eff38131cff70da6088678ba2",
       "guards": [],
       "key": "rpc:hr.expense.action_submit",
       "kind": "rpc",
@@ -413542,12 +413568,14 @@
       "modules": [
         "hr_expense",
         "rebuild_account_migration",
+        "usl_accounting",
         "usl_expense_batch"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "8fd83ebfc46fd480f6b265570471cb84dfc7817de4be0f73a83d67c9eff8ce1e",
+      "runtime_digest": "317283c81ba250d57f512c70b0152ea799ea747324caaa140f0a6f7819d93399",
       "sinks": [
+        "orm_create",
         "sudo"
       ],
       "sources": [
@@ -413564,7 +413592,14 @@
           "path": "custom-addons/usl_expense_batch/models/hr_expense.py"
         },
         {
+          "line": 471,
+          "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
+        },
+        {
           "path": "custom-addons/rebuild_account_migration/models/operational_extensions.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         },
         {
           "path": "custom-addons/usl_expense_batch/models/hr_expense.py"
@@ -413577,6 +413612,7 @@
       "unresolved_delegates": [
         "rpc:hr.expense.check_access",
         "rpc:hr.expense.filtered",
+        "rpc:hr.expense.post.wizard.with_context",
         "rpc:hr.expense.sudo"
       ]
     },
@@ -417700,23 +417736,66 @@
       "abstract": false,
       "archiveable": false,
       "delegates": [
+        "rpc:hr.expense.post.wizard.browse",
+        "rpc:hr.expense.post.wizard.check_access",
+        "rpc:hr.expense.post.wizard.ensure_one",
+        "rpc:hr.expense.post.wizard.with_context"
+      ],
+      "digest": "edba8c5051eab7ec4350a4cefe4a776e31d3edf7fbd68a5717772abc0ced1bb3",
+      "guards": [],
+      "key": "rpc:hr.expense.post.wizard.action_continue_employee_payment",
+      "kind": "rpc",
+      "method": "action_continue_employee_payment",
+      "model": "hr.expense.post.wizard",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "367f0c76154c769fa355028a427e079b91be23ec956fb5bf2df9236237f79c5a",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 55,
+          "path": "custom-addons/usl_accounting/wizard/expense_post_confirmation.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/wizard/expense_post_confirmation.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:hr.expense.post.wizard.browse",
+        "rpc:hr.expense.post.wizard.check_access",
+        "rpc:hr.expense.post.wizard.ensure_one",
+        "rpc:hr.expense.post.wizard.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
         "rpc:account.move.has_access",
         "rpc:account.move.sudo",
         "rpc:hr.expense.browse",
+        "rpc:hr.expense.post.wizard.ensure_one",
         "rpc:hr.expense.post.wizard.sudo"
       ],
-      "digest": "8b4774440c69688baa6ea7fe5bd22b8eb2dd2144d5bb2cc1f324227d61ffd8ac",
+      "digest": "c88e82b77f100616ee83f28d4f88525f3b31d44c75b615997d7158202a020d2c",
       "guards": [],
       "key": "rpc:hr.expense.post.wizard.action_post_entry",
       "kind": "rpc",
       "method": "action_post_entry",
       "model": "hr.expense.post.wizard",
       "modules": [
-        "hr_expense"
+        "hr_expense",
+        "usl_accounting"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "a74c2f372308c49cde35260dd5ed05fcbe7f281cc31d30876aa8a6157e544081",
+      "runtime_digest": "c0316b3f2472f1fbd4535bc724d94389aee6b4b525f4982aaf5dbe5ad6eddf89",
       "sinks": [
         "orm_create",
         "orm_write",
@@ -417728,6 +417807,13 @@
           "path": "addons/hr_expense/wizard/hr_expense_post_wizard.py"
         },
         {
+          "line": 98,
+          "path": "custom-addons/usl_accounting/wizard/expense_post_confirmation.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/wizard/expense_post_confirmation.py"
+        },
+        {
           "path": "odoo/addons/hr_expense/wizard/hr_expense_post_wizard.py"
         }
       ],
@@ -417735,6 +417821,7 @@
       "unresolved_delegates": [
         "rpc:account.move.sudo",
         "rpc:hr.expense.browse",
+        "rpc:hr.expense.post.wizard.ensure_one",
         "rpc:hr.expense.post.wizard.sudo"
       ]
     },
@@ -1361652,7 +1361739,7 @@
         "rpc:usl.expense.bank.match.candidate.ensure_one",
         "rpc:usl.expense.bank.match.wizard.create"
       ],
-      "digest": "6f43d41e77760eaba08843f84dadca77e3ca8942e6523cf5cab166b7e8d80674",
+      "digest": "a1b1ecee6a4516a056d1ecc75a9fdcdad8eef1e696fbf98810570a05f1aedf80",
       "guards": [],
       "key": "rpc:usl.expense.bank.match.candidate.action_open_confirmation",
       "kind": "rpc",
@@ -1361663,13 +1361750,13 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "dd760244a61d3fec2eb049090267c14a8ea5943488e4e73de9ba24853e71bd8c",
+      "runtime_digest": "7686ef9f59feec1d5d0cf3fe4df0065bcf40d883585c0590bbb116ef7cffee4f",
       "sinks": [
         "orm_create"
       ],
       "sources": [
         {
-          "line": 135,
+          "line": 138,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         },
         {
@@ -1363341,9 +1363428,10 @@
       "abstract": false,
       "archiveable": false,
       "delegates": [
+        "rpc:hr.expense.post.wizard.browse",
         "rpc:usl.expense.bank.match.wizard.ensure_one"
       ],
-      "digest": "f096e52aac5a95b599314cd0e76dbd17e4d188058a910739564bdd4422655b01",
+      "digest": "a9f8553fe54de0873c53711c1741121d7a77afc14116bcb74ccc1bc63e4f4098",
       "guards": [],
       "key": "rpc:usl.expense.bank.match.wizard.action_confirm",
       "kind": "rpc",
@@ -1363354,7 +1363442,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "053aee5000254928f8a0703b6be67f3004503d3225a0974be9010ae25dc4af68",
+      "runtime_digest": "21fd83a73979bec0aa020bdfba5a163beea98c68c765f058a98f9b45c9d89b12",
       "sinks": [],
       "sources": [
         {
@@ -1363367,6 +1363455,7 @@
       ],
       "transient": true,
       "unresolved_delegates": [
+        "rpc:hr.expense.post.wizard.browse",
         "rpc:usl.expense.bank.match.wizard.ensure_one"
       ]
     },
@@ -1626912,6 +1627001,21 @@
       ]
     },
     {
+      "digest": "d375e5d80237e1a6cf070dbd53a1329e37751795503ede870e932bd139b8efc1",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_employee_payment_review:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 451,
+          "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
+        }
+      ]
+    },
+    {
       "digest": "f23ced9433def45ad1622d23f83db37de0c0096696d7af6c9fbffc00ddf6a081",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_refresh_bank_match_candidates:orm_create:1",
       "kind": "sink",
@@ -1626921,7 +1627025,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 686,
+          "line": 734,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         }
       ]
@@ -1626936,7 +1627040,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 686,
+          "line": 734,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         }
       ]
@@ -1626951,13 +1627055,31 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 686,
+          "line": 734,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         }
       ]
     },
     {
-      "digest": "15412a1f67701c744a586f1c0ddaed221372363108ae58b5b5c60cec2e0b641e",
+      "digest": "5f0e56fd49206a07af22d85bbb38210866aa3ff4cd69b9e8f02dd5a955f09981",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense.action_post:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:hr.expense.action_post"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 486,
+          "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
+        }
+      ]
+    },
+    {
+      "digest": "c59da01990ee546263bf8dd7b08b27e60847ff8ce2bf7650355f6595fe575639",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:message_send:1",
       "kind": "sink",
       "modules": [
@@ -1626966,13 +1627088,13 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 255,
+          "line": 259,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         }
       ]
     },
     {
-      "digest": "0a545ca5ebdb4562d0b7105fdce4d3857db8f4073da7cd3e0bf4799078133b95",
+      "digest": "20eaa11a601a6575dcf5fef46df947e82b88f844574d24f55df771a3ba0109ca",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:message_send:2",
       "kind": "sink",
       "modules": [
@@ -1626981,13 +1627103,13 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 255,
+          "line": 259,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         }
       ]
     },
     {
-      "digest": "1c6360adbfeb458092af861fecd79643c95de9e10596ab88a532111ac929db26",
+      "digest": "f83be48d2e73303498d45487e2830e8f4e049ab7144e8f7d2c919d5cb57f37cb",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1626996,13 +1627118,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 255,
+          "line": 259,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         }
       ]
     },
     {
-      "digest": "c483a605ae432017c0197c955385f60611bacfa50c42e960235b44811a48c79d",
+      "digest": "d8c4c4bdcbaa11fb03f969b2ffe5d0fbafdeeb1978f8c7fb157359c69cc3e9b7",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1627011,13 +1627133,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 255,
+          "line": 259,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         }
       ]
     },
     {
-      "digest": "abcfe94ccb5884c83986ac786f7820852c34c0d1230a8fc08dc55587cc5bba35",
+      "digest": "466cc0f35ba2b09d0fcae0a8b1b31f341760a9434784161f4686f2ae14564f88",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:3",
       "kind": "sink",
       "modules": [
@@ -1627026,13 +1627148,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 255,
+          "line": 259,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         }
       ]
     },
     {
-      "digest": "436363acc6c30888a940241824a1d163c6e5fec14b3f8d17952acf2f289d97fe",
+      "digest": "ea2f81b96813ab012db62527fc8e6156928b0e464838b390e1f663fa85862e39",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:4",
       "kind": "sink",
       "modules": [
@@ -1627041,13 +1627163,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 255,
+          "line": 259,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         }
       ]
     },
     {
-      "digest": "67062504254f638db41d8a9a718463ebfdd96155ef4cbec247e3d84b5bc502e0",
+      "digest": "8c018b115f85b5c586ed235d2559d2ba868d4e8c42fc758428abc8a2df9291c7",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate.action_open_confirmation:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1627059,7 +1627181,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 135,
+          "line": 138,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         }
       ]
@@ -1631972,6 +1632094,54 @@
         {
           "line": 239,
           "path": "custom-addons/usl_accounting/wizard/bank_statement_review_wizard.py"
+        }
+      ]
+    },
+    {
+      "digest": "d41a4fa290d5a8781cb58e520829b238a1c61145578d261ba978d8dd4a789418",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard._usl_dispatch:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 62,
+          "path": "custom-addons/usl_accounting/wizard/expense_post_confirmation.py"
+        }
+      ]
+    },
+    {
+      "digest": "c53c7c38fba79efa167cbbed64eaeeab1e02cca94cd5230cde91e6ebda867638",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard._usl_open_employee_payment_review:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 20,
+          "path": "custom-addons/usl_accounting/wizard/expense_post_confirmation.py"
+        }
+      ]
+    },
+    {
+      "digest": "487b757045e414e9392b4d1b805987f29a108949e3e2d971b8b595d94bdbd3c2",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard.action_post_entry:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:hr.expense.post.wizard.action_post_entry"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 98,
+          "path": "custom-addons/usl_accounting/wizard/expense_post_confirmation.py"
         }
       ]
     },
@@ -1708670,26 +1708840,51 @@
       "delegates": [
         "rpc:usl.expense.bank.match.candidate.action_open_confirmation"
       ],
-      "digest": "9d99b687efe8cddf4ab1f73f4a6738fc14a85139d323e06922966fe13823d28d",
+      "digest": "c8869d541d7cd366203e877f2f32c0dc024591cf07522ff0294167746b14dfe8",
       "guards": [],
-      "key": "ui:usl_accounting.view_hr_expense_form_bank_matching:button:object:action_open_confirmation:1",
+      "key": "ui:usl_accounting.view_expense_bank_match_candidate_list:button:object:action_open_confirmation:1",
       "kind": "ui",
       "modules": [
         "usl_accounting"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "441f1a9ffd0d0f7e68bde2028e8a16ec26b21597fd4d1cae317a8de5256ad39c",
+      "runtime_digest": "fecc18efd15002539165123f4c103da7146c3c26f43bd6a54674d98c72e8f5b8",
       "sinks": [],
       "sources": [
         {
           "path": "custom-addons/usl_accounting/views/hr_expense_bank_matching_views.xml"
         },
         {
-          "path": "database:ir.ui.view:usl_accounting.view_hr_expense_form_bank_matching"
+          "path": "database:ir.ui.view:usl_accounting.view_expense_bank_match_candidate_list"
         }
       ],
-      "xmlid": "usl_accounting.view_hr_expense_form_bank_matching"
+      "xmlid": "usl_accounting.view_expense_bank_match_candidate_list"
+    },
+    {
+      "delegates": [
+        "rpc:hr.expense.post.wizard.action_continue_employee_payment"
+      ],
+      "digest": "b3b62e5568000644c59641fe3654d8a54d195fcd7c903ca74fe4628d0e8213d6",
+      "guards": [],
+      "key": "ui:usl_accounting.view_expense_post_bank_match_review:button:object:action_continue_employee_payment:1",
+      "kind": "ui",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "6a919f346858892f234ebb033843f538f54a5ef46a1d67fb394378efcafebc59",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_accounting/wizard/expense_post_confirmation_views.xml"
+        },
+        {
+          "path": "database:ir.ui.view:usl_accounting.view_expense_post_bank_match_review"
+        }
+      ],
+      "xmlid": "usl_accounting.view_expense_post_bank_match_review"
     },
     {
       "delegates": [
@@ -1718634,11 +1718829,11 @@
       "version": "saas~19.3.1.8.12"
     },
     {
-      "manifest_sha256": "0329aba461408e9639e173d431a9847b7c2f68d5647cada3c3ab2cb8099d316e",
+      "manifest_sha256": "6777b173d541dd3c023f7fdf00be663a56f3440d59aa58d1170d6bd351c0e0bf",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "b5a6baa446e4b1d2302a3a4c6a55c18bd7f549e7929996da9559d46ccfe5d613",
-      "version": "saas~19.3.2.2.19"
+      "source_sha256": "1423e651df40e7783db7bfd81c4ed7d60813e9befaec394ab4c0f1a592cf0ff0",
+      "version": "saas~19.3.2.2.20"
     },
     {
       "manifest_sha256": "d3991a85f02eca8b6b43179b39270cc15cfaf68325f4ff2181e354ccb01c4cf0",
