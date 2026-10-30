@@ -124,7 +124,7 @@ These results are local qualification, not a claim of staging deployment.
 | Checkout availability | 4 native HTTP tests passed, including 8 negative subcases; removing the upstream check reproduces all 8 failures |
 | Navigation | 153 desktop and 20 mobile tests passed in native and full-distribution contexts; one stale assertion was corrected to retain existing portable filters, with no navigation product change |
 | Pocket ID | 12 provisioning tests and 15 live browser/PKCE/token/JWT/userinfo cases passed, including replay and origin rejection |
-| Sign/PDF | Exact rebuilt image, Python resolver check, six Maven tests, synthetic mTLS signing and validation, tamper/unsigned/untrusted inputs and incremental-PDF preservation passed |
+| Sign/PDF | Exact rebuilt image, Python resolver check, six Maven tests, packaged pyHanko synthetic signing, actual mTLS validation and field preparation/filling, tamper/unsigned/untrusted inputs and incremental-PDF preservation passed |
 | Document rendering | Repeated HTML and LibreOffice rendering passed; configured request-size boundary and JavaScript-disabled behavior checked |
 | Ollama/Documents | Exact pinned BGE-M3 model produces finite normalized 1,024-dimensional vectors identical to the previous service for synthetic inputs; Documents alias checked |
 | Runtime policy | Canonical clean registry passes: 165 modules, 48,860 runtime actions; 321 changed records explicitly reviewed across accounting, foundation and operations |
@@ -161,8 +161,12 @@ installed cohort for this release and track optional-module inclusion and semant
 context normalization separately on the CIO card. No module was silently installed
 and no gate was relaxed.
 
-Authentication probes intercept the callback before Odoo: they do not claim a
-physical passkey ceremony or a full Odoo callback. Document-service probes do not
+Authentication probes use a fresh Pocket ID 2.19 database and intercept the
+callback before Odoo: they do not claim an old identity-database upgrade, physical
+passkey ceremony or full Odoo callback. DSS seal, data-to-sign/embed and
+manifest/sign endpoints were not exercised. Gotenberg size probes use explicit
+temporary 2 MB configuration. Ollama comparisons use a fresh exact-model cache,
+not an in-place cache upgrade. Document-service probes do not
 claim a Paperless database restore. Provider tests use offline fixtures; French
 live sending/reporting stays disabled. Browser smoke is focused and does not
 claim every application or history path was exercised. The fresh reviewer audited
@@ -172,6 +176,47 @@ Safe [final-source browser captures](../product/qa/upstream-sync-20261031/README
 show invented data only. Screenshots establish layout; functional outcomes were
 verified separately. No backup values, private identities, filenames, credentials
 or private logs are included in this public record.
+
+## Attachment-fixture recovery
+
+The first hosted full run after PR #359 reached 2,223 tests and reported one
+failure: an archive-history fixture supplied the removed `ir.attachment.datas`
+field. The previous upstream code silently discarded that key; the newer code
+rejects it. Comparing two false checksums could therefore pass without retaining
+any file bytes. This was missed by the focused local selection.
+
+The first full run spent about 35 minutes before the remaining browser phase.
+The retry allows 60 minutes instead of 40 for the full database job; every test
+and admission requirement remains. This adds execution headroom, not a skip.
+
+The bounded repair uses exact `raw` bytes in the archive fixture, development
+bootstrap create/update helper and Expense Batch QA receipt helper. It asserts
+nonempty checksum and exact bytes before and after archive recovery, and covers
+bootstrap UTF-8 content and same-record updates. The repaired archive test and
+full access suite pass locally (278 cases). Real ORM helper probes verify exact
+create/update UTF-8 bytes, receipt bytes and stable identity on repeat; their
+transaction is rolled back. A variant audit found no other
+active owned writer. Keep the accounting protected-field denylist and the adapter
+that removes an inherited OCA legacy key: those occurrences are intentional.
+Dormant OCA legacy callers are outside the delivered module closure.
+
+The failed run published no release and did not change deployed staging. The
+repository recovery protocol calls for reverting #359 to the exact previous
+qualified tree, then qualifying a separate corrected catch-up. Final delivery
+results belong on CIO #3472 and the corrected PR; this record does not claim the
+first hosted full run passed.
+
+## Service ownership
+
+These dependency changes update this repository's development/test/default pins
+and qualify candidate service images. They do not independently upgrade separately
+owned GitOps services. Pocket ID belongs to `com_unstaticlabs_auth`; Ollama belongs
+to `svc_odoo_ollama`. The Odoo promoter configures Odoo's external identity provider
+and embedding contract, not those services' images or databases. The GitOps Odoo
+stacks also retain a separately pinned Gotenberg image unless changed there.
+Sign/DSS is a promoted Odoo component. Any separate identity-database upgrade needs
+its own existing-data migration/rollback qualification; fresh-fixture results do
+not substitute for that rehearsal.
 
 ## Delivery
 

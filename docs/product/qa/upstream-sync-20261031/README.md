@@ -5,8 +5,10 @@ clean-install database, synthetic company, supplier and posted EUR 100 bill.
 All displayed names, references and amounts are invented. Desktop viewport:
 1440 × 900; mobile viewport: 390 × 844. Browser chrome is excluded.
 Each capture was visually inspected; JPEG metadata has only the standard JFIF
-header, with no EXIF, XMP, comments, paths or credentials. These captures show the
-final product source; later changes only add delivery documentation and images.
+header, with no EXIF, XMP, comments, paths or credentials. These captures predate the attachment-fixture repair. That repair changes tests,
+development seeders, CI time allowance and documentation, with no visible product
+change. They remain reference captures of the same UI code, not new screenshots
+of the later repair revision.
 
 ## Observed journey
 
