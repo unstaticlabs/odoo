@@ -126,6 +126,141 @@ class ModuleReleaseTests(unittest.TestCase):
         )
         self.assertEqual(validate_upgrade_plan(plan), plan)
 
+    def _foundation_release(self, identity, *, core="a", oca="b", constraints="c", policy="d", modules=None):
+        import hashlib
+        import json
+
+        result = release(identity, modules or self.active_inventory)
+        parts = {
+            "odoo_core_sha256": core * 64,
+            "oca_sha256": oca * 64,
+            "python_constraints_sha256": constraints * 64,
+            "security_policy_sha256": policy * 64,
+        }
+        result["foundation"] = {
+            **parts,
+            "digest": hashlib.sha256(
+                json.dumps(parts, sort_keys=True, separators=(",", ":")).encode(),
+            ).hexdigest(),
+        }
+        return result
+
+    def test_core_or_oca_content_change_updates_actual_installed_foundation(self):
+        for changed_part, reason in (
+            ("core", "odoo-core-changed"), ("oca", "oca-content-changed"),
+        ):
+            with self.subTest(changed_part=changed_part):
+                plan = derive_upgrade_plan(
+                    self._foundation_release("active"),
+                    self._foundation_release("candidate", **{changed_part: "e"}),
+                    {"base_product", "dependent"},
+                    installed_foundation_modules={"base", "iap", "account_reconcile_oca"},
+                )
+                expected = ["account_reconcile_oca", "base", "base_product", "dependent", "iap"]
+                self.assertEqual(plan["installed_modules"], expected)
+                self.assertEqual(plan["upgrade_modules"], expected)
+                self.assertEqual(plan["reasons"]["iap"], [reason])
+                self.assertEqual(validate_upgrade_plan(plan), plan)
+
+    def test_constraints_or_policy_change_does_not_reload_native_data(self):
+        for changed_part in ("constraints", "policy"):
+            with self.subTest(changed_part=changed_part):
+                plan = derive_upgrade_plan(
+                    self._foundation_release("active"),
+                    self._foundation_release("candidate", **{changed_part: "e"}),
+                    {"base_product", "dependent"},
+                    installed_foundation_modules={"base", "iap"},
+                )
+                self.assertEqual(plan["upgrade_modules"], ["base_product", "dependent"])
+                self.assertEqual(plan["installed_modules"], ["base", "base_product", "dependent", "iap"])
+                self.assertEqual(plan["reasons"]["base_product"], ["foundation-changed"])
+
+    def test_same_foundation_custom_edit_only_updates_affected_managed_closure(self):
+        candidate = inventory([
+            ("base_product", "1.0", [], "e", "b"),
+            ("dependent", "1.0", ["base_product"], "c", "d"),
+        ])
+        plan = derive_upgrade_plan(
+            self._foundation_release("active"),
+            self._foundation_release("candidate", modules=candidate),
+            {"base_product", "dependent"},
+            installed_foundation_modules={"base", "iap"},
+        )
+        self.assertEqual(plan["upgrade_modules"], ["base_product", "dependent"])
+        self.assertEqual(plan["installed_modules"], ["base", "base_product", "dependent", "iap"])
+
+    def test_unchanged_release_records_foundation_without_scheduling_updates(self):
+        plan = derive_upgrade_plan(
+            self._foundation_release("active"),
+            self._foundation_release("candidate"),
+            {"base_product", "dependent"},
+            installed_foundation_modules={"base", "iap"},
+        )
+        self.assertEqual(plan["upgrade_modules"], [])
+        self.assertEqual(plan["installed_modules"], ["base", "base_product", "dependent", "iap"])
+        self.assertEqual(validate_upgrade_plan(plan), plan)
+
+    def test_native_update_never_enables_uninstalled_optional_modules(self):
+        active = inventory([
+            ("usl_product", "1.0", ["base"], "a", "b"),
+            ("usl_optional", "1.0", ["iap"], "c", "d"),
+        ])
+        candidate = inventory([
+            ("usl_product", "1.0", ["base"], "a", "b"),
+            ("usl_optional", "1.0", ["iap"], "c", "d"),
+            ("usl_new", "1.0", ["base"], "e", "f"),
+        ])
+        plan = derive_upgrade_plan(
+            self._foundation_release("active", modules=active),
+            self._foundation_release("candidate", core="e", modules=candidate),
+            {"usl_product"},
+            installed_foundation_modules={"base", "iap"},
+        )
+        self.assertEqual(plan["installed_modules"], ["base", "iap", "usl_product"])
+        self.assertEqual(plan["upgrade_modules"], ["base", "iap", "usl_new", "usl_product"])
+        self.assertEqual(plan["reasons"]["usl_new"], ["new-product-module"])
+        self.assertNotIn("usl_optional", plan["upgrade_modules"])
+        self.assertEqual(validate_upgrade_plan(plan), plan)
+
+    def test_unknown_managed_module_is_not_hidden_by_foundation_input(self):
+        with self.assertRaisesRegex(ModuleReleaseError, "ambiguous: foreign"):
+            derive_upgrade_plan(
+                self._foundation_release("active"),
+                self._foundation_release("candidate", core="e"),
+                {"foreign"}, installed_foundation_modules={"base", "foreign"},
+            )
+
+    def test_omitted_foundation_input_preserves_previous_plan_shape(self):
+        plan = derive_upgrade_plan(
+            self._foundation_release("active"),
+            self._foundation_release("candidate", core="e"),
+            {"base_product", "dependent"},
+        )
+        self.assertEqual(plan["installed_modules"], ["base_product", "dependent"])
+        self.assertEqual(plan["upgrade_modules"], ["base_product", "dependent"])
+        self.assertEqual(validate_upgrade_plan(plan), plan)
+
+    def test_legacy_release_explicitly_updates_all_actual_installed_modules(self):
+        plan = derive_legacy_upgrade_plan(
+            self._foundation_release("candidate"), {"base_product", "dependent"},
+            active_identity="legacy-digest",
+            installed_foundation_modules={"base", "iap"},
+        )
+        self.assertEqual(plan["installed_modules"], ["base", "base_product", "dependent", "iap"])
+        self.assertEqual(plan["upgrade_modules"], plan["installed_modules"])
+        self.assertEqual(plan["reasons"]["iap"], ["legacy-v2-release-has-no-module-inventory"])
+        self.assertEqual(validate_upgrade_plan(plan), plan)
+
+    def test_native_module_list_is_covered_by_the_plan_digest(self):
+        plan = derive_upgrade_plan(
+            self._foundation_release("active"),
+            self._foundation_release("candidate", core="e"),
+            {"base_product", "dependent"}, installed_foundation_modules={"base", "iap"},
+        )
+        plan["upgrade_modules"].remove("iap")
+        with self.assertRaisesRegex(ModuleReleaseError, "digest differs"):
+            validate_upgrade_plan(plan)
+
     def test_inventory_ignores_python_and_test_cache_files(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

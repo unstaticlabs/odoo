@@ -2041,6 +2041,9 @@ export class PosStore extends WithLazyGetterTrap {
                     resId: product?.id,
                     onSave: async (record) => {
                         await this.loadNewProducts([["id", "=", record.evalContext.id]]);
+                        if (this.selectedCategory?.id && !this.productsToDisplay.length) {
+                            this.setSelectedCategory(0);
+                        }
                         this.action.doAction({
                             type: "ir.actions.act_window_close",
                         });
@@ -2188,40 +2191,42 @@ export class PosStore extends WithLazyGetterTrap {
                           list: selectionList,
                           size: "md",
                       });
+            // Keep the existing preset if the user cancels the selection popup.
+            if (!preset && order.preset_id) {
+                return;
+            }
         }
+        preset ??= this.config.default_preset_id;
+        order.setPreset(preset);
 
-        if (preset) {
-            order.setPreset(preset);
-
-            if (preset.needsPartner) {
-                const partner = order.partner_id || (await this.selectPartner(order));
-                if (!partner) {
+        if (preset.needsPartner) {
+            const partner = order.partner_id || (await this.selectPartner(order));
+            if (!partner) {
+                return;
+            }
+            if (!(partner.street || partner.street2)) {
+                this.notification.add(_t("Customer address is required"), { type: "warning" });
+                await this.editPartner(partner);
+                if (!(partner.street || partner.street2)) {
                     return;
                 }
-                if (!(partner.street || partner.street2)) {
-                    this.notification.add(_t("Customer address is required"), { type: "warning" });
-                    await this.editPartner(partner);
-                    if (!(partner.street || partner.street2)) {
-                        return;
-                    }
-                }
             }
+        }
 
-            if (preset.identification === "name") {
-                await this.handleSelectNamePreset(order);
-                // re-set the order in case an order was selected from the current orders list in the EditOrderNamePopup
-                order = this.getOrder();
-            }
+        if (preset.identification === "name") {
+            await this.handleSelectNamePreset(order);
+            // re-set the order in case an order was selected from the current orders list in the EditOrderNamePopup
+            order = this.getOrder();
+        }
 
-            if (preset.use_timing && !order.preset_time) {
-                await this.openPresetTiming(order);
-                if (!order.preset_time) {
-                    await this.syncPresetSlotAvaibility(preset);
-                    order.preset_time = preset.nextSlot?.datetime || false;
-                }
-            } else if (!preset.use_timing) {
-                order.preset_time = false;
+        if (preset.use_timing && !order.preset_time) {
+            await this.openPresetTiming(order);
+            if (!order.preset_time) {
+                await this.syncPresetSlotAvaibility(preset);
+                order.preset_time = preset.nextSlot?.datetime || false;
             }
+        } else if (!preset.use_timing) {
+            order.preset_time = false;
         }
     }
     orderUsageUTCtoLocal(data) {
@@ -2705,11 +2710,26 @@ export class PosStore extends WithLazyGetterTrap {
     }
 
     async validateOrderFast(paymentMethod) {
+        const order = this.getOrder();
         const validation = new OrderPaymentValidation({
             pos: this,
-            orderUuid: this.getOrder().uuid,
+            orderUuid: order.uuid,
             fastPaymentMethod: paymentMethod,
         });
+        if (paymentMethod.payment_method_type === "bank_qr_code") {
+            const qrPaymentLines = order.payment_ids.filter(
+                (l) => l.payment_method_id.id === paymentMethod.id
+            );
+            if (!qrPaymentLines.length) {
+                return;
+            }
+            const line = qrPaymentLines[qrPaymentLines.length - 1];
+            const resp = await this.showQR(line);
+            if (!line.handlePaymentResponse(resp)) {
+                order.removePaymentline(line);
+                return;
+            }
+        }
         await validation.validateOrder(false);
     }
 
