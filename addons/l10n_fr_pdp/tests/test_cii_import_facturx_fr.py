@@ -45,16 +45,23 @@ class TestL10nFrPdpXmlCiiImport(TestL10nFrPdpCommon):
         # second type of final invoice: downpayments lines are not present in the invoice.
         # downpayment amount is noted as a prepaid amount.
         # At import, we search for the downpayments and copy the lines from them.
+        source_moves = downpayment_invoice | downpayment_refund
+        source_columns = ['move_id', 'balance', 'amount_currency', 'matched_debit_ids', 'matched_credit_ids']
+        source_snapshot = source_moves.line_ids.read(source_columns)
         final_invoice_prepaid_amount = self._import_invoice_as_attachment_on('facturx_fr_in_final_invoice_prepaid_amount')
         final_invoice_prepaid_amount.action_post()
         self.assertEqual(final_invoice_prepaid_amount.move_type, 'in_invoice')
         self.assertEqual(final_invoice_prepaid_amount.amount_untaxed, 1260.00)
         self.assertEqual(final_invoice_prepaid_amount.amount_total, 1512.00)
-        self.assertRecordValues(final_invoice_prepaid_amount.invoice_line_ids, [
+        # Deductions are created only after the final invoice's own lines.
+        # Financial content is independent of incidental database row order.
+        self.assertRecordValues(final_invoice_prepaid_amount.invoice_line_ids.sorted('price_subtotal'), [
             {'price_subtotal': -200.0, 'price_total': -240.0},
             {'price_subtotal': -80.0, 'price_total': -96.0},
-            {'price_subtotal': 100.0, 'price_total': 120.0},
             {'price_subtotal': 40.0, 'price_total': 48.0},
-            {'price_subtotal': 1000.0, 'price_total': 1200.0},
+            {'price_subtotal': 100.0, 'price_total': 120.0},
             {'price_subtotal': 400.0, 'price_total': 480.0},
+            {'price_subtotal': 1000.0, 'price_total': 1200.0},
         ])
+        self.assertEqual(source_moves.line_ids.read(source_columns), source_snapshot)
+        self.assertEqual(set(source_moves.mapped('state')), {'posted'})
