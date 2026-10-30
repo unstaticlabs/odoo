@@ -154,8 +154,12 @@ with the original backup proves all four predate this upgrade: the optional
 stored display label; and two Feedback contexts use different numeric IDs that
 resolve to the same declared Product Feedback XML ID. The original and upgraded
 action fields are identical. These are not reported as an exact private-runtime
-pass. Optional-module inclusion and release-path implications are tracked on the
-PR and CIO card; no module was silently installed and no gate was relaxed.
+pass. The current GitOps staging path does not invoke that exact-cohort comparator;
+it validates compiled policy artifacts and runs health, smoke, preservation and
+control checks. Clean CI retains the strict canonical comparator. Preserve the
+installed cohort for this release and track optional-module inclusion and semantic
+context normalization separately on the CIO card. No module was silently installed
+and no gate was relaxed.
 
 Authentication probes intercept the callback before Odoo: they do not claim a
 physical passkey ceremony or a full Odoo callback. Document-service probes do not
