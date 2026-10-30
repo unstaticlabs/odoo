@@ -1,5 +1,10 @@
 # Expense posting review QA
 
+**Historical captures of the superseded implementation.** The product owner
+rejected this journey on 22 October 2026. These images describe the older
+illustrative revision only; they are not evidence of the final tested interface.
+See [the 30 October replacement captures](../expense-payment-candidates-20261030/README.md).
+
 Captured on 17 October 2026 against product source `cc5557cb21408f1713eec5703235fffa0c957188`. All people, companies, amounts and references are invented disposable fixtures. These French screenshots use an ordinary native expense manager in a standalone 98-module QA database. Canonical 164-module API and preservation qualification is separate.
 
 1. `01-approved-before-post.jpg`: approved company expense before posting; no cached suggestions are needed.
