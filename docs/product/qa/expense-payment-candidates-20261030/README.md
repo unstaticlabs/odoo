@@ -47,3 +47,12 @@ credentials, real contacts, financial details, document contents, browser addres
 bars and local paths. Only synthetic QA content appears. Each PNG contains only
 IHDR, IDAT and IEND chunks; it has no EXIF, XMP, IPTC, text or comment metadata.
 Capture sidecars remain outside the repository.
+
+
+## Combined delivery qualification
+
+The final stack combines PR302 with PR287 and PR304. All 108 selected bank-rule, expense, native attachment and delegated workflow tests pass together in an isolated 165-module registry. Both module upgrades preserve every original frozen row. Fresh runtime discovery matches 48,855 runtime actions and 57,586 total source actions; the product/migration boundary passes.
+
+The final combined policy is `a1bd26b56c5850339662bc5f7ae46b691c5bcb4ea985e7cc3eb4fab37526cb47`. Native bank-match confirmation is described as an operational posting/reconciliation workflow. Existing native authority and the protected runtime policy remain unchanged.
+
+After PR287 and PR304 landed at staging `c0e89c6eff3c54b589cd50821e6504fa5b8b8b09`, the remaining branch was aligned with that exact head. Git's merge-tree result equals qualified stack `ae3accb596c178361c94ca97a934680f7fd7724a`; no product, operation or policy bytes change in this lineage alignment. The captures continue to show the unchanged qualified expense implementation.
