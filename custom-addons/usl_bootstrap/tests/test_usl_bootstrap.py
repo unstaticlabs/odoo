@@ -1,5 +1,7 @@
 from odoo.tests import TransactionCase, tagged
 
+from ..hooks import Bootstrap
+
 
 @tagged("post_install", "-at_install")
 class TestUslBootstrap(TransactionCase):
@@ -38,3 +40,14 @@ class TestUslBootstrap(TransactionCase):
             model = self.env[model_name]
             for pattern in forbidden_patterns:
                 self.assertFalse(model.search([(field_name, "ilike", pattern)], limit=1), f"{model_name}.{field_name} contains {pattern}")
+
+    def test_attachment_keeps_exact_bytes_when_created_and_updated(self):
+        task = self.env["project.task"].create({"name": "Synthetic attachment QA"})
+        seed = Bootstrap(self.env)
+        attachment = seed._attach(task, "Synthetic fixture.txt", "Synthetic café\n")
+        self.assertEqual(attachment.raw.content, "Synthetic café\n".encode())
+        self.assertTrue(attachment.checksum)
+        replacement = seed._attach(task, "Synthetic fixture.txt", "Updated café\n")
+        self.assertEqual(replacement, attachment)
+        self.assertEqual(replacement.raw.content, "Updated café\n".encode())
+        self.assertTrue(replacement.checksum)

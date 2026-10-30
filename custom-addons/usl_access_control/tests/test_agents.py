@@ -1517,8 +1517,10 @@ class TestAutonomousAgents(TransactionCase):
         })
         attachment = self.env["ir.attachment"].create({
             "name": "[QA] Synthetic history.txt", "res_model": "project.task", "res_id": task.id,
-            "datas": "U1lOVEhFVElDCg==", "mimetype": "text/plain",
+            "raw": b"SYNTHETIC\n", "mimetype": "text/plain",
         })
+        self.assertEqual(attachment.raw.content, b"SYNTHETIC\n")
+        self.assertTrue(attachment.checksum)
         checksum = attachment.checksum
         for record in (task, project):
             access = UslAgentJson2Controller._check_agent_call(
@@ -1534,6 +1536,7 @@ class TestAutonomousAgents(TransactionCase):
         self.assertTrue(child.active)
         self.assertTrue(attachment.exists())
         self.assertEqual(attachment.checksum, checksum)
+        self.assertEqual(attachment.raw.content, b"SYNTHETIC\n")
         self.assertEqual(attachment.res_id, task.id)
         self.assertEqual(task.message_ids.ids, messages)
 
