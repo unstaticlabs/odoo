@@ -78,4 +78,10 @@ class UslExpenseBankMatchWizard(models.TransientModel):
 
     def action_confirm(self):
         self.ensure_one()
-        return self.candidate_id._apply_match()
+        action = self.candidate_id._apply_match()
+        review_id = self.env.context.get("usl_employee_payment_review_id")
+        if review_id:
+            review = self.env["hr.expense.post.wizard"].browse(review_id).exists()
+            if review:
+                return review._usl_after_bank_match(self.expense_id)
+        return action
